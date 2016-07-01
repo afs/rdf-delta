@@ -18,7 +18,10 @@
 
 package org.seaborne.delta;
 
+import java.io.File ;
 import java.util.concurrent.atomic.AtomicInteger ;
+import java.util.regex.Matcher ;
+import java.util.regex.Pattern ;
 
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
@@ -30,10 +33,22 @@ public class DPS {
     
     static final String FILEBASE    = "Files" ;
     static final String BASEPATTERN = FILEBASE+"/patch-%04d" ;
-    static final String TMPBASE     = FILEBASE+"/tmp-%04d" ;
-    static AtomicInteger counter    = new AtomicInteger(10) ;
+    static final String TMPBASE     = FILEBASE+"/tmp-%03d" ;
     
-    static AtomicInteger tmpCounter = new AtomicInteger(0) ;
+    /* Patch file counter.
+     *  This is the index of the highest used number.
+     *  File naming usually begins at 0001.   
+     */
+    static final AtomicInteger counter ;
+    static {
+        int x = scanForPatchIndex() ;
+        if ( x == -1 )
+            x = 0 ;
+        LOG.info("Patch base index = "+x);
+        counter = new AtomicInteger(x) ;
+    }
+    
+    static final AtomicInteger tmpCounter = new AtomicInteger(0) ;
     
     public static String tmpFilename() {
         return String.format(TMPBASE, tmpCounter.incrementAndGet()) ;
@@ -48,4 +63,35 @@ public class DPS {
     public static String nextPatchFilename() {
         return patchFilename(counter.incrementAndGet()) ;
     }
+    
+    /** Highest in-use patch number */ 
+    public static int scanForPatchIndex() {
+        return scanForIndex(FILEBASE, "patch-") ;
+    }
+    
+    // TODO recovery from tmp files.
+    
+    /** Find the highest index in a directpry of files */
+    public static int scanForIndex(String directory, String namebase) {
+        // TODO Come back and make efficient??
+        // - e.g. a PersistentCounter and scan up from there only
+        // - or no scan and combinew with the safe-write dance. 
+        Pattern pattern = Pattern.compile(namebase+"([0-9]*)") ;
+        int max = -1 ;
+        String[] x = new File(directory).list() ;
+        for ( String fn : x ) {
+            Matcher m = pattern.matcher(fn) ;
+            if ( ! m.matches() ) {              // anchored
+                LOG.info("No match: "+fn) ;
+                continue ;
+            }
+            LOG.info("Match:    "+fn) ;
+            String numStr = m.group(1) ;
+            int num = Integer.parseInt(numStr) ;
+            max = Math.max(max, num) ;
+        }
+        return max ;
+    }
+    
+    public static void init() { }
 }

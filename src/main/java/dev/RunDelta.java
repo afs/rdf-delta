@@ -34,9 +34,10 @@ import org.apache.jena.update.UpdateAction ;
 import org.apache.jena.update.UpdateFactory ;
 import org.apache.jena.update.UpdateRequest ;
 import org.seaborne.delta.DP ;
+import org.seaborne.delta.Txn ;
 import org.seaborne.delta.server.DataPatchServer ;
 
-public class RunDev {
+public class RunDelta {
     public static void main(String[] args) throws IOException {
         
         if ( false )
@@ -53,16 +54,21 @@ public class RunDev {
         Dataset ds = DatasetFactory.wrap(dsg) ;
         
         String template = "INSERT DATA { <http://example/s> <http://example/p> 'XXX'^^<"+XSDDatatype.XSDdateTime.getURI()+">} ";   
-        
+
+        if ( true ) {
+            DP.syncData(ds.asDatasetGraph()) ;
+            System.out.println("==== Sync'ed.");
+            Txn.execRead(ds, ()->RDFDataMgr.write(System.out, ds, Lang.TRIG)) ;
+            System.out.println("== Exit") ;
+            System.exit(0) ;
+        }
+
         for ( int i = 0 ; i < 1 ; i++ ) {
-//            System.out.println("Ready "+i);
-//            System.in.read() ;
+            System.out.println("Ready "+i);
+            System.in.read() ;
             String s = template.replace("XXX", DateTimeUtils.nowAsString()) ;
             UpdateRequest req = UpdateFactory.create(s) ;
             
-//            DP.syncData(ds.asDatasetGraph()) ;
-//            System.out.println("==== Sync'ed.");
-//            Txn.execRead(ds, ()->RDFDataMgr.write(System.out, ds, Lang.TRIG)) ;
             
             DP.syncExecW(ds.asDatasetGraph(), () -> { 
                 System.out.println("==== Before update");

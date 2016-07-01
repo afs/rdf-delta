@@ -18,5 +18,5 @@
 
 package dev;
 
-public class RunClient {
+public class RunDeltaClient {
 }

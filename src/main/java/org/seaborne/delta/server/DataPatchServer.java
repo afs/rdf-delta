@@ -24,6 +24,7 @@ import org.eclipse.jetty.server.Server ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
+import org.seaborne.delta.DPS ;
 
 /** A simple packaging of Jetty to provide an embeddable HTTP server that just support servlets */ 
 public class DataPatchServer {
@@ -33,6 +34,8 @@ public class DataPatchServer {
     private ServletHandler handler ;
 
     public DataPatchServer(int port) {
+        //Init file store.
+        DPS.init() ;
         server = new Server(port) ;
         ErrorHandler eh = new ErrorHandlerDataPatch() ;
         eh.setServer(server);

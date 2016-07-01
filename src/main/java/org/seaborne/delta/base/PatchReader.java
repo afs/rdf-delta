@@ -74,6 +74,7 @@ public class PatchReader {
                 if ( oneTransaction && b )
                     return true ;
             } catch (Exception ex) {
+                ex.printStackTrace(System.err) ;
                 sink.txnAbort();
                 return false ;
             }

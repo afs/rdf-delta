@@ -19,7 +19,7 @@ package dev;
 
 import org.seaborne.delta.server.DataPatchServer ;
 
-public class RunServer {
+public class RunDeltaServer {
     public static void main(String...arg) {
         DataPatchServer server = new DataPatchServer(1066) ;
         server.start();

@@ -73,6 +73,9 @@ public class DP {
     public static void syncData(DatasetGraph dsg) {
         DatasetGraphChangesVersion dsgc = (DatasetGraphChangesVersion)dsg ;
         // Update to latest.
+        // Needs to work on raw dataset.
+        
+        DatasetGraph dsgBase = dsgc.getBase() ;
         
         for ( ;; ) {
             int x = lastPatchFetch.get()+1 ;
@@ -81,9 +84,11 @@ public class DP {
                 break ;
             System.out.println("Apply patch "+x);
             lastPatchFetch.incrementAndGet() ;
-            dsgc.localVersion.set(x) ;
-            StreamChanges sc = new StreamChangesApply(dsgc) ;
+            
+            StreamChanges sc = new StreamChangesApply(dsgc.getWrapped()) ;
             patchReader.apply(sc) ;
+            
+            dsgc.localVersion.set(x) ;
         }
     }
 }
