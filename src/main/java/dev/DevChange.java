@@ -22,8 +22,9 @@ package dev;
 public class DevChange {
     // Reader and Writer
     // Counters
-    // Pipelines vs stacks
     // Replace tio ... or tio without prefixes etc.
-    // Experiment : 3 systems : oen to update , one to manage patches (no DB), one to query 
+    // Experiment : 3 systems : one to update , one to manage patches (no DB), one to query
+    
+    // Recover from tmp files
     
 }

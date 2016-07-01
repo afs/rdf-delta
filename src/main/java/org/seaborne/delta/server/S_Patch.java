@@ -36,9 +36,10 @@ import org.slf4j.LoggerFactory ;
 
 /** Receive an incoming patch file and put on disk (safely : something else may try to read it while its being written. */ 
 public class S_Patch extends ServletBase {
-    
     // Push a file.
     static public Logger         LOG     = LoggerFactory.getLogger("Patch") ;
+    
+    static boolean verbose = false ;
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -55,8 +56,10 @@ public class S_Patch extends ServletBase {
                 break ;
             String dst = DPS.nextPatchFilename() ;
             String s = DPS.tmpFilename() ;
-            LOG.info("<<<<-----------------") ;
-            LOG.info("# Patch = "+dst+"("+s+")") ;
+            if ( verbose ) {
+                LOG.info("<<<<-----------------") ;
+                LOG.info("# Patch = "+dst+"("+s+")") ;
+            }
             // read one.
             try ( OutputStream output = output(s) ) {
                 // TODO Abrupt end?
@@ -64,7 +67,9 @@ public class S_Patch extends ServletBase {
                 boolean b = scr.apply1(scWriter) ;
             } // close flushes.
             move(s, dst) ;
-            LOG.info(">>>>-----------------") ;
+            if ( verbose ) {
+                LOG.info(">>>>-----------------") ;
+            }
         }
         resp.setContentLength(0);
         resp.setStatus(HttpSC.NO_CONTENT_204) ;
@@ -89,7 +94,9 @@ public class S_Patch extends ServletBase {
         
         OutputStream out = new FileOutputStream(s) ;
         out = new BufferedOutputStream(out) ;
-        
+        if ( ! verbose )
+            return out ;
+        // Copy to stdout.
         OutputStream out2 = new FilterOutputStream(System.out) { 
             @Override public void close() {}
         } ;

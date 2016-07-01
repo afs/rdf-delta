@@ -23,6 +23,7 @@ import java.io.IOException ;
 import org.apache.jena.atlas.lib.DateTimeUtils ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.Lib ;
+import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.datatypes.xsd.XSDDatatype ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
@@ -38,6 +39,8 @@ import org.seaborne.delta.Txn ;
 import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDelta {
+    static { LogCtl.setJavaLogging(); }
+    
     public static void main(String[] args) throws IOException {
         
         if ( false )
@@ -53,19 +56,19 @@ public class RunDelta {
         DatasetGraph dsg = DP.managedDatasetGraph(ds1.asDatasetGraph(), DP.PatchContainer) ;
         Dataset ds = DatasetFactory.wrap(dsg) ;
         
-        String template = "INSERT DATA { <http://example/s> <http://example/p> 'XXX'^^<"+XSDDatatype.XSDdateTime.getURI()+">} ";   
+        String template = "INSERT DATA { <http://example/s> <http://example/p> 'XXX'} ";   
 
-        if ( true ) {
-            DP.syncData(ds.asDatasetGraph()) ;
-            System.out.println("==== Sync'ed.");
-            Txn.execRead(ds, ()->RDFDataMgr.write(System.out, ds, Lang.TRIG)) ;
-            System.out.println("== Exit") ;
-            System.exit(0) ;
-        }
+//        if ( true ) {
+//            DP.syncData(ds.asDatasetGraph()) ;
+//            System.out.println("==== Sync'ed.");
+//            Txn.execRead(ds, ()->RDFDataMgr.write(System.out, ds, Lang.TRIG)) ;
+//            System.out.println("== Exit") ;
+//            System.exit(0) ;
+//        }
 
-        for ( int i = 0 ; i < 1 ; i++ ) {
-            System.out.println("Ready "+i);
-            System.in.read() ;
+        for ( int i = 0 ; i < 2 ; i++ ) {
+            System.out.println("Update "+i);
+//            System.in.read() ;
             String s = template.replace("XXX", DateTimeUtils.nowAsString()) ;
             UpdateRequest req = UpdateFactory.create(s) ;
             

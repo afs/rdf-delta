@@ -46,8 +46,10 @@ public class ServletBase extends HttpServlet {
         try { 
             // "there is no need to override this method"!!!
             super.service(req, resp);
-            String x = RequestLog.combinedNCSA(req, resp) ;
-            logger.info(x);
+            if ( false ) {
+                String x = RequestLog.combinedNCSA(req, resp) ;
+                logger.info(x);
+            }
         } catch (Exception ex) {
             
         }

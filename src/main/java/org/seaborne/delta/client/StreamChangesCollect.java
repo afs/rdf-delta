@@ -28,9 +28,12 @@ import org.apache.http.entity.ByteArrayEntity ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.seaborne.delta.base.StreamChangesWriter ;
+import org.slf4j.Logger ;
+import org.slf4j.LoggerFactory ;
 
 /** Collect the bytes of a chnage stream, then write to HTTP */ 
 public class StreamChangesCollect extends StreamChangesWriter {
+    private static final Logger LOG = LoggerFactory.getLogger(StreamChangesCollect.class) ;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes  ;
     private final String url ;
@@ -59,15 +62,19 @@ public class StreamChangesCollect extends StreamChangesWriter {
         HttpPost postRequest = new HttpPost(url) ;
         byte[] bytes = collected() ;
         String s = new String(bytes, StandardCharsets.UTF_8) ;
-        System.out.println("== Sending ...") ;
-        System.out.print(s) ;
-        if ( ! s.endsWith("\n") )
-            System.out.println() ;
-        System.out.println("== ==") ;
+        if ( false ) {
+            System.out.println("== Sending ...") ;
+            System.out.print(s) ;
+            if ( ! s.endsWith("\n") )
+                System.out.println() ;
+            System.out.println("== ==") ;
+        }
         postRequest.setEntity(new ByteArrayEntity(bytes)) ;
-        
+
         try(CloseableHttpResponse r = httpClient.execute(postRequest)) {
-            System.out.println("SC="+r.getStatusLine().getStatusCode()) ;
+            int sc = r.getStatusLine().getStatusCode() ;
+            if ( sc < 200 || sc >= 300 )
+                LOG.warn("HTTP response: "+r.getStatusLine()) ;
         }
         catch (IOException e) { e.printStackTrace(); }
         this.bytes.reset(); 

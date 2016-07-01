@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger ;
 
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
+import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.base.PatchReader ;
 
 public class LibPatchFetcher {
@@ -49,8 +50,10 @@ public class LibPatchFetcher {
                 return null ;
             return new PatchReader(in) ;
         } catch (HttpException ex) {
-            System.err.println("HTTP Exception: "+ex.getMessage()) ;
-            return null ;
+            if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )
+                return null ;
+            ex.printStackTrace(System.err) ;
+            throw ex ;
         }
     }
 
