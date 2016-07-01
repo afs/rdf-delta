@@ -51,6 +51,16 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-core</artifactId>
       <version>${ver.fuseki}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -62,6 +72,13 @@
      <!-- Require a logging implementation -->
     <dependency>
       <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>1.7.21</version>
+    </dependency>
+
+    <!--
+    <dependency>
+      <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>1.7.21</version>
     </dependency>
@@ -71,6 +88,7 @@
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
     </dependency> 
+    -->
 
   </dependencies>
 
