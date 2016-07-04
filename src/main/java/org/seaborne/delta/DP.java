@@ -62,10 +62,16 @@ public class DP {
         scc.start();    
         
         dsg.begin(ReadWrite.WRITE) ;
-        action.run() ;
-        dsg.commit();
+        try {
+            action.run() ;
+            dsg.commit();
+        } catch (Throwable th) {
+            dsg.abort();
+            dsg.end() ;
+            scc.finish();
+            throw th ; 
+        }
         dsg.end() ;
-
         scc.send() ;
         scc.finish();
     }
@@ -75,7 +81,7 @@ public class DP {
         // Update to latest.
         // Needs to work on raw dataset.
         
-        DatasetGraph dsgBase = dsgc.getBase() ;
+        DatasetGraph dsgBase = dsgc.getWrapped() ;
         
         for ( ;; ) {
             int x = lastPatchFetch.get()+1 ;

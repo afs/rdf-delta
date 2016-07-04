@@ -24,12 +24,33 @@ import java.util.logging.Formatter ;
 import java.util.logging.LogManager ;
 import java.util.logging.LogRecord ;
 
-/** A pattern-like log formatter */
+/** A pattern-driven log formatter.
+ * inspired by Log4j's PatternLayout
+ * Set a different output pattern with {@code .format}.
+ * <p>
+ * The default format is {@code "%5$tT %3$-5s %2$-20s :: %6$s\n"}.
+ * <ul>
+ * <li>"%5$tT.%5$tL %3$-5s %2$-20s :: %6$s\n" for milliseconds.
+ * <li>"%tF %5$tT.%5$tL %3$-5s %2$-20s :: %6$s\n" for date
+ * </ul>
+ * <p>
+ * The log message formatting call is:
+ * <pre>
+ *     String.format(format, 
+ *                   loggerName,                        // 1
+ *                   loggerNameShort,                   // 2
+ *                   record.getLevel(),                 // 3
+ *                   Thread.currentThread().getName(),  // 4
+ *                   new Date(record.getMillis()),      // 5
+ *                   formatted$) ;                      // 6
+ * </pre>
+ * where {@code formatted$} is the {@link LogRecord} message string after parameters have been processed. 
+ */
 public class TextFormatter extends Formatter
 {
     // %tT (%5$tT) is %5$tH:%5$tM:%5$tS
     // %tF is 2008-11-22 "%tY-%tm-%td"
-    private String format = "%5$tT %3$-5s %1$-20s :: %6$s\n" ;
+    private String format = "%5$tT %3$-5s %2$-20s :: %6$s\n" ;
     
     public TextFormatter() {
         LogManager manager = LogManager.getLogManager() ;

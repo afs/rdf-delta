@@ -23,8 +23,8 @@ import java.io.IOException ;
 import org.apache.jena.atlas.lib.DateTimeUtils ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.Lib ;
+import org.apache.jena.atlas.lib.StrUtils ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.datatypes.xsd.XSDDatatype ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.riot.Lang ;
@@ -43,15 +43,46 @@ public class RunDelta {
     
     public static void main(String[] args) throws IOException {
         
-        if ( false )
+        if ( true )
             FileOps.clearDirectory("Files");
         
         DataPatchServer server = new DataPatchServer(1066) ;
         server.start();
-        dev() ;
+        
+        // One datasets
+        dev1() ;
+        // Two datasets.
+        //dev2() ;
     }
     
-    public static void dev() throws IOException {
+    public static void dev2() throws IOException {
+        Dataset ds1 = TDBFactory.createDataset() ;
+        Dataset ds2 = DatasetFactory.createTxnMem() ;
+        
+        String updateStr = StrUtils.strjoinNL
+            ("INSERT DATA { <http://example/s> <http://example/p> 'XXX', 'X1' } ; "
+            ,"DELETE DATA { <http://example/s> <http://example/p> 'X1' } ;"
+            ) ;
+        UpdateRequest req = UpdateFactory.create(updateStr) ;
+        
+        DP.syncExecW(ds1.asDatasetGraph(), () -> { 
+            System.out.println("==== Before update");
+            RDFDataMgr.write(System.out, ds1, Lang.TRIG) ;
+            UpdateAction.execute(req, ds1) ;
+            System.out.println("==== After update");
+            RDFDataMgr.write(System.out, ds1, Lang.TRIG) ;
+            System.out.println("====") ;
+        }) ;
+        
+        if ( true ) {
+          DP.syncData(ds2.asDatasetGraph()) ;
+          System.out.println("==== Sync'ed.");
+          Txn.execRead(ds2, ()->RDFDataMgr.write(System.out, ds2, Lang.TRIG)) ;
+          System.out.println("== Exit") ;
+      }
+    }
+    
+    public static void dev1() throws IOException {
         Dataset ds1 = TDBFactory.createDataset() ;
         DatasetGraph dsg = DP.managedDatasetGraph(ds1.asDatasetGraph(), DP.PatchContainer) ;
         Dataset ds = DatasetFactory.wrap(dsg) ;
