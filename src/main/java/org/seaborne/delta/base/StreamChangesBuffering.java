@@ -18,19 +18,19 @@
 
 package org.seaborne.delta.base;
 
-import java.util.ArrayList ;
+import java.util.LinkedList ;
 import java.util.List ;
 
+import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
 
-public class StreamChangesSink implements StreamChanges {
+/** Capture a stream of changes, then  play it to another {@link StreamChanges} */
+public class StreamChangesBuffering implements StreamChanges {
 
-    private List<Object> actions = new ArrayList<>() ;
+    private List<Object> actions = new LinkedList<>() ; // ArrayList<>() ; // LinkedList better?
     
     public void play(StreamChanges target) {
-        // Isolate with a copy. Concurrency (sometime).
-        List<Object> actions = new ArrayList<>(this.actions) ;
         actions.forEach(a -> {
             if ( a instanceof AddQuad ) {
                 AddQuad a2 = (AddQuad)a ;
@@ -68,7 +68,7 @@ public class StreamChangesSink implements StreamChanges {
                 target.txnAbort();
                 return ;
             }
-            System.err.println("Unrecognized action: "+a) ;
+            System.err.println("Unrecognized action: "+Lib.className(a)+" : "+a) ;
         }) ;
         
     }
@@ -100,6 +100,8 @@ public class StreamChangesSink implements StreamChanges {
             this.o = o ;
         }
     }
+    
+    // Tedious.
 
     private static class AddPrefix {
         final Node gn ;
@@ -145,7 +147,7 @@ public class StreamChangesSink implements StreamChanges {
     
     private static class TxnAbort { }
 
-    public StreamChangesSink() { }
+    public StreamChangesBuffering() { }
 
     private void collect(Object object) { 
         actions.add(object) ;
@@ -156,6 +158,10 @@ public class StreamChangesSink implements StreamChanges {
 
     @Override
     public void finish() {}
+
+    public void reset() {
+        actions.clear();
+    }
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {

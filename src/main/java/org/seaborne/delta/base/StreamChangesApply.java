@@ -24,6 +24,7 @@ import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 
+/** apply chanages to a {@link DatasetGraph} */ 
 public class StreamChangesApply implements StreamChanges {
     
     private DatasetGraph dsg ;
