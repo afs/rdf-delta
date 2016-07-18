@@ -30,8 +30,8 @@ import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
+import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
-import org.seaborne.delta.Txn ;
 import org.seaborne.delta.base.* ;
 
 public class DevTrack {
@@ -82,7 +82,7 @@ public class DevTrack {
             // Delayed style.
             Dataset ds1 = DatasetFactory.createTxnMem() ;
             Dataset ds2 = TDBFactory.createDataset() ;
-            StreamChangesSink changes = new StreamChangesSink() ;
+            StreamChangesBuffering changes = new StreamChangesBuffering() ;
             DatasetGraph dsg = new DatasetGraphChanges(ds1.asDatasetGraph(), changes) ;
             Txn.execWrite(dsg, ()-> {
     //            dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://example/") ;

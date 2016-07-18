@@ -30,12 +30,12 @@ import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.apache.jena.update.UpdateAction ;
 import org.apache.jena.update.UpdateFactory ;
 import org.apache.jena.update.UpdateRequest ;
 import org.seaborne.delta.DP ;
-import org.seaborne.delta.Txn ;
 import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDelta {
