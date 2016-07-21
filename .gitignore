@@ -31,3 +31,7 @@ hs_err_pid*
 **/run/system/
 DB*
 Files/
+
+## Developement files
+*.dlt
+config.ttl
