@@ -16,21 +16,31 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.base;
 
+import org.apache.jena.graph.Node ;
+import org.apache.jena.sparql.core.DatasetGraph ;
 
-public class DevChange {
-    // Reader and Writer
-    // Counters
-    // Replace tio ... or tio without prefixes etc.
-    // Experiment : 3 systems : one to update , one to manage patches (no DB), one to query
-    
-    // Recover from tmp files
-    
-    // DatasetGraphBuffering
-    // StreamChangesBuffering
-    
-    // check prefix changes implemented
-    //   Not in: DatasetGraphRealChanges
-    
+// ?? Prefixes.
+public class DatasetGraphRealChanges extends AbstractDatasetGraphAddDelete {
+    /** With checking, the StreamChanges becomes reversible */ 
+    protected final boolean checking = true ; 
+
+    public DatasetGraphRealChanges(DatasetGraph dsg) { 
+        super(dsg) ; 
+    }
+
+    @Override
+    protected void actionAdd(Node g, Node s, Node p, Node o) {
+        if ( checking && get().contains(g, s, p, o) )
+            return ;
+        get().add(g, s, p, o); 
+    }
+
+    @Override
+    protected void actionDelete(Node g, Node s, Node p, Node o) {
+        if ( checking && ! get().contains(g, s, p, o) )
+            return ;
+        get().delete(g, s, p, o); 
+    }
 }

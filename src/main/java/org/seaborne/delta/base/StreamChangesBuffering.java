@@ -24,54 +24,91 @@ import java.util.List ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
+import org.seaborne.delta.lib.ListIteratorReverse ;
 
-/** Capture a stream of changes, then  play it to another {@link StreamChanges} */
+/** Capture a stream of changes, then play it to another {@link StreamChanges} */
 public class StreamChangesBuffering implements StreamChanges {
 
     private List<Object> actions = new LinkedList<>() ; // ArrayList<>() ; // LinkedList better?
     
+    /** Play forwards */
     public void play(StreamChanges target) {
-        actions.forEach(a -> {
-            if ( a instanceof AddQuad ) {
-                AddQuad a2 = (AddQuad)a ;
-                target.add(a2.g, a2.s, a2.p, a2.o) ;
-                return ;
-            }
-            if ( a instanceof DeleteQuad ) {
-                DeleteQuad a2 = (DeleteQuad)a ;
-                target.delete(a2.g, a2.s, a2.p, a2.o) ;
-                return ;
-            }
-            if ( a instanceof AddPrefix ) {
-                AddPrefix a2 = (AddPrefix)a ;
-                target.addPrefix(a2.gn, a2.prefix, a2.uriStr); 
-                return ;
-            }
-            if ( a instanceof DeletePrefix ) {
-                DeletePrefix a2 = (DeletePrefix)a ;
-                target.deletePrefix(a2.gn, a2.prefix); 
-                return ;
-            }
-            if ( a instanceof TxnBegin ) {
-                target.txnBegin(((TxnBegin)a).mode) ;
-                return ;
-            }
-            if ( a instanceof TxnPromote ) {
-                target.txnPromote();
-                return ;
-            }
-            if ( a instanceof TxnCommit ) {
-                target.txnCommit();
-                return ;
-            }
-            if ( a instanceof TxnAbort ) {
-                target.txnAbort();
-                return ;
-            }
-            System.err.println("Unrecognized action: "+Lib.className(a)+" : "+a) ;
-        }) ;
-        
+        actions.forEach(a -> enact(a, target)) ;
     }
+
+    /** Play backwards, swapping adds for deletes and delete for adds */
+    public void playReverse(StreamChanges target) {
+        System.err.println("playReverse: Partially implemented") ;
+        // More complicated - turn into transaction chunks then ... 
+        
+        ListIteratorReverse.reverse(actions.listIterator()).forEachRemaining(a-> enactFlip(a, target)) ;
+    }
+                            
+    private void enactFlip(Object a, StreamChanges target) {
+        if ( a instanceof AddQuad ) {
+            AddQuad a2 = (AddQuad)a ;
+            target.delete/*add*/(a2.g, a2.s, a2.p, a2.o) ;
+            return ;
+        }
+        if ( a instanceof DeleteQuad ) {
+            DeleteQuad a2 = (DeleteQuad)a ;
+            target.add/*delete*/(a2.g, a2.s, a2.p, a2.o) ;
+            return ;
+        }
+//        if ( a instanceof AddPrefix ) {
+//            AddPrefix a2 = (AddPrefix)a ;
+//            target.addPrefix(a2.gn, a2.prefix, a2.uriStr); 
+//            return ;
+//        }
+//        if ( a instanceof DeletePrefix ) {
+//            DeletePrefix a2 = (DeletePrefix)a ;
+//            target.deletePrefix(a2.gn, a2.prefix); 
+//            return ;
+//        }
+        // Transaction.
+        enact(a, target) ;
+    }
+    
+    private void enact(Object a, StreamChanges target) {
+        if ( a instanceof AddQuad ) {
+            AddQuad a2 = (AddQuad)a ;
+            target.add(a2.g, a2.s, a2.p, a2.o) ;
+            return ;
+        }
+        if ( a instanceof DeleteQuad ) {
+            DeleteQuad a2 = (DeleteQuad)a ;
+            target.delete(a2.g, a2.s, a2.p, a2.o) ;
+            return ;
+        }
+        if ( a instanceof AddPrefix ) {
+            AddPrefix a2 = (AddPrefix)a ;
+            target.addPrefix(a2.gn, a2.prefix, a2.uriStr); 
+            return ;
+        }
+        if ( a instanceof DeletePrefix ) {
+            DeletePrefix a2 = (DeletePrefix)a ;
+            target.deletePrefix(a2.gn, a2.prefix); 
+            return ;
+        }
+        if ( a instanceof TxnBegin ) {
+            target.txnBegin(((TxnBegin)a).mode) ;
+            return ;
+        }
+        if ( a instanceof TxnPromote ) {
+            target.txnPromote();
+            return ;
+        }
+        if ( a instanceof TxnCommit ) {
+            target.txnCommit();
+            return ;
+        }
+        if ( a instanceof TxnAbort ) {
+            target.txnAbort();
+            return ;
+        }
+        System.err.println("Unrecognized action: "+Lib.className(a)+" : "+a) ;
+    }
+    
     
     private static class AddQuad {
         final Node g ;

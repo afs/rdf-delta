@@ -39,7 +39,6 @@ public class PatchReader {
         Tokenizer tokenizer = TokenizerFactory.makeTokenizerUTF8(in) ; 
         input = new TokenInputStreamBase(null, tokenizer) ;
     }
-    
 
     /** Execute transactions until the input ends or something goes wrong. */
     public void apply(StreamChanges sink) {

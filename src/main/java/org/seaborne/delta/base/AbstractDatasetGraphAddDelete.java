@@ -22,35 +22,22 @@ import java.util.Iterator ;
 
 import org.apache.jena.graph.Graph ;
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphWrapper ;
+import org.apache.jena.sparql.core.GraphView ;
 import org.apache.jena.sparql.core.Quad ;
 
-/**
- * Connect a {@link DatasetGraph} with {@linkStreamChanges}. All operations on the
- * {@link DatasetGraph} that cause changes have the change sent to the
- * {@linkStreamChanges}.
- * 
- * Use {@link DatasetGraphRealChanges} to get a dataset that logs only changes that have a
- * real effect - that makes the chnages log reversible (play delete for each add) to undo
- * a sequence of changes.
- * 
- * @see DatasetGraphRealChanges
- * @see StreamChanges
- */
-public class DatasetGraphChanges extends DatasetGraphWrapper {
-    
-    // Break up?
-    // inherits DatasetGraphRealChanges < DatasetGraphAddDelete
-    
-    protected StreamChanges monitor ;
+// Prefixes.
+/** Reduce all changes to calls to {@link #actionAdd} and {@link #actionDelete} */ 
+public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper {
 
-    public DatasetGraphChanges(DatasetGraph dsg, StreamChanges monitor) { 
+    public AbstractDatasetGraphAddDelete(DatasetGraph dsg) { 
         super(dsg) ; 
-        this.monitor = monitor ;
     }
     
+    protected abstract void actionAdd(Node g, Node s, Node p, Node o) ;
+    protected abstract void actionDelete(Node g, Node s, Node p, Node o) ;
+
     @Override
     public void add(Quad quad) {
         add(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
@@ -63,28 +50,50 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        monitor.add(g, s, p, o);
-        super.add(g, s, p, o) ;
+        actionAdd(g,s,p,o) ;
+    }
+
+    @Override
+    public void delete(Node g, Node s, Node p, Node o) {
+        actionDelete(g, s, p, o) ;
     }
     
     @Override
-    public void delete(Node g, Node s, Node p, Node o) {
-        monitor.delete(g, s, p, o);
-        super.delete(g, s, p, o) ;
+    public void addGraph(Node graphName, Graph graph) {  
+        graph.find(null, null, null)
+            .forEachRemaining((t) -> this.add(graphName, t.getSubject(), t.getPredicate(), t.getObject())) ;
     }
+    
+    @Override
+    public void removeGraph(Node graphName)
+    { deleteAny(graphName, Node.ANY, Node.ANY, Node.ANY) ; }
+
+    @Override
+    public void setDefaultGraph(Graph graph) {
+        graph.find(null, null, null)
+            .forEachRemaining((t) -> this.add(Quad.defaultGraphNodeGenerated, t.getSubject(), t.getPredicate(), t.getObject())) ;
+    }
+
+    @Override
+    public void clear() 
+    { deleteAny(Node.ANY, Node.ANY, Node.ANY, Node.ANY) ; }
+    
+    // Ensure the graphs loop back here. 
     
     @Override
     public Graph getDefaultGraph()
-    { return new GraphChanges(get().getDefaultGraph(), null, monitor) ; }
+    { return GraphView.createDefaultGraph(this) ; }
 
     @Override
     public Graph getGraph(Node graphNode)
-    { return new GraphChanges(get().getGraph(graphNode), graphNode, monitor) ; }
+    { return GraphView.createNamedGraph(get(), graphNode) ; }
     
+    // Unbundle deleteAny
     private static final int DeleteBufferSize = 10000 ;
     @Override
     /** Simple implementation but done without assuming iterator.remove() */
     public void deleteAny(Node g, Node s, Node p, Node o) {
+        // Convert deleteAny to deletes.
         Quad[] buffer = new Quad[DeleteBufferSize];
         while (true) {
             Iterator<Quad> iter = find(g, s, p, o);
@@ -105,30 +114,4 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
                 break;
         }
     }
-    
-    @Override
-    public void begin(ReadWrite readWrite) {
-        super.begin(readWrite);
-        monitor.txnBegin(readWrite);
-    }
-
-    @Override
-    public void commit() {
-        // Assume commit will work - signal first.
-        monitor.txnCommit();
-        super.commit();
-    }
-    
-    @Override
-    public void abort() {
-        // Assume abort will work - signal first.
-        super.abort();
-        monitor.txnAbort();
-    }
-
-//    @Override
-//    public void end() {
-//        super.end();
-//    }
-    
 }

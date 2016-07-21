@@ -28,6 +28,7 @@ import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
@@ -42,7 +43,29 @@ public class DevTrack {
         Quad q2 = SSE.parseQuad("(_ :s1 :p1 :o1)") ;
         Quad q3 = SSE.parseQuad("(:g2 :s1 :p1 :o1)") ;
         Node s1 = SSE.parseNode(":s1") ;   
-
+        
+        if ( true ) {
+            DatasetGraph dsg0 = DatasetGraphFactory.create() ;
+            DatasetGraph dsg = dsg0 ;
+            
+            // Change log.
+            StreamChanges sc = new StreamChangesWriter(System.out) ;
+            dsg = new DatasetGraphChanges(dsg, sc) ;
+            
+            // Only real ones.
+            dsg = new DatasetGraphRealChanges(dsg) ;
+            
+            
+            dsg.add(q1) ;
+            dsg.add(q1) ;            
+            dsg.add(q1) ;
+            dsg.delete(q1) ;
+            dsg.delete(q1) ;
+            dsg.add(q1) ;
+            RDFDataMgr.write(System.out, dsg0, Lang.NQ) ;
+            System.exit(0) ;
+        }   
+            
         if ( false ) {
             Dataset ds2 = DatasetFactory.createTxnMem() ;
             StreamChanges changes = new StreamChangesLog() ; 

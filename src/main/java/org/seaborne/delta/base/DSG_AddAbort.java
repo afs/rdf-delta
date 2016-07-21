@@ -16,21 +16,14 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.base;
 
+import org.apache.jena.sparql.core.DatasetGraph ;
 
-public class DevChange {
-    // Reader and Writer
-    // Counters
-    // Replace tio ... or tio without prefixes etc.
-    // Experiment : 3 systems : one to update , one to manage patches (no DB), one to query
-    
-    // Recover from tmp files
-    
-    // DatasetGraphBuffering
-    // StreamChangesBuffering
-    
-    // check prefix changes implemented
-    //   Not in: DatasetGraphRealChanges
-    
+/**
+ * {@link DatasetGraph} where it does not support abort so we add that via real chnages
+ * and a stream changes log.
+ */
+public class DSG_AddAbort {
+
 }

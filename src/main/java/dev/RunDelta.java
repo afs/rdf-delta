@@ -19,29 +19,46 @@
 package dev;
 
 import java.io.IOException ;
+import java.nio.file.Paths ;
 
 import org.apache.jena.atlas.lib.DateTimeUtils ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.lib.StrUtils ;
 import org.apache.jena.atlas.logging.LogCtl ;
+import org.apache.jena.fuseki.cmd.FusekiCmd ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.system.JenaSystem ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.apache.jena.update.UpdateAction ;
 import org.apache.jena.update.UpdateFactory ;
 import org.apache.jena.update.UpdateRequest ;
 import org.seaborne.delta.DP ;
+import org.seaborne.delta.Delta ;
 import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDelta {
     static { LogCtl.setJavaLogging(); }
     
     public static void main(String[] args) throws IOException {
+        String fusekiHome = "/home/afs/Jena/jena-fuseki2/jena-fuseki-core" ;
+        String fusekiBase = "/home/afs/ASF/rdf-delta/run" ;
+        
+        System.setProperty("FUSEKI_HOME", fusekiHome) ;
+        System.setProperty("FUSEKI_BASE", fusekiBase) ;
+        
+        String runArea = Paths.get(fusekiBase).toAbsolutePath().toString() ;
+        FileOps.ensureDir(runArea) ;
+        FileOps.clearAll(runArea);  // ************* 
+        FusekiCmd.main("--conf", "config.ttl") ;
+    }
+    
+    public static void main1(String[] args) throws IOException {
         
         if ( true )
             FileOps.clearDirectory("Files");
