@@ -27,6 +27,7 @@ import org.apache.jena.riot.system.RiotLib ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.jena.riot.tokens.TokenizerFactory ;
+import org.seaborne.delta.changes.StreamChanges ;
 import org.seaborne.delta.tio.CommsException ;
 import org.seaborne.delta.tio.TokenInputStream ;
 import org.seaborne.delta.tio.TokenInputStreamBase ;

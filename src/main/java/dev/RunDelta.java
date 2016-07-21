@@ -32,14 +32,13 @@ import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.system.JenaSystem ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.apache.jena.update.UpdateAction ;
 import org.apache.jena.update.UpdateFactory ;
 import org.apache.jena.update.UpdateRequest ;
 import org.seaborne.delta.DP ;
-import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDelta {
@@ -101,7 +100,7 @@ public class RunDelta {
     
     public static void dev1() throws IOException {
         Dataset ds1 = TDBFactory.createDataset() ;
-        DatasetGraph dsg = DP.managedDatasetGraph(ds1.asDatasetGraph(), DP.PatchContainer) ;
+        DatasetGraph dsg = DeltaOps.managedDatasetGraph(ds1.asDatasetGraph(), DP.PatchContainer) ;
         Dataset ds = DatasetFactory.wrap(dsg) ;
         
         String template = "INSERT DATA { <http://example/s> <http://example/p> 'XXX'} ";   

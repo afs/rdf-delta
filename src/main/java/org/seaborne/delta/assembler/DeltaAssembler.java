@@ -39,10 +39,8 @@ import org.apache.jena.assembler.assemblers.AssemblerBase ;
 import org.apache.jena.assembler.exceptions.AssemblerException ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.apache.jena.datatypes.xsd.XSDDatatype ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
-import org.apache.jena.rdf.model.Literal ;
 import org.apache.jena.rdf.model.RDFNode ;
 import org.apache.jena.rdf.model.Resource ;
 import org.apache.jena.rdf.model.Statement ;
@@ -52,11 +50,11 @@ import org.apache.jena.sparql.util.FmtUtils ;
 import org.apache.jena.sparql.util.NodeUtils ;
 import org.apache.jena.util.iterator.ExtendedIterator ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.StreamChangesOps ;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
-import org.seaborne.delta.base.StreamChanges ;
-import org.seaborne.delta.base.StreamChangesMulti ;
-import org.seaborne.delta.base.StreamChangesWriter ;
+import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.delta.changes.StreamChangesMulti ;
+import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -69,24 +67,18 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
-//        if ( ! root.hasProperty(pDeltaChanges) )
-//            throw new AssemblerException(root, "No destination for changes given") ;
-//        if ( ! exactlyOneProperty(root, pDeltaChanges) )
-//            throw new AssemblerException(root, "Multiple destinations for changes given") ;
-        
         List<String> xList = multiValueString(root, pDeltaChanges) ;
         if ( xList.size() == 0 )
             throw new AssemblerException(root, "No destination for changes given") ;
-        // check duplicates.
+        // check for duplicates.
         Set<String> xs = new HashSet<>(xList) ;
         if ( xList.size() != xs.size() )
             FmtLog.warn(Delta.deltaLog, "Duplicate destinations for changes") ;  
         
         StreamChanges streamChanges = null ;
         for ( String dest : xs ) {
-            FmtLog.info(Delta.deltaLog, "Delta server: '%s'", dest) ;
-            OutputStream out = openChangesDest(dest) ;
-            StreamChanges sc = new StreamChangesWriter(out) ;
+            FmtLog.info(Delta.deltaLog, "Destination: '%s'", dest) ;
+            StreamChanges sc = DeltaOps.connect(dest) ;
             streamChanges = StreamChangesMulti.multi(streamChanges, sc) ;
         }
         
@@ -108,7 +100,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             String str = rn.asLiteral().getString() ;
             FmtLog.info(Delta.deltaLog, "Delta: initialize: %s",str) ;
             InputStream in = openChangesSrc(str) ;
-            StreamChangesOps.play(dsgSub, in); 
+            DeltaOps.play(dsgSub, in); 
         }
         
         DatasetGraph dsg = new DatasetGraphChanges(dsgSub, streamChanges) ;
@@ -118,15 +110,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
     private InputStream openChangesSrc(String x) {
         return IO.openFile(x) ;
-    }
-
-    private OutputStream openChangesDest(String x) {
-        if ( x.startsWith("file:") )
-            return IO.openOutputFile(x) ;
-        if ( x.startsWith("delta:") ) { // delta:HOST:PORT
-            throw new NotImplementedException(x) ; 
-        }
-        throw new JenaException("Not understood: "+x) ;
     }
 
 }

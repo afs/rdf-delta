@@ -25,6 +25,7 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.graph.Triple ;
 import org.apache.jena.shared.PrefixMapping ;
 import org.apache.jena.sparql.graph.GraphWrapper ;
+import org.seaborne.delta.changes.StreamChanges ;
 
 // Needed? Or graphView over a dataset?
 public class GraphChanges extends GraphWrapper {

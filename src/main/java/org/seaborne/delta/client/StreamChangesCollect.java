@@ -27,11 +27,13 @@ import org.apache.http.client.methods.HttpPost ;
 import org.apache.http.entity.ByteArrayEntity ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
-import org.seaborne.delta.base.StreamChangesWriter ;
+import org.apache.jena.atlas.logging.FmtLog ;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
-/** Collect the bytes of a chnage stream, then write to HTTP */ 
+/** Collect the bytes of a change stream, then write to HTTP */ 
 public class StreamChangesCollect extends StreamChangesWriter {
     private static final Logger LOG = LoggerFactory.getLogger(StreamChangesCollect.class) ;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -53,8 +55,32 @@ public class StreamChangesCollect extends StreamChangesWriter {
         
     }
 
+//    @Override
+//    public void txnBegin(ReadWrite mode) {
+//        super.txnBegin(mode);
+//    }
+
+//    @Override
+//    public void txnPromote() {
+//        super.txnPromote(); 
+//    }
+
+    @Override
+    public void txnCommit() {
+        super.txnCommit();
+        send() ;
+    }
+
+    @Override
+    public void txnAbort() {
+        reset() ;
+    }
     
-    byte[] collected() { 
+    private void reset() {
+        bytes.reset() ;
+    }
+
+    private byte[] collected() {
         return bytes.toByteArray() ;
     }
     
@@ -69,6 +95,7 @@ public class StreamChangesCollect extends StreamChangesWriter {
                 System.out.println() ;
             System.out.println("== ==") ;
         }
+        FmtLog.info(Delta.deltaLog, "Send patch (%d bytes)", bytes.length) ;
         postRequest.setEntity(new ByteArrayEntity(bytes)) ;
 
         try(CloseableHttpResponse r = httpClient.execute(postRequest)) {
@@ -77,6 +104,6 @@ public class StreamChangesCollect extends StreamChangesWriter {
                 LOG.warn("HTTP response: "+r.getStatusLine()) ;
         }
         catch (IOException e) { e.printStackTrace(); }
-        this.bytes.reset(); 
+        reset(); 
     }
 }

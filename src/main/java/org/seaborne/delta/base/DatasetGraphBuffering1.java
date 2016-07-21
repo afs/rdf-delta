@@ -30,6 +30,7 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphTriplesQuads ;
 import org.apache.jena.sparql.core.GraphView ;
 import org.apache.jena.sparql.core.Quad ;
+import org.seaborne.delta.changes.StreamChanges ;
 
 /** A {@link DatasetGraph} implementation that buffers adds/deletes and prefix changes
  * then plays them to another {@link DatasetGraph} or to a {@link StreamChanges}. 

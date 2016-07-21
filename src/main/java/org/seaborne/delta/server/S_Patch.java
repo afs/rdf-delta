@@ -26,11 +26,16 @@ import java.nio.file.Paths ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.io.AWriter ;
+import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DPS ;
 import org.seaborne.delta.OutputStream2 ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.base.StreamChangesWriter ;
+import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.delta.changes.StreamChangesMulti ;
+import org.seaborne.delta.changes.StreamChangesWriteUpdate ;
+import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -60,16 +65,26 @@ public class S_Patch extends ServletBase {
                 LOG.info("<<<<-----------------") ;
                 LOG.info("# Patch = "+dst+"("+s+")") ;
             }
+            
             // read one.
             try ( OutputStream output = output(s) ) {
                 // TODO Abrupt end?
                 StreamChangesWriter scWriter = new StreamChangesWriter(output) ;
-                boolean b = scr.apply1(scWriter) ;
+                Writer w = IO.asBufferedUTF8(System.out) ;
+                AWriter out = IO.wrap(w) ;
+                StreamChanges scData = new StreamChangesWriteUpdate(out) ;
+                
+                StreamChanges sc = StreamChangesMulti.multi(scWriter, scData) ;
+                
+                boolean b = scr.apply1(sc) ;
+                out.flush(); 
+                
             } // close flushes.
             move(s, dst) ;
             if ( verbose ) {
                 LOG.info(">>>>-----------------") ;
-            }
+            } else
+                LOG.info("# Patch = "+dst) ;
         }
         resp.setContentLength(0);
         resp.setStatus(HttpSC.NO_CONTENT_204) ;

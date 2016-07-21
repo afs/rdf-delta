@@ -34,6 +34,7 @@ import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.base.* ;
+import org.seaborne.delta.changes.* ;
 
 public class DevTrack {
 

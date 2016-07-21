@@ -16,77 +16,65 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
-
-import org.apache.jena.graph.Graph ;
+package org.seaborne.delta.changes;
+import static org.seaborne.delta.L.* ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.Quad ;
 
-/** apply chanages to a {@link DatasetGraph} */ 
-public class StreamChangesApply implements StreamChanges {
-    
-    private DatasetGraph dsg ;
-
-    public StreamChangesApply(DatasetGraph dsg) {
-        this.dsg = dsg ;
-    }
-
+public class StreamChangesLog implements StreamChanges {
     @Override
     public void start() {}
-
     @Override
     public void finish() {}
-
+    
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        if ( g == null )
-            g = Quad.defaultGraphNodeGenerated ;
-        dsg.add(g, s, p, o);
+        print("%-3s  %s %s %s %s", "Add", strOr(g, "_"), str(s), str(p), str(o)) ;
     }
-    
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        if ( g == null )
-            g = Quad.defaultGraphNodeGenerated ;
-        dsg.delete(g, s, p, o);
+        print("%-3s  %s %s %s %s", "Del", strOr(g, "_"), str(s), str(p), str(o)) ;
     }
     
-    
-    @Override
-    public void addPrefix(Node gn, String prefix, String uriStr) {
-        Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn) ;
-        g.getPrefixMapping().setNsPrefix(prefix, uriStr) ;
-    }
-    
-    @Override
-    public void deletePrefix(Node gn, String prefix) {
-        Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn) ;
-        g.getPrefixMapping().removeNsPrefix(prefix) ;
+    public static String strOr(Node n, String alt) {
+        if ( n == null )
+            return alt ;
+        else
+            return str(n) ;
     }
     
     @Override
-    public void setBase(String uriStr) {}
+    public void addPrefix(Node graph, String prefix, String uriStr) {
+        print("Add prefix  %s %s", prefix, uriStr) ;
+    }
     
-//
+    @Override
+    public void deletePrefix(Node graph, String prefix) {
+        print("Del prefix  %s %s", prefix) ;
+    }
+    
+    @Override
+    public void setBase(String uriStr) {
+        print("Set base %s", uriStr) ;
+    }
+
     @Override
     public void txnBegin(ReadWrite mode) {
-        dsg.begin(mode);
+        print("Begin") ;
     }
     
     @Override
     public void txnPromote() {
-        //dsg.promote() ;
+        print("Promote") ;
     }
     
     @Override
     public void txnCommit() {
-        dsg.commit();
+        print("Commit") ;
     }
     
     @Override
     public void txnAbort() {
-        dsg.abort();
+        print("Abort") ;
     }
 }

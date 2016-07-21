@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.delta.changes;
 
-import static org.seaborne.delta.base.ChangeCode.* ;
+import static org.seaborne.delta.changes.ChangeCode.* ;
 
 import java.io.OutputStream ;
 

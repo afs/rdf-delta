@@ -24,10 +24,9 @@ import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.base.StreamChanges ;
-import org.seaborne.delta.base.StreamChangesApply ;
+import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.delta.changes.StreamChangesApply ;
 import org.seaborne.delta.client.LibPatchFetcher ;
-import org.seaborne.delta.client.LibPatchSender ;
 import org.seaborne.delta.client.StreamChangesCollect ;
 
 public class DP {
@@ -46,12 +45,6 @@ public class DP {
             super(dsg, collector) ;
             this.collector = collector ;
         }
-    }
-    
-    public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
-        StreamChangesCollect changes = LibPatchSender.create1(url) ;
-        DatasetGraph dsg1 = new DatasetGraphChangesVersion(dsg, changes);
-        return dsg1 ;
     }
     
     public static void syncExecW(DatasetGraph dsg, Runnable action) {

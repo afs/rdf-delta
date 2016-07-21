@@ -21,6 +21,9 @@ package org.seaborne.delta.base;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.JenaTransactionException ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.delta.changes.StreamChangesApply ;
+import org.seaborne.delta.changes.StreamChangesBuffering ;
 
 /** A {@link DatasetGraph} implementation that buffers adds/deletes and prefix changes
  * then plays them to another {@link DatasetGraph} or to a {@link StreamChanges}. 

@@ -16,25 +16,43 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.delta.changes;
 
-public enum ChangeCode {
-    ADD_QUAD("QA") ,
-    DEL_QUAD("QD") ,
-    
-    ADD_PREFIX("PA") ,
-    DEL_PREFIX("PD") ,
-    
-    SET_BASE("BA") ,
-    
-    TXN_BEGIN("TB") ,
-    TXN_PROMOTE("TP") ,
-    TXN_COMMIT("TC") ,
-    TXN_ABORT("TA") ,
-    ;
-    
-    public final String label ;
-    private ChangeCode(String label) { this.label = label ; }
-    
+import org.apache.jena.graph.Node ;
+import org.apache.jena.query.ReadWrite ;
 
+public class StreamChangesBase implements StreamChanges {
+    @Override
+    public void start() {}
+
+    @Override
+    public void finish() {}
+    
+    @Override
+    public void add(Node g, Node s, Node p, Node o) {}
+
+    @Override
+    public void delete(Node g, Node s, Node p, Node o) { }
+    
+    
+    @Override
+    public void addPrefix(Node graph, String prefix, String uriStr) {} 
+    @Override
+    public void deletePrefix(Node graph, String prefix) {}
+    
+    @Override
+    public void setBase(String uriStr) {} 
+
+    @Override
+    public void txnBegin(ReadWrite mode) {}
+    
+    @Override
+    public void txnPromote() {}
+    
+    @Override
+    public void txnCommit() {}
+    
+    @Override
+    public void txnAbort() {}
+    
 }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.delta.changes;
 
 import java.util.LinkedList ;
 import java.util.List ;
