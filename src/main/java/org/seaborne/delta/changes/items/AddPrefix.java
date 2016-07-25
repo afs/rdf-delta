@@ -16,36 +16,18 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.changes.items;
 
+import org.apache.jena.graph.Node ;
 
-public class DevChange {
-    // Thread updater.
-    
-    
-    // Reader and Writer
-    // Counters
-    // Replace tio ... or tio without prefixes etc.
-    // Experiment : 3 systems : one to update , one to manage patches (no DB), one to query
-    
-    // Server:
-    //   receive, check checksum
-    //   validate
-    //   process
-    //     - archive : formally happens
-    //     - log
-    //     - queue for collection
-    //     - send/Patch
-    //     - send/GSP
-    
-    
-    
-    // Recover from tmp files
-    
-    // DatasetGraphBuffering
-    // StreamChangesBuffering
-    
-    // check prefix changes implemented
-    //   Not in: DatasetGraphRealChanges
-    
+public class AddPrefix extends ChangeItem {
+    public final Node gn ;
+    public final String prefix ;
+    public final String uriStr ;
+
+    public AddPrefix(Node gn, String prefix, String uriStr) {
+        this.gn = gn ;
+        this.prefix = prefix ;
+        this.uriStr = uriStr ;
+    }
 }

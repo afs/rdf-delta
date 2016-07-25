@@ -16,36 +16,26 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server.handlers;
 
+import java.io.Writer ;
 
-public class DevChange {
-    // Thread updater.
+import org.apache.jena.atlas.io.AWriter ;
+import org.apache.jena.atlas.io.IO ;
+import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.delta.changes.StreamChangesWriteUpdate ;
+import org.seaborne.delta.server.PatchHandler ;
+
+public class PHandlerGSP implements PatchHandler {
     
+    public PHandlerGSP() {
+    }
     
-    // Reader and Writer
-    // Counters
-    // Replace tio ... or tio without prefixes etc.
-    // Experiment : 3 systems : one to update , one to manage patches (no DB), one to query
-    
-    // Server:
-    //   receive, check checksum
-    //   validate
-    //   process
-    //     - archive : formally happens
-    //     - log
-    //     - queue for collection
-    //     - send/Patch
-    //     - send/GSP
-    
-    
-    
-    // Recover from tmp files
-    
-    // DatasetGraphBuffering
-    // StreamChangesBuffering
-    
-    // check prefix changes implemented
-    //   Not in: DatasetGraphRealChanges
-    
+    @Override
+    public StreamChanges handler() {
+        Writer w = IO.asBufferedUTF8(System.out) ;
+        AWriter out = IO.wrap(w) ;
+        StreamChanges scData = new StreamChangesWriteUpdate(out) ;
+        return scData ;
+    }
 }

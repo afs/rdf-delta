@@ -26,7 +26,6 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
-import org.apache.jena.sparql.transaction.AbstractTestTransactionLifecycle ;
 import org.apache.jena.system.Txn ;
 import org.junit.Assert ;
 import org.junit.Test ;

@@ -18,24 +18,19 @@
 
 package org.seaborne.delta.server;
 
-import java.io.* ;
-import java.nio.file.Files ;
-import java.nio.file.Path ;
-import java.nio.file.Paths ;
+import java.io.IOException ;
+import java.io.InputStream ;
+import java.util.ArrayList ;
+import java.util.LinkedList ;
+import java.util.List ;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
-import org.apache.jena.atlas.io.AWriter ;
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DPS ;
-import org.seaborne.delta.OutputStream2 ;
 import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesMulti ;
-import org.seaborne.delta.changes.StreamChangesWriteUpdate ;
-import org.seaborne.delta.changes.StreamChangesWriter ;
+import org.seaborne.delta.changes.StreamChangesBuffering ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -46,76 +41,28 @@ public class S_Patch extends ServletBase {
     
     static boolean verbose = false ;
     
+    static class IncomingPatch {}
+    
+    private List<PatchHandler> handlers = new LinkedList<>() ;
+    public List<PatchHandler> handlers() { return new ArrayList<PatchHandler>(handlers) ; }
+    public void addHandler(PatchHandler ph) { handlers.add(ph) ; }    
+    public void removeHandler(PatchHandler ph) { handlers.remove(ph) ; }
+    
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // With or without parsing.
-        // Need at least an end marker.
-        
-        // With, for robustness.
-        // And to see end marker.
-        
         InputStream in = req.getInputStream() ;
-        for (;;) {
-            PatchReader scr = new PatchReader(in) ;
-            if ( ! scr.hasMore() )
-                break ;
-            String dst = DPS.nextPatchFilename() ;
-            String s = DPS.tmpFilename() ;
-            if ( verbose ) {
-                LOG.info("<<<<-----------------") ;
-                LOG.info("# Patch = "+dst+"("+s+")") ;
-            }
-            
-            // read one.
-            try ( OutputStream output = output(s) ) {
-                // TODO Abrupt end?
-                StreamChangesWriter scWriter = new StreamChangesWriter(output) ;
-                Writer w = IO.asBufferedUTF8(System.out) ;
-                AWriter out = IO.wrap(w) ;
-                StreamChanges scData = new StreamChangesWriteUpdate(out) ;
-                
-                StreamChanges sc = StreamChangesMulti.multi(scWriter, scData) ;
-                
-                boolean b = scr.apply1(sc) ;
-                out.flush(); 
-                
-            } // close flushes.
-            move(s, dst) ;
-            if ( verbose ) {
-                LOG.info(">>>>-----------------") ;
-            } else
-                LOG.info("# Patch = "+dst) ;
+        PatchReader scr = new PatchReader(in) ;
+        // Collect (scale!), log. 
+        StreamChangesBuffering changes = new StreamChangesBuffering() ;
+        // Patch set
+        scr.apply(changes);
+        PatchSet ps = null ;
+        for ( PatchHandler patchHandler : handlers ) {
+            StreamChanges sc = patchHandler.handler() ;
+            scr.apply(sc);
         }
-        resp.setContentLength(0);
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
-    }
-    
-    // Must move a complete file into place
-    private static void move(String src, String dst) throws IOException {
-        //System.err.printf("move %s to %s\n", src, dst) ;
-        Path pSrc = Paths.get(src) ;
-        Path pDst = Paths.get(dst) ;
-        try { Files.move(pSrc, pDst) ; }
-        catch (IOException ex) {
-            LOG.warn(String.format("IOException moving %s to %s", src, dst) , ex);
-            throw ex ;
-        }
-    }
-
-    static private OutputStream output(String s) throws FileNotFoundException {
-        Path p = Paths.get(s) ;
-        if ( Files.exists(p) ) 
-            System.out.println("Overwriting file"); 
         
-        OutputStream out = new FileOutputStream(s) ;
-        out = new BufferedOutputStream(out) ;
-        if ( ! verbose )
-            return out ;
-        // Copy to stdout.
-        OutputStream out2 = new FilterOutputStream(System.out) { 
-            @Override public void close() {}
-        } ;
-        
-        return new OutputStream2(out2, out) ; 
+        //resp.setContentLength(0);
+      resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
 }

@@ -24,8 +24,8 @@ import java.util.logging.ConsoleHandler ;
 import java.util.logging.LogManager ;
 
 /** Console handler that modifies {@link java.util.logging.ConsoleHandler}.
- * Supports the configuration parameters of {@link ConsoleHandler} -- {@code level}, {@code .filter} {@code .formatter}
- * and {@code .encoding}.
+ * Supports the configuration parameters of {@link ConsoleHandler} -- {@code .level},
+ * {@code .filter}, {@code .formatter} and {@code .encoding}.
  * <p>
  * Defaults:
  * <ul>

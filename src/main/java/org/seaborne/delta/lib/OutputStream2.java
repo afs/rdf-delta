@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta;
+package org.seaborne.delta.lib;
 
 import java.io.IOException ;
 import java.io.OutputStream ;

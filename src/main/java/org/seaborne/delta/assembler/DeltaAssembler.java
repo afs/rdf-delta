@@ -27,12 +27,10 @@ import static org.seaborne.delta.assembler.VocabDelta.pDeltaInit1 ;
 import static org.seaborne.delta.assembler.VocabDelta.pDeltaInit2 ;
 
 import java.io.InputStream ;
-import java.io.OutputStream ;
 import java.util.HashSet ;
 import java.util.List ;
 import java.util.Set ;
 
-import org.apache.commons.lang3.NotImplementedException ;
 import org.apache.jena.assembler.Assembler ;
 import org.apache.jena.assembler.Mode ;
 import org.apache.jena.assembler.assemblers.AssemblerBase ;
@@ -44,7 +42,6 @@ import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.rdf.model.RDFNode ;
 import org.apache.jena.rdf.model.Resource ;
 import org.apache.jena.rdf.model.Statement ;
-import org.apache.jena.shared.JenaException ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.util.FmtUtils ;
 import org.apache.jena.sparql.util.NodeUtils ;
@@ -54,7 +51,6 @@ import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.changes.StreamChanges ;
 import org.seaborne.delta.changes.StreamChangesMulti ;
-import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 

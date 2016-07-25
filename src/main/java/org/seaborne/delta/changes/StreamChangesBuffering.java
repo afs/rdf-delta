@@ -24,12 +24,13 @@ import java.util.List ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
+import org.seaborne.delta.changes.items.* ;
 import org.seaborne.delta.lib.ListIteratorReverse ;
 
 /** Capture a stream of changes, then play it to another {@link StreamChanges} */
 public class StreamChangesBuffering implements StreamChanges {
 
-    private List<Object> actions = new LinkedList<>() ; // ArrayList<>() ; // LinkedList better?
+    private List<ChangeItem> actions = new LinkedList<>() ; // ArrayList<>() ; // LinkedList better?
     
     /** Play forwards */
     public void play(StreamChanges target) {
@@ -44,7 +45,7 @@ public class StreamChangesBuffering implements StreamChanges {
         ListIteratorReverse.reverse(actions.listIterator()).forEachRemaining(a-> enactFlip(a, target)) ;
     }
                             
-    private void enactFlip(Object a, StreamChanges target) {
+    private void enactFlip(ChangeItem a, StreamChanges target) {
         if ( a instanceof AddQuad ) {
             AddQuad a2 = (AddQuad)a ;
             target.delete/*add*/(a2.g, a2.s, a2.p, a2.o) ;
@@ -69,7 +70,7 @@ public class StreamChangesBuffering implements StreamChanges {
         enact(a, target) ;
     }
     
-    private void enact(Object a, StreamChanges target) {
+    private void enact(ChangeItem a, StreamChanges target) {
         if ( a instanceof AddQuad ) {
             AddQuad a2 = (AddQuad)a ;
             target.add(a2.g, a2.s, a2.p, a2.o) ;
@@ -109,84 +110,9 @@ public class StreamChangesBuffering implements StreamChanges {
         System.err.println("Unrecognized action: "+Lib.className(a)+" : "+a) ;
     }
     
-    
-    private static class AddQuad {
-        final Node g ;
-        final Node s ;
-        final Node p ;
-        final Node o ;
-
-        public AddQuad(Node g, Node s, Node p, Node o) {
-            this.g = g ;
-            this.s = s ;
-            this.p = p ;
-            this.o = o ;
-        }
-    }
-    
-    private static class DeleteQuad {
-        final Node g ;
-        final Node s ;
-        final Node p ;
-        final Node o ;
-
-        public DeleteQuad(Node g, Node s, Node p, Node o) {
-            this.g = g ;
-            this.s = s ;
-            this.p = p ;
-            this.o = o ;
-        }
-    }
-    
-    // Tedious.
-
-    private static class AddPrefix {
-        final Node gn ;
-        final String prefix ;
-        final String uriStr ;
-
-        public AddPrefix(Node gn, String prefix, String uriStr) {
-            this.gn = gn ;
-            this.prefix = prefix ;
-            this.uriStr = uriStr ;
-        }
-    }
-
-    private static class DeletePrefix {
-        final Node gn ;
-        final String prefix ;
-
-        public DeletePrefix(Node gn, String prefix) {
-            this.gn = gn ;
-            this.prefix = prefix ;
-        }
-    }
-
-    private static class SetBase {
-        final String uriStr ;
-
-        public SetBase(String uriStr) {
-            this.uriStr = uriStr ;
-        }
-    }
-    
-    private static class TxnBegin {
-        final ReadWrite mode ;
-
-        public TxnBegin(ReadWrite mode) {
-            this.mode = mode ;
-        }
-    }
-    
-    private static class TxnPromote { }
-    
-    private static class TxnCommit { }
-    
-    private static class TxnAbort { }
-
     public StreamChangesBuffering() { }
 
-    private void collect(Object object) { 
+    private void collect(ChangeItem object) { 
         actions.add(object) ;
     }
 
@@ -214,7 +140,6 @@ public class StreamChangesBuffering implements StreamChanges {
     public void addPrefix(Node gn, String prefix, String uriStr) {
         collect(new AddPrefix(gn, prefix, uriStr)) ;
     }
-    
     
     @Override
     public void deletePrefix(Node gn, String prefix) {
