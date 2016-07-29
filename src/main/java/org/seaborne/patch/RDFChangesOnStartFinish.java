@@ -16,22 +16,27 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
+/** An {@link RDFChanges} that adds callbacks on start/finish. */
+public class RDFChangesOnStartFinish extends RDFChangesBase {
+    private Runnable onStart ;
+    private Runnable onFinish ;
 
-public class LibPatchSender {
+    public RDFChangesOnStartFinish(Runnable onStart, Runnable onFinish) {
+        this.onStart = onStart ;
+        this.onFinish = onFinish ;
+    }
     
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
+    @Override
+    public void start() {
+        if ( onStart != null )
+            onStart.run() ;
     }
 
-    
-    
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
-    
+    @Override
+    public void finish() {
+        if ( onFinish != null )
+            onFinish.run() ;
+    }
 }

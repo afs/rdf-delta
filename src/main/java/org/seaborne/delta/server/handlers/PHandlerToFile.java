@@ -25,10 +25,10 @@ import java.nio.file.Paths ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.seaborne.delta.DPS ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.seaborne.delta.lib.OutputStream2 ;
 import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesWriter ;
 import org.slf4j.Logger ;
 
 public class PHandlerToFile implements PatchHandler {
@@ -40,7 +40,7 @@ public class PHandlerToFile implements PatchHandler {
     
     /** Safe handler */
     @Override
-    public StreamChanges handler() {
+    public RDFChanges handler() {
         String dst = DPS.nextPatchFilename() ;
         String s = DPS.tmpFilename() ;
         if ( verbose ) {
@@ -49,7 +49,7 @@ public class PHandlerToFile implements PatchHandler {
         }
 
         OutputStream output = output(s) ;
-        StreamChangesWriter scWriter = new StreamChangesWriter(output) {
+        RDFChangesWriter scWriter = new RDFChangesWriter(output) {
             @Override
             public void start() {
             }

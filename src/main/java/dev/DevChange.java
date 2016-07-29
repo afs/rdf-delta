@@ -43,7 +43,6 @@ public class DevChange {
     // Recover from tmp files
     
     // DatasetGraphBuffering
-    // StreamChangesBuffering
     
     // check prefix changes implemented
     //   Not in: DatasetGraphRealChanges

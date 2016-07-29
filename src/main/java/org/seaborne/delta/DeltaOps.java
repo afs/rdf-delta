@@ -27,19 +27,19 @@ import org.apache.jena.shared.JenaException ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.DP.DatasetGraphChangesVersion ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesApply ;
-import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.seaborne.delta.client.LibPatchSender ;
-import org.seaborne.delta.client.StreamChangesCollect ;
+import org.seaborne.delta.client.RDFChangesHTTP ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesApply ;
+import org.seaborne.patch.RDFChangesWriter ;
 
 public class DeltaOps {
     
-    public static StreamChanges connect(String dest) {
+    public static RDFChanges connect(String dest) {
         
         if ( dest.startsWith("file:") ) {
             OutputStream out = IO.openOutputFile(dest) ;
-            StreamChanges sc = new StreamChangesWriter(out) ;
+            RDFChanges sc = new RDFChangesWriter(out) ;
             return sc ;
         }
         
@@ -49,13 +49,13 @@ public class DeltaOps {
         
         if ( dest.startsWith("http:") ) {
             // triggered on each transaction.
-            return new StreamChangesCollect(dest) ;
+            return new RDFChangesHTTP(dest) ;
         }
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }
 
     public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
-        StreamChangesCollect changes = LibPatchSender.create1(url) ;
+        RDFChangesHTTP changes = LibPatchSender.create1(url) ;
         DatasetGraph dsg1 = new DatasetGraphChangesVersion(dsg, changes);
         return dsg1 ;
     }
@@ -71,7 +71,7 @@ public class DeltaOps {
     
     public static void play(DatasetGraph dsg, InputStream input) {
         PatchReader pr = new PatchReader(input) ;
-        StreamChanges sc = new StreamChangesApply(dsg) ; 
+        RDFChanges sc = new RDFChangesApply(dsg) ; 
         pr.apply(sc);
     }
 }

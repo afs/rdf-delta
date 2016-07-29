@@ -24,10 +24,10 @@ import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesApply ;
 import org.seaborne.delta.client.LibPatchFetcher ;
-import org.seaborne.delta.client.StreamChangesCollect ;
+import org.seaborne.delta.client.RDFChangesHTTP ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesApply ;
 
 public class DP {
     public static final String PatchContainer   = "http://localhost:1066/patch" ;
@@ -39,9 +39,9 @@ public class DP {
     public static class DatasetGraphChangesVersion extends DatasetGraphChanges {
         // TODO WRONG!!!!
         AtomicInteger localVersion = new AtomicInteger(0) ;
-        public final StreamChangesCollect collector ;
+        public final RDFChangesHTTP collector ;
         
-        public DatasetGraphChangesVersion(DatasetGraph dsg, StreamChangesCollect collector) {
+        public DatasetGraphChangesVersion(DatasetGraph dsg, RDFChangesHTTP collector) {
             super(dsg, collector) ;
             this.collector = collector ;
         }
@@ -51,7 +51,7 @@ public class DP {
         DatasetGraphChangesVersion dsgc = (DatasetGraphChangesVersion)dsg ;
         syncData(dsgc) ;
         // Prepare for changes.
-        StreamChangesCollect scc = dsgc.collector ;
+        RDFChangesHTTP scc = dsgc.collector ;
         scc.start();    
         
         dsg.begin(ReadWrite.WRITE) ;
@@ -84,7 +84,7 @@ public class DP {
             System.out.println("Apply patch "+x);
             lastPatchFetch.incrementAndGet() ;
             
-            StreamChanges sc = new StreamChangesApply(dsgc.getWrapped()) ;
+            RDFChanges sc = new RDFChangesApply(dsgc.getWrapped()) ;
             patchReader.apply(sc) ;
             
             dsgc.localVersion.set(x) ;

@@ -16,22 +16,19 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch.tio;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
+public class CommsException extends RuntimeException
+{
+    public CommsException()                 
+    { super(); }
 
-public class LibPatchSender {
-    
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
-    }
+    public CommsException(String message)   
+    { super(message) ; }
 
-    
-    
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
-    
+    public CommsException(String message, Throwable cause)  
+    { super(message, cause) ; }
+
+    public CommsException(Throwable cause)  
+    { super(cause) ; }
 }

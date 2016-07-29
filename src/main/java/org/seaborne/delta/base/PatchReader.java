@@ -27,10 +27,10 @@ import org.apache.jena.riot.system.RiotLib ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.jena.riot.tokens.TokenizerFactory ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.tio.CommsException ;
-import org.seaborne.delta.tio.TokenInputStream ;
-import org.seaborne.delta.tio.TokenInputStreamBase ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.tio.CommsException ;
+import org.seaborne.patch.tio.TokenInputStream ;
+import org.seaborne.patch.tio.TokenInputStreamBase ;
 
 // Needs reworking: for efficiency, for less features
 public class PatchReader {
@@ -42,7 +42,7 @@ public class PatchReader {
     }
 
     /** Execute transactions until the input ends or something goes wrong. */
-    public void apply(StreamChanges sink) {
+    public void apply(RDFChanges sink) {
         while(input.hasNext()) { 
             boolean b = apply1(sink);
             if ( !b )
@@ -57,7 +57,7 @@ public class PatchReader {
     /** Execute one transaction.
      *  Return true if there is the possiblity of more.
      */
-    public boolean apply1(StreamChanges sink) {
+    public boolean apply1(RDFChanges sink) {
         // Abort if no end of transaction
         
         boolean oneTransaction = true ;  
@@ -82,7 +82,7 @@ public class PatchReader {
         return false ;
     }
         
-    private boolean doOneLine(List<Token> line, StreamChanges sink) {
+    private boolean doOneLine(List<Token> line, RDFChanges sink) {
         Token token1 = line.get(0) ;
         if ( ! token1.isWord() )
             throw new CommsException("["+token1.getLine()+"] Token1 is not a word "+token1) ;

@@ -2,16 +2,34 @@
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
+hs_err_pid*
 
 # Package Files #
 *.jar
 *.war
 *.ear
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-/target/
-/run/
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+### Gradle ###
+.gradle
+/build/
+# Ignore Gradle GUI config
+gradle-app.setting
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+# Cache of project
+.gradletasknamecache
+
 
 # Eclipse
 .classpath
@@ -28,7 +46,7 @@ hs_err_pid*
 \#*
 
 # Databases and Fuseki
-**/run/system/
+/run/
 DB*
 Files/
 

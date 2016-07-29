@@ -49,8 +49,8 @@ import org.apache.jena.util.iterator.ExtendedIterator ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesMulti ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesN ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -71,11 +71,11 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         if ( xList.size() != xs.size() )
             FmtLog.warn(Delta.deltaLog, "Duplicate destinations for changes") ;  
         
-        StreamChanges streamChanges = null ;
+        RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
             FmtLog.info(Delta.deltaLog, "Destination: '%s'", dest) ;
-            StreamChanges sc = DeltaOps.connect(dest) ;
-            streamChanges = StreamChangesMulti.multi(streamChanges, sc) ;
+            RDFChanges sc = DeltaOps.connect(dest) ;
+            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         
         if ( ! root.hasProperty(pDataset) )

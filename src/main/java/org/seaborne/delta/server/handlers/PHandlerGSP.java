@@ -22,9 +22,9 @@ import java.io.Writer ;
 
 import org.apache.jena.atlas.io.AWriter ;
 import org.apache.jena.atlas.io.IO ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesWriteUpdate ;
 import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesWriteUpdate ;
 
 public class PHandlerGSP implements PatchHandler {
     
@@ -32,10 +32,10 @@ public class PHandlerGSP implements PatchHandler {
     }
     
     @Override
-    public StreamChanges handler() {
+    public RDFChanges handler() {
         Writer w = IO.asBufferedUTF8(System.out) ;
         AWriter out = IO.wrap(w) ;
-        StreamChanges scData = new StreamChangesWriteUpdate(out) ;
+        RDFChanges scData = new RDFChangesWriteUpdate(out) ;
         return scData ;
     }
 }

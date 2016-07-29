@@ -16,22 +16,43 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
+import org.apache.jena.graph.Node ;
+import org.apache.jena.query.ReadWrite ;
 
-public class LibPatchSender {
-    
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
-    }
+public class RDFChangesBase implements RDFChanges {
+    @Override
+    public void start() {}
 
+    @Override
+    public void finish() {}
+    
+    @Override
+    public void add(Node g, Node s, Node p, Node o) {}
+
+    @Override
+    public void delete(Node g, Node s, Node p, Node o) { }
     
     
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
+    @Override
+    public void addPrefix(Node graph, String prefix, String uriStr) {} 
+    @Override
+    public void deletePrefix(Node graph, String prefix) {}
+    
+    @Override
+    public void setBase(String uriStr) {} 
+
+    @Override
+    public void txnBegin(ReadWrite mode) {}
+    
+    @Override
+    public void txnPromote() {}
+    
+    @Override
+    public void txnCommit() {}
+    
+    @Override
+    public void txnAbort() {}
     
 }

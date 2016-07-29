@@ -16,31 +16,32 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.patch.tio;
 
-import org.apache.jena.graph.Node ;
-import org.apache.jena.sparql.core.DatasetGraph ;
+import java.util.Iterator ;
+import java.util.List ;
 
-// ?? Prefixes.
-public class DatasetGraphRealChanges extends AbstractDatasetGraphAddDelete {
-    /** With checking, the {@link RDFChanges} becomes reversible */ 
-    protected final boolean checking = true ; 
+import org.apache.jena.atlas.lib.Closeable ;
+import org.apache.jena.riot.tokens.Token ;
 
-    public DatasetGraphRealChanges(DatasetGraph dsg) { 
-        super(dsg) ; 
-    }
-
-    @Override
-    protected void actionAdd(Node g, Node s, Node p, Node o) {
-        if ( checking && get().contains(g, s, p, o) )
-            return ;
-        get().add(g, s, p, o); 
-    }
+public class TokenInputStreamWrapper implements Iterator<List<Token>>, Iterable<List<Token>>, Closeable
+{
+    private TokenInputStream stream ;
+    
+    public TokenInputStreamWrapper(TokenInputStream stream) { this.stream = stream ; }
 
     @Override
-    protected void actionDelete(Node g, Node s, Node p, Node o) {
-        if ( checking && ! get().contains(g, s, p, o) )
-            return ;
-        get().delete(g, s, p, o); 
-    }
+    public boolean hasNext()                    { return stream.hasNext() ; }
+
+    @Override
+    public List<Token> next()                   { return stream.next() ; }
+
+    @Override
+    public void remove()                        { stream.remove() ; }
+
+    @Override
+    public Iterator<List<Token>> iterator()     { return stream.iterator() ; }
+
+    @Override
+    public void close()                         { stream.close(); }
 }

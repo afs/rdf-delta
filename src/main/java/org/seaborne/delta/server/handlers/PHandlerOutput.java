@@ -20,21 +20,21 @@ package org.seaborne.delta.server.handlers;
 
 import java.io.OutputStream ;
 
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesWriter ;
 import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesWriter ;
 
 public class PHandlerOutput implements PatchHandler {
     
-    private final StreamChangesWriter scWriter ;
+    private final RDFChangesWriter scWriter ;
     
     public PHandlerOutput(OutputStream output) {
-        scWriter = new StreamChangesWriter(output) ;
+        scWriter = new RDFChangesWriter(output) ;
     }
     
     /** Safe handler */
     @Override
-    public StreamChanges handler() {
+    public RDFChanges handler() {
         return scWriter ;
     }
 }

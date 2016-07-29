@@ -16,22 +16,20 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch.items;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
+import org.apache.jena.graph.Node ;
 
-public class LibPatchSender {
-    
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
+public class DeleteQuad  extends ChangeItem {
+    public final Node g ;
+    public final Node s ;
+    public final Node p ;
+    public final Node o ;
+
+    public DeleteQuad(Node g, Node s, Node p, Node o) {
+        this.g = g ;
+        this.s = s ;
+        this.p = p ;
+        this.o = o ;
     }
-
-    
-    
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
-    
 }

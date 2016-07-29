@@ -34,7 +34,7 @@ import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.base.* ;
-import org.seaborne.delta.changes.* ;
+import org.seaborne.patch.* ;
 
 public class DevTrack {
 
@@ -50,7 +50,7 @@ public class DevTrack {
             DatasetGraph dsg = dsg0 ;
             
             // Change log.
-            StreamChanges sc = new StreamChangesWriter(System.out) ;
+            RDFChanges sc = new RDFChangesWriter(System.out) ;
             dsg = new DatasetGraphChanges(dsg, sc) ;
             
             // Only real ones.
@@ -69,7 +69,7 @@ public class DevTrack {
             
         if ( false ) {
             Dataset ds2 = DatasetFactory.createTxnMem() ;
-            StreamChanges changes = new StreamChangesLog() ; 
+            RDFChanges changes = new RDFChangesLog() ; 
 
             // Dataset with a monitor. 
             DatasetGraph dsg = new DatasetGraphChanges(ds2.asDatasetGraph(), changes) ;
@@ -88,7 +88,7 @@ public class DevTrack {
             // Apply now!
             Dataset ds1 = DatasetFactory.createTxnMem() ;
             Dataset ds2 = TDBFactory.createDataset() ;
-            StreamChanges changes = new StreamChangesApply(ds2.asDatasetGraph()) ;
+            RDFChanges changes = new RDFChangesApply(ds2.asDatasetGraph()) ;
             DatasetGraph dsg = new DatasetGraphChanges(ds1.asDatasetGraph(), changes) ;
             Txn.execWrite(dsg, ()-> {
                 dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://example/") ;
@@ -106,7 +106,7 @@ public class DevTrack {
             // Delayed style.
             Dataset ds1 = DatasetFactory.createTxnMem() ;
             Dataset ds2 = TDBFactory.createDataset() ;
-            StreamChangesBuffering changes = new StreamChangesBuffering() ;
+            RDFChangesCollector changes = new RDFChangesCollector() ;
             DatasetGraph dsg = new DatasetGraphChanges(ds1.asDatasetGraph(), changes) ;
             Txn.execWrite(dsg, ()-> {
     //            dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://example/") ;
@@ -119,7 +119,7 @@ public class DevTrack {
                 g.getPrefixMapping().setNsPrefix("", "http://example/") ;
                 g.add(SSE.parseTriple("(:sg :pg :og)")) ;
             }) ;
-            StreamChanges changes2 = new StreamChangesApply(ds2.asDatasetGraph()) ;
+            RDFChanges changes2 = new RDFChangesApply(ds2.asDatasetGraph()) ;
             changes.play(changes2);
             Txn.execRead(ds1, ()-> RDFDataMgr.write(System.out, ds1, Lang.TRIG)) ;
             System.out.println("-------------") ;
@@ -132,7 +132,7 @@ public class DevTrack {
             Dataset ds2 = DatasetFactory.createTxnMem() ;
             
             ByteArrayOutputStream out = new ByteArrayOutputStream() ;
-            StreamChanges changes = new StreamChangesWriter(out) ;
+            RDFChanges changes = new RDFChangesWriter(out) ;
             DatasetGraph dsg = new DatasetGraphChanges(ds1.asDatasetGraph(), changes) ;
             Txn.execWrite(dsg, ()-> {
     //            dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://example/") ;
@@ -149,7 +149,7 @@ public class DevTrack {
             byte[] bytes = out.toByteArray() ;
             ByteArrayInputStream inp = new ByteArrayInputStream(bytes) ;
             PatchReader r = new PatchReader(inp) ;
-            StreamChanges changes2 = new StreamChangesApply(ds2.asDatasetGraph()) ;
+            RDFChanges changes2 = new RDFChangesApply(ds2.asDatasetGraph()) ;
             r.apply(changes2); 
             
             Txn.execRead(ds2, ()-> RDFDataMgr.write(System.out, ds2, Lang.TRIG)) ;

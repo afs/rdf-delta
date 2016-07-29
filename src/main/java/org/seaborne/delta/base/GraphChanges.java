@@ -25,15 +25,15 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.graph.Triple ;
 import org.apache.jena.shared.PrefixMapping ;
 import org.apache.jena.sparql.graph.GraphWrapper ;
-import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.patch.RDFChanges ;
 
 // Needed? Or graphView over a dataset?
 public class GraphChanges extends GraphWrapper {
-    private final StreamChanges changes ;
+    private final RDFChanges changes ;
     private final Graph graph ;
     protected final Node graphName ;
 
-    public GraphChanges(Graph graph, Node graphName, StreamChanges changes) {
+    public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
         super(graph) ;
         this.graph = graph ;
         this.graphName = graphName ;

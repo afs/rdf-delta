@@ -29,8 +29,8 @@ import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesBuffering ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesCollector ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -53,12 +53,12 @@ public class S_Patch extends ServletBase {
         InputStream in = req.getInputStream() ;
         PatchReader scr = new PatchReader(in) ;
         // Collect (scale!), log. 
-        StreamChangesBuffering changes = new StreamChangesBuffering() ;
+        RDFChangesCollector changes = new RDFChangesCollector() ;
         // Patch set
         scr.apply(changes);
         PatchSet ps = null ;
         for ( PatchHandler patchHandler : handlers ) {
-            StreamChanges sc = patchHandler.handler() ;
+            RDFChanges sc = patchHandler.handler() ;
             scr.apply(sc);
         }
         

@@ -16,22 +16,23 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
-
-public class LibPatchSender {
+public enum ChangeCode {
+    ADD_QUAD("QA") ,
+    DEL_QUAD("QD") ,
     
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
-    }
-
+    ADD_PREFIX("PA") ,
+    DEL_PREFIX("PD") ,
     
+    SET_BASE("BA") ,
     
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
+    TXN_BEGIN("TB") ,
+    TXN_PROMOTE("TP") ,
+    TXN_COMMIT("TC") ,
+    TXN_ABORT("TA") ,
+    ;
     
+    public final String label ;
+    private ChangeCode(String label) { this.label = label ; }
 }

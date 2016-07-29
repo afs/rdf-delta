@@ -16,22 +16,14 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch.items;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
+import org.apache.jena.query.ReadWrite ;
 
-public class LibPatchSender {
-    
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
+public class TxnBegin extends ChangeItem {
+    public final ReadWrite mode ;
+
+    public TxnBegin(ReadWrite mode) {
+        this.mode = mode ;
     }
-
-    
-    
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
-    
 }

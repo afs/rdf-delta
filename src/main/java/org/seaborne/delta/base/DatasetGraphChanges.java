@@ -26,28 +26,28 @@ import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphWrapper ;
 import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.patch.RDFChanges ;
 
 /**
- * Connect a {@link DatasetGraph} with {@linkStreamChanges}. All operations on the
+ * Connect a {@link DatasetGraph} with {@link RDFChanges}. All operations on the
  * {@link DatasetGraph} that cause changes have the change sent to the
- * {@linkStreamChanges}.
+ * {@link RDFChanges}.
  * 
  * Use {@link DatasetGraphRealChanges} to get a dataset that logs only changes that have a
  * real effect - that makes the chnages log reversible (play delete for each add) to undo
  * a sequence of changes.
  * 
  * @see DatasetGraphRealChanges
- * @see StreamChanges
+ * @see RDFChanges
  */
 public class DatasetGraphChanges extends DatasetGraphWrapper {
     
     // Break up?
     // inherits DatasetGraphRealChanges < DatasetGraphAddDelete
     
-    protected StreamChanges monitor ;
+    protected RDFChanges monitor ;
 
-    public DatasetGraphChanges(DatasetGraph dsg, StreamChanges monitor) { 
+    public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) { 
         super(dsg) ; 
         this.monitor = monitor ;
     }

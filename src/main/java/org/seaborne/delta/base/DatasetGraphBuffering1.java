@@ -30,10 +30,10 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphTriplesQuads ;
 import org.apache.jena.sparql.core.GraphView ;
 import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.patch.RDFChanges ;
 
 /** A {@link DatasetGraph} implementation that buffers adds/deletes and prefix changes
- * then plays them to another {@link DatasetGraph} or to a {@link StreamChanges}. 
+ * then plays them to another {@link DatasetGraph} or to a {@link RDFChanges}. 
  * <p>
  * This has the capacity to add {@link DatasetGraph#abort} functionality to a {@link DatasetGraph} 
  * that does not provide it. 

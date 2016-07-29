@@ -18,11 +18,11 @@
 
 package org.seaborne.delta.server;
 
-import org.seaborne.delta.changes.StreamChanges ;
+import org.seaborne.patch.RDFChanges ;
 
 public interface PatchHandler {
 
-    /** Return a handler that can be used once, and in parallel with other {@link StreamChanges} */   
-    public StreamChanges handler() ;
+    /** Return a handler that can be used once, and in parallel with other {@link RDFChanges} */   
+    public RDFChanges handler() ;
 
 }

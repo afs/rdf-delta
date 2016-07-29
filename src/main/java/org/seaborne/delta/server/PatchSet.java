@@ -22,7 +22,7 @@ import java.util.Iterator ;
 import java.util.List ;
 import java.util.stream.Stream ;
 
-import org.seaborne.delta.changes.items.ChangeItem ;
+import org.seaborne.patch.items.ChangeItem ;
 
 public class PatchSet implements Iterable<ChangeItem> {
     private final List<ChangeItem> items ;

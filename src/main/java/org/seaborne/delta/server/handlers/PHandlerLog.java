@@ -19,10 +19,10 @@
 package org.seaborne.delta.server.handlers;
 
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.seaborne.delta.changes.StreamChanges ;
-import org.seaborne.delta.changes.StreamChangesCounter ;
-import org.seaborne.delta.changes.StreamChangesStartFinish ;
 import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesCounter ;
+import org.seaborne.patch.RDFChangesOnStartFinish ;
 import org.slf4j.Logger ;
 
 public class PHandlerLog implements PatchHandler {
@@ -35,9 +35,9 @@ public class PHandlerLog implements PatchHandler {
     
     /** Safe handler */
     @Override
-    public StreamChanges handler() {
-        StreamChangesCounter scc = new StreamChangesCounter() ;
-        return new StreamChangesStartFinish(null,
+    public RDFChanges handler() {
+        RDFChangesCounter scc = new RDFChangesCounter() ;
+        return new RDFChangesOnStartFinish(null,
                                             ()-> FmtLog.info(log,
                                                              "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
                                                              scc.countAddQuad, scc.countDeleteQuad, 

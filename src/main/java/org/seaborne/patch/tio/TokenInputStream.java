@@ -16,22 +16,16 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch.tio;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
+import java.util.Iterator ;
+import java.util.List ;
 
-public class LibPatchSender {
-    
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
-    }
+import org.apache.jena.atlas.lib.Closeable ;
+import org.apache.jena.riot.tokens.Token ;
 
-    
-    
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
+/** A stream of tokens */
+public interface TokenInputStream extends Iterator<List<Token>>, Iterable<List<Token>>, Closeable
+{
     
 }
