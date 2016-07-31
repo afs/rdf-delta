@@ -17,7 +17,8 @@
  */
 
 package org.seaborne.patch;
-import static org.seaborne.delta.L.* ;
+import static org.seaborne.delta.lib.L.* ;
+
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
 

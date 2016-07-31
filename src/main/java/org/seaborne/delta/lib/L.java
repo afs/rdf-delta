@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta;
+package org.seaborne.delta.lib;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;

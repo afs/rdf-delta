@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DPS ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 

@@ -15,17 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev;
 
-import org.seaborne.delta.DP ;
-import org.seaborne.delta.server.DataPatchServer ;
+package org.seaborne.delta.sys;
 
-public class RunDeltaServer {
-    public static void main(String...arg) {
-        DataPatchServer server = new DataPatchServer(DP.PORT) ;
-        server.start();
-        server.join();
+import org.apache.jena.system.JenaSubsystemLifecycle ;
+import org.seaborne.delta.Delta ;
+
+public class InitDelta implements JenaSubsystemLifecycle {
+
+    @Override
+    public void start() {
+        Delta.init() ;
     }
-    
 
+    @Override
+    public void stop() {}
+
+    @Override
+    public int level() { return 42 ; }
 }

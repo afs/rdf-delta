@@ -18,5 +18,37 @@
 
 package dev;
 
+import java.io.IOException ;
+
+import org.apache.jena.atlas.json.JsonBuilder ;
+import org.apache.jena.atlas.json.JsonValue ;
+import org.seaborne.delta.DP ;
+import org.seaborne.delta.client.DRPC ;
+
 public class RunDeltaClient {
+    static String url = "http://localhost:"+DP.PORT+"/rpc" ; 
+    
+    public static void main(String[] args) throws IOException {
+        {
+            JsonValue x = JsonBuilder.create()
+                .startObject()
+                .key("integer").value(123)
+                .finishObject()
+                .build() ;
+            JsonValue r = DRPC.rpc(url, x) ;
+            System.out.println(r) ;
+        }
+        
+        {
+            JsonValue x = JsonBuilder.create()
+                .startArray()
+                .value(456)
+                .finishArray()
+                .build() ;
+            JsonValue r = DRPC.rpc(url, x) ;
+            System.out.println(r) ;
+        }
+
+        
+    }
 }

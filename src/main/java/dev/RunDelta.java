@@ -62,7 +62,7 @@ public class RunDelta {
         if ( true )
             FileOps.clearDirectory("Files");
         
-        DataPatchServer server = new DataPatchServer(1066) ;
+        DataPatchServer server = new DataPatchServer(DP.PORT) ;
         server.start();
         
         // One datasets

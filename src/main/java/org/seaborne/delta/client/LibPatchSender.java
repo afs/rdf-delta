@@ -18,9 +18,6 @@
 
 package org.seaborne.delta.client;
 
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
-
 public class LibPatchSender {
     
     public static RDFChangesHTTP create1(String url) {
@@ -28,10 +25,4 @@ public class LibPatchSender {
         RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
         return scc ;
     }
-
-    
-    
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-    //httpClient.execute(httpPost) ;
-    
 }

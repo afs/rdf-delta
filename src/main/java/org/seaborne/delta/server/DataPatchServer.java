@@ -24,7 +24,6 @@ import org.eclipse.jetty.server.Server ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
-import org.seaborne.delta.DPS ;
 import org.seaborne.delta.server.handlers.PHandlerGSP ;
 import org.seaborne.delta.server.handlers.PHandlerLog ;
 import org.seaborne.delta.server.handlers.PHandlerOutput ;
@@ -57,6 +56,7 @@ public class DataPatchServer {
         addServlet("/fetch", new S_FetchCode.S_FetchId()) ;
         addServlet("/patch", patchMgr) ;
         addServlet("/patch/*", new S_FetchCode.S_FetchREST()) ;
+        addServlet("/rpc", new S_DRPC()) ;
     }
     
     public void addServlet(String path, Servlet servlet) {

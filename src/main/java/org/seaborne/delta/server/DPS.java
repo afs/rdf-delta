@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta;
+package org.seaborne.delta.server;
 
 import java.io.File ;
 import java.util.concurrent.atomic.AtomicInteger ;
@@ -79,6 +79,9 @@ public class DPS {
         Pattern pattern = Pattern.compile(namebase+"([0-9]*)") ;
         int max = -1 ;
         String[] x = new File(directory).list() ;
+        if ( x == null )
+            // No directory.
+            return -1 ;
         for ( String fn : x ) {
             Matcher m = pattern.matcher(fn) ;
             if ( ! m.matches() ) {              // anchored

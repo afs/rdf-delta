@@ -20,6 +20,7 @@ package org.seaborne.delta;
 
 import org.apache.jena.system.JenaSystem ;
 import org.seaborne.delta.assembler.VocabDelta ;
+import org.seaborne.delta.sys.InitDelta ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -32,6 +33,9 @@ public class Delta {
 
     static { init$() ; } 
     
+    /** This is automatically called by the Jena subsystem startup cycle.
+     * See {@link InitDelta} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
+     */
     public static void init( ) {}
     
     private static void init$() {

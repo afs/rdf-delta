@@ -24,8 +24,8 @@ import java.nio.file.Path ;
 import java.nio.file.Paths ;
 
 import org.apache.jena.atlas.io.IO ;
-import org.seaborne.delta.DPS ;
 import org.seaborne.delta.lib.OutputStream2 ;
+import org.seaborne.delta.server.DPS ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesWriter ;

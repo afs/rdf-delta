@@ -30,9 +30,12 @@ import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
 
 public class DP {
-    public static final String PatchContainer   = "http://localhost:1066/patch" ;
+    /*8 Default chocie of port */
+    public static final int PORT = 1066 ;
     
-    public static final String _FetchService     = "http://localhost:1066/fetch" ;
+    public static final String PatchContainer   = "http://localhost:"+PORT+"/patch" ;
+    
+    public static final String _FetchService     = "http://localhost:"+PORT+"/fetch" ;
 
     static AtomicInteger lastPatchFetch = new AtomicInteger(0) ;
     
