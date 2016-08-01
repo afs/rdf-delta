@@ -27,6 +27,7 @@ import java.util.List ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
@@ -50,6 +51,7 @@ public class S_Patch extends ServletBase {
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        LOG.info("Patch");
         InputStream in = req.getInputStream() ;
         PatchReader scr = new PatchReader(in) ;
         // Collect (scale!), log. 
@@ -58,8 +60,12 @@ public class S_Patch extends ServletBase {
         scr.apply(changes);
         PatchSet ps = null ;
         for ( PatchHandler patchHandler : handlers ) {
+            LOG.info("Handler: "+Lib.className(patchHandler)) ;
             RDFChanges sc = patchHandler.handler() ;
-            scr.apply(sc);
+            sc.start();
+            changes.play(sc);
+            sc.finish();
+            //scr.apply(sc);
         }
         
         //resp.setContentLength(0);

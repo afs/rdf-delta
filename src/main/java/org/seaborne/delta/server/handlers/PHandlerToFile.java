@@ -34,7 +34,7 @@ import org.slf4j.Logger ;
 public class PHandlerToFile implements PatchHandler {
     private static Logger LOG = DPS.LOG ;
     
-    static private boolean verbose = false ;
+    static private boolean verbose = true ;
     
     public PHandlerToFile() {}
     

@@ -18,121 +18,77 @@
 
 package dev;
 
-import java.io.IOException ;
-import java.nio.file.Paths ;
+import java.util.stream.IntStream ;
 
-import org.apache.jena.atlas.lib.DateTimeUtils ;
-import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.lib.Lib ;
-import org.apache.jena.atlas.lib.StrUtils ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.cmd.FusekiCmd ;
-import org.apache.jena.query.Dataset ;
-import org.apache.jena.query.DatasetFactory ;
-import org.apache.jena.riot.Lang ;
-import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.Quad ;
+import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
-import org.apache.jena.update.UpdateAction ;
-import org.apache.jena.update.UpdateFactory ;
-import org.apache.jena.update.UpdateRequest ;
 import org.seaborne.delta.DP ;
-import org.seaborne.delta.DeltaOps ;
+import org.seaborne.delta.base.PatchReader ;
+import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.server.DataPatchServer ;
+import org.seaborne.patch.RDFChangesWriter ;
 
 public class RunDelta {
     static { LogCtl.setJavaLogging(); }
     
-    public static void main(String[] args) throws IOException {
-        String fusekiHome = "/home/afs/Jena/jena-fuseki2/jena-fuseki-core" ;
-        String fusekiBase = "/home/afs/ASF/rdf-delta/run" ;
-        
-        System.setProperty("FUSEKI_HOME", fusekiHome) ;
-        System.setProperty("FUSEKI_BASE", fusekiBase) ;
-        
-        String runArea = Paths.get(fusekiBase).toAbsolutePath().toString() ;
-        FileOps.ensureDir(runArea) ;
-        FileOps.clearAll(runArea);  // ************* 
-        FusekiCmd.main("--conf", "config.ttl") ;
+    static String url = "http://localhost:"+DP.PORT+"/rpc" ; 
+    
+    public static void main(String... args) {
+        try {
+            main$();
+        } catch (Throwable ex) {
+            ex.printStackTrace(System.err) ;
+        }
+        finally { System.exit(0) ; }
     }
     
-    public static void main1(String[] args) throws IOException {
-        
-        if ( true )
-            FileOps.clearDirectory("Files");
-        
+    
+    public static void main$(String... args) {
         DataPatchServer server = new DataPatchServer(DP.PORT) ;
         server.start();
         
-        // One datasets
-        dev1() ;
-        // Two datasets.
-        //dev2() ;
-    }
-    
-    public static void dev2() throws IOException {
-        Dataset ds1 = TDBFactory.createDataset() ;
-        Dataset ds2 = DatasetFactory.createTxnMem() ;
-        
-        String updateStr = StrUtils.strjoinNL
-            ("INSERT DATA { <http://example/s> <http://example/p> 'XXX', 'X1' } ; "
-            ,"DELETE DATA { <http://example/s> <http://example/p> 'X1' } ;"
-            ) ;
-        UpdateRequest req = UpdateFactory.create(updateStr) ;
-        
-        DP.syncExecW(ds1.asDatasetGraph(), () -> { 
-            System.out.println("==== Before update");
-            RDFDataMgr.write(System.out, ds1, Lang.TRIG) ;
-            UpdateAction.execute(req, ds1) ;
-            System.out.println("==== After update");
-            RDFDataMgr.write(System.out, ds1, Lang.TRIG) ;
-            System.out.println("====") ;
-        }) ;
-        
-        if ( true ) {
-          DP.syncData(ds2.asDatasetGraph()) ;
-          System.out.println("==== Sync'ed.");
-          Txn.execRead(ds2, ()->RDFDataMgr.write(System.out, ds2, Lang.TRIG)) ;
-          System.out.println("== Exit") ;
-      }
-    }
-    
-    public static void dev1() throws IOException {
-        Dataset ds1 = TDBFactory.createDataset() ;
-        DatasetGraph dsg = DeltaOps.managedDatasetGraph(ds1.asDatasetGraph(), DP.PatchContainer) ;
-        Dataset ds = DatasetFactory.wrap(dsg) ;
-        
-        String template = "INSERT DATA { <http://example/s> <http://example/p> 'XXX'} ";   
-
-//        if ( true ) {
-//            DP.syncData(ds.asDatasetGraph()) ;
-//            System.out.println("==== Sync'ed.");
-//            Txn.execRead(ds, ()->RDFDataMgr.write(System.out, ds, Lang.TRIG)) ;
-//            System.out.println("== Exit") ;
-//            System.exit(0) ;
-//        }
-
-        for ( int i = 0 ; i < 2 ; i++ ) {
-            System.out.println("Update "+i);
-//            System.in.read() ;
-            String s = template.replace("XXX", DateTimeUtils.nowAsString()) ;
-            UpdateRequest req = UpdateFactory.create(s) ;
-            
-            
-            DP.syncExecW(ds.asDatasetGraph(), () -> { 
-                System.out.println("==== Before update");
-                RDFDataMgr.write(System.out, ds, Lang.TRIG) ;
-                UpdateAction.execute(req, ds) ;
-                System.out.println("==== After update");
-                RDFDataMgr.write(System.out, ds, Lang.TRIG) ;
-                System.out.println("====") ;
-            }) ;
+        DatasetGraph dsgBase1 = TDBFactory.createDatasetGraph() ;
+        DeltaClient client1 = DeltaClient.create("http://localhost:"+DP.PORT+"/", dsgBase1) ;
+        {
+            int x = client1.getRemoteVersion() ;
+            System.out.println("epoch = "+x) ;
         }
         
-        Lib.sleep(500) ;
-        System.out.println("== Exit") ;
+        
+        DatasetGraph dsgBase2 = TDBFactory.createDatasetGraph() ;
+        DeltaClient client2 = DeltaClient.create("http://localhost:"+DP.PORT+"/", dsgBase2) ;
+
+        update(client1) ;
+        sync(client2) ;
+        
         System.exit(0) ;
+        
     }
 
+
+    private static void sync(DeltaClient client2) {
+        int x = client2.getRemoteVersionLatest() ;
+        System.out.println("Sync until: "+x) ;
+        IntStream.rangeClosed(client2.getCurrentUpdateId()+1,x).forEach((z)->{
+            System.out.println("patch = "+z) ;
+            //Collect and play?
+            PatchReader pr = client2.fetchPatch(z) ;
+            pr.apply(new RDFChangesWriter(System.out));
+        }) ;
+        
+    }
+
+
+    private static void update(DeltaClient client) {
+        Quad q = SSE.parseQuad("(_ :s :p :o)") ;
+        DatasetGraph dsg = client.getDatasetGraph() ;
+        Txn.execWrite(dsg, ()->{
+            dsg.add(q); 
+        }) ;
+        // Done.
+    }
 }

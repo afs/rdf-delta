@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.atlas.io.IndentedLineBuffer ;
 import org.apache.jena.atlas.json.* ;
 import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.DP ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -37,9 +38,9 @@ public class S_DRPC extends ServletBase {
     static public Logger         LOG     = LoggerFactory.getLogger("RPC") ;
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        JsonValue arg ;
+        JsonObject arg ;
         try (InputStream in = req.getInputStream()  ) {
-            arg = JSON.parseAny(in) ;
+            arg = JSON.parse(in) ;
         } catch (JsonException ex) {
             LOG.warn("400 "+ex.getMessage()) ;
             resp.sendError(HttpSC.BAD_REQUEST_400, "JSON exception: "+ex.getMessage()) ;
@@ -50,11 +51,30 @@ public class S_DRPC extends ServletBase {
             return ;
         }
         
-        LOG.info("Arg: "+arg) ;
+        LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
+            
+        String op ;
+        try {
+            op = arg.get(DP.F_OP).getAsString().value() ;
+        } catch (JsonException ex) {
+            LOG.warn("Bad object: 400 "+ex.getMessage()) ;
+            resp.sendError(HttpSC.BAD_REQUEST_400, "JSON exception: "+ex.getMessage()) ;
+            return ;
+        }
+        
+        JsonValue rslt = null ;
+        switch(op) {
+            case DP.OP_EPOCH:
+                rslt = epoch(arg) ;
+                break ;
+            default: {
+                LOG.warn("Unknown operation: "+op );
+                resp.sendError(HttpSC.BAD_REQUEST_400, "Unknown operation: "+op);
+            }
+        }
         
         OutputStream out = resp.getOutputStream() ;
         try {
-            JsonValue rslt = call(arg) ;
             try ( IndentedLineBuffer x = new IndentedLineBuffer() ) {
                 x.setFlatMode(true);
                 JSON.write(x, rslt); 
@@ -71,20 +91,11 @@ public class S_DRPC extends ServletBase {
             ps.flush();
             return ;
         }   
-    }
-    
-    protected JsonValue call(JsonValue arg) {
-        if ( arg.isObject() ) {
-            JsonObject x = copy(arg).getAsObject() ;
-            x.put("result", x.get("integer").getAsNumber().value().longValue()+1) ;
-            return x ;
-        }
-        if ( arg.isArray() ) {
-            JsonArray x = copy(arg).getAsArray() ;
-            x.add(999) ;
-            return x ;
-        }
-        return arg ;
+    }        
+        
+    private JsonValue epoch(JsonObject arg) {
+        int x = DPS.counter.get() ;
+        return JsonNumber.value(x) ;
     }
     
     // ==> JSON.

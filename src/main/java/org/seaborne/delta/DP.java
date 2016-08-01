@@ -20,22 +20,32 @@ package org.seaborne.delta;
 
 import java.util.concurrent.atomic.AtomicInteger ;
 
+import org.apache.commons.lang3.NotImplementedException ;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
-import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.client.LibPatchFetcher ;
 import org.seaborne.delta.client.RDFChangesHTTP ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesApply ;
 
 public class DP {
-    /*8 Default chocie of port */
+    
+    // RPC calls.
+    /** Name of the operation field */ 
+    public static final String F_OP         = "operation" ;
+    public static final String F_ARG        = "arg" ;    
+    public static final String OP_EPOCH     = "epoch" ;
+    
+    
+    
+    /** Default choice of port */
     public static final int PORT = 1066 ;
     
-    public static final String PatchContainer   = "http://localhost:"+PORT+"/patch" ;
+    public static final String EP_RPC     = "rpc" ;
+    public static final String EP_Patch   = "patch" ;
+    public static final String EP_FETCH   = "fetch" ;
     
-    public static final String _FetchService     = "http://localhost:"+PORT+"/fetch" ;
+//    public static final String PatchContainer   = "http://localhost:"+PORT+"/patch" ;
+//    
+//    public static final String _FetchService     = "http://localhost:"+PORT+"/fetch" ;
 
     static AtomicInteger lastPatchFetch = new AtomicInteger(0) ;
     
@@ -76,21 +86,21 @@ public class DP {
         DatasetGraphChangesVersion dsgc = (DatasetGraphChangesVersion)dsg ;
         // Update to latest.
         // Needs to work on raw dataset.
-        
-        DatasetGraph dsgBase = dsgc.getWrapped() ;
-        
-        for ( ;; ) {
-            int x = lastPatchFetch.get()+1 ;
-            PatchReader patchReader = LibPatchFetcher.fetchByPath(PatchContainer, x) ;
-            if ( patchReader == null )
-                break ;
-            System.out.println("Apply patch "+x);
-            lastPatchFetch.incrementAndGet() ;
-            
-            RDFChanges sc = new RDFChangesApply(dsgc.getWrapped()) ;
-            patchReader.apply(sc) ;
-            
-            dsgc.localVersion.set(x) ;
-        }
+        throw new NotImplementedException("yet") ;
+//        DatasetGraph dsgBase = dsgc.getWrapped() ;
+//        
+//        for ( ;; ) {
+//            int x = lastPatchFetch.get()+1 ;
+//            PatchReader patchReader = LibPatchFetcher.fetchByPath(PatchContainer, x) ;
+//            if ( patchReader == null )
+//                break ;
+//            System.out.println("Apply patch "+x);
+//            lastPatchFetch.incrementAndGet() ;
+//            
+//            RDFChanges sc = new RDFChangesApply(dsgc.getWrapped()) ;
+//            patchReader.apply(sc) ;
+//            
+//            dsgc.localVersion.set(x) ;
+//        }
     }
 }

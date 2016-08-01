@@ -18,6 +18,10 @@
 
 package org.seaborne.delta.lib;
 
+import java.util.function.Consumer ;
+
+import org.apache.jena.atlas.json.JsonBuilder ;
+import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
@@ -37,4 +41,13 @@ public class L {
     public static String str(Quad q) {
         return FmtUtils.stringForQuad(q, SSE.defaultPrefixMapRead);
     }
+    
+    private static String LABEL = "%%object%%" ;  
+    
+    public static JsonObject buildObject(Consumer<JsonBuilder> setup) {
+        JsonBuilder b = JsonBuilder.create().startObject(LABEL) ;
+        setup.accept(b);
+        return b.finishObject(LABEL).build().getAsObject() ;
+    }
+
 }

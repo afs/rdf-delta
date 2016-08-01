@@ -24,18 +24,24 @@ import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.client.DRPC ;
+import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDeltaClient {
     static String url = "http://localhost:"+DP.PORT+"/rpc" ; 
     
     public static void main(String[] args) throws IOException {
+        DataPatchServer server = new DataPatchServer(DP.PORT) ;
+        server.start();
+
+        
+        
         {
             JsonValue x = JsonBuilder.create()
                 .startObject()
                 .key("integer").value(123)
                 .finishObject()
                 .build() ;
-            JsonValue r = DRPC.rpc(url, x) ;
+            JsonValue r = DRPC.rpc(url, "ping", x) ;
             System.out.println(r) ;
         }
         
@@ -45,7 +51,7 @@ public class RunDeltaClient {
                 .value(456)
                 .finishArray()
                 .build() ;
-            JsonValue r = DRPC.rpc(url, x) ;
+            JsonValue r = DRPC.rpc(url, "ping", x) ;
             System.out.println(r) ;
         }
 

@@ -39,7 +39,7 @@ public class DPS {
      *  This is the index of the highest used number.
      *  File naming usually begins at 0001.   
      */
-    static final AtomicInteger counter ;
+    public static final AtomicInteger counter ;
     static {
         int x = scanForPatchIndex() ;
         if ( x == -1 )

@@ -18,21 +18,39 @@
 
 package org.seaborne.delta.client;
 
+import java.io.IOException ;
 import java.util.Objects ;
 
-import org.apache.jena.atlas.json.JSON ;
-import org.apache.jena.atlas.json.JsonException ;
-import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.json.* ;
+import org.apache.jena.atlas.logging.Log ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
+import org.seaborne.delta.DP ;
 
 public class DRPC {
-    /** Send a JSON argument to a URL by POST and received a JSON object in return. */
-    public static JsonValue rpc(String url, JsonValue arg) {
+    
+    /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
+    public static JsonValue rpc(String url, String opName, JsonValue arg) {
+        JsonObject a = JsonBuilder.create()
+            .startObject()
+            .key(DP.F_OP).value(opName)
+            .key(DP.F_ARG).value(arg)
+            .finishObject()
+            .build().getAsObject() ;
+        return rpc(url, a) ;
+    }
+    
+    /** Send a JSON object to a URL by POST and received a JSON object in return. */
+    public static JsonValue rpc(String url, JsonObject object) {
         Objects.requireNonNull(url, "DRPC.rpc: Arg1 URL is null") ;
-        Objects.requireNonNull(arg, "DRPC.rpc: Arg2 JSON argument is null") ;
-        String argStr = JSON.toString(arg) ;
+        Objects.requireNonNull(object, "DRPC.rpc: Arg2 JSON object is null") ;
+
+        if ( ! object.hasKey(DP.F_OP) )
+            throw new DeltaException() ; 
+        
+        String argStr = JSON.toString(object) ;
         try (
             TypedInputStream x = HttpOp.execHttpPostStream(url, 
                                                            WebContent.contentTypeJSON, argStr,
@@ -40,8 +58,15 @@ public class DRPC {
             if ( x == null ) {
                 throw new JsonException("No response") ;
             }
-            JsonValue r = JSON.parseAny(x) ;
-            return r ;
+            
+            if ( true ) {
+                try {
+                    String s = IO.readWholeFileAsUTF8(x) ;
+                    return JSON.parseAny(s) ;
+                } catch (IOException ex) { IO.exception(ex); return null ;}
+            }
+            else 
+                return JSON.parseAny(x) ;
         }
     }
 }

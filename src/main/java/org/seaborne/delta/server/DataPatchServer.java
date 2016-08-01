@@ -20,6 +20,7 @@ package org.seaborne.delta.server;
 
 import javax.servlet.Servlet ;
 
+import org.apache.jena.atlas.lib.FileOps ;
 import org.eclipse.jetty.server.Server ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
@@ -45,6 +46,9 @@ public class DataPatchServer {
         handler = new ServletHandler();
         server.setHandler(handler);
         server.addBean(eh) ;
+        
+        
+        FileOps.ensureDir(DPS.FILEBASE) ;
         
         S_Patch patchMgr = new S_Patch() ;
         // Setup
