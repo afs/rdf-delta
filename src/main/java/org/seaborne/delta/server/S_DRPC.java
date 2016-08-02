@@ -26,8 +26,8 @@ import java.io.PrintStream ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
-import org.apache.jena.atlas.io.IndentedLineBuffer ;
 import org.apache.jena.atlas.json.* ;
+import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DP ;
 import org.slf4j.Logger ;
@@ -51,12 +51,12 @@ public class S_DRPC extends ServletBase {
             return ;
         }
         
-        LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
             
         String op ;
         try {
             op = arg.get(DP.F_OP).getAsString().value() ;
         } catch (JsonException ex) {
+            LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
             LOG.warn("Bad object: 400 "+ex.getMessage()) ;
             resp.sendError(HttpSC.BAD_REQUEST_400, "JSON exception: "+ex.getMessage()) ;
             return ;
@@ -68,6 +68,7 @@ public class S_DRPC extends ServletBase {
                 rslt = epoch(arg) ;
                 break ;
             default: {
+                LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
                 LOG.warn("Unknown operation: "+op );
                 resp.sendError(HttpSC.BAD_REQUEST_400, "Unknown operation: "+op);
             }
@@ -75,11 +76,7 @@ public class S_DRPC extends ServletBase {
         
         OutputStream out = resp.getOutputStream() ;
         try {
-            try ( IndentedLineBuffer x = new IndentedLineBuffer() ) {
-                x.setFlatMode(true);
-                JSON.write(x, rslt); 
-                LOG.info("Result: "+x.asString()) ;
-            }
+            FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;  
             resp.setStatus(HttpSC.OK_200);
             JSON.write(out, rslt);
         }

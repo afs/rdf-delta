@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.regex.Matcher ;
 import java.util.regex.Pattern ;
 
+import org.apache.jena.atlas.lib.FileOps ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -39,13 +40,14 @@ public class DPS {
      *  This is the index of the highest used number.
      *  File naming usually begins at 0001.   
      */
-    public static final AtomicInteger counter ;
-    static {
+    public static final AtomicInteger counter = new AtomicInteger(0) ;
+    
+    private static void  setPatchIndex() {
         int x = scanForPatchIndex() ;
         if ( x == -1 )
             x = 0 ;
         LOG.info("Patch base index = "+x);
-        counter = new AtomicInteger(x) ;
+        counter.set(x) ;
     }
     
     static final AtomicInteger tmpCounter = new AtomicInteger(0) ;
@@ -68,8 +70,6 @@ public class DPS {
     public static int scanForPatchIndex() {
         return scanForIndex(FILEBASE, "patch-") ;
     }
-    
-    // TODO recovery from tmp files.
     
     /** Find the highest index in a directpry of files */
     public static int scanForIndex(String directory, String namebase) {
@@ -96,5 +96,24 @@ public class DPS {
         return max ;
     }
     
-    public static void init() { }
+    public static void cleanFileArea() {
+        FileOps.clearDirectory(FILEBASE);
+    }
+    
+    private static volatile boolean initialized = false ; 
+    public static void init() { 
+        if ( initialized ) 
+            return ;
+        synchronized(DPS.class) {
+            if ( initialized ) 
+                return ;
+            initialized = true ;
+            initOnce() ;
+        }
+    }
+    
+    private static void initOnce() {
+        FileOps.ensureDir(FILEBASE);
+        setPatchIndex() ;
+    }
 }

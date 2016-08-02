@@ -18,24 +18,45 @@
 
 package org.seaborne.delta.server.handlers;
 
-import java.io.Writer ;
+import java.util.ArrayList ;
+import java.util.List ;
 
-import org.apache.jena.atlas.io.AWriter ;
-import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.io.IndentedLineBuffer ;
+import org.apache.jena.query.ARQ ;
+import org.apache.jena.riot.WebContent ;
+import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesWriteUpdate ;
 
 public class PHandlerGSP implements PatchHandler {
     
-    public PHandlerGSP() {
+    // SPARQL Update services to poke
+    private List<String> updateEndpoints = new ArrayList<>() ;
+    public PHandlerGSP addEndpoint(String url) {
+        updateEndpoints.add(url) ;
+        return this ;
     }
+    
+    public PHandlerGSP() { }
+    
+    private Object dft = ARQ.getContext().get(ARQ.constantBNodeLabels) ;
     
     @Override
     public RDFChanges handler() {
-        Writer w = IO.asBufferedUTF8(System.out) ;
-        AWriter out = IO.wrap(w) ;
-        RDFChanges scData = new RDFChangesWriteUpdate(out) ;
+        IndentedLineBuffer x = new IndentedLineBuffer() ;
+        RDFChanges scData = new RDFChangesWriteUpdate(x) {
+            @Override
+            public void finish() {
+                // This has bnode nodes as <_:....> 
+                String reqStr = x.asString() ;
+                updateEndpoints.forEach((ep)->{
+                    HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ;                    
+                }) ;
+                super.finish() ;
+            }
+        } ;
         return scData ;
     }
 }
+

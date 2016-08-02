@@ -16,9 +16,23 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server.handlers;
 
-public class RunDeltaClient {
-    public static void main(String[] args) {
+import org.apache.jena.atlas.io.IndentedWriter ;
+import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesWriteUpdate ;
+
+public class PHandlerGSPOutput implements PatchHandler {
+    public PHandlerGSPOutput() {}
+    
+    @Override
+    public RDFChanges handler() {
+        IndentedWriter x = new IndentedWriter(System.out) ;
+        x.setLineNumbers(true);
+        x.setLinePrefix("GSP>> ");
+        RDFChanges scData = new RDFChangesWriteUpdate(x) ;
+        x.flush();
+        return scData ;
     }
 }

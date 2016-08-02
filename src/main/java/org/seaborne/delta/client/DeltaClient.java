@@ -18,15 +18,17 @@
 
 package org.seaborne.delta.client;
 
+import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.stream.IntStream ;
 
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.lib.L ;
+import org.seaborne.delta.lib.J ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
 import org.slf4j.Logger ;
@@ -44,7 +46,7 @@ public class DeltaClient {
     
     // The version of the remote copy.
     private int remoteEpoch = 0 ;
-    private int localEpoch = 0 ;
+    private AtomicInteger localEpoch = new AtomicInteger(0) ;
     private String remoteServer ;
     private DatasetGraph base ;
     private RDFChanges target ;
@@ -63,8 +65,9 @@ public class DeltaClient {
         remoteEpoch = getRemoteVersionLatest() ;
         // bring up-to-date.
         // Range????
+        FmtLog.info(LOG, "Patch range [%d, %d]", 1, remoteEpoch) ;
         IntStream.rangeClosed(1, remoteEpoch).forEach((x)->{
-            LOG.info("Init: patch="+x) ;
+            LOG.info("Register: patch="+x) ;
             PatchReader pr = fetchPatch(x) ;
             pr.apply(target);
         });
@@ -77,24 +80,37 @@ public class DeltaClient {
     public void syncAll() {
         
     }
-
     
-    public int getCurrentUpdateId() {
-        return localEpoch ;
+    /** Return the version of the local data store */ 
+    public int getLocalVersionNumber() {
+        return localEpoch.get();
+    }
+    
+    /** Return the version of the local data store */ 
+    public void setLocalVersionNumber(int version) {
+        localEpoch.set(version); 
     }
 
-    public int getRemoteVersion() {
+
+    /** Return our local track of the remote version */ 
+    public int getRemoteVersionNumber() {
         return remoteEpoch ;
     }
     
+    /** The "record changes" version */  
     public DatasetGraph getDatasetGraph() {
         return managed ;
     }
 
-    /** ctively get the remote version */  
+    /** The "without changes" storage */   
+    public DatasetGraph getStorage() {
+        return base ;
+    }
+
+    /** actively get the remote version */  
     public int getRemoteVersionLatest() {
         
-        JsonObject obj = L.buildObject((b)-> b.key("operation").value(DP.OP_EPOCH)) ;
+        JsonObject obj = J.buildObject((b)-> b.key("operation").value(DP.OP_EPOCH)) ;
         JsonValue r = DRPC.rpc(remoteServer+DP.EP_RPC, obj) ;
         if ( ! r.isNumber() )
             System.err.println("Not a number: "+r) ;

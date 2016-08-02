@@ -16,9 +16,22 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.lib;
 
-public class RunDeltaClient {
-    public static void main(String[] args) {
+import java.util.function.Consumer ;
+
+import org.apache.jena.atlas.json.JsonBuilder ;
+import org.apache.jena.atlas.json.JsonObject ;
+
+/** Additional JSON code */ 
+public class J {
+
+    private static String LABEL = "%%object%%" ;
+
+    public static JsonObject buildObject(Consumer<JsonBuilder> setup) {
+        JsonBuilder b = JsonBuilder.create().startObject(LABEL) ;
+        setup.accept(b);
+        return b.finishObject(LABEL).build().getAsObject() ;
     }
+
 }

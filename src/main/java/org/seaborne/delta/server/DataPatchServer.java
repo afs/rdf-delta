@@ -25,10 +25,7 @@ import org.eclipse.jetty.server.Server ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
-import org.seaborne.delta.server.handlers.PHandlerGSP ;
-import org.seaborne.delta.server.handlers.PHandlerLog ;
-import org.seaborne.delta.server.handlers.PHandlerOutput ;
-import org.seaborne.delta.server.handlers.PHandlerToFile ;
+import org.seaborne.delta.server.handlers.* ;
 
 /** A simple packaging of Jetty to provide an embeddable HTTP server that just support servlets */ 
 public class DataPatchServer {
@@ -53,7 +50,8 @@ public class DataPatchServer {
         S_Patch patchMgr = new S_Patch() ;
         // Setup
         patchMgr.addHandler(new PHandlerOutput(System.out)) ;
-        patchMgr.addHandler(new PHandlerGSP()) ;
+        patchMgr.addHandler(new PHandlerGSPOutput()) ;
+        patchMgr.addHandler(new PHandlerGSP().addEndpoint("http://localhost:3030/ds/update")) ;
         patchMgr.addHandler(new PHandlerToFile()) ;
         patchMgr.addHandler(new PHandlerLog(DPS.LOG)) ;
         

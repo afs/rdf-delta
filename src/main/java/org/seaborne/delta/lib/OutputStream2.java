@@ -22,8 +22,8 @@ import java.io.IOException ;
 import java.io.OutputStream ;
 
 /** Write all output to two {@link OutputStream}s.
- * Each write operation is duplicated - this is no gauranteed
- * that writing twice to the same stream prodcues anything useful. 
+ * Each write operation is duplicated.
+ * Not designed to work when both outputs are the same or wrappers over the same output. 
  */
 
 public class OutputStream2 extends OutputStream {
@@ -31,6 +31,8 @@ public class OutputStream2 extends OutputStream {
     private final OutputStream out2 ;
 
     public OutputStream2(OutputStream out1, OutputStream out2) {
+        if ( out1 == out2 )
+            throw new IllegalArgumentException("Same OutputStream for both outputs") ; 
         this.out1 = out1 ;
         this.out2 = out2 ; 
     }

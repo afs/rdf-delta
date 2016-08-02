@@ -25,9 +25,7 @@ import org.apache.commons.lang3.NotImplementedException ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.shared.JenaException ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.DP.DatasetGraphChangesVersion ;
 import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.delta.client.LibPatchSender ;
 import org.seaborne.delta.client.RDFChangesHTTP ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
@@ -54,12 +52,12 @@ public class DeltaOps {
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }
 
-    public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
-        RDFChangesHTTP changes = LibPatchSender.create1(url) ;
-        DatasetGraph dsg1 = new DatasetGraphChangesVersion(dsg, changes);
-        return dsg1 ;
-    }
-    
+//    public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
+//        RDFChangesHTTP changes = LibPatchSender.create1(url) ;
+//        DatasetGraph dsg1 = new DatasetGraphChangesVersion(dsg, changes);
+//        return dsg1 ;
+//    }
+//    
     private static OutputStream openChangesDest(String x) {
         if ( x.startsWith("file:") )
             return IO.openOutputFile(x) ;

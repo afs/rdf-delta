@@ -23,22 +23,19 @@ import java.util.Objects ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.* ;
-import org.apache.jena.atlas.logging.Log ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.DP ;
+import org.seaborne.delta.lib.J ;
 
 public class DRPC {
     
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, String opName, JsonValue arg) {
-        JsonObject a = JsonBuilder.create()
-            .startObject()
-            .key(DP.F_OP).value(opName)
-            .key(DP.F_ARG).value(arg)
-            .finishObject()
-            .build().getAsObject() ;
+        JsonObject a = J.buildObject((b)->
+            b.key(DP.F_OP).value(opName).key(DP.F_ARG).value(arg)
+            ) ;
         return rpc(url, a) ;
     }
     
@@ -55,9 +52,8 @@ public class DRPC {
             TypedInputStream x = HttpOp.execHttpPostStream(url, 
                                                            WebContent.contentTypeJSON, argStr,
                                                            WebContent.contentTypeJSON)) {
-            if ( x == null ) {
+            if ( x == null )
                 throw new JsonException("No response") ;
-            }
             
             if ( true ) {
                 try {

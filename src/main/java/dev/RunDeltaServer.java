@@ -26,6 +26,4 @@ public class RunDeltaServer {
         server.start();
         server.join();
     }
-    
-
 }
