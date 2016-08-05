@@ -15,16 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev;
 
-import org.seaborne.delta.DP ;
-import org.seaborne.delta.server.DataPatchServer ;
+package org.seaborne.delta.server.handlers;
 
-public class RunDeltaServer {
-    
-    public static void main(String...arg) {
-        DataPatchServer server = new DataPatchServer(DP.PORT) ;
-        server.start();
-        server.join();
+import org.apache.jena.sparql.core.DatasetGraph ;
+import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChangesApply ;
+
+public class PHandlerLocalDB implements PatchHandler {
+
+    private final DatasetGraph dsg ;
+
+    public PHandlerLocalDB(DatasetGraph dsg) {
+        this.dsg = dsg ;
     }
+    
+    @Override
+    public RDFChanges handler() {
+        return new RDFChangesApply(dsg) ;
+    }
+
 }

@@ -51,9 +51,13 @@
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-core</artifactId>
       <version>${ver.fuseki}</version>
-      <!--
+      <!-- LOGGING 
+           Skip exclusion
+           FusekiCmd, FusekiLogging.setLogging line needs this.
+           unless log4.configuration set to "NotRequired"
+           -->
+
       <exclusions>
-        <!- - ???? - ->
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-log4j12</artifactId>
@@ -63,7 +67,6 @@
           <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
-      -->
     </dependency>
 
     <dependency>
@@ -72,13 +75,14 @@
       <version>4.12</version>
     </dependency>
 
-    <!-- Require a logging implementation - ->
+    <!-- LOGGING
+         Require a logging implementation -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <version>1.7.21</version>
     </dependency>
-    -->
+    <!-- -->
 
     <!--
     <dependency>

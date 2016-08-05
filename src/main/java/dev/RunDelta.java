@@ -23,12 +23,14 @@ import java.util.concurrent.ScheduledExecutorService ;
 import java.util.concurrent.TimeUnit ;
 import java.util.stream.IntStream ;
 
+import embedded.FusekiEmbeddedServer ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
@@ -48,20 +50,24 @@ public class RunDelta {
     public static void main(String... args) {
         DPS.cleanFileArea();
         DPS.init() ;
+        
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
         try {
-            DataPatchServer server = new DataPatchServer(DP.PORT) ;
+            DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
             server.start();
-            
-            main$();
+            FusekiEmbeddedServer.make(3333, "/ds", dsg).start() ;
+            run(dsg);
         } catch (Throwable ex) {
             ex.printStackTrace(System.err) ;
         }
-        finally { System.exit(0) ; }
+        finally { 
+            //System.exit(0) ;
+        }
     }
     
     static Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
 
-    public static void main$(String... args) {
+    public static void run(DatasetGraph dsg) {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
         DeltaClient client1 = DeltaClient.create("http://localhost:"+DP.PORT+"/", dsg1) ;
         if ( false ) {

@@ -22,9 +22,11 @@ import java.util.ArrayList ;
 import java.util.List ;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer ;
+import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.query.ARQ ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
+import org.seaborne.delta.server.DPS ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesWriteUpdate ;
@@ -51,7 +53,8 @@ public class PHandlerGSP implements PatchHandler {
                 // This has bnode nodes as <_:....> 
                 String reqStr = x.asString() ;
                 updateEndpoints.forEach((ep)->{
-                    HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ;                    
+                    try { HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ; }
+                    catch (HttpException ex) { DPS.LOG.warn("Failed to send to "+ep) ; }
                 }) ;
                 super.finish() ;
             }

@@ -15,16 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package dev;
 
-import org.seaborne.delta.DP ;
-import org.seaborne.delta.server.DataPatchServer ;
+import java.util.ArrayList ;
+import java.util.List ;
 
-public class RunDeltaServer {
-    
-    public static void main(String...arg) {
-        DataPatchServer server = new DataPatchServer(DP.PORT) ;
-        server.start();
-        server.join();
+import org.apache.jena.sparql.core.DatasetGraph ;
+import org.seaborne.delta.server.DPS ;
+import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.delta.server.handlers.* ;
+
+/** Configuration for the patch receiver */ 
+public class Setup {
+    public static PatchHandler[] handlers(DatasetGraph dsg) { 
+        List<PatchHandler> x = new ArrayList<>() ;
+        if ( dsg != null )
+            x.add(new PHandlerLocalDB(dsg)) ;
+        x.add(new PHandlerOutput(System.out)) ;
+        x.add(new PHandlerGSPOutput()) ;
+        x.add(new PHandlerGSP().addEndpoint("http://localhost:3030/ds/update")) ;
+        x.add(new PHandlerToFile()) ;
+        x.add(new PHandlerLog(DPS.LOG)) ;
+        
+        return x.toArray(new PatchHandler[0]) ;
     }
 }
