@@ -23,9 +23,9 @@ import java.util.concurrent.ScheduledExecutorService ;
 import java.util.concurrent.TimeUnit ;
 import java.util.stream.IntStream ;
 
-import embedded.FusekiEmbeddedServer ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.logging.LogCtl ;
+import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
@@ -87,13 +87,15 @@ public class RunDelta {
         Txn.execRead(dsg1, ()->RDFDataMgr.write(System.out, dsg1, Lang.NQ)) ;
         System.out.println("----") ;
         for ( int i = 0 ; i < 5 ; i++ ) {
-            Txn.execRead(dsg2, ()->RDFDataMgr.write(System.out, dsg2, Lang.NQ)) ;
-            System.out.println("--") ;
+//            Txn.execRead(dsg2, ()->RDFDataMgr.write(System.out, dsg2, Lang.NQ)) ;
+//            System.out.println("--") ;
             Lib.sleep(2*1000);
         }
         
         Node o = q.getObject() ;
+        System.out.println("---- dsg1") ;
         Txn.execRead(dsg1, ()->dsg1.find(null,null,null,null).forEachRemaining(System.out::println));
+        System.out.println("---- dsg2") ;
         Txn.execRead(dsg2, ()->dsg2.find(null,null,null,null).forEachRemaining(System.out::println));
         System.out.println("----") ;
         System.exit(0) ;
@@ -105,7 +107,7 @@ public class RunDelta {
         int base = client.getLocalVersionNumber() ;
         if ( base+1 > x )
             return ;
-        System.out.println("Sync until: "+x) ;
+        System.out.printf("Sync [%d, %d]\n", base, x) ;
         IntStream.rangeClosed(base+1,x).forEach((z)->{
             System.out.println("patch = "+z) ;
             doOnePatchStreamed(z, client) ;
@@ -135,6 +137,7 @@ public class RunDelta {
     
     private static void doOnePatchStreamed(int z, DeltaClient client) {
         //==> DeltaClient
+        // Synchronization (via transactions? via patch-chain)
         PatchReader pr = client.fetchPatch(z) ;
         DatasetGraph dsg = client.getStorage() ;
         RDFChanges rc1 = new RDFChangesApply(dsg) ;

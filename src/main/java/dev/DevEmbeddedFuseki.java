@@ -21,12 +21,14 @@ package dev;
 import java.io.IOException ;
 import java.io.OutputStream ;
 
-import embedded.FusekiEmbeddedServer ;
 import org.apache.http.HttpEntity ;
 import org.apache.http.entity.ContentProducer ;
 import org.apache.http.entity.EntityTemplate ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.atlas.web.TypedInputStream ;
+import org.apache.jena.fuseki.Fuseki ;
+import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.fuseki.server.DataAccessPointRegistry ;
 import org.apache.jena.fuseki.server.DataService ;
 import org.apache.jena.fuseki.server.OperationName ;
 import org.apache.jena.graph.Graph ;
@@ -37,54 +39,117 @@ import org.apache.jena.riot.RDFFormat ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
+import org.apache.jena.sparql.core.Quad ;
+import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.sparql.util.QueryExecUtils ;
+import org.apache.jena.system.Txn ;
 import org.eclipse.jetty.util.IO ;
+import org.slf4j.Logger ;
+import org.slf4j.LoggerFactory ;
 
 /** Create and run an Fuseki server inside an large application */
 
 public class DevEmbeddedFuseki {
     
+    // More examples.
+    //   Update dataset from java.
+    //   Stop server.
+    
     static {
         //LogCtl.setJavaLogging() ;
         LogCtl.setJavaLogging();
     }
-
+    static Logger LOG = LoggerFactory.getLogger("main") ;
+    
     public static void main(String...arg) {
-        try { main2() ; }
+        try { example6() ; System.exit(0); }
         catch(Throwable th) {
             th.printStackTrace(System.err) ;
             System.exit(10);
         }
     }
+     
+    public static void example6() {
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
+        // Run a Fuseki server with "/ds" as the dataset.
+        // Default set up : query, update, graph store and quads operations. 
+        FusekiEmbeddedServer server = FusekiEmbeddedServer.make(3330, "/ds", dsg) ;
+        server.start() ;
         
+        LOG.info("Remote 1") ;
+        try (QueryExecution qExec = 
+            QueryExecutionFactory.sparqlService("http://localhost:3330/ds/query", "SELECT * { ?s ?p ?o}") ) {
+            QueryExecUtils.executeQuery(qExec); 
+        }
+
+        Txn.execWrite(dsg,  ()->{
+            Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
+            dsg.add(q); 
+        }) ;
+        
+        LOG.info("Remote 2") ;
+        try (QueryExecution qExec = 
+            QueryExecutionFactory.sparqlService("http://localhost:3330/ds/query", "SELECT * { ?s ?p ?o}") ) {
+            QueryExecUtils.executeQuery(qExec); 
+        }
+        server.stop() ;
+        
+    }
+    
     public static void main2() {
         
-        // ------------------------
-        
-        // Tests
         if ( false ) {
+            // NCSA logging
+            java.util.logging.Logger rLog = java.util.logging.Logger.getLogger(Fuseki.requestLogName) ;
+//            Handler[] h = rLog.getHandlers() ;
+//            rLog.setUseParentHandlers(false);
+//            System.err.println(h.length);
+//            System.err.println(h[0].getClass().getSimpleName()) ;
+//            h[0].setLevel(java.util.logging.Level.INFO);
+            // Regular Fuseki logging. 
+            java.util.logging.Logger.getLogger(Fuseki.actionLogName).setLevel(java.util.logging.Level.OFF) ;
+            // Server start up.
+            java.util.logging.Logger.getLogger(Fuseki.serverLogName).setLevel(java.util.logging.Level.OFF) ;
+        }
+        
+        if ( false ) {
+            LOG.info("Example 0") ;
+            example0() ;
+            try (QueryExecution qExec = 
+                    QueryExecutionFactory.sparqlService("http://localhost:3330/ds/query", "SELECT * { ?s ?p ?o}") ) {
+                QueryExecUtils.executeQuery(qExec); 
+            }
+            DataAccessPointRegistry.get().clear();
+        }
+
+        if ( false ) {
+            LOG.info("Example 1") ;
             example1() ;
             try (QueryExecution qExec = 
                     QueryExecutionFactory.sparqlService("http://localhost:3333/ds/query", "SELECT * { ?s ?p ?o}") ) {
                 QueryExecUtils.executeQuery(qExec); 
             }
+            DataAccessPointRegistry.get().clear();
         }
 
         if ( false ) {
+            LOG.info("Example 2") ;
             example2() ;
             try (QueryExecution qExec = 
                 QueryExecutionFactory.sparqlService("http://localhost:3334/rdf/sparql", "SELECT * { ?s ?p ?o}") ) {
                 QueryExecUtils.executeQuery(qExec); 
             }
+            DataAccessPointRegistry.get().clear();
         }
 
         if ( false ) {
+            LOG.info("Example 3") ;
             example3() ;
 
             Graph g = RDFDataMgr.loadGraph("D.trig");
 
             HttpEntity e = graphToHttpEntity(g) ;
-            HttpOp.execHttpPut("http://localhost:3335/ds2/quads", e) ;
+            HttpOp.execHttpPut("http://localhost:3335/ds2/", e) ;
 
             try ( TypedInputStream in = HttpOp.execHttpGet("http://localhost:3335/ds2") ) {
                 IO.copy(in, System.out) ;
@@ -96,9 +161,11 @@ public class DevEmbeddedFuseki {
                 QueryExecutionFactory.sparqlService("http://localhost:3335/ds/sparql", "SELECT * { ?s ?p ?o}") ) {
                 QueryExecUtils.executeQuery(qExec); 
             }
+            DataAccessPointRegistry.get().clear();
         }
 
-        if ( true ) {
+        if ( false ) {
+            LOG.info("Example 4") ;
             example4() ;
 
             Graph g = RDFDataMgr.loadGraph("D.trig");
@@ -116,6 +183,23 @@ public class DevEmbeddedFuseki {
                 QueryExecutionFactory.sparqlService("http://localhost:3336/data", "SELECT * { ?s ?p ?o}") ) {
                 QueryExecUtils.executeQuery(qExec); 
             }
+            DataAccessPointRegistry.get().clear();
+        }
+        
+        if ( true ) {
+            LOG.info("Example 5") ;
+            example5() ;
+
+            Graph g = RDFDataMgr.loadGraph("D.trig");
+
+            HttpEntity e = graphToHttpEntity(g) ;
+            HttpOp.execHttpPut("http://localhost:3337/ds", e) ;
+
+            try (QueryExecution qExec = 
+                QueryExecutionFactory.sparqlService("http://localhost:3337/ds", "SELECT * { ?s ?p ?o}") ) {
+                QueryExecUtils.executeQuery(qExec); 
+            }
+            DataAccessPointRegistry.get().clear();
         }
 
         System.out.println("DONE") ;
@@ -125,7 +209,7 @@ public class DevEmbeddedFuseki {
     /** Create an HttpEntity for the graph */  
     protected static HttpEntity graphToHttpEntity(final Graph graph) {
 
-        final RDFFormat syntax = RDFFormat.NQ ;
+        final RDFFormat syntax = RDFFormat.TURTLE_BLOCKS ;
         ContentProducer producer = new ContentProducer() {
             @Override
             public void writeTo(OutputStream out) {
@@ -142,11 +226,16 @@ public class DevEmbeddedFuseki {
     // Examples. 
     
     /** Create a SPARQL endpoint for an application dataset */ 
+    private static void example0() {
+        DatasetGraph dsg = dataset() ;
+        // Run a Fuseki server with "/ds" as the dataset.
+        // Default set up : query, update, graph store and quads operations. 
+        FusekiEmbeddedServer.make(3330, "/ds", dsg).start() ;
+    }
+    
+    /** Create a SPARQL endpoint for an application dataset */ 
     private static void example1() {
-        // Setup a dataset. Put some data in it.
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
-        RDFDataMgr.read(dsg, "D.trig");
-
+        DatasetGraph dsg = dataset() ;
         // Run a Fuseki server with "/ds" as the dataset.
         // Default set up : query, update, graph store and quads operations. 
         FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
@@ -160,8 +249,7 @@ public class DevEmbeddedFuseki {
      * The SPARQL endpoint URLs look like {@code /rdf/sparql?query=}
      */
     private static void example2() {
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
-        RDFDataMgr.read(dsg, "D.trig");
+        DatasetGraph dsg = dataset() ;
 
         DataService queryService = new DataService(dsg) ;
         queryService.addEndpoint(OperationName.Query, "sparql");
@@ -176,6 +264,12 @@ public class DevEmbeddedFuseki {
         //server.stop() ;
     }
     
+    private static DatasetGraph dataset() {
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
+        Txn.execWrite(dsg, ()->RDFDataMgr.read(dsg, "D.trig"));
+        return dsg ;
+    }
+
     /** Create a Fuseki server with two sets of services. One is the usual set of read-only endpoints,
      *  the other is just being able to do quads operations
      * GET, POST, PUT on  "/ds2" in N-quads and TriG.
@@ -191,14 +285,13 @@ public class DevEmbeddedFuseki {
 
         FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
             .setPort(3335)
-            //.add("/ds", dsg, false) // read-only
+            .add("/ds", dsg, false) // read-only
             .add("/ds2", dataService)
             .build() ;
         server.start() ;
     }
     
-    /** Create a Fuseki server with some services on the datset URL.
-     */
+    /** Create a Fuseki server with some services on the dataset URL. */
     private static void example4() {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
 
@@ -215,5 +308,14 @@ public class DevEmbeddedFuseki {
             .build() ;
         server.start() ;
     }
-
+    
+    /** Create a Fuseki server by reading a configuration file. */
+    private static void example5() {
+        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
+            .setPort(3337)
+            // Defines /ds
+            .parseConfigFile("config.ttl")
+            .build() ;
+        server.start() ;
+    }
 }
