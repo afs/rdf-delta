@@ -33,8 +33,8 @@ public class Setup {
         if ( dsg != null )
             x.add(new PHandlerLocalDB(dsg)) ;
         x.add(new PHandlerOutput(System.out)) ;
-        x.add(new PHandlerGSPOutput()) ;
-        x.add(new PHandlerGSP().addEndpoint("http://localhost:3030/ds/update")) ;
+//        x.add(new PHandlerGSPOutput()) ;
+//        x.add(new PHandlerGSP().addEndpoint("http://localhost:3030/ds/update")) ;
         x.add(new PHandlerToFile()) ;
         x.add(new PHandlerLog(DPS.LOG)) ;
         

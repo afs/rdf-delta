@@ -18,19 +18,19 @@
 
 package dev;
 
+import java.io.IOException ;
 import java.util.concurrent.Executors ;
 import java.util.concurrent.ScheduledExecutorService ;
 import java.util.concurrent.TimeUnit ;
 import java.util.stream.IntStream ;
 
 import org.apache.jena.atlas.lib.Lib ;
+import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
@@ -41,42 +41,95 @@ import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.server.DPS ;
 import org.seaborne.delta.server.DataPatchServer ;
 import org.seaborne.patch.* ;
+import org.slf4j.Logger ;
+import org.slf4j.LoggerFactory ;
 
 public class RunDelta {
+    
+    // Scope v0
+    
+    // Next:
+    //   Slides
+    //   Client-side:
+    //      DeltaClient.execWrite(...)
+    //      DatasetRegistry (DeltaClient enough?)
+    //      Receiver
+    //   Server-side:
+    //      Configuration
+    //      Restart (but its passive so  
+    
+    // Transactional number.
+    
     static { LogCtl.setJavaLogging(); }
+    static Logger LOG = LoggerFactory.getLogger("Main") ;
     
     static String url = "http://localhost:"+DP.PORT+"/rpc" ; 
     
     public static void main(String... args) {
-        DPS.cleanFileArea();
+        //DPS.cleanFileArea();
         DPS.init() ;
         
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
+        DatasetGraph dsg = null ; //DatasetGraphFactory.createTxnMem() ;
         try {
             DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
             server.start();
-            FusekiEmbeddedServer.make(3333, "/ds", dsg).start() ;
-            run(dsg);
+            run() ;
         } catch (Throwable ex) {
             ex.printStackTrace(System.err) ;
         }
         finally { 
-            //System.exit(0) ;
+            System.exit(0) ;
         }
+        
+        
+//        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
+//        try {
+//            DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
+//            server.start();
+//            FusekiEmbeddedServer.make(3333, "/ds", dsg).start() ;
+//            run(dsg);
+//        } catch (Throwable ex) {
+//            ex.printStackTrace(System.err) ;
+//        }
+//        finally { 
+//            //System.exit(0) ;
+//        }
+    }
+    public static void run() {
+        DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
+        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
+        //syncAgent(client1) ;
+        sync(client1) ;
+        Txn.execRead(dsg1, ()->{
+            System.out.println() ;
+            RDFDataMgr.write(System.out,  dsg1, Lang.NQ);
+            System.out.println() ;
+        }) ;
+
+        System.out.println("Waiting ...");
+        try { System.in.read() ; }
+        catch (IOException e) { e.printStackTrace(); }
+        
+        update(client1) ;
+        Txn.execRead(dsg1, ()->{
+            System.out.println() ;
+            RDFDataMgr.write(System.out,  dsg1, Lang.NQ);
+            System.out.println() ;
+        }) ;
+        FmtLog.info(LOG, "%s", client1) ;
     }
     
-    static Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
-
+    
     public static void run(DatasetGraph dsg) {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
-        DeltaClient client1 = DeltaClient.create("http://localhost:"+DP.PORT+"/", dsg1) ;
+        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
         if ( false ) {
             int x = client1.getRemoteVersionNumber() ;
             System.out.println("epoch = "+x) ;
         }
 
         DatasetGraph dsg2 = TDBFactory.createDatasetGraph() ;
-        DeltaClient client2 = DeltaClient.create("http://localhost:"+DP.PORT+"/", dsg2) ;
+        DeltaClient client2 = DeltaClient.create("C2", "http://localhost:"+DP.PORT+"/", dsg2) ;
 
         syncAgent(client2) ;
         
@@ -92,6 +145,7 @@ public class RunDelta {
             Lib.sleep(2*1000);
         }
         
+        Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
         Node o = q.getObject() ;
         System.out.println("---- dsg1") ;
         Txn.execRead(dsg1, ()->dsg1.find(null,null,null,null).forEachRemaining(System.out::println));
@@ -151,9 +205,13 @@ public class RunDelta {
 
     private static void update(DeltaClient client) {
         DatasetGraph dsg = client.getDatasetGraph() ;
+        int version = client.getLocalVersionNumber() ;
         Txn.execWrite(dsg, ()->{
+            Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
+
             dsg.add(q); 
         }) ;
+        client.setLocalVersionNumber(version+1); 
         // Done.
     }
 }

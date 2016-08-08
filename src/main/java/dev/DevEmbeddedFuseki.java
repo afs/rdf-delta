@@ -24,6 +24,9 @@ import java.io.OutputStream ;
 import org.apache.http.HttpEntity ;
 import org.apache.http.entity.ContentProducer ;
 import org.apache.http.entity.EntityTemplate ;
+import org.apache.jena.atlas.json.JSON ;
+import org.apache.jena.atlas.json.JsonObject ;
+import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.fuseki.Fuseki ;
@@ -32,8 +35,7 @@ import org.apache.jena.fuseki.server.DataAccessPointRegistry ;
 import org.apache.jena.fuseki.server.DataService ;
 import org.apache.jena.fuseki.server.OperationName ;
 import org.apache.jena.graph.Graph ;
-import org.apache.jena.query.QueryExecution ;
-import org.apache.jena.query.QueryExecutionFactory ;
+import org.apache.jena.query.* ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.RDFFormat ;
 import org.apache.jena.riot.web.HttpOp ;
@@ -51,9 +53,11 @@ import org.slf4j.LoggerFactory ;
 
 public class DevEmbeddedFuseki {
     
-    // More examples.
-    //   Update dataset from java.
-    //   Stop server.
+    // Canonical names.
+    // Servlet attributes
+    // Examples -> tests
+    // enableStats()
+    // 
     
     static {
         //LogCtl.setJavaLogging() ;
@@ -70,18 +74,29 @@ public class DevEmbeddedFuseki {
     }
      
     public static void example6() {
+        LogCtl.setJavaLogging();
+        Logger LOG = LoggerFactory.getLogger("example6") ;
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
+        DatasetGraph dsg1 = DatasetGraphFactory.createTxnMem() ;
         // Run a Fuseki server with "/ds" as the dataset.
         // Default set up : query, update, graph store and quads operations. 
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.make(3330, "/ds", dsg) ;
+        //FusekiEmbeddedServer server = FusekiEmbeddedServer.make(3330, "/ds", dsg) ;
+        
+        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
+            .setPort(3330)
+            .setContextPath("/ABC")
+            .add("/ds", dsg)
+            //.enableStats(true)
+            .build() ;
+            
         server.start() ;
         
         LOG.info("Remote 1") ;
         try (QueryExecution qExec = 
-            QueryExecutionFactory.sparqlService("http://localhost:3330/ds/query", "SELECT * { ?s ?p ?o}") ) {
+            QueryExecutionFactory.sparqlService("http://localhost:3330/ABC/ds/query", "SELECT * { ?s ?p ?o}") ) {
             QueryExecUtils.executeQuery(qExec); 
         }
-
+        
         Txn.execWrite(dsg,  ()->{
             Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
             dsg.add(q); 
@@ -89,11 +104,26 @@ public class DevEmbeddedFuseki {
         
         LOG.info("Remote 2") ;
         try (QueryExecution qExec = 
-            QueryExecutionFactory.sparqlService("http://localhost:3330/ds/query", "SELECT * { ?s ?p ?o}") ) {
+            QueryExecutionFactory.sparqlService("http://localhost:3330/ABC/ds/query", "SELECT * { ?s ?p ?o}") ) {
             QueryExecUtils.executeQuery(qExec); 
         }
-        server.stop() ;
+
+//        LOG.info("Local stats") ;
+//        JsonObject obj = ActionStats.generateStats(DataAccessPointRegistry.get()) ;
+//        //JSON.write(obj);
+//        JsonValue v = obj.getObj("datasets").getObj("/ds").getObj("endpoints").getObj("query") ;
+//        JSON.write(v);
+//        System.out.println();
         
+        LOG.info("Remote stats") ;
+        try ( TypedInputStream in = HttpOp.execHttpGet("http://localhost:3330/ABC/$/stats") ) {
+            //IO.copy(in, System.out) ;
+            JsonObject obj = JSON.parse(in) ;
+            //JsonValue v = obj.getObj("datasets").getObj("/ds").getObj("endpoints").getObj("query") ;
+            JsonValue v = obj.getAsObject().get("datasets").getAsObject().get("/ds").getAsObject().get("endpoints").getAsObject().get("query") ;
+        }
+        
+        server.stop() ;
     }
     
     public static void main2() {

@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.client;
 
+import java.math.BigInteger ;
 import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.stream.IntStream ;
 
@@ -25,6 +26,7 @@ import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.system.Txn ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.base.PatchReader ;
@@ -33,26 +35,39 @@ import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
+import txnx.TransPInteger ;
 
 public class DeltaClient {
     
     private static Logger LOG = LoggerFactory.getLogger("Client") ;
     
-    public static DeltaClient create(String url, DatasetGraph dsg) {
-        DeltaClient client = new DeltaClient(url, dsg) ;
+    public static DeltaClient create(String localName, String url, DatasetGraph dsg) {
+        DeltaClient client = new DeltaClient(localName, url, dsg) ;
         client.register() ;
+        FmtLog.info(LOG, "%s", client) ;
         return client ;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("Client '%s' [local=%d, remote=%d]", getName(),
+                             getLocalVersionNumber(), getRemoteVersionNumber()) ;
     }
     
     // The version of the remote copy.
     private int remoteEpoch = 0 ;
-    private AtomicInteger localEpoch = new AtomicInteger(0) ;
-    private String remoteServer ;
-    private DatasetGraph base ;
-    private RDFChanges target ;
-    private DatasetGraphChanges managed ;
+    private final TransPInteger localEpoch ;
+    private final String remoteServer ;
     
-    public DeltaClient(String controller, DatasetGraph dsg) {
+    private final DatasetGraph base ;
+    private final DatasetGraphChanges managed ;
+    
+    private final RDFChanges target ;
+    private final String label ;
+    
+    public DeltaClient(String localName, String controller, DatasetGraph dsg) {
+        localEpoch = new TransPInteger(localName) ;
+        this.label = localName ;
         this.remoteServer = controller ; 
         this.base = dsg ;
         this.target = new RDFChangesApply(dsg) ;
@@ -73,24 +88,28 @@ public class DeltaClient {
         });
     }
     
-    public void sync1() {
-        
-    }
-
-    public void syncAll() {
-        
-    }
+//    public void sync1() {
+//        
+//    }
+//
+//    public void syncAll() {
+//        
+//    }
     
+    public String getName() {
+        return label ;
+    }
     /** Return the version of the local data store */ 
     public int getLocalVersionNumber() {
-        return localEpoch.get();
+        return localEpoch.currentValue().intValueExact() ;
     }
     
-    /** Return the version of the local data store */ 
+    /** Update the version of the local data store */ 
     public void setLocalVersionNumber(int version) {
-        localEpoch.set(version); 
+        Txn.execWrite(localEpoch, ()->{
+            localEpoch.set(BigInteger.valueOf(version));
+        });
     }
-
 
     /** Return our local track of the remote version */ 
     public int getRemoteVersionNumber() {
