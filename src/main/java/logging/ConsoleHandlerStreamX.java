@@ -39,7 +39,7 @@ public class ConsoleHandlerStreamX extends StreamHandler {
     // We can't use ConsoleHandler.  
     // setOutputStream() closes the previous stream but that is System.err
     // System.err is then closed in the app!
-    // So we need to do it in the constructor and ConsoleHandler does not allow that.
+    // We need to chose the output in the constructor and ConsoleHandler does not allow that.
     
     public ConsoleHandlerStreamX() {
         this(System.out) ;
