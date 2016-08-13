@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.lib;
 
+import java.util.Arrays ;
+
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
@@ -36,5 +38,12 @@ public class L {
 
     public static String str(Quad q) {
         return FmtUtils.stringForQuad(q, SSE.defaultPrefixMapRead);
+    }
+    
+    /** Copy an array of bytes.*/ 
+    public static byte[] copy(byte[] bytes) {
+        if ( bytes == null )
+            return null ;
+        return Arrays.copyOf(bytes, bytes.length) ;
     }
 }

@@ -86,10 +86,12 @@ public class DevEmbeddedFuseki {
             .setPort(3330)
             .setContextPath("/ABC")
             .add("/ds", dsg)
-            //.enableStats(true)
+            .enableStats(true)
             .build() ;
             
         server.start() ;
+        
+        
         
         LOG.info("Remote 1") ;
         try (QueryExecution qExec = 
@@ -120,7 +122,8 @@ public class DevEmbeddedFuseki {
             //IO.copy(in, System.out) ;
             JsonObject obj = JSON.parse(in) ;
             //JsonValue v = obj.getObj("datasets").getObj("/ds").getObj("endpoints").getObj("query") ;
-            JsonValue v = obj.getAsObject().get("datasets").getAsObject().get("/ds").getAsObject().get("endpoints").getAsObject().get("query") ;
+            JsonValue v = obj.getAsObject().getObj("datasets").getObj("/ds").getObj("endpoints").get("query") ;
+            JSON.write(v);
         }
         
         server.stop() ;
@@ -141,211 +144,5 @@ public class DevEmbeddedFuseki {
             // Server start up.
             java.util.logging.Logger.getLogger(Fuseki.serverLogName).setLevel(java.util.logging.Level.OFF) ;
         }
-        
-        if ( false ) {
-            LOG.info("Example 0") ;
-            example0() ;
-            try (QueryExecution qExec = 
-                    QueryExecutionFactory.sparqlService("http://localhost:3330/ds/query", "SELECT * { ?s ?p ?o}") ) {
-                QueryExecUtils.executeQuery(qExec); 
-            }
-            DataAccessPointRegistry.get().clear();
-        }
-
-        if ( false ) {
-            LOG.info("Example 1") ;
-            example1() ;
-            try (QueryExecution qExec = 
-                    QueryExecutionFactory.sparqlService("http://localhost:3333/ds/query", "SELECT * { ?s ?p ?o}") ) {
-                QueryExecUtils.executeQuery(qExec); 
-            }
-            DataAccessPointRegistry.get().clear();
-        }
-
-        if ( false ) {
-            LOG.info("Example 2") ;
-            example2() ;
-            try (QueryExecution qExec = 
-                QueryExecutionFactory.sparqlService("http://localhost:3334/rdf/sparql", "SELECT * { ?s ?p ?o}") ) {
-                QueryExecUtils.executeQuery(qExec); 
-            }
-            DataAccessPointRegistry.get().clear();
-        }
-
-        if ( false ) {
-            LOG.info("Example 3") ;
-            example3() ;
-
-            Graph g = RDFDataMgr.loadGraph("D.trig");
-
-            HttpEntity e = graphToHttpEntity(g) ;
-            HttpOp.execHttpPut("http://localhost:3335/ds2/", e) ;
-
-            try ( TypedInputStream in = HttpOp.execHttpGet("http://localhost:3335/ds2") ) {
-                IO.copy(in, System.out) ;
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-
-            try (QueryExecution qExec = 
-                QueryExecutionFactory.sparqlService("http://localhost:3335/ds/sparql", "SELECT * { ?s ?p ?o}") ) {
-                QueryExecUtils.executeQuery(qExec); 
-            }
-            DataAccessPointRegistry.get().clear();
-        }
-
-        if ( false ) {
-            LOG.info("Example 4") ;
-            example4() ;
-
-            Graph g = RDFDataMgr.loadGraph("D.trig");
-
-            HttpEntity e = graphToHttpEntity(g) ;
-            HttpOp.execHttpPut("http://localhost:3336/data", e) ;
-
-            try ( TypedInputStream in = HttpOp.execHttpGet("http://localhost:3336/data") ) {
-                IO.copy(in, System.out) ;
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-
-            try (QueryExecution qExec = 
-                QueryExecutionFactory.sparqlService("http://localhost:3336/data", "SELECT * { ?s ?p ?o}") ) {
-                QueryExecUtils.executeQuery(qExec); 
-            }
-            DataAccessPointRegistry.get().clear();
-        }
-        
-        if ( true ) {
-            LOG.info("Example 5") ;
-            example5() ;
-
-            Graph g = RDFDataMgr.loadGraph("D.trig");
-
-            HttpEntity e = graphToHttpEntity(g) ;
-            HttpOp.execHttpPut("http://localhost:3337/ds", e) ;
-
-            try (QueryExecution qExec = 
-                QueryExecutionFactory.sparqlService("http://localhost:3337/ds", "SELECT * { ?s ?p ?o}") ) {
-                QueryExecUtils.executeQuery(qExec); 
-            }
-            DataAccessPointRegistry.get().clear();
-        }
-
-        System.out.println("DONE") ;
-        System.exit(0) ;
-    }
-        
-    /** Create an HttpEntity for the graph */  
-    protected static HttpEntity graphToHttpEntity(final Graph graph) {
-
-        final RDFFormat syntax = RDFFormat.TURTLE_BLOCKS ;
-        ContentProducer producer = new ContentProducer() {
-            @Override
-            public void writeTo(OutputStream out) {
-                RDFDataMgr.write(out, graph, syntax) ;
-            }
-        } ;
-
-        EntityTemplate entity = new EntityTemplate(producer) ;
-        String ct = syntax.getLang().getContentType().getContentType() ;
-        entity.setContentType(ct) ;
-        return entity ;
-    }
-    
-    // Examples. 
-    
-    /** Create a SPARQL endpoint for an application dataset */ 
-    private static void example0() {
-        DatasetGraph dsg = dataset() ;
-        // Run a Fuseki server with "/ds" as the dataset.
-        // Default set up : query, update, graph store and quads operations. 
-        FusekiEmbeddedServer.make(3330, "/ds", dsg).start() ;
-    }
-    
-    /** Create a SPARQL endpoint for an application dataset */ 
-    private static void example1() {
-        DatasetGraph dsg = dataset() ;
-        // Run a Fuseki server with "/ds" as the dataset.
-        // Default set up : query, update, graph store and quads operations. 
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
-            .setPort(3333)
-            .add("/ds", dsg) 
-            .build() ;
-        server.start() ;
-    }
-
-    /** Create a Fuseki server with a just a SPAQRL query endpoint.
-     * The SPARQL endpoint URLs look like {@code /rdf/sparql?query=}
-     */
-    private static void example2() {
-        DatasetGraph dsg = dataset() ;
-
-        DataService queryService = new DataService(dsg) ;
-        queryService.addEndpoint(OperationName.Query, "sparql");
-        
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
-            .setPort(3334)
-            .add("/rdf", queryService)
-            .build() ;
-        server.start() ;
-        // Sync with the server - this is blocking.
-        //server.join() ;
-        //server.stop() ;
-    }
-    
-    private static DatasetGraph dataset() {
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
-        Txn.execWrite(dsg, ()->RDFDataMgr.read(dsg, "D.trig"));
-        return dsg ;
-    }
-
-    /** Create a Fuseki server with two sets of services. One is the usual set of read-only endpoints,
-     *  the other is just being able to do quads operations
-     * GET, POST, PUT on  "/ds2" in N-quads and TriG.
-     */
-    private static void example3() {
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
-
-        // A service with just being able to do quads operations
-        // That is, GET, POST, PUT on  "/ds2" in N-quads and TriG. 
-        DataService dataService = new DataService(dsg) ;
-        dataService.addEndpoint(OperationName.Quads_RW, "");
-        //dataService.addEndpoint(OperationName.Quads_RW, "quads");
-
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
-            .setPort(3335)
-            .add("/ds", dsg, false) // read-only
-            .add("/ds2", dataService)
-            .build() ;
-        server.start() ;
-    }
-    
-    /** Create a Fuseki server with some services on the dataset URL. */
-    private static void example4() {
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
-
-        // A service with just being able to do quads operations
-        // That is, GET, POST, PUT on  "/ds2" in N-quads and TriG. 
-        DataService dataService = new DataService(dsg) ;
-        dataService.addEndpoint(OperationName.Quads_RW, "");
-        dataService.addEndpoint(OperationName.Query, "");
-        dataService.addEndpoint(OperationName.Update, "");
-
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
-            .setPort(3336)
-            .add("/data", dataService)
-            .build() ;
-        server.start() ;
-    }
-    
-    /** Create a Fuseki server by reading a configuration file. */
-    private static void example5() {
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
-            .setPort(3337)
-            // Defines /ds
-            .parseConfigFile("config.ttl")
-            .build() ;
-        server.start() ;
-    }
+    }        
 }

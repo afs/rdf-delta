@@ -56,7 +56,7 @@ public class RunDelta {
     //      Receiver
     //   Server-side:
     //      Configuration
-    //      Restart (but its passive so  
+    //      Restart (but its passive so?) 
     
     // Transactional number.
     
