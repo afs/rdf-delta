@@ -16,30 +16,34 @@
  * limitations under the License.
  */
 
-package logging;
+package txnx;
 
-import java.text.MessageFormat ;
-import java.util.logging.Formatter ;
-import java.util.logging.LogRecord ;
+/** Persistent byte[] */
+public class TransPBytes extends TransPBlob<byte[]>{
 
-/** Very simple formatter - just the log message */ 
-public class FlatFormatter extends Formatter {
-
-    private final boolean ensureNL ;
-
-    public FlatFormatter() { this(true) ; }
-    
-    public FlatFormatter(boolean ensureNewline) {
-        this.ensureNL = ensureNewline ;
+    public TransPBytes(String fn) {
+        super(fn, fn+".jrnl") ;
     }
 
     @Override
-    public String format(LogRecord record) {
-        String message = record.getMessage() ;
-        if ( record.getParameters() != null )
-            message = MessageFormat.format(message, record.getParameters()) ;
-        if ( ensureNL && ! message.endsWith("\n") )
-            message = message + "\n" ;
-        return message ;                 
+    protected byte[] getUninitalized() {
+        return new byte[0] ;
+    }
+
+    @Override
+    protected byte[] toBytes(byte[] bytes) {
+        return bytes ;
+    }
+
+    @Override
+    protected byte[] fromBytes(byte[] bytes) {
+        if ( bytes == null )
+            return new byte[0] ; 
+        return bytes ;
+    }
+
+    @Override
+    protected byte[] snapshot(byte[] object) {
+        return object ;
     }
 }
