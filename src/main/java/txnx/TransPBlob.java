@@ -42,12 +42,16 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
         }
         super.setInitial(x);
     }
-    
+
+    /** Get first value */
     protected abstract X getUninitalized() ;
 
+    /** Convert from X to bytes for the peristent storage */ 
     protected abstract byte[] toBytes(X x) ;
+    /** Convert from bytes from the peristent storage to X */ 
     protected abstract X fromBytes(byte[] bytes) ;
     
+    /** Start from the journal file, or the data file, or return null. */ 
     private X initialize() {
         if ( Files.exists(jrnl) ) {
             byte[] b = read(jrnl) ;
@@ -73,7 +77,7 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
         write(jrnl, serialized) ; 
         
     }
-    /** Finish committing  in a write transaction */  
+    /** Finish committing in a write transaction */  
     @Override
     protected void commitFinish() {
         write(file, serialized) ;

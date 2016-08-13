@@ -22,7 +22,7 @@ import java.math.BigInteger ;
 
 import org.apache.jena.system.Txn ;
 
-/** */
+/** Persistent integer */
 public class TransPInteger extends TransPBlob<BigInteger>{
 
     public TransPInteger(String fn) {

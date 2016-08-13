@@ -20,8 +20,8 @@ package txnx;
 
 import org.apache.jena.atlas.lib.StrUtils ;
 
+/** Persistent string */
 public class TransPString extends TransPBlob<String>{
-
     public TransPString(String fn) {
         super(fn, fn+".jrnl") ;
     }

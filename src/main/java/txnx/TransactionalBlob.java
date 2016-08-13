@@ -28,7 +28,7 @@ import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.JenaTransactionException ;
 import org.apache.jena.sparql.core.Transactional ;
 
-/** A Transactional 'thing' supporting mutliple reader and a single writer. */ 
+/** A Transactional 'X' supporting multiple readers and a single writer. */ 
 public abstract class TransactionalBlob<X> implements Transactional {
     
     // ---- TransactionCoordinator.

@@ -18,17 +18,14 @@
 
 package txnx;
 
-import java.util.Arrays ;
-
+/** Transactional value of in-memory bytes */
 public class TransMemBytes extends TransactionalBlob<byte[]>{
 
     public TransMemBytes() { super(null) ; }
     
     @Override
     protected byte[] snapshot(byte[] bytes) {
-        if ( bytes == null )
-            return null ;
-        return Arrays.copyOf(bytes, bytes.length) ;
+        //return L.copy(bytes) ;
+        return bytes ;
     }
-
 }
