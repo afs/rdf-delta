@@ -104,6 +104,12 @@ public class GraphChanges extends GraphWrapper {
         }
 
         @Override
+        public PrefixMapping clearNsPrefixMap() {
+            get().getNsPrefixMap().forEach((prefix,uri)->remove(prefix)) ;
+            return get().clearNsPrefixMap() ;
+        }
+
+        @Override
         public PrefixMapping setNsPrefixes(PrefixMapping other) {
             other.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
             return get().setNsPrefixes(other) ;

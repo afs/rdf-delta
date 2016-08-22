@@ -19,7 +19,6 @@
 package org.seaborne.delta.client;
 
 import java.math.BigInteger ;
-import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.stream.IntStream ;
 
 import org.apache.jena.atlas.json.JsonObject ;
