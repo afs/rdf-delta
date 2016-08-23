@@ -22,83 +22,118 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.seaborne</groupId>
+  <groupId>org.seaborne.rdf-delta</groupId>
   <artifactId>rdf-delta</artifactId>
-  <packaging>jar</packaging>
+  <url>https://github.com/afs/rdf-delta</url>
+  <packaging>pom</packaging>
   <version>0.0.0-SNAPSHOT</version>
 
-  <description>Jena Delta</description>
+  <name>RDF Delta</name>
 
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  
   <properties>
+    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
+    <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <ver.jena>3.1.1-SNAPSHOT</ver.jena>
     <ver.fuseki>2.4.1-SNAPSHOT</ver.fuseki>
+    <ver.junit>4.12</ver.junit>
+    <ver.slf4j>1.7.21</ver.slf4j>
+    <ver.log4j>1.2.17</ver.log4j>
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>apache-jena-libs</artifactId>
-      <version>${ver.jena}</version>
-      <type>pom</type>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-base</artifactId>
-      <version>${ver.jena}</version>
-      <classifier>tests</classifier>
-    </dependency>
+  
+  <modules>
+    <module>rdf-delta-base</module>
+    <module>rdf-delta-server</module>
+    <module>rdf-delta-client</module>
+  </modules>
 
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-arq</artifactId>
-      <version>${ver.jena}</version>
-      <classifier>tests</classifier> 
-    </dependency>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>apache-jena-libs</artifactId>
+        <version>${ver.jena}</version>
+        <type>pom</type>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-base</artifactId>
+        <version>${ver.jena}</version>
+        <classifier>tests</classifier>
+      </dependency>
 
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-tdb</artifactId>
-      <version>${ver.jena}</version>
-      <classifier>tests</classifier> 
-    </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-arq</artifactId>
+        <version>${ver.jena}</version>
+        <classifier>tests</classifier> 
+      </dependency>
 
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-fuseki-embedded</artifactId>
-      <version>${ver.fuseki}</version>
-    </dependency>
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-tdb</artifactId>
+        <version>${ver.jena}</version>
+        <classifier>tests</classifier> 
+      </dependency>
 
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-fuseki-embedded</artifactId>
+        <version>${ver.fuseki}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+      </dependency>
+
+      <!-- Either this ... -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
+        <version>1.7.21</version>
+      </dependency>
+      
+      <!-- or the next two ... -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.7.21</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+      </dependency> 
+      
+    </dependencies>
+      
+  </dependencyManagement>
+
+  <dependencies>  
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <scope>test</scope>
     </dependency>
 
-    <!-- LOGGING
-         Require a logging implementation -->
+    <!-- LOGGING : Require a logging implementation -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
-      <version>1.7.21</version>
-    </dependency>
-    <!-- -->
-
-    <!--
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.21</version>
     </dependency>
 
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
-    </dependency> 
-    -->
-
-  </dependencies>
+  </dependencies>  
 
   <build>
     <plugins>
