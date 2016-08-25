@@ -29,7 +29,7 @@ import org.eclipse.jetty.server.Request ;
 import org.eclipse.jetty.server.Response ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 
-public class ErrorHandlerDataPatch extends ErrorHandler {
+public class ErrorHandlerDataPatch extends /*Jetty*/ErrorHandler {
     public static final String METHOD_DELETE    = "DELETE" ;
     public static final String METHOD_HEAD      = "HEAD" ;
     public static final String METHOD_GET       = "GET" ;
