@@ -80,7 +80,7 @@ public class DP {
 //        DatasetGraphChangesVersion dsgc = (DatasetGraphChangesVersion)dsg ;
 //        // Update to latest.
 //        // Needs to work on raw dataset.
-//        throw new NotImplementedException("yet") ;
+//        throw new NotImplemented("yet") ;
 ////        DatasetGraph dsgBase = dsgc.getWrapped() ;
 ////        
 ////        for ( ;; ) {

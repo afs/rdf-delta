@@ -18,5 +18,8 @@ then
 fi
 
 ## --no-snapshot-update
-##mvn -nsu exec	
+##mvn -nsu exec
+## mvn -nsu exec:java -Dexec:mainClass=dev.RunDeltaServer
+## in rdf-delta-dev module.
+
 java $JVM_ARGS -cp "$D:$C" "$@"

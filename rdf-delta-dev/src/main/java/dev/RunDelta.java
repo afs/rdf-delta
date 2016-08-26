@@ -70,17 +70,13 @@ public class RunDelta {
         DPS.init() ;
         
         DatasetGraph dsg = null ; //DatasetGraphFactory.createTxnMem() ;
-        try {
+        
+        runOrExit(()-> {
             DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
             server.start();
-            run() ;
-        } catch (Throwable ex) {
-            ex.printStackTrace(System.err) ;
-        }
-        finally { 
-            System.exit(0) ;
-        }
+        }) ;
         
+        runOrExit(()->run()) ;
         
 //        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
 //        try {
@@ -95,6 +91,13 @@ public class RunDelta {
 //            //System.exit(0) ;
 //        }
     }
+    
+    public static void runOrExit(Runnable action) {
+        try { action.run(); }
+        catch (Throwable ex) { ex.printStackTrace(System.err) ; } 
+        finally { System.exit(0) ; }
+    }
+    
     public static void run() {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
         DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;

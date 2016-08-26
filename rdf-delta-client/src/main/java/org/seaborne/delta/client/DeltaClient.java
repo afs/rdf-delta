@@ -22,10 +22,10 @@ import java.io.OutputStream ;
 import java.math.BigInteger ;
 import java.util.stream.IntStream ;
 
-import org.apache.commons.lang3.NotImplementedException ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.system.Txn ;
@@ -42,7 +42,7 @@ import txnx.TransPInteger ;
 
 public class DeltaClient {
     
-    private static Logger LOG = LoggerFactory.getLogger("Client") ;
+    private static Logger LOG = LoggerFactory.getLogger("Delta") ;
     
     
     public static RDFChanges connect(String dest) {
@@ -54,7 +54,7 @@ public class DeltaClient {
         }
         
         if ( dest.startsWith("delta:") ) { // TCP connection delta:HOST:PORT
-            throw new NotImplementedException(dest) ; 
+            throw new NotImplemented(dest) ; 
         }
         
         if ( dest.startsWith("http:") ) {
