@@ -19,11 +19,12 @@
 package org.seaborne.patch;
 
 /** An {@link RDFChanges} that adds callbacks on start/finish. */
-public class RDFChangesOnStartFinish extends RDFChangesBase {
+public class RDFChangesOnStartFinish extends RDFChangesWrapper {
     private Runnable onStart ;
     private Runnable onFinish ;
 
-    public RDFChangesOnStartFinish(Runnable onStart, Runnable onFinish) {
+    public RDFChangesOnStartFinish(RDFChanges changes, Runnable onStart, Runnable onFinish) {
+        super(changes) ;
         this.onStart = onStart ;
         this.onFinish = onFinish ;
     }

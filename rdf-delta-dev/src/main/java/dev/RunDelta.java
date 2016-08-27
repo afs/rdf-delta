@@ -48,6 +48,9 @@ public class RunDelta {
     
     // Scope v0
     
+    // Run twice - can't movbe tmp t o p[atch 
+    // --> initial ID is wrong.
+    
     // Next:
     //   Slides
     //   Client-side:
@@ -75,6 +78,8 @@ public class RunDelta {
             DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
             server.start();
         }) ;
+        
+        RunDeltaClient.main(args);
         
         runOrExit(()->run()) ;
         

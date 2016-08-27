@@ -37,11 +37,12 @@ public class PHandlerLog implements PatchHandler {
     @Override
     public RDFChanges handler() {
         RDFChangesCounter scc = new RDFChangesCounter() ;
-        return new RDFChangesOnStartFinish(null,
-                                            ()-> FmtLog.info(log,
-                                                             "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
-                                                             scc.countAddQuad, scc.countDeleteQuad, 
-                                                             scc.countAddPrefix, scc.countDeletePrefix
-                                                ));
+        return new RDFChangesOnStartFinish(scc,
+                                           null,
+                                           ()-> FmtLog.info(log,
+                                                            "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
+                                                            scc.countAddQuad, scc.countDeleteQuad, 
+                                                            scc.countAddPrefix, scc.countDeletePrefix
+                                               ));
     }
 }

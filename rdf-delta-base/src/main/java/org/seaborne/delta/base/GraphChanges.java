@@ -22,6 +22,7 @@ import java.util.Map ;
 
 import org.apache.jena.graph.Graph ;
 import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.TransactionHandler ;
 import org.apache.jena.graph.Triple ;
 import org.apache.jena.shared.PrefixMapping ;
 import org.apache.jena.sparql.graph.GraphWrapper ;
@@ -32,12 +33,14 @@ public class GraphChanges extends GraphWrapper {
     private final RDFChanges changes ;
     private final Graph graph ;
     protected final Node graphName ;
+    private PrefixMapping pm = null ;
 
     public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
         super(graph) ;
         this.graph = graph ;
         this.graphName = graphName ;
         this.changes = changes ;
+        this.pm = new PrefixMappingMonitorChanges(graph.getPrefixMapping(), graphName, changes) ;
     }
     
     @Override
@@ -52,28 +55,36 @@ public class GraphChanges extends GraphWrapper {
         super.delete(t);
     }
 
-    // TransactionHandler
+    @Override
+    public TransactionHandler getTransactionHandler() {
+        return super.getTransactionHandler() ;
+    }
     
-    
-    private PrefixMapping pm = null ;
     
     @Override
     public PrefixMapping getPrefixMapping() {
-        if ( pm == null ) {
-            PrefixMapping pmap = graph.getPrefixMapping() ;
-            pm = new PrefixMappingMonitor(pmap) {
-                @Override
-                protected void set(String prefix, String uri) {
-                    changes.addPrefix(graphName, prefix, uri);
-                }
-
-                @Override
-                protected void remove(String prefix) {
-                    changes.deletePrefix(graphName, prefix);
-                } 
-            } ;
-        }
         return pm ;
+    }
+    
+    static class PrefixMappingMonitorChanges extends PrefixMappingMonitor {
+        private final RDFChanges changes ;
+        protected final Node graphName ;
+        
+        public PrefixMappingMonitorChanges(PrefixMapping pmap, Node graphName, RDFChanges changes) {
+            super(pmap) ;
+            this.graphName = graphName ;
+            this.changes = changes ;
+        }
+        
+        @Override
+        protected void set(String prefix, String uri) {
+            changes.addPrefix(graphName, prefix, uri);
+        }
+
+        @Override
+        protected void remove(String prefix) {
+            changes.deletePrefix(graphName, prefix);
+        } 
     }
     
     static class PrefixMappingMonitor implements PrefixMapping {
@@ -167,6 +178,5 @@ public class GraphChanges extends GraphWrapper {
         public boolean samePrefixMappingAs(PrefixMapping other) {
             return get().samePrefixMappingAs(other) ;
         }
-        
     }
 }

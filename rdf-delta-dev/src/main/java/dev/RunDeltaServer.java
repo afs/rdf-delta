@@ -17,13 +17,17 @@
  */
 package dev;
 
+import org.apache.jena.atlas.logging.LogCtl ;
+import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDeltaServer {
+    static { LogCtl.setJavaLogging(); }
     
     public static void main(String...arg) {
-        DataPatchServer server = new DataPatchServer(DP.PORT) ;
+        DatasetGraph dsg = null ;
+        DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
         server.start();
         server.join();
     }

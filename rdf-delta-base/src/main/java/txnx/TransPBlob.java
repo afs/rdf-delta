@@ -22,14 +22,20 @@ import java.io.* ;
 import java.nio.file.Files ;
 import java.nio.file.Path ;
 import java.nio.file.Paths ;
+import java.util.Map ;
+import java.util.concurrent.ConcurrentHashMap ;
 
 import org.apache.jena.atlas.io.IO ;
+import org.seaborne.delta.lib.L ;
 
 /** A MR+SW transactional 'thing' */ 
 public abstract class TransPBlob<X> extends TransactionalBlob<X> {
     private final Path file ;
     private final Path jrnl ;
     private byte[] serialized ;
+    // Don't really read/write bytes. Development mode.
+    private boolean tempMode = true ;
+    static private Map<Path, byte[]> files = new ConcurrentHashMap<>() ;
     
     protected TransPBlob(String mainFile, String jrnlFile) {
         super(null) ;
@@ -53,6 +59,9 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
     
     /** Start from the journal file, or the data file, or return null. */ 
     private X initialize() {
+        if ( tempMode )
+            return null ;
+        
         if ( Files.exists(jrnl) ) {
             byte[] b = read(jrnl) ;
             write(file, b) ;
@@ -75,15 +84,16 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
         // Cached
         serialized = toBytes(super.getDataState()) ;
         write(jrnl, serialized) ; 
-        
     }
+    
     /** Finish committing in a write transaction */  
     @Override
     protected void commitFinish() {
         write(file, serialized) ;
         serialized = null ;
         try { 
-            Files.deleteIfExists(jrnl) ;
+            if ( ! tempMode )
+                Files.deleteIfExists(jrnl) ;
         } catch (IOException ex) {
             IO.exception(ex);
         }
@@ -99,17 +109,22 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
         byte b[] = read(fn) ;
         return fromBytes(b) ;
     }
-
     
-    private static void write(Path fn, byte[] b) {
-        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(fn.toFile()), 64*1024)) {
-            out.write(b) ;
-        } catch (IOException ex) {
-            IO.exception(ex);
-        }
+    private void write(Path fn, byte[] b) {
+        if ( tempMode )
+            writeMem(fn, b) ;
+        else
+            writePersistent(fn, b) ;
     }
     
-    private static byte[] read(Path fn) {
+    private byte[] read(Path fn) {
+        if ( tempMode )
+            return readMem(fn) ;
+        else
+            return readPersistent(fn) ;
+    }
+    
+    private static byte[] readPersistent(Path fn) {
         try (InputStream in = new BufferedInputStream(new FileInputStream(fn.toFile()), 64*1024)) { 
             return IO.readWholeFile(in) ;
         } catch (FileNotFoundException ex) {
@@ -118,4 +133,25 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
             IO.exception(ex); return null ;
         }
     }
+    private static void writePersistent(Path fn, byte[] b) {
+        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(fn.toFile()), 64*1024)) {
+            out.write(b) ;
+        } catch (IOException ex) {
+            IO.exception(ex);
+        }
+    }
+    
+    // Very careful - copy-in, copy-out.
+    
+    private static byte[] readMem(Path fn) {
+        byte[] b = files.get(fn) ;
+        return L.copy(b) ;
+    }
+
+    private static void writeMem(Path fn, byte[] b) {
+        byte[] b1 = L.copy(b) ;
+        files.put(fn, b1) ;
+    }
+    
+
 }
