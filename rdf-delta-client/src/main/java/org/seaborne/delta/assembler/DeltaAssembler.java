@@ -52,15 +52,9 @@ import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesN ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
 
 public class DeltaAssembler extends AssemblerBase implements Assembler {
-    static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
-    
-    /*
-     * 
-     */
+    //static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
     
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
@@ -70,11 +64,11 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         // check for duplicates.
         Set<String> xs = new HashSet<>(xList) ;
         if ( xList.size() != xs.size() )
-            FmtLog.warn(Delta.deltaLog, "Duplicate destinations for changes") ;  
+            FmtLog.warn(Delta.DELTA_LOG, "Duplicate destinations for changes") ;  
         
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
-            FmtLog.info(Delta.deltaLog, "Destination: '%s'", dest) ;
+            FmtLog.info(Delta.DELTA_LOG, "Destination: '%s'", dest) ;
             RDFChanges sc = DeltaClient.connect(dest) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
@@ -95,7 +89,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             if ( ! NodeUtils.isSimpleString(rn.asNode()) )
                 throw new AssemblerException(root, "Not a string literal for initialization changes: "+FmtUtils.stringForNode(rn.asNode())) ;
             String str = rn.asLiteral().getString() ;
-            FmtLog.info(Delta.deltaLog, "Delta: initialize: %s",str) ;
+            FmtLog.info(Delta.DELTA_LOG, "Delta: initialize: %s",str) ;
             InputStream in = openChangesSrc(str) ;
             DeltaOps.play(dsgSub, in); 
         }

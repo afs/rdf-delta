@@ -27,9 +27,12 @@ import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog ;
+import org.apache.jena.atlas.logging.Log ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.system.Txn ;
 import org.seaborne.delta.DP ;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.delta.lib.J ;
@@ -37,16 +40,13 @@ import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
 import org.seaborne.patch.RDFChangesWriter ;
 import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
 import txnx.TransPInteger ;
 
 public class DeltaClient {
     
-    private static Logger LOG = LoggerFactory.getLogger("Delta") ;
-    
+    private static Logger LOG = Delta.DELTA_LOG ;
     
     public static RDFChanges connect(String dest) {
-        
         if ( dest.startsWith("file:") ) {
             OutputStream out = IO.openOutputFile(dest) ;
             RDFChanges sc = new RDFChangesWriter(out) ;
@@ -79,7 +79,9 @@ public class DeltaClient {
     
     // The version of the remote copy.
     private int remoteEpoch = 0 ;
-    private final TransPInteger localEpoch ;
+    private int localEpoch = 0 ;
+    private final TransPInteger localEpochPersistent ;
+
     private final String remoteServer ;
     
     private final DatasetGraph base ;
@@ -89,7 +91,14 @@ public class DeltaClient {
     private final String label ;
     
     public DeltaClient(String localName, String controller, DatasetGraph dsg) {
-        localEpoch = new TransPInteger(localName) ;
+        // [Delta]
+        localEpochPersistent = new TransPInteger(localName) ;
+        
+        localEpoch = 0 ;
+        
+        if ( dsg instanceof DatasetGraphChanges )
+            Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient") ;
+        
         this.label = localName ;
         this.remoteServer = controller ; 
         this.base = dsg ;
@@ -99,22 +108,33 @@ public class DeltaClient {
     }
     
     private void register() {
-        // Their update id.
-        remoteEpoch = getRemoteVersionLatest() ;
-        // bring up-to-date.
-        // Range????
-        FmtLog.info(LOG, "Patch range [%d, %d]", 1, remoteEpoch) ;
-        IntStream.rangeClosed(1, remoteEpoch).forEach((x)->{
-            LOG.info("Register: patch="+x) ;
-            PatchReader pr = fetchPatch(x) ;
-            pr.apply(target);
-        });
+        sync() ;
     }
     
-//    public void sync1() {
-//        
-//    }
-//
+    synchronized
+    public void sync() {
+        // [Delta] replace with a one-shot "get all missing patches" operation.
+ 
+        // Their update id.
+        remoteEpoch = getRemoteVersionLatest() ;
+        if ( localEpoch > remoteEpoch ) 
+            FmtLog.info(LOG, "Local version ahead fo remote : [%d, %d]", localEpoch, remoteEpoch) ;
+        if ( localEpoch >= remoteEpoch )
+            return ;
+        // bring up-to-date.
+        FmtLog.info(LOG, "Patch range [%d, %d]", localEpoch+1, remoteEpoch) ;
+        IntStream.rangeClosed(localEpoch+1, remoteEpoch).forEach((x)->{
+            FmtLog.info(LOG, "Sync: patch=%d", x) ;
+            PatchReader pr = fetchPatch(x) ;
+            RDFChanges c = target ;
+            if ( true )
+                c = DeltaOps.print(c) ;
+            pr.apply(c);
+        });
+        //localEpoch = remoteEpoch ;
+        setLocalVersionNumber(remoteEpoch) ;
+    }
+
 //    public void syncAll() {
 //        
 //    }
@@ -124,14 +144,15 @@ public class DeltaClient {
     }
     /** Return the version of the local data store */ 
     public int getLocalVersionNumber() {
-        return localEpoch.currentValue().intValueExact() ;
+        return localEpoch ;
     }
     
     /** Update the version of the local data store */ 
     public void setLocalVersionNumber(int version) {
-        Txn.execWrite(localEpoch, ()->{
-            localEpoch.set(BigInteger.valueOf(version));
+        Txn.execWrite(localEpochPersistent, ()->{
+            localEpochPersistent.set(BigInteger.valueOf(version));
         });
+        localEpoch = version ;
     }
 
     /** Return our local track of the remote version */ 

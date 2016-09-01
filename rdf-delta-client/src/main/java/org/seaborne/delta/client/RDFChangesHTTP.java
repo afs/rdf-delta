@@ -21,6 +21,7 @@ package org.seaborne.delta.client;
 import java.io.ByteArrayOutputStream ;
 import java.io.IOException ;
 import java.nio.charset.StandardCharsets ;
+import java.util.Arrays ;
 
 import org.apache.http.client.methods.CloseableHttpResponse ;
 import org.apache.http.client.methods.HttpPost ;
@@ -28,7 +29,6 @@ import org.apache.http.entity.ByteArrayEntity ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.seaborne.delta.Delta ;
 import org.seaborne.patch.RDFChangesWriter ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
@@ -39,6 +39,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes  ;
     private final String url ;
+    
+    private static final byte[] noChange =  "TB .\nTC .\n".getBytes(StandardCharsets.UTF_8) ;
 
     public RDFChangesHTTP(String url) {
         this(url, new ByteArrayOutputStream(100*1024)) ;
@@ -48,6 +50,14 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         super(out) ;
         this.url = url ;
         this.bytes = out ;
+        reset() ;
+//        txnBegin(ReadWrite.WRITE) ;
+//        txnCommit() ;
+//        byte [] x = collected() ;
+//        reset() ;
+//        if ( Arrays.equals(noChange,x) ) {
+//            LOG.warn("Calculated 'no change' not equal to reset 'no change'");
+//        }
     }
     
     @Override
@@ -84,18 +94,28 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         return bytes.toByteArray() ;
     }
     
+    // XXX Per channel.
+    synchronized
     public void send() {
         HttpPost postRequest = new HttpPost(url) ;
         byte[] bytes = collected() ;
+        // XXX better way elsewhere to determine TB-TC. 
+        if ( Arrays.equals(bytes, noChange) ) {
+            reset() ;
+            LOG.info("Skip TB-TC no chanage") ;
+            // Skip TB,TC.
+            return ; 
+        }
+    
         String s = new String(bytes, StandardCharsets.UTF_8) ;
-        if ( false ) {
-            System.out.println("== Sending ...") ;
+        if ( true ) {
+            LOG.info("== Sending ...") ;
             System.out.print(s) ;
             if ( ! s.endsWith("\n") )
                 System.out.println() ;
-            System.out.println("== ==") ;
+            LOG.info("== ==") ;
         }
-        FmtLog.info(Delta.deltaLog, "Send patch (%d bytes)", bytes.length) ;
+        FmtLog.info(LOG, "Send patch (%d bytes)", bytes.length) ;
         postRequest.setEntity(new ByteArrayEntity(bytes)) ;
 
         try(CloseableHttpResponse r = httpClient.execute(postRequest)) {
