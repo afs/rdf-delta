@@ -75,6 +75,8 @@ public class RunDeltaClient {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
         DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
         //syncAgent(client1) ;
+        System.out.println(url);
+        
         sync(client1) ;
         Txn.execRead(dsg1, ()->{
             System.out.println() ;

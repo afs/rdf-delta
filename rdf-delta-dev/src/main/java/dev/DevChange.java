@@ -20,13 +20,24 @@ package dev;
 
 
 public class DevChange {
-    // Thread updater.
+    // Next:
+    //   Slides/doc
+    //   Single call "my version is ... get patches I have missed. 
+
+    //   Client-side:
+    //      DeltaClient.execWrite(...)
+    //      DatasetRegistry (DeltaClient enough?)
+    //      Receiver
     
+    //   Server-side:
+    //      Configuration
+    //      Restart (but its passive so?) 
+    
+    // Transactional number.
     
     // Reader and Writer
     // Counters
     // Replace tio ... or tio without prefixes etc.
-    // Experiment : 3 systems : one to update , one to manage patches (no DB), one to query
     
     // Server:
     //   receive, check checksum

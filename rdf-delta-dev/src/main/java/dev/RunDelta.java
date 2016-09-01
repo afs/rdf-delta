@@ -46,23 +46,6 @@ import org.slf4j.LoggerFactory ;
 
 public class RunDelta {
     
-    // Scope v0
-    
-    // Run twice - can't movbe tmp t o p[atch 
-    // --> initial ID is wrong.
-    
-    // Next:
-    //   Slides
-    //   Client-side:
-    //      DeltaClient.execWrite(...)
-    //      DatasetRegistry (DeltaClient enough?)
-    //      Receiver
-    //   Server-side:
-    //      Configuration
-    //      Restart (but its passive so?) 
-    
-    // Transactional number.
-    
     static { LogCtl.setJavaLogging(); }
     static Logger LOG = LoggerFactory.getLogger("Main") ;
     

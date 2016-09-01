@@ -49,6 +49,7 @@ gradle-app.setting
 /run/
 DB*
 Files/
+rdf-delta-dev/Files
 
 ## Developement files
 *.dlt
