@@ -28,7 +28,16 @@ public class Delta {
     private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
     
-    public static Logger deltaLog = LoggerFactory.getLogger("Delta") ; 
+    public final static Logger getDeltaLogger(String subName) {
+        if ( subName == null || subName.isEmpty() )
+            return LoggerFactory.getLogger("Delta") ;
+        else
+            return LoggerFactory.getLogger("Delta:"+subName) ;
+    }
+    
+    public final static Logger DELTA_LOG        = getDeltaLogger("") ;
+    public final static Logger DELTA_HTTP_LOG   = getDeltaLogger("HTTP") ;
+    public final static Logger DELTA_RPC_LOG    = getDeltaLogger("RPC") ;
 
     static { init$() ; } 
     
@@ -46,7 +55,7 @@ public class Delta {
                 return ;
             }
             initialized = true ;
-            deltaLog.info("Initialize");
+            //DELTA_LOG.info("Initialize");
             JenaSystem.logLifecycle("Delta.init - start") ;
             // -- Nothing here at the moment -- 
             JenaSystem.logLifecycle("Delta.init - finish") ;

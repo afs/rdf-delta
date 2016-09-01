@@ -46,6 +46,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     // inherits DatasetGraphRealChanges < DatasetGraphAddDelete
     
     protected RDFChanges monitor ;
+    protected ThreadLocal<ReadWrite> txnMode = ThreadLocal.withInitial(()->null) ;
 
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) { 
         super(dsg) ; 
@@ -107,24 +108,34 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         }
     }
     
+    private boolean isWriteTxn() {
+        return txnMode.get() == ReadWrite.WRITE ; 
+    }
+    
     @Override
     public void begin(ReadWrite readWrite) {
         super.begin(readWrite);
-        monitor.txnBegin(readWrite);
+        if ( readWrite == ReadWrite.WRITE )
+            monitor.txnBegin(readWrite);
+        txnMode.set(readWrite) ;
     }
 
     @Override
     public void commit() {
         // Assume commit will work - signal first.
-        monitor.txnCommit();
+        if ( isWriteTxn() )
+            monitor.txnCommit();
+        txnMode.set(null) ;
         super.commit();
     }
     
     @Override
     public void abort() {
         // Assume abort will work - signal first.
+        if ( isWriteTxn() )
+            monitor.txnAbort();
+        txnMode.set(null) ;
         super.abort();
-        monitor.txnAbort();
     }
 
 //    @Override

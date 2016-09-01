@@ -17,21 +17,41 @@
  */
 
 package org.seaborne.patch;
-import static org.seaborne.delta.lib.L.* ;
+import static org.seaborne.delta.lib.L.str ;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
+import org.seaborne.delta.lib.L ;
 
 public class RDFChangesLog implements RDFChanges {
+    final private Printer printer ;
+
     @Override
     public void start() {}
     @Override
     public void finish() {}
     
+    @FunctionalInterface
+    public interface Printer {
+        void print(String fmt, Object... args) ;
+    }
+    
+    private void print(String fmt, Object... args) {
+        printer.print("> "+fmt, args);
+    }
+    
+    // Two versions - for chaining (RDFChangesN) and wrapping.
+    public RDFChangesLog() { this(L::print) ; }
+    
+    public RDFChangesLog(Printer printer) {
+        this.printer = printer ;
+    }
+    
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         print("%-3s  %s %s %s %s", "Add", strOr(g, "_"), str(s), str(p), str(o)) ;
     }
+    
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         print("%-3s  %s %s %s %s", "Del", strOr(g, "_"), str(s), str(p), str(o)) ;
@@ -46,17 +66,17 @@ public class RDFChangesLog implements RDFChanges {
     
     @Override
     public void addPrefix(Node graph, String prefix, String uriStr) {
-        print("Add prefix  %s %s", prefix, uriStr) ;
+        print("AddPrefix  %s %s", prefix, uriStr) ;
     }
     
     @Override
     public void deletePrefix(Node graph, String prefix) {
-        print("Del prefix  %s %s", prefix) ;
+        print("DelPrefix  %s %s", prefix) ;
     }
     
     @Override
     public void setBase(String uriStr) {
-        print("Set base %s", uriStr) ;
+        print("SetBase %s", uriStr) ;
     }
 
     @Override

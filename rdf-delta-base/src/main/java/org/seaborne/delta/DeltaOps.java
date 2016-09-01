@@ -24,6 +24,8 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
+import org.seaborne.patch.RDFChangesLog ;
+import org.seaborne.patch.RDFChangesN ;
 
 public class DeltaOps {
     
@@ -38,4 +40,10 @@ public class DeltaOps {
         RDFChanges sc = new RDFChangesApply(dsg) ; 
         pr.apply(sc);
     }
+    
+    /** Add a printer to a {@link RDFChanges} */
+    public static RDFChanges print(RDFChanges changes) {
+        return RDFChangesN.multi(changes, new RDFChangesLog()) ;
+    }
+
 }
