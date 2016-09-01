@@ -29,12 +29,12 @@ import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
 
 public class S_FetchCode extends ServletBase {
     
-    static public Logger LOG = LoggerFactory.getLogger("Fetch") ;
+    static public Logger LOG = Delta.getDeltaLogger("Fetch") ;
 
     static abstract class FetchBase  extends ServletBase {
 

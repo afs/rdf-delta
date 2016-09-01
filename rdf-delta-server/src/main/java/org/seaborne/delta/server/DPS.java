@@ -24,13 +24,13 @@ import java.util.regex.Matcher ;
 import java.util.regex.Pattern ;
 
 import org.apache.jena.atlas.lib.FileOps ;
+import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
 
 public class DPS {
     
-    public static Logger LOG = LoggerFactory.getLogger("Server") ;
-    public static Logger HTTP_LOG = LoggerFactory.getLogger("HTTP") ;
+    public static Logger LOG = Delta.DELTA_LOG ;
+    public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
     
     static final String FILEBASE    = "Files" ;
     static final String BASEPATTERN = FILEBASE+"/patch-%04d" ;
@@ -42,12 +42,19 @@ public class DPS {
      */
     public static final AtomicInteger counter = new AtomicInteger(0) ;
     
-    private static void  setPatchIndex() {
+    public static void setPatchIndex() {
         int x = scanForPatchIndex() ;
         if ( x == -1 )
             x = 0 ;
         LOG.info("Patch base index = "+x);
         counter.set(x) ;
+    }
+    
+    // XXX [Delta] Safety and synchronization.
+    // -> have a "system state object" that gets replaced by reset. 
+    
+    public static int getPatchIndex() {
+        return counter.get();
     }
     
     static final AtomicInteger tmpCounter = new AtomicInteger(0) ;

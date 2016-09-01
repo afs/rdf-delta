@@ -27,11 +27,12 @@ import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.fuseki.server.RequestLog ;
+import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
 public class ServletBase extends HttpServlet {
 
-    private static Logger logger = org.slf4j.LoggerFactory.getLogger("Servlet") ; 
+    private static Logger logger = Delta.getDeltaLogger("Servlet") ; 
     
     @Override
     public void init(ServletConfig config) throws ServletException {}

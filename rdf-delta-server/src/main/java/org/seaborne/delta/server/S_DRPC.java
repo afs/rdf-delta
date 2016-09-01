@@ -30,12 +30,13 @@ import org.apache.jena.atlas.json.* ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DP ;
+import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
 
 /** Receive a JSON object, return a JSON object */ 
 public class S_DRPC extends ServletBase {
-    static public Logger         LOG     = LoggerFactory.getLogger("RPC") ;
+    private static Logger LOG = Delta.DELTA_RPC_LOG ;
+    
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JsonObject arg ;
