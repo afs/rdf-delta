@@ -121,7 +121,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         try(CloseableHttpResponse r = httpClient.execute(postRequest)) {
             int sc = r.getStatusLine().getStatusCode() ;
             if ( sc < 200 || sc >= 300 )
-                LOG.warn("HTTP response: "+r.getStatusLine()) ;
+                LOG.warn("HTTP response: "+r.getStatusLine()+" ("+url+")") ;
         }
         catch (IOException e) { e.printStackTrace(); }
         reset(); 

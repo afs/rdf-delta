@@ -20,9 +20,9 @@ package org.seaborne.delta.client;
 
 public class LibPatchSender {
     
-    public static RDFChangesHTTP create1(String url) {
-        // TODO Need to make streaming.
-        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
-        return scc ;
-    }
+//    public static RDFChangesHTTP create1(String url) {
+//        // TODO Need to make streaming.
+//        RDFChangesHTTP scc = new RDFChangesHTTP(url) ;
+//        return scc ;
+//    }
 }

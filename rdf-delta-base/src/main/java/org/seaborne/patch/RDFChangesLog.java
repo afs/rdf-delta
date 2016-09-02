@@ -71,7 +71,7 @@ public class RDFChangesLog implements RDFChanges {
     
     @Override
     public void deletePrefix(Node graph, String prefix) {
-        print("DelPrefix  %s %s", prefix) ;
+        print("DelPrefix  %s", prefix) ;
     }
     
     @Override

@@ -20,10 +20,7 @@ package org.seaborne.delta.base;
 
 import java.util.Map ;
 
-import org.apache.jena.graph.Graph ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.graph.TransactionHandler ;
-import org.apache.jena.graph.Triple ;
+import org.apache.jena.graph.* ;
 import org.apache.jena.shared.PrefixMapping ;
 import org.apache.jena.sparql.graph.GraphWrapper ;
 import org.seaborne.patch.RDFChanges ;
@@ -56,10 +53,20 @@ public class GraphChanges extends GraphWrapper {
     }
 
     @Override
+    public void clear() {
+        remove(Node.ANY, Node.ANY, Node.ANY) ;
+    }
+
+    @Override
+    public void remove(Node s, Node p, Node o) {
+        // Convert to calls to delete. 
+        GraphUtil.remove(this, s, p, o) ;
+    }
+    
+    @Override
     public TransactionHandler getTransactionHandler() {
         return super.getTransactionHandler() ;
     }
-    
     
     @Override
     public PrefixMapping getPrefixMapping() {

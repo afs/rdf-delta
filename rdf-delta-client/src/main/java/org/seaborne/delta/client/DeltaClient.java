@@ -18,14 +18,11 @@
 
 package org.seaborne.delta.client;
 
-import java.io.OutputStream ;
 import java.math.BigInteger ;
 import java.util.stream.IntStream ;
 
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
-import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.Log ;
 import org.apache.jena.sparql.core.DatasetGraph ;
@@ -38,44 +35,12 @@ import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.delta.lib.J ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFChangesApply ;
-import org.seaborne.patch.RDFChangesWriter ;
 import org.slf4j.Logger ;
 import txnx.TransPInteger ;
 
 public class DeltaClient {
     
     private static Logger LOG = Delta.DELTA_LOG ;
-    
-    public static RDFChanges connect(String dest) {
-        if ( dest.startsWith("file:") ) {
-            OutputStream out = IO.openOutputFile(dest) ;
-            RDFChanges sc = new RDFChangesWriter(out) ;
-            return sc ;
-        }
-        
-        if ( dest.startsWith("delta:") ) { // TCP connection delta:HOST:PORT
-            throw new NotImplemented(dest) ; 
-        }
-        
-        if ( dest.startsWith("http:") ) {
-            // triggered on each transaction.
-            return new RDFChangesHTTP(dest) ;
-        }
-        throw new IllegalArgumentException("Not understood: "+dest) ;
-    }
-
-    public static DeltaClient create(String localName, String url, DatasetGraph dsg) {
-        DeltaClient client = new DeltaClient(localName, url, dsg) ;
-        client.register() ;
-        FmtLog.info(LOG, "%s", client) ;
-        return client ;
-    }
-    
-    @Override
-    public String toString() {
-        return String.format("Client '%s' [local=%d, remote=%d]", getName(),
-                             getLocalVersionNumber(), getRemoteVersionNumber()) ;
-    }
     
     // The version of the remote copy.
     private int remoteEpoch = 0 ;
@@ -90,16 +55,23 @@ public class DeltaClient {
     private final RDFChanges target ;
     private final String label ;
     
-    public DeltaClient(String localName, String controller, DatasetGraph dsg) {
+    public static DeltaClient create(String label, String url, DatasetGraph dsg) {
+        DeltaClient client = new DeltaClient(label, url, dsg) ;
+        client.start() ;
+        FmtLog.info(Delta.DELTA_LOG, "%s", client) ;
+        return client ;
+    }
+    
+    private DeltaClient(String label, String controller, DatasetGraph dsg) {
         // [Delta]
-        localEpochPersistent = new TransPInteger(localName) ;
+        localEpochPersistent = new TransPInteger(label) ;
         
         localEpoch = 0 ;
         
         if ( dsg instanceof DatasetGraphChanges )
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient") ;
         
-        this.label = localName ;
+        this.label = label ;
         this.remoteServer = controller ; 
         this.base = dsg ;
         this.target = new RDFChangesApply(dsg) ;
@@ -107,6 +79,12 @@ public class DeltaClient {
         this.managed = new DatasetGraphChanges(dsg, monitor) ; 
     }
     
+    public void start() {
+        register() ; 
+    }
+    
+    public void finish() { }
+
     private void register() {
         sync() ;
     }
@@ -183,5 +161,10 @@ public class DeltaClient {
     public PatchReader fetchPatch(int id) {
         return LibPatchFetcher.fetchByPath(remoteServer+DP.EP_Patch, id) ;
     }
-
+    
+    @Override
+    public String toString() {
+        return String.format("Client '%s' [local=%d, remote=%d]", getName(),
+                             getLocalVersionNumber(), getRemoteVersionNumber()) ;
+    }
 }

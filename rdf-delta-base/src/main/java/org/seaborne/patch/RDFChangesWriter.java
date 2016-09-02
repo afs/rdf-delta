@@ -102,7 +102,6 @@ public class RDFChangesWriter implements RDFChanges {
             tok.sendNode(gn);
         tok.endTuple();
         tok.flush();
-
     }
 
     @Override

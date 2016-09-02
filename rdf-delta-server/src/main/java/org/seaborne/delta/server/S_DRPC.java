@@ -77,7 +77,8 @@ public class S_DRPC extends ServletBase {
         
         OutputStream out = resp.getOutputStream() ;
         try {
-            FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;  
+            if ( ! DP.OP_EPOCH.equals(op) )
+                FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;  
             resp.setStatus(HttpSC.OK_200);
             JSON.write(out, rslt);
         }

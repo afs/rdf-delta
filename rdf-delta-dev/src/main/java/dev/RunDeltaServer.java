@@ -23,7 +23,8 @@ import org.seaborne.delta.DP ;
 import org.seaborne.delta.server.DataPatchServer ;
 
 public class RunDeltaServer {
-    static { LogCtl.setJavaLogging(); }
+    //static { LogCtl.setJavaLogging(); }
+    static { LogCtl.setLog4j(); }
     
     public static void main(String...arg) {
         DatasetGraph dsg = null ;

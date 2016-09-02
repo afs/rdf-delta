@@ -24,7 +24,7 @@ import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 public class Delta {
-    public static String namespace = "http://jena.apache.org/rdf-delta/v1/" ;
+    public static String namespace = "http://jena.apache.org/rdf-delta/" ;
     private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
     

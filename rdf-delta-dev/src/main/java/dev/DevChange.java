@@ -21,9 +21,12 @@ package dev;
 
 public class DevChange {
     // Next:
-    //   Slides/doc
     //   Single call "my version is ... get patches I have missed. 
 
+    // Fuseki./assembler ; need service modifier for catch start/finish?
+    //   or poll for changes?
+    // loop: DeltaClient.sync
+    
     //   Client-side:
     //      DeltaClient.execWrite(...)
     //      DatasetRegistry (DeltaClient enough?)
