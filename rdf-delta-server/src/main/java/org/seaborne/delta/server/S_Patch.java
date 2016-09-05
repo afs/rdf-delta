@@ -56,19 +56,17 @@ public class S_Patch extends ServletBase {
         PatchReader scr = new PatchReader(in) ;
         // Collect (scale!), log. 
         RDFChangesCollector changes = new RDFChangesCollector() ;
-        // Patch set
         scr.apply(changes);
-        PatchSet ps = null ;
+        
         for ( PatchHandler patchHandler : handlers ) {
             LOG.info("Handler: "+Lib.className(patchHandler)) ;
             RDFChanges sc = patchHandler.handler() ;
             sc.start();
             changes.play(sc);
             sc.finish();
-            //scr.apply(sc);
         }
         
         //resp.setContentLength(0);
-      resp.setStatus(HttpSC.NO_CONTENT_204) ;
+        resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
 }
