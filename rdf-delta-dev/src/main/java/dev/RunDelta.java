@@ -26,7 +26,6 @@ import java.util.stream.IntStream ;
 
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
@@ -46,7 +45,7 @@ import org.slf4j.LoggerFactory ;
 
 public class RunDelta {
     
-    static { LogCtl.setJavaLogging(); }
+    static { DevLib.setLogging(); }
     static Logger LOG = LoggerFactory.getLogger("Main") ;
     
     static String url = "http://localhost:"+DP.PORT+"/rpc" ; 

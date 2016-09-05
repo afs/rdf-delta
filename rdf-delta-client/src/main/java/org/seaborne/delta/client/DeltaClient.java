@@ -19,12 +19,14 @@
 package org.seaborne.delta.client;
 
 import java.math.BigInteger ;
+import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.stream.IntStream ;
 
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.Log ;
+import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.system.Txn ;
 import org.seaborne.delta.DP ;
@@ -43,14 +45,17 @@ public class DeltaClient {
     private static Logger LOG = Delta.DELTA_LOG ;
     
     // The version of the remote copy.
-    private int remoteEpoch = 0 ;
-    private int localEpoch = 0 ;
+    private final AtomicInteger remoteEpoch = new AtomicInteger(0) ;
+    private final AtomicInteger localEpoch = new AtomicInteger(0) ;
     private final TransPInteger localEpochPersistent ;
 
     private final String remoteServer ;
     
     private final DatasetGraph base ;
     private final DatasetGraphChanges managed ;
+    
+    // Used to synchronize across changes going out (RDFChangesHTTP) and changes coming in (sync(), RDFChangesApply).
+    private final Object syncObject = new Object() ; 
     
     private final RDFChanges target ;
     private final String label ;
@@ -65,8 +70,7 @@ public class DeltaClient {
     private DeltaClient(String label, String controller, DatasetGraph dsg) {
         // [Delta]
         localEpochPersistent = new TransPInteger(label) ;
-        
-        localEpoch = 0 ;
+        localEpoch.set(0) ;
         
         if ( dsg instanceof DatasetGraphChanges )
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient") ;
@@ -74,8 +78,11 @@ public class DeltaClient {
         this.label = label ;
         this.remoteServer = controller ; 
         this.base = dsg ;
+        
+        // Where to put incoming changes. 
         this.target = new RDFChangesApply(dsg) ;
-        RDFChanges monitor = new RDFChangesHTTP(controller+DP.EP_Patch) ;
+        // Where to send outgoing changes.
+        RDFChanges monitor = new RDFChangesHTTP(syncObject, controller+DP.EP_Patch) ;
         this.managed = new DatasetGraphChanges(dsg, monitor) ; 
     }
     
@@ -89,28 +96,46 @@ public class DeltaClient {
         sync() ;
     }
     
-    synchronized
+    
     public void sync() {
-        // [Delta] replace with a one-shot "get all missing patches" operation.
- 
-        // Their update id.
-        remoteEpoch = getRemoteVersionLatest() ;
-        if ( localEpoch > remoteEpoch ) 
-            FmtLog.info(LOG, "Local version ahead fo remote : [%d, %d]", localEpoch, remoteEpoch) ;
-        if ( localEpoch >= remoteEpoch )
-            return ;
-        // bring up-to-date.
-        FmtLog.info(LOG, "Patch range [%d, %d]", localEpoch+1, remoteEpoch) ;
-        IntStream.rangeClosed(localEpoch+1, remoteEpoch).forEach((x)->{
-            FmtLog.info(LOG, "Sync: patch=%d", x) ;
-            PatchReader pr = fetchPatch(x) ;
-            RDFChanges c = target ;
-            if ( true )
-                c = DeltaOps.print(c) ;
-            pr.apply(c);
-        });
-        //localEpoch = remoteEpoch ;
-        setLocalVersionNumber(remoteEpoch) ;
+        // Sync with RDFChangesHTTP 
+        synchronized(syncObject) {    
+
+            // [Delta] replace with a one-shot "get all missing patches" operation.
+
+            // Their update id.
+            int remoteVer ;
+            try { 
+                remoteVer = getRemoteVersionLatest() ;
+            } catch (HttpException ex) {
+                //Much the same as : ex.getResponse() == null ; HTTP didn't do its thing.
+                if ( ex.getCause() instanceof java.net.ConnectException ) {
+                    FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage()) ;
+                    return ;
+                }
+                FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage()) ;
+                throw ex ;
+            }
+            
+            int localVer = getLocalVersionNumber() ;
+
+            if ( localVer > remoteVer ) 
+                FmtLog.info(LOG, "Local version ahead of remote : [%d, %d]", localEpoch, remoteEpoch) ;
+            if ( localVer >= remoteVer )
+                return ;
+            // bring up-to-date.
+            FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer) ;
+            IntStream.rangeClosed(localVer, remoteVer).forEach((x)->{
+                FmtLog.info(LOG, "Sync: patch=%d", x) ;
+                PatchReader pr = fetchPatch(x) ;
+                RDFChanges c = target ;
+                if ( true )
+                    c = DeltaOps.print(c) ;
+                pr.apply(c);
+            });
+            setRemoteVersionNumber(remoteVer) ;
+            setLocalVersionNumber(remoteVer) ;
+        }
     }
 
 //    public void syncAll() {
@@ -122,7 +147,7 @@ public class DeltaClient {
     }
     /** Return the version of the local data store */ 
     public int getLocalVersionNumber() {
-        return localEpoch ;
+        return localEpoch.get() ;
     }
     
     /** Update the version of the local data store */ 
@@ -130,14 +155,21 @@ public class DeltaClient {
         Txn.execWrite(localEpochPersistent, ()->{
             localEpochPersistent.set(BigInteger.valueOf(version));
         });
-        localEpoch = version ;
-    }
-
-    /** Return our local track of the remote version */ 
-    public int getRemoteVersionNumber() {
-        return remoteEpoch ;
+        localEpoch.set(version) ;
     }
     
+    /** Return our local track of the remote version */ 
+    public int getRemoteVersionNumber() {
+        return remoteEpoch.get() ;
+    }
+    
+    /** Update the version of the local belief of remote version */ 
+    private void setRemoteVersionNumber(int version) {
+        remoteEpoch.set(version) ;
+    }
+
+
+
     /** The "record changes" version */  
     public DatasetGraph getDatasetGraph() {
         return managed ;
@@ -148,7 +180,7 @@ public class DeltaClient {
         return base ;
     }
 
-    /** actively get the remote version */  
+    /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
         
         JsonObject obj = J.buildObject((b)-> b.key("operation").value(DP.OP_EPOCH)) ;

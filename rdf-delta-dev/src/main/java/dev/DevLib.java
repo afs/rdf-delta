@@ -15,19 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package dev;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.DP ;
-import org.seaborne.delta.server.DataPatchServer ;
+import org.apache.jena.atlas.logging.LogCtl ;
 
-public class RunDeltaServer {
-    static { DevLib.setLogging(); }
+public class DevLib {
     
-    public static void main(String...arg) {
-        DatasetGraph dsg = null ;
-        DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
-        server.start();
-        server.join();
+    public static void setLogging() {
+        LogCtl.setLog4j();
+        //LogCtl.setJavaLogging();
     }
 }

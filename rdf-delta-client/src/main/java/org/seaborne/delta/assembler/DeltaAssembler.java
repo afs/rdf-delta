@@ -32,8 +32,9 @@ import java.io.InputStream ;
 import java.util.HashSet ;
 import java.util.List ;
 import java.util.Set ;
-import java.util.concurrent.Executor ;
 import java.util.concurrent.Executors ;
+import java.util.concurrent.ScheduledExecutorService ;
+import java.util.concurrent.TimeUnit ;
 
 import org.apache.jena.assembler.Assembler ;
 import org.apache.jena.assembler.Mode ;
@@ -132,10 +133,9 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
                     // Additonal delay
                     Lib.sleep(3*1000);
                 }
-                Lib.sleep(2*1000);
             }
         } ;
-        Executor executor = Executors.newSingleThreadExecutor() ;
-        executor.execute(r); 
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1) ;
+        executor.scheduleWithFixedDelay(r, 2, 2, TimeUnit.SECONDS) ;
     }
 }

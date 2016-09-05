@@ -45,7 +45,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     // Break up?
     // inherits DatasetGraphRealChanges < DatasetGraphAddDelete
     
-    protected RDFChanges monitor ;
+    protected final RDFChanges monitor ;
     protected ThreadLocal<ReadWrite> txnMode = ThreadLocal.withInitial(()->null) ;
 
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) { 
