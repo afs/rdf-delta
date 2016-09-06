@@ -30,9 +30,13 @@ import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.DP ;
+import org.seaborne.delta.Delta ;
 import org.seaborne.delta.lib.J ;
+import org.slf4j.Logger ;
 
 public class DRPC {
+    static private Logger LOG = Delta.DELTA_RPC_LOG ; 
+    
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, String opName, JsonValue arg) {
         JsonObject a = J.buildObject((b)->
@@ -50,10 +54,9 @@ public class DRPC {
             throw new DeltaException() ; 
         
         String argStr = JSON.toString(object) ;
-        try (
-            TypedInputStream x = HttpOp.execHttpPostStream(url, 
-                                                           WebContent.contentTypeJSON, argStr,
-                                                           WebContent.contentTypeJSON)) {
+        try (TypedInputStream x = HttpOp.execHttpPostStream(url, 
+                                                            WebContent.contentTypeJSON, argStr,
+                                                            WebContent.contentTypeJSON)) {
             if ( x == null )
                 throw new JsonException("No response") ;
             

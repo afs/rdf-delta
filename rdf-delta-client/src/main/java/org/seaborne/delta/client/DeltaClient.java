@@ -105,12 +105,16 @@ public class DeltaClient {
 
             // Their update id.
             int remoteVer ;
-            try { 
+            try {
                 remoteVer = getRemoteVersionLatest() ;
             } catch (HttpException ex) {
-                //Much the same as : ex.getResponse() == null ; HTTP didn't do its thing.
+                // Much the same as : ex.getResponse() == null ; HTTP didn't do its thing.
                 if ( ex.getCause() instanceof java.net.ConnectException ) {
                     FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage()) ;
+                    return ;
+                }
+                if ( ex.getStatusLine() != null ) {
+                    FmtLog.warn(LOG, "Failed; "+ex.getStatusLine()) ;
                     return ;
                 }
                 FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage()) ;
@@ -119,13 +123,17 @@ public class DeltaClient {
             
             int localVer = getLocalVersionNumber() ;
 
+            //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer) ;
+            
             if ( localVer > remoteVer ) 
                 FmtLog.info(LOG, "Local version ahead of remote : [%d, %d]", localEpoch, remoteEpoch) ;
-            if ( localVer >= remoteVer )
+            if ( localVer >= remoteVer ) {
+                //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer) ;
                 return ;
+            }
             // bring up-to-date.
             FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer) ;
-            IntStream.rangeClosed(localVer, remoteVer).forEach((x)->{
+            IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
                 FmtLog.info(LOG, "Sync: patch=%d", x) ;
                 PatchReader pr = fetchPatch(x) ;
                 RDFChanges c = target ;

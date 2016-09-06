@@ -52,21 +52,22 @@ public class S_Patch extends ServletBase {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LOG.info("Patch");
-        InputStream in = req.getInputStream() ;
-        PatchReader scr = new PatchReader(in) ;
-        // Collect (scale!), log. 
-        RDFChangesCollector changes = new RDFChangesCollector() ;
-        scr.apply(changes);
-        
-        for ( PatchHandler patchHandler : handlers ) {
-            LOG.info("Handler: "+Lib.className(patchHandler)) ;
-            RDFChanges sc = patchHandler.handler() ;
-            sc.start();
-            changes.play(sc);
-            sc.finish();
+        try (InputStream in = req.getInputStream()) {
+            PatchReader scr = new PatchReader(in) ;
+            // Collect (scale!), log. 
+            RDFChangesCollector changes = new RDFChangesCollector() ;
+            scr.apply(changes);
+            
+            for ( PatchHandler patchHandler : handlers ) {
+                LOG.info("Handler: "+Lib.className(patchHandler)) ;
+                RDFChanges sc = patchHandler.handler() ;
+                sc.start();
+                changes.play(sc);
+                sc.finish();
+            }
+            
+            //resp.setContentLength(0);
+            resp.setStatus(HttpSC.NO_CONTENT_204) ;
         }
-        
-        //resp.setContentLength(0);
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
 }

@@ -28,6 +28,7 @@ import static org.seaborne.delta.assembler.VocabDelta.pDeltaInit1 ;
 import static org.seaborne.delta.assembler.VocabDelta.pDeltaInit2 ;
 import static org.seaborne.delta.assembler.VocabDelta.pPollForChanges ;
 
+import java.io.IOException ;
 import java.io.InputStream ;
 import java.util.HashSet ;
 import java.util.List ;
@@ -41,7 +42,6 @@ import org.apache.jena.assembler.Mode ;
 import org.apache.jena.assembler.assemblers.AssemblerBase ;
 import org.apache.jena.assembler.exceptions.AssemblerException ;
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
@@ -101,8 +101,9 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
                 throw new AssemblerException(root, "Not a string literal for initialization changes: "+FmtUtils.stringForNode(rn.asNode())) ;
             String str = rn.asLiteral().getString() ;
             FmtLog.info(Delta.DELTA_LOG, "Delta: initialize: %s",str) ;
-            InputStream in = openChangesSrc(str) ;
-            DeltaOps.play(dsgSub, in); 
+            try (InputStream in = openChangesSrc(str)) {
+                DeltaOps.play(dsgSub, in) ;
+            } catch (IOException ex) { IO.exception(ex); }
         }
         
         // And someday tap into services to add a "sync before operation" step.
@@ -126,13 +127,12 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
         DeltaClient client = DeltaClient.create("foo",  source, dsg) ;
         Runnable r = ()->{
-            while(true) {
-                try { client.sync(); }
-                catch (Exception ex) { 
-                    Delta.DELTA_LOG.warn("Failed to sync with the change server: "+ex.getMessage()) ;
-                    // Additonal delay
-                    Lib.sleep(3*1000);
-                }
+            try { client.sync(); }
+            catch (Exception ex) { 
+                Delta.DELTA_LOG.warn("Failed to sync with the change server: "+ex.getMessage()) ;
+//                // Delay this task ; extra 3s + the time interval of 2s.
+//                Dones not work as expected.
+//                Lib.sleep(5*1000);
             }
         } ;
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1) ;

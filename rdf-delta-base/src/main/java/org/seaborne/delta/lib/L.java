@@ -18,8 +18,11 @@
 
 package org.seaborne.delta.lib;
 
+import java.io.ByteArrayInputStream ;
+import java.io.InputStream ;
 import java.util.Arrays ;
 
+import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
@@ -45,5 +48,14 @@ public class L {
         if ( bytes == null )
             return null ;
         return Arrays.copyOf(bytes, bytes.length) ;
+    }
+    
+    /** Copy the contents of an {@link InputStream} so it can be closed. */ 
+    public static InputStream copy(InputStream inputStream) {
+        if ( inputStream == null )
+            return null ;
+        byte[] b = IO.readWholeFile(inputStream) ;
+        InputStream x = new ByteArrayInputStream(b) ;
+        return x ;
     }
 }

@@ -24,6 +24,7 @@ import java.io.InputStream ;
 import java.nio.charset.StandardCharsets ;
 import java.util.Arrays ;
 
+import org.apache.http.HttpEntity ;
 import org.apache.http.client.methods.CloseableHttpResponse ;
 import org.apache.http.client.methods.HttpPost ;
 import org.apache.http.entity.ByteArrayEntity ;
@@ -135,9 +136,22 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         FmtLog.info(LOG, "Send patch (%d bytes)", bytes.length) ;
         postRequest.setEntity(new ByteArrayEntity(bytes)) ;
 
-        try(CloseableHttpResponse r = httpClient.execute(postRequest) ; 
-            InputStream ins = r.getEntity().getContent() ;
-            ) {
+        try(CloseableHttpResponse r = httpClient.execute(postRequest) ) {
+            int sc = r.getStatusLine().getStatusCode() ;
+            if ( sc < 200 || sc >= 300 )
+                LOG.warn("HTTP response: "+r.getStatusLine()+" ("+url+")") ;
+            else { 
+                HttpEntity e = r.getEntity() ;
+                if ( e != null )
+                    handleJsonResponse(e) ;
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+        // Notify of send.
+        reset(); 
+    }
+
+    private void handleJsonResponse(HttpEntity e) {
+        try ( InputStream ins = e.getContent() ) {
             // If there is a JSON object reply.
             // Roll this into DRPC: stream->json ; json->stream ; stream->stream
             if ( ins.available() > 0 ) {
@@ -145,12 +159,9 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 String x = JSON.toStringFlat(obj) ;
                 LOG.info("HTTP reply: "+x) ;
             }
-            int sc = r.getStatusLine().getStatusCode() ;
-            if ( sc < 200 || sc >= 300 )
-                LOG.warn("HTTP response: "+r.getStatusLine()+" ("+url+")") ;
         }
-        catch (IOException e) { e.printStackTrace(); }
-        // Notify of send.
-        reset(); 
+        catch (Exception ex) {
+            ex.printStackTrace(System.err);
+        }
     }
 }

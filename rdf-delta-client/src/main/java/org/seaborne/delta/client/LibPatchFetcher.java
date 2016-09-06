@@ -22,9 +22,11 @@ import java.io.InputStream ;
 import java.util.concurrent.atomic.AtomicInteger ;
 
 import org.apache.jena.atlas.web.HttpException ;
+import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.base.PatchReader ;
+import org.seaborne.delta.lib.L ;
 
 public class LibPatchFetcher {
     static private AtomicInteger epoch = new AtomicInteger(0) ;
@@ -44,11 +46,14 @@ public class LibPatchFetcher {
     
     public static PatchReader fetchByPath(String url, int idx) {
         String s = url+"/"+idx ;
-        try {
-            InputStream in = HttpOp.execHttpGet(s) ;
+        try (TypedInputStream in = HttpOp.execHttpGet(s) ) {
             if ( in == null )
                 return null ;
-            return new PatchReader(in) ;
+            // [Delta] Must close the HTTP input stream. 
+            // Copying is a cheap hack.
+            // Better to parse-store.
+            InputStream x = L.copy(in) ;
+            return new PatchReader(x) ;
         } catch (HttpException ex) {
             if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )
                 return null ;

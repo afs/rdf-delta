@@ -33,6 +33,7 @@ import org.seaborne.patch.tio.TokenInputStream ;
 import org.seaborne.patch.tio.TokenInputStreamBase ;
 
 // Needs reworking: for efficiency, for less features
+/** Must close the input stream */
 public class PatchReader {
     private final TokenInputStream input ;
     

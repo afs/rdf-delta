@@ -35,6 +35,8 @@ public class DeltaOps {
 //        return dsg1 ;
 //    }
 //    
+    
+    /** Called closes the {@link InputStream}. */
     public static void play(DatasetGraph dsg, InputStream input) {
         PatchReader pr = new PatchReader(input) ;
         RDFChanges sc = new RDFChangesApply(dsg) ; 
