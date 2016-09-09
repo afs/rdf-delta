@@ -90,7 +90,7 @@ public class RunDelta {
         DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
         //syncAgent(client1) ;
         sync(client1) ;
-        Txn.execRead(dsg1, ()->{
+        Txn.executeRead(dsg1, ()->{
             System.out.println() ;
             RDFDataMgr.write(System.out,  dsg1, Lang.NQ);
             System.out.println() ;
@@ -101,7 +101,7 @@ public class RunDelta {
         catch (IOException e) { e.printStackTrace(); }
         
         update(client1) ;
-        Txn.execRead(dsg1, ()->{
+        Txn.executeRead(dsg1, ()->{
             System.out.println() ;
             RDFDataMgr.write(System.out,  dsg1, Lang.NQ);
             System.out.println() ;
@@ -127,10 +127,10 @@ public class RunDelta {
         //sync(client2) ;
         
         System.out.println("----") ;
-        Txn.execRead(dsg1, ()->RDFDataMgr.write(System.out, dsg1, Lang.NQ)) ;
+        Txn.executeRead(dsg1, ()->RDFDataMgr.write(System.out, dsg1, Lang.NQ)) ;
         System.out.println("----") ;
         for ( int i = 0 ; i < 5 ; i++ ) {
-//            Txn.execRead(dsg2, ()->RDFDataMgr.write(System.out, dsg2, Lang.NQ)) ;
+//            Txn.executeRead(dsg2, ()->RDFDataMgr.write(System.out, dsg2, Lang.NQ)) ;
 //            System.out.println("--") ;
             Lib.sleep(2*1000);
         }
@@ -138,9 +138,9 @@ public class RunDelta {
         Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
         Node o = q.getObject() ;
         System.out.println("---- dsg1") ;
-        Txn.execRead(dsg1, ()->dsg1.find(null,null,null,null).forEachRemaining(System.out::println));
+        Txn.executeRead(dsg1, ()->dsg1.find(null,null,null,null).forEachRemaining(System.out::println));
         System.out.println("---- dsg2") ;
-        Txn.execRead(dsg2, ()->dsg2.find(null,null,null,null).forEachRemaining(System.out::println));
+        Txn.executeRead(dsg2, ()->dsg2.find(null,null,null,null).forEachRemaining(System.out::println));
         System.out.println("----") ;
         System.exit(0) ;
     }
@@ -196,7 +196,7 @@ public class RunDelta {
     private static void update(DeltaClient client) {
         DatasetGraph dsg = client.getDatasetGraph() ;
         int version = client.getLocalVersionNumber() ;
-        Txn.execWrite(dsg, ()->{
+        Txn.executeWrite(dsg, ()->{
             Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
 
             dsg.add(q); 

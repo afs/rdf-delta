@@ -52,6 +52,6 @@ public class TransPInteger extends TransPBlob<BigInteger>{
     }
     
     public void inc() {
-        Txn.execWrite(this, ()->getDataState().add(BigInteger.ONE)) ;
+        Txn.executeWrite(this, ()->getDataState().add(BigInteger.ONE)) ;
     }
 }

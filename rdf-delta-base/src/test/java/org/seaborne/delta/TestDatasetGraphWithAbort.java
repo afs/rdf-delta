@@ -51,7 +51,7 @@ public class TestDatasetGraphWithAbort //extends AbstractTestTransactionLifecycl
     //@Test 
     public void abort_data_1() {
         DatasetGraph dsg = create().asDatasetGraph() ;
-        Txn.execWrite(dsg, ()->dsg.add(q1)) ;
+        Txn.executeWrite(dsg, ()->dsg.add(q1)) ;
         Assert.assertTrue(dsg.contains(q1)) ;
         Assert.assertFalse(dsg.contains(q2)) ;
         dsg.begin(ReadWrite.WRITE);

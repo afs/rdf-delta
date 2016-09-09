@@ -20,35 +20,14 @@ package dev;
 
 
 public class DevChange {
-    // Next:
-    //   Single call "my version is ... get patches I have missed. 
-
-    // Fuseki./assembler ; need service modifier for catch start/finish?
-    //   or poll for changes?
-    // loop: DeltaClient.sync
     
-    //   Client-side:
-    //      DeltaClient.execWrite(...)
-    //      DatasetRegistry (DeltaClient enough?)
-    //      Receiver
+    // Documentation
     
-    //   Server-side:
-    //      Configuration
-    //      Restart (but its passive so?) 
-    
-    // Transactional number.
-    
-    // Reader and Writer
-    // Counters
-    // Replace tio ... or tio without prefixes etc.
-    
-    // Server:
-    //   receive, check checksum
-    //   validate
-    //   process
-    //     - archive : formally happens
-    //     - log
-    //     - queue for collection
-    //     - send/Patch
-    //     - send/GSP
+    // Pub/sub inc if coordinator not runnign but patch to send.
+    //   Single call "my version is ... get patches I have missed".
+    //   Don't replay own patches.
+    // Extract polling support to DeltaClient. 
+    // RDF Git.
+    // Checksums
+    // Binary format
 }

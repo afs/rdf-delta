@@ -160,7 +160,7 @@ public class DeltaClient {
     
     /** Update the version of the local data store */ 
     public void setLocalVersionNumber(int version) {
-        Txn.execWrite(localEpochPersistent, ()->{
+        Txn.executeWrite(localEpochPersistent, ()->{
             localEpochPersistent.set(BigInteger.valueOf(version));
         });
         localEpoch.set(version) ;

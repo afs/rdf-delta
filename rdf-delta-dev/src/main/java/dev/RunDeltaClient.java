@@ -72,7 +72,7 @@ public class RunDeltaClient {
         System.out.println(url);
         
         client1.sync() ;
-        Txn.execRead(dsg1, ()->{
+        Txn.executeRead(dsg1, ()->{
             System.out.println() ;
             RDFDataMgr.write(System.out,  dsg1, Lang.NQ);
             System.out.println() ;
@@ -83,7 +83,7 @@ public class RunDeltaClient {
         catch (IOException e) { e.printStackTrace(); }
         
         update(client1) ;
-        Txn.execRead(dsg1, ()->{
+        Txn.executeRead(dsg1, ()->{
             System.out.println() ;
             RDFDataMgr.write(System.out,  dsg1, Lang.NQ);
             System.out.println() ;
@@ -129,7 +129,7 @@ public class RunDeltaClient {
     private static void update(DeltaClient client) {
         DatasetGraph dsg = client.getDatasetGraph() ;
         int version = client.getLocalVersionNumber() ;
-        Txn.execWrite(dsg, ()->{
+        Txn.executeWrite(dsg, ()->{
             Quad q = SSE.parseQuad("(_ :s :p _:b)") ;
 
             dsg.add(q); 
