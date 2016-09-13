@@ -23,10 +23,6 @@ import java.io.InputStream ;
 import java.util.Arrays ;
 
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.sparql.core.Quad ;
-import org.apache.jena.sparql.sse.SSE ;
-import org.apache.jena.sparql.util.FmtUtils ;
 
 public class L {
 
@@ -35,14 +31,6 @@ public class L {
         System.out.println();
     }
 
-    public static String str(Node n) {
-        return FmtUtils.stringForNode(n, SSE.defaultPrefixMapRead);
-    }
-
-    public static String str(Quad q) {
-        return FmtUtils.stringForQuad(q, SSE.defaultPrefixMapRead);
-    }
-    
     /** Copy an array of bytes.*/ 
     public static byte[] copy(byte[] bytes) {
         if ( bytes == null )

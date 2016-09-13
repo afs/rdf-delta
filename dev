@@ -15,7 +15,7 @@ C="$C:/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.21/slf4j-log4j12-1.7.21.jar
 H="$HOME/ASF/rdf-delta"
 
 D="$H/rdf-delta-base/target/classes:$H/rdf-delta-client/target/classes:$H/rdf-delta-server/target/classes"
-D="$H/rdf-delta-dev/target/classes:$D"
+D="$H/dev-rdf-delta/target/classes:$D"
 
 if [[ $# == 0 ]]
 then
@@ -26,8 +26,19 @@ fi
 ## --no-snapshot-update
 ##mvn -nsu exec
 ## mvn -nsu exec:java -Dexec:mainClass=dev.RunDeltaServer
-## in rdf-delta-dev module.
+## in dev-rdf-delta module.
 
 ##JVM_ARGS=-Djava.util.logging.config.file=logging.properties
 
-java $JVM_ARGS -cp "$D:$C" "$@"
+if [[ $# = 0 ]]
+then
+    echo "No class to run" 1>&2
+    exit 1
+fi
+
+CLASS="$1"
+shift
+CLASS=${CLASS#dev.}
+CLASS=dev.$CLASS
+
+java $JVM_ARGS -cp "$D:$C" "$CLASS" "$@"

@@ -17,7 +17,8 @@
  */
 
 package org.seaborne.patch;
-import static org.seaborne.delta.lib.L.str ;
+
+import static org.apache.jena.sparql.sse.SSE.str ;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
