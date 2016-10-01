@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.tio2;
+package org.seaborne.riot.tio;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.tokens.Token ;

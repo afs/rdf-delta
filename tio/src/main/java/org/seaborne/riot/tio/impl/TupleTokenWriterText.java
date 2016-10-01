@@ -16,14 +16,40 @@
  * limitations under the License.
  */
 
-package org.seaborne.tio2;
+package org.seaborne.riot.tio.impl;
 
-import org.apache.jena.riot.RiotException ;
+import org.apache.jena.graph.Node ;
+import org.apache.jena.riot.tokens.Token ;
+import org.seaborne.riot.tio.TupleTokenWriter ;
 
-public class TIOException extends RiotException {
-    public TIOException()                          { super() ; }
-    public TIOException(String msg)                { super(msg) ; }
-    public TIOException(Throwable th)              { super(th) ; }
-    public TIOException(String msg, Throwable th)  { super(msg, th) ; }
+public class TupleTokenWriterText implements TupleTokenWriter {
+
+    @Override
+    public void sendToken(Token token) {}
+
+    @Override
+    public void sendNode(Node node) {}
+
+    @Override
+    public void sendString(String string) {}
+
+    @Override
+    public void sendWord(String word) {}
+
+    @Override
+    public void sendControl(char character) {}
+
+    @Override
+    public void sendNumber(long number) {}
+
+    @Override
+    public void startTuple() {}
+
+    @Override
+    public void endTuple() {}
+
+    @Override
+    public void flush() {}
+
 }
 

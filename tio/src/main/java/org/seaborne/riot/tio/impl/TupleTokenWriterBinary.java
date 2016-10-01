@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package org.seaborne.tio2.impl;
+package org.seaborne.riot.tio.impl;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.tokens.Token ;
-import org.seaborne.tio2.TupleTokenWriter ;
+import org.seaborne.riot.tio.TupleTokenWriter ;
 
-public class TupleTokenWriterText implements TupleTokenWriter {
+public class TupleTokenWriterBinary implements TupleTokenWriter {
 
     @Override
     public void sendToken(Token token) {}

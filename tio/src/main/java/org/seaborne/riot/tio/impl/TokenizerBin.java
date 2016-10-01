@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.tio2.impl;
+package org.seaborne.riot.tio.impl;
 
 import java.io.InputStream ;
 import java.util.NoSuchElementException ;
@@ -27,11 +27,11 @@ import org.apache.jena.riot.tokens.TokenType ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.thrift.protocol.TProtocol ;
 
-public class TokenizerText2 implements Tokenizer {
+public class TokenizerBin implements Tokenizer {
     private long rowNumber = 0 ;
     private Token token = null ; 
     
-    public TokenizerText2(InputStream input) {
+    public TokenizerBin(InputStream input) {
         // Buffering.O
         TProtocol protocol = TRDF.protocol(input) ;
     }
