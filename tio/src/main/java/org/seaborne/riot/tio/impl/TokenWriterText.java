@@ -344,32 +344,54 @@ public class TokenWriterText implements TokenWriter
                 if ( token.getCntrlCode() == -1 )
                     return "*" ; 
                 return "*"+Character.toString((char)token.getCntrlCode()) ;
+            case DOT:
+                return Chars.S_DOT ;
             case VAR:
+                return "?"+token.getImage() ; 
+            case COMMA:
+                return Chars.S_COMMA ;
+            case SEMICOLON:
+                return Chars.S_SEMICOLON ;
+            case COLON: 
+                return Chars.S_COLON ;
+            case LT:
+                return Chars.S_LT ;
+            case GT:
+                return Chars.S_GT ;
+            case LE:
+                return Chars.S_LE ;
+            case GE:
+                return Chars.S_GE ;
+            case UNDERSCORE:
+                return Chars.S_UNDERSCORE ;
+            case LBRACE:
+                return Chars.S_LBRACE ;
+            case RBRACE:
+                return Chars.S_RBRACE ;
+            case LPAREN:
+                return Chars.S_LPAREN ;
+            case RPAREN:
+                return Chars.S_RPAREN ;
+            case LBRACKET:
+                return Chars.S_LBRACKET ;
+            case RBRACKET:
+                return Chars.S_RBRACKET ;
+            case PLUS:
+                return Chars.S_PLUS ;
+            case MINUS:
+                return Chars.S_MINUS ;
+            case STAR:
+                return Chars.S_STAR ;
+            case SLASH:
+                return Chars.S_SLASH ;
+            case RSLASH:
+                return Chars.S_RSLASH ;
             case HEX:
-                
+                return "0x"+token.getImage() ;
             // Syntax
             // COLON is only visible if prefix names are not being processed.
-            case DOT:
-            case COMMA:
-            case SEMICOLON:
-            case COLON: 
             case DIRECTIVE:
-            // LT, GT, LE, GE are only visible if IRI processing is not enabled.
-            case LT:
-            case GT:
-            case LE:
-            case GE:
-            // In RDF, UNDERSCORE is only visible if BNode processing is not enabled.
-            case UNDERSCORE: 
-            case LBRACE:    case RBRACE:    // {} 
-            case LPAREN:    case RPAREN:    // ()
-            case LBRACKET:  case RBRACKET:  // []
-                
-            case PLUS:
-            case MINUS:
-            case STAR:
-            case SLASH:
-            case RSLASH:
+                return "@"+token.getImage() ;
             default:
                 notImplemented(token) ;
                 return null ;

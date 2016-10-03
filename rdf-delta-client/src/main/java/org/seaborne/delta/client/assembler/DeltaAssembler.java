@@ -16,17 +16,17 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.assembler;
+package org.seaborne.delta.client.assembler;
 
 import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty ;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getResourceValue ;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue ;
 import static org.apache.jena.sparql.util.graph.GraphUtils.multiValueString ;
-import static org.seaborne.delta.assembler.VocabDelta.pDataset ;
-import static org.seaborne.delta.assembler.VocabDelta.pDeltaChanges ;
-import static org.seaborne.delta.assembler.VocabDelta.pDeltaInit1 ;
-import static org.seaborne.delta.assembler.VocabDelta.pDeltaInit2 ;
-import static org.seaborne.delta.assembler.VocabDelta.pPollForChanges ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDataset ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaInit1 ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaInit2 ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pPollForChanges ;
 
 import java.io.IOException ;
 import java.io.InputStream ;
@@ -60,9 +60,11 @@ import org.seaborne.delta.client.DeltaLib ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.system.DatasetGraphChanges ;
+import org.slf4j.Logger ;
+import org.slf4j.LoggerFactory ;
 
 public class DeltaAssembler extends AssemblerBase implements Assembler {
-    //static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
+    static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
     
     /* 
      */
@@ -75,11 +77,11 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         // check for duplicates.
         Set<String> xs = new HashSet<>(xList) ;
         if ( xList.size() != xs.size() )
-            FmtLog.warn(Delta.DELTA_LOG, "Duplicate destinations for changes") ;  
+            FmtLog.warn(log, "Duplicate destinations for changes") ;  
         
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
-            FmtLog.info(Delta.DELTA_LOG, "Destination: '%s'", dest) ;
+            FmtLog.info(log, "Destination: '%s'", dest) ;
             RDFChanges sc = DeltaLib.destination(dest+DP.EP_Patch) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }

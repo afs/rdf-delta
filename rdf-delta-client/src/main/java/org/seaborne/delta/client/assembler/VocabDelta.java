@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.assembler;
+package org.seaborne.delta.client.assembler;
 
 import org.apache.jena.rdf.model.Property ;
 import org.apache.jena.rdf.model.Resource ;

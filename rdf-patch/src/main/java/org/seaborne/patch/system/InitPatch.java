@@ -16,20 +16,22 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.patch.system;
 
 import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.seaborne.delta.client.assembler.VocabDelta ;
+import org.seaborne.patch.RDFPatch ;
 
-public class InitDeltaClient implements JenaSubsystemLifecycle {
+public class InitPatch implements JenaSubsystemLifecycle { 
+    public static int level = 42 ;
+
     @Override
     public void start() {
-        VocabDelta.init();
+        RDFPatch.init();
     }
 
     @Override
     public void stop() {}
 
     @Override
-    public int level() { return 44 ; }
+    public int level() { return 42 ; }
 }

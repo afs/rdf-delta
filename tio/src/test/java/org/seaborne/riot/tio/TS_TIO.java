@@ -16,20 +16,15 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.riot.tio;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.seaborne.delta.client.assembler.VocabDelta ;
+import org.junit.runner.RunWith ;
+import org.junit.runners.Suite ;
 
-public class InitDeltaClient implements JenaSubsystemLifecycle {
-    @Override
-    public void start() {
-        VocabDelta.init();
-    }
+@RunWith(Suite.class)
+@Suite.SuiteClasses( {
+    TestTokenText.class
+})
 
-    @Override
-    public void stop() {}
+public class TS_TIO {}
 
-    @Override
-    public int level() { return 44 ; }
-}

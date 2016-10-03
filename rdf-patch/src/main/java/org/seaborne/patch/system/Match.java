@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.patch.system;
 
 import java.util.Collection ;
 import java.util.stream.Stream ;

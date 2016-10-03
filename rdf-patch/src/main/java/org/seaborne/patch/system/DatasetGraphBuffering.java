@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.patch.system;
 
 import java.util.Iterator ;
 import java.util.Set ;
@@ -27,7 +27,6 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.system.AbstractDatasetGraphAddDelete ;
 
 /** A {@link DatasetGraph} implementation that buffers adds/deletes and prefix changes
  * then plays them to another {@link DatasetGraph} or to a {@link RDFChanges}. 

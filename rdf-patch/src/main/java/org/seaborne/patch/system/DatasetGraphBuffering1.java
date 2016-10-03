@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.base;
+package org.seaborne.patch.system;
 
 import java.util.Iterator ;
 import java.util.Set ;

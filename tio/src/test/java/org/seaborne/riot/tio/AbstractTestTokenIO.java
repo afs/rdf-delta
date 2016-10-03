@@ -143,8 +143,6 @@ public abstract class AbstractTestTokenIO
         byte b[] = bytesOut.toByteArray() ;
         Tokenizer tokenizer = getTokenizer(new ByteArrayInputStream(b)) ;
         // tokenizer = new PrintTokenizer("Read", tokenizer) ;
-
-        // Expand prefixed names.
         TupleReader in = new TupleReader(tokenizer) ;
 
         int idx = 0 ;

@@ -21,12 +21,16 @@ package org.seaborne.patch;
 import java.io.OutputStream ;
 
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.system.JenaSystem ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.patch.system.DatasetGraphChanges ;
+import org.seaborne.patch.system.InitPatch ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
 public class RDFPatch {
+    public static String namespace = "http://jena.apache.org/rdf-patch/" ;
+    
     /** Create a {@link DatasetGraph} that sends changes to a {@link RDFChanges} stream */ 
     public static DatasetGraph changes(DatasetGraph dsgBase, RDFChanges changes) {
         return new DatasetGraphChanges(dsgBase, changes) ;
@@ -39,5 +43,28 @@ public class RDFPatch {
         TokenWriter tokenWriter = new TokenWriterText(out) ;
         RDFChanges changeLog = new RDFChangesWriter(tokenWriter) ;
         return changes(dsgBase, changeLog) ;
+    }
+    
+    /** This is automatically called by the Jena subsystem startup cycle.
+     * See {@link InitPatch} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
+     */
+    public static void init( ) {}
+    
+    private static Object initLock = new Object() ;
+    private static volatile boolean initialized = false ;
+    
+    private static void init$() {
+        if ( initialized )
+            return ;
+        synchronized(initLock) {
+            if ( initialized ) {
+                JenaSystem.logLifecycle("Patch.init - return") ;
+                return ;
+            }
+            initialized = true ;
+            JenaSystem.logLifecycle("Patch.init - start") ;
+            // -- Nothing here at the moment -- 
+            JenaSystem.logLifecycle("Patch.init - finish") ;
+        }
     }
 }

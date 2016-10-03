@@ -29,7 +29,7 @@ import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.junit.Assert ;
 import org.junit.Test ;
-import org.seaborne.delta.base.DatasetGraphBuffering ;
+import org.seaborne.patch.system.DatasetGraphBuffering ;
 
 /** Tests for a transactional dataset with added abort capability. */ 
 public class TestDatasetGraphWithAbort //extends AbstractTestTransactionLifecycle
