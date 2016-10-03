@@ -29,7 +29,7 @@ import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.server.DPS ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesWriteUpdate ;
+import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
 public class PHandlerGSP implements PatchHandler {
     

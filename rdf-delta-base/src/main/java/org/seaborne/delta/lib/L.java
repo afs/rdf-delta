@@ -26,12 +26,7 @@ import org.apache.jena.atlas.io.IO ;
 
 public class L {
 
-    public static void print(String fmt, Object... args) {
-        System.out.printf(fmt, args);
-        System.out.println();
-    }
-
-    /** Copy an array of bytes.*/ 
+    /** Copy an array of bytes.*/
     public static byte[] copy(byte[] bytes) {
         if ( bytes == null )
             return null ;

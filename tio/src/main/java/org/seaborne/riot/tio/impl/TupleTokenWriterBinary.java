@@ -20,9 +20,9 @@ package org.seaborne.riot.tio.impl;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.tokens.Token ;
-import org.seaborne.riot.tio.TupleTokenWriter ;
+import org.seaborne.riot.tio.TokenWriter ;
 
-public class TupleTokenWriterBinary implements TupleTokenWriter {
+public class TupleTokenWriterBinary implements TokenWriter {
 
     @Override
     public void sendToken(Token token) {}
@@ -50,6 +50,9 @@ public class TupleTokenWriterBinary implements TupleTokenWriter {
 
     @Override
     public void flush() {}
+
+    @Override
+    public void close() {}
 
 }
 

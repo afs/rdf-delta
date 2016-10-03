@@ -33,12 +33,16 @@ import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.seaborne.patch.RDFChangesWriter ;
+import org.seaborne.delta.DeltaOps ;
+import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 /** Collect the bytes of a change stream, then write to HTTP */ 
 public class RDFChangesHTTP extends RDFChangesWriter {
+    
+    // This shoudl be tied to the DeltaClient and that control text/binary.
+    
     private static final Logger LOG = LoggerFactory.getLogger(RDFChangesHTTP.class) ;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes  ;
@@ -46,6 +50,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     // Used to coordinate with reading paches in.
     private final Object syncObject ;
     
+    // XXX Text token specific.
     private static final byte[] noChange =  "TB .\nTC .\n".getBytes(StandardCharsets.UTF_8) ;
 
     public RDFChangesHTTP(String url) {
@@ -57,35 +62,18 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
 
     private RDFChangesHTTP(Object syncObject, String url, ByteArrayOutputStream out) {
-        super(out) ;
+        super(DeltaOps.tokenWriter(out)) ;
         // XXX When channels come in, this needs sorting out.
         this.syncObject = (syncObject!=null) ? syncObject : new Object() ; 
         this.url = url ;
         this.bytes = out ;
         reset() ;
-//        txnBegin(ReadWrite.WRITE) ;
-//        txnCommit() ;
-//        byte [] x = collected() ;
-//        reset() ;
-//        if ( Arrays.equals(noChange,x) ) {
-//            LOG.warn("Calculated 'no change' not equal to reset 'no change'");
-//        }
     }
     
     @Override
     public void start() { 
         
     }
-
-//    @Override
-//    public void txnBegin(ReadWrite mode) {
-//        super.txnBegin(mode);
-//    }
-
-//    @Override
-//    public void txnPromote() {
-//        super.txnPromote(); 
-//    }
 
     @Override
     public void txnCommit() {
@@ -96,6 +84,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     @Override
     public void txnAbort() {
         reset() ;
+        // Forget.
     }
     
     private void reset() {

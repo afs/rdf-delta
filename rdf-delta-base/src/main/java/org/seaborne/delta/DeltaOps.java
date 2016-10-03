@@ -19,13 +19,15 @@
 package org.seaborne.delta;
 
 import java.io.InputStream ;
+import java.io.OutputStream ;
 
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.base.PatchReader ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesApply ;
-import org.seaborne.patch.RDFChangesLog ;
-import org.seaborne.patch.RDFChangesN ;
+import org.seaborne.patch.* ;
+import org.seaborne.patch.changes.RDFChangesApply ;
+import org.seaborne.patch.changes.RDFChangesLog ;
+import org.seaborne.patch.changes.RDFChangesN ;
+import org.seaborne.riot.tio.TokenWriter ;
+import org.seaborne.riot.tio.impl.TokenWriterText ;
 
 public class DeltaOps {
     
@@ -47,5 +49,12 @@ public class DeltaOps {
     public static RDFChanges print(RDFChanges changes) {
         return RDFChangesN.multi(changes, new RDFChangesLog()) ;
     }
-
+    
+    
+    /** Create a {@link TokenWriter} */
+    public static TokenWriter tokenWriter(OutputStream out) {
+        // Placeholder fopr text/binary choice.
+        TokenWriter tokenWriter = new TokenWriterText(out) ;
+        return tokenWriter ;
+    }
 }

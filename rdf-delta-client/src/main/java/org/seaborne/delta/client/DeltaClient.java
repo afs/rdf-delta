@@ -32,11 +32,11 @@ import org.apache.jena.system.Txn ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaOps ;
-import org.seaborne.delta.base.DatasetGraphChanges ;
-import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.delta.lib.J ;
+import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesApply ;
+import org.seaborne.patch.changes.RDFChangesApply ;
+import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.slf4j.Logger ;
 import txnx.TransPInteger ;
 

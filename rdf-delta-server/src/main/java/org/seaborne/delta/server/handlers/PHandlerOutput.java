@@ -20,16 +20,19 @@ package org.seaborne.delta.server.handlers;
 
 import java.io.OutputStream ;
 
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesWriter ;
+import org.seaborne.patch.changes.RDFChangesWriter ;
+import org.seaborne.riot.tio.TokenWriter ;
 
 public class PHandlerOutput implements PatchHandler {
     
     private final RDFChangesWriter scWriter ;
     
     public PHandlerOutput(OutputStream output) {
-        scWriter = new RDFChangesWriter(output) ;
+        TokenWriter tokenWriter = DeltaOps.tokenWriter(output) ;
+        scWriter = new RDFChangesWriter(tokenWriter) ;
     }
     
     /** Safe handler */

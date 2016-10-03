@@ -30,9 +30,9 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.base.PatchReader ;
+import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesCollector ;
+import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.slf4j.Logger ;
 
 /** Receive an incoming patch file and put on disk (safely : something else may try to read it while its being written. */ 

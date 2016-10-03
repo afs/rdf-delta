@@ -21,8 +21,8 @@ package org.seaborne.delta.server.handlers;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesCounter ;
-import org.seaborne.patch.RDFChangesOnStartFinish ;
+import org.seaborne.patch.changes.RDFChangesCounter ;
+import org.seaborne.patch.changes.RDFChangesOnStartFinish ;
 import org.slf4j.Logger ;
 
 public class PHandlerLog implements PatchHandler {

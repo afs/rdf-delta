@@ -55,11 +55,11 @@ import org.apache.jena.util.iterator.ExtendedIterator ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaOps ;
-import org.seaborne.delta.base.DatasetGraphChanges ;
 import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.DeltaLib ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesN ;
+import org.seaborne.patch.changes.RDFChangesN ;
+import org.seaborne.patch.system.DatasetGraphChanges ;
 
 public class DeltaAssembler extends AssemblerBase implements Assembler {
     //static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
@@ -80,7 +80,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
             FmtLog.info(Delta.DELTA_LOG, "Destination: '%s'", dest) ;
-            RDFChanges sc = DeltaConnection.destination(dest+DP.EP_Patch) ;
+            RDFChanges sc = DeltaLib.destination(dest+DP.EP_Patch) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         

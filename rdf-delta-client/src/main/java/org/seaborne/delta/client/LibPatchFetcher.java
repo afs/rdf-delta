@@ -25,8 +25,8 @@ import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.delta.lib.L ;
+import org.seaborne.patch.PatchReader ;
 
 public class LibPatchFetcher {
     static private AtomicInteger epoch = new AtomicInteger(0) ;

@@ -24,11 +24,13 @@ import java.nio.file.Path ;
 import java.nio.file.Paths ;
 
 import org.apache.jena.atlas.io.IO ;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.lib.OutputStream2 ;
 import org.seaborne.delta.server.DPS ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesWriter ;
+import org.seaborne.patch.changes.RDFChangesWriter ;
+import org.seaborne.riot.tio.TokenWriter ;
 import org.slf4j.Logger ;
 
 public class PHandlerToFile implements PatchHandler {
@@ -48,7 +50,7 @@ public class PHandlerToFile implements PatchHandler {
             LOG.info("# Patch = "+dst+"("+s+")") ;
         }
 
-        OutputStream output = output(s) ;
+        TokenWriter output = output(s) ;
         RDFChangesWriter scWriter = new RDFChangesWriter(output) {
             @Override
             public void start() {
@@ -78,8 +80,12 @@ public class PHandlerToFile implements PatchHandler {
         }
     }
 
+    static private TokenWriter output(String s) {
+        OutputStream out = outputStream(s) ;
+        return DeltaOps.tokenWriter(out) ;
+    }
 
-    static private OutputStream output(String s) {
+    static private OutputStream outputStream(String s) {
         Path p = Paths.get(s) ;
         if ( Files.exists(p) ) 
             System.out.println("Overwriting file"); 

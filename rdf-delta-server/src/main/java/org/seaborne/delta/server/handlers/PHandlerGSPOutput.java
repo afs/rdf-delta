@@ -21,7 +21,7 @@ package org.seaborne.delta.server.handlers;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesWriteUpdate ;
+import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
 public class PHandlerGSPOutput implements PatchHandler {
     public PHandlerGSPOutput() {}

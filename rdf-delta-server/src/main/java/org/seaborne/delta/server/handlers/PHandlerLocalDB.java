@@ -21,7 +21,7 @@ package org.seaborne.delta.server.handlers;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFChangesApply ;
+import org.seaborne.patch.changes.RDFChangesApply ;
 
 public class PHandlerLocalDB implements PatchHandler {
 

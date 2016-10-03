@@ -27,6 +27,7 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.system.AbstractDatasetGraphAddDelete ;
 
 /** A {@link DatasetGraph} implementation that buffers adds/deletes and prefix changes
  * then plays them to another {@link DatasetGraph} or to a {@link RDFChanges}. 
@@ -68,7 +69,7 @@ public class DatasetGraphBuffering extends AbstractDatasetGraphAddDelete {
     @Override
     public Iterator<Quad> find(Node g, Node s, Node p, Node o) {
         Iterator<Quad> iter1 = get().find(g, s, p, o) ;  
-        Iterator<Quad> iter2 = addQuads.stream().filter(q->M.match(q, g, s, p, o)).iterator() ;
+        Iterator<Quad> iter2 = addQuads.stream().filter(q->Match.match(q, g, s, p, o)).iterator() ;
         // if not checking, distinct needed.
         return Iter.concat(iter1,iter2) ;
     }

@@ -48,6 +48,8 @@
   </properties>
   
   <modules>
+    <module>tio</module>
+    <module>rdf-patch</module>
     <module>rdf-delta-base</module>
     <module>rdf-delta-server</module>
     <module>rdf-delta-client</module>
@@ -121,10 +123,22 @@
 
   <dependencies>  
     <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>apache-jena-libs</artifactId>
+      <type>pom</type>
+    </dependency>
+    
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+    </dependency>
+
   </dependencies>  
 
   <build>
