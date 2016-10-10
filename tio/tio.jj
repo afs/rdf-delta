@@ -57,6 +57,7 @@ package org.seaborne.riot.tio.alt.javacc ;
 import org.seaborne.riot.tio.alt.* ;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.expr.* ;
+import org.apache.jena.riot.tokens.TokenType ;
 
 public class TIOjavacc extends TIOParserBase
 {}
@@ -66,6 +67,7 @@ void Unit(): { }
 {
   ByteOrderMark()
   (Tuple())*
+  <EOF>
 }
 
 void ByteOrderMark() : {}
@@ -73,16 +75,29 @@ void ByteOrderMark() : {}
    (<BOM>)?
 }
 
-void Tuple() : {}
+void Tuple() : {Token t ; }
 {
    { startTuple() ; }
-   <KEYWORD> (Entry())* <DOT>
-   { finishTuple() ; }
+   (Entry())*
+   t = <DOT>
+   { finishTuple(t.beginLine, t.beginColumn) ; }
 }
 
-void Entry() : { }
+void Entry() : { Token t ; TokenType tt ; Node n ;}
 {
-  ( <KEYWORD> | iri() | RDFLiteral() | BlankNode() ) 
+  ( t = <KEYWORD>  { emitKeyword(t.image, t.beginLine, t.beginColumn) ; }
+  | tt = Symbol()  { emitSymbol(tt) ; }
+  | n = RDFTerm()  { emitTerm(n) ; }
+  )
+}
+
+Node RDFTerm() : { Node n ; String s ; }
+{
+  ( s = iri() { n = NodeFactory.createURI(s) ; }
+  | n = Literal()
+  | n = BlankNode()
+  )
+  { return n ; }
 }
 
 Node Literal() : { Node n ; }
@@ -115,7 +130,6 @@ Node NumericLiteral() : { Node n ; }
   | n = NumericLiteralNegative()
   )
   { return n ; }
-
 }
 
 Node NumericLiteralUnsigned() : { Token t ; }
@@ -174,6 +188,27 @@ Node BlankNode() :  { Token t = null ; }
 //  t = <ANON> { return createBNode(t.beginLine, t.beginColumn) ; }
 }
 
+TokenType Symbol() : { }
+{
+  ( <SEMICOLON>  { return TokenType.SEMICOLON ; }
+  | <COMMA>      { return TokenType.COMMA ; }
+  | <LBRACE>     { return TokenType.LBRACE ; }
+  | <RBRACE>     { return TokenType.RBRACE ; }
+  | <LPAREN>     { return TokenType.LPAREN ; }
+  | <RPAREN>     { return TokenType.RPAREN ; }
+  | <LBRACKET>   { return TokenType.LBRACKET ; }
+  | <RBRACKET>   { return TokenType.RBRACKET ; }
+  | <EQ>         { return TokenType.EQUALS ; }
+  | <COLON>      { return TokenType.COLON ; }
+  | <UNDERSCORE> { return TokenType.UNDERSCORE ; }
+  | <PLUS>       { return TokenType.PLUS ; }
+  | <MINUS>      { return TokenType.MINUS ; }
+  | <LT>         { return TokenType.LT ; }
+  | <GT>         { return TokenType.GT ; }
+  | <STAR>       { return TokenType.STAR ; }
+  )
+  { return null ; }
+}
 
 // ------------------------------------------
 // Tokens
@@ -223,9 +258,6 @@ TOKEN [IGNORE_CASE] :
 | < FALSE:       "false" >
 | < KEYWORD:     <A2Z> (<A2Z>|<DIGITS>|"_"|"-")* >
 | < DOT:         "." >
-
-| < PLUS:    "+" >
-| < MINUS:   "-" >
 }
 
 TOKEN :
@@ -270,39 +302,41 @@ TOKEN :
      <QUOTE_3D> >
 }
 
-// TOKEN :
-// {
-//   < LPAREN:    "(" >
-// | < RPAREN:    ")" >
+TOKEN :
+{
+  < LPAREN:    "(" >
+| < RPAREN:    ")" >
 // | <NIL: <LPAREN> (<WSC>)* <RPAREN> >
-// 
-// | < LBRACE:    "{" >
-// | < RBRACE:    "}" >
-// 
-// | < LBRACKET:  "[" >
-// | < RBRACKET:  "]" >
+
+| < LBRACE:    "{" >
+| < RBRACE:    "}" >
+
+| < LBRACKET:  "[" >
+| < RBRACKET:  "]" >
 // | < ANON:      <LBRACKET> (<WSC>)* <RBRACKET> >
-// 
-// | < SEMICOLON: ";" >
-// | < COMMA:     "," >
-// | < EQ:        "=" >
+
+| < SEMICOLON: ";" >
+| < COLON: ":" >
+| < COMMA:     "," >
+| < EQ:        "=" >
 // | < NE:        "!=" >
-// | < GT:        ">" >
-// | < LT:        "<" >
+| < GT:        ">" >
+| < LT:        "<" >
 // | < LE:        "<=" >
 // | < GE:        ">=" >
 // 
 // | < BANG:    "!" >
-// | < TILDE:   "~" >
+| < TILDE:   "~" >
 // | < COLON:   ":" >
 // 
 // | < SC_OR:   "||" >
 // | < SC_AND:  "&&" >
-// 
-// | < PLUS:    "+" >
-// | < MINUS:   "-" >
-// | < STAR:    "*" >
-// | < SLASH:   "/" >
+
+| < PLUS:    "+" >
+| < MINUS:   "-" >
+| < UNDERSCORE:    "_" >
+| < STAR:    "*" >
+//| < SLASH:   "/" >
 // 
 // //| < AMP: "&" >
 // //| < REM: "%" >
@@ -315,7 +349,8 @@ TOKEN :
 // | < FPATH:    "->" >
 // | < RPATH:    "<-" >
 // | < QMARK:    "?" >
-// }
+
+}
 
 TOKEN:
 {

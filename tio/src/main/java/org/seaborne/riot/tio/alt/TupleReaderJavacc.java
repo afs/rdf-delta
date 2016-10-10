@@ -19,7 +19,10 @@
 package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
+import java.util.ArrayList ;
 import java.util.Iterator ;
+import java.util.List ;
+import java.util.function.Consumer ;
 
 import org.apache.jena.atlas.lib.Closeable ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
@@ -31,25 +34,32 @@ import org.seaborne.riot.tio.alt.javacc.TIOjavacc ;
  * TupleReader using Javacc as the parser 
  */
 public class TupleReaderJavacc implements Iterator<Tuple<Token>>, Iterable<Tuple<Token>>, Closeable {
-
+    
+    private List<Tuple<Token>> rows = new ArrayList<>() ;
+    private Iterator<Tuple<Token>> iterator ;
+    
     public TupleReaderJavacc(InputStream in) {
+        
+        Consumer<Tuple<Token>> dest = (t) -> rows.add(t) ;
         TIOjavacc j = new TIOjavacc(in) ;
+        j.setDest(dest); 
         try {
             j.Unit();
         }
         catch (ParseException e) {
             e.printStackTrace();
         }
+        iterator = rows.iterator() ;
     }
     
     @Override
     public boolean hasNext() {
-        return false ;
+        return iterator.hasNext() ;
     }
 
     @Override
     public Tuple<Token> next() {
-        return null ;
+        return iterator.next() ;
     }
 
     @Override

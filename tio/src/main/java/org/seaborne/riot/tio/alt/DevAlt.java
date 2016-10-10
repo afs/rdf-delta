@@ -16,31 +16,36 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio;
+package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
-import java.util.stream.Stream ;
 
-import org.apache.jena.atlas.iterator.Iter ;
-import org.apache.jena.atlas.lib.NotImplemented ;
+import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.Tokenizer ;
-import org.apache.jena.riot.tokens.TokenizerFactory ;
+import org.seaborne.riot.tio.TupleReader ;
 import org.seaborne.riot.tio.impl.TupleReaderTokenizer ;
 
-public class TupleIO {
+public class DevAlt {
+    
+    public static void main(String ...a) {
+        InputStream in = IO.openFile("data") ;
+        Tokenizer tok = new TokenizerJavacc(in) ;
+        TupleReader tr = new TupleReaderTokenizer(tok) ;
+        tr.forEach(t->System.out.println(">> >> "+t)) ;
+    }
+    
+    public static void main1(String ...a) {
+        InputStream in = IO.openFile("data") ;
+        TupleReaderJavacc trj = new TupleReaderJavacc(in) ;
+        
+        for ( Tuple<Token> t : trj ) {
+            System.out.println(">>"+t);
+        }
+        
+        System.out.println("DONE");
+    }
+    
 
-    public static TupleReader createTupleReaderText(InputStream in) {
-        Tokenizer tokenizer = TokenizerFactory.makeTokenizerUTF8(in) ;
-        return new TupleReaderTokenizer(tokenizer) ;
-    }
-    
-    public static TupleReader createTupleReaderBin(InputStream in) {
-        throw new NotImplemented() ;
-    }
-    
-    public static Stream<Tuple<Token>> stream(TupleReader tr) {
-        return Iter.asStream(tr) ;
-    }
 }

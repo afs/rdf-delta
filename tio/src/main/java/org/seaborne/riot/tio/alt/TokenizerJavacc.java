@@ -19,57 +19,81 @@
 package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
+import java.util.ArrayList ;
+import java.util.List ;
 
+import org.apache.jena.atlas.iterator.PeekIterator ;
+import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.riot.tokens.Token ;
+import org.apache.jena.riot.tokens.TokenType ;
 import org.apache.jena.riot.tokens.Tokenizer ;
-import org.seaborne.riot.tio.alt.javacc.JavaCharStream ;
-import org.seaborne.riot.tio.alt.javacc.TIOjavaccTokenManager ;
 
 public class TokenizerJavacc implements Tokenizer {
 
-    JavaCharStream jj_input_stream ;
-    TIOjavaccTokenManager token_source ;
-    org.seaborne.riot.tio.alt.javacc.Token token ;
+    // Directly connect into the Javacc tokenizer.
+    // But we have to reconstruct literals etc.
     
-    public TokenizerJavacc(InputStream stream) {
-        try {
-            jj_input_stream = new JavaCharStream(stream, "UTF-8", 1, 1) ;
+    // Just hook into emit* from TIOParserBase 
+    
+    static Token tokenEndTuple ;
+    static {
+        // Hack for DOT
+        tokenEndTuple = Token.tokenForWord("") ;
+        tokenEndTuple.setImage(null) ;
+        tokenEndTuple.setType(TokenType.DOT) ;
+    }
+
+    private PeekIterator<Token> iterator ;
+    
+    // Just a quick hack!
+    // Materialize and rebuild a token stream.
+    public TokenizerJavacc(InputStream in) {
+        TupleReaderJavacc trj = new TupleReaderJavacc(in) ;
+        List<Token> tokens = new ArrayList<>() ;
+        for ( Tuple<Token> tt : trj ) {
+            for ( Token t : tt ) {
+                tokens.add(t) ;
+            }
+            tokens.add(tokenEndTuple) ;
         }
-        catch (java.io.UnsupportedEncodingException e) {
-            throw new RuntimeException(e) ;
-        }
-        token_source = new TIOjavaccTokenManager(jj_input_stream) ;
-        token = new org.seaborne.riot.tio.alt.javacc.Token() ;
+        iterator = PeekIterator.create(tokens.iterator()) ;
     }
     
     @Override
     public boolean hasNext() {
-        return false ;
+        return iterator.hasNext() ;
     }
 
+    private Token lastToken = null ;
+    
     @Override
     public Token next() {
-        return null ;
+        lastToken = iterator.next() ;
+        return lastToken ;
     }
 
     @Override
     public Token peek() {
-        return null ;
+        return iterator.peek() ;
     }
 
     @Override
     public boolean eof() {
-        return false ;
+        return !hasNext() ;
     }
 
     @Override
     public long getLine() {
-        return 0 ;
+        if ( lastToken != null )
+            return lastToken.getLine() ;
+        return -1 ;
     }
 
     @Override
     public long getColumn() {
-        return 0 ;
+        if ( lastToken != null )
+            return lastToken.getColumn() ;
+        return -1 ;
     }
 
     @Override

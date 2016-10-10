@@ -97,25 +97,4 @@ public class TupleReaderTokenizer implements TupleReader {
     private /*public*/ static <X> Tuple<X> create(List<X> xs) {
         return new TupleList<X>(xs) ;
     }
-    
-    // --> atlas.
-    static class TupleList<X> implements Tuple<X> {
-
-        private List<X> list ;
-
-        public TupleList(List<X> list) {
-            this.list = list ;
-        }
-        
-        @Override
-        public X get(int i) {
-            return list.get(i) ; 
-        }
-
-        @Override
-        public int len() {
-            return list.size() ;
-        }
-        
-    }
 }

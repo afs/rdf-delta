@@ -1,0 +1,7 @@
+QA <http://example> 1 .
+# Comment
+QD _ <http://example>
+
+"""2""" .
+PA x <http://example/prefix> .
+.

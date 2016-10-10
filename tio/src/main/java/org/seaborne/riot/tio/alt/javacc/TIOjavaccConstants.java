@@ -63,67 +63,97 @@ public interface TIOjavaccConstants {
   /** RegularExpression Id. */
   int DOT = 23;
   /** RegularExpression Id. */
-  int PLUS = 24;
+  int DIGITS = 24;
   /** RegularExpression Id. */
-  int MINUS = 25;
+  int INTEGER = 25;
   /** RegularExpression Id. */
-  int DIGITS = 26;
+  int DECIMAL = 26;
   /** RegularExpression Id. */
-  int INTEGER = 27;
+  int DOUBLE = 27;
   /** RegularExpression Id. */
-  int DECIMAL = 28;
+  int INTEGER_POSITIVE = 28;
   /** RegularExpression Id. */
-  int DOUBLE = 29;
+  int DECIMAL_POSITIVE = 29;
   /** RegularExpression Id. */
-  int INTEGER_POSITIVE = 30;
+  int DOUBLE_POSITIVE = 30;
   /** RegularExpression Id. */
-  int DECIMAL_POSITIVE = 31;
+  int INTEGER_NEGATIVE = 31;
   /** RegularExpression Id. */
-  int DOUBLE_POSITIVE = 32;
+  int DECIMAL_NEGATIVE = 32;
   /** RegularExpression Id. */
-  int INTEGER_NEGATIVE = 33;
+  int DOUBLE_NEGATIVE = 33;
   /** RegularExpression Id. */
-  int DECIMAL_NEGATIVE = 34;
+  int EXPONENT = 34;
   /** RegularExpression Id. */
-  int DOUBLE_NEGATIVE = 35;
+  int QUOTE_3D = 35;
   /** RegularExpression Id. */
-  int EXPONENT = 36;
+  int QUOTE_3S = 36;
   /** RegularExpression Id. */
-  int QUOTE_3D = 37;
+  int ECHAR = 37;
   /** RegularExpression Id. */
-  int QUOTE_3S = 38;
+  int STRING_LITERAL1 = 38;
   /** RegularExpression Id. */
-  int ECHAR = 39;
+  int STRING_LITERAL2 = 39;
   /** RegularExpression Id. */
-  int STRING_LITERAL1 = 40;
+  int STRING_LITERAL_LONG1 = 40;
   /** RegularExpression Id. */
-  int STRING_LITERAL2 = 41;
+  int STRING_LITERAL_LONG2 = 41;
   /** RegularExpression Id. */
-  int STRING_LITERAL_LONG1 = 42;
+  int LPAREN = 42;
   /** RegularExpression Id. */
-  int STRING_LITERAL_LONG2 = 43;
+  int RPAREN = 43;
   /** RegularExpression Id. */
-  int PN_CHARS_BASE = 44;
+  int LBRACE = 44;
   /** RegularExpression Id. */
-  int PN_CHARS_U = 45;
+  int RBRACE = 45;
   /** RegularExpression Id. */
-  int PN_CHARS = 46;
+  int LBRACKET = 46;
   /** RegularExpression Id. */
-  int PN_PREFIX = 47;
+  int RBRACKET = 47;
   /** RegularExpression Id. */
-  int PN_LOCAL = 48;
+  int SEMICOLON = 48;
   /** RegularExpression Id. */
-  int VARNAME = 49;
+  int COLON = 49;
   /** RegularExpression Id. */
-  int PN_LOCAL_ESC = 50;
+  int COMMA = 50;
   /** RegularExpression Id. */
-  int PLX = 51;
+  int EQ = 51;
   /** RegularExpression Id. */
-  int HEX = 52;
+  int GT = 52;
   /** RegularExpression Id. */
-  int PERCENT = 53;
+  int LT = 53;
   /** RegularExpression Id. */
-  int UNKNOWN = 54;
+  int TILDE = 54;
+  /** RegularExpression Id. */
+  int PLUS = 55;
+  /** RegularExpression Id. */
+  int MINUS = 56;
+  /** RegularExpression Id. */
+  int UNDERSCORE = 57;
+  /** RegularExpression Id. */
+  int STAR = 58;
+  /** RegularExpression Id. */
+  int PN_CHARS_BASE = 59;
+  /** RegularExpression Id. */
+  int PN_CHARS_U = 60;
+  /** RegularExpression Id. */
+  int PN_CHARS = 61;
+  /** RegularExpression Id. */
+  int PN_PREFIX = 62;
+  /** RegularExpression Id. */
+  int PN_LOCAL = 63;
+  /** RegularExpression Id. */
+  int VARNAME = 64;
+  /** RegularExpression Id. */
+  int PN_LOCAL_ESC = 65;
+  /** RegularExpression Id. */
+  int PLX = 66;
+  /** RegularExpression Id. */
+  int HEX = 67;
+  /** RegularExpression Id. */
+  int PERCENT = 68;
+  /** RegularExpression Id. */
+  int UNKNOWN = 69;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -156,8 +186,6 @@ public interface TIOjavaccConstants {
     "\"false\"",
     "<KEYWORD>",
     "\".\"",
-    "\"+\"",
-    "\"-\"",
     "<DIGITS>",
     "<INTEGER>",
     "<DECIMAL>",
@@ -176,6 +204,23 @@ public interface TIOjavaccConstants {
     "<STRING_LITERAL2>",
     "<STRING_LITERAL_LONG1>",
     "<STRING_LITERAL_LONG2>",
+    "\"(\"",
+    "\")\"",
+    "\"{\"",
+    "\"}\"",
+    "\"[\"",
+    "\"]\"",
+    "\";\"",
+    "\":\"",
+    "\",\"",
+    "\"=\"",
+    "\">\"",
+    "\"<\"",
+    "\"~\"",
+    "\"+\"",
+    "\"-\"",
+    "\"_\"",
+    "\"*\"",
     "<PN_CHARS_BASE>",
     "<PN_CHARS_U>",
     "<PN_CHARS>",
