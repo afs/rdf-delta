@@ -37,6 +37,7 @@ import org.apache.jena.riot.tokens.TokenType ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.junit.Test ;
+import org.seaborne.riot.tio.impl.TupleReaderTokenizer ;
 import org.slf4j.impl.StaticLoggerBinder ;
 
 public abstract class AbstractTestTokenIO
@@ -143,7 +144,7 @@ public abstract class AbstractTestTokenIO
         byte b[] = bytesOut.toByteArray() ;
         Tokenizer tokenizer = getTokenizer(new ByteArrayInputStream(b)) ;
         // tokenizer = new PrintTokenizer("Read", tokenizer) ;
-        TupleReader in = new TupleReader(tokenizer) ;
+        TupleReader in = new TupleReaderTokenizer(tokenizer) ;
 
         int idx = 0 ;
         while (in.hasNext()) {

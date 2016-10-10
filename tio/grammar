@@ -1,0 +1,75 @@
+#!/bin/bash
+## Licensed to the Apache Software Foundation (ASF) under one
+## or more contributor license agreements.  See the NOTICE file
+## distributed with this work for additional information
+## regarding copyright ownership.  The ASF licenses this file
+## to you under the Apache License, Version 2.0 (the
+## "License"); you may not use this file except in compliance
+## with the License.  You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+
+# Parser builder
+
+GRAMMAR="${GRAMMAR:-tio.jj}"
+
+# --------------------------------------------------------
+
+function grammar
+{
+    CLASS=TIOjavacc
+    DIR="src/main/java/org/seaborne/riot/tio/alt/javacc"
+    (cd "$DIR" ; rm -f TokenMgrError.java ParseException.java Token.java JavaCharStream.java )
+
+    FILE="tio.jj"
+    echo "---- Process grammar -- $1"
+    javacc -OUTPUT_DIRECTORY=$DIR  -JDK_VERSION=1.7 "$FILE"
+    RC=$?
+
+    [ "$RC" = 0 ] || return
+
+##     echo "---- Create HTML"
+##     jjdoc -OUTPUT_FILE=${FILE%%.jj}.html "${FILE}"
+    echo "---- Create text form"
+    jjdoc -TEXT=true -OUTPUT_FILE=${FILE%%.jj}.txt "${FILE}"
+
+  # Fix unnecessary imports
+    echo "---- Fixing Java warnings in ${NAME}TokenManager ..."
+
+    F="$DIR/${CLASS}TokenManager.java"
+
+    sed -e 's/import .*//' -e 's/MatchLoop: do/do/' \
+        -e 's/int hiByte = (int)(curChar/int hiByte = (curChar/' \
+	-e 's/@SuppressWarnings("unused")//' \
+	< $F > F
+    mv F $F
+
+    echo "---- Fixing Java warnings in Token ..."
+    F="$DIR/Token.java"
+    sed -e 's/@Override //' \
+	-e 's/public String toString/@Override public String toString/' < $F > F
+    mv F $F
+
+    echo "---- Fixing Java warnings in TokenMgrError ..."
+    F="$DIR/TokenMgrError.java"
+    sed -e 's/@Override //' \
+	-e 's/public String getMessage/@Override public String getMessage/' < $F > F
+    mv F $F
+
+    echo "---- Fixing Java warnings in ${CLASS} ..."
+    F="$DIR/${CLASS}.java"
+    sed -e 's/public class /\n@SuppressWarnings("all")\npublic class /' < $F > F 
+    mv F $F
+
+    echo "---- Done"
+}
+
+# --------------------------------------------------------
+
+grammar

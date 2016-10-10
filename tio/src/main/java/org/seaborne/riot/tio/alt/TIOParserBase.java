@@ -16,34 +16,13 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio ;
+package org.seaborne.riot.tio.alt;
 
-import java.util.Iterator ;
-import java.util.stream.Stream ;
+import org.apache.jena.sparql.lang.ParserBase ;
 
-import org.apache.jena.atlas.iterator.Iter ;
-import org.apache.jena.atlas.lib.Closeable ;
-import org.apache.jena.atlas.lib.tuple.Tuple ;
-import org.apache.jena.riot.tokens.Token ;
+public class TIOParserBase extends ParserBase {
 
-/** Deliver {@code Tuple<Token>} */
-public interface TupleReader extends Iterator<Tuple<Token>>, Iterable<Tuple<Token>>, Closeable {
-
-    // XXX Convert to stream only?
-    public default Stream<Tuple<Token>> stream() {
-        return Iter.asStream(this) ;
-    }
+    protected void startTuple() {}
+    protected void finishTuple() {}
     
-    @Override
-    public default void remove() {
-        throw new UnsupportedOperationException() ;
-    }
-
-    @Override
-    public default Iterator<Tuple<Token>> iterator() {
-        return this ;
-    }
-
-    @Override
-    public default void close() {}
 }

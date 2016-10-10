@@ -16,34 +16,47 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio ;
+package org.seaborne.riot.tio.alt;
 
+import java.io.InputStream ;
 import java.util.Iterator ;
-import java.util.stream.Stream ;
 
-import org.apache.jena.atlas.iterator.Iter ;
 import org.apache.jena.atlas.lib.Closeable ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.riot.tokens.Token ;
+import org.seaborne.riot.tio.alt.javacc.ParseException ;
+import org.seaborne.riot.tio.alt.javacc.TIOjavacc ;
 
-/** Deliver {@code Tuple<Token>} */
-public interface TupleReader extends Iterator<Tuple<Token>>, Iterable<Tuple<Token>>, Closeable {
+/**
+ * TupleReader using Javacc as the parser 
+ */
+public class TupleReaderJavacc implements Iterator<Tuple<Token>>, Iterable<Tuple<Token>>, Closeable {
 
-    // XXX Convert to stream only?
-    public default Stream<Tuple<Token>> stream() {
-        return Iter.asStream(this) ;
+    public TupleReaderJavacc(InputStream in) {
+        TIOjavacc j = new TIOjavacc(in) ;
+        try {
+            j.Unit();
+        }
+        catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
     
     @Override
-    public default void remove() {
-        throw new UnsupportedOperationException() ;
+    public boolean hasNext() {
+        return false ;
     }
 
     @Override
-    public default Iterator<Tuple<Token>> iterator() {
+    public Tuple<Token> next() {
+        return null ;
+    }
+
+    @Override
+    public Iterator<Tuple<Token>> iterator() {
         return this ;
     }
 
     @Override
-    public default void close() {}
+    public void close() {}
 }
