@@ -62,7 +62,7 @@ public class S_Patch extends ServletBase {
                 LOG.info("Handler: "+Lib.className(patchHandler)) ;
                 RDFChanges sc = patchHandler.handler() ;
                 sc.start();
-                changes.play(sc);
+                changes.getRDFPatch().apply(sc);
                 sc.finish();
             }
             

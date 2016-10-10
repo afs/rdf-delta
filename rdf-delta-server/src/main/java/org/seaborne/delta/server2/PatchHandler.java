@@ -16,16 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.tio1;
+package org.seaborne.delta.server2;
 
-import java.util.Iterator ;
-import java.util.List ;
-
-import org.apache.jena.atlas.lib.Closeable ;
-import org.apache.jena.riot.tokens.Token ;
-
-/** A stream of tokens */
-public interface TokenInputStream extends Iterator<List<Token>>, Iterable<List<Token>>, Closeable
-{
-    
+public interface PatchHandler {
+    void handle(Patch patch) ;
 }

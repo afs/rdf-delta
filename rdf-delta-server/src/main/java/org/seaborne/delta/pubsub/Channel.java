@@ -16,18 +16,21 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.pubsub;
 
+/** A {@code Channel} is a connection between client and distributer (server).
+ * It is bi-directional.
+ *  
+ */
+public class Channel {
+    
+    public InChannel getInChannel() {
+        return null ;
+    }
 
-public class DevChange {
+    public OutChannel getOutChannel() {
+        return null ;
+    }
     
-    // Documentation
     
-    // Pub/sub inc if coordinator not runnign but patch to send.
-    //   Single call "my version is ... get patches I have missed".
-    //   Don't replay own patches.
-    // Extract polling support to DeltaClient. 
-    // RDF Git.
-    // Checksums
-    // Binary format
 }

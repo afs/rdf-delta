@@ -16,19 +16,29 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.tio1;
+package org.seaborne.delta.pubsub;
 
-public class CommsException extends RuntimeException
-{
-    public CommsException()                 
-    { super(); }
+import org.seaborne.patch.RDFChanges ;
 
-    public CommsException(String message)   
-    { super(message) ; }
+public class OutChannel {
+    
+    /** Handle the next item (set of changes) on the queue. */ 
+    public void processOne(RDFChanges changes) {
+        
+    }
 
-    public CommsException(String message, Throwable cause)  
-    { super(message, cause) ; }
+    public long getLatestID() {
+        return -1 ;
+    }
 
-    public CommsException(Throwable cause)  
-    { super(cause) ; }
+    public long getEarliestID() {
+        return -1 ;
+    }
+
+    /** Process and dequeue */
+    public void process(long id, RDFChanges changes) {
+        
+    }
+
+    
 }

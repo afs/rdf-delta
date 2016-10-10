@@ -16,31 +16,22 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package org.seaborne.delta.server2;
 
-public interface PatchProcessor {
+import java.util.UUID ;
 
-    /** Process the whole patch - zero or more transactions.
-     * @apiNote
-     * Calls start-finish around the processing.
-     *  
-     * @param destination
+import org.apache.jena.shared.uuid.UUIDFactory ;
+import org.apache.jena.shared.uuid.UUID_V1_Gen ;
+
+public class Server2 {
+    
+    // Fix version as version 1 - these are guessable.
+    private static UUIDFactory uuidFactory = new UUID_V1_Gen() ;
+    
+    /** {@link UUID}s are used to identify many things in Delta - the RDF Dataset being managed,
+     * the patches applied (the UUID naming forms the history), registrations and channels,
+     * amongst other things.
      */
-    public default void apply(RDFChanges destination) {
-        destination.start() ;
-        while(hasMore()) {
-            apply1(destination) ;
-        }
-        destination.finish() ;
-    }
-    
-    // Or just "apply"?
-    
-    public boolean hasMore() ;
-    
-    /** Execute one transaction.
-     *  Return true if there is the possiblity of more.
-     *  Does not wrap in start-finish.
-     */
-    public boolean apply1(RDFChanges destination) ;
+    public static UUID genUUID() { return uuidFactory.generate().asUUID() ; } 
+
 }

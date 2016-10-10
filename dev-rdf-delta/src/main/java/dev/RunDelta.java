@@ -35,11 +35,17 @@ import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.DP ;
-import org.seaborne.delta.base.PatchReader ;
 import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.server.DPS ;
 import org.seaborne.delta.server.DataPatchServer ;
-import org.seaborne.patch.* ;
+import org.seaborne.patch.PatchReader ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.changes.RDFChangesApply ;
+import org.seaborne.patch.changes.RDFChangesCollector ;
+import org.seaborne.patch.changes.RDFChangesN ;
+import org.seaborne.patch.changes.RDFChangesWriter ;
+import org.seaborne.riot.tio.TokenWriter ;
+import org.seaborne.riot.tio.impl.TokenWriterText ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -172,11 +178,12 @@ public class RunDelta {
         acc.start() ;
         pr.apply(acc);
         acc.finish() ;
-        acc.play(new RDFChangesWriter(System.out));
+        TokenWriter tok = new TokenWriterText(System.out) ; 
+        acc.getRDFPatch().apply(new RDFChangesWriter(tok));
         DatasetGraph dsg = client.getStorage() ;
         //No needed if the patch includes a Txn
         RDFChanges rc = new RDFChangesApply(dsg) ;
-        acc.play(rc) ;
+        acc.getRDFPatch().apply(rc) ;
     }
     
     private static void doOnePatchStreamed(int z, DeltaClient client) {
@@ -185,7 +192,8 @@ public class RunDelta {
         PatchReader pr = client.fetchPatch(z) ;
         DatasetGraph dsg = client.getStorage() ;
         RDFChanges rc1 = new RDFChangesApply(dsg) ;
-        RDFChanges rc2 = new RDFChangesWriter(System.out);
+        TokenWriter tok = new TokenWriterText(System.out) ;
+        RDFChanges rc2 = new RDFChangesWriter(tok);
         RDFChanges rc = new RDFChangesN(rc1, rc2) ;
         pr.apply(rc);
         client.setLocalVersionNumber(z) ;

@@ -16,31 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package dev;
 
-public interface PatchProcessor {
+public class DevToDo {
 
-    /** Process the whole patch - zero or more transactions.
-     * @apiNote
-     * Calls start-finish around the processing.
-     *  
-     * @param destination
-     */
-    public default void apply(RDFChanges destination) {
-        destination.start() ;
-        while(hasMore()) {
-            apply1(destination) ;
-        }
-        destination.finish() ;
-    }
+    // Documentation
+    // Extract polling support to DeltaClient. 
+
+    // RDF Git.
+    // Checksums
+    // Binary format
     
-    // Or just "apply"?
+    // ---- dev tasks
     
-    public boolean hasMore() ;
+    // 
     
-    /** Execute one transaction.
-     *  Return true if there is the possiblity of more.
-     *  Does not wrap in start-finish.
-     */
-    public boolean apply1(RDFChanges destination) ;
+    // -- TIO
+    //   Stream<Tuple<Token>>
+    
+    // rdf patch:
+    // Name for a patch. RDFPatch (free from library),
+    
 }

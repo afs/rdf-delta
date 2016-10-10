@@ -16,31 +16,42 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package org.seaborne.delta.pubsub;
 
-public interface PatchProcessor {
+import java.util.HashMap ;
+import java.util.Map ;
 
-    /** Process the whole patch - zero or more transactions.
-     * @apiNote
-     * Calls start-finish around the processing.
+import org.apache.jena.ext.com.google.common.collect.Multimap ;
+
+public class Distributor {
+    private Map<String, InChannel> inbound = new HashMap<>() ;
+    private Map<String, OutChannel> outbound = new HashMap<>() ;
+    private Multimap<Key, OutChannel> registrations = null ;  
+    
+    /** Register:
      *  
-     * @param destination
+     * @param client
+     * @param channelName name
      */
-    public default void apply(RDFChanges destination) {
-        destination.start() ;
-        while(hasMore()) {
-            apply1(destination) ;
-        }
-        destination.finish() ;
+    
+    public Channel register(String client, String channelName) {
+        
+        return null ;
     }
     
-    // Or just "apply"?
+    // deregister
     
-    public boolean hasMore() ;
+    // 
     
-    /** Execute one transaction.
-     *  Return true if there is the possiblity of more.
-     *  Does not wrap in start-finish.
-     */
-    public boolean apply1(RDFChanges destination) ;
+    // Channel is (InChannel, OutChannel)
+    
+    
+    public InChannel getInChannel(Object key) {
+        return null ;
+    }
+    
+    
+    public OutChannel getOutChannel(Object key) {
+        return null ;
+    }
 }

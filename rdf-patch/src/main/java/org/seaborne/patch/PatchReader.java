@@ -20,18 +20,18 @@ package org.seaborne.patch;
 
 import java.io.InputStream ;
 
+import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.riot.system.RiotLib ;
 import org.apache.jena.riot.tokens.Token ;
-import org.apache.jena.riot.tokens.Tokenizer ;
-import org.apache.jena.riot.tokens.TokenizerFactory ;
+import org.seaborne.riot.tio.TupleIO ;
 import org.seaborne.riot.tio.TupleReader ;
 
 // Needs reworking: for efficiency, for less features
 /** Must close the input stream */
-public class PatchReader {
+public class PatchReader implements PatchProcessor {
     private final TupleReader input ;
     
     public PatchReader(TupleReader in) {
@@ -39,19 +39,20 @@ public class PatchReader {
     }
     
     public PatchReader(InputStream in) {
-        Tokenizer tokenizer = TokenizerFactory.makeTokenizerUTF8(in) ; 
-        input = new TupleReader(tokenizer) ;
+        input = TupleIO.createTupleReaderText(in) ; 
     }
 
     /** Execute transactions until the input ends or something goes wrong. */
+    @Override
     public void apply(RDFChanges sink) {
-        while(input.hasNext()) { 
-            boolean b = apply1(sink);
-            if ( !b )
-                return ;
+        try { 
+            PatchProcessor.super.apply(sink);
+        } finally { 
+            IO.close(input) ;
         }
     }
     
+    @Override
     public boolean hasMore() {
         return input.hasNext() ;
     }
@@ -59,6 +60,7 @@ public class PatchReader {
     /** Execute one transaction.
      *  Return true if there is the possiblity of more.
      */
+    @Override
     public boolean apply1(RDFChanges sink) {
         // Abort if no end of transaction
         

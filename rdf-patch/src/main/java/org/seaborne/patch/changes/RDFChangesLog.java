@@ -44,7 +44,7 @@ public class RDFChangesLog implements RDFChanges {
     // Two versions - for chaining (RDFChangesN) and wrapping.
     public RDFChangesLog() { this(RDFChangesLog::printer) ; }
     
-    private static void printer(String fmt, Object... args) {
+    public static void printer(String fmt, Object... args) {
         System.out.printf(fmt, args);
         System.out.println();
     }

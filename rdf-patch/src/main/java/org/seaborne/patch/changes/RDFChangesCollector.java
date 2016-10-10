@@ -25,17 +25,29 @@ import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.items.* ;
 
 /** Capture a stream of changes, then play it to another {@link RDFChanges} */
-public class RDFChangesCollector implements RDFChanges {
+public class RDFChangesCollector implements RDFChanges /* For building*/ {
 
     private List<ChangeItem> actions = new LinkedList<>() ; // ArrayList<>() ; // LinkedList better?
     
-    /** Play forwards */
-    public void play(RDFChanges target) {
-        actions.forEach(a -> enact(a, target)) ;
-    }
+//    /** Play forwards */
+//    public void apply(RDFChanges target) {
+//        target.start();
+//        actions.forEach(a -> enact(a, target)) ;
+//        target.finish();
+//    }
+    
+    public RDFPatch getRDFPatch() { 
+        return (target) -> {  
+            target.start();
+            actions.forEach(a -> enact(a, target)) ;
+            target.finish();
+        } ;
+    } 
+
 
 //    /** Play backwards, swapping adds for deletes and delete for adds */
 //    public void playReverse(RDFChanges target) {

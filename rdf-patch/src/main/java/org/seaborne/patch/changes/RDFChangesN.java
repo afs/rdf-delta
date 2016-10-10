@@ -30,7 +30,7 @@ import org.seaborne.patch.RDFChanges ;
  */
 public class RDFChangesN implements RDFChanges
 {
-    /** Create a 2-way @code RDFChangesN} */
+    /** Create a 2-way {@code RDFChangesN} */
     public static RDFChanges multi(RDFChanges sc1, RDFChanges sc2) {
         if ( sc1 == null )
             return sc2 ;

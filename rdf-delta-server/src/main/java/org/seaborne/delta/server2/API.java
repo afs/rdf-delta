@@ -16,31 +16,20 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package org.seaborne.delta.server2;
 
-public interface PatchProcessor {
-
-    /** Process the whole patch - zero or more transactions.
-     * @apiNote
-     * Calls start-finish around the processing.
-     *  
-     * @param destination
-     */
-    public default void apply(RDFChanges destination) {
-        destination.start() ;
-        while(hasMore()) {
-            apply1(destination) ;
-        }
-        destination.finish() ;
-    }
+public class API {
     
-    // Or just "apply"?
+    //  register -> channel id.
     
-    public boolean hasMore() ;
+    //  unregister - ?? - suspend
     
-    /** Execute one transaction.
-     *  Return true if there is the possiblity of more.
-     *  Does not wrap in start-finish.
-     */
-    public boolean apply1(RDFChanges destination) ;
+    //  add patch(channel Id)
+    
+    // Get info -> (min, max version)
+    
+    // New graph(base UUID)
+    
+    
+    
 }

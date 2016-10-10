@@ -16,25 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.tio1;
+package org.seaborne.delta.pubsub;
 
-import org.apache.jena.atlas.lib.Closeable ;
-import org.apache.jena.atlas.lib.Sync ;
-import org.apache.jena.riot.tokens.Token ;
+public class Handler {
 
-import org.apache.jena.graph.Node ;
-
-public interface TokenOutputStream extends Closeable, Sync
-{
-    public void sendToken(Token token) ;
-    public void sendNode(Node node) ;
-    public void sendString(String string) ;
-    public void sendWord(String word) ;
-    public void sendControl(char character) ;
-    public void sendNumber(long number) ;
-
-    public void startTuple() ;
-    public void endTuple() ;
-    
-    public void flush() ;
 }

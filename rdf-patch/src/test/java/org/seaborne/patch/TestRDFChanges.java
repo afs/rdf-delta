@@ -31,8 +31,6 @@ import org.apache.jena.atlas.iterator.Iter ;
 import org.apache.jena.atlas.lib.ListUtils ;
 import org.apache.jena.graph.Graph ;
 import org.apache.jena.graph.Triple ;
-import org.apache.jena.riot.tokens.Tokenizer ;
-import org.apache.jena.riot.tokens.TokenizerFactory ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
@@ -41,15 +39,13 @@ import org.apache.jena.system.Txn ;
 import org.junit.After ;
 import org.junit.Before ;
 import org.junit.Test ;
-import org.seaborne.patch.changes.RDFChangesApply ;
-import org.seaborne.riot.tio.TupleReader ;
 
 public class TestRDFChanges  {
     // TODO Write - read tests.
     
     DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem() ;
     ByteArrayOutputStream bout = new ByteArrayOutputStream() ;
-    DatasetGraph dsg = RDFPatch.changesAsText(dsgBase, bout) ;
+    DatasetGraph dsg = RDFPatchOps.changesAsText(dsgBase, bout) ;
 
     @Before public void beforeTest() {}
     @After public void afterTest() {}    
@@ -64,16 +60,10 @@ public class TestRDFChanges  {
         IO.close(bout) ;
         ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray()) ;
         DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem() ;
-        
-        // XXX Package up!
-        Tokenizer tokenizer = TokenizerFactory.makeTokenizerUTF8(bin) ;
-        TupleReader tr = new TupleReader(tokenizer) ;
-        PatchReader pr = new PatchReader(tr) ;
-        RDFChanges changes = new RDFChangesApply(dsg2) ;
-        pr.apply(changes);
+        RDFPatchOps.applyChange(dsg2, bin);
         return dsg2 ;
     }
-
+        
     private static void check(DatasetGraph dsg, Quad...quads) {
         if ( quads.length == 0 ) {
             assertTrue(dsg.isEmpty()) ;
