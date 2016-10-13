@@ -22,6 +22,7 @@ package org.seaborne.riot.tio.alt.javacc ;
 
 import org.seaborne.riot.tio.alt.* ;
 import org.apache.jena.graph.* ;
+import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.riot.tokens.TokenType ;
 
@@ -29,8 +30,13 @@ import org.apache.jena.riot.tokens.TokenType ;
 @SuppressWarnings("all")
 public class TIOjavacc extends TIOParserBase implements TIOjavaccConstants {
 
-  final public void Unit() throws ParseException {
+// Entry points:
+//   Tuples()
+//   Tokens()
+  final public 
+void Tuples() throws ParseException {
     ByteOrderMark();
+startTuples() ;
     label_1:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -78,6 +84,61 @@ public class TIOjavacc extends TIOParserBase implements TIOjavaccConstants {
       }
       Tuple();
     }
+finishTuples() ;
+    jj_consume_token(0);
+  }
+
+  final public void Tokens() throws ParseException {
+    ByteOrderMark();
+startTokens() ;
+    label_2:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case IRIref:
+      case BLANK_NODE_LABEL:
+      case TRUE:
+      case FALSE:
+      case KEYWORD:
+      case DOT:
+      case INTEGER:
+      case DECIMAL:
+      case DOUBLE:
+      case INTEGER_POSITIVE:
+      case DECIMAL_POSITIVE:
+      case DOUBLE_POSITIVE:
+      case INTEGER_NEGATIVE:
+      case DECIMAL_NEGATIVE:
+      case DOUBLE_NEGATIVE:
+      case STRING_LITERAL1:
+      case STRING_LITERAL2:
+      case STRING_LITERAL_LONG1:
+      case STRING_LITERAL_LONG2:
+      case LPAREN:
+      case RPAREN:
+      case LBRACE:
+      case RBRACE:
+      case LBRACKET:
+      case RBRACKET:
+      case SEMICOLON:
+      case COLON:
+      case COMMA:
+      case EQ:
+      case GT:
+      case LT:
+      case PLUS:
+      case MINUS:
+      case UNDERSCORE:
+      case STAR:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[1] = jj_gen;
+        break label_2;
+      }
+      Token();
+    }
+finishTokens() ;
     jj_consume_token(0);
   }
 
@@ -88,14 +149,14 @@ public class TIOjavacc extends TIOParserBase implements TIOjavaccConstants {
       break;
       }
     default:
-      jj_la1[1] = jj_gen;
+      jj_la1[2] = jj_gen;
       ;
     }
   }
 
   final public void Tuple() throws ParseException {Token t ;
 startTuple() ;
-    label_2:
+    label_3:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case IRIref:
@@ -136,8 +197,8 @@ startTuple() ;
         break;
         }
       default:
-        jj_la1[2] = jj_gen;
-        break label_2;
+        jj_la1[3] = jj_gen;
+        break label_3;
       }
       Entry();
     }
@@ -145,6 +206,7 @@ startTuple() ;
 finishTuple(t.beginLine, t.beginColumn) ;
   }
 
+// No DOT.
   final public void Entry() throws ParseException {Token t ; TokenType tt ; Node n ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case KEYWORD:{
@@ -194,7 +256,59 @@ emitTerm(n) ;
       break;
       }
     default:
-      jj_la1[3] = jj_gen;
+      jj_la1[4] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+  }
+
+// Includes DOT.
+  final public void Token() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case IRIref:
+    case BLANK_NODE_LABEL:
+    case TRUE:
+    case FALSE:
+    case KEYWORD:
+    case INTEGER:
+    case DECIMAL:
+    case DOUBLE:
+    case INTEGER_POSITIVE:
+    case DECIMAL_POSITIVE:
+    case DOUBLE_POSITIVE:
+    case INTEGER_NEGATIVE:
+    case DECIMAL_NEGATIVE:
+    case DOUBLE_NEGATIVE:
+    case STRING_LITERAL1:
+    case STRING_LITERAL2:
+    case STRING_LITERAL_LONG1:
+    case STRING_LITERAL_LONG2:
+    case LPAREN:
+    case RPAREN:
+    case LBRACE:
+    case RBRACE:
+    case LBRACKET:
+    case RBRACKET:
+    case SEMICOLON:
+    case COLON:
+    case COMMA:
+    case EQ:
+    case GT:
+    case LT:
+    case PLUS:
+    case MINUS:
+    case UNDERSCORE:
+    case STAR:{
+      Entry();
+      break;
+      }
+    case DOT:{
+      jj_consume_token(DOT);
+emitSymbol(TokenType.DOT) ;
+      break;
+      }
+    default:
+      jj_la1[5] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -230,7 +344,7 @@ n = NodeFactory.createURI(s) ;
       break;
       }
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[6] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -265,7 +379,7 @@ n = NodeFactory.createURI(s) ;
       break;
       }
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[7] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -291,18 +405,22 @@ lang = stripChars(t.image, 1) ;
         break;
         }
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[8] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
       }
     default:
-      jj_la1[7] = jj_gen;
+      jj_la1[9] = jj_gen;
       ;
     }
 {if ("" != null) return createLiteral(lex, lang, uri) ;}
     throw new Error("Missing return statement in function");
+  }
+
+  final public void Hex() throws ParseException {Token t ;
+    t = jj_consume_token(HEX_INT);
   }
 
   final public Node NumericLiteral() throws ParseException {Node n ;
@@ -326,7 +444,7 @@ lang = stripChars(t.image, 1) ;
       break;
       }
     default:
-      jj_la1[8] = jj_gen;
+      jj_la1[10] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -352,7 +470,7 @@ lang = stripChars(t.image, 1) ;
       break;
       }
     default:
-      jj_la1[9] = jj_gen;
+      jj_la1[11] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -377,7 +495,7 @@ lang = stripChars(t.image, 1) ;
       break;
       }
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[12] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -402,7 +520,7 @@ lang = stripChars(t.image, 1) ;
       break;
       }
     default:
-      jj_la1[11] = jj_gen;
+      jj_la1[13] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -422,7 +540,7 @@ lang = stripChars(t.image, 1) ;
       break;
       }
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[14] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -452,7 +570,7 @@ lex = stripQuotes3(t.image) ;
       break;
       }
     default:
-      jj_la1[13] = jj_gen;
+      jj_la1[15] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -464,6 +582,31 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
   final public String iri() throws ParseException {Token t ;
     t = jj_consume_token(IRIref);
 {if ("" != null) return resolveQuotedIRI(t.image, t.beginLine, t.beginColumn) ;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public void PName() throws ParseException {Token t ;
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case PNAME_NS:{
+      t = jj_consume_token(PNAME_NS);
+      break;
+      }
+    case PNAME_LN:{
+      t = jj_consume_token(PNAME_LN);
+      break;
+      }
+    default:
+      jj_la1[16] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+String s = t.image ;
+  }
+
+  final public Var Var() throws ParseException {Token t ; Node n ;
+    //( t = <VAR1> | t = <VAR2> )
+        t = jj_consume_token(VAR);
+{if ("" != null) return createVariable(t.image) ;}
     throw new Error("Missing return statement in function");
   }
 
@@ -556,7 +699,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
       break;
       }
     default:
-      jj_la1[14] = jj_gen;
+      jj_la1[17] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -573,7 +716,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[15];
+  final private int[] jj_la1 = new int[18];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static private int[] jj_la1_2;
@@ -583,13 +726,13 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
       jj_la1_init_2();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xfef01800,0x400,0xfe701800,0xfe701800,0xfe301800,0xfe300000,0x48000,0x48000,0xfe000000,0xe000000,0x70000000,0x80000000,0x300000,0x0,0x0,};
+      jj_la1_0 = new int[] {0xfde04800,0xfde04800,0x400,0xfce04800,0xfce04800,0xfde04800,0xfc604800,0xfc600000,0x90000,0x90000,0xfc000000,0x1c000000,0xe0000000,0x0,0x600000,0x0,0x3000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x7bfffc3,0x0,0x7bfffc3,0x7bfffc3,0x3c3,0x3c3,0x0,0x0,0x3,0x0,0x0,0x3,0x0,0x3c0,0x7bffc00,};
+      jj_la1_1 = new int[] {0xf7fff87,0xf7fff87,0x0,0xf7fff87,0xf7fff87,0xf7fff87,0x787,0x787,0x0,0x0,0x7,0x0,0x0,0x7,0x0,0x780,0x0,0xf7ff800,};
    }
    private static void jj_la1_init_2() {
-      jj_la1_2 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_2 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -603,7 +746,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -617,7 +760,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -627,7 +770,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -637,7 +780,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -646,7 +789,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -655,7 +798,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 15; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -706,12 +849,12 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[70];
+    boolean[] la1tokens = new boolean[72];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 18; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -726,7 +869,7 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
         }
       }
     }
-    for (int i = 0; i < 70; i++) {
+    for (int i = 0; i < 72; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

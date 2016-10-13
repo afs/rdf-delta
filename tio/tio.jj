@@ -56,6 +56,7 @@ package org.seaborne.riot.tio.alt.javacc ;
 
 import org.seaborne.riot.tio.alt.* ;
 import org.apache.jena.graph.* ;
+import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.riot.tokens.TokenType ;
 
@@ -63,10 +64,25 @@ public class TIOjavacc extends TIOParserBase
 {}
 PARSER_END(TIOjavacc)
 
-void Unit(): { }
+// Entry points:
+//   Tuples()
+//   Tokens()
+
+void Tuples(): { }
 {
   ByteOrderMark()
+  { startTuples() ; }
   (Tuple())*
+  { finishTuples() ; }
+  <EOF>
+}
+
+void Tokens() : {}
+{
+  ByteOrderMark()
+  { startTokens() ; }
+  (Token())*
+  { finishTokens() ; }
   <EOF>
 }
 
@@ -83,6 +99,7 @@ void Tuple() : {Token t ; }
    { finishTuple(t.beginLine, t.beginColumn) ; }
 }
 
+// No DOT.
 void Entry() : { Token t ; TokenType tt ; Node n ;}
 {
   ( t = <KEYWORD>  { emitKeyword(t.image, t.beginLine, t.beginColumn) ; }
@@ -91,11 +108,20 @@ void Entry() : { Token t ; TokenType tt ; Node n ;}
   )
 }
 
+// Includes DOT.
+void Token() : { }
+{
+  ( Entry()
+  | <DOT> { emitSymbol(TokenType.DOT) ; }
+  )
+}
+
 Node RDFTerm() : { Node n ; String s ; }
 {
   ( s = iri() { n = NodeFactory.createURI(s) ; }
   | n = Literal()
   | n = BlankNode()
+//  |  PName() 
   )
   { return n ; }
 }
@@ -121,6 +147,10 @@ Node RDFLiteral() : { Token t ; String lex = null ; }
     { return createLiteral(lex, lang, uri) ; }
 } 
 
+void Hex() : { Token t ; }
+{
+  t = <HEX_INT> // { return createHexInteger(t.image) ; }
+}
 
 Node NumericLiteral() : { Node n ; }
 {
@@ -177,6 +207,20 @@ String iri() : { Token t ; }
 {
   t = <IRIref>
   { return resolveQuotedIRI(t.image, t.beginLine, t.beginColumn) ; }
+}
+
+void PName() : { Token t ; }
+{
+    ( t = <PNAME_NS> | t = <PNAME_LN> )
+    { String s = t.image ; }
+    // ???
+}
+
+Var Var() : { Token t ; Node n ; }
+{
+    //( t = <VAR1> | t = <VAR2> )
+    t = <VAR>
+    { return createVariable(t.image) ; }
 }
 
 Node BlankNode() :  { Token t = null ; }
@@ -239,11 +283,16 @@ TOKEN:
    // Includes # for relative URIs
    <IRIref:       "<" (~[ ">","<", "\"", "{", "}", "^", "\\", "|", "`", 
                       "\u0000"-"\u0020"])* ">" >
-//|  <PNAME_NS: (<PN_PREFIX>)? ":" >
-//|  <PNAME_LN: <PNAME_NS> <PN_LOCAL> >
+
+|  <PNAME_NS: (<PN_PREFIX>)? ":" >
+|  <PNAME_LN: <PNAME_NS> <PN_LOCAL> >
+
 |  <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)?  >
-|  <VAR1: "?" <VARNAME> >
-|  <VAR2: "$" <VARNAME> >
+
+//|  <VAR1: "?" <VARNAME> >
+//|  <VAR2: "$" <VARNAME> >
+
+|  <VAR:    "?" <VARNAME> > 
 |  <LANGTAG: <AT> (<A2Z>)+("-" (<A2ZN>)+)* >
 |  <#A2Z: ["a"-"z","A"-"Z"]>
 |  <#A2ZN: ["a"-"z","A"-"Z","0"-"9"]>
@@ -393,6 +442,8 @@ TOKEN:
   < #HEX: ["0"-"9"] | ["A"-"F"] | ["a"-"f"] >
 |
   < #PERCENT: "%" <HEX> <HEX> >
+|
+  <HEX_INT: "0"["x","X"](<HEX>)+>
 }
 
 // Catch-all tokens.  Must be last.  

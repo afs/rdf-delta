@@ -19,6 +19,7 @@
 package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
+import java.io.Reader ;
 import java.util.ArrayList ;
 import java.util.Iterator ;
 import java.util.List ;
@@ -38,14 +39,18 @@ public class TupleReaderJavacc implements Iterator<Tuple<Token>>, Iterable<Tuple
     private List<Tuple<Token>> rows = new ArrayList<>() ;
     private Iterator<Tuple<Token>> iterator ;
     
+    public TupleReaderJavacc(Reader in) {
+        this(new TIOjavacc(in)) ;
+    }
+    
     public TupleReaderJavacc(InputStream in) {
-        
+        this(new TIOjavacc(in)) ;
+    }
+    
+    private TupleReaderJavacc(TIOjavacc tioj) {
         Consumer<Tuple<Token>> dest = (t) -> rows.add(t) ;
-        TIOjavacc j = new TIOjavacc(in) ;
-        j.setDest(dest); 
-        try {
-            j.Unit();
-        }
+        tioj.setTupleDest(dest); 
+        try { tioj.Tuples(); }
         catch (ParseException e) {
             e.printStackTrace();
         }

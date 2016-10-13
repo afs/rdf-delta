@@ -19,14 +19,17 @@
 package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
+import java.io.Reader ;
 import java.util.ArrayList ;
 import java.util.List ;
 
 import org.apache.jena.atlas.iterator.PeekIterator ;
-import org.apache.jena.atlas.lib.tuple.Tuple ;
+import org.apache.jena.riot.RiotParseException ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.TokenType ;
 import org.apache.jena.riot.tokens.Tokenizer ;
+import org.seaborne.riot.tio.alt.javacc.ParseException ;
+import org.seaborne.riot.tio.alt.javacc.TIOjavacc ;
 
 public class TokenizerJavacc implements Tokenizer {
 
@@ -48,17 +51,24 @@ public class TokenizerJavacc implements Tokenizer {
     // Just a quick hack!
     // Materialize and rebuild a token stream.
     public TokenizerJavacc(InputStream in) {
-        TupleReaderJavacc trj = new TupleReaderJavacc(in) ;
-        List<Token> tokens = new ArrayList<>() ;
-        for ( Tuple<Token> tt : trj ) {
-            for ( Token t : tt ) {
-                tokens.add(t) ;
-            }
-            tokens.add(tokenEndTuple) ;
+        init(new TIOjavacc(in)) ;
+    }
+    
+    public TokenizerJavacc(Reader in) {
+        init(new TIOjavacc(in)) ;
+    }
+
+    private void init(TIOjavacc tioj) {
+        List<Token> tokens = new ArrayList<>() ; 
+        tioj.setTokenDest(tokens::add) ;
+        try { 
+            tioj.Tokens();
+        } catch (ParseException | /*TokenMgrError |*/ Error ex) {
+            throw new RiotParseException(ex.getMessage(), -1, -1) ;
         }
         iterator = PeekIterator.create(tokens.iterator()) ;
     }
-    
+
     @Override
     public boolean hasNext() {
         return iterator.hasNext() ;

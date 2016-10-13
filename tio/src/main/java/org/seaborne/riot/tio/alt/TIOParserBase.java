@@ -32,9 +32,11 @@ import org.apache.jena.datatypes.TypeMapper ;
 import org.apache.jena.datatypes.xsd.XSDDatatype ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.graph.NodeFactory ;
+import org.apache.jena.riot.RiotException ;
 import org.apache.jena.riot.RiotParseException ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.TokenType ;
+import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.graph.NodeConst ;
 
 public class TIOParserBase {
@@ -55,38 +57,61 @@ public class TIOParserBase {
     
     
     private List<Token> current = new ArrayList<>() ;
-    private Consumer<Tuple<Token>> dest ;
-    private static Token[] blank = new Token[]{} ;
+    private Consumer<Tuple<Token>> tupleDest = null ;
+    private Consumer<Token> tokenDest = null ;
 
     public TIOParserBase() {}
     
-    public void setDest(Consumer<Tuple<Token>> dest) {
-        this.dest = dest ;
+    public void startTuples()  {
+        if ( tupleDest == null )
+            throw new RiotException("No tuples handler") ;
+        this.tokenDest = (t) -> current.add(t) ;
+    }
+    
+    public void finishTuples() {
+    }
+
+    public void startTokens()  {
+        if ( tokenDest == null )
+            throw new RiotException("No tokens handler") ;
+    }
+    
+    public void finishTokens() {
+    }
+    
+    public void setTokenDest(Consumer<Token> dest) {
+        this.tokenDest = dest ;
+    }
+    
+    public void setTupleDest(Consumer<Tuple<Token>> dest) {
+        this.tupleDest = dest ;
+        // And set the token handling to be to accumulate a line.
+        this.tokenDest = (t) -> current.add(t) ;
     }
     
     protected void startTuple() { current.clear() ; }
     
     protected void finishTuple(int line, int column) {
         Tuple<Token> x = TupleFactory.create(current) ;
-        dest.accept(x) ;
+        tupleDest.accept(x) ;
     }
 
     protected void emitKeyword(String image, int beginLine, int beginColumn) {
         Token t = Token.tokenForWord(image) ;
-        current.add(t) ;
+        tokenDest.accept(t);
     }
     
     protected void emitTerm(Node node) {
         // Silly - don't node it!
         Token t = Token.tokenForNode(node) ;
-        current.add(t) ;
+        tokenDest.accept(t);
     }
 
     protected void emitSymbol(TokenType tt) {
        Token t = Token.tokenForWord("") ;
        t.setImage(null) ;
        t.setType(tt) ;
-       current.add(t) ;
+       tokenDest.accept(t);
     }
     
     protected Node createLiteralInteger(String lexicalForm) {
@@ -112,6 +137,10 @@ public class TIOParserBase {
         else
             n = NodeFactory.createLiteral(lexicalForm) ;
         return n ;
+    }
+    
+    protected Var createVariable(String varName) {
+        return Var.alloc(varName) ;
     }
     
     

@@ -19,6 +19,8 @@
 package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
+import java.io.Reader ;
+import java.io.StringReader ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
@@ -30,7 +32,8 @@ import org.seaborne.riot.tio.impl.TupleReaderTokenizer ;
 public class DevAlt {
     
     public static void main(String ...a) {
-        InputStream in = IO.openFile("data") ;
+        String s = ";" ;
+        Reader in = new StringReader(s) ;
         Tokenizer tok = new TokenizerJavacc(in) ;
         TupleReader tr = new TupleReaderTokenizer(tok) ;
         tr.forEach(t->System.out.println(">> >> "+t)) ;
