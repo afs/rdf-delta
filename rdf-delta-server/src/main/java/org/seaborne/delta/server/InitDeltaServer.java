@@ -16,38 +16,22 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server;
 
-public class DevToDo {
+import org.apache.jena.system.JenaSubsystemLifecycle ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
+public class InitDeltaServer implements JenaSubsystemLifecycle {
 
-    // RDF Git.
-    // Checksums
-    // Binary format
+    @Override
+    public void start() {
+        DPS.init();
+    }
     
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
-    
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+    @Override
+    public void stop() {}
+
+    @Override
+    public int level() {
+        return 50 ;
+    }
 }

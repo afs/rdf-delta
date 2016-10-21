@@ -16,38 +16,25 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server;
 
-public class DevToDo {
+import org.seaborne.delta.pubsub.InChannel ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
+public class DataRef { //--> Registration
+    
+    private final Id name ;
+    private final InChannel channel ;
 
-    // RDF Git.
-    // Checksums
-    // Binary format
+    private DataRef(Id name, InChannel channel) {
+        this.name = name ;
+        this.channel = channel ;
+    }
     
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
+    public Id name() {
+        return name ;
+    }
     
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+    public InChannel channel() {
+        return channel ;
+    }
 }

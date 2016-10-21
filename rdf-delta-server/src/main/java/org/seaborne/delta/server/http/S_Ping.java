@@ -16,38 +16,29 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server.http;
 
-public class DevToDo {
+import java.io.IOException ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
+import javax.servlet.http.HttpServletRequest ;
+import javax.servlet.http.HttpServletResponse ;
 
-    // RDF Git.
-    // Checksums
-    // Binary format
+import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.Delta ;
+import org.slf4j.Logger ;
+
+public class S_Ping extends ServletBase {
+    static private Logger LOG = Delta.DELTA_LOG ;
     
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
-    
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        LOG.info("Ping:GET");
+        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        LOG.info("Ping:POST");
+        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+    }
 }

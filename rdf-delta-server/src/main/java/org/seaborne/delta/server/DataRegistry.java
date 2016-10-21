@@ -16,38 +16,17 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server;
 
-public class DevToDo {
+import org.apache.jena.atlas.lib.Registry ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
+/** The registry of all data under the control of server */ 
+public class DataRegistry extends Registry<Id, DataSource> {
+    // Probable need a "rgistry of rgistries" so that different
+    // sets of datasets can be managed from one server.
+    // e.g. dev-staging-prod
+    
+    private static DataRegistry singleton = new DataRegistry() ;
 
-    // RDF Git.
-    // Checksums
-    // Binary format
-    
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
-    
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+    public static DataRegistry get() { return singleton ; }
 }

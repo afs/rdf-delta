@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.server2.PatchHandler ;
+import org.seaborne.delta.server.PatchHandler ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesCollector ;

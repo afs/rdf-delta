@@ -36,7 +36,7 @@ import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.server2.DPS ;
+import org.seaborne.delta.server.DPS ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesApply ;

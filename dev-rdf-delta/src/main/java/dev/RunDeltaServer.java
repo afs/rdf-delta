@@ -19,7 +19,7 @@ package dev;
 
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.DP ;
-import org.seaborne.delta.server2.http.DataPatchServer ;
+import org.seaborne.delta.server.http.DataPatchServer ;
 
 public class RunDeltaServer {
     static { DevLib.setLogging(); }

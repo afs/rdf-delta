@@ -20,6 +20,7 @@ package org.seaborne.patch;
 
 import java.io.InputStream ;
 import java.io.OutputStream ;
+import java.io.PrintStream ;
 
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.system.JenaSystem ;
@@ -62,6 +63,13 @@ public class RDFPatchOps {
         return changes(dsgBase, changeLog) ;
     }
     
+    public static void write(OutputStream out, RDFPatch patch) {
+        TokenWriter tw = new TokenWriterText(out) ; 
+        RDFChanges c = new RDFChangesWriter(tw) ;
+        patch.apply(c);
+        tw.flush();
+    }
+
     /** This is automatically called by the Jena subsystem startup cycle.
      * See {@link InitPatch} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      */

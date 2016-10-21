@@ -16,38 +16,31 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server.handlers;
 
-public class DevToDo {
+import java.io.OutputStream ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
+import org.seaborne.delta.DeltaOps ;
+import org.seaborne.delta.server.Patch ;
+import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.changes.RDFChangesWriter ;
+import org.seaborne.riot.tio.TokenWriter ;
 
-    // RDF Git.
-    // Checksums
-    // Binary format
+/** Write a patch to an {@code OutputStream}. */
+public class PHandlerOutput implements PatchHandler {
     
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
+    private final RDFChangesWriter scWriter ;
     
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
+    public PHandlerOutput(OutputStream output) {
+        TokenWriter tokenWriter = DeltaOps.tokenWriter(output) ;
+        scWriter = new RDFChangesWriter(tokenWriter) ;
+    }
     
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+    @Override
+    synchronized // XXX revise
+    public void handle(Patch patch) {
+        scWriter.start() ;
+        patch.play(scWriter);
+        scWriter.finish() ;
+    }
 }

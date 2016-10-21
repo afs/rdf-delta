@@ -16,38 +16,11 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server;
 
-public class DevToDo {
+import java.util.UUID ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
-
-    // RDF Git.
-    // Checksums
-    // Binary format
-    
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
-    
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+public class C {
+    public static UUID uuid1 = UUID.fromString("15724832-96c5-11e6-9d7f-131fb3e5c030") ;
+    public static UUID uuid2 = UUID.fromString("168a7bea-96c5-11e6-9b34-8b157862c8dc") ;
 }

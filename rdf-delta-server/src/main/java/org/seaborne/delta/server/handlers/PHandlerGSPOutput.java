@@ -16,38 +16,25 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server.handlers;
 
-public class DevToDo {
+import org.apache.jena.atlas.io.IndentedWriter ;
+import org.seaborne.delta.server.Patch ;
+import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
-    // Documentation
-    // Extract polling support to DeltaClient. 
-
-    // RDF Git.
-    // Checksums
-    // Binary format
+/** Convert a patch to SPARQL Update and output to the console */
+public class PHandlerGSPOutput implements PatchHandler {
+    public PHandlerGSPOutput() {}
     
-    // ---- dev tasks
-    // Patch
-    // "_" for default graph
-    
-    // 
-    // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
-    //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
+    @Override
+    public void handle(Patch patch) {
+        IndentedWriter x = new IndentedWriter(System.out) ;
+        x.setLineNumbers(true);
+        x.setLinePrefix("GSP>> ");
+        RDFChanges scData = new RDFChangesWriteUpdate(x) ;
+        patch.play(scData);
+        x.flush();
+    }
 }
