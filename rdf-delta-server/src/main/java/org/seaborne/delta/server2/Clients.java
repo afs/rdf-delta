@@ -15,20 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.DP ;
-import org.seaborne.delta.server2.http.DataPatchServer ;
+package org.seaborne.delta.server2;
 
-public class RunDeltaServer {
-    static { DevLib.setLogging(); }
+import java.util.Map ;
+import java.util.concurrent.ConcurrentHashMap ;
+
+/** The clients to what they do mapping */ 
+public class Clients {
+    private static Map<Id, Client> clients = new ConcurrentHashMap<>() ;
     
-    public static void main(String...arg) {
-        DatasetGraph dsg = null ;
-        DataPatchServer server = new DataPatchServer(DP.PORT) ;
-        // Setup.
-        server.start();
-        server.join();
+    public static Client get(Id uuid) {
+        return clients.get(uuid) ;
     }
 }

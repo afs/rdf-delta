@@ -31,6 +31,7 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.server2.PatchHandler ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;
@@ -38,63 +39,46 @@ import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
-public class InChannel {
+public class Receiver {
     /*
-     * In-bound processing: parse (=check) and then write to disk. 
-     * Can then reply to sender.
-     * Then secondary (from collector or disk.
-     * 
+     * In-bound processing: parse (=check).
      */
-    
-    
-    // Or factory that makes an in-bound processor.
-    
-    // The pipeline, initialized with the collector at the end.
-    
-    // Either 
-
-    private List<RDFChanges> additionalProcessors = new ArrayList<>() ;
-    
-    public InChannel() {
+    public Receiver() {
         addProcessor(new RDFChangesLog(RDFChangesLog::printer)) ;
     }
     
     private String baseFilename = "Files/patch-" ;
     private AtomicLong counter = new AtomicLong(0);
     
+    private List<RDFChanges> additionalProcessors = new ArrayList<>() ;
     
     // -- Builderish.
     
     public void addProcessor(RDFChanges changes) {
         additionalProcessors.add(changes) ;
     }
-    
-    // -- 
-    
-    // Special incremental RDFChangesWriter ; start/finish triggered.
-    
-    public synchronized void receive(InputStream in) {
+
+    private RDFChangesWriter destination() { 
         long id = counter.incrementAndGet() ;
         String fn = String.format("%s%04d",baseFilename,id) ;
         OutputStream out = IO.openOutputFile(fn) ;
         out = new BufferedOutputStream(out, 2*1024*1024) ;
         TokenWriter tw = new TokenWriterText(out) ;
+        RDFChangesWriter dest = new RDFChangesWriter(tw) ;
+        return dest ;
+    }
 
-        // --- Pipeline for incoming to safe.
-        // The end of pipeline is the writer to disk.
-        // Just before that we keep an in-memory copy.
-        RDFChanges pipeline = new RDFChangesWriter(tw) ;
-        // Fresh collector.
-        
-        // 1 - Make bounded.
-        // 2 - Make disk backed
-        RDFChangesCollector collector = new RDFChangesCollector() ; // Make bounded.
-        pipeline = RDFChangesN.multi(collector, pipeline) ;
-        // --- Additional processors before making safe.
-        
+    
+    public synchronized void receive(InputStream in, RDFChanges changes) {
+        RDFChangesWriter dest = destination() ;
+        RDFChanges pipeline = dest ;
+        // Insert the extra pipeline stage.
+        if ( changes != null )
+            pipeline = RDFChangesN.multi(changes, pipeline) ;
+        // --- Additional processors called before making safe.
         for ( RDFChanges p : additionalProcessors )
             pipeline = RDFChangesN.multi(p, pipeline) ;
-
+        
 //        // If last is abort ...
 //        // Add a "last capture"
 //        // If all are abort, loose it.
@@ -111,40 +95,10 @@ public class InChannel {
 //            public void txnAbort() { abortCount++ ; }
 //        } ;
         
-        
-        
         PatchReader scr = new PatchReader(in) ;
         pipeline.start();
         scr.apply(pipeline);
         pipeline.finish() ;
-        // Ensure on-disk.
-        IO.flush(out) ;
-        // SAFE!
-        // Reply!
-        
-//        
-//        
-//        // Schedule other work.
-//        for each out queue
-//          add collector to queue.
-        
-        
-        //collector.reset() ;
-    }
-    
-    public static PatchHandler[] handlers(DatasetGraph dsg) {
-        if ( true )
-            throw new NotImplemented("InChannel handlers") ;
-        
-        List<PatchHandler> x = new ArrayList<>() ;
-//        if ( dsg != null )
-//            x.add(new PHandlerLocalDB(dsg)) ;
-//        x.add(new PHandlerOutput(System.out)) ;
-////            x.add(new PHandlerGSPOutput()) ;
-////            x.add(new PHandlerGSP().addEndpoint("http://localhost:3030/ds/update")) ;
-//        x.add(new PHandlerToFile()) ;
-//        x.add(new PHandlerLog(DPS.LOG)) ;
-
-        return x.toArray(new PatchHandler[0]) ;
+        dest.flush();
     }
 }

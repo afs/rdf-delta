@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2.http;
 
 import java.io.IOException ;
 
@@ -27,13 +27,18 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
-public class S_Restart extends ServletBase {
+public class S_Ping extends ServletBase {
     static private Logger LOG = Delta.DELTA_LOG ;
     
     @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        LOG.info("Ping:GET");
+        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+    }
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Server reset");
-        DPS.setPatchIndex();
+        LOG.info("Ping:POST");
         resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
 }

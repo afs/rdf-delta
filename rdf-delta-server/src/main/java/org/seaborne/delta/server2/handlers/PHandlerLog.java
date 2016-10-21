@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.handlers;
+package org.seaborne.delta.server2.handlers;
 
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.seaborne.delta.server.PatchHandler ;
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.delta.server2.Patch ;
+import org.seaborne.delta.server2.PatchHandler ;
 import org.seaborne.patch.changes.RDFChangesCounter ;
-import org.seaborne.patch.changes.RDFChangesOnStartFinish ;
 import org.slf4j.Logger ;
 
+/** Log a infroamtion about a patch */
 public class PHandlerLog implements PatchHandler {
     
     private final Logger log ;
@@ -35,14 +35,19 @@ public class PHandlerLog implements PatchHandler {
     
     /** Safe handler */
     @Override
-    public RDFChanges handler() {
+    public void handle(Patch patch) {
         RDFChangesCounter scc = new RDFChangesCounter() ;
-        return new RDFChangesOnStartFinish(scc,
-                                           null,
-                                           ()-> FmtLog.info(log,
-                                                            "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
-                                                            scc.countAddQuad, scc.countDeleteQuad, 
-                                                            scc.countAddPrefix, scc.countDeletePrefix
-                                               ));
+//        RDFChanges x = new RDFChangesOnStartFinish(scc,
+//                                                   null,
+//                                                   ()-> FmtLog.info(log,
+//                                                                    "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
+//                                                                    scc.countAddQuad, scc.countDeleteQuad, 
+//                                                                    scc.countAddPrefix, scc.countDeletePrefix
+//                                                       ));
+        patch.play(scc);
+        FmtLog.info(log,
+                    "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
+                    scc.countAddQuad, scc.countDeleteQuad, 
+                    scc.countAddPrefix, scc.countDeletePrefix) ;
     }
 }

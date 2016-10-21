@@ -32,15 +32,15 @@ public class PatchSet {
     // Tree?
     
     // All patches.
-    private Map<UUID, Patch> patches = new ConcurrentHashMap<>() ;
+    private Map<Id, Patch> patches = new ConcurrentHashMap<>() ;
     
     // The mainline. This enables going forward.
     private LinkedList<Patch> history = new LinkedList<>() ;
-    private final UUID id ; 
+    private final Id id ; 
     
-    private List<PatchHandlerFactory> enqueuedNotifications = new ArrayList<>() ;  
+    private List<PatchHandler> handlers = new ArrayList<>() ;  
     
-    public PatchSet(UUID id) {
+    public PatchSet(Id id) {
         this.id = id ;
     }
 
@@ -51,26 +51,42 @@ public class PatchSet {
     public void add(Patch patch) {
         // Validate.
         patches.put(patch.getId(), patch) ;
+        // Versions.
         
         if ( Objects.equals(currentHead(), patch.getParent()) ) {
             history.add(patch) ;
             FmtLog.warn(LOG, "Patch queued: id=%s", patch.getId()) ;
-            enqueuedNotifications.forEach( phf -> phf.handle().handle(patch));
+            handlers.forEach( ph -> ph.handle(patch));
         } else 
-            FmtLog.warn(LOG, "Patch is out of sequence - not queued as a version: id=%s", patch.getId()) ; 
+            FmtLog.warn(LOG, "Patch is out of sequence - not queued as a version: id=%s", patch.getId()) ;
     }
     
-    private UUID currentHead() {
+    public void addHandler(PatchHandler handler) {
+        handlers.add(handler) ;
+    }
+    
+    /** Access to thr handler list - this can be manipulated but the the caller
+     * is responsible for ensuring no patches are delivered or processed while
+     * being changed.
+     * <p>So safe to do during startup, not while live.
+     * <p>Low-level access : use with care.       
+     */
+    public List<PatchHandler> getHandlers() {
+        return handlers ;
+    }
+
+    
+    private Id currentHead() {
         if ( history.isEmpty() )
             return null ;
         return history.getLast().getParent() ;
     }
 
-    public void process(UUID id, PatchHandler c) {
+    public void process(Id id, PatchHandler c) {
         Patch patch = patches.get(id) ;
     }
     
-    public void processFrom(UUID start, PatchHandler c) {
+    public void processFrom(Id start, PatchHandler c) {
         int idx = findStart(start) ; 
         if ( idx < 0 ) {
             FmtLog.warn(LOG, "Didn't find a patch: %s", start) ;
@@ -81,7 +97,7 @@ public class PatchSet {
         iter.forEachRemaining((p)-> c.handle(p) ) ;
     }
 
-    private int findStart(UUID start) {
+    private int findStart(Id start) {
         return history.indexOf(start) ;
     }
     

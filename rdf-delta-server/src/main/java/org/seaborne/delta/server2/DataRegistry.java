@@ -16,8 +16,17 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.pubsub;
+package org.seaborne.delta.server2;
 
-public class Handler {
+import org.apache.jena.atlas.lib.Registry ;
 
+/** The registry of all data under the control of server */ 
+public class DataRegistry extends Registry<Id, DataSource> {
+    // Probable need a "rgistry of rgistries" so that different
+    // sets of datasets can be managed from one server.
+    // e.g. dev-staging-prod
+    
+    private static DataRegistry singleton = new DataRegistry() ;
+
+    public static DataRegistry get() { return singleton ; }
 }

@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.handlers;
+package org.seaborne.delta.server2.handlers;
 
 import java.io.OutputStream ;
 
 import org.seaborne.delta.DeltaOps ;
-import org.seaborne.delta.server.PatchHandler ;
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.delta.server2.Patch ;
+import org.seaborne.delta.server2.PatchHandler ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
 
+/** Write a patch to an {@code OutputStream}. */
 public class PHandlerOutput implements PatchHandler {
     
     private final RDFChangesWriter scWriter ;
@@ -35,9 +36,11 @@ public class PHandlerOutput implements PatchHandler {
         scWriter = new RDFChangesWriter(tokenWriter) ;
     }
     
-    /** Safe handler */
     @Override
-    public RDFChanges handler() {
-        return scWriter ;
+    synchronized // XXX revise
+    public void handle(Patch patch) {
+        scWriter.start() ;
+        patch.play(scWriter);
+        scWriter.finish() ;
     }
 }

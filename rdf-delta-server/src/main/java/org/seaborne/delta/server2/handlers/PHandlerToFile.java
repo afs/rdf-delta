@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.handlers;
+package org.seaborne.delta.server2.handlers;
 
 import java.io.* ;
 import java.nio.file.Files ;
@@ -26,13 +26,14 @@ import java.nio.file.Paths ;
 import org.apache.jena.atlas.io.IO ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.lib.OutputStream2 ;
-import org.seaborne.delta.server.DPS ;
-import org.seaborne.delta.server.PatchHandler ;
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.delta.server2.DPS ;
+import org.seaborne.delta.server2.Patch ;
+import org.seaborne.delta.server2.PatchHandler ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.slf4j.Logger ;
 
+/** Write a patch to a file.*/
 public class PHandlerToFile implements PatchHandler {
     private static Logger LOG = DPS.LOG ;
     
@@ -42,7 +43,8 @@ public class PHandlerToFile implements PatchHandler {
     
     /** Safe handler */
     @Override
-    public RDFChanges handler() {
+    synchronized // XXX revise
+    public void handle(Patch patch) {
         String dst = DPS.nextPatchFilename() ;
         String s = DPS.tmpFilename() ;
         if ( verbose ) {
@@ -51,20 +53,13 @@ public class PHandlerToFile implements PatchHandler {
         }
 
         TokenWriter output = output(s) ;
-        RDFChangesWriter scWriter = new RDFChangesWriter(output) {
-            @Override
-            public void start() {
-            }
-
-            @Override
-            public void finish() { 
-                move(s, dst) ; 
-                if ( verbose )
-                    LOG.info(">>>>-----------------") ;
-                else
-                    LOG.info("# Patch = "+dst) ;
-            }} ;
-            return scWriter ;
+        RDFChangesWriter scWriter = new RDFChangesWriter(output) ;
+        patch.play(scWriter);
+        move(s, dst) ; 
+        if ( verbose )
+            LOG.info(">>>>-----------------") ;
+        else
+            LOG.info("# Patch = "+dst) ;
     }
 
 

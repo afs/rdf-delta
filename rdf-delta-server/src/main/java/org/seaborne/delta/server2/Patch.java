@@ -20,7 +20,6 @@ package org.seaborne.delta.server2;
 
 import java.io.InputStream ;
 import java.lang.ref.WeakReference ;
-import java.util.UUID ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.logging.Log ;
@@ -35,21 +34,21 @@ public class Patch {
     private WeakReference<RDFPatch> patchRef ;
     // The persistent record of this patch used to regenerate  
     private final String filename ;
-    private final UUID id ;
-    private final UUID parent ; 
+    private final Id id ;
+    private final Id parent ; 
     
-    public Patch(UUID name, UUID parent, RDFPatch patch, String filename) {
+    public Patch(Id name, Id parent, RDFPatch patch, String filename) {
         this.patchRef = new WeakReference<>(patch) ;
         this.filename = filename ;
         this.id = name ;
         this.parent = parent ; 
     }
     
-    public UUID getId() {
+    public Id getId() {
         return id ;
     }
 
-    public UUID getParent() {
+    public Id getParent() {
         return parent ;
     }
 

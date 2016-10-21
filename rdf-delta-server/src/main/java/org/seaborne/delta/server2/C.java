@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2;
 
-import org.seaborne.patch.RDFChanges ;
+import java.util.UUID ;
 
-public interface PatchHandler {
-
-    /** Return a handler that can be used once, and in parallel with other {@link RDFChanges} */   
-    public RDFChanges handler() ;
-
+public class C {
+    public static UUID uuid1 = UUID.fromString("15724832-96c5-11e6-9d7f-131fb3e5c030") ;
+    public static UUID uuid2 = UUID.fromString("168a7bea-96c5-11e6-9b34-8b157862c8dc") ;
 }

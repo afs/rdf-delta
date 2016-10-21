@@ -16,28 +16,16 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.server2;
 
-import java.util.ArrayList ;
-import java.util.List ;
+public class ChannelName {
+    private Id id ;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.server.DPS ;
-import org.seaborne.delta.server.PatchHandler ;
-import org.seaborne.delta.server.handlers.* ;
-
-/** Configuration for the patch receiver */ 
-public class Setup {
-    public static PatchHandler[] handlers(DatasetGraph dsg) { 
-        List<PatchHandler> x = new ArrayList<>() ;
-        if ( dsg != null )
-            x.add(new PHandlerLocalDB(dsg)) ;
-        x.add(new PHandlerOutput(System.out)) ;
-//        x.add(new PHandlerGSPOutput()) ;
-//        x.add(new PHandlerGSP().addEndpoint("http://localhost:3030/ds/update")) ;
-        x.add(new PHandlerToFile()) ;
-        x.add(new PHandlerLog(DPS.LOG)) ;
-        
-        return x.toArray(new PatchHandler[0]) ;
+    public ChannelName (Id dest) {
+        this.id = dest ;
+    }
+    
+    public Id getDataset() {
+        return id ;
     }
 }

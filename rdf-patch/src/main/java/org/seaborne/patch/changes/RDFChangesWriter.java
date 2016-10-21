@@ -49,7 +49,7 @@ public class RDFChangesWriter implements RDFChanges {
     @Override
     public void finish() { }
 
-    protected void flush() {
+    public void flush() {
         tok.flush(); 
     }
     

@@ -16,29 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2;
 
-import java.io.IOException ;
+import org.seaborne.delta.pubsub.InChannel ;
 
-import javax.servlet.http.HttpServletRequest ;
-import javax.servlet.http.HttpServletResponse ;
-
-import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.Delta ;
-import org.slf4j.Logger ;
-
-public class S_Ping extends ServletBase {
-    static private Logger LOG = Delta.DELTA_LOG ;
+public class DataRef { //--> Registration
     
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Ping:GET");
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
-    }
+    private final Id name ;
+    private final InChannel channel ;
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Ping:POST");
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+    private DataRef(Id name, InChannel channel) {
+        this.name = name ;
+        this.channel = channel ;
+    }
+    
+    public Id name() {
+        return name ;
+    }
+    
+    public InChannel channel() {
+        return channel ;
     }
 }

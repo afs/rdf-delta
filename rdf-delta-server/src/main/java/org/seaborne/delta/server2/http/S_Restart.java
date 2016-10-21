@@ -16,40 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2.http;
 
 import java.io.IOException ;
 
-import javax.servlet.ServletConfig ;
-import javax.servlet.ServletException ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
-public class ServletOne extends ServletBase {
+import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server2.DPS ;
+import org.slf4j.Logger ;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
-
-    @Override
-    public ServletConfig getServletConfig() {
-        return null ;
-    }
-
-//    @Override
-//    public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {}
-
-    @Override
-    public String getServletInfo() {
-        return null ;
-    }
-
-    @Override
-    public void destroy() {}
+public class S_Restart extends ServletBase {
+    static private Logger LOG = Delta.DELTA_LOG ;
     
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/plain");
-        resp.getOutputStream().print("RESPONSE\n");
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        LOG.info("Server reset");
+        DPS.setPatchIndex();
+        resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
-
 }

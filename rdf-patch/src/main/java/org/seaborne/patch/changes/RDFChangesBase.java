@@ -22,7 +22,7 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
 
-public class RDFChangesBase implements RDFChanges {
+public abstract class RDFChangesBase implements RDFChanges {
     @Override
     public void start() {}
 

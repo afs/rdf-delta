@@ -16,22 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server2;
+package org.seaborne.delta.server2.handlers;
 
-import java.util.UUID ;
+import org.apache.jena.sparql.core.DatasetGraph ;
+import org.seaborne.delta.server2.Patch ;
+import org.seaborne.delta.server2.PatchHandler ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.changes.RDFChangesApply ;
 
-import org.apache.jena.shared.uuid.UUIDFactory ;
-import org.apache.jena.shared.uuid.UUID_V1_Gen ;
+/** Write a patch to a {@link DatasetGraph}. */ 
+public class PHandlerLocalDB implements PatchHandler {
 
-public class Server2 {
+    private final DatasetGraph dsg ;
+
+    public PHandlerLocalDB(DatasetGraph dsg) {
+        this.dsg = dsg ;
+    }
     
-    // Fix version as version 1 - these are guessable.
-    private static UUIDFactory uuidFactory = new UUID_V1_Gen() ;
-    
-    /** {@link UUID}s are used to identify many things in Delta - the RDF Dataset being managed,
-     * the patches applied (the UUID naming forms the history), registrations and channels,
-     * amongst other things.
-     */
-    public static UUID genUUID() { return uuidFactory.generate().asUUID() ; } 
-
+    @Override
+    public void handle(Patch patch) {
+        RDFChanges changes = new RDFChangesApply(dsg) ;
+        patch.play(changes); 
+    }
 }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2;
 
 import java.io.File ;
 import java.util.concurrent.atomic.AtomicInteger ;
@@ -32,9 +32,9 @@ public class DPS {
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
     
-    static final String FILEBASE    = "Files" ;
-    static final String BASEPATTERN = FILEBASE+"/patch-%04d" ;
-    static final String TMPBASE     = FILEBASE+"/tmp-%03d" ;
+    public static final String FILEBASE    = "Files" ;
+    public static final String BASEPATTERN = FILEBASE+"/patch-%04d" ;
+    public static final String TMPBASE     = FILEBASE+"/tmp-%03d" ;
     
     /* Patch file counter.
      *  This is the index of the highest used number.

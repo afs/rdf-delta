@@ -24,9 +24,8 @@ import java.util.Map ;
 import org.apache.jena.ext.com.google.common.collect.Multimap ;
 
 public class Distributor {
-    private Map<String, InChannel> inbound = new HashMap<>() ;
-    private Map<String, OutChannel> outbound = new HashMap<>() ;
-    private Multimap<Key, OutChannel> registrations = null ;  
+    private Map<String, Channel> inbound = new HashMap<>() ;
+    private Multimap<Key, Channel> registrations = null ;  
     
     /** Register:
      *  
@@ -36,22 +35,12 @@ public class Distributor {
     
     public Channel register(String client, String channelName) {
         
+        
+        Channel channel = Channel.create().build() ;
         return null ;
     }
     
-    // deregister
-    
-    // 
-    
-    // Channel is (InChannel, OutChannel)
-    
-    
-    public InChannel getInChannel(Object key) {
-        return null ;
-    }
-    
-    
-    public OutChannel getOutChannel(Object key) {
+    public Channel getChannel(Object key) {
         return null ;
     }
 }

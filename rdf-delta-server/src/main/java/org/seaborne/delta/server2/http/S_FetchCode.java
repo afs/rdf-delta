@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2.http;
 
 import java.io.IOException ;
 import java.io.OutputStream ;
@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server2.DPS ;
 import org.slf4j.Logger ;
 
 public class S_FetchCode extends ServletBase {

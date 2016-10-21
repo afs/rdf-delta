@@ -18,17 +18,100 @@
 
 package org.seaborne.delta.server2;
 
+import java.io.InputStream ;
+import java.util.Iterator ;
+
+import org.seaborne.delta.pubsub.Distributor ;
+import org.seaborne.delta.pubsub.Receiver ;
+import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.changes.RDFChangesCollector ;
+
 public class API {
     
-    //  register -> channel id.
+    static Distributor distributor = new Distributor() ;
     
-    //  unregister - ?? - suspend
+    static {
+        // Setup
+    }
     
-    //  add patch(channel Id)
+    public static class RegToken {
+        
+    }
     
-    // Get info -> (min, max version)
+    public static class Registration {
+        RegToken regToken ;
+        // Graphs, datasets? Channels?
+        // new stuff?? 
+    }
     
-    // New graph(base UUID)
+    public static Registration register(Id clientId) {
+        distributor.register(null, null) ;
+        return null ;
+    }
+    
+    public static Registration register(String name) {
+        return null ;
+    }
+
+    public Registration register(String name, Id id) {
+        return null ;
+    }
+    
+    public static void deregister(RegToken token) {}
+
+    public static void receive(Id ref, InputStream in) {
+        DataSource source = DataRegistry.get().get(ref) ;
+        // id -> registation
+        RDFPatch patch = consume(source, in) ;
+        
+    }
+    
+    
+    /** Process an {@code InputStream} and return an RDFPatch */
+    private static RDFPatch consume(DataSource source, InputStream in) {
+        // XXX Switch to a spilling collector.
+        RDFChangesCollector collector = new RDFChangesCollector() ;
+        
+        // XXX source .locationOfPatchStorage .
+        
+        Receiver receiver = new Receiver() ;
+        receiver.receive(in, collector);
+        return collector.getRDFPatch() ;
+    }
+    
+//    public static InChannel getChannel(Id data) {
+//        DataRef ref = getDataRef(data) ;
+//        if ( ref == null )
+//            return null ;
+//        return ref.channel() ;
+//    }
+    
+    public static DataRef getDataRef(Id data) {
+        return  Datasets.get(data) ;
+    }
+    
+    public static PatchSetInfo info(ChannelName channel) {
+        return null ;
+    }
+    
+    
+    public static Iterator<Patch> patches(Id start, Id finish) {
+        return null ;
+    }
+
+    // Dataset system
+    
+    public void existingDataset() {} 
+    
+    public Id newDataset() { return null ; }
+    public void deleteDataset(Id uuid) { }
+
+    // Graph-only system
+    
+    public Id newGraph(String uri) { return null ; }
+
+    
+    // New graph(base Id)
     
     
     

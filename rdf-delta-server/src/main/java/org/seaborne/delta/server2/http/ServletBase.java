@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2.http;
 
 import java.io.IOException ;
 
@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.fuseki.server.RequestLog ;
+import org.apache.jena.fuseki.servlets.ServletOps ;
+import org.apache.jena.riot.web.HttpNames ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
@@ -45,14 +47,28 @@ public class ServletBase extends HttpServlet {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
         try { 
-            // "there is no need to override this method"!!!
-            super.service(req, resp);
+            // Add PATCH
+            String method = req.getMethod() ;
+            if ( method.equals(HttpNames.METHOD_PATCH) ) {
+                doPatch(req, resp);
+            } else
+                super.service(req, resp);
             if ( false ) {
                 String x = RequestLog.combinedNCSA(req, resp) ;
                 logger.info(x);
             }
         } catch (Exception ex) {
-            
+
+        }
+    }
+
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String protocol = req.getProtocol();
+        String msg = "HTTP PATCH not support" ;
+        if (protocol.endsWith("1.1")) {
+            ServletOps.error(HttpServletResponse.SC_METHOD_NOT_ALLOWED, msg);
+        } else {
+            ServletOps.error(HttpServletResponse.SC_BAD_REQUEST, msg);
         }
     }
 

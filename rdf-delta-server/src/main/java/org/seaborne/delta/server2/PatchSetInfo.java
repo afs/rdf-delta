@@ -18,17 +18,15 @@
 
 package org.seaborne.delta.server2;
 
-import java.util.UUID ;
-
 /** Snapshot of the state of a {@link PatchSet}. */
 public class PatchSetInfo {
     private final long minVersion ;
     private final long maxVersion ;
-    private final UUID patchSetId ;
-    private final UUID latest ;
+    private final Id patchSetId ;
+    private final Id latest ;
     
     
-    /*package*/PatchSetInfo(long minVersion, long maxVersion, UUID target, UUID latest) {
+    /*package*/PatchSetInfo(long minVersion, long maxVersion, Id target, Id latest) {
         this.minVersion = minVersion ;
         this.maxVersion = maxVersion ;
         this.patchSetId = target ;

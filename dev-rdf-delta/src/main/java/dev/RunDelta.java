@@ -36,8 +36,7 @@ import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.server.DPS ;
-import org.seaborne.delta.server.DataPatchServer ;
+import org.seaborne.delta.server2.DPS ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesApply ;
@@ -62,27 +61,15 @@ public class RunDelta {
         
         DatasetGraph dsg = null ; //DatasetGraphFactory.createTxnMem() ;
         
-        runOrExit(()-> {
-            DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
-            server.start();
-        }) ;
+//        runOrExit(()-> {
+//            DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
+//            server.start();
+//        }) ;
         
         RunDeltaClient.main(args);
         
         runOrExit(()->run()) ;
         
-//        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ;
-//        try {
-//            DataPatchServer server = new DataPatchServer(DP.PORT, Setup.handlers(dsg)) ;
-//            server.start();
-//            FusekiEmbeddedServer.make(3333, "/ds", dsg).start() ;
-//            run(dsg);
-//        } catch (Throwable ex) {
-//            ex.printStackTrace(System.err) ;
-//        }
-//        finally { 
-//            //System.exit(0) ;
-//        }
     }
     
     public static void runOrExit(Runnable action) {

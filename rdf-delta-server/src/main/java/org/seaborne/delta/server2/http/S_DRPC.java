@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2.http;
 
 import java.io.IOException ;
 import java.io.InputStream ;
@@ -31,6 +31,7 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server2.DPS ;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 

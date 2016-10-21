@@ -16,23 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.handlers;
+package org.seaborne.delta.server2.handlers;
 
 import org.apache.jena.atlas.io.IndentedWriter ;
-import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.delta.server2.Patch ;
+import org.seaborne.delta.server2.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
+/** Convert a patch to SPARQL Update and output to the console */
 public class PHandlerGSPOutput implements PatchHandler {
     public PHandlerGSPOutput() {}
     
     @Override
-    public RDFChanges handler() {
+    public void handle(Patch patch) {
         IndentedWriter x = new IndentedWriter(System.out) ;
         x.setLineNumbers(true);
         x.setLinePrefix("GSP>> ");
         RDFChanges scData = new RDFChangesWriteUpdate(x) ;
+        patch.play(scData);
         x.flush();
-        return scData ;
     }
 }

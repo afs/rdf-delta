@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.handlers;
+package org.seaborne.delta.server2.handlers;
 
 import java.util.ArrayList ;
 import java.util.List ;
@@ -26,11 +26,13 @@ import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.query.ARQ ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
-import org.seaborne.delta.server.DPS ;
-import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.delta.server2.DPS ;
+import org.seaborne.delta.server2.Patch ;
+import org.seaborne.delta.server2.PatchHandler ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
+/** Convert a patch to SPARQL Update and send to some endpoints */
 public class PHandlerGSP implements PatchHandler {
     
     // SPARQL Update services to poke
@@ -45,21 +47,15 @@ public class PHandlerGSP implements PatchHandler {
     private Object dft = ARQ.getContext().get(ARQ.constantBNodeLabels) ;
     
     @Override
-    public RDFChanges handler() {
+    public void handle(Patch patch) { 
         IndentedLineBuffer x = new IndentedLineBuffer() ;
-        RDFChanges scData = new RDFChangesWriteUpdate(x) {
-            @Override
-            public void finish() {
-                // This has bnode nodes as <_:....> 
-                String reqStr = x.asString() ;
-                updateEndpoints.forEach((ep)->{
-                    try { HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ; }
-                    catch (HttpException ex) { DPS.LOG.warn("Failed to send to "+ep) ; }
-                }) ;
-                super.finish() ;
-            }
-        } ;
-        return scData ;
+        RDFChanges scData = new RDFChangesWriteUpdate(x) ;
+        patch.play(scData);
+        String reqStr = x.asString() ;
+        updateEndpoints.forEach((ep)->{
+            try { HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ; }
+            catch (HttpException ex) { DPS.LOG.warn("Failed to send to "+ep) ; }
+        }) ;
     }
 }
 

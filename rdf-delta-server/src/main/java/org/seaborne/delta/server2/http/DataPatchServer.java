@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server2.http;
 
 import javax.servlet.Servlet ;
 
@@ -26,6 +26,7 @@ import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server2.DPS ;
 
 /** A simple packaging of Jetty to provide an embeddable HTTP server that just support servlets */ 
 public class DataPatchServer {
@@ -34,10 +35,10 @@ public class DataPatchServer {
     private final Server server ;
     private ServletHandler handler ;
 
-    public DataPatchServer(int port, PatchHandler ... handlers) {
+    public DataPatchServer(int port) {
         DPS.init() ;
         server = new Server(port) ;
-        ErrorHandler eh = new ErrorHandlerDataPatch() ;
+        ErrorHandler eh = new HttpErrorHandler() ;
         eh.setServer(server);
         handler = new ServletHandler();
         server.setHandler(handler);
@@ -46,9 +47,6 @@ public class DataPatchServer {
         FileOps.ensureDir(DPS.FILEBASE) ;
         
         S_Patch patchMgr = new S_Patch() ;
-        for ( PatchHandler ph : handlers) {
-            patchMgr.addHandler(ph);
-        }
         
         addServlet("/fetch", new S_FetchCode.S_FetchId()) ;
         addServlet("/patch", patchMgr) ;

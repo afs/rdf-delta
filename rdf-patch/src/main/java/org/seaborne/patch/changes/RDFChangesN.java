@@ -51,6 +51,12 @@ public class RDFChangesN implements RDFChanges
         }
     }
     
+    public RDFChangesN(List<RDFChanges> changes) {
+        for ( RDFChanges sc : changes ) {
+            add(sc) ;
+        }
+    }
+
     private void add(RDFChanges sc) {
         changes.add(sc) ;
     }

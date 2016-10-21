@@ -16,24 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.handlers;
+package org.seaborne.delta.server2;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.server.PatchHandler ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.changes.RDFChangesApply ;
+import java.util.Map ;
+import java.util.concurrent.ConcurrentHashMap ;
 
-public class PHandlerLocalDB implements PatchHandler {
+//import org.seaborne.delta.pubsub.InChannel ;
 
-    private final DatasetGraph dsg ;
-
-    public PHandlerLocalDB(DatasetGraph dsg) {
-        this.dsg = dsg ;
+public class Client {
+    
+    private Map<Id, ChannelName> channels = new ConcurrentHashMap<>() ;
+    
+    public ChannelName getChannel(Id channel) {
+        return channels.get(channel) ;
     }
     
-    @Override
-    public RDFChanges handler() {
-        return new RDFChangesApply(dsg) ;
+    public void addChannel(Id ref, ChannelName channel) {
+        channels.put(ref, channel) ;
     }
 
+    public void removeChannel(Id ref) {
+        channels.remove(ref) ;
+    }
 }

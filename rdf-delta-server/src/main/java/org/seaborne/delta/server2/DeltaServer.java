@@ -18,6 +18,6 @@
 
 package org.seaborne.delta.server2;
 
-public interface PatchHandlerFactory {
-    public PatchHandler handle() ;
+public class DeltaServer {
+
 }

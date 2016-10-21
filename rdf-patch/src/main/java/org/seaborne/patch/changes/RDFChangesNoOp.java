@@ -16,18 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.patch.changes;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-
-public class InitDeltaServer  implements JenaSubsystemLifecycle {
-    @Override
-    public void start() {
-    }
-
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return 43 ; }
+public class RDFChangesNoOp extends RDFChangesBase {
 }
