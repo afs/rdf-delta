@@ -18,8 +18,10 @@
 
 package org.seaborne.patch.changes;
 
-import java.util.LinkedList ;
-import java.util.List ;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
@@ -31,7 +33,8 @@ import org.seaborne.patch.items.* ;
 /** Capture a stream of changes, then play it to another {@link RDFChanges} */
 public class RDFChangesCollector implements RDFChanges /* For building*/ {
 
-    private List<ChangeItem> actions = new LinkedList<>() ; // ArrayList<>() ; // LinkedList better?
+    private Map<String, Node> header = new LinkedHashMap<>() ;
+    private List<ChangeItem> actions = new LinkedList<>() ;
     
 //    /** Play forwards */
 //    public void apply(RDFChanges target) {
@@ -40,14 +43,31 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
 //        target.finish();
 //    }
     
-    public RDFPatch getRDFPatch() { 
-        return (target) -> {  
-            target.start();
-            actions.forEach(a -> enact(a, target)) ;
-            target.finish();
-        } ;
-    } 
+    static class RDFPatchStored implements RDFPatch {
+        private final Map<String, Node> header ; 
+        private final List<ChangeItem> actions ;
+        
+        public RDFPatchStored(Map<String, Node> header, List<ChangeItem> actions) {
+            this.header = header ;
+            this.actions = actions ;
+        }
 
+        @Override
+        public Map<String, Node> header() {
+            return header;
+        }
+
+        @Override
+        public void apply(RDFChanges changes) {
+            changes.start();
+            header.forEach((k,v)->changes.header(k, v));
+            actions.forEach(a -> enact(a, changes)) ;
+            changes.finish();
+    } ;
+        
+    }
+    
+    public RDFPatch getRDFPatch() { return new RDFPatchStored(header, actions) ; } 
 
 //    /** Play backwards, swapping adds for deletes and delete for adds */
 //    public void playReverse(RDFChanges target) {
@@ -82,7 +102,7 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
         enact(a, target) ;
     }
     
-    private void enact(ChangeItem a, RDFChanges target) {
+    private static void enact(ChangeItem a, RDFChanges target) {
         if ( a instanceof AddQuad ) {
             AddQuad a2 = (AddQuad)a ;
             target.add(a2.g, a2.s, a2.p, a2.o) ;
@@ -132,6 +152,11 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
 
     public void reset() {
         actions.clear();
+    }
+    
+    @Override
+    public void header(String field, Node value) {
+        header.put(field, value) ;
     }
 
     @Override

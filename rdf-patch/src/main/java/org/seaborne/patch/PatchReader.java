@@ -86,15 +86,28 @@ public class PatchReader implements PatchProcessor {
         return false ;
     }
         
+    // Return true on end of transaction.
     private boolean doOneLine(Tuple<Token> line, RDFChanges sink) {
         Token token1 = line.get(0) ;
         if ( ! token1.isWord() )
             throw new PatchException("["+token1.getLine()+"] Token1 is not a word "+token1) ;
         String code = token1.getImage() ;
-        if ( code.length() != 2 )
-            throw new PatchException("["+token1.getLine()+"] Code is not 2 characters "+code) ;
+        if ( ! code.equals("H") && code.length() != 2 )
+            throw new PatchException("["+token1.getLine()+"] Code is header nor 2 characters "+code) ;
 
         switch (code) {
+            case "H": {
+                if ( line.len() != 3 )
+                    throw new PatchException("["+token1.getLine()+"] Header: length = "+line.len()) ;
+                Token token2 = line.get(1) ;
+                if ( ! token2.isWord() && ! token2.isString() )
+                    throw new PatchException("["+token1.getLine()+"] Header doesnot what with a word: "+token2) ;
+                String field = line.get(1).getImage() ;
+                Node v = tokenToNode(line.get(2)) ;
+                sink.header(field, v);
+                return false ;
+            }
+            
             case "QA": {
                 if ( line.len() != 4 && line.len() != 5 )
                     throw new PatchException("["+token1.getLine()+"] Quad add tuple error: length = "+line.len()) ;

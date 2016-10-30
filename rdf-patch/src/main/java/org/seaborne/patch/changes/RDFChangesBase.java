@@ -30,6 +30,9 @@ public abstract class RDFChangesBase implements RDFChanges {
     public void finish() {}
     
     @Override
+    public void header(String field, Node value) {} 
+    
+    @Override
     public void add(Node g, Node s, Node p, Node o) {}
 
     @Override

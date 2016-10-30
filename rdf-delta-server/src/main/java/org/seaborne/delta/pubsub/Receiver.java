@@ -35,17 +35,19 @@ import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
 public class Receiver {
+    private String baseFilename ;
+    private AtomicLong counter ;
+    private List<RDFChanges> additionalProcessors = new ArrayList<>() ;
+
     /*
-     * In-bound processing: parse (=check).
+     * In-bound processing: parse (=check) and place in the patch area
      */
-    public Receiver() {
+    public Receiver(String patchArea, int initCounter) {
+        baseFilename = patchArea+"/patch-" ;
+        counter = new AtomicLong(initCounter) ;
         addProcessor(new RDFChangesLog(RDFChangesLog::printer)) ;
     }
     
-    private String baseFilename = "Files/patch-" ;
-    private AtomicLong counter = new AtomicLong(0);
-    
-    private List<RDFChanges> additionalProcessors = new ArrayList<>() ;
     
     // -- Builderish.
     
@@ -62,7 +64,6 @@ public class Receiver {
         RDFChangesWriter dest = new RDFChangesWriter(tw) ;
         return dest ;
     }
-
     
     public synchronized void receive(InputStream in, RDFChanges changes) {
         RDFChangesWriter dest = destination() ;

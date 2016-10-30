@@ -20,11 +20,12 @@ package org.seaborne.patch;
 
 import java.io.InputStream ;
 import java.io.OutputStream ;
-import java.io.PrintStream ;
 
+import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.system.JenaSystem ;
 import org.seaborne.patch.changes.RDFChangesApply ;
+import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.seaborne.patch.system.InitPatch ;
@@ -36,6 +37,20 @@ import org.seaborne.riot.tio.impl.TokenWriterText ;
 public class RDFPatchOps {
     public static String namespace = "http://jena.apache.org/rdf-patch/" ;
     
+    /** Read an {@link RDFPatch} from a file. */
+    public static RDFPatch fileToPatch(String filename) {
+        InputStream in = IO.openFile(filename) ;
+        return read(in) ;
+    }
+    
+    /** Read an {@link RDFPatch} from a file. */
+    public static RDFPatch read(InputStream input) {
+        PatchReader pr = new PatchReader(input) ;
+        RDFChangesCollector c = new RDFChangesCollector() ;
+        pr.apply(c);
+        return c.getRDFPatch() ; 
+    }
+
     /** Apply changes from a text format input stream to a {@link DatasetGraph} */ 
     public static void applyChange(DatasetGraph dsg, InputStream input) {
         TupleReader tr = TupleIO.createTupleReaderText(input) ;

@@ -32,6 +32,11 @@ public class RDFChangesLog implements RDFChanges {
     @Override
     public void finish() {}
     
+    @Override
+    public void header(String field, Node value) {
+        print("H   %s %s", field, str(value)) ;
+    }
+    
     @FunctionalInterface
     public interface Printer {
         void print(String fmt, Object... args) ;

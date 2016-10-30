@@ -41,6 +41,9 @@ public class RDFChangesApply implements RDFChanges {
     public void finish() {}
 
     @Override
+    public void header(String field, Node value) {}
+
+    @Override
     public void add(Node g, Node s, Node p, Node o) {
         if ( g == null )
             g = Quad.defaultGraphNodeGenerated ;

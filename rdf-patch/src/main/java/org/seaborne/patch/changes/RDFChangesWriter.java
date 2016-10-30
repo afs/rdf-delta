@@ -49,6 +49,15 @@ public class RDFChangesWriter implements RDFChanges {
     @Override
     public void finish() { }
 
+    @Override
+    public void header(String field, Node value) {
+        tok.startTuple();
+        tok.sendWord("H");
+        tok.sendWord(field);
+        output(value);
+        tok.endTuple();
+    }
+    
     public void flush() {
         tok.flush(); 
     }

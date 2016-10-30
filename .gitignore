@@ -49,9 +49,8 @@ gradle-app.setting
 /run/
 DB*
 Files/
-rdf-delta-dev/Files
 
-## Developement files
+## Development files
 *.dlt
 config.ttl
 D.trig
@@ -60,3 +59,4 @@ D.nt
 Q.rq
 U.ru
 C?
+Sources/**

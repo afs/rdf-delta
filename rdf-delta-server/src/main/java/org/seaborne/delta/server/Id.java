@@ -20,18 +20,48 @@ package org.seaborne.delta.server;
 
 import java.util.UUID ;
 
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.impl.Util;
 import org.apache.jena.shared.uuid.UUIDFactory ;
 import org.apache.jena.shared.uuid.UUID_V1_Gen ;
 
 /**
- * 
+ * Move to rdf-patch?
  */
 public final class Id {
+    private static String schemeUuid = "uuid:" ;
+    private static String schemeUrnUuid = "urn:uuid:" ;
+    
     public static Id create() {
         return new Id(genUUID()) ;
     }
+    
+    public static Id fromNode(Node node) {
+        if ( node == null )
+            return null ;
+        
+        String s = null ;
+        
+        if ( node.isURI() )
+            s = node.getURI() ;
+        else if ( Util.isSimpleString(node) )
+            s = node.getLiteralLexicalForm() ;
+        
+        if ( s == null )
+            throw new IllegalArgumentException("Id input is not a URI or a string") ;
+        return fromString$(s) ;
+    } 
+    
 
     public static Id fromUUID(UUID uuid) { return new Id(uuid) ; } 
+    
+    private static Id fromString$(String str) {
+        if ( str.startsWith(schemeUuid) )
+            str = str.substring(schemeUuid.length()) ;
+        else if ( str.startsWith(schemeUrnUuid) )
+            str = str.substring(schemeUrnUuid.length()) ;
+        return fromString(str) ;
+    }
     
     public static Id fromString(String str) {
         try {
@@ -67,8 +97,8 @@ public final class Id {
     @Override
     public String toString() {
         if ( uuid != null ) 
-            return uuid.toString() ;
-        return string ;
+            return "id:"+uuid.toString() ;
+        return "id:\""+string+"\"" ;
     }
 
     @Override

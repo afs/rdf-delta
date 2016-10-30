@@ -65,6 +65,11 @@ public class RDFChangesN implements RDFChanges
     public void start() {
         changes.forEach(RDFChanges::start) ;
     }
+    
+    @Override
+    public void header(String field, Node value) {
+        changes.forEach(c->c.header(field, value)) ;
+    }
 
     @Override
     public void finish() {

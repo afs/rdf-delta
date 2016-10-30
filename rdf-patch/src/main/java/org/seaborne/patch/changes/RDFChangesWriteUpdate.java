@@ -39,12 +39,14 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     }
 
     @Override
-    public void start() {
-    }
+    public void start() { }
     
     @Override
     public void finish() { IO.flush(out) ; }
 
+    @Override
+    public void header(String field, Node value) {} 
+ 
     boolean adding = false ;
     boolean deleting = false ;
     

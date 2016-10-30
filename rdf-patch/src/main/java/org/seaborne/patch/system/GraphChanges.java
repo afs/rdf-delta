@@ -94,6 +94,7 @@ public class GraphChanges extends GraphWrapper {
         } 
     }
     
+    // Almost PrefixMappingWrapper but it decomposes all change operations to set/remove
     static class PrefixMappingMonitor implements PrefixMapping {
         
         private final PrefixMapping pmap ;
@@ -179,6 +180,16 @@ public class GraphChanges extends GraphWrapper {
         @Override
         public PrefixMapping lock() {
             return get().lock() ;
+        }
+        
+        @Override
+        public boolean hasNoMappings() {
+            return get().hasNoMappings() ;
+        }
+
+        @Override
+        public int numPrefixes() {
+            return get().numPrefixes();
         }
 
         @Override

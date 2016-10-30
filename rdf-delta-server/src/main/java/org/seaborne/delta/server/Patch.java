@@ -18,61 +18,53 @@
 
 package org.seaborne.delta.server;
 
-import java.io.InputStream ;
-import java.lang.ref.WeakReference ;
+import java.util.Map;
 
-import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.logging.Log ;
-import org.seaborne.patch.PatchReader ;
+import org.apache.jena.graph.Node;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.changes.RDFChangesCollector ;
 
-/** A single patch, backed by a disk copy */ 
-public class Patch {
-
-    private WeakReference<RDFPatch> patchRef ;
-    // The persistent record of this patch used to regenerate  
-    private final String filename ;
-    private final Id id ;
-    private final Id parent ; 
+// Exists to add more meta data to a patch.
+// XXX Revisit.
+public class Patch implements RDFPatch {
+    private final RDFPatch patch ;
     
-    public Patch(Id name, Id parent, RDFPatch patch, String filename) {
-        this.patchRef = new WeakReference<>(patch) ;
-        this.filename = filename ;
-        this.id = name ;
-        this.parent = parent ; 
+    public Patch(RDFPatch patch) {
+        this.patch = patch ;
     }
     
-    public Id getId() {
-        return id ;
+    public RDFPatch get() { return patch ; }
+    
+    @Override
+    public Node getId() {
+        return patch.getId() ;
     }
 
-    public Id getParent() {
-        return parent ;
+    @Override
+    public Node getParentId() {
+        return patch.getParentId() ;
     }
 
-    /** Play this patch through the {@link RDFChanges} provided. */ 
-    public void play(RDFChanges dest) {
-        RDFPatch p = patchRef.get() ;
-        if ( p == null ) {
-            if ( filename == null ) {
-                Log.warn(this, "No patch, no disk copy") ;
-                return ;
-            }
-            p = fileToPatch(filename) ;
-            patchRef = new WeakReference<>(p) ;
-        }
-        p.apply(dest);
+    public Id getIdAsId() {
+        return Id.fromNode(patch.getId()) ;
+    }
+
+    public Id getParentIdAsId() {
+        return Id.fromNode(patch.getParentId()) ;
+    }
+
+    @Override
+    // XXX "apply" - wrong name?
+    public void apply(RDFChanges changes) {
+        patch.apply(changes) ;
     }
     
-    // XXX Put somewhere library-ish
-    private static RDFPatch fileToPatch(String filename) {
-        InputStream in = IO.openFile(filename) ;
-        PatchReader pr = new PatchReader(in) ;
-        RDFChangesCollector c = new RDFChangesCollector() ;
-        pr.apply(c);
-        return c.getRDFPatch() ; 
-        
+    @Override
+    public Map<String, Node> header() {
+        return patch.header() ;
+    }
+
+    public void play(RDFChanges changes) {
+        patch.apply(changes) ;
     }
 }

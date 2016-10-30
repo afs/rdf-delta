@@ -27,6 +27,8 @@ public interface RDFChanges {
     public void start() ;
     public void finish() ;
     
+    public void header(String field, Node value) ; 
+    
 //    public void add(Node s, Node p, Node o) ;
 //    public void delete(Node s, Node p, Node o) ;
     

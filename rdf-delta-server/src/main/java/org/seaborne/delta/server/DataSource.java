@@ -25,14 +25,19 @@ import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.pubsub.Receiver ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** 
  * An item (one dataset and it's associated system resources)
  * under control of the server.
  * 
- * These are manged throught he {@link DataRegistry}.
+ * These are manged through the {@link DataRegistry}.
  */
 public class DataSource {
+    private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
+    
     private static String PATCHES = "Patches" ;
     private static String CONF = "source.cfg" ;
     
@@ -47,6 +52,8 @@ public class DataSource {
     private final Id id ;
     // Directory of all resources connected to this DataSourtce.
     private final Location location ;
+    // Process that can take an input stream and put a patch safe on storage. 
+    private final Receiver receiver ;
     
     // Has version stuff
     private final PatchSet patchSet ;
@@ -55,21 +62,25 @@ public class DataSource {
         formatSourceArea(sourceArea);
         InputStream in = IO.openFile(sourceArea.getPath(CONF)) ;
         if ( in == null ) {
+            LOG.info("No source configuration" ) ;
         }
         // id
         // version
         
         JsonObject obj = JSON.parse(in) ;
+        JSON.write(obj);
+        System.out.println();
         String idStr = getStrOrNull(obj, F_ID) ;
         String versionStr = getStrOrNull(obj, F_VERSION) ;
         String nameStr = getStrOrNull(obj, F_NAME) ;
         //if ( )
         
         Id id = Id.fromString(idStr) ; 
-        
+        // Scan for patch files.
+        Receiver receiver = new Receiver(sourceArea.getPath(PATCHES), 0) ;
         PatchSet patchSet = loadPatchSet(sourceArea.getPath(PATCHES)) ; 
         
-        return new DataSource(id, sourceArea, nameStr, patchSet) ;
+        return new DataSource(id, sourceArea, nameStr, patchSet, receiver) ;
         
     }
 
@@ -80,22 +91,27 @@ public class DataSource {
 
     private static String getStrOrNull(JsonObject obj, String field) {
         try {
-            return obj.get(field).getAsString().toString() ;
+            return obj.get(field).getAsString().value() ;
         } catch (Exception ex) {
             return null ;
         }
     }
     
-    private DataSource(Id id, Location location, String name, PatchSet patchSet) {
+    private DataSource(Id id, Location location, String name, PatchSet patchSet, Receiver receiver) {
         super() ;
         this.id = id ;
         this.location = location ;
+        this.receiver = receiver ;
         this.name = name ;
         this.patchSet = patchSet ;
     }
 
     public Id getId() {
         return id ;
+    }
+
+    public Receiver getReceiver() {
+        return receiver ;
     }
 
     public Location getLocation() {

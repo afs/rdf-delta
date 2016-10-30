@@ -19,15 +19,19 @@
 package org.seaborne.delta.server;
 
 import java.io.InputStream ;
-import java.util.Iterator ;
 
+import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.pubsub.Distributor ;
 import org.seaborne.delta.pubsub.Receiver ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class API {
+    
+    private static Logger LOG = LoggerFactory.getLogger(API.class) ;
     
     static Distributor distributor = new Distributor() ;
     
@@ -60,26 +64,46 @@ public class API {
     
     public static void deregister(RegToken token) {}
 
-    public static void receive(Id ref, InputStream in) {
-        DataSource source = DataRegistry.get().get(ref) ;
+    public static void receive(Id dsRef, InputStream in) {
+        DataSource source = DataRegistry.get().get(dsRef) ;
+        FmtLog.info(LOG, "receive: Dest=%s", source) ;
+        if ( source == null )
+        {}
         // id -> registation
-        RDFPatch patch = consume(source, in) ;
+        RDFPatch patch = streamToRDFPatch(source, in) ;
+        System.out.println("Patch:") ;
+        RDFPatchOps.write(System.out, patch) ;
+        
+        // Already in the safe area of the datasource.
+        DataSource ds = DataRegistry.get().get(dsRef) ;
+        PatchSet ps = ds.getPatchSet() ;
+        Patch p = new Patch(patch) ;
+        ps.add(p);
+        
+    }
+    
+    /** Process an {@code InputStream} and return an RDFPatch */
+    private static RDFPatch streamToRDFPatch(DataSource source, InputStream in) {
+        // Not - RDFPatchOps.read(in)
+        RDFChangesCollector collector = new RDFChangesCollector() ;
+        // receiver adds preprocessing.
+        Receiver receiver = source.getReceiver() ;
+        receiver.receive(in, collector);
+        return collector.getRDFPatch() ;
+    }
+    
+    public static void fetch(Id dsRef, Id patchId) {
+        DataSource source = DataRegistry.get().get(dsRef) ;
+        FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
+        if ( source == null )
+        {}
+        Patch patch = source.getPatchSet().fetch(patchId) ;
+        if ( patch == null )
+        {}
         System.out.println("Patch:") ;
         RDFPatchOps.write(System.out, patch) ;
     }
     
-    
-    /** Process an {@code InputStream} and return an RDFPatch */
-    private static RDFPatch consume(DataSource source, InputStream in) {
-        // XXX Switch to a spilling collector.
-        RDFChangesCollector collector = new RDFChangesCollector() ;
-        
-        // XXX source .locationOfPatchStorage .
-        
-        Receiver receiver = new Receiver() ;
-        receiver.receive(in, collector);
-        return collector.getRDFPatch() ;
-    }
     
 //    public static InChannel getChannel(Id data) {
 //        DataRef ref = getDataRef(data) ;
@@ -88,19 +112,6 @@ public class API {
 //        return ref.channel() ;
 //    }
     
-    public static DataRef getDataRef(Id data) {
-        return  Datasets.get(data) ;
-    }
-    
-    public static PatchSetInfo info(ChannelName channel) {
-        return null ;
-    }
-    
-    
-    public static Iterator<Patch> patches(Id start, Id finish) {
-        return null ;
-    }
-
     // Dataset system
     
     public void existingDataset() {} 
@@ -111,6 +122,8 @@ public class API {
     // Graph-only system
     
     public Id newGraph(String uri) { return null ; }
+
+    
 
     
     // New graph(base Id)

@@ -19,14 +19,38 @@
 package org.seaborne.delta.server;
 
 import org.apache.jena.atlas.lib.Registry ;
+import org.slf4j.Logger ;
 
 /** The registry of all data under the control of server */ 
 public class DataRegistry extends Registry<Id, DataSource> {
-    // Probable need a "rgistry of rgistries" so that different
-    // sets of datasets can be managed from one server.
+    
+    private static Logger LOG = DPS.LOG ;
+    private final String label ; 
+    
+    public DataRegistry(String label) {
+        this.label = label ;
+    }
+    
+    // Probably need separate registries to divide up the managed space.
     // e.g. dev-staging-prod
     
-    private static DataRegistry singleton = new DataRegistry() ;
+    private static DataRegistry singleton = new DataRegistry("central") ;
 
     public static DataRegistry get() { return singleton ; }
+    
+    @Override
+    public void put(Id key, DataSource ds) {
+        LOG.info("Register: "+key );
+        super.put(key, ds) ;
+    }
+    
+    @Override
+    public DataSource get(Id key) {
+        return super.get(key) ;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Registry: '%s': size=%d", label, super.size()) ; 
+    }
 }

@@ -36,6 +36,9 @@ public class RDFChangesCounter implements RDFChanges {
 
     @Override
     public void finish() {}
+    
+    @Override
+    public void header(String field, Node value) {}
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {

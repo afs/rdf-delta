@@ -25,6 +25,11 @@ public class RDFChangesWrapper implements RDFChanges {
     }
 
     @Override
+    public void header(String field, Node value) {
+        get().header(field, value);
+    }
+
+    @Override
     public void add(Node g, Node s, Node p, Node o) {
         get().add(g, s, p, o);
     }

@@ -18,7 +18,30 @@
 
 package org.seaborne.patch;
 
+import java.util.Map;
+
+import org.apache.jena.graph.Node;
+
 public interface RDFPatch {
+    public static final String ID = "id" ;
+    public static final String PARENT = "parent" ;
+    
+    public Map<String, Node> header() ;
+    
+    public default Node getHeader(String field) { 
+        Map<String, Node> header = header() ;
+        if ( header == null )
+            return null ;
+        return header.get(field) ; 
+    }
+    
+    public default Node getId() { 
+        return header().get(ID) ;
+    }
+
+    public default Node getParentId() {
+        return header().get(PARENT) ;
+    }
     
     /** Act of the patch by sending it to the changes processor. */ 
     public void apply(RDFChanges changes) ;

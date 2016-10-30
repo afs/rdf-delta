@@ -18,89 +18,167 @@
 
 package org.seaborne.delta.server;
 
-import java.util.* ;
-import java.util.concurrent.ConcurrentHashMap ;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
-import org.apache.jena.atlas.logging.FmtLog ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** Collection of patches for on dataset */ 
+/** Collection of patches for on dataset */
 public class PatchSet {
     // Centralized logger for regualr lifecyle reporting.
-    private static Logger LOG = LoggerFactory.getLogger(PatchSet.class) ;
+    private static Logger  LOG     = LoggerFactory.getLogger(PatchSet.class);
     // Tree?
-    
+
     // All patches.
-    private Map<Id, Patch> patches = new ConcurrentHashMap<>() ;
-    
-    // The mainline. This enables going forward.
-    private LinkedList<Patch> history = new LinkedList<>() ;
-    private final Id id ; 
-    
-    private List<PatchHandler> handlers = new ArrayList<>() ;  
-    
+    // Need indirection? Patch[local]->RDFPatch
+    private Map<Id, Patch> patches = new ConcurrentHashMap<>();
+
+    // HISTORY
+    // The history list is immutable except for the last (most recent) entry
+    // which is updated to
+    static class HistoryEntry {
+        final Id    prev;        // == patch(next).getParent()
+        Id          next;        // Not final! == null at end, and can be extended.
+        final Patch patch;
+
+        HistoryEntry(Patch patch, Id prev, Id next) {
+            this.patch = patch;
+            this.prev = prev;
+            this.next = next;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("History: Next=%s, Prev=%s", next, prev);
+        }
+    }
+
+    private HistoryEntry          start;
+    private HistoryEntry          finish;
+    private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
+
+    private final Id              id;
+
+    private List<PatchHandler>    handlers       = new ArrayList<>();
+
     public PatchSet(Id id) {
-        this.id = id ;
+        this.id = id;
     }
 
     public PatchSetInfo getInfo() {
-        return new PatchSetInfo(0L, 0L, id, null) ;
+        return new PatchSetInfo(0L, 0L, id, null);
     }
-    
+
     public void add(Patch patch) {
         // Validate.
-        patches.put(patch.getId(), patch) ;
-        // Versions.
+        patches.put(patch.getIdAsId(), patch);
+        HistoryEntry e = new HistoryEntry(patch, patch.getParentIdAsId(), null);
+        addHistoryEntry(e);
+    }
+
+    synchronized private void addHistoryEntry(HistoryEntry e) {
+        Patch patch = e.patch;
+        Id id = Id.fromNode(patch.getId());
+        FmtLog.info(LOG, "Patch id=%s (parent=%s)", patch.getId(), patch.getParentId());
+        patches.put(id, patch);
+        if ( start == null ) {
+            start = e;
+            // start.prev == null?
+            finish = e;
+            historyEntries.put(id, e);
+            FmtLog.info(LOG, "Patch starts history: id=%s", patch.getId());
+        } else {
+            if ( patch.getParentId().equals(finish.patch.getId()) ) {
+                finish.next = id;
+                finish = e;
+                historyEntries.put(id, e);
+                // if ( Objects.equals(currentHead(), patch.getParent()) ) {
+                FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
+
+            } else {
+                FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getId());
+            }
+        }
+    }
+
+    /**
+     * Get, as a copy, a slice of the history from the start point until the latest patch.
+     */
+    private List<Patch> getPatchesFromHistory(Id start) {
+        return getPatchesFromHistory(start, null);
+    }
+
+    /**
+     * Get, as a copy, a slice of the history. start and finish as inclusive. finish may
+     * be null meaning, "until latest"
+     */
+    synchronized private List<Patch> getPatchesFromHistory(Id startPt, Id finish) {
+        HistoryEntry e = 
+            startPt==null ? this.start : findHistoryEntry(startPt);
         
-        if ( Objects.equals(currentHead(), patch.getParent()) ) {
-            history.add(patch) ;
-            FmtLog.warn(LOG, "Patch queued: id=%s", patch.getId()) ;
-            handlers.forEach( ph -> ph.handle(patch));
-        } else 
-            FmtLog.warn(LOG, "Patch is out of sequence - not queued as a version: id=%s", patch.getId()) ;
+        List<Patch> x = new ArrayList<>();
+        while (e != null) {
+            x.add(e.patch);
+            if ( finish != null && e.patch.getId().equals(finish) )
+                break;
+            if ( e.next == null )
+                e = null;
+            else
+                e = historyEntries.get(e.next);
+        }
+        return x;
     }
-    
+
+    private HistoryEntry findHistoryEntry(Id start) {
+        return historyEntries.get(start);
+    }
+
+    public Stream<Patch> range(Id start, Id finish) {
+        Patch p = patches.get(start);
+        // "Next"
+
+        System.err.println("Unfinished: PatchSet.range");
+        return null;
+    }
+
     public void addHandler(PatchHandler handler) {
-        handlers.add(handler) ;
+        handlers.add(handler);
     }
-    
-    /** Access to thr handler list - this can be manipulated but the the caller
-     * is responsible for ensuring no patches are delivered or processed while
-     * being changed.
-     * <p>So safe to do during startup, not while live.
-     * <p>Low-level access : use with care.       
+
+    /**
+     * Access to thr handler list - this can be manipulated but the the caller is
+     * responsible for ensuring no patches are delivered or processed while being changed.
+     * <p>
+     * So safe to do during startup, not while live.
+     * <p>
+     * Low-level access : use with care.
      */
     public List<PatchHandler> getHandlers() {
-        return handlers ;
+        return handlers;
     }
 
-    
     private Id currentHead() {
-        if ( history.isEmpty() )
-            return null ;
-        return history.getLast().getParent() ;
+        if ( finish == null )
+            return null;
+        return finish.patch.getIdAsId();
     }
 
-    public void process(Id id, PatchHandler c) {
-        Patch patch = patches.get(id) ;
-    }
-    
-    public void processFrom(Id start, PatchHandler c) {
-        int idx = findStart(start) ; 
-        if ( idx < 0 ) {
-            FmtLog.warn(LOG, "Didn't find a patch: %s", start) ;
-            return ;
-        }
-        
-        Iterator<Patch> iter = history.listIterator(idx) ; 
-        iter.forEachRemaining((p)-> c.handle(p) ) ;
+    public void processHistoryFrom(Id start, PatchHandler c) {
+        List<Patch> x = getPatchesFromHistory(start, null);
+        x.forEach((p) -> c.handle(p));
     }
 
-    private int findStart(Id start) {
-        return history.indexOf(start) ;
+    public boolean contains(Id patchId) {
+        return patches.containsKey(patchId) ;
     }
-    
+
+    public Patch fetch(Id patchId) {
+        return patches.get(patchId) ;
+    }
+
     // Clear out.
-    
+
 }
