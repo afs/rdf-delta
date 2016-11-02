@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.regex.Matcher ;
 import java.util.regex.Pattern ;
 
-import org.apache.jena.atlas.lib.FileOps ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
@@ -32,23 +31,11 @@ public class DPS {
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
     
-    public static final String FILEBASE    = "Files" ;
-    public static final String BASEPATTERN = FILEBASE+"/patch-%04d" ;
-    public static final String TMPBASE     = FILEBASE+"/tmp-%03d" ;
-    
     /* Patch file counter.
      *  This is the index of the highest used number.
      *  File naming usually begins at 0001.   
      */
     public static final AtomicInteger counter = new AtomicInteger(0) ;
-    
-    public static void setPatchIndex() {
-        int x = scanForPatchIndex() ;
-        if ( x == -1 )
-            x = 0 ;
-        LOG.info("Patch base index = "+x);
-        counter.set(x) ;
-    }
     
     // XXX [Delta] Safety and synchronization.
     // -> have a "system state object" that gets replaced by reset. 
@@ -58,25 +45,6 @@ public class DPS {
     }
     
     static final AtomicInteger tmpCounter = new AtomicInteger(0) ;
-    
-    public static String tmpFilename() {
-        return String.format(TMPBASE, tmpCounter.incrementAndGet()) ;
-    }
-    
-    public static String patchFilename(int idx) { 
-        if ( idx < 0 )
-            throw new IllegalArgumentException("idx = "+idx) ;
-        return String.format(BASEPATTERN, idx) ;
-    }
-    
-    public static String nextPatchFilename() {
-        return patchFilename(counter.incrementAndGet()) ;
-    }
-    
-    /** Highest in-use patch number */ 
-    public static int scanForPatchIndex() {
-        return scanForIndex(FILEBASE, "patch-") ;
-    }
     
     /** Find the highest index in a directpry of files */
     public static int scanForIndex(String directory, String namebase) {
@@ -103,10 +71,6 @@ public class DPS {
         return max ;
     }
     
-    public static void cleanFileArea() {
-        FileOps.clearDirectory(FILEBASE);
-    }
-    
     private static volatile boolean initialized = false ; 
     public static void init() { 
         if ( initialized ) 
@@ -120,7 +84,5 @@ public class DPS {
     }
     
     private static void initOnce() {
-        FileOps.ensureDir(FILEBASE);
-        setPatchIndex() ;
     }
 }

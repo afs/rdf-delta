@@ -18,14 +18,13 @@
 
 package org.seaborne.delta.pubsub;
 
-import java.io.BufferedOutputStream ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.util.ArrayList ;
 import java.util.List ;
-import java.util.concurrent.atomic.AtomicLong ;
 
-import org.apache.jena.atlas.io.IO ;
+import org.seaborne.delta.server.FileEntry;
+import org.seaborne.delta.server.FileStore;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesLog ;
@@ -35,16 +34,14 @@ import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
 public class Receiver {
-    private String baseFilename ;
-    private AtomicLong counter ;
-    private List<RDFChanges> additionalProcessors = new ArrayList<>() ;
+    private FileStore fileStore;
+    private List<RDFChanges> additionalProcessors = new ArrayList<>();
 
     /*
      * In-bound processing: parse (=check) and place in the patch area
      */
-    public Receiver(String patchArea, int initCounter) {
-        baseFilename = patchArea+"/patch-" ;
-        counter = new AtomicLong(initCounter) ;
+    public Receiver(FileStore fileStore) {
+        this.fileStore = fileStore;
         addProcessor(new RDFChangesLog(RDFChangesLog::printer)) ;
     }
     
@@ -55,18 +52,16 @@ public class Receiver {
         additionalProcessors.add(changes) ;
     }
 
-    private RDFChangesWriter destination() { 
-        long id = counter.incrementAndGet() ;
-        String fn = String.format("%s%04d",baseFilename,id) ;
-        OutputStream out = IO.openOutputFile(fn) ;
-        out = new BufferedOutputStream(out, 2*1024*1024) ;
+    private RDFChangesWriter destination(FileEntry entry) {
+        OutputStream out = entry.openForWrite();
         TokenWriter tw = new TokenWriterText(out) ;
         RDFChangesWriter dest = new RDFChangesWriter(tw) ;
         return dest ;
     }
     
-    public synchronized void receive(InputStream in, RDFChanges changes) {
-        RDFChangesWriter dest = destination() ;
+    public synchronized FileEntry receive(InputStream in, RDFChanges changes) {
+        FileEntry entry = fileStore.allocateFilename();
+        RDFChangesWriter dest = destination(entry) ;
         RDFChanges pipeline = dest ;
         // Insert the extra pipeline stage.
         if ( changes != null )
@@ -96,5 +91,8 @@ public class Receiver {
         scr.apply(pipeline);
         pipeline.finish() ;
         dest.flush();
+        entry.completeWrite();
+        // Now safe on disk.
+        return entry;
     }
 }

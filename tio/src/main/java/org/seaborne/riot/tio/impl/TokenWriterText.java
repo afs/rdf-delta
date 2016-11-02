@@ -18,9 +18,7 @@
 
 package org.seaborne.riot.tio.impl;
 
-import java.io.IOException ;
-import java.io.OutputStream ;
-import java.io.Writer ;
+import java.io.*;
 import java.util.ArrayList ;
 import java.util.List ;
 
@@ -65,7 +63,15 @@ public class TokenWriterText implements TokenWriter
      *  @param out
      */
     public TokenWriterText(OutputStream out) {
-        this(IO.wrapUTF8(out)) ;
+        this(writer(out)) ;
+    }
+    
+    private static Writer writer(OutputStream out) {
+        
+        // IO.wrap(out) -- need buffering version, 
+        Writer w1 = IO.asBufferedUTF8(out);
+        Writer w2 = new BufferingWriter(w1, 1024*1024);
+        return w2;
     }
     
     /** Create a TokenOutputStreamWriter going to a Writer,

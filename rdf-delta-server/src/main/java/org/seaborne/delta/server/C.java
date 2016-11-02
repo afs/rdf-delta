@@ -21,6 +21,18 @@ package org.seaborne.delta.server;
 import java.util.UUID ;
 
 public class C {
+    
+    public static final String paramZone = "zone";
+    public static final String paramPatch = "patch";
+    public static final String paramDataset = "dataset" ;
+    public static final String paramVersion = "version" ;
+    
+    // Registration
+    public static final String paramRef = "ref" ;
+    
+
+    
+    
     public static UUID uuid1 = UUID.fromString("15724832-96c5-11e6-9d7f-131fb3e5c030") ;
     public static UUID uuid2 = UUID.fromString("168a7bea-96c5-11e6-9b34-8b157862c8dc") ;
 }

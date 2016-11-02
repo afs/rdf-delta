@@ -31,6 +31,7 @@ import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.J ;
 import org.slf4j.Logger ;
 

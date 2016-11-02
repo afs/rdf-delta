@@ -26,9 +26,7 @@ import java.nio.file.Paths ;
 import org.apache.jena.atlas.io.IO ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.lib.OutputStream2 ;
-import org.seaborne.delta.server.DPS ;
-import org.seaborne.delta.server.Patch ;
-import org.seaborne.delta.server.PatchHandler ;
+import org.seaborne.delta.server.*;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.slf4j.Logger ;
@@ -38,28 +36,24 @@ public class PHandlerToFile implements PatchHandler {
     private static Logger LOG = DPS.LOG ;
     
     static private boolean verbose = false ;
+
+    private FileStore fileStore;
     
-    public PHandlerToFile() {}
+    public PHandlerToFile(FileStore fileStore) {
+        this.fileStore = fileStore;
+    }
     
     /** Safe handler */
     @Override
     synchronized // XXX revise
     public void handle(Patch patch) {
-        String dst = DPS.nextPatchFilename() ;
-        String s = DPS.tmpFilename() ;
-        if ( verbose ) {
-            LOG.info("<<<<-----------------") ;
-            LOG.info("# Patch = "+dst+"("+s+")") ;
-        }
-
-        TokenWriter output = output(s) ;
-        RDFChangesWriter scWriter = new RDFChangesWriter(output) ;
-        patch.play(scWriter);
-        move(s, dst) ; 
-        if ( verbose )
-            LOG.info(">>>>-----------------") ;
-        else
-            LOG.info("# Patch = "+dst) ;
+        FileEntry e = fileStore.writeNewFile((out)->{
+            TokenWriter output = DeltaOps.tokenWriter(out) ;
+            RDFChangesWriter scWriter = new RDFChangesWriter(output) ;
+            patch.play(scWriter);
+            output.flush();
+        });
+        LOG.info("Write file: "+e.getDatafileName());
     }
 
 

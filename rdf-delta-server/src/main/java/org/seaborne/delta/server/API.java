@@ -19,11 +19,11 @@
 package org.seaborne.delta.server;
 
 import java.io.InputStream ;
+import java.io.OutputStream;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.pubsub.Distributor ;
 import org.seaborne.delta.pubsub.Receiver ;
-import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.slf4j.Logger;
@@ -66,42 +66,41 @@ public class API {
 
     public static void receive(Id dsRef, InputStream in) {
         DataSource source = DataRegistry.get().get(dsRef) ;
-        FmtLog.info(LOG, "receive: Dest=%s", source) ;
         if ( source == null )
-        {}
+            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+        FmtLog.info(LOG, "receive: Dest=%s", source) ;
         // id -> registation
-        RDFPatch patch = streamToRDFPatch(source, in) ;
-        System.out.println("Patch:") ;
-        RDFPatchOps.write(System.out, patch) ;
-        
-        // Already in the safe area of the datasource.
-        DataSource ds = DataRegistry.get().get(dsRef) ;
-        PatchSet ps = ds.getPatchSet() ;
-        Patch p = new Patch(patch) ;
-        ps.add(p);
-        
+        Patch patch = streamToPatch(source, in) ;
+        // Now safe: on disk or whatever. 
+        System.out.println("Patch: "+patch.getId()) ;
+        RDFPatchOps.write(System.out, patch.get()) ;
+        PatchSet ps = source.getPatchSet() ;
+        ps.add(patch);
     }
     
     /** Process an {@code InputStream} and return an RDFPatch */
-    private static RDFPatch streamToRDFPatch(DataSource source, InputStream in) {
-        // Not - RDFPatchOps.read(in)
-        RDFChangesCollector collector = new RDFChangesCollector() ;
-        // receiver adds preprocessing.
-        Receiver receiver = source.getReceiver() ;
-        receiver.receive(in, collector);
-        return collector.getRDFPatch() ;
+    private static Patch streamToPatch(DataSource source, InputStream in) {
+        // Not RDFPatchOps.read(in) because receiver adds preprocessing.
+        RDFChangesCollector collector = new RDFChangesCollector();
+        Receiver receiver = source.getReceiver();
+        FileEntry entry = receiver.receive(in, collector);
+        return new Patch(collector.getRDFPatch(), source, entry);
     }
     
-    public static void fetch(Id dsRef, Id patchId) {
+    public static void write(Id dsRef, Id patchId) {
+        fetch(dsRef, patchId, System.out);
+    }
+    
+    public static void fetch(Id dsRef, Id patchId, OutputStream out) {
         DataSource source = DataRegistry.get().get(dsRef) ;
-        FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
         if ( source == null )
-        {}
+            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
         Patch patch = source.getPatchSet().fetch(patchId) ;
         if ( patch == null )
-        {}
+            throw new DeltaExceptionBadRequest(404, "No such patch: "+patchId) ;
+        FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
         System.out.println("Patch:") ;
-        RDFPatchOps.write(System.out, patch) ;
+        RDFPatchOps.write(out, patch) ;
     }
     
     

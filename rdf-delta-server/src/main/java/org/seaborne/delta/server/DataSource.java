@@ -24,6 +24,7 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.lib.FileOps ;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.pubsub.Receiver ;
 import org.slf4j.Logger;
@@ -73,20 +74,21 @@ public class DataSource {
         String idStr = getStrOrNull(obj, F_ID) ;
         String versionStr = getStrOrNull(obj, F_VERSION) ;
         String nameStr = getStrOrNull(obj, F_NAME) ;
-        //if ( )
+        FmtLog.info(LOG, "DataSource: id=%s, version=%s, name=%s", idStr, versionStr, nameStr) ; 
         
         Id id = Id.fromString(idStr) ; 
         // Scan for patch files.
-        Receiver receiver = new Receiver(sourceArea.getPath(PATCHES), 0) ;
-        PatchSet patchSet = loadPatchSet(sourceArea.getPath(PATCHES)) ; 
+        PatchSet patchSet = loadPatchSet(id, sourceArea.getPath(PATCHES)) ;
         
+        //Where does version come from?
+        Receiver receiver = new Receiver(patchSet.getFileStore());
+                                         
         return new DataSource(id, sourceArea, nameStr, patchSet, receiver) ;
-        
     }
 
-    private static PatchSet loadPatchSet(String path) {
+    private static PatchSet loadPatchSet(Id id, String path) {
         System.err.println("DataSource.loadPatchSet : No persistence"); 
-        return new PatchSet(null) ;
+        return new PatchSet(id, path) ;
     }
 
     private static String getStrOrNull(JsonObject obj, String field) {

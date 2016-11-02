@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.server.API ;
+import org.seaborne.delta.server.C;
 import org.seaborne.delta.server.Id ;
 import org.slf4j.Logger ;
 
@@ -60,18 +61,16 @@ public class S_Patch extends ServletBase {
             }
             resp.setStatus(HttpSC.NO_CONTENT_204) ;
         } catch (RuntimeException ex) {
+            ex.printStackTrace(System.err);
             LOG.warn("Failed to process", ex); 
             resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ;
             return ;
         }
     }
     
-    public static String paramClient = "client" ;
-    public static String paramDataset = "dataset" ;
-    
-    // Either a path name /patch/ 
     private static Id getDataId(HttpServletRequest req) {
-        String datasetStr = req.getParameter(paramDataset) ;
+        // XXX Args
+        String datasetStr = req.getParameter(C.paramDataset) ;
         if ( datasetStr == null ) {
             String s = req.getServletPath() ;
             String requestURI = req.getRequestURI() ;

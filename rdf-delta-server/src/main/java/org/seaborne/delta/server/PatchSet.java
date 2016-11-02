@@ -56,16 +56,20 @@ public class PatchSet {
         }
     }
 
+    //Id of the DataSource 
+    private final Id              id;
+    private final FileStore       fileStore;
+
     private HistoryEntry          start;
     private HistoryEntry          finish;
     private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
 
-    private final Id              id;
-
     private List<PatchHandler>    handlers       = new ArrayList<>();
 
-    public PatchSet(Id id) {
+
+    public PatchSet(Id id, String location) {
         this.id = id;
+        this.fileStore = FileStore.attach(location, "patch");
     }
 
     public PatchSetInfo getInfo() {
@@ -158,6 +162,10 @@ public class PatchSet {
      */
     public List<PatchHandler> getHandlers() {
         return handlers;
+    }
+
+    public FileStore getFileStore() {
+        return fileStore;
     }
 
     private Id currentHead() {

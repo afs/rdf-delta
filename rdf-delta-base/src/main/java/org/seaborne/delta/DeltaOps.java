@@ -54,6 +54,7 @@ public class DeltaOps {
     /** Create a {@link TokenWriter} */
     public static TokenWriter tokenWriter(OutputStream out) {
         // Placeholder fopr text/binary choice.
+        // IO ops to buffer
         TokenWriter tokenWriter = new TokenWriterText(out) ;
         return tokenWriter ;
     }

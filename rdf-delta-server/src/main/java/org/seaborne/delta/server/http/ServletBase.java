@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.fuseki.server.RequestLog ;
 import org.apache.jena.fuseki.servlets.ServletOps ;
 import org.apache.jena.riot.web.HttpNames ;
+import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
@@ -58,7 +59,10 @@ public class ServletBase extends HttpServlet {
                 logger.info(x);
             }
         } catch (Exception ex) {
-
+            Delta.DELTA_LOG.error(ex.getMessage(), ex);
+            try {
+                resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ;
+            } catch (IOException ex2) {}
         }
     }
 

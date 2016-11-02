@@ -33,9 +33,16 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.fuseki.build.DatasetDescriptionRegistry;
 import org.apache.jena.fuseki.server.FusekiServer;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.client.DeltaClient;
+import org.seaborne.delta.client.RDFChangesHTTP;
 import org.seaborne.delta.server.* ;
 import org.seaborne.delta.server.http.DataPatchServer ;
+import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +67,7 @@ public class RunServer2 {
         
         String SOURCES = "/home/afs/ASF/rdf-delta/Sources" ;
         
-        Id id = Id.fromUUID(C.uuid1) ;
+        
         
         // Setup - need better registration based on scan-find.
         List<String> sourceAreas = /*FileOps.*/dirEntries(SOURCES);
@@ -76,8 +83,31 @@ public class RunServer2 {
         DataPatchServer dps = new DataPatchServer(4040) ;
         dps.start(); 
         
-        // Configure the patch pool listeners.
+        if ( false ) {
+            viaAPI();
+            return;
+        }            
+
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+        RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
+        String ds = C.uuid1.toString();
+        RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+ds) ;
+        patch.apply(remote);
         
+        DeltaClient client = DeltaClient.create("RDFP", "http://localhost:4040/", null);
+        int ver = client.getRemoteVersionLatest();
+        System.out.println("ver="+ver); 
+        // Sync.
+        
+        
+        
+        
+        // Fetch
+        
+    }
+
+    private static void viaAPI() {
+        Id id = Id.fromUUID(C.uuid1) ;
         //---- Test data.
         //Patch id=uuid:f5fdbad2-99f7-11e6-b769-bbc6688fff6c (parent=null)
         Id patch1 = Id.fromString("f5fdbad2-99f7-11e6-b769-bbc6688fff6c") ;
@@ -101,8 +131,7 @@ public class RunServer2 {
         });
         
         // Name datasource or not?
-        API.fetch(id, patch1) ;
-        
+        API.write(id, patch1) ;
     }
 
     private static List<String> dirEntries(String directory) {

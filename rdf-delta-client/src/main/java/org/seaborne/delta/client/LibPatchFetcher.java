@@ -44,6 +44,7 @@ public class LibPatchFetcher {
         }
     }
     
+    //Preferred?
     public static PatchReader fetchByPath(String url, int idx) {
         String s = url+"/"+idx ;
         try (TypedInputStream in = HttpOp.execHttpGet(s) ) {

@@ -63,12 +63,12 @@ public class TestFileStore {
     public void fs_basic_02() {
         FileStore fs = FileStore.attach(STORE, "FILE");
         assertEquals(0, fs.getCurrentIndex());
-        Path p1 = fs.nextFilename();
+        Path p1 = fs.nextFilename().datafile;
         assertEquals(1, fs.getCurrentIndex());
         int idx1 = checkFilename(p1);
         assertEquals(1, idx1);
         
-        Path p2 = fs.nextFilename();
+        Path p2 = fs.nextFilename().datafile;
         int idx2 = checkFilename(p2);
         assertEquals(2, fs.getCurrentIndex());
         assertEquals(2, idx2);
@@ -83,16 +83,17 @@ public class TestFileStore {
     public void fs_write_01() throws IOException {
         FileStore fs = FileStore.attach(STORE, "FILE");
         assertEquals(0, fs.getCurrentIndex());
-        Path p = fs.writeNewFile(out->{
+        FileEntry entry = fs.writeNewFile(out->{
             try(AWriter aw = IO .wrapUTF8(out)) {
               aw.write("abc");  
             } 
         }) ;
-        assertNotNull(p);
-        int idx = checkFilename(p);
+        assertNotNull(entry);
+        assertNotNull(entry.datafile);
+        int idx = checkFilename(entry.datafile);
         assertEquals(1, idx);
         // Read it back in again.
-        String s = FileUtils.readWholeFileAsUTF8(p.toString());
+        String s = FileUtils.readWholeFileAsUTF8(entry.getDatafileName());
         assertEquals("abc", s);
     }
     

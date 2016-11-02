@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.server;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
@@ -34,7 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.patch.PatchException;
 import org.slf4j.Logger;
@@ -111,23 +109,21 @@ public class FileStore {
     }
 
     /**
-     * Return an absolute filename to the next file to use in the file store. The file for
+     * Return detaisl of the next file slot to use in the file store. The file for
      * this name does not exist.
      * <p>
      * This operation is thread-safe.
-     * <p>
-     * Use {@link #allocateFilename} to get a filename and a related tmp file.
      */
-    public Path nextFilename() {
-        return allocateFilename().getLeft();
+    public FileEntry nextFilename() {
+        return allocateFilename();
     }
-
+    
     /**
      * Return the {@link #nextFilename} along with a temporary filename.
      * <p>
      * This operation is thread-safe.
      */
-    public Pair<Path, Path> allocateFilename() {
+    public FileEntry allocateFilename() {
         synchronized(this) { 
             for ( ;; ) {
                 int idx = nextIndex();
@@ -141,7 +137,7 @@ public class FileStore {
                     FmtLog.warn(LOG, "Skipping existing tmp file: %s", tmpFn);
                     continue;
                 }
-                return Pair.create(fn, tmpFn);
+                return new FileEntry(idx, fn, tmpFn) ;
             }
         }
     }
@@ -153,18 +149,12 @@ public class FileStore {
      * @params Consumer The code to write the contents.
      * @returns Path to the new file.
      */
-    public Path writeNewFile(Consumer<OutputStream> action) {
-        Pair<Path, Path> p = allocateFilename(); // (file,tmp)
-        Path file = p.getLeft();
-        Path tmp = p.getRight();
-        
-        try ( OutputStream out = new BufferedOutputStream(Files.newOutputStream(tmp))) {
-            // Write contents.
+    public FileEntry writeNewFile(Consumer<OutputStream> action) {
+        FileEntry file = allocateFilename(); // (file,tmp)
+        try(OutputStream out = file.openForWrite()) {
             action.accept(out);
+            file.completeWrite();
         } catch(IOException ex) { IO.exception(ex); }
-        // tmp closed.
-        // Move - same file system means this is atomic.
-        move(tmp,file) ;
         return file;
     }
     
@@ -175,7 +165,7 @@ public class FileStore {
 
     
     //Move a complete file into place
-    private static void move(Path src, Path dst) {
+    static void move(Path src, Path dst) {
         try { Files.move(src, dst) ; }
         catch (IOException ex) {
             LOG.warn(String.format("IOException moving %s to %s", src, dst) , ex);

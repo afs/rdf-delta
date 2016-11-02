@@ -24,13 +24,18 @@ import org.apache.jena.graph.Node;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 
-// Exists to add more meta data to a patch.
-// XXX Revisit.
+/** Holder for an {@link RDFPatch}. This carries with it system information
+ * such as where the patch is stored and any local version number. 
+ */
 public class Patch implements RDFPatch {
-    private final RDFPatch patch ;
+    private final RDFPatch patch;
+    private final DataSource dataSource;
+    private final FileEntry fileEntry;
     
-    public Patch(RDFPatch patch) {
-        this.patch = patch ;
+    public Patch(RDFPatch patch, DataSource source, FileEntry entry) {
+        this.patch = patch;
+        this.dataSource = source;
+        this.fileEntry = entry;
     }
     
     public RDFPatch get() { return patch ; }
@@ -66,5 +71,13 @@ public class Patch implements RDFPatch {
 
     public void play(RDFChanges changes) {
         patch.apply(changes) ;
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public long getSourceVersion() {
+        return fileEntry.version;
     }
 }

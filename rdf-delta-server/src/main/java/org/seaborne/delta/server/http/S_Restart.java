@@ -34,7 +34,7 @@ public class S_Restart extends ServletBase {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LOG.info("Server reset");
-        DPS.setPatchIndex();
+        // XXX ??? Reset anything?
         resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
 }
