@@ -28,6 +28,7 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.server.API ;
 import org.seaborne.delta.server.C;
+import org.seaborne.delta.server.DeltaExceptionBadRequest;
 import org.seaborne.delta.server.Id ;
 import org.slf4j.Logger ;
 
@@ -76,6 +77,8 @@ public class S_Patch extends ServletBase {
             String requestURI = req.getRequestURI() ;
             if ( requestURI.startsWith(s) ) {
                 String dname = requestURI.substring(s.length()) ;
+                if ( dname.isEmpty() )
+                    throw new DeltaExceptionBadRequest("No dataset parameter");
                 LOG.info("Dataset name = "+dname);
                 return Id.fromString(dname) ;
             }

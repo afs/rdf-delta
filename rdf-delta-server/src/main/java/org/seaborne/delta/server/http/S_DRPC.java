@@ -31,12 +31,16 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.server.DPS ;
+import org.seaborne.delta.server.API;
+import org.seaborne.delta.server.DeltaExceptionBadRequest;
+import org.seaborne.delta.server.Id;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
 public class S_DRPC extends ServletBase {
     private static Logger LOG = Delta.DELTA_RPC_LOG ;
+    
+    // XXX JsonAction
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -44,30 +48,15 @@ public class S_DRPC extends ServletBase {
         try (InputStream in = req.getInputStream()  ) {
             arg = JSON.parse(in) ;
         } catch (JsonException ex) {
-            LOG.warn("400 "+ex.getMessage()) ;
-            resp.sendError(HttpSC.BAD_REQUEST_400, "JSON exception: "+ex.getMessage()) ;
-//            OutputStream out = resp.getOutputStream() ;
-//            PrintStream ps = new PrintStream(out) ; 
-//            ex.printStackTrace(ps);
-//            ps.flush();
-            return ;
+            throw new DeltaExceptionBadRequest("Bad JSON argument: "+ex.getMessage()) ;
         }
-        
             
-        String op ;
-        try {
-            op = arg.get(DP.F_OP).getAsString().value() ;
-        } catch (JsonException ex) {
-            LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
-            LOG.warn("Bad object: 400 "+ex.getMessage()) ;
-            resp.sendError(HttpSC.BAD_REQUEST_400, "JSON exception: "+ex.getMessage()) ;
-            return ;
-        }
+        String op = getField(arg, DP.F_OP);
         
         JsonValue rslt = null ;
         switch(op) {
             case DP.OP_EPOCH:
-                rslt = epoch(arg) ;
+                rslt = epoch(arg);
                 break ;
             default: {
                 LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
@@ -93,9 +82,33 @@ public class S_DRPC extends ServletBase {
         }   
     }        
         
+    static class DRPPEception extends RuntimeException {
+        private int code;
+
+        public DRPPEception(int code, String message) {
+            super(message);
+            this.code = code ;
+        }
+    }
+    
     private JsonValue epoch(JsonObject arg) {
-        int x = DPS.counter.get() ;
-        return JsonNumber.value(x) ;
+        String dataSourceId = getField(arg, DP.F_DATASOURCE);
+        Id dsRef = Id.fromString(dataSourceId);
+        int version = API.getCurrentVersion(dsRef);
+        return JsonNumber.value(version);
+    }
+
+    private static String getField(JsonObject arg, String field) {
+        try {
+            if ( ! arg.hasKey(field) ) {
+                LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+                throw new DeltaExceptionBadRequest("Missing field: "+field) ;
+            }
+            return arg.get(field).getAsString().value() ;
+        } catch (JsonException ex) {
+            LOG.warn("Bad request: Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+            throw new DeltaExceptionBadRequest("Bad field'"+field+" : "+arg.get(field)) ;
+        }
     }
     
     // ==> JSON.

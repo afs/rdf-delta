@@ -36,6 +36,7 @@ import org.apache.jena.fuseki.server.FusekiServer;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.RDFChangesHTTP;
 import org.seaborne.delta.server.* ;
@@ -64,39 +65,45 @@ public class RunServer2 {
         // DataRegistry -> DataSource
         // DataSource = one changing 
         
-        
         String SOURCES = "/home/afs/ASF/rdf-delta/Sources" ;
-        
-        
-        
         // Setup - need better registration based on scan-find.
-        List<String> sourceAreas = /*FileOps.*/dirEntries(SOURCES);
-        
-        
         Location sourceArea = Location.create(SOURCES) ;
-        DataSource source = DataSource.build(sourceArea) ;
-        System.out.println(source) ;
+        DataSource source = DataSource.attach(sourceArea) ;
+        //System.out.println(source) ;
+
         DataRegistry dReg = DataRegistry.get();
         dReg.put(source.getId(), source);
 
         // Server.
         DataPatchServer dps = new DataPatchServer(4040) ;
         dps.start(); 
+        Delta.DELTA_LOG.info("==== ====");
         
         if ( false ) {
             viaAPI();
             return;
         }            
 
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-        RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
         String ds = C.uuid1.toString();
-        RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+ds) ;
-        patch.apply(remote);
+
+        if ( false ) {
+            // Send patch.
+            DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+            RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
+            RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+ds) ;
+            patch.apply(remote);
+        }
         
-        DeltaClient client = DeltaClient.create("RDFP", "http://localhost:4040/", null);
-        int ver = client.getRemoteVersionLatest();
-        System.out.println("ver="+ver); 
+        DeltaClient client = DeltaClient.create("RDFP", "http://localhost:4040/", ds, null);
+        
+        // Poll **** ?zone=&dataset= -> version
+        // Fetch **** ?zone=&dataset=&version=
+        // Client API == API.java
+        
+//        int ver = client.getRemoteVersionLatest();
+        Id id2 = Id.fromString(ds); 
+        int ver = API.getCurrentVersion(id2);
+        System.out.println("ver="+ver);
         // Sync.
         
         

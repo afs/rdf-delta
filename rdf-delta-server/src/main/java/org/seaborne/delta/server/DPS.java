@@ -19,7 +19,6 @@
 package org.seaborne.delta.server;
 
 import java.io.File ;
-import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.regex.Matcher ;
 import java.util.regex.Pattern ;
 
@@ -30,21 +29,6 @@ public class DPS {
     
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
-    
-    /* Patch file counter.
-     *  This is the index of the highest used number.
-     *  File naming usually begins at 0001.   
-     */
-    public static final AtomicInteger counter = new AtomicInteger(0) ;
-    
-    // XXX [Delta] Safety and synchronization.
-    // -> have a "system state object" that gets replaced by reset. 
-    
-    public static int getPatchIndex() {
-        return counter.get();
-    }
-    
-    static final AtomicInteger tmpCounter = new AtomicInteger(0) ;
     
     /** Find the highest index in a directpry of files */
     public static int scanForIndex(String directory, String namebase) {

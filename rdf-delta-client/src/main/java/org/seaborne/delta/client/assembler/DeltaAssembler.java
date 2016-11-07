@@ -127,7 +127,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     }
 
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
-        DeltaClient client = DeltaClient.create("foo",  source, dsg) ;
+        DeltaClient client = DeltaClient.create("foo",  source, null, dsg) ;
         Runnable r = ()->{
             try { client.sync(); }
             catch (Exception ex) { 

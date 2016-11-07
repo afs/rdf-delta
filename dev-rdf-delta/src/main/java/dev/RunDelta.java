@@ -36,6 +36,7 @@ import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.client.DeltaClient ;
+import org.seaborne.delta.server.C;
 import org.seaborne.delta.server.DPS ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
@@ -78,9 +79,11 @@ public class RunDelta {
         finally { System.exit(0) ; }
     }
     
+    static String datasourceId = C.uuid1.toString(); 
+    
     public static void run() {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
-        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
+        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", datasourceId, dsg1) ;
         //syncAgent(client1) ;
         sync(client1) ;
         Txn.executeRead(dsg1, ()->{
@@ -105,14 +108,14 @@ public class RunDelta {
     
     public static void run(DatasetGraph dsg) {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
-        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
+        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", datasourceId, dsg1) ;
         if ( false ) {
             int x = client1.getRemoteVersionNumber() ;
             System.out.println("epoch = "+x) ;
         }
 
         DatasetGraph dsg2 = TDBFactory.createDatasetGraph() ;
-        DeltaClient client2 = DeltaClient.create("C2", "http://localhost:"+DP.PORT+"/", dsg2) ;
+        DeltaClient client2 = DeltaClient.create("C2", "http://localhost:"+DP.PORT+"/", datasourceId, dsg2) ;
 
         syncAgent(client2) ;
         

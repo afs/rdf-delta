@@ -53,7 +53,7 @@ public class FileStore {
     private static Logger               LOG   = LoggerFactory.getLogger(FileStore.class);
     // Key'ed by directory and name name.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();
-
+    
     public static FileStore attach(String dirname, String basename) {
         Objects.requireNonNull(dirname, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
@@ -64,9 +64,10 @@ public class FileStore {
         if ( areas.containsKey(k) )
             return areas.get(k);
         int idx = scanForIndex(path, basename);
-        if ( idx == 0 )
         if ( idx == -1 )
             throw new IllegalArgumentException("Path '" + path + "' does not name a directory");
+        else
+            FmtLog.info(LOG, "FileStore '%s' : version %d", dirname, idx);
         FileStore fs = new FileStore(path, basename, idx);
         areas.put(k, fs);
         return fs;

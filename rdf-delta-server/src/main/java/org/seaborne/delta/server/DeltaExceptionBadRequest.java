@@ -16,24 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http;
+package org.seaborne.delta.server;
 
-import java.io.IOException ;
+import org.seaborne.delta.DeltaException;
 
-import javax.servlet.http.HttpServletRequest ;
-import javax.servlet.http.HttpServletResponse ;
-
-import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.Delta ;
-import org.slf4j.Logger ;
-
-public class S_Restart extends ServletBase {
-    static private Logger LOG = Delta.DELTA_LOG ;
+/** Exception to throw when a requets is wrong in some way */ 
+public class DeltaExceptionBadRequest extends DeltaException {
+    private final int statusCode ;  
     
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Server reset");
-        // XXX ??? Reset anything?
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+    public DeltaExceptionBadRequest(String msg)
+    { this(400, msg) ; }
+    
+    public DeltaExceptionBadRequest(int code, String msg) {
+        super(code+" "+msg) ;
+        statusCode = code ;
     }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+    
+    //public Throwable fillInStackTrace() {}
 }

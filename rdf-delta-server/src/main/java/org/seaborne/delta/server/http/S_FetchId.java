@@ -18,22 +18,22 @@
 
 package org.seaborne.delta.server.http;
 
-import java.io.IOException ;
+import javax.servlet.http.HttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest ;
-import javax.servlet.http.HttpServletResponse ;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.server.DeltaExceptionBadRequest;
 
-import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.Delta ;
-import org.slf4j.Logger ;
-
-public class S_Restart extends ServletBase {
-    static private Logger LOG = Delta.DELTA_LOG ;
-    
+/** fetch by "?id=" */
+public class S_FetchId extends FetchBase {
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Server reset");
-        // XXX ??? Reset anything?
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+    protected Args getArgs(HttpServletRequest req) {
+        Args a = Args.args(req);
+        if ( a.dataset == null )
+            throw new DeltaExceptionBadRequest("No dataset specificed");
+        if ( a.zone == null )
+            Delta.DELTA_HTTP_LOG.warn("No Zone specified");
+        if ( a.patchId == null && a.version == null )
+            throw new DeltaExceptionBadRequest("No patch id, no version");
+        return a;
     }
 }

@@ -18,11 +18,20 @@
 
 package org.seaborne.delta.server;
 
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +72,7 @@ public class PatchSet {
     private HistoryEntry          start;
     private HistoryEntry          finish;
     private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
+    //private Map<Integer, Id>      versionToId = new ConcurrentHashMap<>();
 
     private List<PatchHandler>    handlers       = new ArrayList<>();
 
@@ -185,6 +195,31 @@ public class PatchSet {
 
     public Patch fetch(Id patchId) {
         return patches.get(patchId) ;
+    }
+
+    public RDFPatch fetch(int version) {
+        Path p = fileStore.filename(version);
+        try {
+            InputStream in = Files.newInputStream(p);
+            RDFPatch patch = RDFPatchOps.read(in) ;
+            return patch;
+        } catch (IOException ex) {
+            IO.exception(ex);
+            return null;
+        }
+    }
+    
+    public Id find(int version) {
+        // XXX Do better!
+        Path p = fileStore.filename(version);
+        try {
+            InputStream in = Files.newInputStream(p);
+            RDFPatch patch = RDFPatchOps.read(in) ;
+            return Id.fromNode(patch.getId());
+        } catch (IOException ex) {
+            IO.exception(ex);
+            return null;
+        }
     }
 
     // Clear out.

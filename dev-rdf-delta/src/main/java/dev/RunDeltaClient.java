@@ -33,6 +33,7 @@ import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.client.DeltaClient ;
+import org.seaborne.delta.server.C;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -65,9 +66,11 @@ public class RunDeltaClient {
         finally { System.exit(0) ; }
     }
     
+    static String datasourceId = C.uuid1.toString(); 
+    
     public static void run() {
         DatasetGraph dsg1 = TDBFactory.createDatasetGraph() ;
-        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", dsg1) ;
+        DeltaClient client1 = DeltaClient.create("C1", "http://localhost:"+DP.PORT+"/", datasourceId, dsg1) ;
         //syncAgent(client1) ;
         System.out.println(url);
         

@@ -31,6 +31,7 @@ import org.apache.jena.fuseki.servlets.ServletOps ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server.DeltaExceptionBadRequest;
 import org.slf4j.Logger ;
 
 public class ServletBase extends HttpServlet {
@@ -58,11 +59,16 @@ public class ServletBase extends HttpServlet {
                 String x = RequestLog.combinedNCSA(req, resp) ;
                 logger.info(x);
             }
-        } catch (Exception ex) {
-            Delta.DELTA_LOG.error(ex.getMessage(), ex);
+        } catch (DeltaExceptionBadRequest ex) {
+            Delta.DELTA_LOG.warn("Bad request: "+ex.getMessage());
             try {
-                resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ;
+                resp.sendError(HttpSC.BAD_REQUEST_400, ex.getMessage()) ;
             } catch (IOException ex2) {}
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+            Delta.DELTA_LOG.error(ex.getMessage(), ex);
+            try { resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ; }
+            catch (IOException ex2) {}
         }
     }
 

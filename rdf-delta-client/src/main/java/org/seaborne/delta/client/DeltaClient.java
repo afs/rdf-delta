@@ -19,6 +19,7 @@
 package org.seaborne.delta.client;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -59,15 +60,19 @@ public class DeltaClient {
     
     private final RDFChanges target;
     private final String label;
+    private final String datasourceId;
     
-    public static DeltaClient create(String label, String url, DatasetGraph dsg) {
-        DeltaClient client = new DeltaClient(label, url, dsg);
+    public static DeltaClient create(String label, String url, String datasourceId, DatasetGraph dsg) {
+        Objects.requireNonNull(datasourceId, "Null data source Id");
+        Objects.requireNonNull(url, "Null url");
+        
+        DeltaClient client = new DeltaClient(label, url, datasourceId, dsg);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
     }
     
-    private DeltaClient(String label, String controller, DatasetGraph dsg) {
+    private DeltaClient(String label, String controller, String datasourceId, DatasetGraph dsg) {
         // [Delta]
         localEpochPersistent = new TransPInteger(label);
         localEpoch.set(0);
@@ -78,6 +83,7 @@ public class DeltaClient {
         this.label = label;
         this.remoteServer = controller; 
         this.base = dsg;
+        this.datasourceId = datasourceId ;
         
         if ( dsg != null ) {
             // Where to put incoming changes. 
@@ -195,7 +201,12 @@ public class DeltaClient {
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
         
-        JsonObject obj = J.buildObject((b)-> b.key("operation").value(DP.OP_EPOCH));
+        JsonObject obj = J.buildObject((b)-> { 
+            b.key("operation").value(DP.OP_EPOCH);
+            b.key("datasource").value(datasourceId);
+        });
+        
+        
         JsonValue r = DRPC.rpc(remoteServer+DP.EP_RPC, obj);
         if ( ! r.isNumber() )
             System.err.println("Not a number: "+r);
@@ -203,7 +214,8 @@ public class DeltaClient {
     }
     
     public PatchReader fetchPatch(int id) {
-        return LibPatchFetcher.fetchByPath(remoteServer+DP.EP_Patch, id);
+        //return LibPatchFetcher.fetchByPath(remoteServer+DP.EP_Patch, id);
+        return LibPatchFetcher.fetch_byID(remoteServer+DP.EP_Fetch, datasourceId, id);
     }
     
     @Override

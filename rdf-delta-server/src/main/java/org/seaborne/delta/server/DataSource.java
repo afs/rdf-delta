@@ -23,6 +23,7 @@ import java.io.InputStream ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonObject ;
+import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location ;
@@ -59,18 +60,18 @@ public class DataSource {
     // Has version stuff
     private final PatchSet patchSet ;
     
-    public static DataSource build(Location sourceArea) {
+    public static DataSource attach(Location sourceArea) {
         formatSourceArea(sourceArea);
         InputStream in = IO.openFile(sourceArea.getPath(CONF)) ;
         if ( in == null ) {
-            LOG.info("No source configuration" ) ;
+            LOG.warn("No source configuration" );
         }
         // id
         // version
         
         JsonObject obj = JSON.parse(in) ;
-        JSON.write(obj);
-        System.out.println();
+        //JSON.write(obj);
+        //System.out.println();
         String idStr = getStrOrNull(obj, F_ID) ;
         String versionStr = getStrOrNull(obj, F_VERSION) ;
         String nameStr = getStrOrNull(obj, F_NAME) ;
@@ -82,21 +83,25 @@ public class DataSource {
         
         //Where does version come from?
         Receiver receiver = new Receiver(patchSet.getFileStore());
-                                         
         return new DataSource(id, sourceArea, nameStr, patchSet, receiver) ;
     }
 
     private static PatchSet loadPatchSet(Id id, String path) {
-        System.err.println("DataSource.loadPatchSet : No persistence"); 
         return new PatchSet(id, path) ;
     }
 
     private static String getStrOrNull(JsonObject obj, String field) {
-        try {
-            return obj.get(field).getAsString().value() ;
-        } catch (Exception ex) {
-            return null ;
+        JsonValue jv = obj.get(field);
+        if ( jv == null ) {
+            LOG.warn("Field '"+field+"' not found");
+            return null;
         }
+        if ( jv.isString() )
+            return jv.getAsString().value();
+        if ( jv.isNumber() )
+            return jv.getAsNumber().value().toString();
+        LOG.warn("field "+field+" : returning null for the string value");
+        return null ;
     }
     
     private DataSource(Id id, Location location, String name, PatchSet patchSet, Receiver receiver) {

@@ -21,9 +21,11 @@ package org.seaborne.delta.server;
 import java.io.InputStream ;
 import java.io.OutputStream;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.pubsub.Distributor ;
 import org.seaborne.delta.pubsub.Receiver ;
+import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.slf4j.Logger;
@@ -55,15 +57,18 @@ public class API {
     }
     
     public static Registration register(String name) {
-        return null ;
+        throw new NotImplemented();
     }
 
     public Registration register(String name, Id id) {
-        return null ;
+        throw new NotImplemented();
     }
     
-    public static void deregister(RegToken token) {}
+    public static void deregister(RegToken token) {
+        throw new NotImplemented();
+    }
 
+    /** Receive a patch which is read by the {@code InputStream}. */
     public static void receive(Id dsRef, InputStream in) {
         DataSource source = DataRegistry.get().get(dsRef) ;
         if ( source == null )
@@ -77,6 +82,17 @@ public class API {
         PatchSet ps = source.getPatchSet() ;
         ps.add(patch);
     }
+
+    public static int getCurrentVersion(Id dsRef) {
+        DataSource source = DataRegistry.get().get(dsRef) ;
+        if ( source == null )
+            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+        return getCurrentVersion(source);
+    }
+
+    public static int getCurrentVersion(DataSource source) {
+        return source.getPatchSet().getFileStore().getCurrentIndex();
+    }
     
     /** Process an {@code InputStream} and return an RDFPatch */
     private static Patch streamToPatch(DataSource source, InputStream in) {
@@ -87,10 +103,22 @@ public class API {
         return new Patch(collector.getRDFPatch(), source, entry);
     }
     
+    /** Retrieve a patch and print it (debugging). */
     public static void write(Id dsRef, Id patchId) {
         fetch(dsRef, patchId, System.out);
     }
     
+    /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
+    public static void fetch(Id dsRef, int version, OutputStream out) {
+        DataSource source = DataRegistry.get().get(dsRef) ;
+        if ( source == null )
+            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+        RDFPatch patch = source.getPatchSet().fetch(version);
+        FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
+        RDFPatchOps.write(out, patch) ;
+    }
+
+        /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     public static void fetch(Id dsRef, Id patchId, OutputStream out) {
         DataSource source = DataRegistry.get().get(dsRef) ;
         if ( source == null )
@@ -99,7 +127,6 @@ public class API {
         if ( patch == null )
             throw new DeltaExceptionBadRequest(404, "No such patch: "+patchId) ;
         FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
-        System.out.println("Patch:") ;
         RDFPatchOps.write(out, patch) ;
     }
     
