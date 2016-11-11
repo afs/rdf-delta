@@ -28,6 +28,11 @@ import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
 public class S_Ping extends ServletBase {
+    
+    public S_Ping() {
+        super(null) ;
+    }
+
     static private Logger LOG = Delta.DELTA_LOG ;
     
     @Override

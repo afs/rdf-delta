@@ -31,13 +31,18 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.server.API;
+import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.conn.Id ;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
-import org.seaborne.delta.server.Id;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
 public class S_DRPC extends ServletBase {
+    
+    public S_DRPC(DeltaConnection engine) {
+        super(engine) ;
+    }
+
     private static Logger LOG = Delta.DELTA_RPC_LOG ;
     
     // XXX JsonAction
@@ -94,7 +99,7 @@ public class S_DRPC extends ServletBase {
     private JsonValue epoch(JsonObject arg) {
         String dataSourceId = getField(arg, DP.F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
-        int version = API.getCurrentVersion(dsRef);
+        int version = engine.getCurrentVersion(dsRef);
         return JsonNumber.value(version);
     }
 

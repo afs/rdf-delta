@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory ;
 /** Collect the bytes of a change stream, then write to HTTP */ 
 public class RDFChangesHTTP extends RDFChangesWriter {
     
-    // This should be tied to the DeltaClient and that control text/binary.
+    // This should be tied to the DeltaConnection and that control text/binary.
     
     private static final Logger LOG = LoggerFactory.getLogger(RDFChangesHTTP.class) ;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();

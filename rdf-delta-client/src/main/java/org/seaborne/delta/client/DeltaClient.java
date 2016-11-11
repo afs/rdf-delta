@@ -23,35 +23,35 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.system.Txn;
-import org.seaborne.delta.DP;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.lib.J;
-import org.seaborne.patch.PatchReader;
+import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.conn.Id ;
 import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.changes.RDFChangesApply;
+import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.slf4j.Logger;
 import txnx.TransPInteger;
 
+/** Provides an interface to a specific dataset over the general {@link DeltaConnection} API. */ 
 public class DeltaClient {
     
     private static Logger LOG = Delta.DELTA_LOG;
     
     // The version of the remote copy.
+    
+    private final DeltaConnection connection ;
+    
     private final AtomicInteger remoteEpoch = new AtomicInteger(0);
     private final AtomicInteger localEpoch = new AtomicInteger(0);
     private final TransPInteger localEpochPersistent;
 
-    private final String remoteServer;
-    
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
     
@@ -60,19 +60,19 @@ public class DeltaClient {
     
     private final RDFChanges target;
     private final String label;
-    private final String datasourceId;
+    private final Id datasourceId;
     
-    public static DeltaClient create(String label, String url, String datasourceId, DatasetGraph dsg) {
+    public static DeltaClient create(String label, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
-        Objects.requireNonNull(url, "Null url");
+        Objects.requireNonNull(connection, "Null connection");
         
-        DeltaClient client = new DeltaClient(label, url, datasourceId, dsg);
+        DeltaClient client = new DeltaClient(label, datasourceId, dsg, connection);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
     }
     
-    private DeltaClient(String label, String controller, String datasourceId, DatasetGraph dsg) {
+    private DeltaClient(String label, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
         // [Delta]
         localEpochPersistent = new TransPInteger(label);
         localEpoch.set(0);
@@ -81,15 +81,19 @@ public class DeltaClient {
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient");
         
         this.label = label;
-        this.remoteServer = controller; 
         this.base = dsg;
         this.datasourceId = datasourceId ;
+        this.connection = connection;
         
-        if ( dsg != null ) {
+        // XXX Ugly
+        if ( dsg != null && connection instanceof DeltaConnectionHTTP ) {
+            String url = ((DeltaConnectionHTTP)connection).getServerSendURL();
             // Where to put incoming changes. 
             this.target = new RDFChangesApply(dsg);
             // Where to send outgoing changes.
-            RDFChanges monitor = new RDFChangesHTTP(syncObject, controller+DP.EP_Patch);
+            // Make RDFChangesHTTP one shot.
+            // Add RDFChangesDSG
+            RDFChanges monitor = new RDFChangesHTTP(syncObject, url);
             this.managed = new DatasetGraphChanges(dsg, monitor);
         } else {
             this.target = null;
@@ -107,7 +111,6 @@ public class DeltaClient {
     private void register() {
         sync();
     }
-    
     
     public void sync() {
         // Sync with RDFChangesHTTP 
@@ -147,11 +150,11 @@ public class DeltaClient {
             FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer);
             IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
                 FmtLog.info(LOG, "Sync: patch=%d", x);
-                PatchReader pr = fetchPatch(x);
+                RDFPatch patch = fetchPatch(x);
                 RDFChanges c = target;
                 if ( true )
                     c = DeltaOps.print(c);
-                pr.apply(c);
+                patch.apply(c);
             });
             setRemoteVersionNumber(remoteVer);
             setLocalVersionNumber(remoteVer);
@@ -165,6 +168,13 @@ public class DeltaClient {
     public String getName() {
         return label;
     }
+
+    
+    /** Actively get the remote version */  
+    public int getRemoteVersionLatest() {
+        return connection.getCurrentVersion(datasourceId);
+    }
+    
     /** Return the version of the local data store */ 
     public int getLocalVersionNumber() {
         return localEpoch.get();
@@ -198,24 +208,13 @@ public class DeltaClient {
         return base;
     }
 
-    /** Actively get the remote version */  
-    public int getRemoteVersionLatest() {
-        
-        JsonObject obj = J.buildObject((b)-> { 
-            b.key("operation").value(DP.OP_EPOCH);
-            b.key("datasource").value(datasourceId);
-        });
-        
-        
-        JsonValue r = DRPC.rpc(remoteServer+DP.EP_RPC, obj);
-        if ( ! r.isNumber() )
-            System.err.println("Not a number: "+r);
-        return r.getAsNumber().value().intValue();
+    public void sendPatch(RDFPatch patch) {
+        connection.sendPatch(datasourceId, patch);
     }
     
-    public PatchReader fetchPatch(int id) {
-        //return LibPatchFetcher.fetchByPath(remoteServer+DP.EP_Patch, id);
-        return LibPatchFetcher.fetch_byID(remoteServer+DP.EP_Fetch, datasourceId, id);
+
+    public RDFPatch fetchPatch(int id) {
+        return connection.fetch(datasourceId, id);
     }
     
     @Override
@@ -223,4 +222,5 @@ public class DeltaClient {
         return String.format("Client '%s' [local=%d, remote=%d]", getName(),
                              getLocalVersionNumber(), getRemoteVersionNumber());
     }
+
 }

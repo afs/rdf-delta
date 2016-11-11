@@ -26,10 +26,12 @@ import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.server.API ;
+import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.conn.Id ;
 import org.seaborne.delta.server.C;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
-import org.seaborne.delta.server.Id ;
+import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
 
 /** Receive an incoming patch.
@@ -38,7 +40,9 @@ import org.slf4j.Logger ;
 public class S_Patch extends ServletBase {
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
     
-    public S_Patch() {}
+    public S_Patch(DeltaConnection engine) {
+        super(engine);
+    }
     
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -56,10 +60,9 @@ public class S_Patch extends ServletBase {
             resp.sendError(HttpSC.BAD_REQUEST_400, "Bad data id") ;
             return ;
         }
-        try {
-            try (InputStream in = req.getInputStream()) {
-                API.receive(ref, in) ;
-            }
+        try (InputStream in = req.getInputStream()) {
+            RDFPatch patch = RDFPatchOps.read(in);
+            engine.sendPatch(ref, patch);
             resp.setStatus(HttpSC.NO_CONTENT_204) ;
         } catch (RuntimeException ex) {
             ex.printStackTrace(System.err);

@@ -21,10 +21,15 @@ package org.seaborne.delta.server.http;
 import javax.servlet.http.HttpServletRequest;
 
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
 
 /** fetch by "?id=" */
 public class S_FetchId extends FetchBase {
+    public S_FetchId(DeltaConnection engine) {
+        super(engine);
+    }
+
     @Override
     protected Args getArgs(HttpServletRequest req) {
         Args a = Args.args(req);

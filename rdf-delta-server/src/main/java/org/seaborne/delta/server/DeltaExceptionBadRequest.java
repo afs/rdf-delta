@@ -20,7 +20,7 @@ package org.seaborne.delta.server;
 
 import org.seaborne.delta.DeltaException;
 
-/** Exception to throw when a requets is wrong in some way */ 
+/** Exception to throw when a request is wrong in some way */ 
 public class DeltaExceptionBadRequest extends DeltaException {
     private final int statusCode ;  
     

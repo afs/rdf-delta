@@ -18,28 +18,23 @@
 
 package dev;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream ;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.build.DatasetDescriptionRegistry;
-import org.apache.jena.fuseki.server.FusekiServer;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaClient;
+import org.seaborne.delta.client.DeltaConnectionHTTP ;
 import org.seaborne.delta.client.RDFChangesHTTP;
-import org.seaborne.delta.server.* ;
+import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.server.C ;
+import org.seaborne.delta.server.DataRegistry ;
+import org.seaborne.delta.server.DataSource ;
+import org.seaborne.delta.server.DeltaConnectionLocal ;
 import org.seaborne.delta.server.http.DataPatchServer ;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
@@ -66,6 +61,11 @@ public class RunServer2 {
         // DataSource = one changing 
         
         String SOURCES = "/home/afs/ASF/rdf-delta/Sources" ;
+        String PATCHES = "/home/afs/ASF/rdf-delta/Sources/Patches" ;
+        FileOps.ensureDir(PATCHES);
+        
+        FileOps.clearDirectory(PATCHES);
+        
         // Setup - need better registration based on scan-find.
         Location sourceArea = Location.create(SOURCES) ;
         DataSource source = DataSource.attach(sourceArea) ;
@@ -75,116 +75,40 @@ public class RunServer2 {
         dReg.put(source.getId(), source);
 
         // Server.
-        DataPatchServer dps = new DataPatchServer(4040) ;
+        DeltaConnection impl =  new DeltaConnectionLocal();
+        DataPatchServer dps = new DataPatchServer(4040, impl) ;
         dps.start(); 
         Delta.DELTA_LOG.info("==== ====");
+
+        //String ds = C.uuid1.toString();
+        Id dsRef = Id.fromUUID(C.uuid1); 
         
         if ( false ) {
-            viaAPI();
-            return;
-        }            
-
-        String ds = C.uuid1.toString();
-
-        if ( false ) {
             // Send patch.
-            DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
             RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
-            RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+ds) ;
+            RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+dsRef.asParam()) ;
             patch.apply(remote);
         }
         
-        DeltaClient client = DeltaClient.create("RDFP", "http://localhost:4040/", ds, null);
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+        DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
+        DeltaClient client = DeltaClient.create("RDFP", dsRef, dsg, dc);
+        System.out.println("----------------");
+        RDFDataMgr.write(System.out, dsg, Lang.TRIG);
+        System.out.println("----------------");
+
+        // To get the id.
+        RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
+        //Id patchId = Id.fromNode(patch.getId()); 
+        client.sendPatch(patch);
         
         // Poll **** ?zone=&dataset= -> version
         // Fetch **** ?zone=&dataset=&version=
         // Client API == API.java
         
 //        int ver = client.getRemoteVersionLatest();
-        Id id2 = Id.fromString(ds); 
-        int ver = API.getCurrentVersion(id2);
+        
+        int ver = client.getRemoteVersionLatest();
         System.out.println("ver="+ver);
-        // Sync.
-        
-        
-        
-        
-        // Fetch
-        
     }
-
-    private static void viaAPI() {
-        Id id = Id.fromUUID(C.uuid1) ;
-        //---- Test data.
-        //Patch id=uuid:f5fdbad2-99f7-11e6-b769-bbc6688fff6c (parent=null)
-        Id patch1 = Id.fromString("f5fdbad2-99f7-11e6-b769-bbc6688fff6c") ;
-        processPatch(id, "data1.rdfp");
-        // Patch id=uuid:0577ce6c-99f8-11e6-8a94-43918cb86532 (parent=uuid:f5fdbad2-99f7-11e6-b769-bbc6688fff6c)
-        Id patch2 = Id.fromString("0577ce6c-99f8-11e6-8a94-43918cb86532") ;
-        processPatch(id, "data2.rdfp");
-        
-        // --- check
-        DataSource dataSource = DataRegistry.get().get(id) ;
-        PatchSet ps = dataSource.getPatchSet() ;
-        ps.getInfo() ;
-        
-        //
-        System.out.println("Check") ;
-        ps.processHistoryFrom(null, (p)->System.out.println(p.getId()) );
-        
-        DataRegistry.get().forEach((srcId,ds)->{
-            if ( ds.getPatchSet().contains(patch1) )
-                System.out.println("Found!"); ;
-        });
-        
-        // Name datasource or not?
-        API.write(id, patch1) ;
-    }
-
-    private static List<String> dirEntries(String directory) {
-        Path pDir = Paths.get(directory).normalize() ;
-        File dirFile = pDir.toFile() ;
-        
-        if ( ! dirFile.exists() )
-            return Collections.emptyList() ;
-        
-        if ( ! dirFile.isDirectory() ) {
-            LOG.warn("Not a directory: '"+directory+"'") ;
-            return Collections.emptyList() ;
-        }
-        // Files that are not hidden.
-        DirectoryStream.Filter<Path> directoryFilter = (entry)-> {
-            File f = entry.toFile() ;
-            return ! f.isHidden() && f.isDirectory() ;
-        } ;
-
-        List<String> entries = new ArrayList<>() ;
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(pDir, directoryFilter)) {
-            for ( Path p : stream ) {
-                DatasetDescriptionRegistry dsDescMap = FusekiServer.registryForBuild() ;
-                LOG.info("Dir: "+p.toString()) ; 
-            }
-        } catch (IOException ex) {
-            LOG.warn("IOException:"+ex.getMessage(), ex);
-        }
-        return entries ;
-    }
-    
-    // See DPS.
-    
-    // Area management.
-    
-    // Choose a name.
-    private static String nextEntry(Path dir, String base) {
-        return null ;
-        //dir.resolve(base)
-    }
-
-    private static void processPatch(Id id, String filename) {
-        InputStream in = IO.openFile(filename) ;
-        API.receive(id, in) ;
-    }
-
-
-        
 }

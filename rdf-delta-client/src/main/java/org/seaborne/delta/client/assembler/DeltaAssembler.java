@@ -42,6 +42,7 @@ import org.apache.jena.assembler.Mode ;
 import org.apache.jena.assembler.assemblers.AssemblerBase ;
 import org.apache.jena.assembler.exceptions.AssemblerException ;
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
@@ -56,7 +57,9 @@ import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.client.DeltaClient ;
+import org.seaborne.delta.client.DeltaConnectionHTTP ;
 import org.seaborne.delta.client.DeltaLib ;
+import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.system.DatasetGraphChanges ;
@@ -127,7 +130,10 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     }
 
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
-        DeltaClient client = DeltaClient.create("foo",  source, null, dsg) ;
+        if ( true )
+            throw new NotImplemented("NEED THE DATASOURCE ID");
+        DeltaConnection dc = new DeltaConnectionHTTP(source) ;
+        DeltaClient client = DeltaClient.create("foo", null, dsg, dc) ;
         Runnable r = ()->{
             try { client.sync(); }
             catch (Exception ex) { 

@@ -28,6 +28,10 @@ import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
 public class DeltaLib {
+    
+    // XXX More here?
+    // Or less? (only use by the assembler?)
+    // See also DeltaClient. Assembler to use DeltaClient?
 
     /** Connect to a destination for changes */
     public static RDFChanges destination(String dest) {

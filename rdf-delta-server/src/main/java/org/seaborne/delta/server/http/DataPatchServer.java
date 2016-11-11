@@ -24,7 +24,9 @@ import org.eclipse.jetty.server.Server ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
+import org.seaborne.delta.DP ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.server.DPS ;
 
 /** A simple packaging of Jetty to provide an embeddable HTTP server that just support servlets */ 
@@ -34,7 +36,7 @@ public class DataPatchServer {
     private final Server server ;
     private ServletHandler handler ;
 
-    public DataPatchServer(int port) {
+    public DataPatchServer(int port, DeltaConnection engine) {
         DPS.init() ;
         server = new Server(port) ;
         ErrorHandler eh = new HttpErrorHandler() ;
@@ -43,16 +45,16 @@ public class DataPatchServer {
         server.setHandler(handler);
         server.addBean(eh) ;
         
-        S_Patch patchMgr = new S_Patch() ;
+        S_Patch patchMgr = new S_Patch(engine) ;
         // Receive patches
         addServlet("/patch", patchMgr) ;
 
         // Return patches
-        addServlet("/fetch", new S_FetchId()) ;
-        addServlet("/patch/*", new S_Fetch()) ;
+        addServlet("/"+DP.EP_Fetch, new S_FetchId(engine)) ;
+        addServlet("/"+DP.EP_Patch+"/*", new S_Fetch(engine)) ;
 
         // Other
-        addServlet("/rpc", new S_DRPC()) ;
+        addServlet("/rpc", new S_DRPC(engine)) ;
         addServlet("/restart", new S_Restart()) ;
         addServlet("/ping", new S_Ping()) ;
     }

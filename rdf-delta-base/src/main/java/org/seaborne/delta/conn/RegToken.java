@@ -15,20 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.DP ;
-import org.seaborne.delta.server.http.DataPatchServer ;
+package org.seaborne.delta.conn;
 
-public class RunDeltaServer {
-    static { DevLib.setLogging(); }
-    
-    public static void main(String...arg) {
-        DatasetGraph dsg = null ;
-        DataPatchServer server = new DataPatchServer(DP.PORT) ;
-        // Setup.
-        server.start();
-        server.join();
+import java.util.UUID;
+
+public class RegToken {
+    private final UUID uuid;
+
+    private RegToken() {
+        this.uuid = UUID.randomUUID();
     }
 }

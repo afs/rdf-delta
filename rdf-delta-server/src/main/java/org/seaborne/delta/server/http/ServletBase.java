@@ -31,13 +31,19 @@ import org.apache.jena.fuseki.servlets.ServletOps ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
 import org.slf4j.Logger ;
 
 public class ServletBase extends HttpServlet {
 
-    private static Logger logger = Delta.getDeltaLogger("Servlet") ; 
+    private static Logger logger = Delta.getDeltaLogger("Servlet") ;
+    protected final DeltaConnection engine ; 
     
+    public ServletBase(DeltaConnection engine) {
+        this.engine = engine;
+    }
+
     @Override
     public void init(ServletConfig config) throws ServletException {}
 

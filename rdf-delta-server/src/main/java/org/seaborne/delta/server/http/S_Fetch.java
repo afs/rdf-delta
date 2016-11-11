@@ -22,12 +22,18 @@ import javax.servlet.http.HttpServletRequest ;
 
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
 import org.slf4j.Logger ;
 
 /** Fetch a patch from a container: id is part of the path name.  */
 public class S_Fetch extends FetchBase {
+
     static public Logger LOG = Delta.getDeltaLogger("Fetch");
+    
+    public S_Fetch(DeltaConnection engine) {
+        super(engine) ;
+    }
 
     @Override
     protected Args getArgs(HttpServletRequest req) {

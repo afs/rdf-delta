@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.server;
 
+import org.seaborne.delta.conn.Id ;
+
 /** Snapshot of the state of a {@link PatchSet}. */
 public class PatchSetInfo {
     private final long minVersion ;

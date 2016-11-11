@@ -27,6 +27,7 @@ import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.conn.Id ;
 import org.seaborne.delta.pubsub.Receiver ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

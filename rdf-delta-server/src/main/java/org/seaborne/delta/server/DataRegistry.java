@@ -19,6 +19,7 @@
 package org.seaborne.delta.server;
 
 import org.apache.jena.atlas.lib.Registry ;
+import org.seaborne.delta.conn.Id ;
 import org.slf4j.Logger ;
 
 /** The registry of all data under the control of server */ 

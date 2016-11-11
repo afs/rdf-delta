@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.conn;
 
 import java.util.UUID ;
 
@@ -94,6 +94,13 @@ public final class Id {
         string = id ;
     }
 
+    /** Suitable for putting into an HTTP request */ 
+    public String asParam() {
+        if ( uuid != null ) 
+            return uuid.toString() ;
+        return string ;
+    }
+    
     @Override
     public String toString() {
         if ( uuid != null ) 

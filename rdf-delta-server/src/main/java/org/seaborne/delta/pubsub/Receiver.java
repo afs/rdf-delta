@@ -22,11 +22,13 @@ import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.util.ArrayList ;
 import java.util.List ;
+import java.util.function.Consumer ;
 
 import org.seaborne.delta.server.FileEntry;
 import org.seaborne.delta.server.FileStore;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
@@ -59,9 +61,20 @@ public class Receiver {
         return dest ;
     }
     
-    public synchronized FileEntry receive(InputStream in, RDFChanges changes) {
+    public FileEntry receive(RDFPatch patch, RDFChanges changes) {
+        return receiveWorker((pipeline) -> patch.apply(pipeline), changes) ;
+    }
+    
+    public FileEntry receive(InputStream in, RDFChanges changes) {
+        PatchReader scr = new PatchReader(in) ;
+        return receiveWorker((pipeline) ->scr.apply(pipeline), changes) ;
+    }
+    
+    private synchronized FileEntry receiveWorker(Consumer<RDFChanges> processor, RDFChanges changes) {
         FileEntry entry = fileStore.allocateFilename();
         RDFChangesWriter dest = destination(entry) ;
+        
+        // Set up other processing.
         RDFChanges pipeline = dest ;
         // Insert the extra pipeline stage.
         if ( changes != null )
@@ -70,29 +83,14 @@ public class Receiver {
         for ( RDFChanges p : additionalProcessors )
             pipeline = RDFChangesN.multi(p, pipeline) ;
         
-//        // If last is abort ...
-//        // Add a "last capture"
-//        // If all are abort, loose it.
-//        
-//        RDFChanges abortOrCommit = new RDFChangesBase() {
-//            int commitCount = 0 ;
-//            int abortCount = 0 ;
-//            // And is it last?
-//            
-//            @Override
-//            public void txnCommit() { commitCount++ ; }
-//            
-//            @Override
-//            public void txnAbort() { abortCount++ ; }
-//        } ;
-        
-        PatchReader scr = new PatchReader(in) ;
+        // Pipeline
         pipeline.start();
-        scr.apply(pipeline);
-        pipeline.finish() ;
+        processor.accept(pipeline);
+        pipeline.finish();
+        
+        // Finish up.
         dest.flush();
         entry.completeWrite();
-        // Now safe on disk.
         return entry;
     }
 }
