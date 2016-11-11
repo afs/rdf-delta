@@ -22,7 +22,6 @@ package org.seaborne.riot.tio.alt.javacc ;
 
 import org.seaborne.riot.tio.alt.* ;
 import org.apache.jena.graph.* ;
-import org.apache.jena.sparql.core.Var ;
 import org.apache.jena.sparql.expr.* ;
 import org.apache.jena.riot.tokens.TokenType ;
 
@@ -40,10 +39,15 @@ startTuples() ;
     label_1:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case IRIref:
+      case IRI:
+      case PNAME_NS:
+      case PNAME_LN:
       case BLANK_NODE_LABEL:
+      case VAR:
+      case LANGTAG:
       case TRUE:
       case FALSE:
+      case ANY:
       case KEYWORD:
       case DOT:
       case INTEGER:
@@ -74,7 +78,8 @@ startTuples() ;
       case PLUS:
       case MINUS:
       case UNDERSCORE:
-      case STAR:{
+      case STAR:
+      case HEX_INT:{
         ;
         break;
         }
@@ -94,10 +99,15 @@ startTokens() ;
     label_2:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case IRIref:
+      case IRI:
+      case PNAME_NS:
+      case PNAME_LN:
       case BLANK_NODE_LABEL:
+      case VAR:
+      case LANGTAG:
       case TRUE:
       case FALSE:
+      case ANY:
       case KEYWORD:
       case DOT:
       case INTEGER:
@@ -128,7 +138,8 @@ startTokens() ;
       case PLUS:
       case MINUS:
       case UNDERSCORE:
-      case STAR:{
+      case STAR:
+      case HEX_INT:{
         ;
         break;
         }
@@ -159,10 +170,15 @@ startTuple() ;
     label_3:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case IRIref:
+      case IRI:
+      case PNAME_NS:
+      case PNAME_LN:
       case BLANK_NODE_LABEL:
+      case VAR:
+      case LANGTAG:
       case TRUE:
       case FALSE:
+      case ANY:
       case KEYWORD:
       case INTEGER:
       case DECIMAL:
@@ -192,7 +208,8 @@ startTuple() ;
       case PLUS:
       case MINUS:
       case UNDERSCORE:
-      case STAR:{
+      case STAR:
+      case HEX_INT:{
         ;
         break;
         }
@@ -207,7 +224,7 @@ finishTuple(t.beginLine, t.beginColumn) ;
   }
 
 // No DOT.
-  final public void Entry() throws ParseException {Token t ; TokenType tt ; Node n ;
+  final public void Entry() throws ParseException {Token t ; TokenType tt ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case KEYWORD:{
       t = jj_consume_token(KEYWORD);
@@ -230,14 +247,16 @@ emitKeyword(t.image, t.beginLine, t.beginColumn) ;
     case MINUS:
     case UNDERSCORE:
     case STAR:{
-      tt = Symbol();
-emitSymbol(tt) ;
+      Symbol();
       break;
       }
-    case IRIref:
+    case IRI:
+    case PNAME_NS:
+    case PNAME_LN:
     case BLANK_NODE_LABEL:
     case TRUE:
     case FALSE:
+    case ANY:
     case INTEGER:
     case DECIMAL:
     case DOUBLE:
@@ -251,8 +270,21 @@ emitSymbol(tt) ;
     case STRING_LITERAL2:
     case STRING_LITERAL_LONG1:
     case STRING_LITERAL_LONG2:{
-      n = RDFTerm();
-emitTerm(n) ;
+      RDFTerm();
+      break;
+      }
+    case VAR:{
+      Var();
+      break;
+      }
+    case HEX_INT:{
+      Hex();
+      break;
+      }
+    case LANGTAG:{
+      t = jj_consume_token(LANGTAG);
+String s = stripChars(t.image, 1);
+      emitDirective(s, t.beginLine, t.beginColumn) ;
       break;
       }
     default:
@@ -263,12 +295,17 @@ emitTerm(n) ;
   }
 
 // Includes DOT.
-  final public void Token() throws ParseException {
+  final public void Token() throws ParseException {Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case IRIref:
+    case IRI:
+    case PNAME_NS:
+    case PNAME_LN:
     case BLANK_NODE_LABEL:
+    case VAR:
+    case LANGTAG:
     case TRUE:
     case FALSE:
+    case ANY:
     case KEYWORD:
     case INTEGER:
     case DECIMAL:
@@ -298,13 +335,14 @@ emitTerm(n) ;
     case PLUS:
     case MINUS:
     case UNDERSCORE:
-    case STAR:{
+    case STAR:
+    case HEX_INT:{
       Entry();
       break;
       }
     case DOT:{
-      jj_consume_token(DOT);
-emitSymbol(TokenType.DOT) ;
+      t = jj_consume_token(DOT);
+emitSymbol(TokenType.DOT, t.beginLine, t.beginColumn) ;
       break;
       }
     default:
@@ -314,11 +352,22 @@ emitSymbol(TokenType.DOT) ;
     }
   }
 
-  final public Node RDFTerm() throws ParseException {Node n ; String s ;
+  final public void RDFTerm() throws ParseException {String s ; Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case IRIref:{
+    case IRI:{
       s = iri();
-n = NodeFactory.createURI(s) ;
+emitIRI(s) ;
+      break;
+      }
+    case PNAME_NS:
+    case PNAME_LN:{
+      s = PName();
+emitPrefixedName(s) ;
+      break;
+      }
+    case ANY:{
+      t = jj_consume_token(ANY);
+emitANY(t.image, t.beginLine, t.beginColumn);
       break;
       }
     case TRUE:
@@ -336,11 +385,11 @@ n = NodeFactory.createURI(s) ;
     case STRING_LITERAL2:
     case STRING_LITERAL_LONG1:
     case STRING_LITERAL_LONG2:{
-      n = Literal();
+      Literal();
       break;
       }
     case BLANK_NODE_LABEL:{
-      n = BlankNode();
+      BlankNode();
       break;
       }
     default:
@@ -348,17 +397,15 @@ n = NodeFactory.createURI(s) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-{if ("" != null) return n ;}
-    throw new Error("Missing return statement in function");
   }
 
-  final public Node Literal() throws ParseException {Node n ;
+  final public void Literal() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case STRING_LITERAL1:
     case STRING_LITERAL2:
     case STRING_LITERAL_LONG1:
     case STRING_LITERAL_LONG2:{
-      n = RDFLiteral();
+      RDFLiteral();
       break;
       }
     case INTEGER:
@@ -370,12 +417,12 @@ n = NodeFactory.createURI(s) ;
     case INTEGER_NEGATIVE:
     case DECIMAL_NEGATIVE:
     case DOUBLE_NEGATIVE:{
-      n = NumericLiteral();
+      NumericLiteral();
       break;
       }
     case TRUE:
     case FALSE:{
-      n = BooleanLiteral();
+      BooleanLiteral();
       break;
       }
     default:
@@ -383,13 +430,11 @@ n = NodeFactory.createURI(s) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-{if ("" != null) return n ;}
-    throw new Error("Missing return statement in function");
   }
 
-  final public Node RDFLiteral() throws ParseException {Token t ; String lex = null ;
+  final public void RDFLiteral() throws ParseException {Token t ; String lex = null ;
     lex = String();
-String lang = null ; String uri = null ;
+String lang = null ; String datatype = null ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case LANGTAG:
     case DATATYPE:{
@@ -401,7 +446,7 @@ lang = stripChars(t.image, 1) ;
         }
       case DATATYPE:{
         jj_consume_token(DATATYPE);
-        uri = iri();
+        datatype = iri();
         break;
         }
       default:
@@ -415,32 +460,32 @@ lang = stripChars(t.image, 1) ;
       jj_la1[9] = jj_gen;
       ;
     }
-{if ("" != null) return createLiteral(lex, lang, uri) ;}
-    throw new Error("Missing return statement in function");
+emitLiteral(lex, lang, datatype) ;
   }
 
   final public void Hex() throws ParseException {Token t ;
     t = jj_consume_token(HEX_INT);
+emitHex(t.image, t.beginLine, t.beginColumn ) ;
   }
 
-  final public Node NumericLiteral() throws ParseException {Node n ;
+  final public void NumericLiteral() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INTEGER:
     case DECIMAL:
     case DOUBLE:{
-      n = NumericLiteralUnsigned();
+      NumericLiteralUnsigned();
       break;
       }
     case INTEGER_POSITIVE:
     case DECIMAL_POSITIVE:
     case DOUBLE_POSITIVE:{
-      n = NumericLiteralPositive();
+      NumericLiteralPositive();
       break;
       }
     case INTEGER_NEGATIVE:
     case DECIMAL_NEGATIVE:
     case DOUBLE_NEGATIVE:{
-      n = NumericLiteralNegative();
+      NumericLiteralNegative();
       break;
       }
     default:
@@ -448,25 +493,23 @@ lang = stripChars(t.image, 1) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-{if ("" != null) return n ;}
-    throw new Error("Missing return statement in function");
   }
 
-  final public Node NumericLiteralUnsigned() throws ParseException {Token t ;
+  final public void NumericLiteralUnsigned() throws ParseException {Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INTEGER:{
       t = jj_consume_token(INTEGER);
-{if ("" != null) return createLiteralInteger(t.image) ;}
+emitLiteralInteger(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case DECIMAL:{
       t = jj_consume_token(DECIMAL);
-{if ("" != null) return createLiteralDecimal(t.image) ;}
+emitLiteralDecimal(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case DOUBLE:{
       t = jj_consume_token(DOUBLE);
-{if ("" != null) return createLiteralDouble(t.image) ;}
+emitLiteralDouble(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     default:
@@ -474,24 +517,23 @@ lang = stripChars(t.image, 1) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    throw new Error("Missing return statement in function");
   }
 
-  final public Node NumericLiteralPositive() throws ParseException {Token t ;
+  final public void NumericLiteralPositive() throws ParseException {Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INTEGER_POSITIVE:{
       t = jj_consume_token(INTEGER_POSITIVE);
-{if ("" != null) return createLiteralInteger(t.image) ;}
+emitLiteralInteger(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case DECIMAL_POSITIVE:{
       t = jj_consume_token(DECIMAL_POSITIVE);
-{if ("" != null) return createLiteralDecimal(t.image) ;}
+emitLiteralDecimal(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case DOUBLE_POSITIVE:{
       t = jj_consume_token(DOUBLE_POSITIVE);
-{if ("" != null) return createLiteralDouble(t.image) ;}
+emitLiteralDouble(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     default:
@@ -499,24 +541,23 @@ lang = stripChars(t.image, 1) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    throw new Error("Missing return statement in function");
   }
 
-  final public Node NumericLiteralNegative() throws ParseException {Token t ;
+  final public void NumericLiteralNegative() throws ParseException {Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INTEGER_NEGATIVE:{
       t = jj_consume_token(INTEGER_NEGATIVE);
-{if ("" != null) return createLiteralInteger(t.image) ;}
+emitLiteralInteger(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case DECIMAL_NEGATIVE:{
       t = jj_consume_token(DECIMAL_NEGATIVE);
-{if ("" != null) return createLiteralDecimal(t.image) ;}
+emitLiteralDecimal(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case DOUBLE_NEGATIVE:{
       t = jj_consume_token(DOUBLE_NEGATIVE);
-{if ("" != null) return createLiteralDouble(t.image) ;}
+emitLiteralDouble(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     default:
@@ -524,19 +565,18 @@ lang = stripChars(t.image, 1) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    throw new Error("Missing return statement in function");
   }
 
-  final public Node BooleanLiteral() throws ParseException {
+  final public void BooleanLiteral() throws ParseException {Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case TRUE:{
-      jj_consume_token(TRUE);
-{if ("" != null) return XSD_TRUE ;}
+      t = jj_consume_token(TRUE);
+emitBoolean(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     case FALSE:{
-      jj_consume_token(FALSE);
-{if ("" != null) return XSD_FALSE ;}
+      t = jj_consume_token(FALSE);
+emitBoolean(t.image, t.beginLine, t.beginColumn) ;
       break;
       }
     default:
@@ -544,29 +584,28 @@ lang = stripChars(t.image, 1) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    throw new Error("Missing return statement in function");
   }
 
-  final public String String() throws ParseException {Token t ; String lex ;
+  final public String String() throws ParseException {Token t ; TokenType tt ; String lex ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case STRING_LITERAL1:{
       t = jj_consume_token(STRING_LITERAL1);
-lex = stripQuotes(t.image) ;
+lex = stripQuotes(t.image) ; tt = TokenType.STRING1 ;
       break;
       }
     case STRING_LITERAL2:{
       t = jj_consume_token(STRING_LITERAL2);
-lex = stripQuotes(t.image) ;
+lex = stripQuotes(t.image) ; tt = TokenType.STRING2 ;
       break;
       }
     case STRING_LITERAL_LONG1:{
       t = jj_consume_token(STRING_LITERAL_LONG1);
-lex = stripQuotes3(t.image) ;
+lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING1 ;
       break;
       }
     case STRING_LITERAL_LONG2:{
       t = jj_consume_token(STRING_LITERAL_LONG2);
-lex = stripQuotes3(t.image) ;
+lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING2 ;
       break;
       }
     default:
@@ -580,12 +619,12 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
   }
 
   final public String iri() throws ParseException {Token t ;
-    t = jj_consume_token(IRIref);
-{if ("" != null) return resolveQuotedIRI(t.image, t.beginLine, t.beginColumn) ;}
+    t = jj_consume_token(IRI);
+{if ("" != null) return processIRI(t.image, t.beginLine, t.beginColumn) ;}
     throw new Error("Missing return statement in function");
   }
 
-  final public void PName() throws ParseException {Token t ;
+  final public String PName() throws ParseException {Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case PNAME_NS:{
       t = jj_consume_token(PNAME_NS);
@@ -600,102 +639,102 @@ lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-String s = t.image ;
+{if ("" != null) return t.image ;}
+    throw new Error("Missing return statement in function");
   }
 
-  final public Var Var() throws ParseException {Token t ; Node n ;
+  final public void Var() throws ParseException {Token t ;
     //( t = <VAR1> | t = <VAR2> )
         t = jj_consume_token(VAR);
-{if ("" != null) return createVariable(t.image) ;}
-    throw new Error("Missing return statement in function");
+String s =  stripChars(t.image, 1) ;
+      emitVariable(s, t.beginLine, t.beginColumn) ;
   }
 
-  final public Node BlankNode() throws ParseException {Token t = null ;
+  final public void BlankNode() throws ParseException {Token t = null ;
     t = jj_consume_token(BLANK_NODE_LABEL);
-{if ("" != null) return createBNode(t.image, t.beginLine, t.beginColumn) ;}
-    throw new Error("Missing return statement in function");
+emitBlankNode(t.image, t.beginLine, t.beginColumn) ;
   }
 
-  final public TokenType Symbol() throws ParseException {
+  final public void Symbol() throws ParseException {TokenType tt ; Token t ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case SEMICOLON:{
-      jj_consume_token(SEMICOLON);
-{if ("" != null) return TokenType.SEMICOLON ;}
+      t = jj_consume_token(SEMICOLON);
+tt = TokenType.SEMICOLON ;
       break;
       }
     case COMMA:{
-      jj_consume_token(COMMA);
-{if ("" != null) return TokenType.COMMA ;}
+      t = jj_consume_token(COMMA);
+tt = TokenType.COMMA ;
       break;
       }
     case LBRACE:{
-      jj_consume_token(LBRACE);
-{if ("" != null) return TokenType.LBRACE ;}
+      t = jj_consume_token(LBRACE);
+tt = TokenType.LBRACE ;
       break;
       }
     case RBRACE:{
-      jj_consume_token(RBRACE);
-{if ("" != null) return TokenType.RBRACE ;}
+      t = jj_consume_token(RBRACE);
+tt = TokenType.RBRACE ;
       break;
       }
     case LPAREN:{
-      jj_consume_token(LPAREN);
-{if ("" != null) return TokenType.LPAREN ;}
+      t = jj_consume_token(LPAREN);
+tt = TokenType.LPAREN ;
       break;
       }
     case RPAREN:{
-      jj_consume_token(RPAREN);
-{if ("" != null) return TokenType.RPAREN ;}
+      t = jj_consume_token(RPAREN);
+tt = TokenType.RPAREN ;
       break;
       }
     case LBRACKET:{
-      jj_consume_token(LBRACKET);
-{if ("" != null) return TokenType.LBRACKET ;}
+      t = jj_consume_token(LBRACKET);
+tt = TokenType.LBRACKET ;
       break;
       }
     case RBRACKET:{
-      jj_consume_token(RBRACKET);
-{if ("" != null) return TokenType.RBRACKET ;}
+      t = jj_consume_token(RBRACKET);
+tt = TokenType.RBRACKET ;
       break;
       }
     case EQ:{
-      jj_consume_token(EQ);
-{if ("" != null) return TokenType.EQUALS ;}
+      t = jj_consume_token(EQ);
+tt = TokenType.EQUALS ;
       break;
       }
     case COLON:{
-      jj_consume_token(COLON);
-{if ("" != null) return TokenType.COLON ;}
+      t = jj_consume_token(COLON);
+tt = TokenType.COLON ;
       break;
       }
     case UNDERSCORE:{
-      jj_consume_token(UNDERSCORE);
-{if ("" != null) return TokenType.UNDERSCORE ;}
+      t = jj_consume_token(UNDERSCORE);
+tt = TokenType.UNDERSCORE ;
       break;
       }
     case PLUS:{
-      jj_consume_token(PLUS);
-{if ("" != null) return TokenType.PLUS ;}
+      t = jj_consume_token(PLUS);
+tt = TokenType.PLUS ;
       break;
       }
     case MINUS:{
-      jj_consume_token(MINUS);
-{if ("" != null) return TokenType.MINUS ;}
+      t = jj_consume_token(MINUS);
+tt = TokenType.MINUS ;
       break;
       }
     case LT:{
-      jj_consume_token(LT);
-{if ("" != null) return TokenType.LT ;}
+      t = jj_consume_token(LT);
+tt = TokenType.LT ;
       break;
       }
     case GT:{
-      jj_consume_token(GT);
-{if ("" != null) return TokenType.GT ;}
+      t = jj_consume_token(GT);
+tt = TokenType.GT ;
       break;
       }
     case STAR:{
-      jj_consume_token(STAR);
-{if ("" != null) return TokenType.STAR ;}
+      t = jj_consume_token(STAR);
+tt = TokenType.STAR ;
       break;
       }
     default:
@@ -703,8 +742,7 @@ String s = t.image ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-{if ("" != null) return null ;}
-    throw new Error("Missing return statement in function");
+emitSymbol(tt, t.beginLine, t.beginColumn) ;
   }
 
   /** Generated Token Manager. */
@@ -726,13 +764,13 @@ String s = t.image ;
       jj_la1_init_2();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0xfde04800,0xfde04800,0x400,0xfce04800,0xfce04800,0xfde04800,0xfc604800,0xfc600000,0x90000,0x90000,0xfc000000,0x1c000000,0xe0000000,0x0,0x600000,0x0,0x3000,0x0,};
+      jj_la1_0 = new int[] {0xdbe1f800,0xdbe1f800,0x400,0xd9e1f800,0xd9e1f800,0xdbe1f800,0xd8e07800,0xd8600000,0x90000,0x90000,0xd8000000,0x58000000,0x80000000,0x0,0x600000,0x0,0x3000,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0xf7fff87,0xf7fff87,0x0,0xf7fff87,0xf7fff87,0xf7fff87,0x787,0x787,0x0,0x0,0x7,0x0,0x0,0x7,0x0,0x780,0x0,0xf7ff800,};
+      jj_la1_1 = new int[] {0x1effff1f,0x1effff1f,0x0,0x1effff1f,0x1effff1f,0x1effff1f,0xf1f,0xf1f,0x0,0x0,0x1f,0x0,0x3,0x1c,0x0,0xf00,0x0,0x1efff000,};
    }
    private static void jj_la1_init_2() {
-      jj_la1_2 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_2 = new int[] {0x80,0x80,0x0,0x80,0x80,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -849,7 +887,7 @@ String s = t.image ;
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[72];
+    boolean[] la1tokens = new boolean[73];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -869,7 +907,7 @@ String s = t.image ;
         }
       }
     }
-    for (int i = 0; i < 72; i++) {
+    for (int i = 0; i < 73; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

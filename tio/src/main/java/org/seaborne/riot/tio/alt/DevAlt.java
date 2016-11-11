@@ -19,26 +19,38 @@
 package org.seaborne.riot.tio.alt;
 
 import java.io.InputStream ;
-import java.io.Reader ;
 import java.io.StringReader ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.Tokenizer ;
+import org.apache.jena.riot.tokens.TokenizerFactory ;
 import org.seaborne.riot.tio.TupleReader ;
 import org.seaborne.riot.tio.impl.TupleReaderTokenizer ;
 
 public class DevAlt {
     
     public static void main(String ...a) {
-        String s = ";" ;
-        Reader in = new StringReader(s) ;
-        Tokenizer tok = new TokenizerJavacc(in) ;
-        TupleReader tr = new TupleReaderTokenizer(tok) ;
-        tr.forEach(t->System.out.println(">> >> "+t)) ;
+        // Necessary but why?
+        // Otherwise TokenizerJavacc causes "broken term"
+        
+        String s = "<xyz abc>" ;
+        System.out.println("Input:|"+s+"|"); 
+
+        Tokenizer tok1 = new TokenizerJavacc(new StringReader(s)) ;
+        print("javacc", tok1);
+
+        Tokenizer tok2 = TokenizerFactory.makeTokenizer(new StringReader(s));
+        print("TokenizerText", tok2);
     }
     
+    private static void print(String label, Tokenizer tok) {
+        TupleReader tr = new TupleReaderTokenizer(tok) ;
+        System.out.println(label);
+        tr.forEach(t->System.out.printf("  >> %s\n", t));
+    }   
+
     public static void main1(String ...a) {
         InputStream in = IO.openFile("data") ;
         TupleReaderJavacc trj = new TupleReaderJavacc(in) ;
