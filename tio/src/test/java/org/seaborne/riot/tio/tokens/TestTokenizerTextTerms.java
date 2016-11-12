@@ -16,32 +16,17 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio.tokens;
+package org.seaborne.riot.tio.tokens ;
 
 import java.io.InputStream;
 
-import org.apache.jena.riot.tokens.Tokenizer;
-import org.junit.Test;
-import org.seaborne.riot.tio.alt.TokenizerJavacc;
+import org.apache.jena.riot.tokens.Tokenizer ;
+import org.apache.jena.riot.tokens.TokenizerFactory;
 
-public class TestTokenizerJavaccTerms extends AbstractTestTokenizerTerms {
+public class TestTokenizerTextTerms extends AbstractTestTokenizerTerms {
 
     @Override
     protected Tokenizer tokenizer(InputStream input, boolean lineMode) {
-        return new TokenizerJavacc(input);
-    }
-    
-    // Problem: Sees "@lang" then "-" so no parse error.
-    @Override
-    @Test
-    public void tokenLiteralLang_4() {
-        //tokenFirst("''@lang- ");
-    }
-    
-    // Problem: Sees "0" then "xXYZ" (keyword).
-    @Override
-    @Test
-    public void tokenUnit_hex3() {
-        //tokenFirst("0xXYZ");
+        return TokenizerFactory.makeTokenizerUTF8(input);
     }
 }

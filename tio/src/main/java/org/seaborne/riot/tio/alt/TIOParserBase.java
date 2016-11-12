@@ -73,8 +73,6 @@ public class TIOParserBase {
     public void setErrorHandler(ErrorHandler handler) {
         this.errorHandler = handler;
     }
-    
-
 
     public TIOParserBase() {}
     
@@ -142,8 +140,16 @@ public class TIOParserBase {
         int idx = pname.indexOf(':');
         String prefix = pname.substring(0, idx);
         String localname = pname.substring(idx+1);
+        // Syntactically legal at this point so not checking needed. 
+        localname = processPN_LOCAL_ESC(localname);
         Token t = new Token(TokenType.PREFIXED_NAME, prefix, localname);
         emit(t);
+    }
+    
+    private String processPN_LOCAL_ESC(String str) {
+        if ( str.indexOf('\\') < 0 )
+            return str ;
+        return str.replace("\\", "") ;
     }
     
     protected void emitBoolean(String lex, int line, int column) {
@@ -289,6 +295,8 @@ public class TIOParserBase {
     protected void emitBlankNode(String label, int line, int column) {
         if ( label.startsWith("_:") )
             label = label.substring("_:".length());
+        if ( label.isEmpty() )
+            throw new RiotParseException("No label for blank node", line, column);
         Token t = new Token(TokenType.BNODE, label);
         emit(t);
     }

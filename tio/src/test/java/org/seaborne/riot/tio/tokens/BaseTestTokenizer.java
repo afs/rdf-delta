@@ -18,12 +18,14 @@
 
 package org.seaborne.riot.tio.tokens ;
 
-import static org.junit.Assert.assertEquals ;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse ;
 import static org.junit.Assert.assertNotNull ;
 import static org.junit.Assert.assertTrue ;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream ;
+import java.io.InputStream;
 
 import org.apache.jena.atlas.lib.StrUtils ;
 import org.apache.jena.riot.tokens.Token ;
@@ -33,13 +35,47 @@ import org.apache.jena.riot.tokens.Tokenizer ;
 /** Machinery for {@link Tokenizer} testing. */
 public abstract class BaseTestTokenizer {
     
-    // Implement this !
-    protected abstract Tokenizer tokenizer(String string, boolean lineMode) ; 
+    protected final Tokenizer tokenizer(String string, boolean lineMode) {
+        ByteArrayInputStream in = bytes(string) ;
+        return tokenizer(in, lineMode) ;
+    }
     
+    // Implement this !
+    protected abstract Tokenizer tokenizer(InputStream input, boolean lineMode);
+
     protected Tokenizer tokenizer(String string) {
         return tokenizer(string, false) ;
     }
 
+    protected static void assertEqualsToken(Token expected, Token actual) {
+        if ( expected.isString() ) {
+            if ( ! actual.isString() )
+                fail("Not a STRING: "+actual);
+            assertEquals(expected.getImage(), actual.getImage()) ;
+            return ;
+        }
+        assertEquals(expected, actual);
+    }
+    
+    protected static void assertEqualsTokenType(TokenType expected, TokenType actual) {
+        if ( isString(expected) ) {
+            if ( ! isString(actual) )
+                fail("Not a STRING: "+actual);
+            return; 
+        }
+        assertEquals(expected, actual);
+    }
+
+    private static boolean isString(TokenType tokenType) {
+        switch(tokenType) {
+            case STRING: case STRING1: case STRING2:
+            case LONG_STRING1: case LONG_STRING2:
+                return true ;
+            default:
+                return false ;
+        }
+    }
+    
     protected void tokenFirst(String string) {
         Tokenizer tokenizer = tokenizer(string) ;
         assertTrue(tokenizer.hasNext()) ;
@@ -70,11 +106,11 @@ public abstract class BaseTestTokenizer {
     protected Token tokenizeAndTestExact(String input, TokenType tokenType, String tokenImage1,
                                               String tokenImage2, Token subToken1, Token subToken2) {
         Token token = tokenFor(input) ;
-        assertEquals(tokenType, token.getType()) ;
+        assertEqualsTokenType(tokenType, token.getType()) ;
         assertEquals(tokenImage1, token.getImage()) ;
         assertEquals(tokenImage2, token.getImage2()) ;
-        assertEquals(subToken1, token.getSubToken1()) ;
-        assertEquals(subToken2, token.getSubToken2()) ;
+        assertEqualsToken(subToken1, token.getSubToken1()) ;
+        assertEqualsToken(subToken2, token.getSubToken2()) ;
         return token ;
     }
 
@@ -101,7 +137,7 @@ public abstract class BaseTestTokenizer {
         assertTrue(tokenizer.hasNext()) ;
         Token token = tokenizer.next() ;
         assertNotNull(token) ;
-        assertEquals(tokenType, token.getType()) ;
+        assertEqualsTokenType(tokenType, token.getType()) ;
         assertEquals(tokenImage1, token.getImage()) ;
         assertEquals(tokenImage2, token.getImage2()) ;
         return token ;
@@ -111,11 +147,11 @@ public abstract class BaseTestTokenizer {
                                          Token subToken1, Token subToken2) {
         Token token = tokenFor(input) ;
         assertNotNull(token) ;
-        assertEquals(tokenType, token.getType()) ;
+        assertEqualsTokenType(tokenType, token.getType()) ;
         assertEquals(tokenImage1, token.getImage()) ;
         assertEquals(tokenImage2, token.getImage2()) ;
-        assertEquals(subToken1, token.getSubToken1()) ;
-        assertEquals(subToken2, token.getSubToken2()) ;
+        assertEqualsToken(subToken1, token.getSubToken1()) ;
+        assertEqualsToken(subToken2, token.getSubToken2()) ;
         return token ;
     }
 

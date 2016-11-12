@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio.tokens;
+package org.seaborne.riot.tio.tokens ;
 
-import org.junit.runner.RunWith ;
-import org.junit.runners.Suite ;
+import java.io.InputStream;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestTokenizerJavaccTerms.class,
-    TestTokenizerJavaccOther.class
-    //, TestTokenizerJavaccNewline.class
-})
-public class TS_TokenizerJavacc {}
+import org.apache.jena.riot.tokens.Tokenizer ;
+import org.apache.jena.riot.tokens.TokenizerFactory;
+
+public class TestTokenizerTextOther extends AbstractTestTokenizerOther {
+
+    @Override
+    protected Tokenizer tokenizer(InputStream input, boolean lineMode) {
+        return TokenizerFactory.makeTokenizerUTF8(input);
+    }
+}

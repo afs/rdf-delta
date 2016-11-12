@@ -18,30 +18,15 @@
 
 package org.seaborne.riot.tio.tokens;
 
-import java.io.InputStream;
+import org.junit.runner.RunWith ;
+import org.junit.runners.Suite ;
 
-import org.apache.jena.riot.tokens.Tokenizer;
-import org.junit.Test;
-import org.seaborne.riot.tio.alt.TokenizerJavacc;
-
-public class TestTokenizerJavaccTerms extends AbstractTestTokenizerTerms {
-
-    @Override
-    protected Tokenizer tokenizer(InputStream input, boolean lineMode) {
-        return new TokenizerJavacc(input);
-    }
-    
-    // Problem: Sees "@lang" then "-" so no parse error.
-    @Override
-    @Test
-    public void tokenLiteralLang_4() {
-        //tokenFirst("''@lang- ");
-    }
-    
-    // Problem: Sees "0" then "xXYZ" (keyword).
-    @Override
-    @Test
-    public void tokenUnit_hex3() {
-        //tokenFirst("0xXYZ");
-    }
-}
+@RunWith(Suite.class)
+@Suite.SuiteClasses( {
+    TestTokenizerTextTerms.class,
+    TestTokenizerTextOther.class,
+    TestTokenizerJavaccTerms.class,
+    TestTokenizerJavaccOther.class
+    //, TestTokenizerJavaccNewline.class
+})
+public class TS_Tokenizer2 {}

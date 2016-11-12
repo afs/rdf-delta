@@ -18,7 +18,7 @@
 
 package org.seaborne.riot.tio.tokens ;
 
-import java.io.StringReader ;
+import java.io.InputStream;
 
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.seaborne.riot.tio.alt.TokenizerJavacc ;
@@ -26,7 +26,7 @@ import org.seaborne.riot.tio.alt.TokenizerJavacc ;
 public class TestTokenizerJavaccOther extends AbstractTestTokenizerOther {
 
     @Override
-    protected Tokenizer tokenizer(String string, boolean lineMode) {
-        return new TokenizerJavacc(new StringReader(string)) ;
+    protected Tokenizer tokenizer(InputStream input, boolean lineMode) {
+        return new TokenizerJavacc(input) ;
     }
 }

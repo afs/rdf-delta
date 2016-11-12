@@ -23,15 +23,12 @@ public class DevToDo {
 
     // Tokens : test with javacc parser
     // javacc tokenizer:
+    
     //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)
-    //   _: <WS> to be parse error.
-    //   escapes in pnames: "a:b\\#c"
+    // See TestTokenizerJavaccTerms
     //  "0xXYZ"
-    //  ? abc -> varname ""
-    //  "??x"
     //  "''@lang- "
-    //  String types: String()
-    // 
+
     //  Differences: token backtracking.
     //     0xXYZ is integer 0 (!)
     //  javacctokeizer has "push token" not "emit token".

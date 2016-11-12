@@ -16,698 +16,692 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio.tokens ;
+package org.seaborne.riot.tio.tokens;
 
-import static org.junit.Assert.assertEquals ;
-import static org.junit.Assert.assertFalse ;
-import static org.junit.Assert.assertNotNull ;
-import static org.junit.Assert.assertTrue ;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import org.apache.jena.riot.RiotException ;
-import org.apache.jena.riot.RiotParseException ;
-import org.apache.jena.riot.tokens.Token ;
-import org.apache.jena.riot.tokens.TokenType ;
-import org.apache.jena.riot.tokens.Tokenizer ;
-import org.apache.jena.sparql.ARQConstants ;
-import org.junit.Test ;
+import org.apache.jena.riot.RiotException;
+import org.apache.jena.riot.RiotParseException;
+import org.apache.jena.riot.tokens.Token;
+import org.apache.jena.riot.tokens.TokenType;
+import org.apache.jena.riot.tokens.Tokenizer;
+import org.apache.jena.sparql.ARQConstants;
+import org.junit.Test;
 
 /** Tests for single tokens. */
 public abstract class AbstractTestTokenizerTerms extends BaseTestTokenizer {
 
     @Test
     public void tokenUnit_iri1() {
-        tokenizeAndTestExact("<x>", TokenType.IRI, "x") ;
+        tokenizeAndTestExact("<x>", TokenType.IRI, "x");
     }
 
     @Test
     public void tokenUnit_iri2() {
-        tokenizeAndTestExact("   <>   ", TokenType.IRI, "") ;
+        tokenizeAndTestExact("   <>   ", TokenType.IRI, "");
     }
 
-    @Test
-    // (expected=RiotParseException.class) We test the message.
+    @Test(expected=RiotParseException.class)
     public void tokenUnit_iri3() {
-        try {
-            // That's one \
-            tokenFirst("<abc\\>def>") ;
-        } catch (RiotParseException ex) {
-            String x = ex.getMessage() ;
-            //assertTrue(x.contains("Illegal")) ;
-            assertTrue(x.contains("Lexical error")) ;
-        }
+        // That's one \
+        tokenFirst("<abc\\>def>");
     }
 
     @Test
     public void tokenUnit_iri4() {
         // \\\\ is a double \\ in the data. 0x41 is 'A'
-        tokenizeAndTestFirst("<abc\\u0041def>   123", TokenType.IRI, "abcAdef") ;
+        tokenizeAndTestFirst("<abc\\u0041def>   123", TokenType.IRI, "abcAdef");
     }
 
     @Test
     public void tokenUnit_iri5() {
         // \\\\ is a double \\ in the data. 0x41 is 'A'
-        tokenizeAndTestFirst("<\\u0041def>   123", TokenType.IRI, "Adef") ;
+        tokenizeAndTestFirst("<\\u0041def>   123", TokenType.IRI, "Adef");
     }
 
     @Test
     public void tokenUnit_iri6() {
         // \\\\ is a double \\ in the data. 0x41 is 'A'
-        tokenizeAndTestFirst("<abc\\u0041>   123", TokenType.IRI, "abcA") ;
+        tokenizeAndTestFirst("<abc\\u0041>   123", TokenType.IRI, "abcA");
     }
 
     // Bad IRIs
     @Test(expected=RiotException.class)
     public void tokenUnit_iri10() {
-        tokenFirst("<abc def>") ;
+        tokenFirst("<abc def>");
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri11() {
-        tokenFirst("<abc<def>") ;
+        tokenFirst("<abc<def>");
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri12() {
-        tokenFirst("<abc{def>") ;
+        tokenFirst("<abc{def>");
     }
     
     @Test(expected=RiotException.class)
     public void tokenUnit_iri13() {
-        tokenFirst("<abc}def>") ;
+        tokenFirst("<abc}def>");
     }
     
     @Test(expected=RiotException.class)
     public void tokenUnit_iri14() {
-        tokenFirst("<abc|def>") ;
+        tokenFirst("<abc|def>");
     }
     
     @Test(expected=RiotException.class)
     public void tokenUnit_iri15() {
-        tokenFirst("<abc^def>") ;
+        tokenFirst("<abc^def>");
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri16() {
-        tokenFirst("<abc`def>") ;
+        tokenFirst("<abc`def>");
     }
     
     @Test(expected=RiotException.class)
     public void tokenUnit_iri17() {
-        tokenFirst("<abc\tdef>") ;          // Java escape - real tab
+        tokenFirst("<abc\tdef>");          // Java escape - real tab
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri18() {
-        tokenFirst("<abc\u0007def>") ;      // Java escape - codepoint 7 
+        tokenFirst("<abc\u0007def>");      // Java escape - codepoint 7 
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri19() {
-        tokenFirst("<abc\\>") ;          
+        tokenFirst("<abc\\>");          
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri20() {
-        tokenFirst("<abc\\def>") ;          
+        tokenFirst("<abc\\def>");          
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri21() {
         // \\\\ is a double \\ in the data.
         // RDF 1.1 - \\ is not legal in a IRIREF
-        tokenFirst("<abc\\\\def>") ;
+        tokenFirst("<abc\\\\def>");
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri22() {
-        tokenFirst("<abc\\u00ZZdef>") ;
+        tokenFirst("<abc\\u00ZZdef>");
     }
 
     @Test(expected=RiotException.class)
     public void tokenUnit_iri23() {
-        tokenFirst("<abc\\uZZ20def>") ;
+        tokenFirst("<abc\\uZZ20def>");
     }
 
     @Test
     public void tokenUnit_str1() {
-        tokenizeAndTestExact("   'abc'   ", TokenType.STRING, "abc") ;
+        tokenizeAndTestExact("   'abc'   ", TokenType.STRING, "abc");
     }
 
     @Test
     public void tokenUnit_str2() {
-        tokenizeAndTestExact("   ''   ", TokenType.STRING, "") ;
+        tokenizeAndTestExact("   ''   ", TokenType.STRING, "");
     }
 
     @Test
     public void tokenUnit_str3() {
-        tokenizeAndTestExact("'\\u0020'", TokenType.STRING, " ") ;
+        tokenizeAndTestExact("'\\u0020'", TokenType.STRING, " ");
     }
 
     @Test
     public void tokenUnit_str4() {
-        tokenizeAndTestExact("'a\\'\\\"\\n\\t\\r\\f'", TokenType.STRING, "a'\"\n\t\r\f") ;
+        tokenizeAndTestExact("'a\\'\\\"\\n\\t\\r\\f'", TokenType.STRING, "a'\"\n\t\r\f");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_str5() {
         // This is a raw newline. \n is a Java string escape.
-        tokenizeAndTestExact("'\n'", TokenType.STRING, "\n") ;
+        tokenizeAndTestExact("'\n'", TokenType.STRING, "\n");
     }
 
     @Test
     public void tokenUnit_str6() {
-        tokenizeAndTestExact("   \"abc\"   ", TokenType.STRING, "abc") ;
+        tokenizeAndTestExact("   \"abc\"   ", TokenType.STRING, "abc");
     }
 
     @Test
     public void tokenUnit_str7() {
-        tokenizeAndTestExact("\"\"", TokenType.STRING, "") ;
+        tokenizeAndTestExact("\"\"", TokenType.STRING, "");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_str8() {
-        Tokenizer tokenizer = tokenizer("\"") ;
-        assertTrue(tokenizer.hasNext()) ;
+        Tokenizer tokenizer = tokenizer("\"");
+        assertTrue(tokenizer.hasNext());
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_str9() {
-        tokenFirst("'abc") ;
+        tokenFirst("'abc");
     }
 
     @Test
     public void tokenUnit_str10() {
-        tokenizeAndTestExact("'\\'abc'", TokenType.STRING, "'abc") ;
+        tokenizeAndTestExact("'\\'abc'", TokenType.STRING, "'abc");
     }
 
 //    @Test
 //    public void tokenUnit_str11() {
-//        tokenizeAndTestExact("'\\U00000020'", TokenType.STRING, " ") ;
+//        tokenizeAndTestExact("'\\U00000020'", TokenType.STRING, " ");
 //    }
 
     @Test
     public void tokenUnit_str_long1() {
-        tokenizeAndTestExact("'''aaa'''", TokenType.STRING, "aaa") ;
+        tokenizeAndTestExact("'''aaa'''", TokenType.STRING, "aaa");
     }
 
     @Test
     public void tokenUnit_str_long2() {
-        tokenizeAndTestExact("\"\"\"aaa\"\"\"", TokenType.STRING, "aaa") ;
+        tokenizeAndTestExact("\"\"\"aaa\"\"\"", TokenType.STRING, "aaa");
     }
 
     @Test
     public void tokenUnit_str_long3() {
-        tokenizeAndTestExact("''''1234'''", TokenType.STRING, "'1234") ;
+        tokenizeAndTestExact("''''1234'''", TokenType.STRING, "'1234");
     }
 
     @Test
     public void tokenUnit_str_long4() {
-        tokenizeAndTestExact("'''''1234'''", TokenType.STRING, "''1234") ;
+        tokenizeAndTestExact("'''''1234'''", TokenType.STRING, "''1234");
     }
 
     @Test
     public void tokenUnit_str_long5() {
-        tokenizeAndTestExact("'''\\'''1234'''", TokenType.STRING, "'''1234") ;
+        tokenizeAndTestExact("'''\\'''1234'''", TokenType.STRING, "'''1234");
     }
 
     @Test
     public void tokenUnit_str_long6() {
-        tokenizeAndTestExact("\"\"\"\"1234\"\"\"", TokenType.STRING, "\"1234") ;
+        tokenizeAndTestExact("\"\"\"\"1234\"\"\"", TokenType.STRING, "\"1234");
     }
 
     @Test
     public void tokenUnit_str_long7() {
-        tokenizeAndTestExact("\"\"\"\"\"1234\"\"\"", TokenType.STRING, "\"\"1234") ;
+        tokenizeAndTestExact("\"\"\"\"\"1234\"\"\"", TokenType.STRING, "\"\"1234");
     }
 
     @Test
     public void tokenUnit_str_long8() {
-        tokenizeAndTestExact("''''''", TokenType.STRING, "") ;
+        tokenizeAndTestExact("''''''", TokenType.STRING, "");
     }
 
     @Test
     public void tokenUnit_str_long9() {
-        tokenizeAndTestExact("\"\"\"'''''''''''''''''\"\"\"", TokenType.STRING, "'''''''''''''''''") ;
+        tokenizeAndTestExact("\"\"\"'''''''''''''''''\"\"\"", TokenType.STRING, "'''''''''''''''''");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_str_long10() {
-        tokenFirst("\"\"\"abcdef") ;
+        tokenFirst("\"\"\"abcdef");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_str_long11() {
-        tokenFirst("'''") ;
+        tokenFirst("'''");
     }
 
     @Test
     public void tokenUnit_str_long12() {
-        tokenizeAndTestExact("'''x'''@en", TokenType.LITERAL_LANG, "x", "en") ;
+        tokenizeAndTestExact("'''x'''@en", TokenType.LITERAL_LANG, "x", "en");
     }
 
     @Test
     public void tokenUnit_bNode1() {
-        tokenizeAndTestExact("_:abc", TokenType.BNODE, "abc") ;
+        tokenizeAndTestExact("_:abc", TokenType.BNODE, "abc");
     }
 
     @Test
     public void tokenUnit_bNode2() {
-        tokenizeAndTestExact("_:123 ", TokenType.BNODE, "123") ;
+        tokenizeAndTestExact("_:123 ", TokenType.BNODE, "123");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_bNode3() {
-        Tokenizer tokenizer = tokenizer("_:") ;
-        assertTrue(tokenizer.hasNext()) ;
-        Token token = tokenizer.next() ;
-        assertNotNull(token) ;
+        Tokenizer tokenizer = tokenizer("_:");
+        assertTrue(tokenizer.hasNext());
+        Token token = tokenizer.next();
+        System.out.println(token);
+        assertNotNull(token);
     }
 
     @Test
     public void tokenUnit_bNode4() {
-        tokenizeAndTestExact("_:1-2-Z ", TokenType.BNODE, "1-2-Z") ;
+        tokenizeAndTestExact("_:1-2-Z ", TokenType.BNODE, "1-2-Z");
     }
 
     @Test
     public void tokenUnit_bNode5() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("_:x.    ", TokenType.BNODE, "x") ;
-        testNextToken(tokenizer, TokenType.DOT) ;
-        assertFalse(tokenizer.hasNext()) ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("_:x.    ", TokenType.BNODE, "x");
+        testNextToken(tokenizer, TokenType.DOT);
+        assertFalse(tokenizer.hasNext());
     }
 
     @Test
     public void tokenUnit_bNode6() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("_:x:a.    ", TokenType.BNODE, "x") ;
-        testNextToken(tokenizer, TokenType.PREFIXED_NAME, "", "a") ;
-        testNextToken(tokenizer, TokenType.DOT) ;
-        assertFalse(tokenizer.hasNext()) ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("_:x:a.    ", TokenType.BNODE, "x");
+        testNextToken(tokenizer, TokenType.PREFIXED_NAME, "", "a");
+        testNextToken(tokenizer, TokenType.DOT);
+        assertFalse(tokenizer.hasNext());
     }
 
     @Test
     public void tokenUnit_pname1() {
-        tokenizeAndTestExact("a:b.c", TokenType.PREFIXED_NAME, "a", "b.c") ;
+        tokenizeAndTestExact("a:b.c", TokenType.PREFIXED_NAME, "a", "b.c");
     }
 
     @Test
     public void tokenUnit_pname2() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("a:b.", TokenType.PREFIXED_NAME, "a", "b") ;
-        assertTrue(tokenizer.hasNext()) ;
-        Token token = tokenizer.next() ;
-        assertEquals(TokenType.DOT, token.getType()) ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("a:b.", TokenType.PREFIXED_NAME, "a", "b");
+        assertTrue(tokenizer.hasNext());
+        Token token = tokenizer.next();
+        assertEquals(TokenType.DOT, token.getType());
     }
 
     @Test
     public void tokenUnit_pname3() {
-        tokenizeAndTestExact("a:b123", TokenType.PREFIXED_NAME, "a", "b123") ;
+        tokenizeAndTestExact("a:b123", TokenType.PREFIXED_NAME, "a", "b123");
     }
 
     @Test
     public void tokenUnit_pname4() {
-        tokenizeAndTestExact("a:", TokenType.PREFIXED_NAME, "a", "") ;
+        tokenizeAndTestExact("a:", TokenType.PREFIXED_NAME, "a", "");
     }
 
     @Test
     public void tokenUnit_pname5() {
-        tokenizeAndTestExact(":", TokenType.PREFIXED_NAME, "", "") ;
+        tokenizeAndTestExact(":", TokenType.PREFIXED_NAME, "", "");
     }
 
     @Test
     public void tokenUnit_pname6() {
-        tokenizeAndTestExact(":a", TokenType.PREFIXED_NAME, "", "a") ;
+        tokenizeAndTestExact(":a", TokenType.PREFIXED_NAME, "", "a");
     }
 
     @Test
     public void tokenUnit_pname7() {
-        tokenizeAndTestExact(":123", TokenType.PREFIXED_NAME, "", "123") ;
+        tokenizeAndTestExact(":123", TokenType.PREFIXED_NAME, "", "123");
     }
 
     @Test
     public void tokenUnit_pname8() {
-        tokenizeAndTestExact("a123:456", TokenType.PREFIXED_NAME, "a123", "456") ;
+        tokenizeAndTestExact("a123:456", TokenType.PREFIXED_NAME, "a123", "456");
     }
 
     @Test
     public void tokenUnit_pname9() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("a123:-456", TokenType.PREFIXED_NAME, "a123", "") ;
-        assertTrue(tokenizer.hasNext()) ;
-        Token token = tokenizer.next() ;
-        assertEquals(TokenType.INTEGER, token.getType()) ;
-        assertEquals("-456", token.getImage()) ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("a123:-456", TokenType.PREFIXED_NAME, "a123", "");
+        assertTrue(tokenizer.hasNext());
+        Token token = tokenizer.next();
+        assertEquals(TokenType.INTEGER, token.getType());
+        assertEquals("-456", token.getImage());
     }
 
     @Test
     public void tokenUnit_pname10() {
-        tokenizeAndTestExact("a:a.b", TokenType.PREFIXED_NAME, "a", "a.b") ;
+        tokenizeAndTestExact("a:a.b", TokenType.PREFIXED_NAME, "a", "a.b");
     }
 
     @Test
     public void tokenUnit_pname11() {
-        tokenizeAndTestExact("a:0.b", TokenType.PREFIXED_NAME, "a", "0.b") ;
+        tokenizeAndTestExact("a:0.b", TokenType.PREFIXED_NAME, "a", "0.b");
     }
 
     @Test
     public void tokenUnit_pname12() {
-        tokenizeAndTestFirst("a:0. b", TokenType.PREFIXED_NAME, "a", "0") ;
+        tokenizeAndTestFirst("a:0. b", TokenType.PREFIXED_NAME, "a", "0");
     }
 
     @Test
     public void tokenUnit_pname13() {
         // x00e9 é
         // x0065 e and x0301 ́
-        tokenizeAndTestExact("a:xyzé", TokenType.PREFIXED_NAME, "a", "xyz\u00e9") ;
+        tokenizeAndTestExact("a:xyzé", TokenType.PREFIXED_NAME, "a", "xyz\u00e9");
     }
 
     @Test
     public void tokenUnit_pname14() {
         // x0065 e and x0301 ́
-        tokenizeAndTestExact("a:xyze\u0301", TokenType.PREFIXED_NAME, "a", "xyze\u0301") ;
+        tokenizeAndTestExact("a:xyze\u0301", TokenType.PREFIXED_NAME, "a", "xyze\u0301");
     }
 
     @Test
     public void tokenUnit_pname15() {
         // x0065 e and x0301 ́
-        tokenizeAndTestExact("a:xe\u0301y", TokenType.PREFIXED_NAME, "a", "xe\u0301y") ;
+        tokenizeAndTestExact("a:xe\u0301y", TokenType.PREFIXED_NAME, "a", "xe\u0301y");
     }
 
     @Test
     public void tokenUnit_pname16() {
-        tokenizeAndTestExact("a:b\\#c", TokenType.PREFIXED_NAME, "a", "b#c") ;
+        tokenizeAndTestExact("a:b\\#c", TokenType.PREFIXED_NAME, "a", "b#c");
     }
 
     @Test
     public void tokenUnit_pname17() {
-        tokenizeAndTestExact("a:b\\/c", TokenType.PREFIXED_NAME, "a", "b/c") ;
+        tokenizeAndTestExact("a:b\\/c", TokenType.PREFIXED_NAME, "a", "b/c");
     }
 
     @Test
     public void tokenUnit_pname18() {
-        tokenizeAndTestExact("a:b:c", TokenType.PREFIXED_NAME, "a", "b:c") ;
+        tokenizeAndTestExact("a:b:c", TokenType.PREFIXED_NAME, "a", "b:c");
     }
 
     @Test
     public void tokenUnit_pname19() {
-        tokenizeAndTestExact("a:b%AAc", TokenType.PREFIXED_NAME, "a", "b%AAc") ;
+        tokenizeAndTestExact("a:b%AAc", TokenType.PREFIXED_NAME, "a", "b%AAc");
     }
  
     @Test
     public void tokenUnit_25() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("123:", TokenType.INTEGER, "123") ;
-        testNextToken(tokenizer, TokenType.PREFIXED_NAME, "", "") ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("123:", TokenType.INTEGER, "123");
+        testNextToken(tokenizer, TokenType.PREFIXED_NAME, "", "");
     }
 
     @Test
     public void tokenUnit_num1() {
-        tokenizeAndTestExact("123", TokenType.INTEGER, "123") ;
+        tokenizeAndTestExact("123", TokenType.INTEGER, "123");
     }
 
     @Test
     public void tokenUnit_num2() {
         // This is a change in Turtle (and SPARQL 1.1)
-        tokenizeAndTestFirst("123.", TokenType.INTEGER, "123") ;
+        tokenizeAndTestFirst("123.", TokenType.INTEGER, "123");
     }
 
     @Test
     public void tokenUnit_num3() {
-        tokenizeAndTestExact("+123.456", TokenType.DECIMAL, "+123.456") ;
+        tokenizeAndTestExact("+123.456", TokenType.DECIMAL, "+123.456");
     }
 
     @Test
     public void tokenUnit_num4() {
-        tokenizeAndTestExact("-1", TokenType.INTEGER, "-1") ;
+        tokenizeAndTestExact("-1", TokenType.INTEGER, "-1");
     }
 
     @Test
     public void tokenUnit_num5() {
-        tokenizeAndTestExact("-1e0", TokenType.DOUBLE, "-1e0") ;
+        tokenizeAndTestExact("-1e0", TokenType.DOUBLE, "-1e0");
     }
 
     @Test
     public void tokenUnit_num6() {
-        tokenizeAndTestExact("1e+1", TokenType.DOUBLE, "1e+1") ;
+        tokenizeAndTestExact("1e+1", TokenType.DOUBLE, "1e+1");
     }
 
     @Test
     public void tokenUnit_num7() {
-        tokenizeAndTestExact("1.3e+1", TokenType.DOUBLE, "1.3e+1") ;
+        tokenizeAndTestExact("1.3e+1", TokenType.DOUBLE, "1.3e+1");
     }
 
     @Test
     public void tokenUnit_num8() {
-        tokenizeAndTestFirst("1.3.4", TokenType.DECIMAL, "1.3") ;
+        tokenizeAndTestFirst("1.3.4", TokenType.DECIMAL, "1.3");
     }
 
     @Test
     public void tokenUnit_num9() {
-        tokenizeAndTestFirst("1.3e67.7", TokenType.DOUBLE, "1.3e67") ;
+        tokenizeAndTestFirst("1.3e67.7", TokenType.DOUBLE, "1.3e67");
     }
 
     @Test
     public void tokenUnit_num10() {
-        tokenizeAndTestExact(".1", TokenType.DECIMAL, ".1") ;
+        tokenizeAndTestExact(".1", TokenType.DECIMAL, ".1");
     }
 
     @Test
     public void tokenUnit_num11() {
-        tokenizeAndTestExact(".1e0", TokenType.DOUBLE, ".1e0") ;
+        tokenizeAndTestExact(".1e0", TokenType.DOUBLE, ".1e0");
     }
 
     @Test
     public void tokenUnit_num12() {
         // This is not a hex number.
 
-        Tokenizer tokenizer = tokenizeAndTestFirst("000A     .", TokenType.INTEGER, "000") ;
-        testNextToken(tokenizer, TokenType.KEYWORD, "A") ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("000A     .", TokenType.INTEGER, "000");
+        testNextToken(tokenizer, TokenType.KEYWORD, "A");
     }
     
     @Test
     public void tokenUnit_var1() {
-        tokenizeAndTestFirst("?x ?y", TokenType.VAR, "x") ;
+        tokenizeAndTestFirst("?x ?y", TokenType.VAR, "x");
     }
 
     @Test
     public void tokenUnit_var2() {
-        tokenizeAndTestFirst("? x", TokenType.VAR, "") ;
+        tokenizeAndTestFirst("? x", TokenType.VAR, "");
     }
 
     @Test
     public void tokenUnit_var3() {
-        tokenizeAndTestExact("??x", TokenType.VAR, "?x") ;
+        tokenizeAndTestExact("??x", TokenType.VAR, "?x");
     }
 
     @Test
     public void tokenUnit_var4() {
-        tokenizeAndTestExact("?.1", TokenType.VAR, ".1") ;
+        tokenizeAndTestExact("?.1", TokenType.VAR, ".1");
     }
 
     @Test
     public void tokenUnit_var5() {
-        tokenizeAndTestExact("?" + ARQConstants.allocVarMarker, TokenType.VAR, ARQConstants.allocVarMarker) ;
+        tokenizeAndTestExact("?" + ARQConstants.allocVarMarker, TokenType.VAR, ARQConstants.allocVarMarker);
     }
  
     @Test
     public void tokenUnit_var6() {
-        tokenizeAndTestExact("?" + ARQConstants.allocVarMarker + "0", TokenType.VAR, ARQConstants.allocVarMarker + "0") ;
+        tokenizeAndTestExact("?" + ARQConstants.allocVarMarker + "0", TokenType.VAR, ARQConstants.allocVarMarker + "0");
     }
 
     @Test
     public void tokenUnit_hex1() {
-        tokenizeAndTestExact("0xABC", TokenType.HEX, "0xABC") ;
+        tokenizeAndTestExact("0xABC", TokenType.HEX, "0xABC");
     }
 
     @Test
     public void tokenUnit_hex2() {
-        tokenizeAndTestFirst("0xABCXYZ", TokenType.HEX, "0xABC") ;
+        tokenizeAndTestFirst("0xABCXYZ", TokenType.HEX, "0xABC");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenUnit_hex3() {
-        tokenFirst("0xXYZ") ;
+        tokenFirst("0xXYZ");
     }
 
     @Test
     public void tokenUnit_hex4() {
-        tokenizeAndTestExact("0Xabc", TokenType.HEX, "0Xabc") ;
+        tokenizeAndTestExact("0Xabc", TokenType.HEX, "0Xabc");
     }
 
     protected void tokenizeAndTestLiteralDT(String input, TokenType lexType, String image, TokenType dt,
                                                  String dtImage1, String dtImage2) {
-        Token lexToken = new Token(lexType, image) ;
-        Token dtToken = new Token(dt, dtImage1, dtImage2) ;
-        tokenizeAndTest(input, TokenType.LITERAL_DT, image, null, lexToken, dtToken) ;
+        Token lexToken = new Token(lexType, image);
+        Token dtToken = new Token(dt, dtImage1, dtImage2);
+        tokenizeAndTest(input, TokenType.LITERAL_DT, image, null, lexToken, dtToken);
 
-        Token expectedToken = new Token(TokenType.LITERAL_DT) ;
-        expectedToken.setImage(image) ;
-        expectedToken.setImage2(null) ;
-        expectedToken.setSubToken1(lexToken) ;
-        expectedToken.setSubToken2(dtToken) ;
+        Token expectedToken = new Token(TokenType.LITERAL_DT);
+        expectedToken.setImage(image);
+        expectedToken.setImage2(null);
+        expectedToken.setSubToken1(lexToken);
+        expectedToken.setSubToken2(dtToken);
 
-        Token token = tokenFor(input) ;
-        assertEquals(expectedToken, token) ;
+        Token token = tokenFor(input);
+        assertEquals(expectedToken, token);
 
-        Token token2 = tokenizeAndTestExact(input, TokenType.LITERAL_DT, image).getSubToken2() ;
-        assertEquals(dt, token2.getType()) ;
-        assertEquals(dtImage1, token2.getImage()) ;
-        assertEquals(dtImage2, token2.getImage2()) ;
+        Token token2 = tokenizeAndTestExact(input, TokenType.LITERAL_DT, image).getSubToken2();
+        assertEquals(dt, token2.getType());
+        assertEquals(dtImage1, token2.getImage());
+        assertEquals(dtImage2, token2.getImage2());
     }
 
     @Test
     public void tokenLiteralDT_0() {
-        tokenizeAndTestLiteralDT("\"123\"^^<x> ", TokenType.STRING, "123", TokenType.IRI, "x", null) ;
+        tokenizeAndTestLiteralDT("\"123\"^^<x> ", TokenType.STRING, "123", TokenType.IRI, "x", null);
     }
 
     // literal test function.
 
 //    @Test
 //    public void tokenLiteralDT_1() {
-//        tokenizeAndTestLiteralDT("'123'^^x:y ", TokenType.STRING, "123", TokenType.PREFIXED_NAME, "x", "y") ;
+//        tokenizeAndTestLiteralDT("'123'^^x:y ", TokenType.STRING, "123", TokenType.PREFIXED_NAME, "x", "y");
 //    }
 //
 //    @Test
 //    public void tokenLiteralDT_2() {
-//        tokenizeAndTestLiteralDT("'123'^^:y", TokenType.STRING, "123", TokenType.PREFIXED_NAME, "", "y") ;
+//        tokenizeAndTestLiteralDT("'123'^^:y", TokenType.STRING, "123", TokenType.PREFIXED_NAME, "", "y");
 //    }
 
     @Test
     public void tokenLiteralDT_3() {
-        tokenizeAndTestLiteralDT("'''123'''^^<xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null) ;
+        tokenizeAndTestLiteralDT("'''123'''^^<xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null);
     }
 
 //    @Test(expected = RiotParseException.class)
 //    public void tokenLiteralDT_bad_1() {
-//        Tokenizer tokenizer = tokenizer("'123'^^ <x> ") ;
-//        assertTrue(tokenizer.hasNext()) ;
-//        Token token = tokenizer.next() ;
-//        assertNotNull(token) ;
+//        Tokenizer tokenizer = tokenizer("'123'^^ <x> ");
+//        assertTrue(tokenizer.hasNext());
+//        Token token = tokenizer.next();
+//        assertNotNull(token);
 //    }
 
 //    @Test(expected = RiotParseException.class)
 //    public void tokenLiteralDT_bad_2() {
-//        Tokenizer tokenizer = tokenizer("'123' ^^<x> ") ;
-//        assertTrue(tokenizer.hasNext()) ;
-//        Token token = tokenizer.next() ;
-//        assertNotNull(token) ; // 123
-//        assertEquals(TokenType.STRING, token.getType()) ;
-//        assertEquals("123", token.getImage()) ;
+//        Tokenizer tokenizer = tokenizer("'123' ^^<x> ");
+//        assertTrue(tokenizer.hasNext());
+//        Token token = tokenizer.next();
+//        assertNotNull(token); // 123
+//        assertEquals(TokenType.STRING, token.getType());
+//        assertEquals("123", token.getImage());
 //
-//        assertTrue(tokenizer.hasNext()) ;
-//        Token token2 = tokenizer.next() ;
-//        assertNotNull(token2) ; // ^^
+//        assertTrue(tokenizer.hasNext());
+//        Token token2 = tokenizer.next();
+//        assertNotNull(token2); // ^^
 //    }
 
     public void tokenLiteralDT_4() {
-        tokenizeAndTestLiteralDT("'123'  ^^<xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null) ;
+        tokenizeAndTestLiteralDT("'123'  ^^<xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null);
     }
     
     public void tokenLiteralDT_5() {
-        tokenizeAndTestLiteralDT("'123'^^  <xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null) ;
+        tokenizeAndTestLiteralDT("'123'^^  <xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null);
     }
 
     public void tokenLiteralDT_6() {
-        tokenizeAndTestLiteralDT("'123'  ^^  <xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null) ;
+        tokenizeAndTestLiteralDT("'123'  ^^  <xyz>", TokenType.STRING, "123", TokenType.IRI, "xyz", null);
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenLiteralDT_bad_1() {
         // Can't split ^^
-        Tokenizer tokenizer = tokenizer("'123'^ ^<x> ") ;
-        assertTrue(tokenizer.hasNext()) ;
-        Token token = tokenizer.next() ;
-        assertNotNull(token) ;
+        Tokenizer tokenizer = tokenizer("'123'^ ^<x> ");
+        assertTrue(tokenizer.hasNext());
+        Token token = tokenizer.next();
+        assertNotNull(token);
     }
 
 //    @Test(expected = RiotParseException.class)
 //    public void tokenLiteralDT_bad_4() {
-//        Tokenizer tokenizer = tokenizer("'123'^^ x:y") ;
-//        assertTrue(tokenizer.hasNext()) ;
-//        Token token = tokenizer.next() ;
-//        assertNotNull(token) ;
+//        Tokenizer tokenizer = tokenizer("'123'^^ x:y");
+//        assertTrue(tokenizer.hasNext());
+//        Token token = tokenizer.next();
+//        assertNotNull(token);
 //    }
 
     @Test
     public void tokenLiteralLang_0() {
-        tokenizeAndTestExact("'a'@en", TokenType.LITERAL_LANG, "a", "en") ;
+        tokenizeAndTestExact("'a'@en", TokenType.LITERAL_LANG, "a", "en");
     }
 
     @Test
     public void tokenLiteralLang_1() {
-        tokenizeAndTestExact("'a'@en-UK", TokenType.LITERAL_LANG, "a", "en-UK") ;
+        tokenizeAndTestExact("'a'@en-UK", TokenType.LITERAL_LANG, "a", "en-UK");
     }
 
     @Test
     public void tokenLiteralLang_2() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("'' @lang ", TokenType.LITERAL_LANG, "", "lang") ;
-        //testNextToken(tokenizer, TokenType.LITERAL_LANG, "lang") ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("'' @lang ", TokenType.LITERAL_LANG, "", "lang");
+        //testNextToken(tokenizer, TokenType.LITERAL_LANG, "lang");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenLiteralLang_3() {
-        tokenFirst("''@ lang ") ;
+        tokenFirst("''@ lang ");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenLiteralLang_4() {
-        tokenFirst("''@lang- ") ;
+        tokenFirst("''@lang- ");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenLiteralLang_5() {
-        tokenFirst("'abc'@- ") ;
+        tokenFirst("'abc'@- ");
     }
 
     @Test
     public void tokenLiteralLang_6() {
-        tokenizeAndTestExact("'XYZ'@a-b-c ", TokenType.LITERAL_LANG, "XYZ", "a-b-c") ;
+        tokenizeAndTestExact("'XYZ'@a-b-c ", TokenType.LITERAL_LANG, "XYZ", "a-b-c");
     }
 
     @Test
     public void tokenLiteralLang_7() {
-        tokenizeAndTestExact("'X'@a-b9z-c99 ", TokenType.LITERAL_LANG, "X", "a-b9z-c99") ;
+        tokenizeAndTestExact("'X'@a-b9z-c99 ", TokenType.LITERAL_LANG, "X", "a-b9z-c99");
     }
 
     @Test
     public void tokenLiteralLang_8() {
-        tokenizeAndTestExact("'X'  @a", TokenType.LITERAL_LANG, "X", "a") ;
+        tokenizeAndTestExact("'X'  @a", TokenType.LITERAL_LANG, "X", "a");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenLiteralLang_bad_1() {
-        tokenFirst("''@9-b") ;
+        tokenFirst("''@9-b");
     }
 
     @Test(expected = RiotParseException.class)
     public void tokenLiteralLang_bad_2() {
-        tokenFirst("''@  tag") ;
+        tokenFirst("''@  tag");
     }
 
     //    @Test
 //    public void directive_1() {
-//        tokenizeAndTestExact("@prefix", TokenType.DIRECTIVE, "prefix") ;
+//        tokenizeAndTestExact("@prefix", TokenType.DIRECTIVE, "prefix");
 //    }
 //
 //    @Test
 //    public void directive_2() {
-//        tokenizeAndTestExact("@base", TokenType.DIRECTIVE, "base") ;
+//        tokenizeAndTestExact("@base", TokenType.DIRECTIVE, "base");
 //    }
 //
 //    @Test
 //    public void directive_3() {
-//        tokenizeAndTestExact("@whatever", TokenType.DIRECTIVE, "whatever") ;
+//        tokenizeAndTestExact("@whatever", TokenType.DIRECTIVE, "whatever");
 //    }
 //
 //    @Test
 //    public void tokenComment_01() {
-//        tokenizeAndTestExact("_:123 # Comment", TokenType.BNODE, "123") ;
+//        tokenizeAndTestExact("_:123 # Comment", TokenType.BNODE, "123");
 //    }
 
     @Test
     public void tokenComment_02() {
-        tokenizeAndTestExact("\"foo # Non-Comment\"", TokenType.STRING, "foo # Non-Comment") ;
+        tokenizeAndTestExact("\"foo # Non-Comment\"", TokenType.STRING, "foo # Non-Comment");
     }
 
     @Test
     public void tokenComment_03() {
-        Tokenizer tokenizer = tokenizeAndTestFirst("'foo' # Comment\n'bar'", TokenType.STRING, "foo") ;
-        testNextToken(tokenizer, TokenType.STRING, "bar") ;
+        Tokenizer tokenizer = tokenizeAndTestFirst("'foo' # Comment\n'bar'", TokenType.STRING, "foo");
+        testNextToken(tokenizer, TokenType.STRING, "bar");
     }
 
 }

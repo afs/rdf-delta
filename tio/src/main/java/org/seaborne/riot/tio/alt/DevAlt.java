@@ -23,6 +23,7 @@ import java.io.StringReader ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
+import org.apache.jena.riot.RiotParseException;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.jena.riot.tokens.TokenizerFactory ;
@@ -35,19 +36,29 @@ public class DevAlt {
         // Necessary but why?
         // Otherwise TokenizerJavacc causes "broken term"
         
-        String s = "<xyz abc>" ;
+        String s = "<xyz\tabc>" ;
         System.out.println("Input:|"+s+"|"); 
 
-        Tokenizer tok1 = new TokenizerJavacc(new StringReader(s)) ;
-        print("javacc", tok1);
+        try {
+            Tokenizer tok1 = new TokenizerJavacc(new StringReader(s)) ;
+            print("javacc", tok1);
+        } catch (RiotParseException ex) {
+            ex.printStackTrace(System.out);
+        }
+        
+        try {
+            Tokenizer tok2 = TokenizerFactory.makeTokenizer(new StringReader(s));
+            print("TokenizerText", tok2);
+        } catch (RiotParseException ex) {
+            ex.printStackTrace(System.out);
+        }
 
-        Tokenizer tok2 = TokenizerFactory.makeTokenizer(new StringReader(s));
-        print("TokenizerText", tok2);
     }
     
     private static void print(String label, Tokenizer tok) {
         TupleReader tr = new TupleReaderTokenizer(tok) ;
         System.out.println(label);
+        System.out.flush();
         tr.forEach(t->System.out.printf("  >> %s\n", t));
     }   
 

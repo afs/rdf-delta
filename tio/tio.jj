@@ -287,11 +287,12 @@ TOKEN:
 //    <IRI:         "<" (~[ ">","<", "\"", "{", "}", "^", "\\", "|", "`", 
 //                       "\u0000"-"\u0020"])* ">" >
    // Check more later.
-   <IRI: "<" (~["\t","\n","\r","\f",">"])* ">" >
+   <IRI: "<" (~["\n","\r","\f",">"])* ">" >
 |  <PNAME_NS: (<PN_PREFIX>)? ":" >
 |  <PNAME_LN: <PNAME_NS> <PN_LOCAL> >
 
-|  <BLANK_NODE_LABEL: "_:" (<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)?  >
+   // Allows "_:" which is then an error in the token production.
+|  <BLANK_NODE_LABEL: "_:" ((<PN_CHARS_U> | ["0"-"9"]) ((<PN_CHARS>|".")* <PN_CHARS>)?)?  >
 
 //|  <VAR1: "?" <VARNAME> >
 //|  <VAR2: "$" <VARNAME> >

@@ -25,6 +25,7 @@ import java.util.List ;
 import java.util.NoSuchElementException ;
 
 import org.apache.jena.atlas.lib.tuple.Tuple ;
+import org.apache.jena.riot.RiotParseException;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.seaborne.riot.tio.TupleReader ;
@@ -63,9 +64,9 @@ public class TupleReaderTokenizer implements TupleReader {
             if ( list == null )
                 finished = true ;
             return list != null ;
-        } catch (Exception ex) {
+        } catch (RiotParseException ex) {
             finished = true ;
-            return false ;
+            throw ex;
         }
     }
 

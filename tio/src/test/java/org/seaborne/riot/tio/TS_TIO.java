@@ -20,10 +20,12 @@ package org.seaborne.riot.tio;
 
 import org.junit.runner.RunWith ;
 import org.junit.runners.Suite ;
+import org.seaborne.riot.tio.tokens.TS_Tokenizer2;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestTokenText.class
+    TestTokenText.class,
+    TS_Tokenizer2.class
 })
 
 public class TS_TIO {}
