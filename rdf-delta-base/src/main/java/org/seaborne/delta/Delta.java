@@ -39,12 +39,12 @@ public class Delta {
     public final static Logger DELTA_HTTP_LOG   = getDeltaLogger("HTTP") ;
     public final static Logger DELTA_RPC_LOG    = getDeltaLogger("RPC") ;
 
-    static { init$() ; } 
+    static { JenaSystem.init(); } 
     
     /** This is automatically called by the Jena subsystem startup cycle.
      * See {@link InitDelta} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      */
-    public static void init( ) {}
+    public static void init( ) { init$(); }
     
     private static void init$() {
         if ( initialized )

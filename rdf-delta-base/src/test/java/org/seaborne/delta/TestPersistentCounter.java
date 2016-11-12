@@ -27,7 +27,7 @@ import org.junit.Test ;
 import org.seaborne.delta.PersistentCounter ;
 
 public class TestPersistentCounter {
-    static final String filename = "target/persitentCounter" ; 
+    static final String filename = "target/persistentCounter" ; 
     
     @Before public void before() {
         FileOps.deleteSilent(filename); 

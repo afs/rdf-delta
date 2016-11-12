@@ -19,9 +19,28 @@
 package dev;
 
 public class DevToDo {
+    // DeltaClient -> DatasetGraphChanges
 
+    // Tokens : test with javacc parser
+    // javacc tokenizer:
+    //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)
+    //   _: <WS> to be parse error.
+    //   escapes in pnames: "a:b\\#c"
+    //  "0xXYZ"
+    //  ? abc -> varname ""
+    //  "??x"
+    //  "''@lang- "
+    //  String types: String()
+    // 
+    //  Differences: token backtracking.
+    //     0xXYZ is integer 0 (!)
+    //  javacctokeizer has "push token" not "emit token".
+    //    Compounds like RDFLiterals.
+    
     // Documentation
-    // Extract polling support to DeltaClient. 
+    
+    // Extract polling support to DeltaClient.
+    // Assembler to have a DeltaClient.
 
     // RDF Git.
     // Checksums
