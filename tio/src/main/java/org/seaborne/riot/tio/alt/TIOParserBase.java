@@ -18,6 +18,8 @@
 
 package org.seaborne.riot.tio.alt;
 
+import static org.apache.jena.atlas.lib.Chars.CH_LT;
+import static org.apache.jena.atlas.lib.Chars.CH_RSLASH;
 import static org.apache.jena.atlas.lib.Chars.SPC;
 import static org.apache.jena.atlas.lib.Chars.TAB;
 
@@ -227,8 +229,17 @@ public class TIOParserBase {
             char ch = iriStr.charAt(i);
             // SeeTokenizerText
             switch(ch) {
+                case CH_LT:
+                    // Probably a corrupt file so not a warning.
+                    badCharInIRI(line, column, "Bad character in IRI (bad character: '<'): <%s[<]...>", iriStr.substring(0, i)) ;
+                    break;
                 case TAB:
                     badCharInIRI(line, column, "Bad character in IRI (Tab character): <%s[tab]...>", iriStr.substring(0, i)) ;
+                    break;
+                case CH_RSLASH:
+                    // Already unescaped.
+                    badCharInIRI(line, column, "Bad escape sequence in IRI: <%s\\...>", iriStr.substring(0, i)) ;
+                    break ;                    
                 case '{': case '}': case '"': case '|': case '^': case '`' :
                     badCharInIRI(line, column, "Illegal character in IRI (codepoint 0x%02X, '%c'): <%s[%c]...>", (int)ch, ch, iriStr.substring(0, i), ch) ;
 //                    if ( ! VeryVeryLaxIRI )

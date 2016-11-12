@@ -770,7 +770,7 @@ emitSymbol(tt, t.beginLine, t.beginColumn) ;
       jj_la1_1 = new int[] {0x1effff1f,0x1effff1f,0x0,0x1effff1f,0x1effff1f,0x1effff1f,0xf1f,0xf1f,0x0,0x0,0x1f,0x0,0x3,0x1c,0x0,0xf00,0x0,0x1efff000,};
    }
    private static void jj_la1_init_2() {
-      jj_la1_2 = new int[] {0x80,0x80,0x0,0x80,0x80,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_2 = new int[] {0x200,0x200,0x0,0x200,0x200,0x200,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -887,7 +887,7 @@ emitSymbol(tt, t.beginLine, t.beginColumn) ;
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[73];
+    boolean[] la1tokens = new boolean[75];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -907,7 +907,7 @@ emitSymbol(tt, t.beginLine, t.beginColumn) ;
         }
       }
     }
-    for (int i = 0; i < 73; i++) {
+    for (int i = 0; i < 75; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

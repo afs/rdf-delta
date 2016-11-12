@@ -430,10 +430,20 @@ TOKEN:
   <#PN_LOCAL: (<PN_CHARS_U> | ":" | ["0"-"9"] | <PLX> ) 
               ( (<PN_CHARS> | "." |":" | <PLX> )* 
                 (<PN_CHARS> | ":" | <PLX>) )?  >
-|
-  <#VARNAME: ( <PN_CHARS_U> | ["0"-"9"] )
-             ( <PN_CHARS_U> | ["0"-"9"] | "\u00B7" |
-               ["\u0300"-"\u036F"] | ["\u203F"-"\u2040"] )* >
+// |
+//   <#VARNAME: ( <PN_CHARS_U> | ["0"-"9"] )
+//              ( <PN_CHARS_U> | ["0"-"9"] | "\u00B7" |
+//                ["\u0300"-"\u036F"] | ["\u203F"-"\u2040"] )* >
+| <#VAREXTRA:   [".", "-", "?", "@", "+"] >
+| <PN_CHARS_U2: (<PN_CHARS_U> | <VAREXTRA>) >
+
+
+| <#VARNAME: (
+             ( <PN_CHARS_U2> | ["0"-"9"] )
+             ( <PN_CHARS_U2> | ["0"-"9"] | "\u00B7" |
+               ["\u0300"-"\u036F"] | ["\u203F"-"\u2040"] )*
+             )? >
+
 |
   < #PN_LOCAL_ESC: "\\" 
           ( "_" | 

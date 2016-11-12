@@ -147,19 +147,23 @@ public interface TIOjavaccConstants {
   /** RegularExpression Id. */
   int PN_LOCAL = 65;
   /** RegularExpression Id. */
-  int VARNAME = 66;
+  int VAREXTRA = 66;
   /** RegularExpression Id. */
-  int PN_LOCAL_ESC = 67;
+  int PN_CHARS_U2 = 67;
   /** RegularExpression Id. */
-  int PLX = 68;
+  int VARNAME = 68;
   /** RegularExpression Id. */
-  int HEX = 69;
+  int PN_LOCAL_ESC = 69;
   /** RegularExpression Id. */
-  int PERCENT = 70;
+  int PLX = 70;
   /** RegularExpression Id. */
-  int HEX_INT = 71;
+  int HEX = 71;
   /** RegularExpression Id. */
-  int UNKNOWN = 72;
+  int PERCENT = 72;
+  /** RegularExpression Id. */
+  int HEX_INT = 73;
+  /** RegularExpression Id. */
+  int UNKNOWN = 74;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -234,6 +238,8 @@ public interface TIOjavaccConstants {
     "<PN_CHARS>",
     "<PN_PREFIX>",
     "<PN_LOCAL>",
+    "<VAREXTRA>",
+    "<PN_CHARS_U2>",
     "<VARNAME>",
     "<PN_LOCAL_ESC>",
     "<PLX>",
