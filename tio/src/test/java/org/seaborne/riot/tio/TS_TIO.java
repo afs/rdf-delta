@@ -24,8 +24,8 @@ import org.seaborne.riot.tio.tokens.TS_Tokenizer2;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestTokenText.class,
-    TS_Tokenizer2.class
+    TS_Tokenizer2.class,
+    TestTokenText.class
 })
 
 public class TS_TIO {}

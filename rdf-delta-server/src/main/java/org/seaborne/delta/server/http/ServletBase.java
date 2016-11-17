@@ -66,6 +66,7 @@ public class ServletBase extends HttpServlet {
                 logger.info(x);
             }
         } catch (DeltaExceptionBadRequest ex) {
+            ex.printStackTrace(System.err);
             Delta.DELTA_LOG.warn("Bad request: "+ex.getMessage());
             try {
                 resp.sendError(HttpSC.BAD_REQUEST_400, ex.getMessage()) ;

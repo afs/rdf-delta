@@ -53,7 +53,7 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.util.FmtUtils ;
 import org.apache.jena.sparql.util.NodeUtils ;
 import org.apache.jena.util.iterator.ExtendedIterator ;
-import org.seaborne.delta.DP ;
+import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.client.DeltaClient ;
@@ -85,7 +85,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
             FmtLog.info(log, "Destination: '%s'", dest) ;
-            RDFChanges sc = DeltaLib.destination(dest+DP.EP_Patch) ;
+            RDFChanges sc = DeltaLib.destination(dest+DPNames.EP_Patch) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         
@@ -131,9 +131,9 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
         if ( true )
-            throw new NotImplemented("NEED THE DATASOURCE ID");
+            throw new NotImplemented("NEED THE DATASOURCE ID; NEED THE CLIENT ID");
         DeltaConnection dc = new DeltaConnectionHTTP(source) ;
-        DeltaClient client = DeltaClient.create("foo", null, dsg, dc) ;
+        DeltaClient client = DeltaClient.create("foo", null, null, dsg, dc) ;
         Runnable r = ()->{
             try { client.sync(); }
             catch (Exception ex) { 

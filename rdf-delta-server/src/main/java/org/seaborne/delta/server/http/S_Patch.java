@@ -28,7 +28,6 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
-import org.seaborne.delta.server.C;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
@@ -52,6 +51,7 @@ public class S_Patch extends ServletBase {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LOG.info("Patch");
+        Args args = Args.args(req);
         Id ref ; 
         try {
             ref = getDataId(req) ;
@@ -74,28 +74,24 @@ public class S_Patch extends ServletBase {
     
     private static Id getDataId(HttpServletRequest req) {
         // XXX Args
-        String datasetStr = req.getParameter(C.paramDataset) ;
-        if ( datasetStr == null ) {
-            String s = req.getServletPath() ;
-            String requestURI = req.getRequestURI() ;
-            if ( requestURI.startsWith(s) ) {
-                String dname = requestURI.substring(s.length()) ;
-                if ( dname.isEmpty() )
-                    throw new DeltaExceptionBadRequest("No dataset parameter");
-                LOG.info("Dataset name = "+dname);
-                return Id.fromString(dname) ;
-            }
+        Args args = Args.args(req);
+        // -----
+        //String datasetStr = req.getParameter(C.paramDataset) ;
+        String datasetStr = args.dataset;
+        
+        if ( datasetStr != null )
+            return Id.fromString(datasetStr) ;
+       
+        // Get from path
+        String s = req.getServletPath() ;
+        String requestURI = req.getRequestURI() ;
+        if ( requestURI.startsWith(s) ) {
+            String dname = requestURI.substring(s.length()) ;
+            if ( dname.isEmpty() )
+                throw new DeltaExceptionBadRequest("No dataset parameter");
+            LOG.info("Dataset name (path) = "+dname);
+            return Id.fromString(dname) ;
         }
-        
-        
-        
-        //String clientStr = req.getParameter(paramClient) ;
-        
-        Id uuid ;
-        try {
-             return  Id.fromString(datasetStr) ;
-        } catch (IllegalArgumentException ex) {
-            throw ex ;
-        }
+        throw new DeltaExceptionBadRequest("Failed to find dataset parameter");
     }
 }

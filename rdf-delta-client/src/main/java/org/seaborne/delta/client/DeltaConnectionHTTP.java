@@ -20,15 +20,19 @@ package org.seaborne.delta.client;
 
 import java.io.InputStream ;
 
+import org.apache.jena.atlas.json.JSON;
+import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
-import org.seaborne.delta.DP ;
+import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.conn.RegToken;
 import org.seaborne.delta.lib.J ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
@@ -58,20 +62,23 @@ public class DeltaConnectionHTTP implements DeltaConnection {
     
     @Override
     public int getCurrentVersion(Id dsRef) {
-        JsonObject obj = J.buildObject((b)-> { 
-            b.key("operation").value(DP.OP_EPOCH);
+        JsonObject obj = J.buildObject((b)-> {
             b.key("datasource").value(dsRef.asParam());
         });
-        JsonValue r = DRPC.rpc(remoteServer+DP.EP_RPC, obj);
+        JsonValue r = DRPC.rpc(remoteServer+DPNames.EP_RPC, DPNames.OP_EPOCH, obj);
         if ( ! r.isNumber() )
             System.err.println("Not a number: "+r);
         return r.getAsNumber().value().intValue();
+    }
 
+    @Override
+    public RDFChanges createRDFChanges(Id dsRef) {
+        return new RDFChangesHTTP(remoteSend+"?dataset="+dsRef.asParam());
     }
 
     @Override
     public void sendPatch(Id dsRef, RDFPatch patch) {
-        RDFChanges remote = new RDFChangesHTTP(remoteSend+"?dataset="+dsRef.asParam());
+        RDFChanges remote = createRDFChanges(dsRef);
         patch.apply(remote);
     }
 
@@ -112,5 +119,45 @@ public class DeltaConnectionHTTP implements DeltaConnection {
         return remoteReceive ;
     }
 
+    // ----
+    // /register?id=    -> JSON { token : "uuid" }
+    // /register?name=
+    // /register?name=
+    
+    
+    @Override
+    public RegToken register(Id clientId) {
+        JsonObject obj = J.buildObject((b) -> {
+            b.key(DPNames.F_CLIENT).value(clientId.asString());
+        });
+        JsonValue r = DRPC.rpc(remoteServer + DPNames.EP_RPC, DPNames.OP_REGISTER, obj);
+        if ( ! r.isObject() )
+            throw new DeltaException("Bad result to 'register': "+JSON.toStringFlat(r));
+        String s = r.getAsObject().get(DPNames.F_TOKEN).getAsString().value();
+        RegToken token = new RegToken(s);
+        return token; 
+    }
+
+    @Override
+    public RegToken register(String name) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public void deregister(RegToken token) {
+        throw new NotImplemented();
+
+    }
+
+    @Override
+    public void deregister(Id clientId) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public JsonArray getDatasets() {
+        throw new NotImplemented();
+
+    }
 
 }

@@ -18,10 +18,15 @@
 
 package org.seaborne.riot.tio.tokens ;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
+import org.apache.jena.riot.RiotParseException;
+import org.apache.jena.riot.tokens.Token;
 import org.apache.jena.riot.tokens.Tokenizer ;
 import org.apache.jena.riot.tokens.TokenizerFactory;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TestTokenizerTextOther extends AbstractTestTokenizerOther {
 
@@ -29,4 +34,30 @@ public class TestTokenizerTextOther extends AbstractTestTokenizerOther {
     protected Tokenizer tokenizer(InputStream input, boolean lineMode) {
         return TokenizerFactory.makeTokenizerUTF8(input);
     }
+    
+    @Test
+    public void tokenizer_charset_1() {
+        ByteArrayInputStream in = bytes("'abc'");
+        Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(in);
+        Token t = tokenizer.next();
+        Assert.assertFalse(tokenizer.hasNext());
+    }
+
+    @Test(expected = RiotParseException.class)
+    public void tokenizer_charset_2() {
+        ByteArrayInputStream in = bytes("'abcdé'");
+        Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(in);
+        Token t = tokenizer.next();
+        Assert.assertFalse(tokenizer.hasNext());
+    }
+
+    @Test(expected = RiotParseException.class)
+    public void tokenizer_charset_3() {
+        ByteArrayInputStream in = bytes("<http://example/abcdé>");
+        Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(in);
+        Token t = tokenizer.next();
+        Assert.assertFalse(tokenizer.hasNext());
+    }
+
+
 }

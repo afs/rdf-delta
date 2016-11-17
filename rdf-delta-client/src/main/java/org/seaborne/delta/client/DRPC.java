@@ -29,7 +29,7 @@ import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
-import org.seaborne.delta.DP ;
+import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.J ;
@@ -41,7 +41,8 @@ public class DRPC {
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, String opName, JsonValue arg) {
         JsonObject a = J.buildObject((b)->
-            b.key(DP.F_OP).value(opName).key(DP.F_ARG).value(arg)
+            b.key(DPNames.F_OP).value(opName)
+             .key(DPNames.F_ARG).value(arg)
             ) ;
         return rpc(url, a) ;
     }
@@ -51,7 +52,7 @@ public class DRPC {
         Objects.requireNonNull(url, "DRPC.rpc: Arg1 URL is null") ;
         Objects.requireNonNull(object, "DRPC.rpc: Arg2 JSON object is null") ;
 
-        if ( ! object.hasKey(DP.F_OP) )
+        if ( ! object.hasKey(DPNames.F_OP) )
             throw new DeltaException() ; 
         
         String argStr = JSON.toString(object) ;

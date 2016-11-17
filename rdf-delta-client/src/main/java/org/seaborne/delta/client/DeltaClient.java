@@ -55,25 +55,22 @@ public class DeltaClient {
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
     
-    // Used to synchronize across changes going out (RDFChangesHTTP) and changes coming in (sync(), RDFChangesApply).
-    private final Object syncObject = new Object(); 
-    
     private final RDFChanges target;
     private final String label;
+    private final Id clientId;
     private final Id datasourceId;
     
-    public static DeltaClient create(String label, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
+    public static DeltaClient create(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
         Objects.requireNonNull(connection, "Null connection");
         
-        DeltaClient client = new DeltaClient(label, datasourceId, dsg, connection);
+        DeltaClient client = new DeltaClient(label, clientId, datasourceId, dsg, connection);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
     }
     
-    private DeltaClient(String label, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
-        // [Delta]
+    private DeltaClient(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
         localEpochPersistent = new TransPInteger(label);
         localEpoch.set(0);
         
@@ -83,82 +80,76 @@ public class DeltaClient {
         this.label = label;
         this.base = dsg;
         this.datasourceId = datasourceId ;
+        this.clientId = clientId;
         this.connection = connection;
         
-        // XXX Ugly
-        if ( dsg != null && connection instanceof DeltaConnectionHTTP ) {
-            String url = ((DeltaConnectionHTTP)connection).getServerSendURL();
+        if ( dsg != null  ) {
             // Where to put incoming changes. 
             this.target = new RDFChangesApply(dsg);
             // Where to send outgoing changes.
             // Make RDFChangesHTTP one shot.
-            // Add RDFChangesDSG
-            RDFChanges monitor = new RDFChangesHTTP(syncObject, url);
+            RDFChanges monitor = connection.createRDFChanges(datasourceId);
             this.managed = new DatasetGraphChanges(dsg, monitor);
         } else {
             this.target = null;
             this.managed = null;
-            
         }
     }
     
     public void start() {
         register(); 
+        sync();
     }
     
     public void finish() { }
 
     private void register() {
-        sync();
+        connection.register(clientId);
     }
     
     public void sync() {
-        // Sync with RDFChangesHTTP 
-        synchronized(syncObject) {    
+        // [Delta] replace with a one-shot "get all missing patches" operation.
 
-            // [Delta] replace with a one-shot "get all missing patches" operation.
-
-            // Their update id.
-            int remoteVer;
-            try {
-                remoteVer = getRemoteVersionLatest();
-            } catch (HttpException ex) {
-                // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
-                if ( ex.getCause() instanceof java.net.ConnectException ) {
-                    FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
-                    return;
-                }
-                if ( ex.getStatusLine() != null ) {
-                    FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
-                    return;
-                }
-                FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
-                throw ex;
-            }
-            
-            int localVer = getLocalVersionNumber();
-
-            //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
-            
-            if ( localVer > remoteVer ) 
-                FmtLog.info(LOG, "Local version ahead of remote : [%d, %d]", localEpoch, remoteEpoch);
-            if ( localVer >= remoteVer ) {
-                //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
+        // Their update id.
+        int remoteVer;
+        try {
+            remoteVer = getRemoteVersionLatest();
+        } catch (HttpException ex) {
+            // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
+            if ( ex.getCause() instanceof java.net.ConnectException ) {
+                FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
                 return;
             }
-            // bring up-to-date.
-            FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer);
-            IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
-                FmtLog.info(LOG, "Sync: patch=%d", x);
-                RDFPatch patch = fetchPatch(x);
-                RDFChanges c = target;
-                if ( true )
-                    c = DeltaOps.print(c);
-                patch.apply(c);
-            });
-            setRemoteVersionNumber(remoteVer);
-            setLocalVersionNumber(remoteVer);
+            if ( ex.getStatusLine() != null ) {
+                FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
+                return;
+            }
+            FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
+            throw ex;
         }
+
+        int localVer = getLocalVersionNumber();
+
+        //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
+
+        if ( localVer > remoteVer ) 
+            FmtLog.info(LOG, "Local version ahead of remote : [%d, %d]", localEpoch, remoteEpoch);
+        if ( localVer >= remoteVer ) {
+            //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
+            return;
+        }
+        // bring up-to-date.
+        FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer);
+        IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
+            FmtLog.info(LOG, "Sync: patch=%d", x);
+            RDFPatch patch = fetchPatch(x);
+            RDFChanges c = target;
+            if ( true )
+                c = DeltaOps.print(c);
+            patch.apply(c);
+        });
+        setRemoteVersionNumber(remoteVer);
+        setLocalVersionNumber(remoteVer);
     }
 
 //    public void syncAll() {

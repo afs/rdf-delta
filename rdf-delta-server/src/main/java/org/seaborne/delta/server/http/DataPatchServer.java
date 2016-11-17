@@ -24,7 +24,7 @@ import org.eclipse.jetty.server.Server ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
 import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
-import org.seaborne.delta.DP ;
+import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.server.DPS ;
@@ -44,14 +44,14 @@ public class DataPatchServer {
         handler = new ServletHandler();
         server.setHandler(handler);
         server.addBean(eh) ;
-        
+
         S_Patch patchMgr = new S_Patch(engine) ;
         // Receive patches
         addServlet("/patch", patchMgr) ;
 
         // Return patches
-        addServlet("/"+DP.EP_Fetch, new S_FetchId(engine)) ;
-        addServlet("/"+DP.EP_Patch+"/*", new S_Fetch(engine)) ;
+        addServlet("/"+DPNames.EP_Fetch, new S_FetchId(engine)) ;
+        addServlet("/"+DPNames.EP_Patch+"/*", new S_Fetch(engine)) ;
 
         // Other
         addServlet("/rpc", new S_DRPC(engine)) ;

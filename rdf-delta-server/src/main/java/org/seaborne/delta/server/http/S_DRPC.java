@@ -29,10 +29,12 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.atlas.json.* ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DP ;
+import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.conn.RegToken;
+import org.seaborne.delta.lib.J;
 import org.seaborne.delta.server.DeltaExceptionBadRequest;
 import org.slf4j.Logger ;
 
@@ -49,19 +51,23 @@ public class S_DRPC extends ServletBase {
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        JsonObject arg ;
+        JsonObject input ;
         try (InputStream in = req.getInputStream()  ) {
-            arg = JSON.parse(in) ;
+            input = JSON.parse(in) ;
         } catch (JsonException ex) {
             throw new DeltaExceptionBadRequest("Bad JSON argument: "+ex.getMessage()) ;
         }
-            
-        String op = getField(arg, DP.F_OP);
+        
+        String op = getFieldAsString(input, DPNames.F_OP);
+        JsonObject arg = getFieldAsObject(input, DPNames.F_ARG);
         
         JsonValue rslt = null ;
         switch(op) {
-            case DP.OP_EPOCH:
+            case DPNames.OP_EPOCH:
                 rslt = epoch(arg);
+                break ;
+            case DPNames.OP_REGISTER:
+                rslt = register(arg);
                 break ;
             default: {
                 LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
@@ -72,7 +78,7 @@ public class S_DRPC extends ServletBase {
         
         OutputStream out = resp.getOutputStream() ;
         try {
-            if ( ! DP.OP_EPOCH.equals(op) )
+            if ( ! DPNames.OP_EPOCH.equals(op) )
                 FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;  
             resp.setStatus(HttpSC.OK_200);
             JSON.write(out, rslt);
@@ -96,14 +102,24 @@ public class S_DRPC extends ServletBase {
         }
     }
     
+    private JsonValue register(JsonObject arg) {
+        String clientId = getFieldAsString(arg, DPNames.F_CLIENT);
+        Id client = Id.fromString(clientId);
+        RegToken token = engine.register(client);
+        JsonValue jv = J.buildObject((x)-> {
+            x.key(DPNames.F_TOKEN).value(token.getUUID().toString());
+        });
+        return jv;
+    }
+
     private JsonValue epoch(JsonObject arg) {
-        String dataSourceId = getField(arg, DP.F_DATASOURCE);
+        String dataSourceId = getFieldAsString(arg, DPNames.F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
         int version = engine.getCurrentVersion(dsRef);
         return JsonNumber.value(version);
     }
 
-    private static String getField(JsonObject arg, String field) {
+    private static String getFieldAsString(JsonObject arg, String field) {
         try {
             if ( ! arg.hasKey(field) ) {
                 LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
@@ -111,11 +127,28 @@ public class S_DRPC extends ServletBase {
             }
             return arg.get(field).getAsString().value() ;
         } catch (JsonException ex) {
-            LOG.warn("Bad request: Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-            throw new DeltaExceptionBadRequest("Bad field'"+field+" : "+arg.get(field)) ;
+            LOG.warn("Bad request: Field not a string: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+            throw new DeltaExceptionBadRequest("Bad field '"+field+"' : "+arg.get(field)) ;
         }
     }
     
+    private static JsonObject getFieldAsObject(JsonObject arg, String field) {
+        try {
+            if ( ! arg.hasKey(field) ) {
+                LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+                throw new DeltaExceptionBadRequest("Missing field: "+field) ;
+            }
+            JsonValue jv = arg.get(field) ;
+            if ( ! jv.isObject() ) {
+                
+            }
+            return jv.getAsObject();
+        } catch (JsonException ex) {
+            LOG.warn("Bad request: Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+            throw new DeltaExceptionBadRequest("Bad field '"+field+"' : "+arg.get(field)) ;
+        }
+    }
+
     // ==> JSON.
     
     /** Create a safe copy of a {@link JsonValue}.

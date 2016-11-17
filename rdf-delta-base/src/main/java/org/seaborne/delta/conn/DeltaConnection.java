@@ -18,18 +18,24 @@
 
 package org.seaborne.delta.conn;
 
+import org.apache.jena.atlas.json.JsonArray;
+import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 
 /** Connection from client to server.
  * Can deal with many DataSources per connection.    
  */
 public interface DeltaConnection {
-//    public RegToken register(Id clientId);
-//    public RegToken register(String name);
+    public RegToken register(Id clientId);
+    public RegToken register(String name);
+    
 //    public RegToken register(String name, Id id);
 //    
-//    public void deregister(RegToken token);
+    public void deregister(RegToken token);
+    public void deregister(Id clientId);
 
+    public JsonArray getDatasets() ;
+    
     /** Send patch */
     public void sendPatch(Id dsRef, RDFPatch patch);
     
@@ -40,6 +46,9 @@ public interface DeltaConnection {
 
     /** Retrieve a patch and write it to the {@code OutputStream}. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);
+
+    /** Create an {@link RDFChanges} for this connection */
+    public RDFChanges createRDFChanges(Id dsRef);
     
 //    public void existingDataset() {} 
 //    

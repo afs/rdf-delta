@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.graph.Node;
 import org.seaborne.delta.conn.Id ;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
@@ -97,7 +98,8 @@ public class PatchSet {
     synchronized private void addHistoryEntry(HistoryEntry e) {
         Patch patch = e.patch;
         Id id = Id.fromNode(patch.getId());
-        FmtLog.info(LOG, "Patch id=%s (parent=%s)", patch.getId(), patch.getParentId());
+        Node parentId = patch.getParentId();
+        FmtLog.info(LOG, "Patch id=%s (parent=%s)", id, parentId);
         patches.put(id, patch);
         if ( start == null ) {
             start = e;
@@ -106,15 +108,17 @@ public class PatchSet {
             historyEntries.put(id, e);
             FmtLog.info(LOG, "Patch starts history: id=%s", patch.getId());
         } else {
-            if ( patch.getParentId().equals(finish.patch.getId()) ) {
-                finish.next = id;
-                finish = e;
-                historyEntries.put(id, e);
-                // if ( Objects.equals(currentHead(), patch.getParent()) ) {
-                FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
-
-            } else {
-                FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getId());
+            
+            if ( parentId != null ) {
+                if ( patch.getParentId().equals(finish.patch.getId()) ) {
+                    finish.next = id;
+                    finish = e;
+                    historyEntries.put(id, e);
+                    // if ( Objects.equals(currentHead(), patch.getParent()) ) {
+                    FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
+                } else {
+                    FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getId());
+                }
             }
         }
     }

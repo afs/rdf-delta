@@ -19,11 +19,13 @@
 package dev;
 
 import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaClient;
@@ -43,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RunServer2 {
-    static { LogCtl.setJavaLogging(); }
+    static { DevLib.setLogging(); }
     private static Logger LOG = LoggerFactory.getLogger("Main") ; 
     
     public static void main(String ...args) {
@@ -90,17 +92,28 @@ public class RunServer2 {
             patch.apply(remote);
         }
         
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+        dsg0.getDefaultGraph().getPrefixMapping().setNsPrefix("ex", "http://example/");
         DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
-        DeltaClient client = DeltaClient.create("RDFP", dsRef, dsg, dc);
-        System.out.println("----------------");
-        RDFDataMgr.write(System.out, dsg, Lang.TRIG);
-        System.out.println("----------------");
+        
+        Id clientId = Id.fromUUID(C.uuid_c1); 
+        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
+        DatasetGraph dsg = client.getDatasetGraph();
+        
+        Quad quad1 = SSE.parseQuad("(_ :ss :pp 11)");
+        Quad quad2 = SSE.parseQuad("(_ :ss :pp 22)");
+        
+        // Need to set an id.
+        Txn.executeWrite(dsg,  ()->dsg.add(quad1));
+        Txn.executeWrite(dsg,  ()->dsg.add(quad2));
 
-        // To get the id.
-        RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
-        //Id patchId = Id.fromNode(patch.getId()); 
-        client.sendPatch(patch);
+        if ( false ) {
+            // Directly, not via DeltaClient.
+            // To get the id.
+            RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
+            //Id patchId = Id.fromNode(patch.getId()); 
+            client.sendPatch(patch);
+        }
         
         // Poll **** ?zone=&dataset= -> version
         // Fetch **** ?zone=&dataset=&version=
@@ -110,5 +123,25 @@ public class RunServer2 {
         
         int ver = client.getRemoteVersionLatest();
         System.out.println("ver="+ver);
+        
+        System.out.println();
+        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+        RDFDataMgr.write(System.out, dsg, Lang.TRIG);
+        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+        
+        // ---
+        DatasetGraph dsg2 = bootfrom(clientId, dsRef) ;
+        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+        RDFDataMgr.write(System.out, dsg, Lang.TRIG);
+        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+    }
+
+    private static DatasetGraph bootfrom(Id clientId, Id dsRef) {
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+        dsg0.getDefaultGraph().getPrefixMapping().setNsPrefix("ex", "http://example/");
+        DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
+        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
+        DatasetGraph dsg = client.getDatasetGraph();
+        return dsg;
     }
 }

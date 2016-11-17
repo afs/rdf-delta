@@ -23,7 +23,7 @@ import org.apache.jena.atlas.logging.LogCtl ;
 public class DevLib {
     
     public static void setLogging() {
-        LogCtl.setLog4j();
-        //LogCtl.setJavaLogging();
+        //LogCtl.setLog4j();
+        LogCtl.setJavaLogging();
     }
 }

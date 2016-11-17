@@ -18,27 +18,22 @@
 
 package org.seaborne.delta;
 
-import java.util.concurrent.atomic.AtomicInteger ;
+public class DPNames {
+    
+    // RPC calls - operationn ames.
+    public static final String OP_EPOCH       = "epoch";
+    public static final String OP_REGISTER    = "register";
+    // RPC arg/result fields */
+    public static final String F_OP           = "operation";
+    public static final String F_ARG          = "arg";
+    public static final String F_DATASOURCE   = "datasource";
+    public static final String F_CLIENT       = "client";
+    public static final String F_TOKEN        = "token";
 
-public class DP {
-    
-    // RPC calls.
-    /** Name of the operation field */ 
-    public static final String F_OP         = "operation" ;
-    public static final String F_ARG        = "arg" ;
-    public static final String F_DATASOURCE = "datasource" ;
-    public static final String OP_EPOCH     = "epoch" ;
-    
     /** Default choice of port */
-    public static final int PORT = 1066 ;
-    
-    public static final String EP_RPC     = "rpc" ;
-    public static final String EP_Patch   = "patch" ;
-    public static final String EP_Fetch   = "fetch" ;
-    
-//    public static final String PatchContainer   = "http://localhost:"+PORT+"/patch" ;
-//    
-//    public static final String _FetchService     = "http://localhost:"+PORT+"/fetch" ;
+    public static final int    PORT           = 1066;
 
-    static AtomicInteger lastPatchFetch = new AtomicInteger(0) ;
+    public static final String EP_RPC         = "rpc";
+    public static final String EP_Patch       = "patch";
+    public static final String EP_Fetch       = "fetch";
 }

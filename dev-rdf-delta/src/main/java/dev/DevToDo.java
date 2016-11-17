@@ -19,51 +19,37 @@
 package dev;
 
 public class DevToDo {
-    // DeltaClient -> DatasetGraphChanges
-
-    // Tokens : test with javacc parser
-    // javacc tokenizer:
+    // Design protocol.
     
+    // -- History and parenthood.
+    
+    // -- Documentation
+    
+    // -- RDF Git.
+    // Checksums
+    // Binary format
+    
+    // -- javacc tokenizer:
     //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)
-    // See TestTokenizerJavaccTerms
-    //  "0xXYZ"
-    //  "''@lang- "
+    //   See TestTokenizerJavaccTerms
+    //     "0xXYZ"
+    //     "''@lang- "
 
     //  Differences: token backtracking.
     //     0xXYZ is integer 0 (!)
     //  javacctokeizer has "push token" not "emit token".
     //    Compounds like RDFLiterals.
-    
-    // Documentation
-    
+
+    // __ Others
     // Extract polling support to DeltaClient.
     // Assembler to have a DeltaClient.
 
-    // RDF Git.
-    // Checksums
-    // Binary format
     
     // ---- dev tasks
-    // Patch
-    // "_" for default graph
-    
-    // 
+
     // DatasetGraphBuffering
     // 
     // -- TIO
     //   Stream<Tuple<Token>>
-    //   TokenizerJavacc - less of a hack. More tokens like "_"
-    //   Clarify rule.  
-    //     Tokens or Nodes (= Tokens).
-    //     Tuples() as small special part.
-    //     Tokens to carry Nodes?
     //     STRING1, STRING2 vs STRING
-    //     Complete and check tokenizer.
-    //     Node vs Token e.g. for VAR
-    
-    // rdf patch:
-    // Headers.
-    // Name for a patch. RDFPatch (free from library),
-    // "_" for default graph
-    
 }

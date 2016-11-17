@@ -20,10 +20,14 @@ package org.seaborne.delta.server;
 
 import java.io.InputStream ;
 
+import org.apache.jena.atlas.json.JsonArray;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.conn.RegToken;
 import org.seaborne.delta.pubsub.Receiver ;
+import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
@@ -32,11 +36,43 @@ import org.slf4j.LoggerFactory ;
 
 /** Implementation of {@link DeltaConnection}. */  
 public class DeltaConnectionLocal implements DeltaConnection {
-    
     private static Logger LOG = LoggerFactory.getLogger(DeltaConnectionLocal.class) ;
     //private static Logger LOG = DPS.LOG;
     
+    public DeltaConnectionLocal() {}
     
+    @Override
+    public RDFChanges createRDFChanges(Id dsRef) {
+        // XXX Stream!
+        RDFChanges c = new RDFChangesCollector() {
+            @Override
+            public void finish() {
+                RDFPatch p = getRDFPatch();
+                sendPatch(dsRef, p);
+            }
+        };
+        return c ;
+    }
+
+    @Override
+    public RegToken register(Id clientId) {
+        return DeltaConnectionMgr.get().register(clientId);
+    }
+
+    @Override
+    public RegToken register(String name) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public void deregister(RegToken token) {
+        DeltaConnectionMgr.get().deregister(token);
+    }
+    @Override
+    public void deregister(Id clientId) {
+        DeltaConnectionMgr.get().deregister(clientId);
+    }
+
     @Override
     public void sendPatch(Id dsRef, RDFPatch rdfPatch) {
         DataSource source = DataRegistry.get().get(dsRef) ;
@@ -95,5 +131,10 @@ public class DeltaConnectionLocal implements DeltaConnection {
         RDFPatch patch = source.getPatchSet().fetch(version);
         FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
         return patch;
+    }
+
+    @Override
+    public JsonArray getDatasets() {
+        return null;
     }
 }

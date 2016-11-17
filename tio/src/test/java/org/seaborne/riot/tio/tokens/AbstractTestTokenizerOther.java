@@ -18,55 +18,49 @@
 
 package org.seaborne.riot.tio.tokens;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 
 import org.apache.jena.riot.tokens.Token;
 import org.apache.jena.riot.tokens.TokenType;
 import org.apache.jena.riot.tokens.Tokenizer;
-import org.apache.jena.riot.tokens.TokenizerFactory;
 import org.junit.Test;
 
-/*8 Tests for non-terms and for multiple tokens. */
+/** Tests for non-terms and for multiple tokens. */
 public abstract class AbstractTestTokenizerOther extends BaseTestTokenizer {
 
-    
-    // @Test
-    // public void tokenUnit_cntrl1()
-    // {
-    // tokenizeAndTestExact("*S", TokenType.CNTRL, "S");
-    // }
-    //
-    // @Test
-    // public void tokenUnit_cntr2()
-    // {
-    // tokenizeAndTestExact("*SXYZ", TokenType.CNTRL, "SXYZ");
-    // }
-    //
-    // @Test
-    // public void tokenUnit_cntrl3()
-    // {
-    // Tokenizer tokenizer = tokenizer("*S<x>");
-    // assertTrue(tokenizer.hasNext());
-    // Token token = tokenizer.next();
-    // assertNotNull(token);
-    // assertEquals(TokenType.CNTRL, token.getType());
-    // assertEquals('S', token.getCntrlCode());
-    // assertNull(token.getImage());
-    // assertNull(token.getImage2());
-    //
-    // assertTrue(tokenizer.hasNext());
-    // Token token2 = tokenizer.next();
-    // assertNotNull(token2);
-    // assertEquals(TokenType.IRI, token2.getType());
-    // assertEquals("x", token2.getImage());
-    // assertNull(token2.getImage2());
-    // assertFalse(tokenizer.hasNext());
-    // }
+    // TODO Remove CNTRL
+    // Current only signle charcater codes imeplemtned by TextTokenizer and not atr all by TokenizerJvacc.
+//    @Test
+//    public void tokenUnit_cntrl1() {
+//        tokenizeAndTestExact("*S", TokenType.CNTRL, "S");
+//    }
+//
+//    @Test
+//    public void tokenUnit_cntr2() {
+//        tokenizeAndTestExact("*SXYZ", TokenType.CNTRL, "SXYZ");
+//    }
+//
+//    @Test
+//    public void tokenUnit_cntrl3() {
+//        Tokenizer tokenizer = tokenizer("*S<x>");
+//        assertTrue(tokenizer.hasNext());
+//        Token token = tokenizer.next();
+//        assertNotNull(token);
+//        assertEquals(TokenType.CNTRL, token.getType());
+//        assertEquals('S', token.getCntrlCode());
+//        assertNull(token.getImage());
+//        assertNull(token.getImage2());
+//        //
+//        assertTrue(tokenizer.hasNext());
+//        Token token2 = tokenizer.next();
+//        assertNotNull(token2);
+//        assertEquals(TokenType.IRI, token2.getType());
+//        assertEquals("x", token2.getImage());
+//        assertNull(token2.getImage2());
+//        assertFalse(tokenizer.hasNext());
+//    }
 
     @Test
     public void tokenUnit_syntax1() {
@@ -144,30 +138,6 @@ public abstract class AbstractTestTokenizerOther extends BaseTestTokenizer {
 
         assertFalse(tokenizer.hasNext());
     }
-
-//    @Test
-//    public void tokenizer_charset_1() {
-//        ByteArrayInputStream in = bytes("'abc'");
-//        Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(in);
-//        Token t = tokenizer.next();
-//        assertFalse(tokenizer.hasNext());
-//    }
-//
-//    @Test(expected = RiotParseException.class)
-//    public void tokenizer_charset_2() {
-//        ByteArrayInputStream in = bytes("'abcdé'");
-//        Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(in);
-//        Token t = tokenizer.next();
-//        assertFalse(tokenizer.hasNext());
-//    }
-//
-//    @Test(expected = RiotParseException.class)
-//    public void tokenizer_charset_3() {
-//        ByteArrayInputStream in = bytes("<http://example/abcdé>");
-//        Tokenizer tokenizer = TokenizerFactory.makeTokenizerASCII(in);
-//        Token t = tokenizer.next();
-//        assertFalse(tokenizer.hasNext());
-//    }
 
     @Test
     public void tokenizer_BOM_1() {

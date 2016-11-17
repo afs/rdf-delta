@@ -35,4 +35,6 @@ public class C {
     
     public static UUID uuid1 = UUID.fromString("15724832-96c5-11e6-9d7f-131fb3e5c030") ;
     public static UUID uuid2 = UUID.fromString("168a7bea-96c5-11e6-9b34-8b157862c8dc") ;
+    
+    public static UUID uuid_c1 = UUID.fromString("1f296296-acd4-11e6-bbd3-c3c2090269d7") ;
 }

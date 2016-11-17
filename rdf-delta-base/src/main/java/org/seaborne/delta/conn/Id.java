@@ -21,6 +21,7 @@ package org.seaborne.delta.conn;
 import java.util.UUID ;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.impl.Util;
 import org.apache.jena.shared.uuid.UUIDFactory ;
 import org.apache.jena.shared.uuid.UUID_V1_Gen ;
@@ -94,8 +95,22 @@ public final class Id {
         string = id ;
     }
 
-    /** Suitable for putting into an HTTP request */ 
+    /** Suitable for putting into an HTTP request query string*/ 
     public String asParam() {
+        if ( uuid != null ) 
+            return uuid.toString() ;
+        return string ;
+    }
+    
+    /** Suitable for putting into an HTTP request */ 
+    public Node asNode() {
+        if ( uuid != null ) 
+            return NodeFactory.createURI(schemeUuid+uuid.toString());
+        return NodeFactory.createLiteral(string);
+    }
+
+    /** Suitable for putting into a JSON string. */ 
+    public String asString() {
         if ( uuid != null ) 
             return uuid.toString() ;
         return string ;
