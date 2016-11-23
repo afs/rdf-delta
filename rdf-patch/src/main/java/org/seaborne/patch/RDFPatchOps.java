@@ -23,12 +23,10 @@ import java.io.OutputStream ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.system.JenaSystem ;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.patch.system.DatasetGraphChanges ;
-import org.seaborne.patch.system.InitPatch ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.TupleIO ;
 import org.seaborne.riot.tio.TupleReader ;
@@ -83,28 +81,5 @@ public class RDFPatchOps {
         RDFChanges c = new RDFChangesWriter(tw) ;
         patch.apply(c);
         tw.flush();
-    }
-
-    /** This is automatically called by the Jena subsystem startup cycle.
-     * See {@link InitPatch} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
-     */
-    public static void init( ) {}
-    
-    private static Object initLock = new Object() ;
-    private static volatile boolean initialized = false ;
-    
-    private static void init$() {
-        if ( initialized )
-            return ;
-        synchronized(initLock) {
-            if ( initialized ) {
-                JenaSystem.logLifecycle("Patch.init - return") ;
-                return ;
-            }
-            initialized = true ;
-            JenaSystem.logLifecycle("Patch.init - start") ;
-            // -- Nothing here at the moment -- 
-            JenaSystem.logLifecycle("Patch.init - finish") ;
-        }
     }
 }

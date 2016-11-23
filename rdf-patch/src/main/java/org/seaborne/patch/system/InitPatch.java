@@ -19,14 +19,13 @@
 package org.seaborne.patch.system;
 
 import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.seaborne.patch.RDFPatchOps ;
 
 public class InitPatch implements JenaSubsystemLifecycle { 
     public static int level = 42 ;
 
     @Override
     public void start() {
-        RDFPatchOps.init();
+        PatchSystem.init();
     }
 
     @Override

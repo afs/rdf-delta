@@ -21,7 +21,6 @@ package org.seaborne.patch.changes;
 import org.apache.jena.atlas.io.AWriter ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.riot.out.NodeFmtLib ;
 import org.apache.jena.riot.out.NodeFormatter ;
 import org.apache.jena.riot.out.NodeFormatterNT ;
@@ -107,7 +106,7 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     public void setBase(String uriStr) { }
 
     @Override
-    public void txnBegin(ReadWrite mode) { 
+    public void txnBegin() { 
         out.write("# Begin\n") ;
     }
 

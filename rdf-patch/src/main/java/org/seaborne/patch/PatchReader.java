@@ -23,7 +23,6 @@ import java.io.InputStream ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.riot.system.RiotLib ;
 import org.apache.jena.riot.tokens.Token ;
 import org.seaborne.riot.tio.TupleIO ;
@@ -146,7 +145,7 @@ public class PatchReader implements PatchProcessor {
                 return false ;
             }
             case "TB": {
-                sink.txnBegin(ReadWrite.WRITE);
+                sink.txnBegin();
                 return false ;
             }
             case "TC": {

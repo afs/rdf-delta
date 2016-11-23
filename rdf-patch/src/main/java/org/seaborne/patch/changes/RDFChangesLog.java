@@ -21,7 +21,6 @@ package org.seaborne.patch.changes;
 import static org.apache.jena.sparql.sse.SSE.str ;
 
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
 
 public class RDFChangesLog implements RDFChanges {
@@ -91,7 +90,7 @@ public class RDFChangesLog implements RDFChanges {
     }
 
     @Override
-    public void txnBegin(ReadWrite mode) {
+    public void txnBegin() {
         print("Begin") ;
     }
     

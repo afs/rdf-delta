@@ -18,12 +18,4 @@
 
 package org.seaborne.patch.items;
 
-import org.apache.jena.query.ReadWrite ;
-
-public class TxnBegin extends ChangeItem {
-    public final ReadWrite mode ;
-
-    public TxnBegin(ReadWrite mode) {
-        this.mode = mode ;
-    }
-}
+public class TxnBegin extends ChangeItem {}

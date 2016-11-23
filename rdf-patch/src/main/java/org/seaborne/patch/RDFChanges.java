@@ -19,7 +19,6 @@
 package org.seaborne.patch;
 
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 
 public interface RDFChanges {
     // Changes lifecycle.
@@ -44,7 +43,7 @@ public interface RDFChanges {
     public void setBase(String uriStr) ; 
 
     /** Indicator that a transaction begins */
-    public void txnBegin(ReadWrite mode) ;  // Always Write ?
+    public void txnBegin() ;
     
     /** Indicator that a transaction commits */
     public void txnCommit() ;

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,166 +17,164 @@
  */
 
 package org.seaborne.patch;
+import static org.junit.Assert.*;
 
-import static org.junit.Assert.assertEquals ;
-import static org.junit.Assert.assertTrue ;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.function.Consumer;
 
-import java.io.ByteArrayInputStream ;
-import java.io.ByteArrayOutputStream ;
-import java.util.Arrays ;
-import java.util.List ;
+import org.apache.jena.atlas.lib.StrUtils;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.sse.SSE;
+import org.junit.Test;
+import org.seaborne.patch.changes.RDFChangesCollector;
+import org.seaborne.patch.changes.RDFChangesCounter;
+import org.seaborne.patch.changes.RDFChangesN;
 
-import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.iterator.Iter ;
-import org.apache.jena.atlas.lib.ListUtils ;
-import org.apache.jena.graph.Graph ;
-import org.apache.jena.graph.Triple ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.DatasetGraphFactory ;
-import org.apache.jena.sparql.core.Quad ;
-import org.apache.jena.sparql.sse.SSE ;
-import org.apache.jena.system.Txn ;
-import org.junit.After ;
-import org.junit.Before ;
-import org.junit.Test ;
-
-public class TestRDFChanges  {
-    // TODO Write - read tests.
+public class TestRDFChanges {
+    // Write read.
     
-    DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem() ;
-    ByteArrayOutputStream bout = new ByteArrayOutputStream() ;
-    DatasetGraph dsg = RDFPatchOps.changesAsText(dsgBase, bout) ;
-
-    @Before public void beforeTest() {}
-    @After public void afterTest() {}    
+    private static Node g1 = SSE.parseNode(":g1"); 
+    private static Node g2 = SSE.parseNode("_:g2"); 
+    private static Node s1 = SSE.parseNode(":s1"); 
+    private static Node s2 = SSE.parseNode("_:s2"); 
+    private static Node p1 = SSE.parseNode("<http://example/p1>"); 
+    private static Node p2 = SSE.parseNode(":p2"); 
+    private static Node o1 = SSE.parseNode("<http://example/o1>");
+    private static Node o2 = SSE.parseNode("123");
     
-    private static Quad quad1 = SSE.parseQuad("(:g _:s <p> 1)") ;
-    private static Quad quad2 = SSE.parseQuad("(:g _:s <p> 2)") ;
-
-    private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)") ;
-    private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)") ;
-    
-    private DatasetGraph replay() {
-        IO.close(bout) ;
-        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray()) ;
-        DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem() ;
-        RDFPatchOps.applyChange(dsg2, bin);
-        return dsg2 ;
+    private static RDFPatch makePatch(Consumer<RDFChanges> action) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        RDFChangesCollector changes = new RDFChangesCollector();
+        changes.start();
+        action.accept(changes);
+        changes.finish();
+        RDFPatch patch = changes.getRDFPatch();
+        return patch ;
     }
+
+    private static byte[] write(Consumer<RDFChanges> action) {
+        RDFPatch patch = makePatch(changes->action.accept(changes));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        RDFPatchOps.write(out, patch);
+        byte[] output = out.toByteArray();
+        return output ;
+    }
+
+    
+    // test basic mechanism
+    @Test public void changes_write_read_01() {
+        RDFChangesCollector changes = new RDFChangesCollector();
+        changes.start();
+        changes.txnBegin();
+        changes.add(g1, s1, p1, o1);        
+        changes.txnCommit();
+        changes.finish();
+    }
+    
+    @Test public void changes_write_read_02() {
+        RDFPatch patch = makePatch(changes->{
+            changes.add(g1, s1, p1, o1);
+            changes.add(g1, s1, p1, o1);
+        });
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        RDFPatchOps.write(out, patch);
+        byte[] output = out.toByteArray();
+    }
+    
+    @Test public void changes_write_read_03() {
+        RDFPatch patch = makePatch(changes->{
+            changes.add(g1, s1, p1, o1);
+            changes.add(g1, s1, p1, o1);
+        });
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        RDFPatchOps.write(out, patch);
+        byte[] output = out.toByteArray();
+        byte[] output2 = write(changes->{
+            changes.add(g1, s1, p1, o1);
+            changes.add(g1, s1, p1, o1);
+        });
+        assertArrayEquals(output, output2);
+    }
+
+    @Test public void changes_write_read_04() {
+        byte[] output = write(changes->{});
+        assertEquals(0, output.length) ;
+        String x = StrUtils.fromUTF8bytes(output);
+    }
+
+    @Test public void changes_write_read_05() {
+        byte[] output = write(changes->{
+            changes.txnBegin();
+            changes.txnCommit();
+        });
+        assertNotEquals(0, output.length) ;
+        String x = StrUtils.fromUTF8bytes(output);
+        assertEquals("TB .\nTC .\n", x);
+    }
+
+    @Test public void changes_write_read_06() {
+        byte[] output = write(changes->{
+            changes.txnBegin();
+            changes.add(g1, s1, p1, o1);
+            changes.delete(g1, s1, p1, o1);
+            changes.txnCommit();
+        });
+        ByteArrayInputStream in = new ByteArrayInputStream(output);
         
-    private static void check(DatasetGraph dsg, Quad...quads) {
-        if ( quads.length == 0 ) {
-            assertTrue(dsg.isEmpty()) ;
-            return ;
-        }
+        RDFPatch patch2 = RDFPatchOps.read(in);
+        RDFChangesCounter changes2 = new RDFChangesCounter();
         
-        List<Quad> listExpected = Arrays.asList(quads) ; 
-        List<Quad> listActual = Iter.toList(dsg.find()) ;
-        assertEquals(listActual.size(), listExpected.size()) ;
-        assertTrue(ListUtils.equalsUnordered(listExpected, listActual)) ;
+        patch2.apply(changes2);
+        assertEquals(1, changes2.countAddQuad);
+        assertEquals(1, changes2.countDeleteQuad);
+        assertEquals(1, changes2.countTxnBegin);
+        assertEquals(1, changes2.countTxnCommit);
+        assertEquals(0, changes2.countTxnAbort);
+        assertEquals(0, changes2.countAddPrefix);
+        assertEquals(0, changes2.countDeletePrefix);
     }
 
-    @Test public void record_00() {
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2) ;
+    @Test public void changes_prefix_01() {
+        RDFPatch patch = makePatch((x)->{
+            x.txnBegin();
+            x.deletePrefix(g2, "ex");
+            x.addPrefix(g1, "ex", "http://example/");
+            x.addPrefix(g2, "ex", "http://example/");
+            x.txnCommit();
+        });
+        RDFChangesCounter changes = new RDFChangesCounter();
+        patch.apply(changes);
+        assertEquals(1, changes.countTxnBegin);
+        assertEquals(1, changes.countTxnCommit);
+        assertEquals(0, changes.countTxnAbort);
+        assertEquals(2, changes.countAddPrefix);
+        assertEquals(1, changes.countDeletePrefix);
     }
+
+    // Specific implementations.
     
-    @Test public void record_add() {
-        Txn.executeWrite(dsg, ()->dsg.add(quad1)) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, quad1) ;
-    }
-
-    @Test public void record_add_add_1() {
-        Txn.executeWrite(dsg, ()-> {
-            dsg.add(quad1) ;
-            dsg.add(quad2) ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, quad1, quad2) ;
-    }
-
-    @Test public void record_add_add_2() {
-        Txn.executeWrite(dsg, ()-> {
-            dsg.add(quad1) ;
-            dsg.add(quad1) ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, quad1) ;
-    }
-    
-    @Test public void record_add_delete_1() {
-        Txn.executeWrite(dsg, ()-> {
-            dsg.add(quad1) ;
-            dsg.delete(quad1) ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2) ;
-    }
-
-    @Test public void record_add_delete_2() {
-        Txn.executeWrite(dsg, ()-> {
-            dsg.add(quad1) ;
-            dsg.delete(quad2) ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, quad1) ;
-    }
-
-    @Test public void record_add_delete_3() {
-        Txn.executeWrite(dsg, ()-> { 
-            dsg.delete(quad2) ;
-            dsg.add(quad1) ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, quad1) ;
-    }
-    
-    @Test public void record_add_delete_4() {
-        Txn.executeWrite(dsg, ()-> {
-            dsg.delete(quad1) ;
-            dsg.add(quad1) ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, quad1) ;
-    }
-    
-    @Test public void record_add_abort_1() {
-        Txn.executeWrite(dsg, ()-> {
-            dsg.delete(quad1) ;
-            dsg.abort() ;
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2) ;
-    }
-    
-    @Test public void record_graph_1() {
-        Txn.executeWrite(dsg, ()-> {
-            Graph g = dsg.getDefaultGraph() ;
-            g.add(triple1);
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, Quad.create(Quad.defaultGraphIRI, triple1)) ;
-    }
-
-    @Test public void record_graph_2() {
-        Txn.executeWrite(dsg, ()-> {
-            Graph g = dsg.getDefaultGraph() ;
-            g.add(triple1);
-            g.delete(triple1);
-            g.add(triple2);
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2, Quad.create(Quad.defaultGraphIRI, triple2)) ;
-    }
-
-    @Test public void record_graph_3() {
-        Txn.executeWrite(dsg, ()-> {
-            Graph g = dsg.getDefaultGraph() ;
-            g.add(triple1);
-            dsg.delete(Quad.create(Quad.defaultGraphIRI, triple1));
-        }) ;
-        DatasetGraph dsg2 = replay() ;
-        check(dsg2) ;
+    @Test public void changesN_01() {
+        RDFPatch patch = makePatch((x)->{
+            x.txnBegin();
+            x.add(g1, s1, p1, o1);
+            x.add(g2, s1, p1, o1);
+            x.txnCommit();
+        });
+        
+        RDFChangesCounter c1 = new RDFChangesCounter();
+        RDFChangesCounter c2 = new RDFChangesCounter();
+        RDFChanges changes = new RDFChangesN(c1, c2);
+        patch.apply(changes);
+        assertEquals(1, c1.countTxnBegin);
+        assertEquals(1, c1.countTxnCommit);
+        assertEquals(0, c1.countTxnAbort);
+        assertEquals(2, c1.countAddQuad);
+        
+        assertEquals(1, c2.countTxnBegin);
+        assertEquals(1, c2.countTxnCommit);
+        assertEquals(0, c2.countTxnAbort);
+        assertEquals(2, c2.countAddQuad);
     }
 }

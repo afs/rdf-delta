@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.items.* ;
@@ -124,7 +123,7 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
             return ;
         }
         if ( a instanceof TxnBegin ) {
-            target.txnBegin(((TxnBegin)a).mode) ;
+            target.txnBegin() ;
             return ;
         }
         if ( a instanceof TxnCommit ) {
@@ -185,8 +184,8 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
     }
     
     @Override
-    public void txnBegin(ReadWrite mode) {
-        collect(new TxnBegin(mode)) ;
+    public void txnBegin() {
+        collect(new TxnBegin()) ;
     }
     
     @Override

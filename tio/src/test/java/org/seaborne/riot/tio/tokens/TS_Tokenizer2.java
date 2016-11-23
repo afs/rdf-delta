@@ -21,12 +21,16 @@ package org.seaborne.riot.tio.tokens;
 import org.junit.runner.RunWith ;
 import org.junit.runners.Suite ;
 
+// Complete replacement for TestTokenize
+// riot/src/test/java/org.apache.jena.riot.tokens.TS_Tokens
+
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
     TestTokenizerTextTerms.class,
     TestTokenizerTextOther.class,
     TestTokenizerJavaccTerms.class,
-    TestTokenizerJavaccOther.class
-    //, TestTokenizerJavaccNewline.class
+    TestTokenizerJavaccOther.class,
+    //TestTokenizerJavaccNewline.class,
+    TestTokenForNode.class
 })
 public class TS_Tokenizer2 {}

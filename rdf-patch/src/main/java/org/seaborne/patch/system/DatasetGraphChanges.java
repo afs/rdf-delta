@@ -116,7 +116,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public void begin(ReadWrite readWrite) {
         super.begin(readWrite);
         if ( readWrite == ReadWrite.WRITE )
-            monitor.txnBegin(readWrite);
+            monitor.txnBegin();
         txnMode.set(readWrite) ;
     }
 

@@ -73,8 +73,8 @@ public class RDFChangesApply implements RDFChanges {
     public void setBase(String uriStr) {}
     
     @Override
-    public void txnBegin(ReadWrite mode) {
-        dsg.begin(mode);
+    public void txnBegin() {
+        dsg.begin(ReadWrite.WRITE);
     }
     
     @Override

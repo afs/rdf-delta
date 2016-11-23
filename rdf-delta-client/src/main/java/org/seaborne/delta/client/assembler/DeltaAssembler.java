@@ -55,12 +55,12 @@ import org.apache.jena.sparql.util.NodeUtils ;
 import org.apache.jena.util.iterator.ExtendedIterator ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.client.DeltaConnectionHTTP ;
 import org.seaborne.delta.client.DeltaLib ;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.slf4j.Logger ;
@@ -107,7 +107,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             String str = rn.asLiteral().getString() ;
             FmtLog.info(Delta.DELTA_LOG, "Delta: initialize: %s",str) ;
             try (InputStream in = openChangesSrc(str)) {
-                DeltaOps.play(dsgSub, in) ;
+                RDFPatchOps.applyChange(dsgSub, in);
             } catch (IOException ex) { IO.exception(ex); }
         }
         

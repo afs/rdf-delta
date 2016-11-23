@@ -21,9 +21,22 @@ package dev;
 public class DevToDo {
     // Design protocol.
     
+    // DRPC: always include client id after registration
+    // Meta level
+    /*
+     *      { 
+     *         "operation":
+     *         "arg":
+     *         "token":
+     *      }
+     */
+    
     // -- History and parenthood.
     
     // -- Documentation
+    
+    // TIO
+    //   Tokne getType -> STRING, + getActualType
     
     // -- RDF Git.
     // Checksums

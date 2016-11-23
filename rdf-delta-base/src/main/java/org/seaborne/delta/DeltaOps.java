@@ -18,12 +18,9 @@
 
 package org.seaborne.delta;
 
-import java.io.InputStream ;
 import java.io.OutputStream ;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.patch.* ;
-import org.seaborne.patch.changes.RDFChangesApply ;
+import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.riot.tio.TokenWriter ;
@@ -38,12 +35,12 @@ public class DeltaOps {
 //    }
 //    
     
-    /** Called closes the {@link InputStream}. */
-    public static void play(DatasetGraph dsg, InputStream input) {
-        PatchReader pr = new PatchReader(input) ;
-        RDFChanges sc = new RDFChangesApply(dsg) ; 
-        pr.apply(sc);
-    }
+//    /** Called closes the {@link InputStream}. */
+//    public static void play(DatasetGraph dsg, InputStream input) {
+//        PatchReader pr = new PatchReader(input) ;
+//        RDFChanges sc = new RDFChangesApply(dsg) ; 
+//        pr.apply(sc);
+//    }
     
     /** Add a printer to a {@link RDFChanges} */
     public static RDFChanges print(RDFChanges changes) {

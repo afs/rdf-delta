@@ -34,7 +34,6 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.apache.jena.query.ReadWrite;
 import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.conn.Id;
 import org.seaborne.patch.RDFPatch;
@@ -80,8 +79,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     public void start() { }
 
     @Override
-    public void txnBegin(ReadWrite mode) {
-        super.txnBegin(mode);
+    public void txnBegin() {
+        super.txnBegin();
         if ( currentTransactionId == null ) {
             currentTransactionId = Id.create().asNode();
             super.header(RDFPatch.ID, currentTransactionId);

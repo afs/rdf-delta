@@ -22,7 +22,6 @@ import java.util.ArrayList ;
 import java.util.List ;
 
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
 
 /**
@@ -102,8 +101,8 @@ public class RDFChangesN implements RDFChanges
     }
 
     @Override
-    public void txnBegin(ReadWrite mode) {
-        changes.forEach(sc->sc.txnBegin(mode));
+    public void txnBegin() {
+        changes.forEach(sc->sc.txnBegin());
     }
     
     @Override

@@ -1,7 +1,6 @@
 package org.seaborne.patch.changes;
 
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
 
 /** Wrapper for {@link RDFChanges} */
@@ -55,8 +54,8 @@ public class RDFChangesWrapper implements RDFChanges {
     }
 
     @Override
-    public void txnBegin(ReadWrite mode) {
-        get().txnBegin(mode);
+    public void txnBegin() {
+        get().txnBegin();
     }
 
     @Override

@@ -25,7 +25,6 @@ import static org.seaborne.patch.ChangeCode.DEL_QUAD ;
 import static org.seaborne.patch.ChangeCode.SET_BASE ;
 
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.ChangeCode ;
 import org.seaborne.patch.RDFChanges ;
@@ -132,7 +131,7 @@ public class RDFChangesWriter implements RDFChanges {
     }
     
     @Override
-    public void txnBegin(ReadWrite mode) {
+    public void txnBegin() {
         oneline(ChangeCode.TXN_BEGIN) ;
     }
 

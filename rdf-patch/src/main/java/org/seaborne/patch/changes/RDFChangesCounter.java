@@ -18,58 +18,77 @@
 
 package org.seaborne.patch.changes;
 
-import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Node;
+import org.seaborne.patch.RDFChanges;
 
 public class RDFChangesCounter implements RDFChanges {
-    
-    public long countAddQuad      = 0 ;
-    public long countDeleteQuad   = 0 ;
-    public long countAddPrefix    = 0 ;
-    public long countDeletePrefix = 0 ;
+
+    public long countStart        = 0;
+    public long countFinish       = 0;
+    public long countHeader       = 0;
+    public long countAddQuad      = 0;
+    public long countDeleteQuad   = 0;
+    public long countAddPrefix    = 0;
+    public long countDeletePrefix = 0;
+    public long countSetBase      = 0;
+    public long countTxnBegin     = 0;
+    public long countTxnCommit    = 0;
+    public long countTxnAbort     = 0;
 
     public RDFChangesCounter() {}
-    
-    @Override
-    public void start() {}
 
     @Override
-    public void finish() {}
-    
+    public void start() {
+        countStart++;
+    }
+
     @Override
-    public void header(String field, Node value) {}
+    public void finish() {
+        countFinish++;
+    }
+
+    @Override
+    public void header(String field, Node value) {
+        countHeader++;
+    }
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        countAddQuad++ ;
+        countAddQuad++;
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        countDeleteQuad++ ;
+        countDeleteQuad++;
     }
 
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
-        countAddPrefix++ ;
+        countAddPrefix++;
     }
 
     @Override
     public void deletePrefix(Node gn, String prefix) {
-        countDeletePrefix++ ;
+        countDeletePrefix++;
     }
 
     @Override
-    public void setBase(String uriStr) {}
+    public void setBase(String uriStr) {
+        countSetBase++;
+    }
 
     @Override
-    public void txnBegin(ReadWrite mode) {}
+    public void txnBegin() {
+        countTxnBegin++;
+    }
 
     @Override
-    public void txnCommit() {}
+    public void txnCommit() {
+        countTxnCommit++;
+    }
 
     @Override
-    public void txnAbort() {}
-
+    public void txnAbort() {
+        countTxnAbort++;
+    }
 }

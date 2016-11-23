@@ -19,7 +19,6 @@
 package org.seaborne.patch.changes;
 
 import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
 import org.seaborne.patch.RDFChanges ;
 
 public abstract class RDFChangesBase implements RDFChanges {
@@ -47,7 +46,7 @@ public abstract class RDFChangesBase implements RDFChanges {
     public void setBase(String uriStr) {} 
 
     @Override
-    public void txnBegin(ReadWrite mode) {}
+    public void txnBegin() {}
     
     @Override
     public void txnCommit() {}
