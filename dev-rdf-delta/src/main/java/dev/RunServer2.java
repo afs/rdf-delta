@@ -18,6 +18,9 @@
 
 package dev;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -26,21 +29,12 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
-import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.DPNames;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.DeltaConnectionHTTP ;
-import org.seaborne.delta.client.RDFChangesHTTP;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
-import org.seaborne.delta.server.C ;
-import org.seaborne.delta.server.DataRegistry ;
-import org.seaborne.delta.server.DataSource ;
-import org.seaborne.delta.server.DeltaConnectionLocal ;
-import org.seaborne.delta.server.http.DataPatchServer ;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,87 +50,131 @@ public class RunServer2 {
         System.out.println("DONE");
         System.exit(0) ;
     }
+    
+    // Local base dataset
+    private static DatasetGraph dsg0 = null;
+    // Local patch dataset
+    private static DatasetGraph dsg1 = null;
+    // Local tracking dataset
+    private static DatasetGraph dsg2 = null;
      
     public static void mainMain() {
-        // Zone -> DataRegistry 
-        // DataRegistry -> DataSource
-        // DataSource = one changing 
-        
-        String SOURCES = "/home/afs/ASF/rdf-delta/Sources" ;
-        String PATCHES = "/home/afs/ASF/rdf-delta/Sources/Patches" ;
-        FileOps.ensureDir(PATCHES);
-        FileOps.clearDirectory(PATCHES);
-
-        // Server setup
-        
-        // Setup - need better registration based on scan-find.
-        Location sourceArea = Location.create(SOURCES) ;
-        DataSource source = DataSource.attach(sourceArea) ;
-        //System.out.println(source) ;
-
-        DataRegistry dReg = DataRegistry.get();
-        dReg.put(source.getId(), source);
-
-        // Server.
-        DeltaConnection impl =  new DeltaConnectionLocal();
-        DataPatchServer dps = new DataPatchServer(4040, impl) ;
-        dps.start(); 
+        server();
         Delta.DELTA_LOG.info("==== ====");
-
-        //String ds = C.uuid1.toString();
-        Id dsRef = Id.fromUUID(C.uuid1); 
-        
-        if ( false ) {
-            // Send patch.
-            RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
-            RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+dsRef.asParam()) ;
-            patch.apply(remote);
-        }
-        
-        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-        dsg0.getDefaultGraph().getPrefixMapping().setNsPrefix("ex", "http://example/");
-        DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
         
         Id clientId = Id.fromUUID(C.uuid_c1); 
-        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
-        DatasetGraph dsg = client.getDatasetGraph();
+        Id dsRef = Id.fromUUID(C.uuid1);
         
+        clientDataset(clientId, dsRef);
+        
+        dsg2 = bootfrom(clientId, dsRef);
+        System.out.println("Local");
+        print(dsg0);
+        System.out.println("Tracked");
+        print(dsg2);
+    }
+    
+    private static void clientDataset(Id clientId, Id dsRef) {
+        // Register.
+        dsg0 = DatasetGraphFactory.createTxnMem();
+        
+        // Match with a dataset
+        DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
+        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
+        
+        dsg1 = client.getDatasetGraph();
         Quad quad1 = SSE.parseQuad("(_ :ss :pp 11)");
         Quad quad2 = SSE.parseQuad("(_ :ss :pp 22)");
         
         // Need to set an id.
-        Txn.executeWrite(dsg,  ()->dsg.add(quad1));
-        Txn.executeWrite(dsg,  ()->dsg.add(quad2));
+        Txn.executeWrite(dsg1,  ()-> {
+            dsg1.getDefaultGraph().getPrefixMapping().setNsPrefix("ex", "http://example/");
+            dsg1.add(quad1);
+        });
+        Txn.executeWrite(dsg1,  ()->dsg1.add(quad2));
+    }
 
-        if ( false ) {
-            // Directly, not via DeltaClient.
-            // To get the id.
-            RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
-            //Id patchId = Id.fromNode(patch.getId()); 
-            client.sendPatch(patch);
-        }
+    private static void server() {
+    
+//        JenaSystem.DEBUG_INIT=true;
+//        JenaSystem.init();
         
-        // Poll **** ?zone=&dataset= -> version
-        // Fetch **** ?zone=&dataset=&version=
-        // Client API == API.java
+        // DataRegistry -> DataSource
+        // DataSource = one changing 
         
-//        int ver = client.getRemoteVersionLatest();
+        System.setProperty(DPNames.ENV_PORT, "4040");
+        System.setProperty(DPNames.ENV_HOME, "/home/afs/ASF/rdf-delta/");
+
+        String BASE = "/home/afs/ASF/rdf-delta/DeltaServer";
+        System.setProperty(DPNames.ENV_BASE, BASE);
         
-        int ver = client.getRemoteVersionLatest();
-        System.out.println("ver="+ver);
-        
-        System.out.println();
-        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
-        RDFDataMgr.write(System.out, dsg, Lang.TRIG);
-        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
-        
-        // ---
-        DatasetGraph dsg2 = bootfrom(clientId, dsRef) ;
+        FileOps.ensureDir(BASE);
+        Path p = Paths.get(BASE);
+        Path pSources = p.resolve(DPNames.SOURCES).toAbsolutePath();
+        Path pPatches = p.resolve(DPNames.PATCHES).toAbsolutePath();
+        FileOps.ensureDir(pSources.toString());
+        FileOps.ensureDir(pPatches.toString());
+        FileOps.clearDirectory(pPatches.toString());
+
+        // Server.
+        org.seaborne.delta.server.http.CmdDeltaServer.main();
+    }
+    
+    private static void print(DatasetGraph dsg) {
         System.out.println("-- -- -- -- -- -- -- -- -- -- --");
         RDFDataMgr.write(System.out, dsg, Lang.TRIG);
         System.out.println("-- -- -- -- -- -- -- -- -- -- --");
     }
-
+//        
+//        if ( false ) {
+//            // Send patch. No registration.
+//            Id dsRef = Id.fromUUID(C.uuid1); 
+//            RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
+//            RDFChanges remote = new RDFChangesHTTP("http://localhost:4040/patch?dataset="+dsRef.asParam()) ;
+//            patch.apply(remote);
+//        }
+//        
+//        
+//        Id clientId = Id.fromUUID(C.uuid_c1); 
+//        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
+//        DatasetGraph dsg = client.getDatasetGraph();
+//        
+//        Quad quad1 = SSE.parseQuad("(_ :ss :pp 11)");
+//        Quad quad2 = SSE.parseQuad("(_ :ss :pp 22)");
+//        
+//        // Need to set an id.
+//        Txn.executeWrite(dsg,  ()->dsg.add(quad1));
+//        Txn.executeWrite(dsg,  ()->dsg.add(quad2));
+//
+//        if ( false ) {
+//            // Directly, not via DeltaClient.
+//            // To get the id.
+//            RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
+//            //Id patchId = Id.fromNode(patch.getId()); 
+//            client.sendPatch(patch);
+//        }
+//        
+//        // Poll **** ?zone=&dataset= -> version
+//        // Fetch **** ?zone=&dataset=&version=
+//        // Client API == API.java
+//        
+////        int ver = client.getRemoteVersionLatest();
+//        
+//        int ver = client.getRemoteVersionLatest();
+//        System.out.println("ver="+ver);
+//        
+//        System.out.println();
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+//        RDFDataMgr.write(System.out, dsg, Lang.TRIG);
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+//        
+//        // ---
+//        DatasetGraph dsg2 = bootfrom(clientId, dsRef) ;
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+//        RDFDataMgr.write(System.out, dsg2, Lang.TRIG);
+//        System.out.println("-- -- -- -- -- -- -- -- -- -- --");
+//    }
+//
     private static DatasetGraph bootfrom(Id clientId, Id dsRef) {
         DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
         dsg0.getDefaultGraph().getPrefixMapping().setNsPrefix("ex", "http://example/");

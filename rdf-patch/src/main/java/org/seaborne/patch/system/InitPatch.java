@@ -32,5 +32,5 @@ public class InitPatch implements JenaSubsystemLifecycle {
     public void stop() {}
 
     @Override
-    public int level() { return 42 ; }
+    public int level() { return level ; }
 }

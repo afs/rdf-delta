@@ -21,7 +21,7 @@ package dev;
 public class CmdDeltaServer {
 
     public static void main(String[] args) {
-        org.seaborne.delta.server.CmdDeltaServer.main(args);
+        org.seaborne.delta.server.http.CmdDeltaServer.main(args);
     }
 
 }

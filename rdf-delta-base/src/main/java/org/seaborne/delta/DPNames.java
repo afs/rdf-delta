@@ -21,19 +21,48 @@ package org.seaborne.delta;
 public class DPNames {
     
     // RPC calls - operationn ames.
-    public static final String OP_EPOCH       = "epoch";
-    public static final String OP_REGISTER    = "register";
+    public static final String OP_EPOCH     = "epoch";
+    public static final String OP_REGISTER  = "register";
     // RPC arg/result fields */
-    public static final String F_OP           = "operation";
-    public static final String F_ARG          = "arg";
-    public static final String F_DATASOURCE   = "datasource";
-    public static final String F_CLIENT       = "client";
-    public static final String F_TOKEN        = "token";
+    public static final String F_OP         = "operation";
+    public static final String F_ARG        = "arg";
+    public static final String F_DATASOURCE = "datasource";
+    public static final String F_CLIENT     = "client";
+    public static final String F_TOKEN      = "token";
 
     /** Default choice of port */
-    public static final int    PORT           = 1066;
+    public static final int    PORT         = 1066;
 
-    public static final String EP_RPC         = "rpc";
-    public static final String EP_Patch       = "patch";
-    public static final String EP_Fetch       = "fetch";
+    public static final String EP_RPC       = "rpc";
+    public static final String EP_Patch     = "patch";
+    public static final String EP_Fetch     = "fetch";
+
+    public static final String paramZone    = "zone";
+    public static final String paramPatch   = "patch";
+    public static final String paramDataset = "dataset";
+    public static final String paramVersion = "version";
+    
+    // JSON object member names.
+    public static final String F_ID         = "id";
+    public static final String F_VERSION    = "version";
+    public static final String F_NAME       = "name";
+
+    // Registration
+    public static final String paramRef     = "ref";
+
+    // Environment variable name for the runtime area for the Delta server.
+    public static final String ENV_BASE     = "DELTA_BASE";
+
+    // Environment variable name for the installation area for the Delta server.
+    public static final String ENV_HOME     = "DELTA_HOME";
+
+    // Environment variable name for the port number of the Delta server.
+    public static final String ENV_PORT   = "DELTA_PORT";
+
+    // Relative path name in ENV_BASE for the "sources" area.
+    public static final String SOURCES      = "Sources";
+    // Relative path name in ENV_BASE for the patches area.
+    public static final String PATCHES      = "Patches"; 
+
+    
 }

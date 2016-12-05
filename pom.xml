@@ -51,8 +51,10 @@
     <module>tio</module>
     <module>rdf-patch</module>
     <module>rdf-delta-base</module>
-    <module>rdf-delta-server</module>
     <module>rdf-delta-client</module>
+    <module>rdf-delta-server-local</module>
+    <module>rdf-delta-server-http</module>
+    <!--<module>rdf-delta-server</module>-->
     <!-- Distribution -->
     <module>rdf-delta-system</module>
   </modules>
@@ -66,6 +68,18 @@
         <type>pom</type>
       </dependency>
       
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-cmds</artifactId>
+        <version>${ver.jena}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-base</artifactId>

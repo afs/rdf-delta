@@ -72,4 +72,6 @@ public class DRPC {
                 return JSON.parseAny(x) ;
         }
     }
+    
+    //public static JsonValue rpc(String url, JsonObject object) {
 }

@@ -50,15 +50,9 @@ public class Delta {
         if ( initialized )
             return ;
         synchronized(initLock) {
-            if ( initialized ) {
-                JenaSystem.logLifecycle("Delta.init - return") ;
-                return ;
-            }
             initialized = true ;
             //DELTA_LOG.info("Initialize");
-            JenaSystem.logLifecycle("Delta.init - start") ;
             // -- Nothing here at the moment -- 
-            JenaSystem.logLifecycle("Delta.init - finish") ;
         }
     }
 }

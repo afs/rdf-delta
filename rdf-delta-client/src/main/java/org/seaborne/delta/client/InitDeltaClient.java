@@ -19,12 +19,15 @@
 package org.seaborne.delta.client;
 
 import org.apache.jena.system.JenaSubsystemLifecycle ;
+import org.apache.jena.system.JenaSystem;
 import org.seaborne.delta.client.assembler.VocabDelta ;
 
 public class InitDeltaClient implements JenaSubsystemLifecycle {
     @Override
     public void start() {
+        JenaSystem.logLifecycle("InitDeltaClient - start");
         VocabDelta.init();
+        JenaSystem.logLifecycle("InitDeltaClient - finish");
     }
 
     @Override

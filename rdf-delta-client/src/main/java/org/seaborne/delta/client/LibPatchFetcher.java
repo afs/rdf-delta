@@ -32,7 +32,7 @@ import org.seaborne.patch.PatchReader ;
 public class LibPatchFetcher {
     static private AtomicInteger epoch = new AtomicInteger(0) ;
     
-    public static PatchReader fetch_byID(String url, String datasource, int idx) {
+    public static PatchReader __fetch_byID(String url, String datasource, int idx) {
         String s = url+"?version="+idx+"&dataset="+datasource;
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
         try {
@@ -47,7 +47,7 @@ public class LibPatchFetcher {
     }
     
     //Preferred?
-    public static PatchReader xfetchByPath(String url, String id, int idx) {
+    public static PatchReader __fetchByPath(String url, String id, int idx) {
         String s = url+"/"+idx ;
         try (TypedInputStream in = HttpOp.execHttpGet(s) ) {
             if ( in == null )

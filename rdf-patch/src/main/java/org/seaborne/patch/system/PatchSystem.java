@@ -25,7 +25,7 @@ public class PatchSystem {
     /** This is automatically called by the Jena subsystem startup cycle.
      * See {@link InitPatch} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      */
-    public static void init( ) {}
+    public static void init( ) { init$(); }
     
     private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
