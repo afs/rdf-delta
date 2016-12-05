@@ -65,8 +65,9 @@ public class RunServer2 {
         String SOURCES = "/home/afs/ASF/rdf-delta/Sources" ;
         String PATCHES = "/home/afs/ASF/rdf-delta/Sources/Patches" ;
         FileOps.ensureDir(PATCHES);
-        
         FileOps.clearDirectory(PATCHES);
+
+        // Server setup
         
         // Setup - need better registration based on scan-find.
         Location sourceArea = Location.create(SOURCES) ;
