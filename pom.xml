@@ -53,6 +53,8 @@
     <module>rdf-delta-base</module>
     <module>rdf-delta-server</module>
     <module>rdf-delta-client</module>
+    <!-- Distribution -->
+    <module>rdf-delta-system</module>
   </modules>
 
   <dependencyManagement>
@@ -189,6 +191,8 @@
           </execution>
         </executions>
       </plugin>
+
+
 
     </plugins>
 
