@@ -22,8 +22,8 @@ import javax.servlet.http.HttpServletRequest ;
 
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.server.local.DeltaExceptionBadRequest;
 import org.slf4j.Logger ;
 
 /** Fetch a patch from a container: id is part of the path name.  */
@@ -37,7 +37,7 @@ public class S_Fetch extends FetchBase {
 
     @Override
     protected Args getArgs(HttpServletRequest req) {
-        throw new DeltaExceptionBadRequest(HttpSC.INTERNAL_SERVER_ERROR_500, "Not implemented");
+        throw new DeltaBadRequestException(HttpSC.INTERNAL_SERVER_ERROR_500, "Not implemented");
 //        String x = req.getRequestURI();
 //        int j = x.lastIndexOf('/');
 //        if ( j < 0 )

@@ -46,67 +46,38 @@ public class DataSource {
     // relationship to the Distributor?
     // Maybe one Distributor per DataSource (manages event flow). 
     
-    private final String name ;
     private final Id id ;
+    private final String uri ;
     // Directory of all resources connected to this DataSourtce.
     private final Location location ;
     // Process that can take an input stream and put a patch safe on storage. 
     private final Receiver receiver ;
-    
     // Has version stuff
     private final PatchSet patchSet ;
     
-    public static DataSource attach(Location sourceArea, Location patchesArea) {
-        formatSourceArea(sourceArea);
-        InputStream in = IO.openFile(sourceArea.getPath(CONF)) ;
-        if ( in == null ) {
-            LOG.warn("No source configuration" );
-        }
-        // id
-        // version
-        
-        JsonObject obj = JSON.parse(in) ;
-        //JSON.write(obj);
-        //System.out.println();
-        String idStr = getStrOrNull(obj, F_ID) ;
-        String versionStr = getStrOrNull(obj, F_VERSION) ;
-        String nameStr = getStrOrNull(obj, F_NAME) ;
-        FmtLog.info(LOG, "DataSource: source=%s, patches=%s", sourceArea, patchesArea);
-        FmtLog.info(LOG, "DataSource: id=%s, version=%s, name=%s", idStr, versionStr, nameStr) ; 
-        
-        Id id = Id.fromString(idStr) ; 
-        // Scan for patch files.
+    /** Attach to a datasource file area. 
+     * Create if necessary.  
+     * @param sourceArea    {@code Sources}
+     * @param patchesArea   The global {@code Patches} store.
+     * @return DataSource
+     */
+    public static DataSource attach(Id id, String uri, Location sourceArea, Location patchesArea) {
+        formatSourceArea(sourceArea, patchesArea);
         PatchSet patchSet = loadPatchSet(id, patchesArea.getDirectoryPath());
-        
-        //Where does version come from?
         Receiver receiver = new Receiver(patchSet.getFileStore());
-        return new DataSource(id, sourceArea, nameStr, patchSet, receiver) ;
+        return new DataSource(id, sourceArea, uri, patchSet, receiver) ;
     }
 
     private static PatchSet loadPatchSet(Id id, String path) {
         return new PatchSet(id, path) ;
     }
 
-    private static String getStrOrNull(JsonObject obj, String field) {
-        JsonValue jv = obj.get(field);
-        if ( jv == null ) {
-            LOG.warn("Field '"+field+"' not found");
-            return null;
-        }
-        if ( jv.isString() )
-            return jv.getAsString().value();
-        if ( jv.isNumber() )
-            return jv.getAsNumber().value().toString();
-        LOG.warn("field "+field+" : returning null for the string value");
-        return null ;
-    }
-    
     private DataSource(Id id, Location location, String name, PatchSet patchSet, Receiver receiver) {
         super() ;
         this.id = id ;
         this.location = location ;
         this.receiver = receiver ;
-        this.name = name ;
+        this.uri = name ;
         this.patchSet = patchSet ;
     }
 
@@ -126,15 +97,14 @@ public class DataSource {
         return patchSet ;
     }
 
-    private static void formatSourceArea(Location sourceArea) {
-        // Dev - clean start.
-        // FileOps.clearAll(sourceArea.getDirectoryPath()) ;
-        FileOps.ensureDir(sourceArea.getPath(PATCHES));
+    public static void formatSourceArea(Location sourcesArea, Location patchesArea) {
+        FileOps.ensureDir(sourcesArea.getDirectoryPath());
+        FileOps.ensureDir(patchesArea.getDirectoryPath());
     }
 
     @Override
     public String toString() {
-        return String.format("Source: %s [%s]", id, name) ; 
+        return String.format("Source: %s [%s]", id, uri) ; 
     }
     
 }

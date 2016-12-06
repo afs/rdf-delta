@@ -35,6 +35,7 @@ import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.DeltaConnectionHTTP ;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.server.local.DataRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,16 +58,16 @@ public class RunServer2 {
     private static DatasetGraph dsg1 = null;
     // Local tracking dataset
     private static DatasetGraph dsg2 = null;
-     
+    
     public static void mainMain() {
         server();
-        Delta.DELTA_LOG.info("==== ====");
+        Delta.DELTA_LOG.info("==== Client ====");
         
         Id clientId = Id.fromUUID(C.uuid_c1); 
         Id dsRef = Id.fromUUID(C.uuid1);
-        
         clientDataset(clientId, dsRef);
         
+        Delta.DELTA_LOG.info("==== Bootstrap ====");
         dsg2 = bootfrom(clientId, dsRef);
         System.out.println("Local");
         print(dsg0);
@@ -96,28 +97,29 @@ public class RunServer2 {
 
     private static void server() {
     
-//        JenaSystem.DEBUG_INIT=true;
-//        JenaSystem.init();
-        
-        // DataRegistry -> DataSource
-        // DataSource = one changing 
-        
+        // Setup.
         System.setProperty(DPNames.ENV_PORT, "4040");
         System.setProperty(DPNames.ENV_HOME, "/home/afs/ASF/rdf-delta/");
 
         String BASE = "/home/afs/ASF/rdf-delta/DeltaServer";
         System.setProperty(DPNames.ENV_BASE, BASE);
+        String config = "/home/afs/ASF/rdf-delta/delta.cfg";
+        if ( ! FileOps.exists(config) ) {
+            System.err.println("No configuration file: "+config);
+            System.exit(2);
+        }
+        System.setProperty(DPNames.ENV_CONFIG, config);
         
         FileOps.ensureDir(BASE);
         Path p = Paths.get(BASE);
         Path pSources = p.resolve(DPNames.SOURCES).toAbsolutePath();
-        Path pPatches = p.resolve(DPNames.PATCHES).toAbsolutePath();
+        //Path pPatches = p.resolve(DPNames.PATCHES).toAbsolutePath();
         FileOps.ensureDir(pSources.toString());
-        FileOps.ensureDir(pPatches.toString());
-        FileOps.clearDirectory(pPatches.toString());
+        //FileOps.ensureDir(pPatches.toString());
+        //FileOps.clearDirectory(pPatches.toString());
 
         // Server.
-        org.seaborne.delta.server.http.CmdDeltaServer.main();
+        org.seaborne.delta.server.http.CmdDeltaServer.main("--base="+BASE, "--port=4040", "--config="+config);
     }
     
     private static void print(DatasetGraph dsg) {

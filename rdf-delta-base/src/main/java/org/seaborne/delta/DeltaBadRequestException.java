@@ -16,18 +16,16 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
-
-import org.seaborne.delta.DeltaException;
+package org.seaborne.delta;
 
 /** Exception to throw when a request is wrong in some way */ 
-public class DeltaExceptionBadRequest extends DeltaException {
+public class DeltaBadRequestException extends DeltaException {
     private final int statusCode ;  
     
-    public DeltaExceptionBadRequest(String msg)
+    public DeltaBadRequestException(String msg)
     { this(400, msg) ; }
     
-    public DeltaExceptionBadRequest(int code, String msg) {
+    public DeltaBadRequestException(int code, String msg) {
         super(code+" "+msg) ;
         statusCode = code ;
     }

@@ -27,11 +27,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.web.HttpSC;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
 import org.seaborne.delta.server.local.DataRegistry;
 import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.DeltaExceptionBadRequest;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 
@@ -67,12 +67,12 @@ abstract class FetchBase extends ServletBase {
             
             Args args = getArgs(req) ;
             if ( args.dataset == null ) {
-                throw new DeltaExceptionBadRequest("No datasource specificed");
+                throw new DeltaBadRequestException("No datasource specificed");
             }
             Id dsRef = Id.fromString(args.dataset);
             DataSource ds = DataRegistry.get().get(dsRef);
             if ( ds == null )
-                throw new DeltaExceptionBadRequest("Not found: datasource for "+args.dataset);
+                throw new DeltaBadRequestException("Not found: datasource for "+args.dataset);
             
             
             OutputStream out = resp.getOutputStream() ;
@@ -80,7 +80,7 @@ abstract class FetchBase extends ServletBase {
             
             if ( args.patchId == null ) {
                 if ( args.version == null )
-                    throw new DeltaExceptionBadRequest("No version, no patch id");
+                    throw new DeltaBadRequestException("No version, no patch id");
                 int version = Integer.parseInt(args.version);
                 patch = engine.fetch(dsRef, version);
             } else {
@@ -92,7 +92,7 @@ abstract class FetchBase extends ServletBase {
             resp.setContentType("application/rdf-patch+text"); 
             RDFPatchOps.write(out, patch);
             IO.flush(out);
-        } catch (DeltaExceptionBadRequest ex) {
+        } catch (DeltaBadRequestException ex) {
             FmtLog.warn(S_Fetch.LOG, "", ex.getStatusCode(), ex.getMessage());
             resp.sendError(ex.getStatusCode(), ex.getMessage());
             return;

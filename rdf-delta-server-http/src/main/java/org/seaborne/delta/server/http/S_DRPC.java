@@ -31,11 +31,11 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
 import org.seaborne.delta.conn.RegToken;
 import org.seaborne.delta.lib.J;
-import org.seaborne.delta.server.local.DeltaExceptionBadRequest;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
@@ -55,7 +55,7 @@ public class S_DRPC extends ServletBase {
         try (InputStream in = req.getInputStream()  ) {
             input = JSON.parse(in) ;
         } catch (JsonException ex) {
-            throw new DeltaExceptionBadRequest("Bad JSON argument: "+ex.getMessage()) ;
+            throw new DeltaBadRequestException("Bad JSON argument: "+ex.getMessage()) ;
         }
         
         String op = getFieldAsString(input, DPNames.F_OP);
@@ -124,12 +124,12 @@ public class S_DRPC extends ServletBase {
         try {
             if ( ! arg.hasKey(field) ) {
                 LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-                throw new DeltaExceptionBadRequest("Missing field: "+field) ;
+                throw new DeltaBadRequestException("Missing field: "+field) ;
             }
             return arg.get(field).getAsString().value() ;
         } catch (JsonException ex) {
             LOG.warn("Bad request: Field not a string: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-            throw new DeltaExceptionBadRequest("Bad field '"+field+"' : "+arg.get(field)) ;
+            throw new DeltaBadRequestException("Bad field '"+field+"' : "+arg.get(field)) ;
         }
     }
     
@@ -137,7 +137,7 @@ public class S_DRPC extends ServletBase {
         try {
             if ( ! arg.hasKey(field) ) {
                 LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-                throw new DeltaExceptionBadRequest("Missing field: "+field) ;
+                throw new DeltaBadRequestException("Missing field: "+field) ;
             }
             JsonValue jv = arg.get(field) ;
             if ( ! jv.isObject() ) {
@@ -146,7 +146,7 @@ public class S_DRPC extends ServletBase {
             return jv.getAsObject();
         } catch (JsonException ex) {
             LOG.warn("Bad request: Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-            throw new DeltaExceptionBadRequest("Bad field '"+field+"' : "+arg.get(field)) ;
+            throw new DeltaBadRequestException("Bad field '"+field+"' : "+arg.get(field)) ;
         }
     }
 

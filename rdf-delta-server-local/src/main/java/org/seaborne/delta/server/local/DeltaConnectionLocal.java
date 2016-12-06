@@ -23,6 +23,7 @@ import java.io.InputStream ;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
 import org.seaborne.delta.conn.RegToken;
@@ -76,7 +77,7 @@ public class DeltaConnectionLocal implements DeltaConnection {
     public void sendPatch(Id dsRef, RDFPatch rdfPatch) {
         DataSource source = DataRegistry.get().get(dsRef) ;
         if ( source == null )
-            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
         source.getReceiver().receive(rdfPatch, null);
         // id -> registation
@@ -100,7 +101,7 @@ public class DeltaConnectionLocal implements DeltaConnection {
     public int getCurrentVersion(Id dsRef) {
         DataSource source = DataRegistry.get().get(dsRef) ;
         if ( source == null )
-            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
         return getCurrentVersion(source);
     }
 
@@ -113,10 +114,10 @@ public class DeltaConnectionLocal implements DeltaConnection {
     public RDFPatch fetch(Id dsRef, Id patchId) {
         DataSource source = DataRegistry.get().get(dsRef) ;
         if ( source == null )
-            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
         Patch patch = source.getPatchSet().fetch(patchId) ;
         if ( patch == null )
-            throw new DeltaExceptionBadRequest(404, "No such patch: "+patchId) ;
+            throw new DeltaBadRequestException(404, "No such patch: "+patchId) ;
         FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
         return patch ;
     }
@@ -126,7 +127,7 @@ public class DeltaConnectionLocal implements DeltaConnection {
     public RDFPatch fetch(Id dsRef, int version) {
         DataSource source = DataRegistry.get().get(dsRef) ;
         if ( source == null )
-            throw new DeltaExceptionBadRequest(404, "No such data source: "+dsRef) ;
+            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
         RDFPatch patch = source.getPatchSet().fetch(version);
         FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
         return patch;

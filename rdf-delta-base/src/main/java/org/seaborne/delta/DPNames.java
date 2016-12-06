@@ -43,9 +43,12 @@ public class DPNames {
     public static final String paramVersion = "version";
     
     // JSON object member names.
+    public static final String F_BASE       = "base";
+    public static final String F_PORT       = "port";
+    public static final String F_SOURCES    = "sources";
     public static final String F_ID         = "id";
     public static final String F_VERSION    = "version";
-    public static final String F_NAME       = "name";
+    public static final String F_URI        = "uri";
 
     // Registration
     public static final String paramRef     = "ref";
@@ -59,6 +62,13 @@ public class DPNames {
     // Environment variable name for the port number of the Delta server.
     public static final String ENV_PORT   = "DELTA_PORT";
 
+    // Environment variable name for the configuration file.
+    public static final String ENV_CONFIG  = "DELTA_CONFIG";
+
+    // Default name for the server configuration file.
+    public static final String CONFIG      = "delta.cfg";
+
+    
     // Relative path name in ENV_BASE for the "sources" area.
     public static final String SOURCES      = "Sources";
     // Relative path name in ENV_BASE for the patches area.

@@ -26,9 +26,9 @@ import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.conn.DeltaConnection ;
 import org.seaborne.delta.conn.Id ;
-import org.seaborne.delta.server.local.DeltaExceptionBadRequest;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
@@ -88,10 +88,10 @@ public class S_Patch extends ServletBase {
         if ( requestURI.startsWith(s) ) {
             String dname = requestURI.substring(s.length()) ;
             if ( dname.isEmpty() )
-                throw new DeltaExceptionBadRequest("No dataset parameter");
+                throw new DeltaBadRequestException("No dataset parameter");
             LOG.info("Dataset name (path) = "+dname);
             return Id.fromString(dname) ;
         }
-        throw new DeltaExceptionBadRequest("Failed to find dataset parameter");
+        throw new DeltaBadRequestException("Failed to find dataset parameter");
     }
 }

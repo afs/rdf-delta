@@ -30,10 +30,7 @@ import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DPNames;
 import org.seaborne.delta.conn.DeltaConnection;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataRegistry;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.DeltaConnectionLocal;
+import org.seaborne.delta.server.local.*;
 import org.slf4j.Logger;
 
 /** Command line run the server. */ 
@@ -51,8 +48,15 @@ public class CmdDeltaServer {
         // ---- Command Line
         CmdLineArgs cla = new CmdLineArgs(args);
         ArgDecl argPort = new ArgDecl(true, "port");
+        ArgDecl argBase = new ArgDecl(true, "base");
+        ArgDecl argConf = new ArgDecl(true, "conf", "config");
+        
         cla.add(argPort);
+        cla.add(argBase);
+        cla.add(argConf);
+        
         cla.process();
+        
         int port = DPNames.PORT;
         String portStr = null;
         if ( cla.contains(argPort) ) {
@@ -61,19 +65,30 @@ public class CmdDeltaServer {
             portStr = getenv(DPNames.ENV_PORT);
         }
         
-        try {
-            port = Integer.parseInt(portStr);
-        } catch (NumberFormatException ex) {
-            System.err.println("Failed to parse the port number: "+portStr);
-            System.exit(1);
+        if ( portStr != null ) {
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException ex) {
+                System.err.println("Failed to parse the port number: "+portStr);
+                System.exit(1);
+            }
         }
         
-        // ---- Environment variables.
-        String runtimeArea = getenv(DPNames.ENV_BASE);
+        String configFile = null;
+        if ( cla.contains(argConf) )
+            configFile = cla.getArg(argConf).getValue();
+        else
+            configFile = getenv(DPNames.ENV_CONFIG);
         
+        // ---- Environment
+        String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
         if ( runtimeArea == null ) {
-            System.err.println("Environment variable DELTA_BASE not set");
-            System.exit(1);
+            runtimeArea = getenv(DPNames.ENV_BASE);
+            // Default to "."?
+            if ( runtimeArea == null ) {
+                System.err.println("Must use --base or environment variable DELTA_BASE to set the server untime area.");
+                System.exit(1);
+            }
         }
         
         Path base = Paths.get(runtimeArea).toAbsolutePath();
@@ -85,25 +100,27 @@ public class CmdDeltaServer {
             System.err.println("Exists, but is not a directory: "+base);
             System.exit(1);
         }
-        
+
         //String installArea = getenv(HOME);
 
         // Logging.
         
         // Server setup - find registered sources.
-        Path sources = base.resolve(DPNames.SOURCES).toAbsolutePath();
-        Path patches = base.resolve(DPNames.PATCHES).toAbsolutePath();
-        FileOps.ensureDir(sources.toString());
-        FileOps.ensureDir(patches.toString());
-        // Setup - need better registration based on scan-find.
-        Location sourceArea = Location.create(sources.toString());
-        Location patchesArea = Location.create(patches.toString());
-        DataSource source = DataSource.attach(sourceArea, patchesArea) ;
-
-        FmtLog.info(LOG, "Delta Server port=%d, sources=%s", port, sources.toString());
+//        Path sources = base.resolve(DPNames.SOURCES).toAbsolutePath();
+//        Path patches = base.resolve(DPNames.PATCHES).toAbsolutePath();
+//        DataSource.formatSourceArea(sourceArea, patchesArea);
+//        DataSource.cleanSourceArea(sourceArea, patchesArea);
+        Location baseArea = Location.create(base.toString());
         
-        DataRegistry dReg = DataRegistry.get();
-        dReg.put(source.getId(), source);
+        //sort out the sources.cfg file.
+        if ( configFile == null ) {
+            configFile = baseArea.getPath(DPNames.CONFIG);
+        }
+        
+        FmtLog.info(LOG, "Delta Server configuration=%s", configFile);
+        LocalServer.attach(baseArea, configFile);
+
+        FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
 
         // Server.
         DeltaConnection impl =  new DeltaConnectionLocal();
@@ -111,6 +128,13 @@ public class CmdDeltaServer {
         // And away we go.
         dps.start();
         //dps.join();
+    }
+
+    /** Check/format the server area. */
+    private static void ensure_setup(Path sources, Path patches) {
+        FileOps.ensureDir(sources.toString());
+        FileOps.ensureDir(patches.toString());
+        // Setup - need better registration based on scan-find.
     }
 
     /** Look for the setting for an environment variable.
