@@ -28,8 +28,8 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
 import org.seaborne.delta.server.local.DataRegistry;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.patch.RDFPatch ;
@@ -38,7 +38,7 @@ import org.seaborne.patch.RDFPatchOps ;
 /** Framework for fetching a patch over HTTP. */ 
 abstract class FetchBase extends ServletBase {
 
-    public FetchBase(DeltaConnection engine) {
+    public FetchBase(DeltaLink engine) {
         super(engine);
     }
 

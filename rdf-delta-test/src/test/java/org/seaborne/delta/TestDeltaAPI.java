@@ -16,29 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http;
+package org.seaborne.delta;
 
-import javax.servlet.http.HttpServletRequest;
+public class TestDeltaAPI {
 
-import org.seaborne.delta.Delta;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.link.DeltaLink;
-
-/** fetch by "?id=" */
-public class S_FetchId extends FetchBase {
-    public S_FetchId(DeltaLink engine) {
-        super(engine);
-    }
-
-    @Override
-    protected Args getArgs(HttpServletRequest req) {
-        Args a = Args.args(req);
-        if ( a.dataset == null )
-            throw new DeltaBadRequestException("No dataset specificed");
-        if ( a.zone == null )
-            Delta.DELTA_HTTP_LOG.warn("No Zone specified");
-        if ( a.patchId == null && a.version == null )
-            throw new DeltaBadRequestException("No patch id, no version");
-        return a;
-    }
 }

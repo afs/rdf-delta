@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger ;
 
 /** Fetch a patch from a container: id is part of the path name.  */
@@ -31,7 +31,7 @@ public class S_Fetch extends FetchBase {
 
     static public Logger LOG = Delta.getDeltaLogger("Fetch");
     
-    public S_Fetch(DeltaConnection engine) {
+    public S_Fetch(DeltaLink engine) {
         super(engine) ;
     }
 

@@ -35,8 +35,8 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DPNames;
 import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.conn.Id;
 import org.seaborne.delta.lib.J;
+import org.seaborne.delta.link.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

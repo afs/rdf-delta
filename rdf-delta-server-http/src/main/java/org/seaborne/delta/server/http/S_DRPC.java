@@ -32,16 +32,16 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.conn.Id ;
-import org.seaborne.delta.conn.RegToken;
 import org.seaborne.delta.lib.J;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
+import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
 public class S_DRPC extends ServletBase {
     
-    public S_DRPC(DeltaConnection engine) {
+    public S_DRPC(DeltaLink engine) {
         super(engine) ;
     }
 

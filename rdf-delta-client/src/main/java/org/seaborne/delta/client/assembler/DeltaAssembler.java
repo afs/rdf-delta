@@ -55,10 +55,10 @@ import org.apache.jena.sparql.util.NodeUtils ;
 import org.apache.jena.util.iterator.ExtendedIterator ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.client.DeltaConnectionHTTP ;
+import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.client.DeltaLib ;
-import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesN ;
@@ -132,8 +132,8 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
         if ( true )
             throw new NotImplemented("NEED THE DATASOURCE ID; NEED THE CLIENT ID");
-        DeltaConnection dc = new DeltaConnectionHTTP(source) ;
-        DeltaClient client = DeltaClient.create("foo", null, null, dsg, dc) ;
+        DeltaLink dc = new DeltaLinkHTTP(source) ;
+        DeltaConnection client = DeltaConnection.create("foo", null, null, dsg, dc) ;
         Runnable r = ()->{
             try { client.sync(); }
             catch (Exception ex) { 

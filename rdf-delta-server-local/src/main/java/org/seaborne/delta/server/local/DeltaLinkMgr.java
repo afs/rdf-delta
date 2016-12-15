@@ -24,53 +24,51 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
-
-//import java.util.Map;
-
-import org.seaborne.delta.conn.Id;
-import org.seaborne.delta.conn.RegToken;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
+import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Manage DeltaConnections to this Server */  
-public class DeltaConnectionMgr {
-    private static Logger LOG = LoggerFactory.getLogger(DeltaConnectionMgr.class);
+/** Manage {@link DeltaLink} registrations */  
+public class DeltaLinkMgr {
+    private static Logger LOG = LoggerFactory.getLogger(DeltaLinkMgr.class);
     
-    private BiMap<Id, RegToken> activeClients = HashBiMap.create();
+    private BiMap<Id, RegToken> activeLinks = HashBiMap.create();
     private Map <UUID, RegToken> activeTokens = new ConcurrentHashMap<>();
     private Object syncObject = new Object();
-    private static DeltaConnectionMgr singleton = new DeltaConnectionMgr();
-    public static DeltaConnectionMgr get() { return singleton; }
+    
+    private static DeltaLinkMgr singleton = new DeltaLinkMgr();
+    public static DeltaLinkMgr get() { return singleton; }
+    
+    public DeltaLinkMgr() {}
     
     public RegToken register(Id clientId) {
         synchronized(syncObject) {
-            if ( activeClients.containsKey(clientId) ) {
-                // Existing registration - cliebnt restart?
+            if ( isRegistered(clientId) ) {
+                LOG.warn("Registering client : "+clientId);
+                // Existing registration - client restart?
                 // Do a new registration.
-                activeClients.remove(clientId);
+                activeLinks.remove(clientId);
             }
-         
             // New.
             RegToken token = new RegToken();
-            activeClients.put(clientId, token);
+            activeLinks.put(clientId, token);
             activeTokens.put(token.getUUID(), token);
-            
             return token;
         }
     }
     
     public boolean validate(Id tokenId) {
         synchronized(syncObject) {
-            return activeClients.containsKey(tokenId);
+            return activeLinks.containsKey(tokenId);
         }
     }
     
     public void deregister(RegToken token) {
         synchronized(syncObject) {
-            if ( activeClients.containsValue(token) ) {
-                // Existing registration - cliebnt restart?
-                // Do a new registration.
-                activeClients.inverse().remove(token);
+            if ( isRegistered(token) ) {
+                activeLinks.inverse().remove(token);
             } else 
                 LOG.warn("No such registration: token="+token);
         }
@@ -78,14 +76,18 @@ public class DeltaConnectionMgr {
 
     public void deregister(Id clientId) {
         synchronized(syncObject) {
-            if ( activeClients.containsKey(clientId) ) {
-                // Existing registration - cliebnt restart?
-                // Do a new registration.
-                activeClients.remove(clientId); 
+            if ( isRegistered(clientId) ) {
+                activeLinks.remove(clientId); 
             } else
                 LOG.warn("No such registration: clientId="+clientId);
         }
     }
 
-    
+    public boolean isRegistered(Id clientId) {
+        return activeLinks.containsKey(clientId);
+    }
+
+    public boolean isRegistered(RegToken regToken) {
+        return activeLinks.containsValue(regToken);
+    }
 }

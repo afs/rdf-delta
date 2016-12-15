@@ -32,15 +32,15 @@ import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger ;
 
 public class ServletBase extends HttpServlet {
 
     private static Logger logger = Delta.getDeltaLogger("Servlet") ;
-    protected final DeltaConnection engine ; 
+    protected final DeltaLink engine ; 
     
-    public ServletBase(DeltaConnection engine) {
+    public ServletBase(DeltaLink engine) {
         this.engine = engine;
     }
 

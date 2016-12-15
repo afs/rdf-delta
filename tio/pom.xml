@@ -24,7 +24,6 @@
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
     </dependency>
-
   </dependencies>  
 
 </project>

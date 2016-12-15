@@ -30,8 +30,8 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesApply ;
@@ -39,14 +39,16 @@ import org.seaborne.patch.system.DatasetGraphChanges;
 import org.slf4j.Logger;
 import txnx.TransPInteger;
 
-/** Provides an interface to a specific dataset over the general {@link DeltaConnection} API. */ 
-public class DeltaClient {
+/** Provides an interface to a specific dataset over the general {@link DeltaLink} API. 
+ * This is the client APi, c.f. JDBC connection
+ */ 
+public class DeltaConnection {
     
     private static Logger LOG = Delta.DELTA_LOG;
     
     // The version of the remote copy.
     
-    private final DeltaConnection connection ;
+    private final DeltaLink link ;
     
     private final AtomicInteger remoteEpoch = new AtomicInteger(0);
     private final AtomicInteger localEpoch = new AtomicInteger(0);
@@ -60,17 +62,17 @@ public class DeltaClient {
     private final Id clientId;
     private final Id datasourceId;
     
-    public static DeltaClient create(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
+    public static DeltaConnection create(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
-        Objects.requireNonNull(connection, "Null connection");
+        Objects.requireNonNull(link, "Null link");
         
-        DeltaClient client = new DeltaClient(label, clientId, datasourceId, dsg, connection);
+        DeltaConnection client = new DeltaConnection(label, clientId, datasourceId, dsg, link);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
     }
     
-    private DeltaClient(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaConnection connection) {
+    private DeltaConnection(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
         localEpochPersistent = new TransPInteger(label);
         localEpoch.set(0);
         
@@ -81,14 +83,14 @@ public class DeltaClient {
         this.base = dsg;
         this.datasourceId = datasourceId ;
         this.clientId = clientId;
-        this.connection = connection;
+        this.link = link;
         
         if ( dsg != null  ) {
             // Where to put incoming changes. 
             this.target = new RDFChangesApply(dsg);
             // Where to send outgoing changes.
             // Make RDFChangesHTTP one shot.
-            RDFChanges monitor = connection.createRDFChanges(datasourceId);
+            RDFChanges monitor = link.createRDFChanges(datasourceId);
             this.managed = new DatasetGraphChanges(dsg, monitor);
         } else {
             this.target = null;
@@ -104,7 +106,7 @@ public class DeltaClient {
     public void finish() { }
 
     private void register() {
-        connection.register(clientId);
+        link.register(clientId);
     }
     
     public void sync() {
@@ -163,7 +165,7 @@ public class DeltaClient {
     
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
-        return connection.getCurrentVersion(datasourceId);
+        return link.getCurrentVersion(datasourceId);
     }
     
     /** Return the version of the local data store */ 
@@ -200,12 +202,12 @@ public class DeltaClient {
     }
 
     public void sendPatch(RDFPatch patch) {
-        connection.sendPatch(datasourceId, patch);
+        link.sendPatch(datasourceId, patch);
     }
     
 
     public RDFPatch fetchPatch(int id) {
-        return connection.fetch(datasourceId, id);
+        return link.fetch(datasourceId, id);
     }
     
     @Override

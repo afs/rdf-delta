@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
@@ -39,7 +39,7 @@ import org.slf4j.Logger ;
 public class S_Patch extends ServletBase {
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
     
-    public S_Patch(DeltaConnection engine) {
+    public S_Patch(DeltaLink engine) {
         super(engine);
     }
     

@@ -16,16 +16,18 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.conn;
+package org.seaborne.delta.link;
 
 import org.apache.jena.atlas.json.JsonArray;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 
-/** Connection from client to server.
- * Can deal with many DataSources per connection.    
+/** Interface to the server for the operations.
+ * A server is any engine that that provides the Delat operations
+ * and it may be local or remote.
+ * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
-public interface DeltaConnection {
+public interface DeltaLink {
     public RegToken register(Id clientId);
     public RegToken register(String name);
     
@@ -47,8 +49,14 @@ public interface DeltaConnection {
     /** Retrieve a patch and write it to the {@code OutputStream}. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);
 
-    /** Create an {@link RDFChanges} for this connection */
+    /** Create an {@link RDFChanges} for this link. */
     public RDFChanges createRDFChanges(Id dsRef);
+    
+    /** Check whether a client id is registered for this link. */
+    public boolean isRegistered(Id id);
+    
+    /** Check whether a {@code RegToken} is active. */
+    public boolean isRegistered(RegToken regToken);
     
 //    public void existingDataset() {} 
 //    

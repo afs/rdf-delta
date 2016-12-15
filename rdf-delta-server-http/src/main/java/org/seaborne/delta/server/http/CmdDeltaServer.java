@@ -29,7 +29,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DPNames;
-import org.seaborne.delta.conn.DeltaConnection;
+import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.*;
 import org.slf4j.Logger;
 
@@ -123,7 +123,7 @@ public class CmdDeltaServer {
         FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
 
         // Server.
-        DeltaConnection impl =  new DeltaConnectionLocal();
+        DeltaLink impl =  DeltaLinkLocal.create();
         DataPatchServer dps = new DataPatchServer(4040, impl) ;
         // And away we go.
         dps.start();

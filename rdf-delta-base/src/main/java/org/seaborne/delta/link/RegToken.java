@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.conn;
+package org.seaborne.delta.link;
 
 import java.util.UUID;
 

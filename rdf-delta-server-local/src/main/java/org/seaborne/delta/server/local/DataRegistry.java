@@ -19,7 +19,7 @@
 package org.seaborne.delta.server.local;
 
 import org.apache.jena.atlas.lib.Registry ;
-import org.seaborne.delta.conn.Id ;
+import org.seaborne.delta.link.Id;
 import org.slf4j.Logger ;
 
 /** The registry of all data under the control of server */ 
@@ -52,6 +52,9 @@ public class DataRegistry extends Registry<Id, DataSource> {
 
     @Override
     public String toString() {
-        return String.format("Registry: '%s': size=%d", label, super.size()) ; 
+        if ( label != null )
+            return String.format("Registry: '%s': size=%d", label, super.size()) ;
+        else
+            return String.format("Registry: size=%d", super.size()) ; 
     }
 }

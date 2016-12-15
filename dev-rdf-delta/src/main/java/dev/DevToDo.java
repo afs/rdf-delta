@@ -21,6 +21,12 @@ package dev;
 public class DevToDo {
     // Design protocol.
     
+    // Rename:
+    // DeltaClient -> DeltaConnection (c.f. JDBC connection)
+    // DeltaConnection -> DeltaServer?? DeltaLink??
+    
+    // Merge client and base modules? 
+    
     // DRPC: always include client id after registration
     // Meta level
     /*

@@ -31,11 +31,10 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.DPNames;
 import org.seaborne.delta.Delta;
-import org.seaborne.delta.client.DeltaClient;
-import org.seaborne.delta.client.DeltaConnectionHTTP ;
-import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.conn.Id ;
-import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP ;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +58,10 @@ public class RunServer2 {
     // Local tracking dataset
     private static DatasetGraph dsg2 = null;
     
+    // Registration.
+    // Direct to local for testing.
+    //   Better - pass in a DeltaConnection
+    
     public static void mainMain() {
         server();
         Delta.DELTA_LOG.info("==== Client ====");
@@ -80,8 +83,8 @@ public class RunServer2 {
         dsg0 = DatasetGraphFactory.createTxnMem();
         
         // Match with a dataset
-        DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
-        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
+        DeltaLink dc = new DeltaLinkHTTP("http://localhost:4040/");
+        DeltaConnection client = DeltaConnection.create("RDFP", clientId, dsRef, dsg0, dc);
         
         dsg1 = client.getDatasetGraph();
         Quad quad1 = SSE.parseQuad("(_ :ss :pp 11)");
@@ -180,8 +183,8 @@ public class RunServer2 {
     private static DatasetGraph bootfrom(Id clientId, Id dsRef) {
         DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
         dsg0.getDefaultGraph().getPrefixMapping().setNsPrefix("ex", "http://example/");
-        DeltaConnection dc = new DeltaConnectionHTTP("http://localhost:4040/");
-        DeltaClient client = DeltaClient.create("RDFP", clientId, dsRef, dsg0, dc);
+        DeltaLink dc = new DeltaLinkHTTP("http://localhost:4040/");
+        DeltaConnection client = DeltaConnection.create("RDFP", clientId, dsRef, dsg0, dc);
         DatasetGraph dsg = client.getDatasetGraph();
         return dsg;
     }

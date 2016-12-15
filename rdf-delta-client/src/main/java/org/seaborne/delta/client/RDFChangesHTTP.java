@@ -35,7 +35,7 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.conn.Id;
+import org.seaborne.delta.link.Id;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 /** Collect the bytes of a change stream, then write to HTTP */ 
 public class RDFChangesHTTP extends RDFChangesWriter {
     
-    // This should be tied to the DeltaConnection and that control text/binary.
+    // This should be tied to the DeltaLink and have that control text/binary.
     
     private static final Logger LOG = LoggerFactory.getLogger(RDFChangesHTTP.class);
     // XXX Caching? Auth?

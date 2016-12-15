@@ -30,26 +30,25 @@ import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.conn.DeltaConnection ;
-import org.seaborne.delta.conn.Id ;
-import org.seaborne.delta.conn.RegToken;
 import org.seaborne.delta.lib.J ;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.Id;
+import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 
-/** Implementation of {@link DeltaConnection} that encodes operations
+/** Implementation of {@link DeltaLink} that encodes operations
  * onto the HTTP protocol and decode results.    
  */
-public class DeltaConnectionHTTP implements DeltaConnection {
+public class DeltaLinkHTTP implements DeltaLink {
 
     private final String remoteServer;
     private final String remoteSend;
     private final String remoteReceive;
-
     
-    public DeltaConnectionHTTP(String serverURL) {
+    public DeltaLinkHTTP(String serverURL) {
         if ( ! serverURL.endsWith("/" ))
             serverURL= serverURL+"/";
         
@@ -155,9 +154,17 @@ public class DeltaConnectionHTTP implements DeltaConnection {
     }
 
     @Override
-    public JsonArray getDatasets() {
+    public boolean isRegistered(Id id) {
         throw new NotImplemented();
-
     }
 
+    @Override
+    public boolean isRegistered(RegToken regToken) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public JsonArray getDatasets() {
+        throw new NotImplemented();
+    }
 }

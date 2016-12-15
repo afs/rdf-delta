@@ -26,7 +26,7 @@ import org.eclipse.jetty.servlet.ServletHandler ;
 import org.eclipse.jetty.servlet.ServletHolder ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.conn.DeltaConnection ;
+import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
 
 /** A simple packaging of Jetty to provide an embeddable HTTP server that just supports servlets */ 
@@ -36,7 +36,7 @@ public class DataPatchServer {
     private final Server server ;
     private ServletHandler handler ;
 
-    public DataPatchServer(int port, DeltaConnection engine) {
+    public DataPatchServer(int port, DeltaLink engine) {
         DPS.init() ;
         server = new Server(port) ;
         ErrorHandler eh = new HttpErrorHandler() ;
