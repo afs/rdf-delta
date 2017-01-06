@@ -19,35 +19,20 @@
 package org.seaborne.delta;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.tdb.base.file.Location;
 import org.junit.BeforeClass;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.Id;
-import org.seaborne.delta.server.local.DataRegistry;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.DeltaLinkMgr;
+import org.seaborne.delta.server.local.*;
 
 public class TestLocalConnection extends AbstractTestDeltaConnection {
+    static { LogCtl.setJavaLogging(); }
+    
     // DRY - TestLocalLink
     @BeforeClass public static void setForTesting() { 
-        //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
     }
-    
-    private static boolean testForClass(String name) {
-        try { 
-            Class.forName(name);
-            return true;
-        } catch (ClassNotFoundException ex) {
-            return false;
-        }
-    }
-    
-    // Set DataSource for local connection to look up.
 
-    protected static Id dataId = Id.create();
-    protected static DataRegistry dataRegistry = new DataRegistry("test");
+    protected Id dataId = Id.create();
+    protected DataRegistry dataRegistry = new DataRegistry("test");
     
     @Override
     public DeltaLink getLink() {
@@ -57,11 +42,15 @@ public class TestLocalConnection extends AbstractTestDeltaConnection {
 
     @Override
     public void reset() {
-        Location sourceArea = Location.mem(); 
-        Location patchArea = Location.mem();
-        DataSource dataSource = DataSource.attach(dataId, "uri", sourceArea, patchArea);
+        System.out.println("** reset");
+        
+        FileStore.resetTracked();
+        DeltaTestLib.resetTestAreas();
+        DataSource dataSource = DataSource.attach(dataId, "uri", DeltaTestLib.SourceArea, DeltaTestLib.PatchArea);
         dataRegistry.clear();
         dataRegistry.put(dataId, dataSource);
+        int x = dataSource.getPatchSet().getFileStore().getCurrentIndex();
+        System.out.println("** ver = "+x);
     }
 
     @Override

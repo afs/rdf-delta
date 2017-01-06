@@ -20,6 +20,10 @@ package dev;
 
 public class DevToDo {
     // Design protocol.
+    // "--mem--"
+    // See 
+    //    AbstractTestDeltaLink.client_01
+    //    AbstractTestDeltaConnection.client_01
     
     // Rename:
     // DeltaClient -> DeltaConnection (c.f. JDBC connection)

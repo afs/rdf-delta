@@ -346,10 +346,6 @@ public class TokenWriterText implements TokenWriter
             // Not RDF
             case KEYWORD:
                 return token.getImage() ;
-            case CNTRL:
-                if ( token.getCntrlCode() == -1 )
-                    return "*" ; 
-                return "*"+Character.toString((char)token.getCntrlCode()) ;
             case DOT:
                 return Chars.S_DOT ;
             case VAR:
@@ -398,10 +394,30 @@ public class TokenWriterText implements TokenWriter
             // COLON is only visible if prefix names are not being processed.
             case DIRECTIVE:
                 return "@"+token.getImage() ;
+            case VBAR :
+                return Chars.S_VBAR;
+            case AMPHERSAND :
+                return Chars.S_AMPHERSAND;
+            case EQUALS :
+                return Chars.S_EQUALS;
             default:
                 notImplemented(token) ;
                 return null ;
+                
             //case EOF:
+                
+//            case EQUIVALENT :
+//                return "==";
+//            case LOGICAL_AND :
+//                return "&&";
+//            case LOGICAL_OR :
+//                return "||";
+//            case NL :
+//                break;
+//            case NODE :
+//                break;
+//            case WS :
+//                break;
         }
     }
 

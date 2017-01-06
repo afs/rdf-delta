@@ -54,6 +54,16 @@ public class FileStore {
     // Key'ed by directory and name name.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();
     
+    private static final String tmpBasename = "tmp";
+    private static final int BUFSIZE = 128*1024;
+    // Setting for "no files" which is one less than the first allocated number. 
+    private static final int INITIAL = 0;
+    // Index - this is the number of the last allocation.
+    // It is incremented then a new number taken.
+    private final AtomicInteger counter;
+    private final Path          directory;
+    private final String        basename;
+
     public static FileStore attach(String dirname, String basename) {
         Objects.requireNonNull(dirname, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
@@ -72,7 +82,7 @@ public class FileStore {
         areas.put(k, fs);
         return fs;
     }
-    
+
     private static Path string2path(String pathname) {
         try {
             return Paths.get(pathname).normalize().toRealPath();
@@ -83,16 +93,6 @@ public class FileStore {
         Path p = path.resolve(basename);
         return p.normalize().toAbsolutePath();
     }
-
-    private static final String tmpBasename = "tmp";
-    private static final int BUFSIZE = 128*1024;
-    // Setting for "no files" which is one less than the first allocated number. 
-    private static final int INITIAL = 0;
-    // Index - this is the number of the last allocation.
-    // It is incremented then a new number taken.
-    private final AtomicInteger counter;
-    private final Path          directory;
-    private final String        basename;
 
     private FileStore(Path directory, String basename, int initialIndex) {
         this.directory = directory;
@@ -160,10 +160,9 @@ public class FileStore {
     }
     
     /** Stop managing files */
-    public static void shutdown() {
+    public static void resetTracked() {
         areas.clear();
     }
-
     
     //Move a complete file into place
     static void move(Path src, Path dst) {

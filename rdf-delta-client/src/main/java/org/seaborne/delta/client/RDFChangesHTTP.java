@@ -76,9 +76,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
     
     @Override
-    public void start() { }
-
-    @Override
     public void txnBegin() {
         super.txnBegin();
         if ( currentTransactionId == null ) {

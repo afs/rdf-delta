@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
+import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.Id;
@@ -39,13 +40,13 @@ import org.slf4j.LoggerFactory ;
 public class DeltaLinkLocal implements DeltaLink {
     private static Logger LOG = LoggerFactory.getLogger(DeltaLinkLocal.class) ;
     //private static Logger LOG = DPS.LOG;
-    private static AtomicInteger counter = new AtomicInteger(0);
+    private static AtomicInteger linkCounter = new AtomicInteger(0);
     
     private final DataRegistry dataRegistry;
     private final DeltaLinkMgr linkMgr;
     
     public static DeltaLink create() {
-        String regName = "Registry-"+counter.incrementAndGet();
+        String regName = "Registry-"+linkCounter.incrementAndGet();
         DataRegistry dataRegistry = new DataRegistry(regName);
         DeltaLinkMgr linkMgr = new DeltaLinkMgr();
         return new DeltaLinkLocal(dataRegistry, linkMgr);
@@ -62,10 +63,21 @@ public class DeltaLinkLocal implements DeltaLink {
     
     @Override
     public RDFChanges createRDFChanges(Id dsRef) {
-        // XXX Stream!
         RDFChanges c = new RDFChangesCollector() {
+            private Node currentTransactionId = null;
+            
             @Override
-            public void finish() {
+            public void txnBegin() {
+                super.txnBegin();
+                if ( currentTransactionId == null ) {
+                    currentTransactionId = Id.create().asNode();
+                    super.header(RDFPatch.ID, currentTransactionId);
+                }
+            }
+
+            @Override
+            public void txnCommit() {
+                super.txnCommit();
                 RDFPatch p = getRDFPatch();
                 sendPatch(dsRef, p);
             }
@@ -103,20 +115,23 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
-    public void sendPatch(Id dsRef, RDFPatch rdfPatch) {
-        DataSource source = dataRegistry.get(dsRef) ;
-        if ( source == null )
-            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
+    public int sendPatch(Id dsRef, RDFPatch rdfPatch) {
+        DataSource source = getDataSource(dsRef);
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
-        source.getReceiver().receive(rdfPatch, null);
+        FileEntry entry = source.getReceiver().receive(rdfPatch, null);
         // id -> registation
         System.out.println("Patch: "+rdfPatch.getId()) ;
-        RDFPatchOps.write(System.out, rdfPatch) ;
-        Patch patch = new Patch(rdfPatch, source, null);
+        
+        // Debug
+        if ( false ) {
+            RDFPatchOps.write(System.out, rdfPatch) ;
+        }
+        Patch patch = new Patch(rdfPatch, source, entry);
         PatchSet ps = source.getPatchSet() ;
         ps.add(patch);
+        return entry.version; 
     }
-    
+
     /** Process an {@code InputStream} and return an RDFPatch */
     private static Patch streamToPatch(DataSource source, InputStream in) {
         // Not RDFPatchOps.read(in) because receiver adds preprocessing.
@@ -134,16 +149,29 @@ public class DeltaLinkLocal implements DeltaLink {
         return getCurrentVersion(source);
     }
 
-    private int getCurrentVersion(DataSource source) {
+    private FileStore getFileStore(Id dsRef) {
+        return getFileStore(getDataSource(dsRef));
+    }
+    
+    private FileStore getFileStore(DataSource source) {
+        return source.getPatchSet().getFileStore();
+    }
+
+    private static int getCurrentVersion(DataSource source) {
         return source.getPatchSet().getFileStore().getCurrentIndex();
+    }
+
+    private DataSource getDataSource(Id dsRef) {
+        DataSource source = dataRegistry.get(dsRef) ;
+        if ( source == null )
+            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
+        return source;
     }
     
     /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
-        DataSource source = dataRegistry.get(dsRef) ;
-        if ( source == null )
-            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
+        DataSource source = getDataSource(dsRef);
         Patch patch = source.getPatchSet().fetch(patchId) ;
         if ( patch == null )
             throw new DeltaBadRequestException(404, "No such patch: "+patchId) ;
@@ -154,9 +182,7 @@ public class DeltaLinkLocal implements DeltaLink {
     /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
-        DataSource source = dataRegistry.get(dsRef) ;
-        if ( source == null )
-            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
+        DataSource source = getDataSource(dsRef) ;
         RDFPatch patch = source.getPatchSet().fetch(version);
         FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
         return patch;

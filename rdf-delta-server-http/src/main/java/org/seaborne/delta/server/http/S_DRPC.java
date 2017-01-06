@@ -26,6 +26,7 @@ import java.io.PrintStream ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.json.* ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
@@ -78,21 +79,30 @@ public class S_DRPC extends ServletBase {
         }
         
         OutputStream out = resp.getOutputStream() ;
+        if ( ! DPNames.OP_EPOCH.equals(op) )
+            FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
+        sendJsonResponse(resp, rslt);
+    }
+    
+    static public void sendJsonResponse(HttpServletResponse resp, JsonValue rslt) {
         try {
-            if ( ! DPNames.OP_EPOCH.equals(op) )
-                FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;  
-            resp.setStatus(HttpSC.OK_200);
-            JSON.write(out, rslt);
+            OutputStream out = resp.getOutputStream() ;
+            try {
+                resp.setStatus(HttpSC.OK_200);
+                JSON.write(out, rslt);
+            }
+            catch (Throwable ex) {
+                LOG.warn("500 "+ex.getMessage(), ex) ;
+                resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Exception: "+ex.getMessage()) ;
+                PrintStream ps = new PrintStream(out) ; 
+                ex.printStackTrace(ps);
+                ps.flush();
+                return ;
+            }
+        } catch (IOException ex) {
+            IO.exception(ex);
         }
-        catch (Throwable ex) {
-            LOG.warn("500 "+ex.getMessage(), ex) ;
-            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Exception: "+ex.getMessage()) ;
-            PrintStream ps = new PrintStream(out) ; 
-            ex.printStackTrace(ps);
-            ps.flush();
-            return ;
-        }   
-    }        
+    }
         
     static class DRPPEception extends RuntimeException {
         private int code;

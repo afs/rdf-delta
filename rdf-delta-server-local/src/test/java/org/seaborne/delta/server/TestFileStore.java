@@ -49,7 +49,7 @@ public class TestFileStore {
 
     @After
     public void afterTest() {
-        FileStore.shutdown();
+        FileStore.resetTracked();
         FileOps.clearDirectory(STORE);
     }
 

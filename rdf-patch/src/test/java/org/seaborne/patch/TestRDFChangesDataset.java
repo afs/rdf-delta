@@ -40,7 +40,7 @@ import org.junit.After ;
 import org.junit.Before ;
 import org.junit.Test ;
 
-/** Check one dataset tracks another. **/
+/** Check one dataset tracks another. */
 public class TestRDFChangesDataset  {
     DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem() ;
     ByteArrayOutputStream bout = new ByteArrayOutputStream() ;

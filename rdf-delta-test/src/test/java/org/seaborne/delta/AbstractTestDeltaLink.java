@@ -24,9 +24,12 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.InputStream;
 import java.util.UUID;
 
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.junit.After;
@@ -36,6 +39,9 @@ import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.Id;
 import org.seaborne.delta.link.RegToken;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
 
 /** Tests for the link (multiplexex connection to the server or local engine) */
@@ -78,17 +84,56 @@ public abstract class AbstractTestDeltaLink {
         assertFalse(dLink.isRegistered(id2));
         assertFalse(dLink.isRegistered(regToken));
     }
+
+    @Test
+    public void patch_01() {
+        DeltaLink dLink = getLink();
+        Id id1 = getDataSourceId();
+        
+        InputStream in = IO.openFile(DIR+"/patch1.rdfp");
+        RDFPatch patch = RDFPatchOps.read(in);
+
+        Id dsRef = getDataSourceId();
+        int version = dLink.getCurrentVersion(dsRef);
+
+        int version1 = dLink.sendPatch(dsRef, patch);
+        assertNotEquals(version, version1);
+
+        int version2 = dLink.getCurrentVersion(dsRef);
+        assertEquals(version1, version2);
+        
+        RDFPatch patch1 = dLink.fetch(dsRef, version1) ;
+        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getId())) ;
+
+        assertTrue(equals(patch1, patch2));
+
+        //check patches.
+    }
+
+    private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
+        RDFChangesCollector c1 = new RDFChangesCollector();
+        // The getRDFPatch is a RDFPatchStored which supports hashCode and equals.
+        RDFChangesCollector.RDFPatchStored p1 = (RDFChangesCollector.RDFPatchStored)c1.getRDFPatch();
+        
+        RDFChangesCollector c2 = new RDFChangesCollector();
+        RDFChangesCollector.RDFPatchStored p2 = (RDFChangesCollector.RDFPatchStored)c2.getRDFPatch();
+        
+        return Objects.equal(p1, p2);
+    }
     
     @Test
     public void client_01() {
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
         
+        // OPENS "--mem--"
+        
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         DeltaConnection dConn = DeltaConnection.create("label",
                                                        clientId, getDataSourceId(),
                                                        dsg,
                                                        dLink);
+        int v = dConn.getLocalVersionNumber();
         assertNotNull(dConn.getName());
         assertEquals(0, dConn.getLocalVersionNumber());
         assertEquals(0, dConn.getRemoteVersionNumber());

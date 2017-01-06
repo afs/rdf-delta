@@ -49,17 +49,23 @@ public class RDFPatchOps {
         return c.getRDFPatch() ; 
     }
 
-    /** Apply changes from a text format input stream to a {@link DatasetGraph} */ 
-    public static void applyChange(DatasetGraph dsg, InputStream input) {
-        TupleReader tr = TupleIO.createTupleReaderText(input) ;
-        applyChange(dsg, tr);
+    /** Apply changes from a {@link RDFPatch} to a {@link DatasetGraph} */ 
+    public static void applyChange(DatasetGraph dsg, RDFPatch patch) {
+        RDFChanges changes = new RDFChangesApply(dsg) ;
+        patch.apply(changes);
     }
-
+    
     /** Apply changes from a {@link TupleReader} stream to a {@link DatasetGraph} */ 
     public static void applyChange(DatasetGraph dsg, TupleReader tupleReader) {
         PatchReader pr = new PatchReader(tupleReader) ;
         RDFChanges changes = new RDFChangesApply(dsg) ;
         pr.apply(changes);
+    }
+
+    /** Apply changes from a text format input stream to a {@link DatasetGraph} */ 
+    public static void applyChange(DatasetGraph dsg, InputStream input) {
+        TupleReader tr = TupleIO.createTupleReaderText(input) ;
+        applyChange(dsg, tr);
     }
 
     /** Create a {@link DatasetGraph} that sends changes to a {@link RDFChanges} stream */ 

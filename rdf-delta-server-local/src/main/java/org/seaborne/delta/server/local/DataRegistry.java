@@ -53,8 +53,8 @@ public class DataRegistry extends Registry<Id, DataSource> {
     @Override
     public String toString() {
         if ( label != null )
-            return String.format("Registry: '%s': size=%d", label, super.size()) ;
+            return String.format("Registry: '%s': size=%d : %s", label, super.size(), super.keys()) ;
         else
-            return String.format("Registry: size=%d", super.size()) ; 
+            return String.format("Registry: size=%d : %s", super.size(), super.keys()) ; 
     }
 }

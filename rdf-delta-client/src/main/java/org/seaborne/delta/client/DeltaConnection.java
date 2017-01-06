@@ -40,9 +40,15 @@ import org.slf4j.Logger;
 import txnx.TransPInteger;
 
 /** Provides an interface to a specific dataset over the general {@link DeltaLink} API. 
- * This is the client APi, c.f. JDBC connection
+ * This is the client API, c.f. JDBC connection
  */ 
 public class DeltaConnection {
+    
+    // Need local version tracking?
+    //   yes - for bring DSG up to date.
+    
+    // Or via DeltaLink?
+    
     
     private static Logger LOG = Delta.DELTA_LOG;
     
@@ -163,6 +169,14 @@ public class DeltaConnection {
     }
 
     
+    public Id getClientId() {
+    return clientId;
+}
+
+    public Id getDatasourceId() {
+        return datasourceId;
+    }
+
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
         return link.getCurrentVersion(datasourceId);
@@ -201,12 +215,15 @@ public class DeltaConnection {
         return base;
     }
 
-    public void sendPatch(RDFPatch patch) {
-        link.sendPatch(datasourceId, patch);
+    private synchronized void sendPatch(RDFPatch patch) {
+        int ver = link.sendPatch(datasourceId, patch);
+        int ver0 = localEpoch.get();
+        if ( ver0 > ver )
+            FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver); 
+        localEpoch.set(ver);
     }
-    
 
-    public RDFPatch fetchPatch(int id) {
+    private RDFPatch fetchPatch(int id) {
         return link.fetch(datasourceId, id);
     }
     

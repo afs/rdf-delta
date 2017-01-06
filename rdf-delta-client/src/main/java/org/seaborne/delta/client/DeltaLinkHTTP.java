@@ -25,6 +25,7 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.lib.NotImplemented ;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.DPNames ;
@@ -76,9 +77,11 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public void sendPatch(Id dsRef, RDFPatch patch) {
+    public int sendPatch(Id dsRef, RDFPatch patch) {
         RDFChanges remote = createRDFChanges(dsRef);
         patch.apply(remote);
+        FmtLog.warn(getClass(), "NO VERSION");
+        return -1;
     }
 
     @Override

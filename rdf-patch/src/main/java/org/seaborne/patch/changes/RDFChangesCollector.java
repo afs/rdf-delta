@@ -42,10 +42,10 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
 //        target.finish();
 //    }
     
-    static class RDFPatchStored implements RDFPatch {
+    public static class RDFPatchStored implements RDFPatch {
         private final Map<String, Node> header ; 
         private final List<ChangeItem> actions ;
-        
+
         public RDFPatchStored(Map<String, Node> header, List<ChangeItem> actions) {
             this.header = header ;
             this.actions = actions ;
@@ -62,10 +62,48 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
             header.forEach((k,v)->changes.header(k, v));
             actions.forEach(a -> enact(a, changes)) ;
             changes.finish();
-    } ;
-        
+        }
+
+        public Map<String, Node> getHeader() {
+            return header;
+        }
+
+        public List<ChangeItem> getActions() {
+            return actions;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((actions == null) ? 0 : actions.hashCode());
+            result = prime * result + ((header == null) ? 0 : header.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if ( this == obj )
+                return true;
+            if ( obj == null )
+                return false;
+            if ( getClass() != obj.getClass() )
+                return false;
+            RDFPatchStored other = (RDFPatchStored)obj;
+            if ( actions == null ) {
+                if ( other.actions != null )
+                    return false;
+            } else if ( !actions.equals(other.actions) )
+                return false;
+            if ( header == null ) {
+                if ( other.header != null )
+                    return false;
+            } else if ( !header.equals(other.header) )
+                return false;
+            return true;
+        } ;
     }
-    
+
     public RDFPatch getRDFPatch() { return new RDFPatchStored(header, actions) ; } 
 
 //    /** Play backwards, swapping adds for deletes and delete for adds */

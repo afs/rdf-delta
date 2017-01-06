@@ -24,7 +24,11 @@ import java.io.InputStream ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.json.JsonBuilder;
+import org.apache.jena.atlas.json.JsonNumber;
+import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.DPNames;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.link.DeltaLink;
@@ -62,8 +66,15 @@ public class S_Patch extends ServletBase {
         }
         try (InputStream in = req.getInputStream()) {
             RDFPatch patch = RDFPatchOps.read(in);
-            engine.sendPatch(ref, patch);
-            resp.setStatus(HttpSC.NO_CONTENT_204) ;
+            int version = engine.sendPatch(ref, patch);
+            JsonValue x = JsonNumber.value(version);
+            JsonValue rslt = JsonBuilder.create()
+                .startObject()
+                .key(DPNames.F_VERSION).value(version)
+                .finishObject()
+                .build();
+            
+            //resp.setStatus(HttpSC.NO_CONTENT_204) ;
         } catch (RuntimeException ex) {
             ex.printStackTrace(System.err);
             LOG.warn("Failed to process", ex); 

@@ -19,7 +19,6 @@
 package org.seaborne.delta;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.tdb.base.file.Location;
 import org.junit.BeforeClass;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.Id;
@@ -34,19 +33,9 @@ public class TestLocalLink extends AbstractTestDeltaLink {
         LogCtl.setJavaLogging();
     }
     
-    private static boolean testForClass(String name) {
-        try { 
-            Class.forName(name);
-            return true;
-        } catch (ClassNotFoundException ex) {
-            return false;
-        }
-    }
-    
     // Set DataSource for local connection to look up.
-
-    protected static Id dataId = Id.create();
-    protected static DataRegistry dataRegistry = new DataRegistry("test");
+    protected Id dataId = Id.create();
+    protected DataRegistry dataRegistry = new DataRegistry("test");
     
     @Override
     public DeltaLink getLink() {
@@ -54,11 +43,13 @@ public class TestLocalLink extends AbstractTestDeltaLink {
         return DeltaLinkLocal.create(dataRegistry, linkMgr);
     }
 
+    private static String SourceAreaTmp = "target/sources";
+    private static String PatchAreaTmp = "target/patches";
+    
     @Override
     public void reset() {
-        Location sourceArea = Location.mem(); 
-        Location patchArea = Location.mem();
-        DataSource dataSource = DataSource.attach(dataId, "uri", sourceArea, patchArea);
+        DeltaTestLib.resetTestAreas();
+        DataSource dataSource = DataSource.attach(dataId, "uri", DeltaTestLib.SourceArea, DeltaTestLib.PatchArea);
         dataRegistry.clear();
         dataRegistry.put(dataId, dataSource);
     }
@@ -67,5 +58,4 @@ public class TestLocalLink extends AbstractTestDeltaLink {
     public Id getDataSourceId() {
         return dataId;
     }
-
 }

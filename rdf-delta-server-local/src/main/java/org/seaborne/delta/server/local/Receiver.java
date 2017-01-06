@@ -45,7 +45,6 @@ public class Receiver {
         addProcessor(new RDFChangesLog(RDFChangesLog::printer)) ;
     }
     
-    
     // -- Builderish.
     
     public void addProcessor(RDFChanges changes) {

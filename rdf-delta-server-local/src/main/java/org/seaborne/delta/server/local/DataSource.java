@@ -47,6 +47,14 @@ public class DataSource {
      * @return DataSource
      */
     public static DataSource attach(Id id, String uri, Location sourceArea, Location patchesArea) {
+        if ( sourceArea.isMem() && patchesArea.isMem() ) {
+            return null ;
+        }
+        
+        if ( sourceArea.isMem() || patchesArea.isMem() ) {
+            throw new IllegalArgumentException("Mixed in-memory add persistent: source area = "+sourceArea+" : patch area = "+patchesArea);
+        }
+        
         formatSourceArea(sourceArea, patchesArea);
         PatchSet patchSet = loadPatchSet(id, patchesArea.getDirectoryPath());
         Receiver receiver = new Receiver(patchSet.getFileStore());

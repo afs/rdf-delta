@@ -38,8 +38,8 @@ public interface DeltaLink {
 
     public JsonArray getDatasets() ;
     
-    /** Send patch */
-    public void sendPatch(Id dsRef, RDFPatch patch);
+    /** Send patch, return new version */
+    public int sendPatch(Id dsRef, RDFPatch patch);
     
     public int getCurrentVersion(Id dsRef);
 
