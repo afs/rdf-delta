@@ -1,4 +1,0 @@
-#!/bin/bash
-
-dev dev.RunDeltaServer "$@"
-

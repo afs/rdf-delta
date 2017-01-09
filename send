@@ -1,5 +1,0 @@
-#!/bin/bash
-
-curl -T ~/tmp/D.trig \
-     --header 'Content-type: application/trig' \
-     http://localhost:3030/delta
