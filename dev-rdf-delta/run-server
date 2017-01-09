@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ARGS="$@"
+if [[ $# = 0 ]]
+then
+    ARGS="--base=DeltaServer"
+fi
+
+dev dev.RunDeltaServer $ARGS

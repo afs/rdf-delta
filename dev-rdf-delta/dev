@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#JENA_CP="$(jena)"
+
+## If Jena development, this needs to be different.
+JENA_CP="$HOME/jlib/fuseki2/fuseki-server.jar"
+
+## Log4j
+LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.21/slf4j-log4j12-1.7.21.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
+## JUL
+JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.13/slf4j-jdk14-1.7.13.jar"
+
+H="$HOME/ASF/rdf-delta"
+D=
+
+
+for X in rdf-delta-base rdf-delta-client rdf-delta-server-http rdf-delta-server-local rdf-delta-system rdf-delta-test rdf-patch tio dev-rdf-delta
+do
+    [[ $D = "" ]] || D="$D:"
+    D="${D}$H/$X/target/classes"
+done    
+
+DELTA_CP="$D"
+
+## --no-snapshot-update
+##mvn -nsu exec
+## mvn -nsu exec:java -Dexec:mainClass=dev.RunDeltaServer
+## in dev-rdf-delta module.
+
+## LOGGING=-Djava.util.logging.config.file=logging.properties
+LOGGING=-Dlog4j.configuration=file:log4j.properties
+
+if [[ $# = 0 ]]
+then
+    CLASS=org.seaborne.delta.server.http.CmdDeltaServer
+    #echo "No class to run" 1>&2
+    #exit 1
+else
+    CLASS="$1"
+    shift
+    CLASS=${CLASS#dev.}
+    CLASS=dev.$CLASS
+fi
+
+## echo "DELTA_CP=$DELTA_CP"
+## echo "JENA_CP=$JENA_CP"
+## echo java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CLASS" "$@"
+
+java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CLASS" "$@"

@@ -18,6 +18,7 @@
 
 package dev;
 
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.FusekiLogging ;
 import org.apache.jena.fuseki.cmd.FusekiCmd ;
 import org.apache.jena.fuseki.jetty.JettyServerConfig ;
@@ -27,7 +28,8 @@ import org.slf4j.LoggerFactory ;
 
 public class RunDeltaFuseki {
     static { 
-        DevLib.setLogging() ;
+        //LogCtl.setCmdLogging();
+        LogCtl.setJavaLogging();
         FusekiLogging.allowLoggingReset(false);
     }
     

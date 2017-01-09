@@ -18,12 +18,10 @@
 
 package dev;
 
-import org.apache.jena.atlas.logging.LogCtl ;
+public class RunDeltaServer {
 
-public class DevLib {
-    
-    public static void setLogging() {
-        //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
+    public static void main(String... args) {
+        org.seaborne.delta.server.http.CmdDeltaServer.main(args);
     }
+
 }

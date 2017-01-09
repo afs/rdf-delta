@@ -18,10 +18,10 @@
 
 package dev;
 
-public class CmdDeltaServer {
-
-    public static void main(String[] args) {
-        org.seaborne.delta.server.http.CmdDeltaServer.main(args);
-    }
-
+public class NOTES {
+    /*
+     * Design LocalServer
+     *   What about externally provided datasets?
+     * 
+     */
 }
