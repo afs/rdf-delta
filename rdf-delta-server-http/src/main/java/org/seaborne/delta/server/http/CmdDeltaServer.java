@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 public class CmdDeltaServer {
     public static void setLogging() {
         //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
+        //LogCtl.setJavaLogging();
     }
     
     static { setLogging(); }
@@ -80,13 +80,15 @@ public class CmdDeltaServer {
         else
             configFile = getenv(DPNames.ENV_CONFIG);
         
+        System.err.println(cla.getArg(argBase));
+        
         // ---- Environment
         String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
         if ( runtimeArea == null ) {
             runtimeArea = getenv(DPNames.ENV_BASE);
             // Default to "."?
             if ( runtimeArea == null ) {
-                System.err.println("Must use --base or environment variable DELTA_BASE to set the server untime area.");
+                System.err.println("Must use --base or environment variable DELTA_BASE to set the server runtime area.");
                 System.exit(1);
             }
         }

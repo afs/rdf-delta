@@ -19,6 +19,7 @@
 package org.seaborne.delta.link;
 
 import org.apache.jena.atlas.json.JsonArray;
+import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 
@@ -36,8 +37,21 @@ public interface DeltaLink {
     public void deregister(RegToken token);
     public void deregister(Id clientId);
 
-    public JsonArray getDatasets() ;
+    /** Create a new dataset and return the unique Id for it */  
+    public Id newDataset(JsonObject description) ;
     
+    /** Make a dataset unavailable.
+     *  Actual deleting of resources depends on the implementation.
+     *  A server will tend not to really delete a persistent database.
+     */
+    public Id removeDataset(Id dsRef);
+
+    /** Return an array of ids of datasets */
+    public JsonArray listDatasets() ;
+    
+    /** Return details of a dataset (or null if not registered) */
+    public JsonObject getDatasetDescription(Id dsRef) ;
+
     /** Send patch, return new version */
     public int sendPatch(Id dsRef, RDFPatch patch);
     

@@ -42,15 +42,12 @@ public class TestLocalConnection extends AbstractTestDeltaConnection {
 
     @Override
     public void reset() {
-        System.out.println("** reset");
-        
         FileStore.resetTracked();
         DeltaTestLib.resetTestAreas();
         DataSource dataSource = DataSource.attach(dataId, "uri", DeltaTestLib.SourceArea, DeltaTestLib.PatchArea);
         dataRegistry.clear();
         dataRegistry.put(dataId, dataSource);
         int x = dataSource.getPatchSet().getFileStore().getCurrentIndex();
-        System.out.println("** ver = "+x);
     }
 
     @Override

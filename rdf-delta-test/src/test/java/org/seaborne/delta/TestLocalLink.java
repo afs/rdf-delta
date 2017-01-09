@@ -22,10 +22,7 @@ import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.BeforeClass;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.Id;
-import org.seaborne.delta.server.local.DataRegistry;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.DeltaLinkMgr;
+import org.seaborne.delta.server.local.*;
 
 public class TestLocalLink extends AbstractTestDeltaLink {
     @BeforeClass public static void setForTesting() { 
@@ -48,6 +45,7 @@ public class TestLocalLink extends AbstractTestDeltaLink {
     
     @Override
     public void reset() {
+        FileStore.resetTracked();
         DeltaTestLib.resetTestAreas();
         DataSource dataSource = DataSource.attach(dataId, "uri", DeltaTestLib.SourceArea, DeltaTestLib.PatchArea);
         dataRegistry.clear();

@@ -22,9 +22,11 @@ import java.io.InputStream ;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jena.atlas.json.JsonArray;
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.graph.Node;
+import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.Id;
@@ -115,12 +117,41 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
+    public Id newDataset(JsonObject description) {
+        
+        LocalServer localServer ;
+        localServer.
+        
+        Id id = Id.create();
+        Location sourceArea;
+        Location patchesArea;
+        DataSource newDataSource = DataSource.attach(id, "uri", sourceArea, patchesArea);
+        dataRegistry.put(id, newDataSource);
+        return id ;
+    }
+
+    @Override
+    public Id removeDataset(Id dsRef) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public JsonArray listDatasets() {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public JsonObject getDatasetDescription(Id dsRef) {
+        throw new NotImplemented();
+    }
+
+    @Override
     public int sendPatch(Id dsRef, RDFPatch rdfPatch) {
         DataSource source = getDataSource(dsRef);
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
         FileEntry entry = source.getReceiver().receive(rdfPatch, null);
         // id -> registation
-        System.out.println("Patch: "+rdfPatch.getId()) ;
+        FmtLog.info(LOG, "Patch: %s", rdfPatch.getId()) ;
         
         // Debug
         if ( false ) {
@@ -186,10 +217,5 @@ public class DeltaLinkLocal implements DeltaLink {
         RDFPatch patch = source.getPatchSet().fetch(version);
         FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
         return patch;
-    }
-
-    @Override
-    public JsonArray getDatasets() {
-        return null;
     }
 }

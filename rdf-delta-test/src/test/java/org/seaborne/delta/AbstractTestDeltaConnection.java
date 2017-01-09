@@ -69,7 +69,6 @@ public abstract class AbstractTestDeltaConnection {
     // Make a change, ensure the local cache is changed. 
     @Test
     public void change_01() {
-        System.out.println("** change_01");
         DeltaLink dLink = getLink();
         DeltaConnection dConn = connect(getLink());
         
@@ -97,7 +96,6 @@ public abstract class AbstractTestDeltaConnection {
     //Make a change, get the patch, apply to a clean dsg. Are the datasets the same?
     @Test
     public void change_02() {
-        System.out.println("** change_02");
         DeltaLink dLink = getLink();
         DeltaConnection dConn = connect(getLink());
         
