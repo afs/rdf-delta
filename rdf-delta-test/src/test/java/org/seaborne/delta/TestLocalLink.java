@@ -18,10 +18,11 @@
 
 package org.seaborne.delta;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.BeforeClass;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.link.DeltaLinkMgr;
 import org.seaborne.delta.server.local.*;
 
 public class TestLocalLink extends AbstractTestDeltaLink {
@@ -37,7 +38,8 @@ public class TestLocalLink extends AbstractTestDeltaLink {
     @Override
     public DeltaLink getLink() {
         DeltaLinkMgr linkMgr = new DeltaLinkMgr();
-        return DeltaLinkLocal.create(dataRegistry, linkMgr);
+        throw new NotImplemented();
+        //return DeltaLinkLocal.create(dataRegistry, linkMgr);
     }
 
     private static String SourceAreaTmp = "target/sources";

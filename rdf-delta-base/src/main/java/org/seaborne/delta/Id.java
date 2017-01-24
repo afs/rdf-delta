@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.link;
+package org.seaborne.delta;
 
 import java.util.UUID ;
 
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.impl.Util;
@@ -52,7 +53,6 @@ public final class Id {
             throw new IllegalArgumentException("Id input is not a URI or a string") ;
         return fromString$(s) ;
     } 
-    
 
     public static Id fromUUID(UUID uuid) { return new Id(uuid) ; } 
     
@@ -64,7 +64,11 @@ public final class Id {
         return fromString(str) ;
     }
     
+    private static String SCHEME = "id:"; 
+    
     public static Id fromString(String str) {
+        if ( str.startsWith(SCHEME) )
+            str = str.substring(SCHEME.length());
         try {
             UUID uuid = UUID.fromString(str) ;
             return new Id(uuid) ; 
@@ -95,14 +99,14 @@ public final class Id {
         string = id ;
     }
 
-    /** Suitable for putting into an HTTP request query string*/ 
+    /** Suitable for putting into an HTTP request query string. */ 
     public String asParam() {
         if ( uuid != null ) 
             return uuid.toString() ;
         return string ;
     }
     
-    /** Suitable for putting into an HTTP request */ 
+    /** Suitable for putting into an HTTP request. */ 
     public Node asNode() {
         if ( uuid != null ) 
             return NodeFactory.createURI(schemeUuid+uuid.toString());
@@ -110,17 +114,19 @@ public final class Id {
     }
 
     /** Suitable for putting into a JSON string. */ 
-    public String asString() {
+    public String asJsonString() {
         if ( uuid != null ) 
             return uuid.toString() ;
-        return string ;
+        if ( string != null )
+            return string ;
+        throw new InternalErrorException("Id has null UUID and string");
     }
     
     @Override
     public String toString() {
         if ( uuid != null ) 
-            return "id:"+uuid.toString() ;
-        return "id:\""+string+"\"" ;
+            return SCHEME+uuid.toString() ;
+        return SCHEME+"\""+string+"\"" ;
     }
 
     @Override

@@ -25,6 +25,8 @@ import java.nio.file.Path;
 
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
+import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.lib.IOX.IOConsumer;
 
 /**
  * Record of a file in a {@link FileStore}.
@@ -47,6 +49,8 @@ public class FileEntry {
     public final int version;
     public final Path datafile;
     private final Path tmpfile;
+    
+    // Only for openForWrite / completeWrite
     private OutputStream out = null ;
     private boolean haveWritten = false;
     
@@ -56,6 +60,14 @@ public class FileEntry {
         this.tmpfile = tmpfile;
     }
     
+    /** Atomiclly write the file */
+    public void write(IOConsumer<OutputStream> action) {
+        if ( haveWritten )
+            throw new RuntimeIOException("FileEntry has already been written: "+datafile);
+        IOX.safeWrite(datafile, tmpfile, action);
+        haveWritten = true;
+    }
+
     /**
      * Initiate the write process. The {@code Outstream} returned is to a
      * temporary file (same filing system) that is moved into place in 
@@ -83,10 +95,10 @@ public class FileEntry {
      * The application must flush any buffered output prior to calling {@code completeWrite}.
      */
     public void completeWrite() {
-        haveWritten = true;
         IO.close(out);
+        IOX.move(tmpfile, datafile);
+        haveWritten = true;
         out = null ;
-        FileStore.move(tmpfile, datafile);
     }
     
     public String getDatafileName() {

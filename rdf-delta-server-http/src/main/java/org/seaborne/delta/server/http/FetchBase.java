@@ -28,10 +28,8 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
-import org.seaborne.delta.server.local.DataRegistry;
-import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 
@@ -69,12 +67,8 @@ abstract class FetchBase extends ServletBase {
             if ( args.dataset == null ) {
                 throw new DeltaBadRequestException("No datasource specificed");
             }
+
             Id dsRef = Id.fromString(args.dataset);
-            DataSource ds = DataRegistry.get().get(dsRef);
-            if ( ds == null )
-                throw new DeltaBadRequestException("Not found: datasource for "+args.dataset);
-            
-            
             OutputStream out = resp.getOutputStream() ;
             RDFPatch patch;
             

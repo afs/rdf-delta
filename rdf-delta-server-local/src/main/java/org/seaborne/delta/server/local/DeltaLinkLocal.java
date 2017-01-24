@@ -19,18 +19,17 @@
 package org.seaborne.delta.server.local;
 
 import java.io.InputStream ;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
-import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.graph.Node;
-import org.apache.jena.tdb.base.file.Location;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
-import org.seaborne.delta.link.RegToken;
+import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
@@ -39,28 +38,17 @@ import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 /** Implementation of {@link DeltaLink}. */  
-public class DeltaLinkLocal implements DeltaLink {
+public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     private static Logger LOG = LoggerFactory.getLogger(DeltaLinkLocal.class) ;
-    //private static Logger LOG = DPS.LOG;
-    private static AtomicInteger linkCounter = new AtomicInteger(0);
     
-    private final DataRegistry dataRegistry;
-    private final DeltaLinkMgr linkMgr;
+    private final LocalServer localServer;
     
-    public static DeltaLink create() {
-        String regName = "Registry-"+linkCounter.incrementAndGet();
-        DataRegistry dataRegistry = new DataRegistry(regName);
-        DeltaLinkMgr linkMgr = new DeltaLinkMgr();
-        return new DeltaLinkLocal(dataRegistry, linkMgr);
-    }
-    
-    public static DeltaLink create(DataRegistry dataRegistry, DeltaLinkMgr linkMgr) {
-        return new DeltaLinkLocal(dataRegistry, linkMgr);
+    public static DeltaLink create(LocalServer localServer) {
+        return new DeltaLinkLocal(localServer);
     }
 
-    private DeltaLinkLocal(DataRegistry dataRegistry, DeltaLinkMgr linkMgr) {
-        this.dataRegistry = dataRegistry;
-        this.linkMgr = linkMgr;
+    private DeltaLinkLocal(LocalServer localServer) {
+        this.localServer = localServer;
     }
     
     @Override
@@ -88,46 +76,17 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
-    public RegToken register(Id clientId) {
-        return linkMgr.register(clientId);
-    }
-
-    @Override
-    public RegToken register(String name) {
-        throw new NotImplemented();
-    }
-
-    @Override
-    public void deregister(RegToken regToken) {
-        linkMgr.deregister(regToken);
-    }
-    @Override
-    public void deregister(Id clientId) {
-        linkMgr.deregister(clientId);
-    }
-
-    @Override
-    public boolean isRegistered(Id clientId) {
-        return linkMgr.isRegistered(clientId);
-    }
-
-    @Override
-    public boolean isRegistered(RegToken regToken) {
-        return linkMgr.isRegistered(regToken);
-    }
-
-    @Override
     public Id newDataset(JsonObject description) {
-        
-        LocalServer localServer ;
-        localServer.
-        
-        Id id = Id.create();
-        Location sourceArea;
-        Location patchesArea;
-        DataSource newDataSource = DataSource.attach(id, "uri", sourceArea, patchesArea);
-        dataRegistry.put(id, newDataSource);
-        return id ;
+        localServer.createDataSource(false, null, null);
+        throw new NotImplemented();
+//        LocalServer localServer ;
+//        
+//        Id id = Id.create();
+//        Location sourceArea;
+//        Location patchesArea;
+//        DataSource newDataSource = DataSource.attach(id, "uri", sourceArea, patchesArea);
+//        dataRegistry.put(id, newDataSource);
+//        return id ;
     }
 
     @Override
@@ -136,13 +95,13 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
-    public JsonArray listDatasets() {
-        throw new NotImplemented();
+    public List<Id> listDatasets() {
+        return localServer.listDataSourcesIds();
     }
 
     @Override
-    public JsonObject getDatasetDescription(Id dsRef) {
-        throw new NotImplemented();
+    public DataSourceDescription getDataSourceDescription(Id dsRef) {
+        return getDataSource(dsRef).getDescription();
     }
 
     @Override
@@ -174,10 +133,15 @@ public class DeltaLinkLocal implements DeltaLink {
     
     @Override
     public int getCurrentVersion(Id dsRef) {
-        DataSource source = dataRegistry.get(dsRef) ;
-        if ( source == null )
-            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
+        DataSource source = getDataSource(dsRef);
         return getCurrentVersion(source);
+    }
+
+    private DataSource getDataSource(Id dsRef) {
+        DataSource source = localServer.getDataSource(dsRef);
+        if ( source == null )
+            throw new DeltaBadRequestException(404, "No such data source: " + dsRef);
+        return source;
     }
 
     private FileStore getFileStore(Id dsRef) {
@@ -192,13 +156,6 @@ public class DeltaLinkLocal implements DeltaLink {
         return source.getPatchSet().getFileStore().getCurrentIndex();
     }
 
-    private DataSource getDataSource(Id dsRef) {
-        DataSource source = dataRegistry.get(dsRef) ;
-        if ( source == null )
-            throw new DeltaBadRequestException(404, "No such data source: "+dsRef) ;
-        return source;
-    }
-    
     /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {

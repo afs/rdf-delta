@@ -76,17 +76,17 @@ public class RDFChangesLog implements RDFChanges {
     
     @Override
     public void addPrefix(Node graph, String prefix, String uriStr) {
-        print("AddPrefix  %s %s", prefix, uriStr) ;
+        print("AddPrefix  %s: <%s>", prefix, uriStr) ;
     }
     
     @Override
     public void deletePrefix(Node graph, String prefix) {
-        print("DelPrefix  %s", prefix) ;
+        print("DelPrefix  %s:", prefix) ;
     }
     
     @Override
     public void setBase(String uriStr) {
-        print("SetBase %s", uriStr) ;
+        print("SetBase <%s>", uriStr) ;
     }
 
     @Override

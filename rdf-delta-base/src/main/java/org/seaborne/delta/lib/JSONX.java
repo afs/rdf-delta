@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Additional JSON code */ 
-public class J {
+public class JSONX {
     private static Logger LOG = LoggerFactory.getLogger("JsonAccess");
     
     private static String LABEL = "%%object%%" ;

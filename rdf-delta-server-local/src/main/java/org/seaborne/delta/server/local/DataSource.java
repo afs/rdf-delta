@@ -20,7 +20,8 @@ package org.seaborne.delta.server.local;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.tdb.base.file.Location ;
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +95,10 @@ public class DataSource {
         return patchSet;
     }
 
+    public DataSourceDescription getDescription() {
+        return new DataSourceDescription(id, uri); 
+    }
+    
     private static void formatSourceArea(Location sourcesArea, Location patchesArea) {
         FileOps.ensureDir(sourcesArea.getDirectoryPath());
         FileOps.ensureDir(patchesArea.getDirectoryPath());

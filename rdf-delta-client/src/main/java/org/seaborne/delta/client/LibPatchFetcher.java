@@ -26,7 +26,7 @@ import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta;
-import org.seaborne.delta.lib.L ;
+import org.seaborne.delta.lib.LibX ;
 import org.seaborne.patch.PatchReader ;
 
 public class LibPatchFetcher {
@@ -55,7 +55,7 @@ public class LibPatchFetcher {
             // [Delta] Must close the HTTP input stream. 
             // Copying is a cheap hack.
             // Better to parse-store.
-            InputStream x = L.copy(in) ;
+            InputStream x = LibX.copy(in) ;
             return new PatchReader(x) ;
         } catch (HttpException ex) {
             if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )

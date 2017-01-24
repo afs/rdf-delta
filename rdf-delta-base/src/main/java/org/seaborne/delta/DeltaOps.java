@@ -18,8 +18,18 @@
 
 package org.seaborne.delta;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream ;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+import org.apache.jena.atlas.io.AWriter;
+import org.apache.jena.atlas.io.IO;
+import org.apache.jena.graph.Node;
+import org.apache.jena.riot.out.NodeFormatterNT;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;
@@ -50,9 +60,41 @@ public class DeltaOps {
     
     /** Create a {@link TokenWriter} */
     public static TokenWriter tokenWriter(OutputStream out) {
-        // Placeholder fopr text/binary choice.
+        // Placeholder for text/binary choice.
         // IO ops to buffer
         TokenWriter tokenWriter = new TokenWriterText(out) ;
         return tokenWriter ;
+    }
+    
+    private static NodeFormatterNT formatter = new NodeFormatterNT();
+
+    /** Atomically write a version to disk. 
+     *  <p>
+     *  This is done carefully by writing to temporary file and 
+     *  then doing a atomic file system move. 
+     */
+    public static void writeId(String filename, Id id) {
+        // Get the bytes.
+        Node n = id.asNode();
+        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        AWriter aw = IO.wrapUTF8(out2);
+        formatter.format(aw, n);
+        byte[] bytes = out2.toByteArray();
+        
+        // Prepare names.
+        Path p = Paths.get(filename);
+        Path parent = p.getParent();
+        String fn = p.getFileName().toString();
+        
+        if ( parent == null )
+            parent = IOX.currentDirectory; 
+        
+        try {
+            Path tmp = Files.createTempFile(parent, fn, ".tmp");
+            tmp.toFile().deleteOnExit();
+            IOX.safeWrite(p, tmp, (out)->{
+                out.write(bytes);
+            });
+        } catch (IOException ex) { IO.exception(ex); }
     }
 }

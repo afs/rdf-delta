@@ -32,7 +32,7 @@ import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.lib.J ;
+import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger ;
 
 public class DRPC {
@@ -40,7 +40,7 @@ public class DRPC {
     
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, String opName, JsonValue arg) {
-        JsonObject a = J.buildObject((b)->
+        JsonObject a = JSONX.buildObject((b)->
             b.key(DPNames.F_OP).value(opName)
              .key(DPNames.F_ARG).value(arg)
             ) ;

@@ -18,14 +18,23 @@
 
 package org.seaborne.delta.server;
 
+import org.apache.jena.atlas.logging.LogCtl;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestFileStore.class,
-    TestLocalServer.class
+    TestFileStore.class
+    , TestLocalServer1.class
+    , TestLocalServer2.class
 })
 
-public class TS_ServerLocal {}
+public class TS_ServerLocal {
+    @BeforeClass public static void beforeClass() {
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+    }
+    
+}
+
 

@@ -18,6 +18,6 @@
 
 package org.seaborne.delta.server;
 
-public class TestLocalServer {
+public class TestDeltaServer {
 
 }

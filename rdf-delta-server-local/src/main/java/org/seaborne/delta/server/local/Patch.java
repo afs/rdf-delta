@@ -21,7 +21,7 @@ package org.seaborne.delta.server.local;
 import java.util.Map;
 
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 

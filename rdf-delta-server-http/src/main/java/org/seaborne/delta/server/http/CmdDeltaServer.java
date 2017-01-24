@@ -30,20 +30,22 @@ import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DPNames;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DeltaLinkLocal;
+import org.seaborne.delta.server.local.LocalServer;
 import org.slf4j.Logger;
 
 /** Command line run the server. */ 
 public class CmdDeltaServer {
     public static void setLogging() {
         //LogCtl.setLog4j();
-        //LogCtl.setJavaLogging();
+        LogCtl.setJavaLogging();
     }
     
     static { setLogging(); }
     
     private static Logger LOG = DPS.LOG; 
-    
+
     public static void main(String...args) {
         // ---- Command Line
         CmdLineArgs cla = new CmdLineArgs(args);
@@ -80,8 +82,6 @@ public class CmdDeltaServer {
         else
             configFile = getenv(DPNames.ENV_CONFIG);
         
-        System.err.println(cla.getArg(argBase));
-        
         // ---- Environment
         String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
         if ( runtimeArea == null ) {
@@ -114,20 +114,16 @@ public class CmdDeltaServer {
 //        DataSource.cleanSourceArea(sourceArea, patchesArea);
         Location baseArea = Location.create(base.toString());
         
-        //sort out the sources.cfg file.
-        if ( configFile == null ) {
-            configFile = baseArea.getPath(DPNames.CONFIG);
-        }
+        if ( configFile == null )
+            configFile = baseArea.getPath(DPNames.SERVER_CONFIG);
         
-        FmtLog.info(LOG, "Delta Server configuration=%s", configFile);
-        LocalServer.attach(baseArea, configFile);
-
-        FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
-
-        // Server.
-        DeltaLink impl =  DeltaLinkLocal.create();
-        DataPatchServer dps = new DataPatchServer(4040, impl) ;
+        FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
+        
+        LocalServer server = LocalServer.attach(baseArea, configFile);
+        DeltaLink link = DeltaLinkLocal.create(server);
+        DataPatchServer dps = new DataPatchServer(port, link) ;
         // And away we go.
+        FmtLog.info(LOG, "START: Delta Server port=%d, base=%s", port, base.toString());
         dps.start();
         //dps.join();
     }

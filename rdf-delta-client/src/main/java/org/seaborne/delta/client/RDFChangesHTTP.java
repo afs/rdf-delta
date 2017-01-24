@@ -35,7 +35,7 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;

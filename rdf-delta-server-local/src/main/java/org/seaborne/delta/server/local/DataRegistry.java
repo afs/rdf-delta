@@ -19,7 +19,7 @@
 package org.seaborne.delta.server.local;
 
 import org.apache.jena.atlas.lib.Registry ;
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.Id;
 import org.slf4j.Logger ;
 
 /** The registry of all data under the control of server */ 
@@ -37,6 +37,7 @@ public class DataRegistry extends Registry<Id, DataSource> {
     
     private static DataRegistry singleton = new DataRegistry("central") ;
 
+    // XXX delete me. (LocalServer should have the static to find THE local server).
     public static DataRegistry get() { return singleton ; }
     
     @Override

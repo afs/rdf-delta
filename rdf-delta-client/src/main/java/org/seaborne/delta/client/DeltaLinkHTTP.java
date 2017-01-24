@@ -19,6 +19,8 @@
 package org.seaborne.delta.client;
 
 import java.io.InputStream ;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
@@ -28,12 +30,9 @@ import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
-import org.seaborne.delta.DPNames ;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.lib.J ;
+import org.seaborne.delta.*;
+import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
@@ -49,6 +48,8 @@ public class DeltaLinkHTTP implements DeltaLink {
     private final String remoteSend;
     private final String remoteReceive;
     
+    private final static JsonObject emptyObject = new JsonObject();
+    
     public DeltaLinkHTTP(String serverURL) {
         if ( ! serverURL.endsWith("/" ))
             serverURL= serverURL+"/";
@@ -62,10 +63,11 @@ public class DeltaLinkHTTP implements DeltaLink {
     
     @Override
     public int getCurrentVersion(Id dsRef) {
-        JsonObject obj = J.buildObject((b)-> {
+        JsonObject arg = JSONX.buildObject((b)-> {
             b.key("datasource").value(dsRef.asParam());
         });
-        JsonValue r = DRPC.rpc(remoteServer+DPNames.EP_RPC, DPNames.OP_EPOCH, obj);
+        
+        JsonValue r = rpcToValue(DPNames.OP_EPOCH, arg);
         if ( ! r.isNumber() )
             System.err.println("Not a number: "+r);
         return r.getAsNumber().value().intValue();
@@ -129,26 +131,18 @@ public class DeltaLinkHTTP implements DeltaLink {
     
     @Override
     public RegToken register(Id clientId) {
-        JsonObject obj = J.buildObject((b) -> {
-            b.key(DPNames.F_CLIENT).value(clientId.asString());
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DPNames.F_CLIENT).value(clientId.asJsonString());
         });
-        JsonValue r = DRPC.rpc(remoteServer + DPNames.EP_RPC, DPNames.OP_REGISTER, obj);
-        if ( ! r.isObject() )
-            throw new DeltaException("Bad result to 'register': "+JSON.toStringFlat(r));
-        String s = r.getAsObject().get(DPNames.F_TOKEN).getAsString().value();
+        JsonObject obj = rpc(DPNames.OP_REGISTER, arg);
+        String s = obj.get(DPNames.F_TOKEN).getAsString().value();
         RegToken token = new RegToken(s);
         return token; 
     }
 
     @Override
-    public RegToken register(String name) {
-        throw new NotImplemented();
-    }
-
-    @Override
     public void deregister(RegToken token) {
         throw new NotImplemented();
-
     }
 
     @Override
@@ -167,7 +161,43 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public JsonArray getDatasets() {
+    public List<Id> listDatasets() {
+        JsonObject obj = rpc(DPNames.OP_LIST_DS, emptyObject);
+        JsonArray array = obj.get(DPNames.F_RESULT).getAsArray();
+        List<Id> x = array.stream().map(jv-> 
+            {return Id.fromString(jv.getAsString().value());} ).collect(Collectors.toList()) ;
+        return x ;
+    }
+
+    @Override
+    public Id newDataset(JsonObject description) {
         throw new NotImplemented();
+    }
+
+    @Override
+    public Id removeDataset(Id dsRef) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public DataSourceDescription getDataSourceDescription(Id dsRef) {
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DPNames.F_DATASOURCE).value(dsRef.asJsonString());
+        });
+        JsonObject obj = rpc(DPNames.OP_DESCR_DS, arg);
+        return DataSourceDescription.fromJson(obj);
+    }
+
+    private JsonValue rpcToValue(String opName, JsonObject arg) {
+        if ( arg == null )
+            arg = emptyObject;
+        return DRPC.rpc(remoteServer + DPNames.EP_RPC, opName, arg);
+    }
+    
+    private JsonObject rpc(String opName, JsonObject arg) {
+        JsonValue r = rpcToValue(opName, arg);
+        if ( ! r.isObject() )
+            throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
+        return r.getAsObject();
     }
 }

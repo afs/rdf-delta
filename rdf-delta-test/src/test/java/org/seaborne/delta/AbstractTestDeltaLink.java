@@ -37,7 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;

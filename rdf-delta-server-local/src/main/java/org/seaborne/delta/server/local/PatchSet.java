@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;

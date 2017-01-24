@@ -22,6 +22,12 @@ public class NOTES {
     /*
      * Design LocalServer
      *   What about externally provided datasets?
-     * 
      */
+    
+    // Oragnise DevToDos
+    
+    // Tests - applyt patch.
+    // Plan for more?
+    
+    // listDatasets and other "not implemented" features.
 }

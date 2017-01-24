@@ -18,8 +18,11 @@
 
 package org.seaborne.delta.link;
 
-import org.apache.jena.atlas.json.JsonArray;
+import java.util.List;
+
 import org.apache.jena.atlas.json.JsonObject;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 
@@ -30,10 +33,10 @@ import org.seaborne.patch.RDFPatch ;
  */
 public interface DeltaLink {
     public RegToken register(Id clientId);
-    public RegToken register(String name);
-    
+
+//    public RegToken register(String name);
 //    public RegToken register(String name, Id id);
-//    
+    
     public void deregister(RegToken token);
     public void deregister(Id clientId);
 
@@ -47,10 +50,10 @@ public interface DeltaLink {
     public Id removeDataset(Id dsRef);
 
     /** Return an array of ids of datasets */
-    public JsonArray listDatasets() ;
+    public List<Id> listDatasets() ;
     
     /** Return details of a dataset (or null if not registered) */
-    public JsonObject getDatasetDescription(Id dsRef) ;
+    public DataSourceDescription getDataSourceDescription(Id dsRef) ;
 
     /** Send patch, return new version */
     public int sendPatch(Id dsRef, RDFPatch patch);

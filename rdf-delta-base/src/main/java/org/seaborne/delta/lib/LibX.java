@@ -20,11 +20,14 @@ package org.seaborne.delta.lib;
 
 import java.io.ByteArrayInputStream ;
 import java.io.InputStream ;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays ;
 
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.tdb.base.file.Location;
 
-public class L {
+public class LibX {
 
     /** Copy an array of bytes.*/
     public static byte[] copy(byte[] bytes) {
@@ -40,5 +43,19 @@ public class L {
         byte[] b = IO.readWholeFile(inputStream) ;
         InputStream x = new ByteArrayInputStream(b) ;
         return x ;
+    }
+    
+    /**
+     * Resolve a Location and file path: Location.getPath only handles file names withing
+     * the location, not paths.
+     */
+    public static String resolve(Location location, String pathStr) {
+        Path path = Paths.get(pathStr);
+        if ( path.getNameCount() == 0 )
+            return location.getDirectoryPath();
+        else if ( path.getNameCount() == 1 )
+            return location.getPath(pathStr);
+        Path locationPath = Paths.get(location.getDirectoryPath());
+        return locationPath.resolve(pathStr).toAbsolutePath().toString();
     }
 }

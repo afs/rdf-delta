@@ -22,6 +22,7 @@ import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.io.PrintStream ;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
@@ -33,9 +34,9 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.lib.J;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
 import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
@@ -52,6 +53,16 @@ public class S_DRPC extends ServletBase {
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            doPostProtected(req, resp);
+        } catch (Throwable ex) {
+            LOG.error("Internal server error", ex);
+            ex.printStackTrace();
+            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error: "+ex.getMessage());
+        }
+    }
+    
+    protected void doPostProtected(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JsonObject input ;
         try (InputStream in = req.getInputStream()  ) {
             input = JSON.parse(in) ;
@@ -71,6 +82,13 @@ public class S_DRPC extends ServletBase {
             case DPNames.OP_REGISTER:
                 rslt = register(arg);
                 break ;
+            case DPNames.OP_LIST_DS:
+                rslt = listDataSources(arg);
+                break ;
+            case DPNames.OP_DESCR_DS:
+                rslt = describeDataSource(arg);
+                break ;
+            
             default: {
                 LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
                 LOG.warn("Unknown operation: "+op );
@@ -80,7 +98,7 @@ public class S_DRPC extends ServletBase {
         
         OutputStream out = resp.getOutputStream() ;
         if ( ! DPNames.OP_EPOCH.equals(op) )
-            FmtLog.info(LOG, "%s => %s", JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
+            FmtLog.info(LOG, "%s %s => %s", op, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
         sendJsonResponse(resp, rslt);
     }
     
@@ -114,20 +132,34 @@ public class S_DRPC extends ServletBase {
     }
     
     private JsonValue register(JsonObject arg) {
-        String clientId = getFieldAsString(arg, DPNames.F_CLIENT);
-        Id client = Id.fromString(clientId);
+        Id client = getFieldAsId(arg, DPNames.F_CLIENT);
         RegToken token = engine.register(client);
-        JsonValue jv = J.buildObject((x)-> {
+        JsonValue jv = JSONX.buildObject((x)-> {
             x.key(DPNames.F_TOKEN).value(token.getUUID().toString());
         });
         return jv;
     }
 
     private JsonValue epoch(JsonObject arg) {
-        String dataSourceId = getFieldAsString(arg, DPNames.F_DATASOURCE);
-        Id dsRef = Id.fromString(dataSourceId);
+        Id dsRef = getFieldAsId(arg, DPNames.F_DATASOURCE);
         int version = engine.getCurrentVersion(dsRef);
         return JsonNumber.value(version);
+    }
+
+    private JsonValue listDataSources(JsonObject arg) {
+        List<Id> ids = engine.listDatasets();
+        return JSONX.buildObject(b->{
+            b.key(DPNames.F_RESULT);
+            b.startArray();
+            ids.forEach(id->b.value(id.asJsonString()));
+            b.finishArray();
+        });
+    }
+
+    private JsonValue describeDataSource(JsonObject arg) {
+        String dataSourceId = getFieldAsString(arg, DPNames.F_DATASOURCE);
+        Id dsRef = Id.fromString(dataSourceId);
+        return engine.getDataSourceDescription(dsRef).asJson();
     }
 
     private static String getFieldAsString(JsonObject arg, String field) {
@@ -160,7 +192,11 @@ public class S_DRPC extends ServletBase {
         }
     }
 
-    // ==> JSON.
+    private static Id getFieldAsId(JsonObject arg, String field) {
+        return Id.fromString(getFieldAsString(arg, field));
+    }
+
+        // ==> JSON.
     
     /** Create a safe copy of a {@link JsonValue}.
      * <p>

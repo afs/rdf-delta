@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.server.local;
 
-import org.seaborne.delta.link.Id;
+import org.seaborne.delta.Id;
 
 /** Snapshot of the state of a {@link PatchSet}. */
 public class PatchSetInfo {

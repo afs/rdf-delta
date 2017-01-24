@@ -28,12 +28,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.delta.lib.IOX.IOConsumer;
 import org.seaborne.patch.PatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FileStore {
     private static Logger               LOG   = LoggerFactory.getLogger(FileStore.class);
+    
     // Key'ed by directory and name name.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();
     
@@ -125,6 +126,7 @@ public class FileStore {
      * This operation is thread-safe.
      */
     public FileEntry allocateFilename() {
+        // --> IOX
         synchronized(this) { 
             for ( ;; ) {
                 int idx = nextIndex();
@@ -150,12 +152,9 @@ public class FileStore {
      * @params Consumer The code to write the contents.
      * @returns Path to the new file.
      */
-    public FileEntry writeNewFile(Consumer<OutputStream> action) {
-        FileEntry file = allocateFilename(); // (file,tmp)
-        try(OutputStream out = file.openForWrite()) {
-            action.accept(out);
-            file.completeWrite();
-        } catch(IOException ex) { IO.exception(ex); }
+    public FileEntry writeNewFile(IOConsumer<OutputStream> action) {
+        FileEntry file = allocateFilename();
+        file.write(action);
         return file;
     }
     
@@ -164,15 +163,6 @@ public class FileStore {
         areas.clear();
     }
     
-    //Move a complete file into place
-    static void move(Path src, Path dst) {
-        try { Files.move(src, dst) ; }
-        catch (IOException ex) {
-            LOG.warn(String.format("IOException moving %s to %s", src, dst) , ex);
-            IO.exception(ex);
-        }
-    }
-
     private int nextIndex() {
         return counter.incrementAndGet();
     }

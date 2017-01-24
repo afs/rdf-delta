@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.link;
 
 import java.util.Map;
 import java.util.UUID;
@@ -24,9 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
-import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.Id;
-import org.seaborne.delta.link.RegToken;
+import org.seaborne.delta.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +37,8 @@ public class DeltaLinkMgr {
     private Object syncObject = new Object();
     
     private static DeltaLinkMgr singleton = new DeltaLinkMgr();
-    public static DeltaLinkMgr get() { return singleton; }
+    
+    //public static DeltaLinkMgr get() { return singleton; }
     
     public DeltaLinkMgr() {}
     

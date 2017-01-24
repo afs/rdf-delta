@@ -23,6 +23,9 @@ public class DPNames {
     // RPC calls - operationn ames.
     public static final String OP_EPOCH     = "epoch";
     public static final String OP_REGISTER  = "register";
+    public static final String OP_LIST_DS   = "list_datasource";
+    public static final String OP_DESCR_DS  = "describe_datasource";
+    
     // RPC arg/result fields */
     public static final String F_OP         = "operation";
     public static final String F_ARG        = "arg";
@@ -49,6 +52,7 @@ public class DPNames {
     public static final String F_ID         = "id";
     public static final String F_VERSION    = "version";
     public static final String F_URI        = "uri";
+    public static final String F_RESULT     = "result";
 
     // Registration
     public static final String paramRef     = "ref";
@@ -66,13 +70,16 @@ public class DPNames {
     public static final String ENV_CONFIG  = "DELTA_CONFIG";
 
     // Default name for the server configuration file.
-    public static final String CONFIG      = "delta.cfg";
+    public static final String SERVER_CONFIG      = "delta.cfg";
+    // Name for the datasource configuration file.
+    public static final String DATA_CONFIG        = "source.cfg";
 
     
     // Relative path name in ENV_BASE for the "sources" area.
     public static final String SOURCES      = "Sources";
     // Relative path name in ENV_BASE for the patches area.
     public static final String PATCHES      = "Patches"; 
+    public static final String DATA         = "data";
 
     
 }

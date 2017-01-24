@@ -26,7 +26,7 @@ import java.util.Map ;
 import java.util.concurrent.ConcurrentHashMap ;
 
 import org.apache.jena.atlas.io.IO ;
-import org.seaborne.delta.lib.L ;
+import org.seaborne.delta.lib.LibX ;
 
 /** A MR+SW transactional 'thing' */ 
 public abstract class TransPBlob<X> extends TransactionalBlob<X> {
@@ -145,11 +145,11 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
     
     private static byte[] readMem(Path fn) {
         byte[] b = files.get(fn) ;
-        return L.copy(b) ;
+        return LibX.copy(b) ;
     }
 
     private static void writeMem(Path fn, byte[] b) {
-        byte[] b1 = L.copy(b) ;
+        byte[] b1 = LibX.copy(b) ;
         files.put(fn, b1) ;
     }
     

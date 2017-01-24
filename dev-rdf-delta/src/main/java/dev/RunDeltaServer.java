@@ -18,10 +18,65 @@
 
 package dev;
 
+import java.util.List;
+
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.system.Txn;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.RegToken;
+
 public class RunDeltaServer {
 
     public static void main(String... args) {
+        if ( args.length == 0 )
+            args = new String[] {"--base=DeltaServer"};
+        
         org.seaborne.delta.server.http.CmdDeltaServer.main(args);
+        System.out.println();
+        
+        String datafile = "D.ttl"; 
+        
+        String url = "http://localhost:1066/" ;
+        
+        // Building.
+        //MethodHandles.
+        Id clientId = Id.create();
+        
+        DeltaLink link = new DeltaLinkHTTP(url);
+        
+        
+        RegToken token = link.register(clientId);
+        
+        // Find Dataset
+        // TestDeltaServer
+        
+        List<Id> a = link.listDatasets();
+        for(Id id : a ) {
+            DataSourceDescription dss = link.getDataSourceDescription(id);
+            System.out.println(dss);
+        }
+
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem(); 
+        
+        Id datasourceId = Id.fromString("id:0c5943d8-2b54-11b2-801b-024218167bb0");
+        
+        DeltaConnection dConn = DeltaConnection.create("D1", clientId, datasourceId, dsg0, link);
+        
+        DatasetGraph dsg = dConn.getDatasetGraph();
+        Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
+        //Txn.executeWrite(dsg,()->RDFDataMgr.read(dsg, datafile));
+        
+        System.out.println("** DONE **");
+        System.exit(0);
+        
+        
     }
 
 }
