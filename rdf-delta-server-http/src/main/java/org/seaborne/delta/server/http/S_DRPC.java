@@ -45,15 +45,13 @@ import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
 public class S_DRPC extends DeltaServletBase {
+
+    private static Logger     LOG       = Delta.DELTA_RPC_LOG;
+    private static JsonObject noResults = new JsonObject();
     
     public S_DRPC(DeltaLink engine) {
         super(engine) ;
     }
-
-    private static Logger LOG = Delta.DELTA_RPC_LOG ;
-    enum Requirement { MANDATORY, OPTIONAL }
-    
-    private static JsonObject noResults = new JsonObject();
     
     @Override
     protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -63,14 +61,15 @@ public class S_DRPC extends DeltaServletBase {
         } catch (JsonException ex) {
             throw new DeltaBadRequestException("Bad JSON request: "+ex.getMessage()) ;
         }  
-        LOG.info("RPC: "+JSON.toStringFlat(input));
+        //LOG.info("RPC: "+JSON.toStringFlat(input));
     
         // Switch to IndentedWriter.clone(IndentedWriter.stdout);
-        IndentedWriter iWrite = IndentedWriter.stdout;
-        iWrite.incIndent(4);
-        try { JSON.write(iWrite, input); iWrite.ensureStartOfLine(); }
-        finally { iWrite.decIndent(4); }
-    
+        if ( false ) {
+            IndentedWriter iWrite = IndentedWriter.stdout;
+            iWrite.incIndent(4);
+            try { JSON.write(iWrite, input); iWrite.ensureStartOfLine(); }
+            finally { iWrite.decIndent(4); }
+        }
         // Header
     
         try {
@@ -95,23 +94,34 @@ public class S_DRPC extends DeltaServletBase {
     protected void validateAction(DeltaAction action) throws IOException {
         // Checking once basic parsing of the request has been done to produce the JsonAction 
         switch(action.opName) {
+            // No registration required.
             case OP_REGISTER:
-                break;
-            case OP_EPOCH:
-            case OP_DEREGISTER:
             case OP_LIST_DS:
             case OP_DESCR_DS:
+                
+                break;
+            // Registration required.
+            case OP_EPOCH:
+            case OP_DEREGISTER:
+//            case OP_CREATE_DS:
+//            case OP_REMOVE_DS:
                 checkRegistration(action);
                 break;
+            case OP_CREATE_DS:
+            case OP_REMOVE_DS:
+                LOG.warn("Not implemented: "+action.opName);
+                throw new DeltaBadRequestException("Not implemented: "+action.opName);
             default:
                 LOG.warn("Unknown operation: "+action.opName);
-                action.response.sendError(HttpSC.BAD_REQUEST_400, "Unknown operation: "+action.opName);
-                return;
+                throw new DeltaBadRequestException("Unknown operation: "+action.opName);
         }
     }
 
     protected void checkRegistration(DeltaAction action) {
-        LOG.warn("** No registration check yet (RPC) **");
+        if ( action.regToken == null )
+            throw new DeltaBadRequestException("No registration token") ;
+        if ( !isRegistered(action.regToken) )
+            throw new DeltaBadRequestException("Not registered") ;
     }
 
     @Override
@@ -182,6 +192,7 @@ public class S_DRPC extends DeltaServletBase {
     private JsonValue register(DeltaAction action) {
         Id client = getFieldAsId(action, F_CLIENT);
         RegToken token = getLink(action).register(client);
+        register(client, token);
         JsonValue jv = JSONX.buildObject((x)-> {
             x.key(F_TOKEN).value(token.getUUID().toString());
         });
@@ -190,6 +201,7 @@ public class S_DRPC extends DeltaServletBase {
 
     private JsonValue deregister(DeltaAction action) {
         getLink(action).deregister();
+        deregister(action.regToken);
         return noResults;
     }
     

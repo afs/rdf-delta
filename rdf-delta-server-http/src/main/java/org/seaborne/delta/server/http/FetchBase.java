@@ -25,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
@@ -48,14 +47,17 @@ abstract class FetchBase extends HttpOperationBase {
     
     @Override
     protected void checkRegistration(DeltaAction action) {
-        Log.warn(this, "** No registration check yet (HTTP) **"); 
+        // Only warnings.
+        if ( action.regToken == null )
+            logger.warn("Fetch: No registration token") ;
+        if ( !isRegistered(action.regToken) )
+            logger.warn("Fetch: Not registered") ;
     }
     
     @Override
     protected void validateAction(Args httpArgs) {
-        if ( httpArgs.dataset == null ) {
+        if ( httpArgs.dataset == null )
             throw new DeltaBadRequestException("No datasource specified");
-        }
         if ( httpArgs.patchId == null && httpArgs.version == null )
             throw new DeltaBadRequestException("No version, no patch id");
     }

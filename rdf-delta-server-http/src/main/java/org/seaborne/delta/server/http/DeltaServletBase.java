@@ -36,26 +36,24 @@ import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaLinkMgr;
+import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Servlet and multiplexer for DeltaLinks */
 public abstract class DeltaServletBase extends HttpServlet { 
 
-    private static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
-    //protected final DeltaLink engine ;
-    protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
+    protected static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
+    protected final DeltaLink engine ;
+    //protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
     
+    // Statcis to catch cross contamination.
     protected final Map<Id, DeltaLink> links = new ConcurrentHashMap<>();
+    // These should be unique across the server.
+    protected static final Map<RegToken, Id>  registrations = new ConcurrentHashMap<>();
     
-    private DeltaLink engine ;
+    //private DeltaLink engine ;
 
-    public DeltaLink getLink(DeltaAction action) {
-        return engine;
-    }
-
-    
-    public DeltaServletBase(DeltaLink engine) {
+    protected DeltaServletBase(DeltaLink engine) {
         this.engine = engine;
     }
     
@@ -67,9 +65,31 @@ public abstract class DeltaServletBase extends HttpServlet {
         return null ;
     }
 
+    public DeltaLink getLink(DeltaAction action) {
+        return engine;
+    }
+    
     protected abstract DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;
     protected abstract void validateAction(DeltaAction action) throws IOException;
     protected abstract void executeAction(DeltaAction action) throws IOException;
+
+    protected void register(Id client, RegToken token) {
+        registrations.put(token, client);
+    }
+
+    protected Id getRegistration(RegToken token) {
+        return registrations.get(token);
+    }
+
+    protected void deregister(RegToken token) {
+        registrations.remove(token);
+    }
+    
+    protected boolean isRegistered(RegToken token) {
+        if ( token == null )
+            return false;
+        return registrations.containsKey(token);
+    }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
@@ -127,7 +147,13 @@ public abstract class DeltaServletBase extends HttpServlet {
             DeltaAction action = parseRequest(req, resp);
             validateAction(action);
             executeAction(action);
-        } catch (Throwable ex) {
+        }
+        catch (DeltaBadRequestException ex) {
+            logger.error("400 Bad request : "+ex.getMessage());
+            ex.printStackTrace();
+            resp.sendError(HttpSC.BAD_REQUEST_400, "Bad request: "+ex.getMessage());
+        }
+        catch (Throwable ex) {
             logger.error("Internal server error", ex);
             ex.printStackTrace();
             resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error: "+ex.getMessage());

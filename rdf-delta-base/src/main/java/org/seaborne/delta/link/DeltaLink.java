@@ -27,7 +27,7 @@ import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 
 /** Interface to the server for the operations.
- * A server is any engine that that provides the Delat operations
+ * A server is any engine that that provides the Delta operations
  * and it may be local or remote.
  * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
@@ -60,7 +60,6 @@ public interface DeltaLink {
 
     /** Create an {@link RDFChanges} for this link. */
     public RDFChanges createRDFChanges(Id dsRef);
-    
     
 //    public void existingDataset() {} 
 //    

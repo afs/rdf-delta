@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse ;
 import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonNumber;
 import org.apache.jena.atlas.json.JsonValue;
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DPNames;
 import org.seaborne.delta.Delta ;
@@ -38,9 +37,7 @@ import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
 
-/** Receive an incoming patch.
- * Translates from HTTP to the internal protocol agnostic API. 
- */
+/** Receive an incoming patch. */
 public class S_Patch extends DeltaServletBase {
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
     
@@ -65,8 +62,11 @@ public class S_Patch extends DeltaServletBase {
             throw new DeltaBadRequestException("No data source id");
     }
     
-    protected void checkRegistration(DeltaAction action) {
-        Log.warn(this, "** No registration check yet (HTTP) **"); 
+    protected void checkRegistration(DeltaAction action) { 
+        if ( action.regToken == null )
+            throw new DeltaBadRequestException("No registration token") ;
+        if ( !isRegistered(action.regToken) )
+            throw new DeltaBadRequestException("Not registered") ;
     }
 
     @Override

@@ -30,6 +30,8 @@ public class DPNames {
     public static final String OP_DEREGISTER   = "deregister";
     public static final String OP_LIST_DS      = "list_datasource";
     public static final String OP_DESCR_DS     = "describe_datasource";
+    public static final String OP_CREATE_DS    = "create_datasource";
+    public static final String OP_REMOVE_DS    = "remove_datasource";
 
     // RPC header fields
     public static final String F_OP            = "operation";
