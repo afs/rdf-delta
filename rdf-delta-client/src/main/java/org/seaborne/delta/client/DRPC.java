@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.client;
 
+import static org.seaborne.delta.DPNames.*;
+
 import java.io.IOException ;
 import java.util.Objects ;
 
@@ -29,21 +31,24 @@ import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
-import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 public class DRPC {
     static private Logger LOG = Delta.DELTA_RPC_LOG ; 
     
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
-    public static JsonValue rpc(String url, String opName, JsonValue arg) {
-        JsonObject a = JSONX.buildObject((b)->
-            b.key(DPNames.F_OP).value(opName)
-             .key(DPNames.F_ARG).value(arg)
-            ) ;
+    public static JsonValue rpc(String url, String opName, RegToken token, JsonValue arg) {
+        JsonObject a = JSONX.buildObject((b)->{
+            if ( token != null )
+                b.key(F_TOKEN).value(token.asString());
+            b.key(F_OP).value(opName);
+            b.key(F_ARG).value(arg);
+            
+            }) ;
         return rpc(url, a) ;
     }
     
@@ -52,7 +57,7 @@ public class DRPC {
         Objects.requireNonNull(url, "DRPC.rpc: Arg1 URL is null") ;
         Objects.requireNonNull(object, "DRPC.rpc: Arg2 JSON object is null") ;
 
-        if ( ! object.hasKey(DPNames.F_OP) )
+        if ( ! object.hasKey(F_OP) )
             throw new DeltaException() ; 
         
         String argStr = JSON.toString(object) ;

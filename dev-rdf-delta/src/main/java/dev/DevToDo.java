@@ -19,17 +19,13 @@
 package dev;
 
 public class DevToDo {
+    // ClientId to "type" Id. 
+    
     // Design protocol.
     // "--mem--"
     // See 
     //    AbstractTestDeltaLink.client_01
     //    AbstractTestDeltaConnection.client_01
-    
-    // Rename:
-    // DeltaClient -> DeltaConnection (c.f. JDBC connection)
-    // DeltaConnection -> DeltaServer?? DeltaLink??
-    
-    // Merge client and base modules? 
     
     // DRPC: always include client id after registration
     // Meta level
@@ -46,11 +42,7 @@ public class DevToDo {
     // -- Documentation
     
     // TIO
-    //   Tokne getType -> STRING, + getActualType
-    
-    // -- RDF Git.
-    // Checksums
-    // Binary format
+    //   Token getType -> STRING, + getActualType "seen as".
     
     // -- javacc tokenizer:
     //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)
@@ -66,9 +58,6 @@ public class DevToDo {
     // __ Others
     // Extract polling support to DeltaClient.
     // Assembler to have a DeltaClient.
-
-    
-    // ---- dev tasks
 
     // DatasetGraphBuffering
     // 

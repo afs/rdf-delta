@@ -24,8 +24,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 
 import org.seaborne.delta.DPNames;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.link.RegToken;
 
-/** Parsed argument */
+/** Parsed arguments for Patch and Fetch. 
+ * <p>
+ * The query string is used for arguments.
+ *  <ul>
+ *  <li><tt>dataset</tt> &ndash; Id or URI for the datasource 
+ *  <li><tt>patch</tt> &ndash; patch id (for fetch) 
+ *  <li><tt>version</tt> &ndash; version number
+ *  <li><tt>ref</tt> &ndash; pointer to predefined arguments [Not Implemented]
+ *  <li><tt>zone</tt> &ndash; pointer to predefined arguments [Not Implemented] 
+ *  </ul>
+ */
 public class Args {
     
     private static Map<String,Args> registration = new ConcurrentHashMap<>(); 
@@ -35,22 +47,31 @@ public class Args {
         if ( ref != null )
             return registration.get(ref);
         String zone = request.getParameter(DPNames.paramZone);
-        String dataset = request.getParameter(DPNames.paramDataset);
+        String dataset = request.getParameter(DPNames.paramDatasource);
         String patchId = request.getParameter(DPNames.paramPatch);
         String version = request.getParameter(DPNames.paramVersion);
-        return new Args(zone, dataset, patchId, version);
+        
+        String clientIdStr = request.getParameter(DPNames.paramClient);
+        Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
+        String regTokenStr = request.getParameter(DPNames.paramReg);  
+        RegToken regToken = regTokenStr == null ? null : new RegToken(regTokenStr);
+        return new Args(zone, dataset, patchId, version, clientId, regToken);
     }
     
     public final String zone;
     public final String dataset;
     public final String patchId;
     public final String version;
+    public final Id clientId;
+    public final RegToken regToken;
 
-    public Args(String zone, String dataset, String patchId, String verStr) {
+    public Args(String zone, String dataset, String patchId, String verStr, Id clientId, RegToken regToken) {
         super();
         this.zone = zone;
         this.dataset = dataset;
         this.patchId = patchId;
         this.version = verStr;
+        this.clientId = clientId;
+        this.regToken = regToken;
     }
 }

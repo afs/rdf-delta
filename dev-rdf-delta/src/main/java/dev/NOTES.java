@@ -24,10 +24,18 @@ public class NOTES {
      *   What about externally provided datasets?
      */
     
-    // Oragnise DevToDos
+    // Documentation
+    
+    // Organise DevToDos
+    
+    // Client side persistent counter.
     
     // Tests - applyt patch.
     // Plan for more?
     
-    // listDatasets and other "not implemented" features.
+    // Link tests.
+    // TestDeltaServer in rdf-delta-server-http
+    //   AbstractTestDeltaLink in rdf-delta-test
+    //   ** TestRemoteLink
+    // Test DatasetGraphBuffering
 }

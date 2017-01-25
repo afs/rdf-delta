@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.server.http;
 
+import static org.seaborne.delta.DPNames.*;
+
 import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
@@ -28,10 +30,11 @@ import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.* ;
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DPNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
@@ -41,73 +44,116 @@ import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
-public class S_DRPC extends ServletBase {
+public class S_DRPC extends DeltaServletBase {
     
     public S_DRPC(DeltaLink engine) {
         super(engine) ;
     }
 
     private static Logger LOG = Delta.DELTA_RPC_LOG ;
+    enum Requirement { MANDATORY, OPTIONAL }
     
-    // XXX JsonAction
+    private static JsonObject noResults = new JsonObject();
     
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            doPostProtected(req, resp);
-        } catch (Throwable ex) {
-            LOG.error("Internal server error", ex);
-            ex.printStackTrace();
-            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error: "+ex.getMessage());
-        }
-    }
-    
-    protected void doPostProtected(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JsonObject input ;
         try (InputStream in = req.getInputStream()  ) {
             input = JSON.parse(in) ;
         } catch (JsonException ex) {
-            throw new DeltaBadRequestException("Bad JSON argument: "+ex.getMessage()) ;
+            throw new DeltaBadRequestException("Bad JSON request: "+ex.getMessage()) ;
+        }  
+        LOG.info("RPC: "+JSON.toStringFlat(input));
+    
+        // Switch to IndentedWriter.clone(IndentedWriter.stdout);
+        IndentedWriter iWrite = IndentedWriter.stdout;
+        iWrite.incIndent(4);
+        try { JSON.write(iWrite, input); iWrite.ensureStartOfLine(); }
+        finally { iWrite.decIndent(4); }
+    
+        // Header
+    
+        try {
+            // Header: "op", "client", "token"?
+            String op = getFieldAsString(input, F_OP);
+            JsonObject arg = getFieldAsObject(input, F_ARG);
+    
+            if ( op == null )
+                resp.sendError(HttpSC.BAD_REQUEST_400, "No op name: "+JSON.toStringFlat(input));
+            if ( arg == null )
+                resp.sendError(HttpSC.BAD_REQUEST_400, "No argument to RPC: "+JSON.toStringFlat(input));
+            RegToken regToken = null;
+            if ( input.hasKey(F_TOKEN) )
+                regToken = new RegToken(getFieldAsString(input,  F_TOKEN));
+            return DeltaAction.create(req, resp, regToken, op, arg, input);
+        } catch (JsonException ex) {
+            throw new DeltaBadRequestException("Bad JSON in request: "+ex.getMessage()+ " : "+JSON.toStringFlat(input));
+        } 
+    }
+
+    @Override
+    protected void validateAction(DeltaAction action) throws IOException {
+        // Checking once basic parsing of the request has been done to produce the JsonAction 
+        switch(action.opName) {
+            case OP_REGISTER:
+                break;
+            case OP_EPOCH:
+            case OP_DEREGISTER:
+            case OP_LIST_DS:
+            case OP_DESCR_DS:
+                checkRegistration(action);
+                break;
+            default:
+                LOG.warn("Unknown operation: "+action.opName);
+                action.response.sendError(HttpSC.BAD_REQUEST_400, "Unknown operation: "+action.opName);
+                return;
         }
-        
-        String op = getFieldAsString(input, DPNames.F_OP);
-        JsonObject arg = getFieldAsObject(input, DPNames.F_ARG);
-        
-        //Dispatch.
+    }
+
+    protected void checkRegistration(DeltaAction action) {
+        LOG.warn("** No registration check yet (RPC) **");
+    }
+
+    @Override
+    protected void executeAction(DeltaAction action) throws IOException {
         JsonValue rslt = null ;
-        switch(op) {
-            case DPNames.OP_EPOCH:
-                rslt = epoch(arg);
+        JsonObject arg = action.rpcArg;
+        switch(action.opName) {
+            case OP_EPOCH:
+                rslt = epoch(action);
                 break ;
-            case DPNames.OP_REGISTER:
-                rslt = register(arg);
+            case OP_REGISTER:
+                rslt = register(action);
                 break ;
-            case DPNames.OP_LIST_DS:
-                rslt = listDataSources(arg);
+            case OP_DEREGISTER:
+                rslt = deregister(action);
                 break ;
-            case DPNames.OP_DESCR_DS:
-                rslt = describeDataSource(arg);
+            case OP_LIST_DS:
+                rslt = listDataSources(action);
                 break ;
-            
-            default: {
-                LOG.info("Arg: "+JSON.toStringFlat(arg)) ;
-                LOG.warn("Unknown operation: "+op );
-                resp.sendError(HttpSC.BAD_REQUEST_400, "Unknown operation: "+op);
-            }
+            case OP_DESCR_DS:
+                rslt = describeDataSource(action);
+                break ;
+            default:
+                throw new InternalErrorException("Unknown operation: "+action.opName);
         }
         
-        OutputStream out = resp.getOutputStream() ;
-        if ( ! DPNames.OP_EPOCH.equals(op) )
-            FmtLog.info(LOG, "%s %s => %s", op, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
-        sendJsonResponse(resp, rslt);
+        OutputStream out = action.response.getOutputStream() ;
+        if ( ! OP_EPOCH.equals(action.opName) )
+            FmtLog.info(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
+        sendJsonResponse(action.response, rslt);
     }
     
     static public void sendJsonResponse(HttpServletResponse resp, JsonValue rslt) {
         try {
             OutputStream out = resp.getOutputStream() ;
             try {
-                resp.setStatus(HttpSC.OK_200);
-                JSON.write(out, rslt);
+                if ( rslt != null ) {
+                    resp.setStatus(HttpSC.OK_200);
+                    JSON.write(out, rslt);
+                } else {
+                    resp.setStatus(HttpSC.NO_CONTENT_204);
+                }
             }
             catch (Throwable ex) {
                 LOG.warn("500 "+ex.getMessage(), ex) ;
@@ -131,42 +177,68 @@ public class S_DRPC extends ServletBase {
         }
     }
     
-    private JsonValue register(JsonObject arg) {
-        Id client = getFieldAsId(arg, DPNames.F_CLIENT);
-        RegToken token = engine.register(client);
+    //private JsonValue register(JsonObject arg) {
+    
+    private JsonValue register(DeltaAction action) {
+        Id client = getFieldAsId(action, F_CLIENT);
+        RegToken token = getLink(action).register(client);
         JsonValue jv = JSONX.buildObject((x)-> {
-            x.key(DPNames.F_TOKEN).value(token.getUUID().toString());
+            x.key(F_TOKEN).value(token.getUUID().toString());
         });
         return jv;
     }
 
-    private JsonValue epoch(JsonObject arg) {
-        Id dsRef = getFieldAsId(arg, DPNames.F_DATASOURCE);
-        int version = engine.getCurrentVersion(dsRef);
+    private JsonValue deregister(DeltaAction action) {
+        getLink(action).deregister();
+        return noResults;
+    }
+    
+    private JsonValue epoch(DeltaAction action) {
+        Id dsRef = getFieldAsId(action, F_DATASOURCE);
+        int version = getLink(action).getCurrentVersion(dsRef);
         return JsonNumber.value(version);
     }
 
-    private JsonValue listDataSources(JsonObject arg) {
-        List<Id> ids = engine.listDatasets();
+    private JsonValue listDataSources(DeltaAction action) {
+        List<Id> ids = getLink(action).listDatasets();
         return JSONX.buildObject(b->{
-            b.key(DPNames.F_RESULT);
+            b.key(F_RESULT);
             b.startArray();
             ids.forEach(id->b.value(id.asJsonString()));
             b.finishArray();
         });
     }
 
-    private JsonValue describeDataSource(JsonObject arg) {
-        String dataSourceId = getFieldAsString(arg, DPNames.F_DATASOURCE);
+    private JsonValue describeDataSource(DeltaAction action) {
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
-        return engine.getDataSourceDescription(dsRef).asJson();
+        return getLink(action).getDataSourceDescription(dsRef).asJson();
     }
-
+    
+    private static String getFieldAsString(DeltaAction action, String field) {
+        return getFieldAsString(action.rpcArg, field); 
+    }
+    
+    private static JsonObject getFieldAsObject(DeltaAction action, String field) {
+        return getFieldAsObject(action.rpcArg, field); 
+    }
+    
+    private static Id getFieldAsId(DeltaAction action, String field) {
+        return getFieldAsId(action.rpcArg, field); 
+    }
+    
     private static String getFieldAsString(JsonObject arg, String field) {
+        return getFieldAsString(arg, field, true);
+    }
+    
+    private static String getFieldAsString(JsonObject arg, String field, boolean required) {
         try {
             if ( ! arg.hasKey(field) ) {
-                LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-                throw new DeltaBadRequestException("Missing field: "+field) ;
+                if ( required ) {
+                    LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+                    throw new DeltaBadRequestException("Missing field: "+field) ;
+                }
+                return null;
             }
             return arg.get(field).getAsString().value() ;
         } catch (JsonException ex) {
@@ -194,44 +266,5 @@ public class S_DRPC extends ServletBase {
 
     private static Id getFieldAsId(JsonObject arg, String field) {
         return Id.fromString(getFieldAsString(arg, field));
-    }
-
-        // ==> JSON.
-    
-    /** Create a safe copy of a {@link JsonValue}.
-     * <p>
-     *  If the JsonValue is a structure (object or array), copy the structure recursively.
-     *  <p>
-     *  If the JsonValue is a primitive (string, number, boolean or null),
-     *  it is immutable so return the same object.  
-     */
-    public static JsonValue copy(JsonValue arg) {
-        JsonBuilder builder = builder(arg) ;
-        return builder==null ? arg : builder.build() ;
-    }
-    
-    /** Create a builder from a {@link JsonValue}.
-     *  <p>If the argument is an object or array, use it to initailize the builder.
-     *  <p>if the argument is a JSON primitive (string, number, boolean or null),
-     *  return null (the {@code JsonValue} is immutable).
-     */
-    public static JsonBuilder builder(JsonValue arg) {
-        if ( arg.isObject() ) {
-            JsonObject obj = arg.getAsObject() ;
-            JsonBuilder builder = JsonBuilder.create() ;
-            builder.startObject() ;
-            obj.forEach((k,v) -> builder.key(k).value(copy(v))) ;
-            builder.finishObject() ;
-            return builder ; 
-        }
-        if ( arg.isArray() ) {
-            JsonArray array = arg.getAsArray() ;
-            JsonBuilder builder = JsonBuilder.create() ;
-            builder.startArray() ;
-            array.forEach((a)->builder.value(copy(a))) ;
-            builder.finishArray() ;
-            return builder ; 
-        }
-        return null ;
     }
 }

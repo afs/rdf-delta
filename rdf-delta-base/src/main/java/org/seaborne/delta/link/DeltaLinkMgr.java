@@ -18,10 +18,6 @@
 
 package org.seaborne.delta.link;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.seaborne.delta.Id;
@@ -33,7 +29,6 @@ public class DeltaLinkMgr {
     private static Logger LOG = LoggerFactory.getLogger(DeltaLinkMgr.class);
     
     private BiMap<Id, RegToken> activeLinks = HashBiMap.create();
-    private Map <UUID, RegToken> activeTokens = new ConcurrentHashMap<>();
     private Object syncObject = new Object();
     
     private static DeltaLinkMgr singleton = new DeltaLinkMgr();
@@ -42,10 +37,16 @@ public class DeltaLinkMgr {
     
     public DeltaLinkMgr() {}
     
+    public Id clientFor(RegToken regToken) {
+        synchronized(syncObject) {
+            return activeLinks.inverse().get(regToken);
+        }
+    }
+    
     public RegToken register(Id clientId) {
         synchronized(syncObject) {
             if ( isRegistered(clientId) ) {
-                LOG.warn("Registering client : "+clientId);
+                LOG.warn("Repeat registration of client : "+clientId);
                 // Existing registration - client restart?
                 // Do a new registration.
                 activeLinks.remove(clientId);
@@ -53,7 +54,6 @@ public class DeltaLinkMgr {
             // New.
             RegToken token = new RegToken();
             activeLinks.put(clientId, token);
-            activeTokens.put(token.getUUID(), token);
             return token;
         }
     }

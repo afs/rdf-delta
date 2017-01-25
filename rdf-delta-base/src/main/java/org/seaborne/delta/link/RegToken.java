@@ -24,11 +24,15 @@ import java.util.UUID;
 public class RegToken {
     private final UUID uuid;
 
+    private static String label = "token:";
+    
     public RegToken() {
         this.uuid = UUID.randomUUID();
     }
 
     public RegToken(String uuid) {
+        if ( uuid.startsWith(label))
+            uuid = uuid.substring(label.length());
         this.uuid = UUID.fromString(uuid);
     }
 
@@ -36,6 +40,12 @@ public class RegToken {
         return uuid;
     }
 
+    // Suitable for use in RPC.
+    public String asString() {
+        return "token:"+uuid;
+    }
+
+    // For Display 
     @Override
     public String toString() {
         return "token:"+uuid;

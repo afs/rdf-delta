@@ -43,7 +43,7 @@ import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
 
-/** Tests for the link (multiplexex connection to the server or local engine) */
+/** Tests for the link (multiplex connection to the server or local engine) */
 public abstract class AbstractTestDeltaLink {
     
     public abstract DeltaLink getLink();
@@ -74,14 +74,12 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void register_02() { 
         DeltaLink dLink = getLink();
+        assertFalse(dLink.isRegistered());
+        
         RegToken regToken = dLink.register(id1);
-        assertTrue(dLink.isRegistered(id1));
-        assertFalse(dLink.isRegistered(id2));
-        assertTrue(dLink.isRegistered(regToken));
-        dLink.deregister(regToken);
-        assertFalse(dLink.isRegistered(id1));
-        assertFalse(dLink.isRegistered(id2));
-        assertFalse(dLink.isRegistered(regToken));
+        assertEquals(id1, dLink.getClientId());
+        assertEquals(regToken, dLink.getRegToken());
+        assertTrue(dLink.isRegistered());
     }
 
     @Test

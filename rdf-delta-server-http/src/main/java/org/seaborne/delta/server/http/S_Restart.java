@@ -20,6 +20,7 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
 
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
@@ -27,18 +28,14 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
-public class S_Restart extends ServletBase {
-    
-    public S_Restart() {
-        super(null) ;
-    }
-
+public class S_Restart extends HttpServlet {
     static private Logger LOG = Delta.DELTA_LOG ;
     
+    public S_Restart() { }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Server reset");
-        // XXX ??? Reset anything?
+        LOG.info("** Restart ** (currently a no-op)");
         resp.setStatus(HttpSC.NO_CONTENT_204) ;
     }
 }

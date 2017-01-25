@@ -19,6 +19,8 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletConfig ;
 import javax.servlet.ServletException ;
@@ -32,18 +34,31 @@ import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaLinkMgr;
 import org.slf4j.Logger ;
 
-public class ServletBase extends HttpServlet {
+/** Servlet and multiplexer for DeltaLinks */
+public abstract class DeltaServletBase extends HttpServlet { 
 
-    private static Logger logger = Delta.getDeltaLogger("Servlet") ;
-    protected final DeltaLink engine ; 
+    private static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
+    //protected final DeltaLink engine ;
+    protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
     
-    public ServletBase(DeltaLink engine) {
-        this.engine = engine;
+    protected final Map<Id, DeltaLink> links = new ConcurrentHashMap<>();
+    
+    private DeltaLink engine ;
+
+    public DeltaLink getLink(DeltaAction action) {
+        return engine;
     }
 
+    
+    public DeltaServletBase(DeltaLink engine) {
+        this.engine = engine;
+    }
+    
     @Override
     public void init(ServletConfig config) throws ServletException {}
 
@@ -52,9 +67,13 @@ public class ServletBase extends HttpServlet {
         return null ;
     }
 
+    protected abstract DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;
+    protected abstract void validateAction(DeltaAction action) throws IOException;
+    protected abstract void executeAction(DeltaAction action) throws IOException;
+
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
-        try { 
+        try {
             // Add PATCH
             String method = req.getMethod() ;
             if ( method.equals(HttpNames.METHOD_PATCH) ) {
@@ -91,17 +110,27 @@ public class ServletBase extends HttpServlet {
 
     @Override
     public String getServletInfo() {
-        return "ServletBase" ;
+        return this.getClass().getSimpleName();
     }
 
     @Override
     public void destroy() {}
     
-    // Short term expediance - convert GET to POST
-    // TODO Remove before release!
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doPost(req, resp);
+    final 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCommon(req, resp);
     }
-
+    
+    protected void doCommon(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            DeltaAction action = parseRequest(req, resp);
+            validateAction(action);
+            executeAction(action);
+        } catch (Throwable ex) {
+            logger.error("Internal server error", ex);
+            ex.printStackTrace();
+            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error: "+ex.getMessage());
+        }
+    }
 }

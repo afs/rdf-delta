@@ -25,23 +25,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps ;
 
 /** Framework for fetching a patch over HTTP. */ 
-abstract class FetchBase extends ServletBase {
+abstract class FetchBase extends HttpOperationBase {
 
     public FetchBase(DeltaLink engine) {
         super(engine);
     }
-
-    /** Extract the arguments. In case errors, throw DeltaExceptionBadRequest */
-    protected abstract Args getArgs(HttpServletRequest req); ; 
 
     // Fetch a file
     @Override
@@ -50,70 +47,36 @@ abstract class FetchBase extends ServletBase {
     }
     
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doCommon(req, resp);
+    protected void checkRegistration(DeltaAction action) {
+        Log.warn(this, "** No registration check yet (HTTP) **"); 
     }
     
-    private void doCommon(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            //Get dataset and id.
-            // :: /zone/dataset/id
-            // :: /registrationId : mapped to zone/dataset
-            
-            // Or short names for zone,dataset
-            // /z-1/ds-5/12345-5678-9-0-977
-            
-            Args args = getArgs(req) ;
-            if ( args.dataset == null ) {
-                throw new DeltaBadRequestException("No datasource specificed");
-            }
-
-            Id dsRef = Id.fromString(args.dataset);
-            OutputStream out = resp.getOutputStream() ;
-            RDFPatch patch;
-            
-            if ( args.patchId == null ) {
-                if ( args.version == null )
-                    throw new DeltaBadRequestException("No version, no patch id");
-                int version = Integer.parseInt(args.version);
-                patch = engine.fetch(dsRef, version);
-            } else {
-                Id patchId = Id.fromString(args.patchId) ;
-                patch = engine.fetch(dsRef, patchId);
-            }
-//          resp.setCharacterEncoding(WebContent.charsetUTF8);
-            resp.setStatus(HttpSC.OK_200);
-            resp.setContentType("application/rdf-patch+text"); 
-            RDFPatchOps.write(out, patch);
-            IO.flush(out);
-        } catch (DeltaBadRequestException ex) {
-            FmtLog.warn(S_Fetch.LOG, "", ex.getStatusCode(), ex.getMessage());
-            resp.sendError(ex.getStatusCode(), ex.getMessage());
-            return;
+    @Override
+    protected void validateAction(Args httpArgs) {
+        if ( httpArgs.dataset == null ) {
+            throw new DeltaBadRequestException("No datasource specified");
         }
-            
-//            API.fetch(null, null);
-//            
-//            String filename = DPS.patchFilename(id) ;
-//            Path path = Paths.get(filename) ;
-//
-//            resp.setContentType("application/rdf-patch+text"); 
-//            resp.setCharacterEncoding(WebContent.charsetUTF8);
-//            OutputStream out = resp.getOutputStream() ;
-//
-//            if ( ! Files.exists(path) ) {
-//                S_Fetch.LOG.info("No such patch: "+filename) ;
-//                resp.sendError(HttpSC.NOT_FOUND_404, "No such patch file: "+filename ) ;
-//                return ;
-//            }
-//
-//            S_Fetch.LOG.info("Patch = "+filename) ;
-//            Files.copy(path, out) ;
-//            out.flush();
-//            resp.setStatus(HttpSC.OK_200);
-//        } catch(DeltaExceptionBadRequest ex) {
-//            resp.sendError(ex.getStatusCode(), ex.getMessage()) ;
-//        }
-
+        if ( httpArgs.patchId == null && httpArgs.version == null )
+            throw new DeltaBadRequestException("No version, no patch id");
+    }
+    
+    @Override
+    protected void executeAction(DeltaAction action) throws IOException {
+        Id dsRef = Id.fromString(action.httpArgs.dataset);
+        RDFPatch patch;
+        if ( action.httpArgs.patchId != null ) {
+            Id patchId = Id.fromString(action.httpArgs.patchId) ;
+            patch = getLink(action).fetch(dsRef, patchId);
+        } else if ( action.httpArgs.version != null ) {
+            int version = Integer.parseInt(action.httpArgs.version);
+            patch = getLink(action).fetch(dsRef, version);
+        } else
+            throw new DeltaBadRequestException("No version, no patch id");
+        OutputStream out = action.response.getOutputStream() ;
+        //action.response.setCharacterEncoding(WebContent.charsetUTF8);
+        action.response.setStatus(HttpSC.OK_200);
+        action.response.setContentType("application/rdf-patch+text"); 
+        RDFPatchOps.write(out, patch);
+        IO.flush(out);
     }
 }

@@ -30,11 +30,20 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 
 public class RunDeltaServer {
 
     public static void main(String... args) {
+        try {
+            main$(args);
+        } finally {
+            System.out.println("** DONE **");
+            System.exit(0);
+        }
+    }
+    
+    public static void main$(String... args) {
+        
         if ( args.length == 0 )
             args = new String[] {"--base=DeltaServer"};
         
@@ -52,11 +61,13 @@ public class RunDeltaServer {
         DeltaLink link = new DeltaLinkHTTP(url);
         
         
-        RegToken token = link.register(clientId);
+        //RegToken token = link.register(clientId);
         
         // Find Dataset
-        // TestDeltaServer
-        
+        // TestDeltaServer in rdf-delta-server-http
+        //   AbstractTestDeltaLink in rdf-delta-test
+        //   ** TestRemoteLink
+
         List<Id> a = link.listDatasets();
         for(Id id : a ) {
             DataSourceDescription dss = link.getDataSourceDescription(id);
@@ -72,6 +83,11 @@ public class RunDeltaServer {
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
         //Txn.executeWrite(dsg,()->RDFDataMgr.read(dsg, datafile));
+        
+        
+        link.deregister();
+        
+        // Error cases
         
         System.out.println("** DONE **");
         System.exit(0);

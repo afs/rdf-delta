@@ -32,6 +32,7 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesApply ;
@@ -62,6 +63,8 @@ public class DeltaConnection {
 
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
+    
+    private RegToken regToken = null ;
     
     private final RDFChanges target;
     private final String label;
@@ -112,7 +115,7 @@ public class DeltaConnection {
     public void finish() { }
 
     private void register() {
-        link.register(clientId);
+        regToken = link.register(clientId);
     }
     
     public void sync() {
@@ -167,14 +170,17 @@ public class DeltaConnection {
     public String getName() {
         return label;
     }
-
     
     public Id getClientId() {
-    return clientId;
-}
+        return clientId;
+    }
 
     public Id getDatasourceId() {
         return datasourceId;
+    }
+
+    public RegToken getRegToken() {
+        return regToken;
     }
 
     /** Actively get the remote version */  

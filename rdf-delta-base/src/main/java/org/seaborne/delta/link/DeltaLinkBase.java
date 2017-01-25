@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.link;
 
+import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.Id;
 
 /** Support for management of registrations for a {@link DeltaLink}.
@@ -25,37 +26,49 @@ import org.seaborne.delta.Id;
  */
 public abstract class DeltaLinkBase implements DeltaLink {
     
-    private final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
+    protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
+    protected RegToken regToken = null;
+    protected Id clientId = null; 
     
     @Override
     final
     public RegToken register(Id clientId) {
-        return linkMgr.register(clientId);
+        if ( isRegistered() ) {
+            if ( this.clientId.equals(clientId) ) {
+                Log.warn(this,  "Already registered: "+clientId);
+                return regToken; 
+            } else {
+                Log.fatal(this,  "Already registered under a different clientId: "+clientId);
+            }
+        }
+            
+        this.clientId = clientId;
+        regToken = linkMgr.register(clientId);
+        return regToken;
     }
 
     @Override
     final
-    public void deregister(RegToken token) {
-        linkMgr.deregister(token);
-    }
-
-    @Override
-    final
-    public void deregister(Id clientId) {
-        linkMgr.deregister(clientId);
+    public void deregister() {
+        if ( regToken != null )
+            linkMgr.deregister(regToken);
+        regToken = null;
     }
 
     /** Check whether a client id is registered for this link. */
     @Override
     final
-    public boolean isRegistered(Id id) {
-        return linkMgr.isRegistered(id); 
+    public boolean isRegistered() {
+        return linkMgr.isRegistered(clientId); 
     }
     
-    /** Check whether a {@code RegToken} is active. */
     @Override
-    final
-    public boolean isRegistered(RegToken regToken) {
-        return linkMgr.isRegistered(regToken);
+    public RegToken getRegToken() {
+        return regToken;
+    }
+
+    @Override
+    public Id getClientId() {
+        return clientId;
     }
 }

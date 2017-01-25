@@ -53,4 +53,13 @@ public class DeltaLib {
         }
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }
+    
+
+    public static String makeURL(String url, String paramName1, Object paramValue1) {
+        return String.format("%s?%s=%s", url, paramName1, paramValue1);
+    }
+    
+    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
+        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
+    }
 }

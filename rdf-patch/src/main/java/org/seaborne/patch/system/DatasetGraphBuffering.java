@@ -73,7 +73,6 @@ public class DatasetGraphBuffering extends AbstractDatasetGraphAddDelete {
         return Iter.concat(iter1,iter2) ;
     }
     
-    
 //    isEmpty()
 //    find()
 //    find(Quad)

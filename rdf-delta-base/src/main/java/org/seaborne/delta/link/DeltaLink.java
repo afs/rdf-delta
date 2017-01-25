@@ -32,14 +32,6 @@ import org.seaborne.patch.RDFPatch ;
  * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
 public interface DeltaLink {
-    public RegToken register(Id clientId);
-
-//    public RegToken register(String name);
-//    public RegToken register(String name, Id id);
-    
-    public void deregister(RegToken token);
-    public void deregister(Id clientId);
-
     /** Create a new dataset and return the unique Id for it */  
     public Id newDataset(JsonObject description) ;
     
@@ -69,11 +61,6 @@ public interface DeltaLink {
     /** Create an {@link RDFChanges} for this link. */
     public RDFChanges createRDFChanges(Id dsRef);
     
-    /** Check whether a client id is registered for this link. */
-    public boolean isRegistered(Id id);
-    
-    /** Check whether a {@code RegToken} is active. */
-    public boolean isRegistered(RegToken regToken);
     
 //    public void existingDataset() {} 
 //    
@@ -84,4 +71,30 @@ public interface DeltaLink {
 //    
 //    public Id newGraph(String uri) { return null ; }
 
+    /** Register a client id.
+     * Only one client can be registered on a link at a time.
+     * @param clientId
+     * @return RegToken
+     */
+    public RegToken register(Id clientId);
+
+//    public RegToken register(String name);
+//    public RegToken register(String name, Id id);
+    
+    public void deregister();
+
+    /** Check whether registered for this link. */
+    public boolean isRegistered();
+
+    /** Return the registration token, or null if not registered.
+     * <p>
+     * This operation is local. 
+     */
+    public RegToken getRegToken();
+    
+    /** Return the registration token, or null if not registered.
+     * <p>
+     * This operation is local. 
+     */
+    public Id getClientId();
 }

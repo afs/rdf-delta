@@ -25,6 +25,7 @@ import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.DPNames;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.lib.LibX ;
 import org.seaborne.patch.PatchReader ;
@@ -33,7 +34,7 @@ public class LibPatchFetcher {
     static private AtomicInteger epoch = new AtomicInteger(0) ;
     
     public static PatchReader __fetch_byID(String url, String datasource, int idx) {
-        String s = url+"?version="+idx+"&dataset="+datasource;
+        String s = String.format("%s?%s=&%s=%s", url, DPNames.paramDatasource, datasource, DPNames.paramVersion, idx);
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
         try {
             InputStream in = HttpOp.execHttpGet(s) ;

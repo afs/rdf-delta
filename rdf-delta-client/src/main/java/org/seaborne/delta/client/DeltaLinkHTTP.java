@@ -42,11 +42,13 @@ import org.seaborne.patch.changes.RDFChangesCollector ;
 /** Implementation of {@link DeltaLink} that encodes operations
  * onto the HTTP protocol and decode results.    
  */
-public class DeltaLinkHTTP implements DeltaLink {
+public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
 
     private final String remoteServer;
     private final String remoteSend;
     private final String remoteReceive;
+    private RegToken regToken = null;
+    private Id clientId = null;
     
     private final static JsonObject emptyObject = new JsonObject();
     
@@ -75,7 +77,8 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public RDFChanges createRDFChanges(Id dsRef) {
-        return new RDFChangesHTTP(remoteSend+"?dataset="+dsRef.asParam());
+        String s = DeltaLib.makeURL(remoteSend, DPNames.paramDatasource, dsRef.asParam());
+        return new RDFChangesHTTP(s);
     }
 
     @Override
@@ -88,7 +91,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
-        String s = remoteReceive+"?version="+version+"&dataset="+dsRef.asParam();
+        String s = DeltaLib.makeURL(remoteReceive, DPNames.paramDatasource, dsRef.asParam(), DPNames.paramVersion, version);
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
         try {
             InputStream in = HttpOp.execHttpGet(s) ;
@@ -137,29 +140,35 @@ public class DeltaLinkHTTP implements DeltaLink {
         JsonObject obj = rpc(DPNames.OP_REGISTER, arg);
         String s = obj.get(DPNames.F_TOKEN).getAsString().value();
         RegToken token = new RegToken(s);
+        this.clientId = clientId; 
+        this.regToken = token;
         return token; 
     }
 
     @Override
-    public void deregister(RegToken token) {
+    public void deregister() {
+        // Also in the header
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DPNames.F_TOKEN).value(regToken.asString());
+        });
+        JsonObject obj = rpc(DPNames.OP_DEREGISTER, arg);
+    }
+
+    @Override
+    public boolean isRegistered() {
         throw new NotImplemented();
     }
 
     @Override
-    public void deregister(Id clientId) {
-        throw new NotImplemented();
+    public RegToken getRegToken() {
+        return regToken;
     }
 
     @Override
-    public boolean isRegistered(Id id) {
-        throw new NotImplemented();
+    public Id getClientId() {
+        return clientId;
     }
-
-    @Override
-    public boolean isRegistered(RegToken regToken) {
-        throw new NotImplemented();
-    }
-
+    
     @Override
     public List<Id> listDatasets() {
         JsonObject obj = rpc(DPNames.OP_LIST_DS, emptyObject);
@@ -191,7 +200,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         if ( arg == null )
             arg = emptyObject;
-        return DRPC.rpc(remoteServer + DPNames.EP_RPC, opName, arg);
+        return DRPC.rpc(remoteServer + DPNames.EP_RPC, opName, regToken, arg);
     }
     
     private JsonObject rpc(String opName, JsonObject arg) {

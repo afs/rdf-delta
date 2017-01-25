@@ -20,6 +20,7 @@ package org.seaborne.delta.lib;
 
 import java.util.function.Consumer ;
 
+import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue;
@@ -64,5 +65,42 @@ public class JSONX {
         LOG.warn("field "+field+" : not string or number : returning default value");
         return dftValue ;
         
+    }
+    
+    /** Create a safe copy of a {@link JsonValue}.
+     * <p>
+     *  If the JsonValue is a structure (object or array), copy the structure recursively.
+     *  <p>
+     *  If the JsonValue is a primitive (string, number, boolean or null),
+     *  it is immutable so return the same object.  
+     */
+    public static JsonValue copy(JsonValue arg) {
+        JsonBuilder builder = builder(arg) ;
+        return builder==null ? arg : builder.build() ;
+    }
+    
+    /** Create a builder from a {@link JsonValue}.
+     *  <p>If the argument is an object or array, use it to initailize the builder.
+     *  <p>if the argument is a JSON primitive (string, number, boolean or null),
+     *  return null (the {@code JsonValue} is immutable).
+     */
+    public static JsonBuilder builder(JsonValue arg) {
+        if ( arg.isObject() ) {
+            JsonObject obj = arg.getAsObject() ;
+            JsonBuilder builder = JsonBuilder.create() ;
+            builder.startObject() ;
+            obj.forEach((k,v) -> builder.key(k).value(copy(v))) ;
+            builder.finishObject() ;
+            return builder ; 
+        }
+        if ( arg.isArray() ) {
+            JsonArray array = arg.getAsArray() ;
+            JsonBuilder builder = JsonBuilder.create() ;
+            builder.startArray() ;
+            array.forEach((a)->builder.value(copy(a))) ;
+            builder.finishArray() ;
+            return builder ; 
+        }
+        return null ;
     }
 }

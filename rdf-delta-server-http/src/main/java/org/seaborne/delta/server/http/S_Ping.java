@@ -20,6 +20,7 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
 
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
@@ -27,13 +28,10 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
-public class S_Ping extends ServletBase {
-    
-    public S_Ping() {
-        super(null) ;
-    }
-
+public class S_Ping extends HttpServlet {
     static private Logger LOG = Delta.DELTA_LOG ;
+    
+    public S_Ping() { }
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
