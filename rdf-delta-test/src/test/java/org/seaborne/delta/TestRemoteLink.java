@@ -16,29 +16,23 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta;
 
-public class NOTES {
-    // Documentation
-    //   Patch
-    //   Protocol/delta
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
+public class TestRemoteLink extends AbstractTestDeltaLink {
+    static Setup.LinkSetup setup = new Setup.RemoteSetup();
     
+    @Override
+    public Setup.LinkSetup getSetup() {
+        return setup;
+    }
     
-    // TestDeltaServer : rdf-delta-server-http.
-    // TestRemoteLink : rdf-delta-test
-    
-    // Organise DevToDos
-    
-    // Client side persistent counter.
-    
-    // Tests - applyt patch.
-    // Plan for more?
-    
-    // Link tests.
-    // TestDeltaServer in rdf-delta-server-http
-    //   AbstractTestDeltaLink in rdf-delta-test
-    //   ** TestRemoteLink
-    // Test DatasetGraphBuffering
-    
-    // AbstractTestDeltaLink and AbstractTestDeltaConnection 
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

@@ -55,7 +55,7 @@ public class LibX {
             return location.getDirectoryPath();
         else if ( path.getNameCount() == 1 )
             return location.getPath(pathStr);
-        Path locationPath = Paths.get(location.getDirectoryPath());
+        Path locationPath = IOX.asPath(location);
         return locationPath.resolve(pathStr).toAbsolutePath().toString();
     }
 }

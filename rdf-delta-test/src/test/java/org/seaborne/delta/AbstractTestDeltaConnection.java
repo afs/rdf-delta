@@ -30,8 +30,6 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.link.DeltaLink;
@@ -43,36 +41,30 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 /** Test a client connection over a link */  
 public abstract class AbstractTestDeltaConnection {
     
-    public abstract DeltaLink getLink();
-
-    public abstract void reset();
-    public abstract Id getDataSourceId();
+    public abstract Setup.LinkSetup getSetup();
+    public DeltaLink getLink() { return getSetup().getLink(); }
     
-    @Before public void beforeTest() { reset(); }
-    @After  public void afterTest() {}
-    
-    protected DeltaConnection connect(DeltaLink link) {
+    protected DeltaConnection connect() {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-        return connect(link, dsg, 0);
+        return connect(dsg, 0);
     }
     
-    protected DeltaConnection connect(DeltaLink dLink, DatasetGraph shadow, int localVersion) {
+    protected DeltaConnection connect(DatasetGraph shadow, int localVersion) {
+        DeltaLink dLink = getLink();
         Id clientId = Id.create();
+        RegToken regToken = dLink.register(clientId);
+        Id dsRef = dLink.newDataSource("foo", "http://example/datasource");
         DeltaConnection dConn = DeltaConnection.create("label",
-                                                       clientId, getDataSourceId(),
+                                                       clientId, dsRef,
                                                        shadow,
                                                        dLink);
         return dConn;
     }
 
-    // Make a change, ensure the local cache is changed. 
+    // Make a change, ensure the local dataset is changed. 
     @Test
     public void change_01() {
-        DeltaLink dLink = getLink();
-        DeltaConnection dConn = connect(getLink());
-        
-        Id id1 = Id.create();
-        RegToken regToken = dLink.register(id1);
+        DeltaConnection dConn = connect();
         
         int verLocal0 = dConn.getLocalVersionNumber();
         int verRemotel0 = dConn.getRemoteVersionLatest();
@@ -95,11 +87,10 @@ public abstract class AbstractTestDeltaConnection {
     //Make a change, get the patch, apply to a clean dsg. Are the datasets the same?
     @Test
     public void change_02() {
-        DeltaLink dLink = getLink();
-        DeltaConnection dConn = connect(getLink());
+        DeltaConnection dConn = connect();
         
         Id dsRef = dConn.getDatasourceId();
-        int version = dLink.getCurrentVersion(dsRef);
+        int version = dConn.getRemoteVersionLatest();
 
         dConn.getLocalVersionNumber();
         dConn.getRemoteVersionNumber();
@@ -113,7 +104,7 @@ public abstract class AbstractTestDeltaConnection {
         
         DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
         int ver = dConn.getRemoteVersionLatest();
-        RDFPatch patch1 = dLink.fetch(dsRef, ver) ;
+        RDFPatch patch1 = dConn.getLink().fetch(dsRef, ver) ;
         RDFPatchOps.applyChange(dsg2, patch1);
         
         Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));

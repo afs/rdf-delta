@@ -36,11 +36,11 @@ import org.seaborne.delta.server.local.LocalServer;
  * Tests of {@link LocalServer} for creating and 
  * deleteing a {@link LocalServer} area.
  * 
- * See {@link TestLocalServer1} for tests involving
+ * See {@link TestLocalServer} for tests involving
  * a static setup of data sources.
  */
 
-public class TestLocalServer2 {
+public class TestLocalServerCreateDelete {
 
     // Testing area that is created and modified by tests. 
     private static String DIR = "target/testing/delta";
@@ -49,7 +49,7 @@ public class TestLocalServer2 {
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
         // copy in setup.
-        try { FileUtils.copyDirectory(new File(TestLocalServer1.SERVER_DIR), new File(DIR)); }
+        try { FileUtils.copyDirectory(new File(TestLocalServer.SERVER_DIR), new File(DIR)); }
         catch (IOException ex) { IO.exception(ex); }
     }
     
@@ -57,8 +57,19 @@ public class TestLocalServer2 {
         initialize();
     }
     
-    // Create does not overwrite
-    @Test public void local_server_01() {
+    @Test public void local_server_create_01() {
+        Location loc = Location.create(DIR);
+        LocalServer server = LocalServer.attach(loc);
+    }
+    
+    @Test public void local_server_create_02() {
+        Location loc = Location.create(DIR);
+        LocalServer server1 = LocalServer.attach(loc);
+        LocalServer server2 = LocalServer.attach(loc);
+        assertEquals(server1, server2);
+    }
+
+    @Test public void datasource_create_01() {
         Location loc = Location.create(DIR);
         LocalServer server = LocalServer.attach(loc);
         Id newId = server.createDataSource(false, "XYZ", "http://example/xyz");
@@ -66,13 +77,26 @@ public class TestLocalServer2 {
     }
     
     // Create does not overwrite
-    @Test public void local_server_02() {
+    @Test public void datasource_create_02() {
         Location loc = Location.create(DIR);
         LocalServer server = LocalServer.attach(loc);
         
         Id newId1 = server.createDataSource(false, "XYZ", "http://example/xyz");
         try {
             Id newId2 = server.createDataSource(false, "XYZ", "http://example/xyz");
+            fail("Expected createDataSource to fail");
+        } catch (DeltaException ex) {}
+    }
+    
+    // Create does not overwrite
+    @Test public void local_server_create_03() {
+        Location loc = Location.create(DIR);
+        LocalServer server1 = LocalServer.attach(loc);
+        LocalServer server2 = LocalServer.attach(loc);
+        
+        Id newId1 = server1.createDataSource(false, "XYZ", "http://example/xyz");
+        try {
+            Id newId2 = server2.createDataSource(false, "XYZ", "http://example/xyz");
             fail("Expected createDataSource to fail");
         } catch (DeltaException ex) {}
     }

@@ -27,16 +27,6 @@ public class DevToDo {
     //    AbstractTestDeltaLink.client_01
     //    AbstractTestDeltaConnection.client_01
     
-    // DRPC: always include client id after registration
-    // Meta level
-    /*
-     *      { 
-     *         "operation":
-     *         "arg":
-     *         "token":
-     *      }
-     */
-    
     // -- History and parenthood.
     
     // -- Documentation

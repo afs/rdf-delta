@@ -28,6 +28,10 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses( {
     TestLocalLink.class
     , TestLocalConnection.class
+//    , TestRemoteLink.class
+//    , TestRemoteConnection.class
+//    , TestDeltaAssembler.class
+    
 })
 
 public class TS_Delta {

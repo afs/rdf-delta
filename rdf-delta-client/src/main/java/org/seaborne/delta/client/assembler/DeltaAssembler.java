@@ -53,7 +53,7 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.util.FmtUtils ;
 import org.apache.jena.sparql.util.NodeUtils ;
 import org.apache.jena.util.iterator.ExtendedIterator ;
-import org.seaborne.delta.DPNames ;
+import org.seaborne.delta.DPConst ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.client.DeltaConnection ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
@@ -85,7 +85,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
             FmtLog.info(log, "Destination: '%s'", dest) ;
-            RDFChanges sc = DeltaLib.destination(dest+DPNames.EP_Patch) ;
+            RDFChanges sc = DeltaLib.destination(dest+DPConst.EP_Patch) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         

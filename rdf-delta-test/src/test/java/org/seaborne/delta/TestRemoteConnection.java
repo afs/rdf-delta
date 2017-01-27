@@ -18,6 +18,21 @@
 
 package org.seaborne.delta;
 
-public class TestDeltaAPI {
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 
+public class TestRemoteConnection extends AbstractTestDeltaConnection {
+    static Setup.LinkSetup setup = new Setup.RemoteSetup();
+    
+    @Override
+    public Setup.LinkSetup getSetup() {
+        return setup;
+    }
+    
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

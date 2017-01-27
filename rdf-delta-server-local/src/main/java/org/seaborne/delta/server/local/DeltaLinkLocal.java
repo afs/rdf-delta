@@ -21,7 +21,6 @@ package org.seaborne.delta.server.local;
 import java.io.InputStream ;
 import java.util.List;
 
-import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.graph.Node;
@@ -76,17 +75,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
 
     @Override
-    public Id newDataset(JsonObject description) {
-        localServer.createDataSource(false, null, null);
-        throw new NotImplemented();
-//        LocalServer localServer ;
-//        
-//        Id id = Id.create();
-//        Location sourceArea;
-//        Location patchesArea;
-//        DataSource newDataSource = DataSource.attach(id, "uri", sourceArea, patchesArea);
-//        dataRegistry.put(id, newDataSource);
-//        return id ;
+    public Id newDataSource(String name, String baseURI) {
+        return localServer.createDataSource(false, name, baseURI);
     }
 
     @Override

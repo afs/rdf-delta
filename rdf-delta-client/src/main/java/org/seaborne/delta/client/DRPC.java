@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DPNames.*;
+import static org.seaborne.delta.DPConst.*;
 
 import java.io.IOException ;
 import java.util.Objects ;

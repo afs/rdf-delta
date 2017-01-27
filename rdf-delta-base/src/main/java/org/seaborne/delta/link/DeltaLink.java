@@ -20,7 +20,6 @@ package org.seaborne.delta.link;
 
 import java.util.List;
 
-import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFChanges;
@@ -32,8 +31,14 @@ import org.seaborne.patch.RDFPatch ;
  * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
 public interface DeltaLink {
-    /** Create a new dataset and return the unique Id for it */  
-    public Id newDataset(JsonObject description) ;
+    /** 
+     * Create a new dataset and return the unique Id for it.
+     * <p>
+     * The {@code name} is an unused name for this link; it is a file name (not a path).
+     * <p>
+     * The {@code uri} is carried around with the data source.
+     */  
+    public Id newDataSource(String name, String uri) ;
     
     /** Make a dataset unavailable.
      *  Actual deleting of resources depends on the implementation.

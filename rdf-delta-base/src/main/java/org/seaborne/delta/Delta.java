@@ -27,17 +27,19 @@ public class Delta {
     public static String namespace = "http://jena.apache.org/rdf-delta/" ;
     private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
+    private static String LoggerNameBase = "Delta";
     
     public final static Logger getDeltaLogger(String subName) {
         if ( subName == null || subName.isEmpty() )
-            return LoggerFactory.getLogger("Delta") ;
+            return LoggerFactory.getLogger(LoggerNameBase) ;
         else
-            return LoggerFactory.getLogger("Delta:"+subName) ;
+            return LoggerFactory.getLogger(LoggerNameBase+"."+subName) ;
     }
     
     public final static Logger DELTA_LOG        = getDeltaLogger("") ;
     public final static Logger DELTA_HTTP_LOG   = getDeltaLogger("HTTP") ;
     public final static Logger DELTA_RPC_LOG    = getDeltaLogger("RPC") ;
+    public final static Logger DELTA_CONFIG_LOG = getDeltaLogger("Config") ;
 
     static { JenaSystem.init(); } 
     

@@ -110,17 +110,16 @@ public class PersistentCounter {
             return Long.parseLong(str) ;
         } 
         catch (IOException ex) {
-            Log.fatal(PersistentCounter.class, "IOException: " + ex.getMessage(), ex) ;
+            Log.error(PersistentCounter.class, "IOException: " + ex.getMessage(), ex) ;
             IO.exception(ex) ;
         }
         catch (NumberFormatException ex) {
-            Log.fatal(PersistentCounter.class, "NumberformatException: " + ex.getMessage()) ;
+            Log.error(PersistentCounter.class, "NumberformatException: " + ex.getMessage()) ;
             throw new InternalErrorException(ex) ;
         }
         // Not reached.
         return Long.MIN_VALUE ;
     }
-
     
     private static void write(String filename, long value) {
         try { writeStringAsUTF8(filename, Long.toString(value)) ; } 

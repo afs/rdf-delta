@@ -31,8 +31,8 @@ public class DataSourceDescription {
         this.uri = uri;
     }
     
-    public final static String F_ID = DPNames.F_ID;
-    public final static String F_URI = DPNames.F_URI;
+    public final static String F_ID = DPConst.F_ID;
+    public final static String F_URI = DPConst.F_URI;
     
     public JsonObject asJson() {
         return JSONX.buildObject(b->{

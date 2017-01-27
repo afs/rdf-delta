@@ -18,44 +18,21 @@
 
 package org.seaborne.delta;
 
-import org.apache.jena.atlas.lib.NotImplemented;
-import org.apache.jena.atlas.logging.LogCtl;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaLinkMgr;
-import org.seaborne.delta.server.local.*;
 
 public class TestLocalLink extends AbstractTestDeltaLink {
-    @BeforeClass public static void setForTesting() { 
-        //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
-    }
-    
-    // Set DataSource for local connection to look up.
-    protected Id dataId = Id.create();
-    protected DataRegistry dataRegistry = new DataRegistry("test");
+    static Setup.LinkSetup setup = new Setup.LocalSetup();
     
     @Override
-    public DeltaLink getLink() {
-        DeltaLinkMgr linkMgr = new DeltaLinkMgr();
-        throw new NotImplemented();
-        //return DeltaLinkLocal.create(dataRegistry, linkMgr);
+    public Setup.LinkSetup getSetup() {
+        return setup;
     }
-
-    private static String SourceAreaTmp = "target/sources";
-    private static String PatchAreaTmp = "target/patches";
     
-    @Override
-    public void reset() {
-        FileStore.resetTracked();
-        DeltaTestLib.resetTestAreas();
-        DataSource dataSource = DataSource.attach(dataId, "uri", DeltaTestLib.SourceArea, DeltaTestLib.PatchArea);
-        dataRegistry.clear();
-        dataRegistry.put(dataId, dataSource);
-    }
-
-    @Override
-    public Id getDataSourceId() {
-        return dataId;
-    }
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

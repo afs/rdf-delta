@@ -167,6 +167,11 @@ public class DeltaConnection {
 //        
 //    }
     
+    public DeltaLink getLink() {
+        return link;
+    }
+    
+
     public String getName() {
         return label;
     }

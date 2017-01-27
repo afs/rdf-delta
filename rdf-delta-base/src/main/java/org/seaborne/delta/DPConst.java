@@ -18,7 +18,7 @@
 
 package org.seaborne.delta;
 
-public class DPNames {
+public class DPConst {
     // Endpoints.
     public static final String EP_RPC          = "rpc";
     public static final String EP_Patch        = "patch";
@@ -51,6 +51,7 @@ public class DPNames {
 
     /** Default choice of port */
     public static final int    PORT            = 1066;
+    public static final int SYSTEM_VERSION = 1; 
 
     // HTTP query string.
     public static final String paramZone       = "zone";

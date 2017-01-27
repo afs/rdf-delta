@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.server.http;
 
+import java.net.BindException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,7 +29,9 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DPNames;
+import org.seaborne.delta.DPConst;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -46,46 +49,29 @@ public class CmdDeltaServer {
     
     private static Logger LOG = DPS.LOG; 
 
+    private static ArgDecl argPort = new ArgDecl(true, "port");
+    private static ArgDecl argBase = new ArgDecl(true, "base");
+    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
+
     public static void main(String...args) {
         // ---- Command Line
         CmdLineArgs cla = new CmdLineArgs(args);
-        ArgDecl argPort = new ArgDecl(true, "port");
-        ArgDecl argBase = new ArgDecl(true, "base");
-        ArgDecl argConf = new ArgDecl(true, "conf", "config");
         
         cla.add(argPort);
         cla.add(argBase);
         cla.add(argConf);
-        
         cla.process();
-        
-        int port = DPNames.PORT;
-        String portStr = null;
-        if ( cla.contains(argPort) ) {
-            portStr = cla.getArg(argPort).getValue();
-        } else {
-            portStr = getenv(DPNames.ENV_PORT);
-        }
-        
-        if ( portStr != null ) {
-            try {
-                port = Integer.parseInt(portStr);
-            } catch (NumberFormatException ex) {
-                System.err.println("Failed to parse the port number: "+portStr);
-                System.exit(1);
-            }
-        }
         
         String configFile = null;
         if ( cla.contains(argConf) )
             configFile = cla.getArg(argConf).getValue();
         else
-            configFile = getenv(DPNames.ENV_CONFIG);
+            configFile = getenv(DPConst.ENV_CONFIG);
         
         // ---- Environment
         String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
         if ( runtimeArea == null ) {
-            runtimeArea = getenv(DPNames.ENV_BASE);
+            runtimeArea = getenv(DPConst.ENV_BASE);
             // Default to "."?
             if ( runtimeArea == null ) {
                 System.err.println("Must use --base or environment variable DELTA_BASE to set the server runtime area.");
@@ -112,22 +98,58 @@ public class CmdDeltaServer {
 //        Path patches = base.resolve(DPNames.PATCHES).toAbsolutePath();
 //        DataSource.formatSourceArea(sourceArea, patchesArea);
 //        DataSource.cleanSourceArea(sourceArea, patchesArea);
-        Location baseArea = Location.create(base.toString());
+        Location baseArea = IOX.asLocation(base);
         
         if ( configFile == null )
-            configFile = baseArea.getPath(DPNames.SERVER_CONFIG);
+            configFile = baseArea.getPath(DPConst.SERVER_CONFIG);
         
         FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
-        
         LocalServer server = LocalServer.attach(baseArea, configFile);
+        int port = choosePort(cla, server);
         DeltaLink link = DeltaLinkLocal.create(server);
         DataPatchServer dps = new DataPatchServer(port, link) ;
         // And away we go.
         FmtLog.info(LOG, "START: Delta Server port=%d, base=%s", port, base.toString());
-        dps.start();
+        try { 
+            dps.start();
+        } catch(BindException ex) {
+            Delta.DELTA_LOG.error("Address in use: port="+port);
+            System.exit(0);
+        }
         //dps.join();
     }
 
+    private static int choosePort(CmdLineArgs cla, LocalServer server) {
+        // The port choosen from this ordered list:
+        //   Command line
+        //   Environment variable
+        //   Server config file
+        //   Default.
+        
+        int port = -1;
+        String portStr = null;
+        if ( cla.contains(argPort) ) {
+            portStr = cla.getArg(argPort).getValue();
+        } else {
+            portStr = getenv(DPConst.ENV_PORT);
+        }
+        
+        if ( portStr != null ) {
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException ex) {
+                System.err.println("Failed to parse the port number: "+portStr);
+                System.exit(1);
+            }
+        }
+        
+        if ( port == -1 )
+            port = DPConst.PORT;
+        
+        return port ;
+
+    }
+    
     /** Check/format the server area. */
     private static void ensure_setup(Path sources, Path patches) {
         FileOps.ensureDir(sources.toString());

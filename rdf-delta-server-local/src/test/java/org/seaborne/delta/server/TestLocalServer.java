@@ -28,13 +28,13 @@ import org.seaborne.delta.server.local.LocalServer;
 
 /**
  *  Tests of {@link LocalServer} on a preconfigured LocalServer area.
- *  See {@link TestLocalServer2} for tests involving create and delete
+ *  See {@link TestLocalServerCreateDelete} for tests involving create and delete
  *  of data sources.
  */
-public class TestLocalServer1 {
+public class TestLocalServer {
     
     // This is the pre-setup testing area and is not modified in tests.
-    public static String SERVER_DIR = "testing/delta";
+    public static String SERVER_DIR = "testing/DeltaServer";
 
     @Test public void local_server_01() {
         // Pre-setup.

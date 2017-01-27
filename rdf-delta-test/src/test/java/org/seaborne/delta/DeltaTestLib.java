@@ -20,18 +20,27 @@ package org.seaborne.delta;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.tdb.base.file.Location;
+import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.server.local.FileStore;
+import org.seaborne.delta.server.local.LocalServer;
 
 public class DeltaTestLib {
-    public static Location SourceArea = Location.create("target/test/sources");
-    public static Location PatchArea = Location.create("target/test/patches");
-    
-    public static void resetTestAreas() {
-        ensureClear(SourceArea.getDirectoryPath()); 
-        ensureClear(PatchArea.getDirectoryPath());
-    }
+    // Static resources area.
+    protected static String DIR = "testing/";
+    public static Location ServerArea = Location.create("target/test/server");
     
     private static void ensureClear(String area) {
         FileOps.ensureDir(area);
-        FileOps.clearDirectory(area);
+        FileOps.clearAll(area);
+    }
+    
+    /** Make a clean empty (no datasources) LocalServer */ 
+    static LocalServer createEmptyTestServer() {
+        FileStore.resetTracked();
+        String cfg = "delta.cfg";
+        ensureClear(ServerArea.getDirectoryPath());
+        IOX.copy(DIR+cfg, ServerArea.getDirectoryPath());//.getPath(cfg)); 
+        LocalServer localServer = LocalServer.attach(ServerArea);
+        return localServer;
     }
 }

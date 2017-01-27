@@ -38,7 +38,7 @@ public abstract class DeltaLinkBase implements DeltaLink {
                 Log.warn(this,  "Already registered: "+clientId);
                 return regToken; 
             } else {
-                Log.fatal(this,  "Already registered under a different clientId: "+clientId);
+                Log.error(this,  "Already registered under a different clientId: "+clientId);
             }
         }
             

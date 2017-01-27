@@ -37,9 +37,6 @@ public class DataRegistry extends Registry<Id, DataSource> {
     
     private static DataRegistry singleton = new DataRegistry("central") ;
 
-    // XXX delete me. (LocalServer should have the static to find THE local server).
-    public static DataRegistry get() { return singleton ; }
-    
     @Override
     public void put(Id key, DataSource ds) {
         LOG.info("Register: "+key );

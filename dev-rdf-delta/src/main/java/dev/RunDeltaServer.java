@@ -42,8 +42,8 @@ public class RunDeltaServer {
         }
     }
     
+    
     public static void main$(String... args) {
-        
         if ( args.length == 0 )
             args = new String[] {"--base=DeltaServer"};
         
@@ -59,7 +59,6 @@ public class RunDeltaServer {
         Id clientId = Id.create();
         
         DeltaLink link = new DeltaLinkHTTP(url);
-        
         
         //RegToken token = link.register(clientId);
         
@@ -83,8 +82,6 @@ public class RunDeltaServer {
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
         //Txn.executeWrite(dsg,()->RDFDataMgr.read(dsg, datafile));
-        
-        
         link.deregister();
         
         // Error cases

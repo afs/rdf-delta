@@ -26,8 +26,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.tdb.base.file.Location;
 
 public class IOX {
     
@@ -55,8 +57,44 @@ public class IOX {
     public static void move(Path src, Path dst) {
         try { Files.move(src, dst, StandardCopyOption.ATOMIC_MOVE) ; }
         catch (IOException ex) {
-            FmtLog.warn(IOX.class, ex, "IOException moving %s to %s", src, dst);
+            FmtLog.error(IOX.class, ex, "IOException moving %s to %s", src, dst);
             IO.exception(ex);
         }
     }
+    
+    /** Copy a file, not atomic. *
+     * Can copy to a directory or over an existing file.
+     * @param srcFilename
+     * @param dstFilename
+     */
+    public static void copy(String srcFilename, String dstFilename) {
+        Path src = Paths.get(srcFilename);
+        if ( ! Files.exists(src) )
+            throw new RuntimeIOException("No such file: "+srcFilename);
+        
+        Path dst = Paths.get(dstFilename);
+        if ( Files.isDirectory(dst) )
+            dst = dst.resolve(src.getFileName());
+        
+        try { Files.copy(src, dst); }
+        catch (IOException ex) {
+            FmtLog.error(IOX.class, ex, "IOException copying %s to %s", srcFilename, dstFilename);
+            IO.exception(ex);
+        }
+    }
+
+    /** Convert a {@link Path}  to a {@link Location}. */
+    public static Location asLocation(Path path) {
+        if ( ! Files.isDirectory(path) )
+            throw new RuntimeIOException("Path is not naming a directory: "+path);
+        return Location.create(path.toString());
+    }
+    
+    /** Convert a {@link Location} to a {@link Path}. */
+    public static Path asPath(Location location) {
+        if ( location.isMem() )
+            throw new RuntimeIOException("Location is a memory location: "+location);
+        return Paths.get(location.getDirectoryPath());
+    }
+
 }
