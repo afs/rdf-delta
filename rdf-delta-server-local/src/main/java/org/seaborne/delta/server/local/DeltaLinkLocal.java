@@ -21,7 +21,6 @@ package org.seaborne.delta.server.local;
 import java.io.InputStream ;
 import java.util.List;
 
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DataSourceDescription;
@@ -76,12 +75,14 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     @Override
     public Id newDataSource(String name, String baseURI) {
+        checkRegistered();
         return localServer.createDataSource(false, name, baseURI);
     }
 
     @Override
-    public Id removeDataset(Id dsRef) {
-        throw new NotImplemented();
+    public void removeDataset(Id dsRef) {
+        checkRegistered();
+        localServer.removeDataSource(dsRef);
     }
 
     @Override
@@ -91,11 +92,15 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
-        return getDataSource(dsRef).getDescription();
+        DataSource source = localServer.getDataSource(dsRef);
+        if ( source == null )
+            return null;
+        return source.getDescription();
     }
 
     @Override
     public int sendPatch(Id dsRef, RDFPatch rdfPatch) {
+        checkRegistered();
         DataSource source = getDataSource(dsRef);
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
         FileEntry entry = source.getReceiver().receive(rdfPatch, null);
@@ -164,5 +169,10 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         RDFPatch patch = source.getPatchSet().fetch(version);
         FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
         return patch;
+    }
+
+    private void checkRegistered() {
+        if ( ! isRegistered() )
+            throw new DeltaBadRequestException("Not registered");
     }
 }

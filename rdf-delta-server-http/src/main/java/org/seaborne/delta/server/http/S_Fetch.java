@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.server.http;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.servlet.http.HttpServletRequest ;
 
 import org.apache.jena.web.HttpSC ;
@@ -31,7 +33,7 @@ public class S_Fetch extends FetchBase {
 
     static public Logger LOG = Delta.getDeltaLogger("Fetch");
     
-    public S_Fetch(DeltaLink engine) {
+    public S_Fetch(AtomicReference<DeltaLink> engine) {
         super(engine) ;
     }
 
@@ -44,5 +46,10 @@ public class S_Fetch extends FetchBase {
 //            throw new DeltaExceptionBadRequest("Failed to find the patch id");
 //        return x.substring(j + 1);
         
+    }
+
+    @Override
+    protected String getOpName() {
+        return "fetch:path";
     }
 }

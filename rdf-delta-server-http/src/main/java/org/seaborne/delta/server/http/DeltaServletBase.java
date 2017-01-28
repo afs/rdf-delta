@@ -21,6 +21,7 @@ package org.seaborne.delta.server.http;
 import java.io.IOException ;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.ServletConfig ;
 import javax.servlet.ServletException ;
@@ -43,17 +44,17 @@ import org.slf4j.Logger ;
 public abstract class DeltaServletBase extends HttpServlet { 
 
     protected static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
-    protected final DeltaLink engine ;
+    // Switchable (for tests).
+    protected final AtomicReference<DeltaLink> engine;
+    
     //protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
     
-    // Statcis to catch cross contamination.
+    // Static to catch cross contamination.
     protected final Map<Id, DeltaLink> links = new ConcurrentHashMap<>();
     // These should be unique across the server.
     protected static final Map<RegToken, Id>  registrations = new ConcurrentHashMap<>();
     
-    //private DeltaLink engine ;
-
-    protected DeltaServletBase(DeltaLink engine) {
+    protected DeltaServletBase(AtomicReference<DeltaLink> engine) {
         this.engine = engine;
     }
     
@@ -66,7 +67,7 @@ public abstract class DeltaServletBase extends HttpServlet {
     }
 
     public DeltaLink getLink(DeltaAction action) {
-        return engine;
+        return engine.get();
     }
     
     protected abstract DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;

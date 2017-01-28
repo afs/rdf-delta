@@ -46,7 +46,7 @@ class DeltaAction {
     }
 
     /** HTTP action */
-    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, Id clientId, RegToken regToken, Args args) {
+    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, Id clientId, RegToken regToken, String opName, Args args) {
         return new DeltaAction(request, response, regToken, null, null, null, args);
     }
         

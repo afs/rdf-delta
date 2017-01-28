@@ -42,9 +42,9 @@ public interface DeltaLink {
     
     /** Make a dataset unavailable.
      *  Actual deleting of resources depends on the implementation.
-     *  A server will tend not to really delete a persistent database.
+     *  (A server will tend not to really delete a persistent database.)
      */
-    public Id removeDataset(Id dsRef);
+    public void removeDataset(Id dsRef);
 
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;

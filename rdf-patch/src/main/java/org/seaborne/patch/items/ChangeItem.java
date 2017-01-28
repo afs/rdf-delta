@@ -18,4 +18,10 @@
 
 package org.seaborne.patch.items;
 
-public class ChangeItem { }
+public abstract class ChangeItem {
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract boolean equals(Object other);
+}

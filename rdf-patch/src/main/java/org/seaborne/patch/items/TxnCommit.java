@@ -18,4 +18,14 @@
 
 package org.seaborne.patch.items;
 
-public class TxnCommit extends ChangeItem { }
+public class TxnCommit extends ChangeItem { 
+    @Override
+    public int hashCode() {
+        return 17;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof TxnCommit;
+    }
+}

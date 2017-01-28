@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.server.http;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.seaborne.delta.Delta;
@@ -26,7 +28,7 @@ import org.seaborne.delta.link.DeltaLink;
 
 /** fetch by "?id=" */
 public class S_FetchId extends FetchBase {
-    public S_FetchId(DeltaLink engine) {
+    public S_FetchId(AtomicReference<DeltaLink> engine) {
         super(engine);
     }
 
@@ -40,5 +42,10 @@ public class S_FetchId extends FetchBase {
         if ( a.patchId == null && a.version == null )
             throw new DeltaBadRequestException("No patch id, no version");
         return a;
+    }
+    
+    @Override
+    protected String getOpName() {
+        return "fetch";
     }
 }

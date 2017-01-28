@@ -19,6 +19,7 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,17 +28,19 @@ import org.seaborne.delta.link.DeltaLink;
 /** Base class for operations working on HTTPrequest directly, unlike RPCs */ 
 public abstract class HttpOperationBase extends DeltaServletBase {
 
-    public HttpOperationBase(DeltaLink engine) {
+    public HttpOperationBase(AtomicReference<DeltaLink> engine) {
         super(engine);
     }
     
-    protected abstract Args getArgs(HttpServletRequest request) throws IOException;
+    protected Args getArgs(HttpServletRequest request) throws IOException {
+        return Args.args(request);
+    }
     
     @Override
     final
     protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Args args = getArgs(req) ;
-        return DeltaAction.create(req, resp, args.clientId, args.regToken, args);
+        Args args = getArgs(req);
+        return DeltaAction.create(req, resp, args.clientId, args.regToken, getOpName(), args);
     }
 
     @Override
@@ -47,6 +50,8 @@ public abstract class HttpOperationBase extends DeltaServletBase {
         validateAction(action.httpArgs);
     }
 
+    protected abstract String getOpName();
+    
     protected abstract void checkRegistration(DeltaAction action);
 
     protected abstract void validateAction(Args httpArgs);

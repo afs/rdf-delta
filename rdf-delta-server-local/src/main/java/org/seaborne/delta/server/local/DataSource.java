@@ -18,10 +18,13 @@
 
 package org.seaborne.delta.server.local;
 
+import java.nio.file.Path;
+
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.IOX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +43,9 @@ public class DataSource {
     // Process that can take an input stream and put a patch safe on storage.
     private final Receiver receiver;
     private final PatchSet patchSet;
+
+    // Duplicates location if not in-memory.
+    private final Path path;
     
     /** Attach to a datasource file area. 
      * Create if necessary.  
@@ -70,6 +76,7 @@ public class DataSource {
         super();
         this.id = id;
         this.location = location;
+        this.path = location.isMem() ? null : IOX.asPath(location);
         this.receiver = receiver;
         this.uri = name;
         this.patchSet = patchSet;
@@ -91,12 +98,21 @@ public class DataSource {
         return location;
     }
 
+    /** Get path to file area - returns null if this is an in-memory DataSource. */
+    public Path getPath() {
+        return path;
+    }
+
     public PatchSet getPatchSet() {
         return patchSet;
     }
 
     public DataSourceDescription getDescription() {
         return new DataSourceDescription(id, uri); 
+    }
+    
+    public boolean inMemory() {
+        return location.isMem(); 
     }
     
     private static void formatSourceArea(Location sourcesArea, Location patchesArea) {

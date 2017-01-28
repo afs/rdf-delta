@@ -18,13 +18,31 @@
 
 package org.seaborne.delta.server.http;
 
-import static org.seaborne.delta.DPConst.*;
+import static org.seaborne.delta.DPConst.F_ARG;
+import static org.seaborne.delta.DPConst.F_ARRAY;
+import static org.seaborne.delta.DPConst.F_CLIENT;
+import static org.seaborne.delta.DPConst.F_DATASOURCE;
+import static org.seaborne.delta.DPConst.F_ID;
+import static org.seaborne.delta.DPConst.F_NAME;
+import static org.seaborne.delta.DPConst.F_OP;
+import static org.seaborne.delta.DPConst.F_TOKEN;
+import static org.seaborne.delta.DPConst.F_URI;
+import static org.seaborne.delta.DPConst.F_VALUE;
+import static org.seaborne.delta.DPConst.OP_CREATE_DS;
+import static org.seaborne.delta.DPConst.OP_DEREGISTER;
+import static org.seaborne.delta.DPConst.OP_DESCR_DS;
+import static org.seaborne.delta.DPConst.OP_EPOCH;
+import static org.seaborne.delta.DPConst.OP_ISREGISTERED;
+import static org.seaborne.delta.DPConst.OP_LIST_DS;
+import static org.seaborne.delta.DPConst.OP_REGISTER;
+import static org.seaborne.delta.DPConst.OP_REMOVE_DS;
 
 import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.io.PrintStream ;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
@@ -35,6 +53,7 @@ import org.apache.jena.atlas.json.* ;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
@@ -48,8 +67,14 @@ public class S_DRPC extends DeltaServletBase {
 
     private static Logger     LOG       = Delta.DELTA_RPC_LOG;
     private static JsonObject noResults = new JsonObject();
+    private static JsonObject resultTrue = JSONX.buildObject((b)->{
+        b.key(F_VALUE).value(true);  
+    });
+    private static JsonObject resultFalse = JSONX.buildObject((b)->{
+        b.key(F_VALUE).value(false);  
+    });
     
-    public S_DRPC(DeltaLink engine) {
+    public S_DRPC(AtomicReference<DeltaLink> engine) {
         super(engine) ;
     }
     
@@ -96,6 +121,8 @@ public class S_DRPC extends DeltaServletBase {
         switch(action.opName) {
             // No registration required.
             case OP_REGISTER:
+                // Does own check.
+            case OP_ISREGISTERED:
             case OP_LIST_DS:
             case OP_DESCR_DS:
                 
@@ -103,14 +130,10 @@ public class S_DRPC extends DeltaServletBase {
             // Registration required.
             case OP_EPOCH:
             case OP_DEREGISTER:
-//            case OP_CREATE_DS:
-//            case OP_REMOVE_DS:
-                checkRegistration(action);
-                break;
             case OP_CREATE_DS:
             case OP_REMOVE_DS:
-                LOG.warn("Not implemented: "+action.opName);
-                throw new DeltaBadRequestException("Not implemented: "+action.opName);
+                checkRegistration(action);
+                break;
             default:
                 LOG.warn("Unknown operation: "+action.opName);
                 throw new DeltaBadRequestException("Unknown operation: "+action.opName);
@@ -138,12 +161,21 @@ public class S_DRPC extends DeltaServletBase {
             case OP_DEREGISTER:
                 rslt = deregister(action);
                 break ;
+            case OP_ISREGISTERED:
+                rslt = isRegistered(action);
+                break ;
             case OP_LIST_DS:
                 rslt = listDataSources(action);
                 break ;
             case OP_DESCR_DS:
                 rslt = describeDataSource(action);
                 break ;
+            case OP_CREATE_DS:
+                rslt = createDataSource(action);
+                break;
+            case OP_REMOVE_DS:
+                rslt = removeDataSource(action);
+                break;
             default:
                 throw new InternalErrorException("Unknown operation: "+action.opName);
         }
@@ -187,8 +219,7 @@ public class S_DRPC extends DeltaServletBase {
         }
     }
     
-    //private JsonValue register(JsonObject arg) {
-    
+    // Header: { client: } -> { token: }   
     private JsonValue register(DeltaAction action) {
         Id client = getFieldAsId(action, F_CLIENT);
         RegToken token = getLink(action).register(client);
@@ -197,6 +228,16 @@ public class S_DRPC extends DeltaServletBase {
             x.key(F_TOKEN).value(token.getUUID().toString());
         });
         return jv;
+    }
+
+    // Header: { token: } -> { boolean: }   
+    private JsonValue isRegistered(DeltaAction action) {
+        // Registation not checked (it would be a "bad request" is done in validateAction 
+       if ( action.regToken == null )
+           return resultFalse;
+       if ( !isRegistered(action.regToken) )
+           return resultFalse;
+        return resultTrue;
     }
 
     private JsonValue deregister(DeltaAction action) {
@@ -214,7 +255,7 @@ public class S_DRPC extends DeltaServletBase {
     private JsonValue listDataSources(DeltaAction action) {
         List<Id> ids = getLink(action).listDatasets();
         return JSONX.buildObject(b->{
-            b.key(F_RESULT);
+            b.key(F_ARRAY);
             b.startArray();
             ids.forEach(id->b.value(id.asJsonString()));
             b.finishArray();
@@ -224,7 +265,24 @@ public class S_DRPC extends DeltaServletBase {
     private JsonValue describeDataSource(DeltaAction action) {
         String dataSourceId = getFieldAsString(action, F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
-        return getLink(action).getDataSourceDescription(dsRef).asJson();
+        DataSourceDescription dsd = getLink(action).getDataSourceDescription(dsRef);
+        if ( dsd == null )
+            return noResults;
+        return dsd.asJson();
+    }
+    
+    private JsonValue createDataSource(DeltaAction action) {
+        String name = getFieldAsString(action, F_NAME);
+        String uri = getFieldAsString(action, F_URI);
+        Id dsRef = getLink(action).newDataSource(name, uri);
+        return JSONX.buildObject(b->b.key(F_ID).value(dsRef.asJsonString()));
+    }
+    
+    private JsonValue removeDataSource(DeltaAction action) {
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE);
+        Id dsRef = Id.fromString(dataSourceId);
+        getLink(action).removeDataset(dsRef);
+        return noResults;
     }
     
     private static String getFieldAsString(DeltaAction action, String field) {

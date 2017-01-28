@@ -19,6 +19,7 @@
 package org.seaborne.delta.link;
 
 import org.apache.jena.atlas.logging.Log;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
 
 /** Support for management of registrations for a {@link DeltaLink}.
@@ -39,6 +40,7 @@ public abstract class DeltaLinkBase implements DeltaLink {
                 return regToken; 
             } else {
                 Log.error(this,  "Already registered under a different clientId: "+clientId);
+                throw new DeltaBadRequestException("Already registered under a different clientId");
             }
         }
             
@@ -53,6 +55,7 @@ public abstract class DeltaLinkBase implements DeltaLink {
         if ( regToken != null )
             linkMgr.deregister(regToken);
         regToken = null;
+        // Retain the clientId.
     }
 
     /** Check whether a client id is registered for this link. */

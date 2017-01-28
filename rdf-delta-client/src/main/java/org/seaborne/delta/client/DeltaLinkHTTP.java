@@ -26,8 +26,6 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
-import org.apache.jena.atlas.lib.NotImplemented ;
-import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.*;
@@ -35,7 +33,6 @@ import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.PatchReader ;
-import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 
@@ -76,22 +73,41 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     }
 
     @Override
-    public RDFChanges createRDFChanges(Id dsRef) {
-        String s = DeltaLib.makeURL(remoteSend, DPConst.paramDatasource, dsRef.asParam());
+    public RDFChangesHTTP createRDFChanges(Id dsRef) {
+        String s = DeltaLib.makeURL(remoteSend, DPConst.paramReg, regToken.asString(), DPConst.paramDatasource, dsRef.asParam());
         return new RDFChangesHTTP(s);
     }
 
     @Override
     public int sendPatch(Id dsRef, RDFPatch patch) {
-        RDFChanges remote = createRDFChanges(dsRef);
+        RDFChangesHTTP remote = createRDFChanges(dsRef);
         patch.apply(remote);
-        FmtLog.warn(getClass(), "NO VERSION");
+        String str = remote.getResponse();
+        if ( str != null ) {
+            try {
+                JsonObject obj = JSON.parse(str);
+                int version = obj.get(DPConst.F_VERSION).getAsNumber().value().intValue();
+                return version;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
         return -1;
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
         String s = DeltaLib.makeURL(remoteReceive, DPConst.paramDatasource, dsRef.asParam(), DPConst.paramVersion, version);
+        return fetchCommon(s);
+    }
+
+    @Override
+    public RDFPatch fetch(Id dsRef, Id patchId) {
+        String s = DeltaLib.makeURL(remoteReceive, DPConst.paramDatasource, dsRef.asParam(), DPConst.paramPatch, patchId.asParam());
+        return fetchCommon(s);
+    }
+    
+    private RDFPatch fetchCommon(String s) {
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
         try {
             InputStream in = HttpOp.execHttpGet(s) ;
@@ -105,13 +121,6 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             System.err.println("HTTP Exception: "+ex.getMessage()) ;
             return null ;
         }
-        
-        //return LibPatchFetcher.fetch_byID(remoteServer+DP.EP_Fetch, dsRef.asParam(), version);
-    }
-
-    @Override
-    public RDFPatch fetch(Id dsRef, Id patchId) {
-        throw new NotImplemented();
     }
 
     public String getServerURL() {
@@ -147,16 +156,14 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
 
     @Override
     public void deregister() {
-        // Also in the header
-        JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_TOKEN).value(regToken.asString());
-        });
-        JsonObject obj = rpc(DPConst.OP_DEREGISTER, arg);
+        JsonObject obj = rpc(DPConst.OP_DEREGISTER, emptyObject);
+        regToken = null;
     }
 
     @Override
     public boolean isRegistered() {
-        throw new NotImplemented();
+        JsonObject obj = rpc(DPConst.OP_ISREGISTERED, emptyObject);
+        return obj.get(DPConst.F_VALUE).getAsBoolean().value();
     }
 
     @Override
@@ -172,20 +179,36 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public List<Id> listDatasets() {
         JsonObject obj = rpc(DPConst.OP_LIST_DS, emptyObject);
-        JsonArray array = obj.get(DPConst.F_RESULT).getAsArray();
-        List<Id> x = array.stream().map(jv-> 
-            {return Id.fromString(jv.getAsString().value());} ).collect(Collectors.toList()) ;
+        JsonArray array = obj.get(DPConst.F_ARRAY).getAsArray();
+        List<Id> x = array.stream()
+            .map(jv->Id.fromString(jv.getAsString().value()))
+            .collect(Collectors.toList()) ;
         return x ;
     }
 
     @Override
     public Id newDataSource(String name, String uri) {
-        throw new NotImplemented();
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DPConst.F_NAME).value(name);
+            b.key(DPConst.F_URI).value(uri);
+        });
+        JsonObject obj = rpc(DPConst.OP_CREATE_DS, arg);
+
+        // Exists?
+        
+        String idStr = obj.get(DPConst.F_ID).getAsString().value();
+        Id dsRef = Id.fromString(idStr);
+        return dsRef;
     }
 
+    // XXX getFieldAsXXX - share with S_DRPC.
+    
     @Override
-    public Id removeDataset(Id dsRef) {
-        throw new NotImplemented();
+    public void removeDataset(Id dsRef) {
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DPConst.F_DATASOURCE).value(dsRef.asJsonString());
+        });
+        JsonObject obj = rpc(DPConst.OP_REMOVE_DS, arg);
     }
 
     @Override
@@ -194,6 +217,8 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             b.key(DPConst.F_DATASOURCE).value(dsRef.asJsonString());
         });
         JsonObject obj = rpc(DPConst.OP_DESCR_DS, arg);
+        if ( obj.isEmpty() )
+            return null;
         return DataSourceDescription.fromJson(obj);
     }
 

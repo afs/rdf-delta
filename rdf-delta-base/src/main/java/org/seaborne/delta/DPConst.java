@@ -24,10 +24,12 @@ public class DPConst {
     public static final String EP_Patch        = "patch";
     public static final String EP_Fetch        = "fetch";
 
-    // RPC calls - operationn ames.
+    // RPC calls - operation names.
     public static final String OP_EPOCH        = "epoch";
     public static final String OP_REGISTER     = "register";
     public static final String OP_DEREGISTER   = "deregister";
+    public static final String OP_ISREGISTERED = "isregistered";
+    
     public static final String OP_LIST_DS      = "list_datasource";
     public static final String OP_DESCR_DS     = "describe_datasource";
     public static final String OP_CREATE_DS    = "create_datasource";
@@ -40,18 +42,22 @@ public class DPConst {
     public static final String F_CLIENT        = "client";
     public static final String F_TOKEN         = "token";
 
-    // RPC arguments
+    // RPC arguments and results.
     public static final String F_BASE          = "base";
     public static final String F_PORT          = "port";
     public static final String F_SOURCES       = "sources";
     public static final String F_ID            = "id";
     public static final String F_VERSION       = "version";
+    public static final String F_NAME          = "name";
     public static final String F_URI           = "uri";
-    public static final String F_RESULT        = "result";
+    // Some atomic JSON value.
+    public static final String F_VALUE         = "value";   
+    // Some JSON array
+    public static final String F_ARRAY         = "array";   
 
     /** Default choice of port */
     public static final int    PORT            = 1066;
-    public static final int SYSTEM_VERSION = 1; 
+    public static final int SYSTEM_VERSION     = 1; 
 
     // HTTP query string.
     public static final String paramZone       = "zone";
@@ -87,6 +93,7 @@ public class DPConst {
     // Relative path name in ENV_BASE for the patches area.
     public static final String PATCHES         = "Patches";
     public static final String DATA            = "data";
+    public static final String DISABLED        = "disabled";
 
     
 }

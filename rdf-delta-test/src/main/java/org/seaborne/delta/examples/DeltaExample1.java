@@ -16,29 +16,9 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.examples;
 
-public class NOTES {
-    // Documentation
-    //   Patch
-    //   Protocol/delta
-    
-    
-    // TestDeltaServer : rdf-delta-server-http.
-    // TestRemoteLink : rdf-delta-test
-    
-    // Organise DevToDos
-    
-    // Client side persistent counter.
-    
-    // Tests - applyt patch.
-    // Plan for more?
-    
-    // Link tests.
-    // TestDeltaServer in rdf-delta-server-http
-    //   AbstractTestDeltaLink in rdf-delta-test
-    //   ** TestRemoteLink
-    // Test DatasetGraphBuffering
-    
-    // AbstractTestDeltaLink and AbstractTestDeltaConnection 
+/** Local */
+public class DeltaExample1 {
+
 }

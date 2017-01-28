@@ -18,10 +18,7 @@
 
 package org.seaborne.delta;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.*;
 
 public class TestRemoteLink extends AbstractTestDeltaLink {
     static Setup.LinkSetup setup = new Setup.RemoteSetup();
@@ -30,6 +27,12 @@ public class TestRemoteLink extends AbstractTestDeltaLink {
     public Setup.LinkSetup getSetup() {
         return setup;
     }
+    
+    // HTTP: Need to fake the low level send.
+    @Test
+    @Ignore
+    @Override
+    public void patch_02() {}
     
     @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
     @AfterClass  public static void afterClass()    { setup.afterClass(); }

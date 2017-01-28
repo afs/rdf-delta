@@ -20,13 +20,17 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
 import java.io.InputStream ;
+import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonNumber;
 import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.riot.WebContent;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.DPConst;
 import org.seaborne.delta.Delta ;
@@ -38,10 +42,10 @@ import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
 
 /** Receive an incoming patch. */
-public class S_Patch extends DeltaServletBase {
+public class S_Patch extends HttpOperationBase {
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
     
-    public S_Patch(DeltaLink engine) {
+    public S_Patch(AtomicReference<DeltaLink> engine) {
         super(engine);
     }
     
@@ -51,24 +55,24 @@ public class S_Patch extends DeltaServletBase {
     }
 
     @Override
-    protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        return null;
-    }
-
-    @Override
-    protected void validateAction(DeltaAction action) throws IOException {
-        checkRegistration(action);
-        if ( action.httpArgs.dataset == null )
-            throw new DeltaBadRequestException("No data source id");
-    }
-    
-    protected void checkRegistration(DeltaAction action) { 
+    protected void checkRegistration(DeltaAction action) {
         if ( action.regToken == null )
             throw new DeltaBadRequestException("No registration token") ;
         if ( !isRegistered(action.regToken) )
             throw new DeltaBadRequestException("Not registered") ;
     }
 
+    @Override
+    protected void validateAction(Args httpArgs) {
+        if ( httpArgs.dataset == null )
+            throw new DeltaBadRequestException("No data source id");
+    }
+    
+    @Override
+    protected String getOpName() {
+        return "patch";
+    }
+    
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
         LOG.info("Patch");
@@ -82,8 +86,11 @@ public class S_Patch extends DeltaServletBase {
                 .key(DPConst.F_VERSION).value(version)
                 .finishObject()
                 .build();
-            
-            //resp.setStatus(HttpSC.NO_CONTENT_204) ;
+            OutputStream out = action.response.getOutputStream();
+            action.response.setContentType(WebContent.contentTypeJSON);
+            action.response.setStatus(HttpSC.OK_200);
+            JSON.write(out, rslt);
+            out.flush();
         } catch (RuntimeException ex) {
             ex.printStackTrace(System.err);
             LOG.warn("Failed to process", ex); 

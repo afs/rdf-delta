@@ -30,8 +30,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaOps;
@@ -53,6 +52,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private final String url;
     // Used to coordinate with reading paches in.
     private final Object syncObject;
+    private String response = null;
     private Node currentTransactionId = null;
     
     // XXX Text token specific.
@@ -76,12 +76,19 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
     
     @Override
+    public void header(String field, Node value) {
+        super.header(field, value);
+        if ( field.equals(RDFPatch.ID) )
+            currentTransactionId = value;
+    }
+    
+    @Override
     public void txnBegin() {
-        super.txnBegin();
         if ( currentTransactionId == null ) {
             currentTransactionId = Id.create().asNode();
             super.header(RDFPatch.ID, currentTransactionId);
         }
+        super.txnBegin();
     }
 
     @Override
@@ -111,6 +118,11 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         synchronized(syncObject) {
             send$();
         }
+    }
+    
+    /** Get the protocol response - may be null */
+    public String getResponse() {
+        return response;
     }
     
 //    /** An {@link HttpEntity} that is "output only"; it writes a RDF Patch
@@ -181,26 +193,15 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 LOG.warn("HTTP response: "+r.getStatusLine()+" ("+url+")");
             else { 
                 HttpEntity e = r.getEntity();
-                if ( e != null )
-                    handleJsonResponse(e);
+                if ( e != null ) {
+                    try ( InputStream ins = e.getContent() ) {
+                        response = IO.readWholeFileAsUTF8(ins);
+                    }
+                } else 
+                    response = null;
             }
         } catch (IOException e) { e.printStackTrace(); }
         // Notify of send.
         reset(); 
-    }
-
-    private void handleJsonResponse(HttpEntity e) {
-        try ( InputStream ins = e.getContent() ) {
-            // If there is a JSON object reply.
-            // Roll this into DRPC: stream->json; json->stream; stream->stream
-            if ( ins.available() > 0 ) {
-                JsonObject obj = JSON.parse(ins);
-                String x = JSON.toStringFlat(obj);
-                LOG.info("HTTP reply: "+x);
-            }
-        }
-        catch (Exception ex) {
-            ex.printStackTrace(System.err);
-        }
     }
 }

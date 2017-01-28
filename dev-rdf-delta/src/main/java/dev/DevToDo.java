@@ -19,17 +19,42 @@
 package dev;
 
 public class DevToDo {
+    // Documentation
+    //   Patch
+    //   Protocol/delta
+    
+    // Examples.
+    
+    // Client side persistent counter and restart.
+    
+    // Tests assembler
+    // Assembler to have a DeltaClient.
+    
+    // Tests - apply patch.
+    // Plan for more?
+
+    // HTTP API tests.
+    //   Implement "not implemented"
+    // Unregister
+    // ** Operations happened when not registered.
+    
+    // Link tests.
+    // TestDeltaServer in rdf-delta-server-http
+    //   AbstractTestDeltaLink in rdf-delta-test
+    //   ** TestRemoteLink
+    // Test DatasetGraphBuffering
+    
+    // AbstractTestDeltaLink and AbstractTestDeltaConnection 
+    
+    // ------------------------------------------------------------------------
     // ClientId to "type" Id. 
     
-    // Design protocol.
-    // "--mem--"
+    // "Design" protocol
     // See 
     //    AbstractTestDeltaLink.client_01
     //    AbstractTestDeltaConnection.client_01
     
     // -- History and parenthood.
-    
-    // -- Documentation
     
     // TIO
     //   Token getType -> STRING, + getActualType "seen as".
@@ -47,7 +72,6 @@ public class DevToDo {
 
     // __ Others
     // Extract polling support to DeltaClient.
-    // Assembler to have a DeltaClient.
 
     // DatasetGraphBuffering
     // 

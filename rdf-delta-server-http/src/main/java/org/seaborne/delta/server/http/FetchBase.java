@@ -20,6 +20,7 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +36,7 @@ import org.seaborne.patch.RDFPatchOps ;
 /** Framework for fetching a patch over HTTP. */ 
 abstract class FetchBase extends HttpOperationBase {
 
-    public FetchBase(DeltaLink engine) {
+    public FetchBase(AtomicReference<DeltaLink> engine) {
         super(engine);
     }
 

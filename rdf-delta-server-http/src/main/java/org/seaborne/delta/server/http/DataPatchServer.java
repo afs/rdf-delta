@@ -19,6 +19,7 @@
 package org.seaborne.delta.server.http;
 
 import java.net.BindException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.Servlet;
 
@@ -38,32 +39,40 @@ public class DataPatchServer {
     private final Server server;
     private final ServletHandler handler;
     private final int port;
+    // Shared across servlets.
+    private final AtomicReference<DeltaLink> engineRef;
 
     public DataPatchServer(int port, DeltaLink engine) {
         DPS.init();
         this.port= port;
         this.server = new Server(port);
+        this.engineRef = new AtomicReference<>(engine);
         ErrorHandler eh = new HttpErrorHandler();
         eh.setServer(server);
         this.handler = new ServletHandler();
         server.setHandler(handler);
         server.addBean(eh);
 
-        S_Patch patchMgr = new S_Patch(engine);
+        S_Patch patchMgr = new S_Patch(this.engineRef);
         // Receive patches
         addServlet("/patch", patchMgr);
 
         // Return patches
-        addServlet("/"+DPConst.EP_Fetch, new S_FetchId(engine));
-        addServlet("/"+DPConst.EP_Patch+"/*", new S_Fetch(engine));
+        addServlet("/"+DPConst.EP_Fetch, new S_FetchId(this.engineRef));
+        addServlet("/"+DPConst.EP_Patch+"/*", new S_Fetch(this.engineRef));
 
         // Other
-        addServlet("/rpc", new S_DRPC(engine));
+        addServlet("/rpc", new S_DRPC(this.engineRef));
         addServlet("/restart", new S_Restart());
         addServlet("/ping", new S_Ping());
     }
     
-    public void addServlet(String path, Servlet servlet) {
+    /** Internal */
+    public void setEngine(DeltaLink engine) {
+        engineRef.set(engine);
+    }
+    
+    private void addServlet(String path, Servlet servlet) {
         handler.addServletWithMapping(new ServletHolder(servlet), path);
     }
     
@@ -81,6 +90,17 @@ public class DataPatchServer {
         }
     }
     
+    public void stop() {
+        try {
+            //Delta.DELTA_LOG.info("DeltaServer stopping");
+            server.stop();
+            Delta.DELTA_LOG.info("DeltaServer stopped");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+
     public void join() {
         try {
             server.join();

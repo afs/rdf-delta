@@ -18,7 +18,9 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DPConst.*;
+import static org.seaborne.delta.DPConst.F_ARG;
+import static org.seaborne.delta.DPConst.F_OP;
+import static org.seaborne.delta.DPConst.F_TOKEN;
 
 import java.io.IOException ;
 import java.util.Objects ;
@@ -28,10 +30,13 @@ import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonException ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpOp ;
+import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.RegToken;
@@ -75,6 +80,11 @@ public class DRPC {
             }
             else 
                 return JSON.parseAny(x) ;
+        } catch (HttpException ex) {
+            if ( HttpSC.BAD_REQUEST_400 == ex.getResponseCode() ) {
+                throw new DeltaBadRequestException(ex.getMessage()); 
+            }
+            throw ex;
         }
     }
     

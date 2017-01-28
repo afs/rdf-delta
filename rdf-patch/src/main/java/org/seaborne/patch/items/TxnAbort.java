@@ -18,4 +18,15 @@
 
 package org.seaborne.patch.items;
 
-public class TxnAbort extends ChangeItem { }
+public class TxnAbort extends ChangeItem {
+
+    @Override
+    public int hashCode() {
+        return 15;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof TxnAbort;
+    } 
+}

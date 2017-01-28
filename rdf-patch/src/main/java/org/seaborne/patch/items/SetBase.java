@@ -24,4 +24,29 @@ public class SetBase extends ChangeItem {
     public SetBase(String uriStr) {
         this.uriStr = uriStr ;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((uriStr == null) ? 0 : uriStr.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if ( this == obj )
+            return true;
+        if ( obj == null )
+            return false;
+        if ( getClass() != obj.getClass() )
+            return false;
+        SetBase other = (SetBase)obj;
+        if ( uriStr == null ) {
+            if ( other.uriStr != null )
+                return false;
+        } else if ( !uriStr.equals(other.uriStr) )
+            return false;
+        return true;
+    }
 }

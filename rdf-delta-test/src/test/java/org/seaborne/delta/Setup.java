@@ -18,7 +18,12 @@
 
 package org.seaborne.delta;
 
+import java.net.BindException;
+
+import org.apache.jena.atlas.io.IO;
+import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.http.DataPatchServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 
@@ -34,7 +39,7 @@ public class Setup {
     public static class LocalSetup implements LinkSetup {
         protected LocalServer lserver = null;
         protected DeltaLink dlink = null;
-
+        
         @Override
         public void beforeClass() {}
 
@@ -61,21 +66,60 @@ public class Setup {
 
     public static class RemoteSetup implements LinkSetup {
 
+        private static int TEST_PORT=4141;
+        
+        /** Start a server - this server has no backing local DelaLink
+         * which is reset for each test. This enables the server to be reused 
+         * (problems starting and stopping the background server
+         * synchronous to the tests otherwise).   
+         */
+        public static DataPatchServer startPatchServer() {
+            DataPatchServer dps = new DataPatchServer(TEST_PORT, null) ;
+            try { dps.start(); }
+            catch (BindException e) {
+                e.printStackTrace();
+                IO.exception(e);
+            }
+            return dps;
+        }
+        
+        public static void stopPatchServer(DataPatchServer dps) {
+            dps.stop();
+        }
+        
+        // Local server of the patch server.
+        private LocalServer localServer = null;
+        private DataPatchServer server = null;
+        private DeltaLink link = null;
+        
         @Override
-        public void beforeClass() {}
+        public void beforeClass() { 
+            server = startPatchServer();
+        }
+        
+        @Override
+        public void afterClass() {
+            stopPatchServer(server);
+        }
 
         @Override
-        public void afterClass() {}
+        public void beforeTest() {
+            localServer = DeltaTestLib.createEmptyTestServer();
+            DeltaLink localLink = DeltaLinkLocal.create(localServer);
+            server.setEngine(localLink);
+            link = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
+        }
 
         @Override
-        public void beforeTest() {}
-
-        @Override
-        public void afterTest() {}
+        public void afterTest() {
+            LocalServer.release(localServer);
+            server.setEngine(null);
+            link = null;
+        }
 
         @Override
         public DeltaLink getLink() {
-            return null;
+            return link;
         }
 
     }
