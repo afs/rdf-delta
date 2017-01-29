@@ -35,6 +35,7 @@ import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -151,7 +152,10 @@ public abstract class DeltaServletBase extends HttpServlet {
         }
         catch (DeltaBadRequestException ex) {
             logger.error("400 Bad request : "+ex.getMessage());
-            ex.printStackTrace();
+            resp.sendError(HttpSC.BAD_REQUEST_400, "Bad request: "+ex.getMessage());
+        }
+        catch (DeltaException ex) {
+            logger.error("400 Bad request : "+ex.getMessage(), ex);
             resp.sendError(HttpSC.BAD_REQUEST_400, "Bad request: "+ex.getMessage());
         }
         catch (Throwable ex) {

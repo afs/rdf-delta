@@ -20,7 +20,10 @@ package org.seaborne.delta;
 
 import java.net.BindException;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.io.IO;
+import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
@@ -29,6 +32,8 @@ import org.seaborne.delta.server.local.LocalServer;
 
 public class Setup {
     interface LinkSetup {
+//        public void beforeSuite();
+//        public void afterSuite();
         public void beforeClass();
         public void afterClass();
         public void beforeTest();
@@ -85,21 +90,26 @@ public class Setup {
         
         public static void stopPatchServer(DataPatchServer dps) {
             dps.stop();
+            // Clear cached connections.
+            resetDefaultHttpClient();
         }
         
         // Local server of the patch server.
         private LocalServer localServer = null;
-        private DataPatchServer server = null;
+        private static DataPatchServer server = null;
         private DeltaLink link = null;
         
         @Override
-        public void beforeClass() { 
-            server = startPatchServer();
+        public void beforeClass() {
+            if ( server == null )
+                server = startPatchServer();
         }
         
         @Override
         public void afterClass() {
             stopPatchServer(server);
+            server = null ;
+            
         }
 
         @Override
@@ -122,5 +132,17 @@ public class Setup {
             return link;
         }
 
+        private static void resetDefaultHttpClient() {
+            setHttpClient(HttpOp.createDefaultHttpClient());
+        }
+        
+        /** Set the HttpClient - close the old one if appropriate */
+        /*package*/ static void setHttpClient(HttpClient newHttpClient) {
+            HttpClient hc = HttpOp.getDefaultHttpClient() ;
+            if ( hc instanceof CloseableHttpClient )
+                IO.close((CloseableHttpClient)hc) ;
+            HttpOp.setDefaultHttpClient(newHttpClient) ;
+
+        }
     }
 }

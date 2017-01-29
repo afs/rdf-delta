@@ -148,7 +148,7 @@ public class LocalServer {
         try { 
             return Files.list(dir)
                 .filter(LocalServer::isDataSource)
-                .filter(path -> !isEnabled(path))
+                .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());
         }
         catch (IOException e) {
