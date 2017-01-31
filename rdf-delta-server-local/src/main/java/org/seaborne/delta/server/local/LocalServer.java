@@ -26,10 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -39,6 +36,7 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
@@ -80,6 +78,8 @@ public class LocalServer {
     private final Location serverRoot;
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
+    // Cache of known disabled data sources. (Not set of startup).
+    private Set<Id> disabledDatasources = new HashSet<>();
     private Object lock = new Object();
     
     /** Attach to the runtime area for the server. Use "delta.cfg" as the configuration file name.  
@@ -124,8 +124,12 @@ public class LocalServer {
             throw new DeltaConfigException("No location");
         
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
-        List<Path> dataSources = scanDirectory(conf.location, dataRegistry);
+        Pair<List<Path>, List<Path>> pair = scanDirectory(conf.location, dataRegistry);
+        List<Path> dataSources = pair.getLeft();
+        List<Path> disabledDataSources = pair.getRight();
+        
         dataSources.stream().forEach(p->LOG.info("Data source: "+p));
+        dataSources.stream().forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
         for ( Path p : dataSources ) {
             DataSource ds = makeDataSource(p);
@@ -143,13 +147,19 @@ public class LocalServer {
     /** Scan a directory for datasource areas.
      * These must have a file called   
      */
-    private static List<Path> scanDirectory(Location serverRoot, DataRegistry dataRegistry) {
+    private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Location serverRoot, DataRegistry dataRegistry) {
         Path dir = Paths.get(serverRoot.getDirectoryPath());
         try { 
-            return Files.list(dir)
+            List<Path> x = Files.list(dir)
                 .filter(LocalServer::isDataSource)
+                .collect(Collectors.toList());
+            List<Path> enabled = x.stream()
                 .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());
+            List<Path> disabled = x.stream()
+                .filter(path -> !isEnabled(path))
+                .collect(Collectors.toList());
+            return Pair.create(enabled, disabled);
         }
         catch (IOException e) {
             LOG.error("Exception while reading "+dir);
@@ -169,7 +179,6 @@ public class LocalServer {
             LOG.warn("Data source configuration file name exists but is not a file: "+cfg);
         if ( ! Files.isReadable(cfg) )
             LOG.warn("Data source configuration file exists but is not readable: "+cfg);
-        Path disabled = path.resolve(DPConst.DISABLED);
         return true ;
     }
     
@@ -225,6 +234,8 @@ public class LocalServer {
     }
     
     public DataSource getDataSource(Id dsRef) {
+        if ( disabledDatasources.contains(dsRef) )
+            return null;
         return dataRegistry.get(dsRef);
     }
 
@@ -299,20 +310,24 @@ public class LocalServer {
 //        
 //    }
     
+    /** Create a new data source.
+     * This can not be one that has been removed (i.e disabled) whose files must be cleaned up manually.
+     */
     public Id createDataSource(boolean inMemory, String name, String baseURI/*, details*/) {
         Location sourceArea = dataSourceArea(serverRoot, name);
+        Path sourcePath = IOX.asPath(sourceArea);
         
         // Checking.
         // The area can exist, but it must not be formatted for a DataSource 
 //        if ( sourceArea.exists() )
 //            throw new DeltaException("Area already exists");
 
-        if ( isDataSource(IOX.asPath(sourceArea) )) {
-            throw new DeltaException("DataSource area already exists at: "+sourceArea);
-        }
+        if ( isDataSource(sourcePath) )
+            throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
+        if ( ! isEnabled(sourcePath) )
+            throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
         
         String patchedDirName = sourceArea.getPath(DPConst.PATCHES);
-        
         if ( FileOps.exists(patchedDirName) )
             throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
 
@@ -355,6 +370,7 @@ public class LocalServer {
             return;
         // Atomic.
         dataRegistry.remove(dsRef);
+        disabledDatasources.add(dsRef);
         // Mark unavailable.
         if ( ! datasource.inMemory() ) {
             Path disabled = datasource.getPath().resolve(DPConst.DISABLED);
@@ -366,7 +382,6 @@ public class LocalServer {
     /** SourceDescriptor -> JsonObject */
     private static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
         String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
-        
         SourceDescriptor descr = new SourceDescriptor
             (Id.fromString(idStr), 
              JSONX.getStrOrNull(sourceObj, F_URI),
@@ -378,7 +393,7 @@ public class LocalServer {
     private static JsonObject toJsonObj(SourceDescriptor descr) {
         JsonBuilder builder = JsonBuilder.create() ;
         builder.startObject();
-        set(builder, F_ID, descr.id.asJsonString());
+        set(builder, F_ID, descr.id.asPlainString());
         set(builder, F_URI, descr.uri);
         set(builder, F_BASE, descr.base);
         builder.finishObject();
