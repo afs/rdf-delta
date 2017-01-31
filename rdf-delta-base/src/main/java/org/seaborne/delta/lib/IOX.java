@@ -21,10 +21,8 @@ package org.seaborne.delta.lib;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.nio.file.attribute.FileAttribute;
 
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
@@ -40,7 +38,16 @@ public class IOX {
     }
     
     /** Write a file safely - the change happens (the function returns true) or
-     * somthign went wrong (the function throws a runtime exception) and the file is not changed.
+     * somthing went wrong (the function throws a runtime exception) and the file is not changed.
+     * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.  
+     */
+    public static boolean safeWrite(Path file, IOConsumer<OutputStream> writerAction) {
+        Path tmp = createTempFile(file.getParent(), file.getFileName().toString(), ".tmp");
+        return safeWrite(file, tmp, writerAction);
+    }
+
+    /** Write a file safely - the change happens (the function returns true) or
+     * somthing went wrong (the function throws a runtime exception) and the file is not changed.
      * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.  
      */
     public static boolean safeWrite(Path file, Path tmpFile, IOConsumer<OutputStream> writerAction) {
@@ -97,4 +104,39 @@ public class IOX {
         return Paths.get(location.getDirectoryPath());
     }
 
+    /** Read the whole of a file */
+    public static byte[] readAll(Path pathname) {
+        try {
+            return Files.readAllBytes(pathname);
+        } catch (IOException ex) {
+            IO.exception(ex);
+            return null;
+        }
+    }
+    
+    /** Write the whole of a file */
+    public static void writeAll(Path pathname, byte[] value) {
+        try {
+            Files.write(pathname, value, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
+        } catch (IOException ex) {
+            IO.exception(ex);
+        }
+    }
+
+    /**
+     * Return a temporary filename path.
+     * <p>
+     * This operation is thread-safe.
+     */
+    public static Path createTempFile(Path dir, String prefix, String suffix, FileAttribute<? >... attrs) {
+        // Java8 - Files.createTempFile - the temp file, when moved does not go away.
+        try {
+            return Files.createTempFile(dir, prefix, suffix, attrs);
+        } catch (IOException ex) {
+            IO.exception(ex); return null;
+        }
+        
+        // --> IOX
+        }
+    
 }
