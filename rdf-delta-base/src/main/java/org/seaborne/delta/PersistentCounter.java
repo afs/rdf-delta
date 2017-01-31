@@ -34,13 +34,12 @@ import org.apache.jena.atlas.logging.Log ;
 /** Persistent counter */
 public class PersistentCounter {
     // Not efficient.
-    // Should update disk on when requested to - later.
+    // Should update disk when requested to - later.
     
     private final String filename ;
     private final String dir ;
     
     private long value = 0 ;
-
     
     public PersistentCounter(String filename) {
         this.filename = filename ;

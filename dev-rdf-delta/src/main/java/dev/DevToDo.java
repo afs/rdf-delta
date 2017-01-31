@@ -22,40 +22,35 @@ public class DevToDo {
     // Documentation
     //   Patch
     //   Protocol/delta
+    // Version -> long
     
-    // Examples.
+    // ** Examples - can be used for testing.
     
-    // Client side persistent counter and restart.
+    // * Missing is communicating about graphs that have been created and have been deleted and need to appear/disappear in every app server. There are probably other operations that I will find are needed.
+    // * Clear-up items: tests for some error cases like out of sequence patches.
+    // * Jena assembler integration
+    // * Documentation
+    // * An unknown is keeping a TBC/DP graph up to date as there is no natural point to check. Probably only on open in TBS, rather than it changing as the user edits it.
+    // * EVN/EDG - creating new graphs, removing graphs.
+    // * EVN/EDG - How new graph "appear" magically when created via one server and have to appear on all other app servers.
+
+    // StandardOpenOption.CREATE_NEW -- atomic
     
-    // Tests assembler
+    // ToDo
+    // * License header
+    // * Examples.
+    // * Persistent state : counter+UUID
+    // * Restart with disabled [done]
+    // * Disabled filter to requests.
+    // * Test apply patch, not in sequence
+    
+    // * Tests assembler
     // Assembler to have a DeltaClient.
     
-    // Tests - apply patch.
-    // Plan for more?
-
-    // HTTP API tests.
-    //   Implement "not implemented"
-    // Unregister
-    // ** Operations happened when not registered.
-    
-    // Link tests.
-    // TestDeltaServer in rdf-delta-server-http
-    //   AbstractTestDeltaLink in rdf-delta-test
-    //   ** TestRemoteLink
-    // Test DatasetGraphBuffering
-    
-    // AbstractTestDeltaLink and AbstractTestDeltaConnection 
-    
     // ------------------------------------------------------------------------
-    // ClientId to "type" Id. 
-    
-    // "Design" protocol
-    // See 
-    //    AbstractTestDeltaLink.client_01
-    //    AbstractTestDeltaConnection.client_01
-    
+    // Document, "Design" protocol
     // -- History and parenthood.
-    
+
     // TIO
     //   Token getType -> STRING, + getActualType "seen as".
     
@@ -70,7 +65,7 @@ public class DevToDo {
     //  javacctokeizer has "push token" not "emit token".
     //    Compounds like RDFLiterals.
 
-    // __ Others
+    // -- Others
     // Extract polling support to DeltaClient.
 
     // DatasetGraphBuffering
