@@ -195,6 +195,7 @@ public class LocalServer {
         String baseStr = JSONX.getStrOrNull(sourceObj, F_BASE);
       
         Path patchesArea = dataSourceArea.resolve(DPConst.PATCHES);
+        FileOps.ensureDir(patchesArea.toString());
         //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
         
         // --> Path
