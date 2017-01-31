@@ -4,9 +4,11 @@ script: mvn verify
 jdk:
   - oraclejdk8
 ##  - openjdk8
-env:
+
+## env:
 ##   global:
 ##     - JAVA_OPTS="-Xmx1024M -Xms512M"
+
 notifications:
   email:
     # [always|never|change]
