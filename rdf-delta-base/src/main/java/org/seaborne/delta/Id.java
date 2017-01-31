@@ -25,15 +25,16 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.impl.Util;
 import org.apache.jena.shared.uuid.UUIDFactory ;
-import org.apache.jena.shared.uuid.UUID_V1_Gen ;
+import org.apache.jena.shared.uuid.UUID_V4_Gen;
 
 /**
  * Move to rdf-patch?
  */
 public final class Id {
-    private static String schemeUuid = "uuid:" ;
-    private static String schemeUrnUuid = "urn:uuid:" ;
-    
+    private static final String schemeUuid = "uuid:" ;
+    private static final String schemeUrnUuid = "urn:uuid:" ;
+    private static final String SCHEME = "id:";
+
     public static Id create() {
         return new Id(genUUID()) ;
     }
@@ -64,8 +65,6 @@ public final class Id {
         return fromString(str) ;
     }
     
-    private static String SCHEME = "id:"; 
-    
     public static Id fromString(String str) {
         if ( str.startsWith(SCHEME) )
             str = str.substring(SCHEME.length());
@@ -77,8 +76,9 @@ public final class Id {
         }
     }
 
-    // Fix version as version 1 - these are guessable.
-    private static UUIDFactory uuidFactory = new UUID_V1_Gen() ;
+    // Version 1 are guessable.
+    // Version 4 are not.
+    private static UUIDFactory uuidFactory = new UUID_V4_Gen() ;
 
     /** {@link UUID}s are used to UUIDentify many things in Delta - the RDF Dataset being managed,
      * the patches applied (the UUID naming forms the history), registrations and channels,
@@ -106,21 +106,37 @@ public final class Id {
         return string ;
     }
     
-    /** Suitable for putting into an HTTP request. */ 
-    public Node asNode() {
-        if ( uuid != null ) 
-            return NodeFactory.createURI(schemeUuid+uuid.toString());
-        return NodeFactory.createLiteral(string);
-    }
-
-    /** Suitable for putting into a JSON string. */ 
-    public String asJsonString() {
+    /** Without any adornment */ 
+    public String asPlainString() {
         if ( uuid != null ) 
             return uuid.toString() ;
         if ( string != null )
             return string ;
         throw new InternalErrorException("Id has null UUID and string");
     }
+
+    /** With "schema" */ 
+    public String asString() {
+        if ( uuid != null ) 
+            return SCHEME+uuid.toString() ;
+        if ( string != null )
+            return string ;
+        throw new InternalErrorException("Id has null UUID and string");
+    }
+
+    /** Convert to a Node, URI or plain string. */ 
+    public Node asNode() {
+        if ( uuid != null ) 
+            return NodeFactory.createURI(schemeUuid+uuid.toString());
+        return NodeFactory.createLiteral(string);
+    }
+
+    // Not needed.
+//    /** Suitable for using as a JSON string. Note this is encoded (if necessary).
+//     * {@link JsonBuilder} applies encoding and this method is not needed to build a JSON object. */ 
+//    public String asJsonString() {
+//        return asPlainString();
+//    }
     
     @Override
     public String toString() {

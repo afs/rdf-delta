@@ -257,7 +257,7 @@ public class S_DRPC extends DeltaServletBase {
         return JSONX.buildObject(b->{
             b.key(F_ARRAY);
             b.startArray();
-            ids.forEach(id->b.value(id.asJsonString()));
+            ids.forEach(id->b.value(id.asPlainString()));
             b.finishArray();
         });
     }
@@ -275,7 +275,7 @@ public class S_DRPC extends DeltaServletBase {
         String name = getFieldAsString(action, F_NAME);
         String uri = getFieldAsString(action, F_URI);
         Id dsRef = getLink(action).newDataSource(name, uri);
-        return JSONX.buildObject(b->b.key(F_ID).value(dsRef.asJsonString()));
+        return JSONX.buildObject(b->b.key(F_ID).value(dsRef.asPlainString()));
     }
     
     private JsonValue removeDataSource(DeltaAction action) {

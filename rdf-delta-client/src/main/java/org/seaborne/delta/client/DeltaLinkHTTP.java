@@ -63,7 +63,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public int getCurrentVersion(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b)-> {
-            b.key("datasource").value(dsRef.asParam());
+            b.key("datasource").value(dsRef.asPlainString());
         });
         
         JsonValue r = rpcToValue(DPConst.OP_EPOCH, arg);
@@ -144,7 +144,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public RegToken register(Id clientId) {
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_CLIENT).value(clientId.asJsonString());
+            b.key(DPConst.F_CLIENT).value(clientId.asPlainString());
         });
         JsonObject obj = rpc(DPConst.OP_REGISTER, arg);
         String s = obj.get(DPConst.F_TOKEN).getAsString().value();
@@ -206,7 +206,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public void removeDataset(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_DATASOURCE).value(dsRef.asJsonString());
+            b.key(DPConst.F_DATASOURCE).value(dsRef.asPlainString());
         });
         JsonObject obj = rpc(DPConst.OP_REMOVE_DS, arg);
     }
@@ -214,7 +214,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_DATASOURCE).value(dsRef.asJsonString());
+            b.key(DPConst.F_DATASOURCE).value(dsRef.asPlainString());
         });
         JsonObject obj = rpc(DPConst.OP_DESCR_DS, arg);
         if ( obj.isEmpty() )
