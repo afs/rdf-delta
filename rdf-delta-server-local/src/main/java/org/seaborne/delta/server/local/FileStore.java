@@ -127,6 +127,7 @@ public class FileStore {
      */
     public FileEntry allocateFilename() {
         // --> IOX
+        // TODO Use Files.createTempFile? Or does recovery mean we need more control?
         synchronized(this) { 
             for ( ;; ) {
                 int idx = nextIndex();
