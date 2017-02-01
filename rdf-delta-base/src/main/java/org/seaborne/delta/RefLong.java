@@ -18,13 +18,16 @@
 
 package org.seaborne.delta;
 
-import org.junit.runner.RunWith ;
-import org.junit.runners.Suite ;
+/** Reference to an integer value */ 
+public interface RefLong {
+    
+    /** Get the current value */
+    public long getInteger();
+    
+    /** Set the current value */
+    public void setInteger(long value);
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestDatasetGraphWithAbort.class
-    , TestPersistentState.class
-})
+    /** Increment the current value and return the new value (link {@code ++x} not like {@code X++}) */ 
+    public long inc();
 
-public class TS_DeltaBase { }
+}

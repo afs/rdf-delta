@@ -25,7 +25,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
 
 import org.apache.jena.atlas.RuntimeIOException;
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 
@@ -33,8 +32,22 @@ public class IOX {
     
     public static Path currentDirectory = Paths.get(".");
     
+    /** A Consumer that can throw {@link IOException}. */
     public interface IOConsumer<X> {
         void actionEx(X arg) throws IOException;
+    }
+
+    /** Convert an {{@link IOException} into a {@link RuntimeIOException}.
+     * <p>
+     * Idiom:
+     * <pre>
+     *     catch(IOException ex) { throw new exception(ex); } 
+     * </pre>
+     * @param ioException
+     * @return RuntimeIOException
+     */
+    public static RuntimeIOException exception(IOException ioException) {
+        return new RuntimeIOException(ioException);
     }
     
     /** Write a file safely - the change happens (the function returns true) or
@@ -56,8 +69,8 @@ public class IOX {
                 writerAction.actionEx(out);
             }
             move(tmpFile, file);
-        } catch(IOException ex) { IO.exception(ex); /*Not reached*/return false; }
-        return true;
+            return true;
+        } catch(IOException ex) { throw IOX.exception(ex); }
     }
 
     /** Atomically move a file. */
@@ -65,7 +78,7 @@ public class IOX {
         try { Files.move(src, dst, StandardCopyOption.ATOMIC_MOVE) ; }
         catch (IOException ex) {
             FmtLog.error(IOX.class, ex, "IOException moving %s to %s", src, dst);
-            IO.exception(ex);
+            throw IOX.exception(ex);
         }
     }
     
@@ -86,7 +99,7 @@ public class IOX {
         try { Files.copy(src, dst); }
         catch (IOException ex) {
             FmtLog.error(IOX.class, ex, "IOException copying %s to %s", srcFilename, dstFilename);
-            IO.exception(ex);
+            throw IOX.exception(ex);
         }
     }
 
@@ -108,19 +121,14 @@ public class IOX {
     public static byte[] readAll(Path pathname) {
         try {
             return Files.readAllBytes(pathname);
-        } catch (IOException ex) {
-            IO.exception(ex);
-            return null;
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
     
     /** Write the whole of a file */
     public static void writeAll(Path pathname, byte[] value) {
         try {
             Files.write(pathname, value, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
-        } catch (IOException ex) {
-            IO.exception(ex);
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
     /**
@@ -129,14 +137,9 @@ public class IOX {
      * This operation is thread-safe.
      */
     public static Path createTempFile(Path dir, String prefix, String suffix, FileAttribute<? >... attrs) {
-        // Java8 - Files.createTempFile - the temp file, when moved does not go away.
         try {
             return Files.createTempFile(dir, prefix, suffix, attrs);
-        } catch (IOException ex) {
-            IO.exception(ex); return null;
-        }
-        
-        // --> IOX
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
+    }
     
 }

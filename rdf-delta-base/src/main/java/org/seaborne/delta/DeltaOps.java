@@ -95,6 +95,6 @@ public class DeltaOps {
             IOX.safeWrite(p, tmp, (out)->{
                 out.write(bytes);
             });
-        } catch (IOException ex) { IO.exception(ex); }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
 }

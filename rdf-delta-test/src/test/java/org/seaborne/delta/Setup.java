@@ -25,6 +25,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -81,10 +82,7 @@ public class Setup {
         public static DataPatchServer startPatchServer() {
             DataPatchServer dps = new DataPatchServer(TEST_PORT, null) ;
             try { dps.start(); }
-            catch (BindException e) {
-                e.printStackTrace();
-                IO.exception(e);
-            }
+            catch (BindException ex) { throw IOX.exception(ex); }
             return dps;
         }
         

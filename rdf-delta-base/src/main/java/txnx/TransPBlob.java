@@ -26,6 +26,7 @@ import java.util.Map ;
 import java.util.concurrent.ConcurrentHashMap ;
 
 import org.apache.jena.atlas.io.IO ;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.LibX ;
 
 /** A MR+SW transactional 'thing' */ 
@@ -94,9 +95,7 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
         try { 
             if ( ! tempMode )
                 Files.deleteIfExists(jrnl) ;
-        } catch (IOException ex) {
-            IO.exception(ex);
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
     
     // XXX Revisit. See TDB2 transactional blobs.
@@ -129,16 +128,12 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
             return IO.readWholeFile(in) ;
         } catch (FileNotFoundException ex) {
             return null ;
-        } catch (IOException ex) {
-            IO.exception(ex); return null ;
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
     private static void writePersistent(Path fn, byte[] b) {
         try(OutputStream out = new BufferedOutputStream(new FileOutputStream(fn.toFile()), 64*1024)) {
             out.write(b) ;
-        } catch (IOException ex) {
-            IO.exception(ex);
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
     
     // Very careful - copy-in, copy-out.

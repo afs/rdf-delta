@@ -39,7 +39,7 @@ public class JSONX {
         return b.finishObject(LABEL).build().getAsObject() ;
     }
     
-    /** Access a field of a JSON object : return as strign regardless of value type */ 
+    /** Access a field of a JSON object : return as string regardless of value type */ 
     public static String getStrOrNull(JsonObject obj, String field) {
         JsonValue jv = obj.get(field);
         if ( jv == null ) {
@@ -54,19 +54,28 @@ public class JSONX {
         return null ;
     }
     
+    /** Access a field of a JSON object, return a {@code long} or a default value. */ 
+    public static long getLong(JsonObject obj, String field, long dftValue) {
+        JsonValue jv = obj.get(field);
+        if ( jv == null )
+            return dftValue;
+        if ( jv.isNumber() )
+            return jv.getAsNumber().value().longValue();
+        LOG.warn("field "+field+" : not string or number : returning default value");
+        return dftValue ;
+    }
+    
+    /** Access a field of a JSON object, return an {@code int} or a default value. */ 
     public static int getInt(JsonObject obj, String field, int dftValue) {
         JsonValue jv = obj.get(field);
         if ( jv == null )
             return dftValue;
-        if ( jv.isString() )
-            return Integer.parseInt(jv.getAsString().value());
         if ( jv.isNumber() )
             return jv.getAsNumber().value().intValue();
         LOG.warn("field "+field+" : not string or number : returning default value");
         return dftValue ;
-        
     }
-    
+
     /** Create a safe copy of a {@link JsonValue}.
      * <p>
      *  If the JsonValue is a structure (object or array), copy the structure recursively.
@@ -81,8 +90,8 @@ public class JSONX {
     
     /** Create a builder from a {@link JsonValue}.
      *  <p>If the argument is an object or array, use it to initailize the builder.
-     *  <p>if the argument is a JSON primitive (string, number, boolean or null),
-     *  return null (the {@code JsonValue} is immutable).
+     *  <p>If the argument is a JSON primitive (string, number, boolean or null),
+     *  <p>Otherwise thrown {@link IllegalArgumentException}.
      */
     public static JsonBuilder builder(JsonValue arg) {
         if ( arg.isObject() ) {
@@ -101,6 +110,6 @@ public class JSONX {
             builder.finishArray() ;
             return builder ; 
         }
-        return null ;
+        throw new IllegalArgumentException("Not a JSON object or JSON array; "+arg);
     }
 }

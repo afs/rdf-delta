@@ -56,8 +56,9 @@ import org.apache.jena.util.iterator.ExtendedIterator ;
 import org.seaborne.delta.DPConst ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.client.DeltaConnection ;
-import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.client.DeltaLib ;
+import org.seaborne.delta.client.DeltaLinkHTTP ;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatchOps;
@@ -108,7 +109,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             FmtLog.info(Delta.DELTA_LOG, "Delta: initialize: %s",str) ;
             try (InputStream in = openChangesSrc(str)) {
                 RDFPatchOps.applyChange(dsgSub, in);
-            } catch (IOException ex) { IO.exception(ex); }
+            } catch (IOException ex) { throw IOX.exception(ex); }
         }
         
         // And someday tap into services to add a "sync before operation" step.

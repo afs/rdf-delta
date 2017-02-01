@@ -47,7 +47,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.* ;
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -57,6 +56,7 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -205,9 +205,7 @@ public class S_DRPC extends DeltaServletBase {
                 ps.flush();
                 return ;
             }
-        } catch (IOException ex) {
-            IO.exception(ex);
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
         
     static class DRPPEception extends RuntimeException {

@@ -30,14 +30,13 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.InternalErrorException ;
 import org.apache.jena.atlas.logging.Log ;
+import org.seaborne.delta.lib.IOX;
 
-/** Persistent counter */
+/** A persistent integer value */
 public class PersistentCounter {
-    // Not efficient.
-    // Should update disk when requested to - later.
-    
     private final String filename ;
     private final String dir ;
+    private final Object lock = new Object(); 
     
     private long value = 0 ;
     
@@ -63,7 +62,7 @@ public class PersistentCounter {
 
     // i++
     public long inc() {
-        synchronized(this) {
+        synchronized(lock) {
             long x = (value++) ;
             set(value) ;
             return x ;
@@ -71,15 +70,16 @@ public class PersistentCounter {
     }
 
     public void set(long x) {
-        value = x ;
-        writeLocation();
+        synchronized(lock) {
+            value = x ;
+            writeLocation();
+        }
     }
 
     private void readLocation() {
         if ( filename != null ) {
             if ( ! FileOps.exists(filename) ) {
-                value = 0 ;
-                writeLocation() ;
+                set(0);
                 return ;
             }
             long x = read(filename) ;
@@ -110,14 +110,12 @@ public class PersistentCounter {
         } 
         catch (IOException ex) {
             Log.error(PersistentCounter.class, "IOException: " + ex.getMessage(), ex) ;
-            IO.exception(ex) ;
+            throw IOX.exception(ex);
         }
         catch (NumberFormatException ex) {
             Log.error(PersistentCounter.class, "NumberformatException: " + ex.getMessage()) ;
             throw new InternalErrorException(ex) ;
         }
-        // Not reached.
-        return Long.MIN_VALUE ;
     }
     
     private static void write(String filename, long value) {

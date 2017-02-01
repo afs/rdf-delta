@@ -32,7 +32,9 @@ import org.seaborne.delta.lib.IOX;
  * 
  * "State" is a number of bytes, assumed to be "small", (makes sense to read and write the whole state as one blob).  
  */
-public class PersistentState {
+public class PersistentState implements RefLong, RefString {
+    private static final long DEFAULT = 0;
+    private final Object lock = new Object(); 
     private Path pathname = null;
     private final Path dir ;
     
@@ -48,7 +50,7 @@ public class PersistentState {
 
     public void reset() {
         if ( Files.exists(pathname) ) {
-            value = IOX.readAll(pathname) ;
+            value = readLocation();
             valueStr = null;
         } else {
             value = new byte[0];
@@ -56,16 +58,9 @@ public class PersistentState {
             writeLocation(); 
         }
     }
-
     
     public byte[] get() {
         return value ;
-    }
-
-    public String getString() {
-        if ( valueStr == null )
-            valueStr = new String(value,  StandardCharsets.UTF_8);
-        return valueStr ;
     }
 
     public void set(byte[] x) {
@@ -74,11 +69,49 @@ public class PersistentState {
         writeLocation();
     }
 
+    @Override
+    public String getString() {
+        if ( valueStr == null )
+            valueStr = new String(value,  StandardCharsets.UTF_8);
+        return valueStr ;
+    }
+
+    @Override
     public void setString(String str) {
         set(str.getBytes(StandardCharsets.UTF_8));
     }
 
+    @Override
+    public long getInteger() {
+        String s = getString();
+        if ( s.isEmpty() )
+            return DEFAULT; 
+        return Long.parseLong(getString());
+    }
+
+    @Override
+    public void setInteger(long value) {
+        setString(Long.toString(value));
+    }
+    
+    // increment and return the new value.
+    @Override
+    public long inc() {
+        synchronized(lock) {
+            long x = getInteger();
+            x++;
+            setInteger(x);
+            return x ;
+        }
+    }
+    
+    private byte[] readLocation() {
+        return IOX.readAll(pathname) ;
+    }
+
+    
     private void writeLocation() {
+        // Does not need synchronizing.
         IOX.safeWrite(pathname, out->out.write(value));
     }
 }

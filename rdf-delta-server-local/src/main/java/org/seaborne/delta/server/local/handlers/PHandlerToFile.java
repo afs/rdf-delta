@@ -23,8 +23,8 @@ import java.nio.file.Files ;
 import java.nio.file.Path ;
 import java.nio.file.Paths ;
 
-import org.apache.jena.atlas.io.IO ;
 import org.seaborne.delta.DeltaOps ;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.OutputStream2 ;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.patch.changes.RDFChangesWriter ;
@@ -65,7 +65,7 @@ public class PHandlerToFile implements PatchHandler {
         try { Files.move(pSrc, pDst) ; }
         catch (IOException ex) {
             LOG.warn(String.format("IOException moving %s to %s", src, dst) , ex);
-            IO.exception(ex);
+            throw IOX.exception(ex);
         }
     }
 
@@ -83,7 +83,7 @@ public class PHandlerToFile implements PatchHandler {
         try { out = new FileOutputStream(s) ; }
         catch (FileNotFoundException e) {
             LOG.warn("File not found: {}", s) ;
-            IO.exception(e);
+            throw IOX.exception(e);
         }
         out = new BufferedOutputStream(out) ;
         if ( ! verbose )

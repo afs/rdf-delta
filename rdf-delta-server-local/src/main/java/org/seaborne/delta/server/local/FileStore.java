@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.IOX.IOConsumer;
 import org.seaborne.patch.PatchException;
 import org.slf4j.Logger;
@@ -87,7 +87,7 @@ public class FileStore {
     private static Path string2path(String pathname) {
         try {
             return Paths.get(pathname).normalize().toRealPath();
-        } catch (IOException ex) { IO.exception(ex); return null; }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
     private static Path key(Path path, String basename) {

@@ -81,7 +81,7 @@ public class FileEntry {
             throw new RuntimeIOException("FileEntry has already been written: "+datafile);
         try {
             return out = Files.newOutputStream(tmpfile) ;
-        } catch (IOException ex) { IO.exception(ex); return null; } 
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
     
     /**

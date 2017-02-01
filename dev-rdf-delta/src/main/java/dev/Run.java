@@ -18,7 +18,6 @@
 
 package dev;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -26,12 +25,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.json.*;
-import org.apache.jena.atlas.json.io.JsonWriter;
+import org.apache.jena.atlas.io.IndentedLineBuffer;
+import org.apache.jena.atlas.json.JSON;
+import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.json.io.JSWriter;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.Log;
@@ -40,6 +38,7 @@ import org.apache.jena.ext.com.google.common.io.Files;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PersistentState;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServer;
@@ -77,20 +76,48 @@ public class Run {
             if ( datasourceId == null )
                 throw new InternalErrorException("No datasource id");
             String timestamp = DateTimeUtils.nowAsXSDDateTimeString();
+
             JsonObject obj =
                 JSONX.buildObject(b->{
                     b.key(kDATASOURCE).value(datasourceId.asPlainString());
+                    //b.pair(kDATASOURCE, datasourceId.asPlainString());
                     if ( timestamp != null )
                         b.key(kTIMESTAMP).value(timestamp);
+                        //b.pair(kTIMESTAMP, timestamp);
                     if ( version >= 0 )
                         b.key(kVERSION).value(version);
+                        //b.pair(kVERSION, version);
                     if ( patchId != null )
                         b.key(kPATCH).value(patchId.asPlainString());
+                        //b.pair(kPATCH, patchId.asPlainString());
                 });
-            // Hmm.
             state.setString(JSON.toString(obj));
         }
         
+        // Uses JSWriter 
+        private void writeState2(PersistentState state, Id datasourceId, long version, Id patchId) {
+            if ( datasourceId == null )
+                throw new InternalErrorException("No datasource id");
+            String timestamp = DateTimeUtils.nowAsXSDDateTimeString();
+
+            IndentedLineBuffer x = new IndentedLineBuffer();
+            JSWriter jsw = new JSWriter(x);
+            
+            jsw.startOutput();
+            jsw.startObject();
+            
+            jsw.pair(kDATASOURCE, datasourceId.asPlainString());
+            if ( timestamp != null )
+                jsw.pair(kTIMESTAMP, timestamp);
+            if ( version >= 0 )
+                jsw.pair(kVERSION, version);
+            if ( patchId != null )
+                jsw.pair(kPATCH,patchId.asPlainString());
+            
+            jsw.finishObject();
+            jsw.finishOutput();
+            state.setString(x.asString());
+        }
         @Override
         public DataSourceState readState(PersistentState state) {
             JsonObject obj = JSON.parse(state.getString());
@@ -144,7 +171,7 @@ public class Run {
             Properties props = new Properties();
             try(Reader in = new StringReader(state.getString())) {
                 props.load(in);
-            } catch (IOException ex) { IO.exception(ex); }
+            } catch (IOException ex) { throw IOX.exception(ex); }
             String datasourceStr = props.getProperty("datasource");
             String versionStr = props.getProperty("version"); 
             String patchStr = props.getProperty("patch");
@@ -173,49 +200,45 @@ public class Run {
     }
     
     public static void main(String... args) throws IOException {
-        {   
-            String x = null;
-            
-            
-            DSS_IO dssIO = new DSS_JSON();
-            PersistentState ps = new PersistentState("foobar");
-            Id id1 = Id.create();
-            Id id2 = Id.create();
-            dssIO.writeState(ps, id1, 100, id2);
-            
-            DataSourceState dss = dssIO.readState(ps);
-            print(dss);
-            
-            if ( ! Objects.equals(dss.datasourceId, id1) )
-                System.out.println("Error on id1");
-            if ( ! Objects.equals(dss.patchId, id2) )
-                System.out.println("Error on id2");
-            
-            Files.copy(Paths.get("foobar").toFile(), System.out);
-            
-            JsonArray a = new JsonArray();
-            a.add(57);
-            a.add(59);
-            JSON.write(System.out, a);
-            
-            
-            System.out.println("DONE");
-            System.exit(0);
-            
+        String filename = "datafile";
+
+
+        DSS_IO dssIO = new DSS_JSON();
+        PersistentState ps = new PersistentState("foobar");
+        Id id1 = Id.create();
+        Id id2 = Id.create();
+        dssIO.writeState(ps, id1, 100, id2);
+
+        DataSourceState dss = dssIO.readState(ps);
+        print(dss);
+
+        if ( ! Objects.equals(dss.datasourceId, id1) )
+            System.out.println("Error on id1");
+        if ( ! Objects.equals(dss.patchId, id2) )
+            System.out.println("Error on id2");
+
+        Files.copy(Paths.get("foobar").toFile(), System.out);
+
+        System.out.println("DONE");
+        System.exit(0);
+
 //            Pattern pattern = Pattern.compile("#([^\\n]*)\ndatasource=([^\\n]*)\nversion=([^\\n]*)\npatch=([^\\n]*)\n");
 //            Matcher m = pattern.matcher(xs);
 //            System.out.println(m.matches());
 //            System.out.println(m.groupCount());
 //            for ( int i = 1 ; i <= m.groupCount() ; i++ )
 //                System.out.println(m.group(i));
-            
-            
-            System.out.println("DONE");
-            System.exit(0);
-        }
+
+
+        System.out.println("DONE");
+        System.exit(0);
+    }
+        
+    
+    
+    public static void example_local(String... args) throws IOException {
         Location loc = Location.create("DeltaServer");
         LocalServer server = LocalServer.attach(loc);
-        
         state(server.listDataSources());
         System.out.println();
         
@@ -231,6 +254,9 @@ public class Run {
             System.out.println("    "+ds.getLocation());
             System.out.println("    "+ds.getPatchSet());
         });
+
+        server.removeDataSource(newId);
+        // Can not create again "remove" means "disable".
         System.out.println("DONE");
     }
     

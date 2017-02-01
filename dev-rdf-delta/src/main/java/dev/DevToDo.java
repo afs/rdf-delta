@@ -24,6 +24,8 @@ public class DevToDo {
     //   Protocol/delta
     // Version -> long
     
+    // rdf-delta -> Delta
+    
     // ** Examples - can be used for testing.
     
     // * Missing is communicating about graphs that have been created and have been deleted and need to appear/disappear in every app server. There are probably other operations that I will find are needed.

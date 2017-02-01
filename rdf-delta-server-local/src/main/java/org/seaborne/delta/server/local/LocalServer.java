@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonObject;
@@ -161,10 +160,9 @@ public class LocalServer {
                 .collect(Collectors.toList());
             return Pair.create(enabled, disabled);
         }
-        catch (IOException e) {
+        catch (IOException ex) {
             LOG.error("Exception while reading "+dir);
-            IO.exception(e);
-            return null;
+            throw IOX.exception(ex);
         }
     }
 
@@ -353,9 +351,7 @@ public class LocalServer {
 //            String fn = sourceArea.getPath(DPConst.DATA_CONFIG);
 //            try (OutputStream out = IO.openOutputFile(fn) ) {
 //                JSON.write(out, obj);
-//            } catch (IOException x) {
-//                IO.exception(x);
-//            }
+//            } catch (IOException x)  { throw IOX.exception(ex); }
 //            FmtLog.info(LOG, "Create database at %s", db);
 //            dsg = TDBFactory.createDatasetGraph(db);
 //        }
@@ -376,7 +372,7 @@ public class LocalServer {
         if ( ! datasource.inMemory() ) {
             Path disabled = datasource.getPath().resolve(DPConst.DISABLED);
             try { Files.createFile(disabled); } 
-            catch (IOException ex) { IO.exception(ex); }
+            catch (IOException ex) { throw IOX.exception(ex); }
         }
     }
 

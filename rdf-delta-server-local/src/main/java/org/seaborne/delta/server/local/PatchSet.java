@@ -28,10 +28,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
@@ -208,10 +208,7 @@ public class PatchSet {
             InputStream in = Files.newInputStream(p);
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;
-        } catch (IOException ex) {
-            IO.exception(ex);
-            return null;
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
     
     public Id find(int version) {
@@ -221,10 +218,7 @@ public class PatchSet {
             InputStream in = Files.newInputStream(p);
             RDFPatch patch = RDFPatchOps.read(in) ;
             return Id.fromNode(patch.getId());
-        } catch (IOException ex) {
-            IO.exception(ex);
-            return null;
-        }
+        } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
     // Clear out.

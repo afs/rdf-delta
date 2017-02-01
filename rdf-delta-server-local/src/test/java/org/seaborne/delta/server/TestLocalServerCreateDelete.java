@@ -18,18 +18,21 @@
 
 package org.seaborne.delta.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.tdb.base.file.Location;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServer;
 
 /**
@@ -50,7 +53,7 @@ public class TestLocalServerCreateDelete {
         FileOps.clearAll(DIR);
         // copy in setup.
         try { FileUtils.copyDirectory(new File(TestLocalServer.SERVER_DIR), new File(DIR)); }
-        catch (IOException ex) { IO.exception(ex); }
+        catch (IOException ex) { throw IOX.exception(ex); }
     }
     
     @Before public void beforeTest() {

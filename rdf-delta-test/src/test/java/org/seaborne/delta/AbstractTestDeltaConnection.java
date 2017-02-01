@@ -66,8 +66,8 @@ public abstract class AbstractTestDeltaConnection {
     public void change_01() {
         DeltaConnection dConn = connect();
         
-        int verLocal0 = dConn.getLocalVersionNumber();
-        int verRemotel0 = dConn.getRemoteVersionLatest();
+        long verLocal0 = dConn.getLocalVersionNumber();
+        long verRemotel0 = dConn.getRemoteVersionLatest();
         
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeWrite(dsg, ()->{
