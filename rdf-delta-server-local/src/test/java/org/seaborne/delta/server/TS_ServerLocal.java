@@ -35,7 +35,6 @@ public class TS_ServerLocal {
     @BeforeClass public static void beforeClass() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-    
 }
 
 

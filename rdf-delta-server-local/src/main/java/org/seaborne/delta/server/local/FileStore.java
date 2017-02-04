@@ -23,15 +23,16 @@ import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.IOX.IOConsumer;
 import org.seaborne.patch.PatchException;
@@ -57,37 +58,47 @@ public class FileStore {
     
     private static final String tmpBasename = "tmp";
     private static final int BUFSIZE = 128*1024;
-    // Setting for "no files" which is one less than the first allocated number. 
+    // Setting for "no files": start at one less than the first allocated number.
+    private static final int MIN_DFT = -1;
     private static final int INITIAL = 0;
+    private final int minIndex;
+    private final int startMaxIndex;
+    private final List<Integer> indexes;
+
     // Index - this is the number of the last allocation.
     // It is incremented then a new number taken.
     private final AtomicInteger counter;
     private final Path          directory;
     private final String        basename;
 
-    public static FileStore attach(String dirname, String basename) {
+    public static FileStore attach(Location dirname, String basename) {
         Objects.requireNonNull(dirname, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
             throw new IllegalArgumentException("basename is equal to the reserved name '"+tmpBasename+"'") ;
-        Path path = string2path(dirname);
+        Path path = IOX.asPath(dirname);
         Path k = key(path, basename);
         if ( areas.containsKey(k) )
             return areas.get(k);
-        int idx = scanForIndex(path, basename);
-        if ( idx == -1 )
+        if ( ! Files.exists(path) || ! Files.isDirectory(path) )
             throw new IllegalArgumentException("Path '" + path + "' does not name a directory");
-        else
-            FmtLog.info(LOG, "FileStore '%s' : version %d", dirname, idx);
-        FileStore fs = new FileStore(path, basename, idx);
+
+        // Find existing files.
+        List<Integer> indexes = scanForIndex(path, basename);
+        int min;
+        int max;
+        if ( indexes.isEmpty() ) {
+            min = MIN_DFT;
+            max = INITIAL;
+            FmtLog.info(LOG, "FileStore '%s' : index [--,%d]", dirname, max);
+        } else {
+            min = indexes.get(0);
+            max = indexes.get(indexes.size()-1);
+            FmtLog.info(LOG, "FileStore '%s' : index [%d,%d]", dirname, min, max);
+        }
+        FileStore fs = new FileStore(path, basename, indexes, min, max);
         areas.put(k, fs);
         return fs;
-    }
-
-    private static Path string2path(String pathname) {
-        try {
-            return Paths.get(pathname).normalize().toRealPath();
-        } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
     private static Path key(Path path, String basename) {
@@ -95,10 +106,15 @@ public class FileStore {
         return p.normalize().toAbsolutePath();
     }
 
-    private FileStore(Path directory, String basename, int initialIndex) {
+    private FileStore(Path directory, String basename, List<Integer> indexes, int minIndex, int maxIndex) {
         this.directory = directory;
         this.basename = basename;
-        this.counter = new AtomicInteger(initialIndex);
+        // Record initial setup
+        this.minIndex = minIndex;
+        this.startMaxIndex = maxIndex;
+        // Version management.
+        this.indexes = indexes;
+        this.counter = new AtomicInteger(maxIndex);
         deleteFiles(directory, tmpBasename);
     }
 
@@ -111,7 +127,29 @@ public class FileStore {
     }
 
     /**
-     * Return detaisl of the next file slot to use in the file store. The file for
+     * Return the index of the last allocation. Return the integer before the first
+     * allocation if there has been no allocation.
+     */
+    public int getMinIndex() {
+        return minIndex;
+    }
+
+    /**
+     * Return the indexes as a sequential stream from low to high.
+     */
+    public Stream<Integer> getIndexes() {
+        return indexes.stream();
+    }
+
+    /**
+     * Is the file store empty? 
+     */
+    public boolean isEmpty() {
+        return indexes.isEmpty();
+    }
+
+    /**
+     * Return details of the next file slot to use in the file store. The file for
      * this name does not exist.
      * <p>
      * This operation is thread-safe.
@@ -165,7 +203,9 @@ public class FileStore {
     }
     
     private int nextIndex() {
-        return counter.incrementAndGet();
+        int x = counter.incrementAndGet();
+        indexes.add(x);
+        return x;
     }
 
     /**
@@ -175,10 +215,19 @@ public class FileStore {
         return basename(basename, idx);
     }
 
+    private static final String SEP = "-";
+    
     private static String basename(String base, int idx) {
         if ( idx < 0 )
             throw new IllegalArgumentException("idx = " + idx);
-        return String.format(base + "-%04d", idx);
+        return String.format("%s%s%04d", base, SEP, idx);
+    }
+
+    private static int extractIndex(String name, String namebase) {
+        int i = namebase.length()+SEP.length();
+        String numStr = name.substring(i);
+        int num = Integer.parseInt(numStr);
+        return num;
     }
 
     /**
@@ -186,7 +235,7 @@ public class FileStore {
      * is no guarantee that the file exists.
      * <p>
      * To get an unused file for adding new data, to the FileStore, use
-     * {@link #nextFilename}. Use {@link #allocateFilename()} to get a pait of file name
+     * {@link #nextFilename}. Use {@link #allocateFilename()} to get a pair of file name
      * and temporary file in the same FileStore.
      */
     public Path filename(int idx) {
@@ -198,22 +247,25 @@ public class FileStore {
         return dir.resolve(fn);
     }
 
-    /** Find the highest index in a directory of files */
-    private static int scanForIndex(Path directory, String namebase) {
+    /** Find the indexes of files in this FileStore. Return sorted, low to high. */
+    private static List<Integer> scanForIndex(Path directory, String namebase) {
+        List<Integer> indexes = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, namebase + "*")) {
-            int max = INITIAL;
             for ( Path f : stream ) {
                 int num = extractIndex(f.getFileName().toString(), namebase);
-                if ( num == -1 )
+                if ( num == -1 ) {
                     FmtLog.warn(LOG, "Can't parse filename: %s", f.toString());
-                else
-                    max = Math.max(max, num);
+                    continue;
+                }
+                indexes.add(num);
             }
-            return max;
         } catch (IOException ex) {
             FmtLog.warn(LOG, "Can't inspect directory: (%s, %s)", directory, namebase);
-            throw new PatchException();
+            throw new PatchException(ex);
         }
+        
+        indexes.sort(Integer::compareTo);
+        return indexes;
     }
 
     /**
@@ -232,15 +284,5 @@ public class FileStore {
             FmtLog.warn(LOG, "Can't inspect directory for tmp files: %s");
             throw new PatchException();
         }
-    }
-
-    private static int extractIndex(String name, String namebase) {
-        Pattern pattern = Pattern.compile(namebase + "-([0-9]*)");
-        Matcher m = pattern.matcher(name);
-        if ( !m.matches() )
-            return -1;
-        String numStr = m.group(1);
-        int num = Integer.parseInt(numStr);
-        return num;
     }
 }

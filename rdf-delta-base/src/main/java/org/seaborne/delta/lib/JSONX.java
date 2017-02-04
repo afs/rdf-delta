@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.lib;
 
+import java.util.Optional;
 import java.util.function.Consumer ;
 
 import org.apache.jena.atlas.json.JsonArray;
@@ -39,29 +40,33 @@ public class JSONX {
         return b.finishObject(LABEL).build().getAsObject() ;
     }
     
-    /** Access a field of a JSON object : return as string regardless of value type */ 
+
+    /** Access a field of a JSON object : return as {@code Optional<String>} */ 
+    public static Optional<String> getStr(JsonObject obj, String field) {
+        return Optional.ofNullable(getStrOrNull(obj, field));
+    }
+    
+    /** Access a field of a JSON object : return a string or null */ 
     public static String getStrOrNull(JsonObject obj, String field) {
         JsonValue jv = obj.get(field);
-        if ( jv == null ) {
-            //LOG.warn("Field '"+field+"' not found");
+        if ( jv == null )
             return null;
-        }
         if ( jv.isString() )
             return jv.getAsString().value();
-        if ( jv.isNumber() )
-            return jv.getAsNumber().value().toString();
-        LOG.warn("field "+field+" : not a string or number : returning null for the string value");
         return null ;
     }
     
-    /** Access a field of a JSON object, return a {@code long} or a default value. */ 
+    /** Access a field of a JSON object : return a {@code long}, or the default value. */ 
     public static long getLong(JsonObject obj, String field, long dftValue) {
         JsonValue jv = obj.get(field);
         if ( jv == null )
             return dftValue;
-        if ( jv.isNumber() )
-            return jv.getAsNumber().value().longValue();
-        LOG.warn("field "+field+" : not string or number : returning default value");
+        if ( jv.isNumber() ) {
+            Number num = jv.getAsNumber().value();
+            if ( num.doubleValue() < Long.MIN_VALUE || num.doubleValue() > Long.MAX_VALUE )
+                throw new NumberFormatException("Number out of range: "+jv);
+            return num.longValue();
+        }
         return dftValue ;
     }
     
@@ -70,9 +75,12 @@ public class JSONX {
         JsonValue jv = obj.get(field);
         if ( jv == null )
             return dftValue;
-        if ( jv.isNumber() )
-            return jv.getAsNumber().value().intValue();
-        LOG.warn("field "+field+" : not string or number : returning default value");
+        if ( jv.isNumber() ) {
+            long z = jv.getAsNumber().value().longValue();
+            if ( z < Integer.MIN_VALUE || z > Integer.MAX_VALUE )
+                throw new NumberFormatException("Number out of range: "+jv);
+            return (int)z;
+        }
         return dftValue ;
     }
 

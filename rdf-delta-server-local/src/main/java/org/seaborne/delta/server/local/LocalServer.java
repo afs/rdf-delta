@@ -23,6 +23,7 @@ import static org.seaborne.delta.DPConst.F_ID;
 import static org.seaborne.delta.DPConst.F_URI;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,6 +36,7 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
@@ -67,6 +69,8 @@ public class LocalServer {
      *          disabled -- if this file is present, then the datasource is not accessible.  
      *          
      *  But also external databases 
+     *  
+     *  Need to stop two LocalServers on one location.
      */
     
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
@@ -139,23 +143,27 @@ public class LocalServer {
     
     public static void release(LocalServer localServer) {
         Location key = localServer.serverConfig.location;
-        if ( key != null )
+        if ( key != null ) {
             servers.remove(key);
+            localServer.shutdown$();
+        }
     }
      
-    /** Scan a directory for datasource areas.
-     * These must have a file called   
+    /** 
+     * Scan a directory for datasource areas.
+     * These must have a file called source.cfg.
      */
     private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Location serverRoot, DataRegistry dataRegistry) {
         Path dir = Paths.get(serverRoot.getDirectoryPath());
         try { 
-            List<Path> x = Files.list(dir)
-                .filter(LocalServer::isDataSource)
+            List<Path> directory = ListUtils.toList( Files.list(dir).filter(p->Files.isDirectory(p)) );
+            directory.stream()
+                .filter(LocalServer::isFormatterDataSource)
                 .collect(Collectors.toList());
-            List<Path> enabled = x.stream()
+            List<Path> enabled = directory.stream()
                 .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());
-            List<Path> disabled = x.stream()
+            List<Path> disabled = directory.stream()
                 .filter(path -> !isEnabled(path))
                 .collect(Collectors.toList());
             return Pair.create(enabled, disabled);
@@ -167,10 +175,26 @@ public class LocalServer {
     }
 
     /** Test for a valid data source - does not check "disabled" */
-    private static boolean isDataSource(Path path) {
+    private static boolean isFormatterDataSource(Path path) {
+        if ( ! isMinimalDataSource(path) )
+            return false;
+        // Additional requirements
+        Path patchesArea = path.resolve(DPConst.PATCHES);
+        if ( ! Files.exists(patchesArea) )
+            return false;
+        Path pathVersion = path.resolve(DPConst.VERSION);
+        if ( ! Files.exists(pathVersion) )
+            return false;
+        return true ;
+    }
+    
+    /** Basic tests - not valid DataSource area but the skeleton of one.
+     * Checks it is a directory and has a configuration files.
+     */
+    private static boolean isMinimalDataSource(Path path) {
         if ( ! Files.isDirectory(path) ) 
             return false ;
-        Path cfg = path.resolve(DPConst.DATA_CONFIG);
+        Path cfg = path.resolve(DPConst.DS_CONFIG);
         if ( ! Files.exists(cfg) )
             return false ;
         if ( ! Files.isRegularFile(cfg) ) 
@@ -179,25 +203,31 @@ public class LocalServer {
             LOG.warn("Data source configuration file exists but is not readable: "+cfg);
         return true ;
     }
-    
+
     private static boolean isEnabled(Path path) {
         Path disabled = path.resolve(DPConst.DISABLED);
         return ! Files.exists(disabled);
     }
 
     private static DataSource makeDataSource(Path dataSourceArea) {
-        JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DPConst.DATA_CONFIG).toString());
-        String idStr = JSONX.getStrOrNull(sourceObj, F_ID) ;
-        Id id = Id.fromString(idStr) ; 
-        String uriStr = JSONX.getStrOrNull(sourceObj, F_URI) ;
-        String baseStr = JSONX.getStrOrNull(sourceObj, F_BASE);
+        JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DPConst.DS_CONFIG).toString());
+        SourceDescriptor dss = fromJsonObject(sourceObj);
+
+        Id id = dss.id;
+        String baseStr = dss.base;
+        String uriStr = dss.uri; 
+            
+//        String idStr = JSONX.getStrOrNull(sourceObj, F_ID) ;
+//        Id id = Id.fromString(idStr) ; 
+//        String uriStr = JSONX.getStrOrNull(sourceObj, F_URI) ;
+//        String baseStr = JSONX.getStrOrNull(sourceObj, F_BASE);
       
         Path patchesArea = dataSourceArea.resolve(DPConst.PATCHES);
         FileOps.ensureDir(patchesArea.toString());
         //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
         
         // --> Path
-        DataSource dataSource = DataSource.attach(id, uriStr, IOX.asLocation(dataSourceArea), IOX.asLocation(patchesArea));
+        DataSource dataSource = DataSource.connect(id, uriStr, dataSourceArea.getFileName().toString(), IOX.asLocation(dataSourceArea));
         FmtLog.info(LOG, "DataSource: %s (%s)", dataSource, baseStr);
       
         return dataSource ;
@@ -226,6 +256,14 @@ public class LocalServer {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.serverRoot = config.location;
+    }
+
+    public void shutdown() {
+        LocalServer.release(this);
+    }
+
+    private void shutdown$() {
+        dataRegistry.clear();
     }
 
     public DataRegistry getDataRegistry() {
@@ -268,7 +306,7 @@ public class LocalServer {
         SourceDescriptor descr = new SourceDescriptor
             (dataSource.getId(),
              dataSource.getURI(),
-             dataSource.getLocation().getDirectoryPath()); // <<-- XXX make relative or keep "name" in DataSource
+             dataSource.getName());
         return descr;
     }
     
@@ -288,26 +326,11 @@ public class LocalServer {
         return serverRoot.getSubLocation(name);
     }
     
-    private static Location patchArea(Location dataSourceArea) {
+    /*package*/ static Location patchArea(Location dataSourceArea) {
         return dataSourceArea.getSubLocation(DPConst.PATCHES);
     }
 
-    //public Id addDataSource(String name, String baseURI/*, details*/) {}
-    
-    // Create the des+criptor.
-    public Id addDataSource(boolean inMemory, String name, String baseURI/*, details*/) {
-        // Check area.
-        isDataSource(null);
-        makeDataSource(null);
-        
-        
-        return null ;
-    }
-    
-    
-//    public Id connect(String name) {
-//        
-//    }
+    // static DataSource.createDataSource.
     
     /** Create a new data source.
      * This can not be one that has been removed (i.e disabled) whose files must be cleaned up manually.
@@ -321,41 +344,34 @@ public class LocalServer {
 //        if ( sourceArea.exists() )
 //            throw new DeltaException("Area already exists");
 
-        if ( isDataSource(sourcePath) )
+        if ( isMinimalDataSource(sourcePath) )
             throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
         if ( ! isEnabled(sourcePath) )
             throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
         
-        String patchedDirName = sourceArea.getPath(DPConst.PATCHES);
-        if ( FileOps.exists(patchedDirName) )
+        String patchesDirName = sourceArea.getPath(DPConst.PATCHES);
+        if ( FileOps.exists(patchesDirName) )
             throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
 
         String dataDirName = sourceArea.getPath(DPConst.DATA);
         if ( FileOps.exists(dataDirName) )
             throw new DeltaBadRequestException("DataSource area has a likely looking database already");
         
-        // This ensures it exists.
-        Location patchesArea = patchArea(sourceArea);
-        Location db = sourceArea.getSubLocation(DPConst.DATA);
+        //Location db = sourceArea.getSubLocation(DPConst.DATA);
         
         Id dsRef = Id.create();
         SourceDescriptor descr = new SourceDescriptor(dsRef, baseURI, name);
         
-//        DatasetGraph dsg;
-//        if ( inMemory ) {
-//            FmtLog.info(LOG, "Create in-memory database");
-//            dsg = DatasetGraphFactory.createTxnMem();
-//        } else {
-//            JsonObject obj = toJsonObj(descr);
-//            LOG.info(JSON.toStringFlat(obj));
-//            String fn = sourceArea.getPath(DPConst.DATA_CONFIG);
-//            try (OutputStream out = IO.openOutputFile(fn) ) {
-//                JSON.write(out, obj);
-//            } catch (IOException x)  { throw IOX.exception(ex); }
-//            FmtLog.info(LOG, "Create database at %s", db);
-//            dsg = TDBFactory.createDatasetGraph(db);
-//        }
-        DataSource newDataSource = DataSource.attach(dsRef, baseURI, sourceArea, patchesArea);
+        // Create source.cfg.
+        if ( ! inMemory ) {
+            JsonObject obj = toJsonObj(descr);
+            LOG.info(JSON.toStringFlat(obj));
+            try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DPConst.DS_CONFIG))) {
+                JSON.write(out, obj);
+            } catch (IOException ex)  { throw IOX.exception(ex); }
+        }
+        // [DISK] XXX Persistent counter.
+        DataSource newDataSource = DataSource.connect(dsRef, baseURI, name, sourceArea);
         // Atomic.
         dataRegistry.put(dsRef, newDataSource);
         return dsRef ;
@@ -376,7 +392,7 @@ public class LocalServer {
         }
     }
 
-    /** SourceDescriptor -> JsonObject */
+    /** JsonObject -> SourceDescriptor */
     private static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
         String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
         SourceDescriptor descr = new SourceDescriptor
@@ -386,7 +402,7 @@ public class LocalServer {
         return descr;
     }
     
-    /** JsonObject -> SourceDescriptor */
+    /** SourceDescriptor -> JsonObject */
     private static JsonObject toJsonObj(SourceDescriptor descr) {
         JsonBuilder builder = JsonBuilder.create() ;
         builder.startObject();
@@ -397,7 +413,6 @@ public class LocalServer {
         return builder.build().getAsObject();
     }
 
-    /** SourceDescriptor -> JsonObject */
     private static void set(JsonBuilder builder, String field, String value) {
         if ( value != null )
             builder.key(field).value(value);

@@ -20,10 +20,13 @@ package org.seaborne.delta.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.lib.FileOps;
@@ -91,16 +94,40 @@ public class TestLocalServerCreateDelete {
         } catch (DeltaException ex) {}
     }
     
-    // Create does not overwrite
+    // Create does not overwrite persistent state.
     @Test public void local_server_create_03() {
         Location loc = Location.create(DIR);
         LocalServer server1 = LocalServer.attach(loc);
-        LocalServer server2 = LocalServer.attach(loc);
-        
         Id newId1 = server1.createDataSource(false, "XYZ", "http://example/xyz");
+        LocalServer.release(server1);
+
+        LocalServer server2 = LocalServer.attach(loc);
         try {
             Id newId2 = server2.createDataSource(false, "XYZ", "http://example/xyz");
             fail("Expected createDataSource to fail");
         } catch (DeltaException ex) {}
     }
+    
+    // "Restart" test.
+    @Test public void local_server_restart_01() {
+        Location loc = Location.create(DIR);
+        LocalServer server1 = LocalServer.attach(loc);
+        Id newId1 = server1.createDataSource(false, "XYZ", "http://example/xyz");
+        LocalServer.release(server1);
+        
+        LocalServer server2 = LocalServer.attach(loc);
+        // 3 - data1, data2 and the new XYZ.
+        assertEquals(3, server2.listDataSources().size());
+        assertEquals(3, server2.listDataSourcesIds().size());
+        
+        long z = server2.listDataSourcesIds().stream().filter(id->id.equals(newId1)).count();
+        assertEquals("Count of newId occurences", 1, z);
+        
+        Id id = server2.listDataSourcesIds().stream().filter(_id->_id.equals(newId1)).findFirst().get();
+        assertEquals(newId1, id) ;
+
+        List<Id> ids = server2.listDataSources().stream().map(dss->dss.getId()).collect(Collectors.toList());
+        assertTrue(ids.contains(newId1));
+    }
+
 }

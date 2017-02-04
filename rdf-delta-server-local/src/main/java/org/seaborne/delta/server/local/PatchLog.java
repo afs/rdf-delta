@@ -28,8 +28,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.lib.Cache;
+import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
+import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.RDFPatch;
@@ -38,60 +41,157 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Collection of patches for on dataset */
-public class PatchSet {
+public class PatchLog {
     // Centralized logger for regualr lifecyle reporting.
-    private static Logger  LOG     = LoggerFactory.getLogger(PatchSet.class);
+    private static Logger  LOG     = LoggerFactory.getLogger(PatchLog.class);
     // Tree?
 
     // All patches.
     // Need indirection? Patch[local]->RDFPatch
+    // --> LRU cache.
     private Map<Id, Patch> patches = new ConcurrentHashMap<>();
+    
+    // Global id->patch cache.
+    private static Cache<Id, Patch> patchCache = CacheFactory.createCache(1000);
+    static {
+        patchCache.setDropHandler((id,patch)->LOG.info("Cache drop patch: "+id));
+    }
 
     // HISTORY
     // The history list is immutable except for the last (most recent) entry
     // which is updated to
     static class HistoryEntry {
-        final Id    prev;        // == patch(next).getParent()
-        Id          next;        // Not final! == null at end, and can be extended.
-        final Patch patch;
+        final Id    prev;       // == patch(next).getParent()
+              Id    next;       // Not final! == null at end, and can be extended.
+        final Patch patch;      // Remove.
+        final int   version;
+        final Id id;
 
-        HistoryEntry(Patch patch, Id prev, Id next) {
+        HistoryEntry(Patch patch, int version, Id prev, Id thisId, Id next) {
             this.patch = patch;
             this.prev = prev;
+            this.id = thisId;
             this.next = next;
+            this.version = version; 
         }
 
         @Override
         public String toString() {
-            return String.format("History: Next=%s, Prev=%s", next, prev);
+            return String.format("History: Version=%d, Id=%d, Next=%s, Prev=%s", version, id, next, prev);
         }
     }
 
     //Id of the DataSource 
-    private final Id              id;
+    private final Id              dsRef;
     private final FileStore       fileStore;
 
-    private HistoryEntry          start;
-    private HistoryEntry          finish;
+    private HistoryEntry          start = null;
+    private HistoryEntry          finish = null;
     private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
     //private Map<Integer, Id>      versionToId = new ConcurrentHashMap<>();
 
     private List<PatchHandler>    handlers       = new ArrayList<>();
 
+    private static boolean VALIDATE_PATCH_LOG = true;
+    
+    public static PatchLog attach(Id dsRef, Location location) {
+        FileStore fileStore = FileStore.attach(location, "patch");
 
-    public PatchSet(Id id, String location) {
-        this.id = id;
+        if ( VALIDATE_PATCH_LOG ) {
+            ;
+        }
+        
+        final HistoryEntry currentEntry;
+        if ( fileStore.isEmpty() ) {
+            currentEntry = null;
+            FmtLog.info(LOG, "PatchLog for %s, starts empty", dsRef);
+        } else {
+            int x = fileStore.getCurrentIndex();
+            // Patch read meta only?
+            // Why the "Patch" class for an History Entry?
+            RDFPatch patch = fetch(fileStore, x);
+            Id patchId = Id.fromNode(patch.getId());
+            Patch holder = new Patch(patch, null, null);
+            currentEntry = new HistoryEntry(holder, x, null, patchId, null);
+            FmtLog.info(LOG, "PatchLog for %s, history until %s", dsRef, patchId); 
+        }
+        
+        // Validate the patch chain.
+        // Find the last patch id.
+        
+        
+        return new PatchLog(dsRef, location, currentEntry);
+    }
+
+    private PatchLog(Id dsRef, Location location, HistoryEntry startEntry) {
+        // XXX [DISK]
+        this.dsRef = dsRef;
+        // Linked list of one.
+        this.start = startEntry;
+        this.finish = startEntry;
         this.fileStore = FileStore.attach(location, "patch");
     }
 
-    public PatchSetInfo getInfo() {
-        return new PatchSetInfo(0L, 0L, id, null);
+    public Id getLatestId() {
+        HistoryEntry e = finish;
+        return e.id;
     }
 
-    public void add(Patch patch) {
+    public int getLatestVersion() {
+        HistoryEntry e = finish;
+        return e.version;
+    }
+
+    public PatchLogInfo getInfo(boolean unimplemented) {
+        // XXX PatchLogInfo
+        return new PatchLogInfo(dsRef, -1, -1, null); 
+    }
+    
+    public boolean isEmpty() {
+        // 
+        boolean b1 = fileStore.isEmpty();
+        boolean b2 = finish == null;
+        if ( b1 != b2 )
+            FmtLog.warn(LOG, "Inconsistent: fileStore.isEmpty=%s : history empty=%s", b1, b2);
+        return b2;
+    }
+
+    /** Validate a patch for this {@code PatchLog} */
+    public boolean validate(Patch patch) {
+        Id parent = patch.getParentIdAsId();
+        Id patchId = patch.getIdAsId();
+        if ( parent == null ) {
+            if ( !isEmpty() ) {
+                FmtLog.warn(LOG, "No parent for patch when PatchLog is not empty: patch=%s", patchId);
+                return false;
+            }
+        } else {
+            if ( isEmpty() ) {
+                FmtLog.warn(LOG, "Parent for patch but PatchLog is empty: patch=%s : parent=%s", patchId, parent);
+                return false ;
+            } else {
+                if ( ! parent.equals(finish.id) ) {
+                    FmtLog.warn(LOG, "Parent for patch does not match PatchLog latest: patch=(%s  parent=%s) : latest=%s", patchId, parent, finish.id);
+                    return false ;
+                }
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Add a patch to the PatchLog.
+     * This operation does not store the patch; 
+     * it is expected to be already persisted.
+     * Only the {@code PatchLog} in-mmeory metadata is updated. 
+     */
+    void addMeta(Patch patch) {
         // Validate.
+        validate(patch);
         patches.put(patch.getIdAsId(), patch);
-        HistoryEntry e = new HistoryEntry(patch, patch.getParentIdAsId(), null);
+        // XXX Version
+        int version = -99;
+        HistoryEntry e = new HistoryEntry(patch, version, patch.getParentIdAsId(), patch.getIdAsId(), null);
         addHistoryEntry(e);
     }
 
@@ -159,7 +259,7 @@ public class PatchSet {
         Patch p = patches.get(start);
         // "Next"
 
-        System.err.println("Unfinished: PatchSet.range");
+        System.err.println("Unfinished: PatchLog.range");
         return null;
     }
 
@@ -203,6 +303,10 @@ public class PatchSet {
     }
 
     public RDFPatch fetch(int version) {
+        return fetch(fileStore, version); 
+    }
+    
+    private static RDFPatch fetch(FileStore fileStore, int version) {
         Path p = fileStore.filename(version);
         try {
             InputStream in = Files.newInputStream(p);
@@ -210,7 +314,7 @@ public class PatchSet {
             return patch;
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
-    
+
     public Id find(int version) {
         // XXX Do better!
         Path p = fileStore.filename(version);

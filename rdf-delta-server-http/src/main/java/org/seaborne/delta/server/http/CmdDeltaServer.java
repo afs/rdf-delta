@@ -106,7 +106,7 @@ public class CmdDeltaServer {
         FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
         LocalServer server = LocalServer.attach(baseArea, configFile);
         int port = choosePort(cla, server);
-        DeltaLink link = DeltaLinkLocal.create(server);
+        DeltaLink link = DeltaLinkLocal.connect(server);
         DataPatchServer dps = new DataPatchServer(port, link) ;
         // And away we go.
         FmtLog.info(LOG, "START: Delta Server port=%d, base=%s", port, base.toString());

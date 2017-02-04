@@ -20,60 +20,55 @@ package org.seaborne.delta.server.local;
 
 import org.seaborne.delta.Id;
 
-/** Snapshot of the state of a {@link PatchSet}. */
-public class PatchSetInfo {
+/** Snapshot of the state of a {@link PatchLog}. */
+public class PatchLogInfo {
     private final long minVersion ;
     private final long maxVersion ;
-    private final Id patchSetId ;
-    private final Id latest ;
+    private final Id dataSourceId ;
+    private final Id latestPatch ;
     
     
-    /*package*/PatchSetInfo(long minVersion, long maxVersion, Id target, Id latest) {
+    /*package*/PatchLogInfo(Id dsRef, long minVersion, long maxVersion, Id latestPatch) {
         this.minVersion = minVersion ;
         this.maxVersion = maxVersion ;
-        this.patchSetId = target ;
-        this.latest = latest ;
+        this.dataSourceId = dsRef ;
+        this.latestPatch = latestPatch ;
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31 ;
-        int result = 1 ;
-        result = prime * result + (int)(minVersion ^ (minVersion >>> 32)) ;
-        result = prime * result + (int)(maxVersion ^ (maxVersion >>> 32)) ;
-        result = prime * result + ((patchSetId == null) ? 0 : patchSetId.hashCode()) ;
-        result = prime * result + ((latest == null) ? 0 : latest.hashCode()) ;
-        return result ;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((dataSourceId == null) ? 0 : dataSourceId.hashCode());
+        result = prime * result + ((latestPatch == null) ? 0 : latestPatch.hashCode());
+        result = prime * result + (int)(maxVersion ^ (maxVersion >>> 32));
+        result = prime * result + (int)(minVersion ^ (minVersion >>> 32));
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )
-            return true ;
+            return true;
         if ( obj == null )
-            return false ;
+            return false;
         if ( getClass() != obj.getClass() )
-            return false ;
-        PatchSetInfo other = (PatchSetInfo)obj ;
-
+            return false;
+        PatchLogInfo other = (PatchLogInfo)obj;
+        if ( dataSourceId == null ) {
+            if ( other.dataSourceId != null )
+                return false;
+        } else if ( !dataSourceId.equals(other.dataSourceId) )
+            return false;
+        if ( latestPatch == null ) {
+            if ( other.latestPatch != null )
+                return false;
+        } else if ( !latestPatch.equals(other.latestPatch) )
+            return false;
         if ( maxVersion != other.maxVersion )
-            return false ;
+            return false;
         if ( minVersion != other.minVersion )
-            return false ;
-        
-        if ( latest == null ) {
-            if ( other.latest != null )
-                return false ;
-        } else if ( !latest.equals(other.latest) )
-            return false ;
-        
-        if ( patchSetId == null ) {
-            if ( other.patchSetId != null )
-                return false ;
-        } else if ( !patchSetId.equals(other.patchSetId) )
-            return false ;
-        
-        return true ;
+            return false;
+        return true;
     }
-    
 }

@@ -48,7 +48,7 @@ public class TestLocalServer {
 
     private void test(DataSource dataSource) {
         dataSource.getId();
-        dataSource.getPatchSet();
+        dataSource.getPatchLog();
         dataSource.getReceiver();
         dataSource.getURI();
     }

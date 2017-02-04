@@ -36,9 +36,10 @@ public class TestLocalServerBuildConfig {
     public static String TESTING = "testing/";
 
     @Test public void local_server_config_01() {
+        // Blank start up.
         LocalServerConfig conf = LocalServerConfig.create()
             .setPort(10)
-            .setLocation("target/test")
+            .setLocation("target/test_config01")
             .build();
         LocalServer.attach(conf);
     }
@@ -53,14 +54,16 @@ public class TestLocalServerBuildConfig {
     }
 
     @Test public void local_server_config_03() {
-        // Configuration file in server area. 
-        Location loc = Location.create(TESTING);
-        LocalServer server = LocalServer.attach(TESTING+"delta.cfg");
-        assertEquals(loc, server.getConfig().location);
+        // Configuration file not in server area. 
+        LocalServerConfig conf = LocalServerConfig.create()
+            .parse(TESTING+"delta.cfg")
+            .setLocation("target/test_config03")
+            .build();
+        LocalServer server = LocalServer.attach(conf);
     }
 
     @Test public void local_server_config_04() {
-        // Configuration file not in server area. 
+        // Configuration file in server area. 
         Location loc = Location.create(TESTING+"DeltaServerBlank");
         LocalServer server = LocalServer.attach(loc, "delta.cfg");
         List<DataSource> sources = server.listDataSources();

@@ -80,7 +80,7 @@ public final class Id {
     // Version 4 are not.
     private static UUIDFactory uuidFactory = new UUID_V4_Gen() ;
 
-    /** {@link UUID}s are used to UUIDentify many things in Delta - the RDF Dataset being managed,
+    /** {@link UUID}s are used to identify many things in Delta - the RDF Dataset being managed,
      * the patches applied (the UUID naming forms the history), registrations and channels,
      * amongst other things.
      */
@@ -141,10 +141,21 @@ public final class Id {
     @Override
     public String toString() {
         if ( uuid != null ) 
-            return SCHEME+uuid.toString() ;
+            return SCHEME+shortUUIDstr(uuid);
         return SCHEME+"\""+string+"\"" ;
     }
 
+    private String shortUUIDstr(UUID uuid) {
+        String str = uuid.toString();
+        int version = uuid.version();
+        if ( version == 1 )
+            //Type 1 : include varying part! xxxx-yyyy
+            return str.substring(19, 28);
+        if ( version == 4 )
+            // Type 4 - use the first few hex characters. 
+            return uuid.toString().substring(0,6);
+        return uuid.toString().substring(0,8);
+    }
     @Override
     public int hashCode() {
         final int prime = 31 ;

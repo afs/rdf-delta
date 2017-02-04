@@ -54,7 +54,7 @@ public abstract class AbstractTestDeltaConnection {
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
         Id dsRef = dLink.newDataSource("foo", "http://example/datasource");
-        DeltaConnection dConn = DeltaConnection.create("label",
+        DeltaConnection dConn = DeltaConnection.connect("label",
                                                        clientId, dsRef,
                                                        shadow,
                                                        dLink);

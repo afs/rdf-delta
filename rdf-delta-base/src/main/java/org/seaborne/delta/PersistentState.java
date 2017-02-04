@@ -41,9 +41,13 @@ public class PersistentState implements RefLong, RefString {
     private byte[] value = null;
     private String valueStr = null;
     
-    public PersistentState(String filename) {
-        Objects.requireNonNull(filename);
-        this.pathname = Paths.get(filename).toAbsolutePath();
+    public PersistentState(String stateFile) {
+        this(Paths.get((stateFile)));
+    }
+    
+    public PersistentState(Path stateFilePath) {
+        Objects.requireNonNull(stateFilePath);
+        this.pathname = stateFilePath.toAbsolutePath();
         this.dir = pathname.getParent();
         reset();
     }
@@ -86,7 +90,7 @@ public class PersistentState implements RefLong, RefString {
         String s = getString();
         if ( s.isEmpty() )
             return DEFAULT; 
-        return Long.parseLong(getString());
+        return Long.parseLong(getString().trim());
     }
 
     @Override

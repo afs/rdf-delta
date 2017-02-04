@@ -20,36 +20,38 @@ package org.seaborne.delta;
 
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.lib.JSONX;
+import static org.seaborne.delta.DPConst.*;
 
 public class DataSourceDescription {
     public final Id id;
     public final String uri;
+    public final String name;
     
-    public DataSourceDescription(Id id, String uri) {
+    public DataSourceDescription(Id id, String name, String uri) {
         super();
         this.id = id;
+        this.name = name;
         this.uri = uri;
     }
     
-    public final static String F_ID = DPConst.F_ID;
-    public final static String F_URI = DPConst.F_URI;
-    
     public JsonObject asJson() {
         return JSONX.buildObject(b->{
-            b.key(F_ID).value(id.toString());
+            b.key(F_ID).value(id.asString());
+            b.key(F_NAME).value(name);
             b.key(F_URI).value(uri);
         });
     }
     
     public static DataSourceDescription fromJson(JsonObject obj) {
         String idStr = obj.get(F_ID).getAsString().value();
+        String name = obj.get(F_NAME).getAsString().value();
         String uri = obj.get(F_URI).getAsString().value();
-        return new DataSourceDescription(Id.fromString(idStr), uri);
+        return new DataSourceDescription(Id.fromString(idStr), name, uri);
     }
     
     @Override
     public String toString() {
-        return String.format("[%s, <%s>]", id, uri);
+        return String.format("[%s, %s, <%s>]", id, name, uri);
     }
     
     // Useable as a key into a Map.

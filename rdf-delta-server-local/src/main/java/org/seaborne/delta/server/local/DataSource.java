@@ -42,18 +42,20 @@ public class DataSource {
     private final Location location;
     // Process that can take an input stream and put a patch safe on storage.
     private final Receiver receiver;
-    private final PatchSet patchSet;
+    private final PatchLog patchLog;
 
     // Duplicates location if not in-memory.
     private final Path path;
+    // DataSource short name (final component of path). 
+    private final String name;
     
     /** Attach to a datasource file area. 
-     * Create if necessary.  
      * @param sourceArea    {@code Sources}
-     * @param patchesArea   The global {@code Patches} store.
      * @return DataSource
      */
-    public static DataSource attach(Id id, String uri, Location sourceArea, Location patchesArea) {
+    public static DataSource connect(Id dsRef, String uri, String name, Location sourceArea) {
+        
+        Location patchesArea = LocalServer.patchArea(sourceArea);
         if ( sourceArea.isMem() && patchesArea.isMem() ) {
             return null ;
         }
@@ -63,23 +65,24 @@ public class DataSource {
         }
         
         formatSourceArea(sourceArea, patchesArea);
-        PatchSet patchSet = loadPatchSet(id, patchesArea.getDirectoryPath());
+        PatchLog patchSet = loadPatchLog(dsRef, patchesArea);
         Receiver receiver = new Receiver(patchSet.getFileStore());
-        return new DataSource(id, sourceArea, uri, patchSet, receiver);
+        return new DataSource(dsRef, sourceArea, name, uri, patchSet, receiver);
     }
 
-    private static PatchSet loadPatchSet(Id id, String path) {
-        return new PatchSet(id, path);
+    private static PatchLog loadPatchLog(Id dsRef, Location patchesArea) {
+        return PatchLog.attach(dsRef, patchesArea);
     }
 
-    private DataSource(Id id, Location location, String name, PatchSet patchSet, Receiver receiver) {
+    private DataSource(Id id, Location location, String name, String uri, PatchLog patchLog, Receiver receiver) {
         super();
         this.id = id;
         this.location = location;
         this.path = location.isMem() ? null : IOX.asPath(location);
         this.receiver = receiver;
-        this.uri = name;
-        this.patchSet = patchSet;
+        this.name = name;
+        this.uri = uri;
+        this.patchLog = patchLog;
     }
 
     public Id getId() {
@@ -103,12 +106,16 @@ public class DataSource {
         return path;
     }
 
-    public PatchSet getPatchSet() {
-        return patchSet;
+    public String getName() {
+        return name;
+    }
+
+    public PatchLog getPatchLog() {
+        return patchLog;
     }
 
     public DataSourceDescription getDescription() {
-        return new DataSourceDescription(id, uri); 
+        return new DataSourceDescription(id, name, uri); 
     }
     
     public boolean inMemory() {

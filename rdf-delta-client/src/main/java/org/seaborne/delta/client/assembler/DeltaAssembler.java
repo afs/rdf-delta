@@ -134,7 +134,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         if ( true )
             throw new NotImplemented("NEED THE DATASOURCE ID; NEED THE CLIENT ID");
         DeltaLink dc = new DeltaLinkHTTP(source) ;
-        DeltaConnection client = DeltaConnection.create("foo", null, null, dsg, dc) ;
+        DeltaConnection client = DeltaConnection.connect("foo", null, null, dsg, dc) ;
         Runnable r = ()->{
             try { client.sync(); }
             catch (Exception ex) { 

@@ -86,13 +86,14 @@ public class DPConst {
     // Default name for the server configuration file.
     public static final String SERVER_CONFIG   = "delta.cfg";
     // Name for the datasource configuration file.
-    public static final String DATA_CONFIG     = "source.cfg";
+    public static final String DS_CONFIG      = "source.cfg";
 
     // Relative path name in ENV_BASE for the "sources" area.
     public static final String SOURCES         = "Sources";
     // Relative path name in ENV_BASE for the patches area.
     public static final String PATCHES         = "Patches";
     public static final String DATA            = "data";
+    public static final String VERSION         = "version";
     public static final String DISABLED        = "disabled";
 
     

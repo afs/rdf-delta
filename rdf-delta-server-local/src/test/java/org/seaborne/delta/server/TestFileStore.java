@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.tdb.base.file.Location;
 import org.apache.jena.util.FileUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -38,19 +39,19 @@ import org.seaborne.delta.server.local.FileEntry;
 import org.seaborne.delta.server.local.FileStore;
 
 public class TestFileStore {
-    static final String STORE = "target/test/store";
+    static final Location STORE = Location.create("target/test/store");
     static String regex = "target[\\\\/]test[/\\\\]store[/\\\\]FILE-([0-9]+)$";
     static Pattern pattern = Pattern.compile(regex);
 
     @BeforeClass
     static public void beforeClass() {
-        FileOps.ensureDir(STORE);
+        FileOps.ensureDir(STORE.getDirectoryPath());
     }
 
     @After
     public void afterTest() {
         FileStore.resetTracked();
-        FileOps.clearDirectory(STORE);
+        FileOps.clearDirectory(STORE.getDirectoryPath());
     }
 
     @Test

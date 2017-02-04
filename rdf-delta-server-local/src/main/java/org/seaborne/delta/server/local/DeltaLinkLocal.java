@@ -41,7 +41,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     
     private final LocalServer localServer;
     
-    public static DeltaLink create(LocalServer localServer) {
+    public static DeltaLink connect(LocalServer localServer) {
         return new DeltaLinkLocal(localServer);
     }
 
@@ -112,8 +112,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
             RDFPatchOps.write(System.out, rdfPatch) ;
         }
         Patch patch = new Patch(rdfPatch, source, entry);
-        PatchSet ps = source.getPatchSet() ;
-        ps.add(patch);
+        PatchLog patchLog = source.getPatchLog() ;
+        patchLog.addMeta(patch);
         return entry.version; 
     }
 
@@ -144,18 +144,18 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
     
     private FileStore getFileStore(DataSource source) {
-        return source.getPatchSet().getFileStore();
+        return source.getPatchLog().getFileStore();
     }
 
     private static int getCurrentVersion(DataSource source) {
-        return source.getPatchSet().getFileStore().getCurrentIndex();
+        return source.getPatchLog().getFileStore().getCurrentIndex();
     }
 
     /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         DataSource source = getDataSource(dsRef);
-        Patch patch = source.getPatchSet().fetch(patchId) ;
+        Patch patch = source.getPatchLog().fetch(patchId) ;
         if ( patch == null )
             throw new DeltaBadRequestException(404, "No such patch: "+patchId) ;
         FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
@@ -166,8 +166,11 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
         DataSource source = getDataSource(dsRef) ;
-        RDFPatch patch = source.getPatchSet().fetch(version);
-        FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, patch.getId()) ;
+        RDFPatch patch = source.getPatchLog().fetch(version);
+        if ( LOG.isInfoEnabled() ) {
+            Id id = Id.fromNode(patch.getId());
+            FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id) ;
+        }
         return patch;
     }
 

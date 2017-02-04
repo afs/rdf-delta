@@ -55,7 +55,7 @@ public class DeltaConnection {
     
     // The version of the remote copy.
     
-    private final DeltaLink link ;
+    private final DeltaLink dLink ;
     
     private final AtomicInteger remoteEpoch = new AtomicInteger(0);
     private final AtomicInteger localEpoch = new AtomicInteger(0);
@@ -64,24 +64,27 @@ public class DeltaConnection {
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
     
-    private RegToken regToken = null ;
-    
     private final RDFChanges target;
     private final String label;
-    private final Id clientId;
     private final Id datasourceId;
     
-    public static DeltaConnection create(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
+    /** Connect to an existing {@code DataSource}. */  
+    public static DeltaConnection connect(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
-        Objects.requireNonNull(link, "Null link");
-        
-        DeltaConnection client = new DeltaConnection(label, clientId, datasourceId, dsg, link);
+        Objects.requireNonNull(dLink, "Null link");
+        ensureRegistered(dLink, clientId);
+        DeltaConnection client = new DeltaConnection(label, datasourceId, dsg, dLink);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
     }
     
-    private DeltaConnection(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
+    private static void ensureRegistered(DeltaLink link, Id clientId) {
+        if ( ! link.isRegistered() )
+            link.register(clientId);
+    }
+    
+    private DeltaConnection(String label, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
         localEpochPersistent = new TransPInteger(label);
         localEpoch.set(0);
         
@@ -91,8 +94,7 @@ public class DeltaConnection {
         this.label = label;
         this.base = dsg;
         this.datasourceId = datasourceId ;
-        this.clientId = clientId;
-        this.link = link;
+        this.dLink = link;
         
         if ( dsg != null  ) {
             // Where to put incoming changes. 
@@ -108,16 +110,11 @@ public class DeltaConnection {
     }
     
     public void start() {
-        register(); 
         sync();
     }
     
     public void finish() { }
 
-    private void register() {
-        regToken = link.register(clientId);
-    }
-    
     public void sync() {
         // [Delta] replace with a one-shot "get all missing patches" operation.
 
@@ -144,7 +141,7 @@ public class DeltaConnection {
         //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
 
         if ( localVer > remoteVer ) 
-            FmtLog.info(LOG, "Local version ahead of remote : [%d, %d]", localEpoch, remoteEpoch);
+            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localEpoch.get(), remoteEpoch.get());
         if ( localVer >= remoteVer ) {
             //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
             return;
@@ -168,7 +165,7 @@ public class DeltaConnection {
 //    }
     
     public DeltaLink getLink() {
-        return link;
+        return dLink;
     }
     
 
@@ -177,7 +174,7 @@ public class DeltaConnection {
     }
     
     public Id getClientId() {
-        return clientId;
+        return dLink.getClientId();
     }
 
     public Id getDatasourceId() {
@@ -185,12 +182,12 @@ public class DeltaConnection {
     }
 
     public RegToken getRegToken() {
-        return regToken;
+        return dLink.getRegToken();
     }
 
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
-        return link.getCurrentVersion(datasourceId);
+        return dLink.getCurrentVersion(datasourceId);
     }
     
     /** Return the version of the local data store */ 
@@ -227,7 +224,7 @@ public class DeltaConnection {
     }
 
     private synchronized void sendPatch(RDFPatch patch) {
-        int ver = link.sendPatch(datasourceId, patch);
+        int ver = dLink.sendPatch(datasourceId, patch);
         int ver0 = localEpoch.get();
         if ( ver0 > ver )
             FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver); 
@@ -235,7 +232,7 @@ public class DeltaConnection {
     }
 
     private RDFPatch fetchPatch(int id) {
-        return link.fetch(datasourceId, id);
+        return dLink.fetch(datasourceId, id);
     }
     
     @Override

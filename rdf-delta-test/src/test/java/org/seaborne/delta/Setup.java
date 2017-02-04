@@ -60,7 +60,7 @@ public class Setup {
         @Override
         public void beforeTest() {
             lserver = DeltaTestLib.createEmptyTestServer();
-            dlink =  DeltaLinkLocal.create(lserver);
+            dlink =  DeltaLinkLocal.connect(lserver);
         }
         
         @Override
@@ -113,7 +113,7 @@ public class Setup {
         @Override
         public void beforeTest() {
             localServer = DeltaTestLib.createEmptyTestServer();
-            DeltaLink localLink = DeltaLinkLocal.create(localServer);
+            DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server.setEngine(localLink);
             link = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
         }
