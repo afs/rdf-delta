@@ -19,29 +19,24 @@
 package dev;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
 
-import org.apache.jena.atlas.io.IndentedLineBuffer;
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.io.JSWriter;
-import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.apache.jena.atlas.lib.InternalErrorException;
-import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.ext.com.google.common.io.Files;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.PersistentState;
-import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.lib.JSONX;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.local.*;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 
 public class Run {
     static { 
@@ -49,224 +44,124 @@ public class Run {
         LogCtl.setJavaLogging();
     }
     
-    // JSON?
+    // Local.
+    // Local cache / HTTP only
+    /* LocalDeltaLinkState
+     * FileSystem:
+     *    /
+     *       state.json
+     *
+     * One of TDB of a file for data:
+     *       /data -- TDB database
+     *       [ /base -- Copy of starting point ]
+     * or
+     *       /data.ttl -- "current" data file.
+     *       [ /base.ttl -- initial data - file - not updated (?) - lots of catch up ]
+     */
     
-    // Add to datasource description.
-    static class DataSourceState {
-        public final Id datasourceId;
-        public final long version;
-        public final Id patchId;
-        public final String timestamp;
-        public DataSourceState(Id datasourceId, long version, Id patchId, String timestamp) {
-            this.datasourceId = datasourceId;
-            this.version = version;
-            this.patchId = patchId;
-            this.timestamp = timestamp;
-        }
-    }
+    // Restart : need last patchId for parent.
+    //   Local state.
+    // Need PatchLog to find parent on restart.
+    // Need PatchLog to find version on restart.
+    //     Code in "new PatchLog"¬
+    // Need parent in patch
+    // Need rejection
     
-    public static class DSS_JSON implements DSS_IO { 
-        public static final String kDATASOURCE  = "datasource";
-        public static final String kTIMESTAMP   = "timestamp";
-        public static final String kPATCH       = "patch";
-        public static final String kVERSION     = "version";
+    // PatchLog - conflates "index" and "version" - acceptable?
+    //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
+    // Look for [DISK]
     
-        @Override
-        public void writeState(PersistentState state, Id datasourceId, long version, Id patchId) {
-            if ( datasourceId == null )
-                throw new InternalErrorException("No datasource id");
-            String timestamp = DateTimeUtils.nowAsXSDDateTimeString();
-
-            JsonObject obj =
-                JSONX.buildObject(b->{
-                    b.key(kDATASOURCE).value(datasourceId.asPlainString());
-                    //b.pair(kDATASOURCE, datasourceId.asPlainString());
-                    if ( timestamp != null )
-                        b.key(kTIMESTAMP).value(timestamp);
-                        //b.pair(kTIMESTAMP, timestamp);
-                    if ( version >= 0 )
-                        b.key(kVERSION).value(version);
-                        //b.pair(kVERSION, version);
-                    if ( patchId != null )
-                        b.key(kPATCH).value(patchId.asPlainString());
-                        //b.pair(kPATCH, patchId.asPlainString());
-                });
-            state.setString(JSON.toString(obj));
-        }
+    public static void main1(String... args) throws IOException {
+        Id dsRef = Id.create();
+        PatchLog patchLog = PatchLog.attach(dsRef, Location.create("Patches"));
         
-        // Uses JSWriter 
-        private void writeState2(PersistentState state, Id datasourceId, long version, Id patchId) {
-            if ( datasourceId == null )
-                throw new InternalErrorException("No datasource id");
-            String timestamp = DateTimeUtils.nowAsXSDDateTimeString();
-
-            IndentedLineBuffer x = new IndentedLineBuffer();
-            JSWriter jsw = new JSWriter(x);
-            
-            jsw.startOutput();
-            jsw.startObject();
-            
-            jsw.pair(kDATASOURCE, datasourceId.asPlainString());
-            if ( timestamp != null )
-                jsw.pair(kTIMESTAMP, timestamp);
-            if ( version >= 0 )
-                jsw.pair(kVERSION, version);
-            if ( patchId != null )
-                jsw.pair(kPATCH,patchId.asPlainString());
-            
-            jsw.finishObject();
-            jsw.finishOutput();
-            state.setString(x.asString());
-        }
-        @Override
-        public DataSourceState readState(PersistentState state) {
-            JsonObject obj = JSON.parse(state.getString());
-            if ( ! obj.hasKey(kDATASOURCE) )
-                throw new InternalErrorException("No datasource id");
-            Id datasource = Id.fromString(obj.get(kDATASOURCE).getAsString().value());
-            long version = -1;
-            if ( obj.hasKey(kVERSION) )
-                version = obj.get(kVERSION).getAsNumber().value().longValue();
-            Id patchId = null;
-            if ( obj.hasKey(kPATCH) )
-                patchId = Id.fromString(obj.get(kPATCH).getAsString().value());
-            String timestamp = null;
-            if ( obj.hasKey(kTIMESTAMP) )
-                timestamp = obj.get(kTIMESTAMP).getAsString().value();
-            return new DataSourceState(datasource, (int)version, patchId, timestamp);
-        }
-    }
-    
-    public interface DSS_IO {
-        public void writeState(PersistentState state, Id datasourceId, long version, Id patchId);
-        public DataSourceState readState(PersistentState state); 
-    }
-    
-    public static class DSS_Properties implements DSS_IO { 
-        @Override
-        public void writeState(PersistentState state, Id datasourceId, long version, Id patchId) {
-            String xs;
-            String timestamp = DateTimeUtils.nowAsXSDDateTimeString();
-            StringBuilder builder = new StringBuilder(256);
-            if ( datasourceId == null )
-                throw new InternalErrorException("No datasource id");
-            append(builder, "datasource", datasourceId.asPlainString());
-            try {
-                if ( timestamp != null )
-                    append(builder, "timestamp", timestamp);
-                if ( version >= 0 )
-                    append(builder, "version", Long.toString(version));
-                if ( patchId != null )
-                    append(builder, "patch", patchId.asPlainString());
-                xs = builder.toString(); 
-            } catch (Exception ex) {
-                Log.error(DataSource.class, "Failed to format the state to write", ex);
-                throw new IllegalArgumentException("Failed to format the state to write", ex);
-            }
-            state.setString(xs);
-        }
-
-        @Override
-        public DataSourceState readState(PersistentState state) {
-            Properties props = new Properties();
-            try(Reader in = new StringReader(state.getString())) {
-                props.load(in);
-            } catch (IOException ex) { throw IOX.exception(ex); }
-            String datasourceStr = props.getProperty("datasource");
-            String versionStr = props.getProperty("version"); 
-            String patchStr = props.getProperty("patch");
-            String timestamp = props.getProperty("timestamp");
-            return new DataSourceState(Id.fromString(datasourceStr),
-                                       versionStr == null ? -1 : Integer.parseInt(versionStr),
-                                       patchStr == null ? null : Id.fromString(patchStr),
-                                       timestamp 
-                );
-        }
-
-        private void append(StringBuilder builder, String field, String value) {
-            builder.append(field);
-            builder.append(" = ");
-            builder.append(value);
-            builder.append("\n");
-        }
-    }
-
-    public static void print(DataSourceState dss) {
-        //System.out.print(String.format("datasource=%s  version=%s  patch=%s\n", dss.datasourceId, dss.version, dss.patchId));
-        System.out.printf("  datasource = %s\n",  dss.datasourceId);
-        System.out.printf("  version    = %s\n",  dss.version);
-        System.out.printf("  patch      = %s\n",  dss.patchId);
-        System.out.printf("  timestamp  = %s\n",  dss.timestamp);
+        patchLog.getFileStore().getIndexes().forEach(idx->System.out.printf("idx=%d\n", idx));
+        
+        patchLog.getFileStore().getIndexes().forEach(idx->{
+            RDFPatch patch = patchLog.fetch(idx);
+        });
+        
+        // Find latest.
+        Id latest = patchLog.getLatestId();
+        int version = patchLog.getLatestVersion();
+        System.out.printf("Latest: %d : %s\n", version, latest);
+        System.out.println();
+        
+        RDFPatch rdfPatch = RDFPatchOps.fileToPatch("Patches/test");
+        Patch holder = new Patch(rdfPatch, null, null);
+        patchLog.validate(holder);
+        
+//        int version2 = ps.getLatestVersion();
+//        System.out.printf("Latest: %d\n", version2);
+        
+        System.out.println("DONE");
+        System.exit(0);
     }
     
     public static void main(String... args) throws IOException {
-        String filename = "datafile";
-
-
-        DSS_IO dssIO = new DSS_JSON();
-        PersistentState ps = new PersistentState("foobar");
-        Id id1 = Id.create();
-        Id id2 = Id.create();
-        dssIO.writeState(ps, id1, 100, id2);
-
-        DataSourceState dss = dssIO.readState(ps);
-        print(dss);
-
-        if ( ! Objects.equals(dss.datasourceId, id1) )
-            System.out.println("Error on id1");
-        if ( ! Objects.equals(dss.patchId, id2) )
-            System.out.println("Error on id2");
-
-        Files.copy(Paths.get("foobar").toFile(), System.out);
-
-        System.out.println("DONE");
-        System.exit(0);
-
-//            Pattern pattern = Pattern.compile("#([^\\n]*)\ndatasource=([^\\n]*)\nversion=([^\\n]*)\npatch=([^\\n]*)\n");
-//            Matcher m = pattern.matcher(xs);
-//            System.out.println(m.matches());
-//            System.out.println(m.groupCount());
-//            for ( int i = 1 ; i <= m.groupCount() ; i++ )
-//                System.out.println(m.group(i));
-
-
-        System.out.println("DONE");
-        System.exit(0);
-    }
-        
-    
-    
-    public static void example_local(String... args) throws IOException {
+        boolean cleanServer = false;
+        String datasourceName = "XYZ";
         Location loc = Location.create("DeltaServer");
-        LocalServer server = LocalServer.attach(loc);
-        state(server.listDataSources());
-        System.out.println();
-        
-        // Correctly fails if exists
-        Id newId = server.createDataSource(false, "XYZ", "http://example/xyz");
-        DataSource dSrc = server.getDataRegistry().get(newId);
-        
-        List<DataSource> x = server.listDataSources();
-        x.forEach((ds)->{
-            System.out.println(ds);
-            System.out.println("    "+ds.getURI());
-            System.out.println("    "+ds.getId());
-            System.out.println("    "+ds.getLocation());
-            System.out.println("    "+ds.getPatchSet());
-        });
+        if ( cleanServer )
+            FileOps.clearAll(loc.getPath(datasourceName));
 
-        server.removeDataSource(newId);
-        // Can not create again "remove" means "disable".
-        System.out.println("DONE");
-    }
-    
-    public static void state(List<DataSource> x) {
-        x.forEach((ds)->{
-            System.out.println(ds);
-            System.out.println("    "+ds.getURI());
-            System.out.println("    "+ds.getId());
-            System.out.println("    "+ds.getLocation());
-            System.out.println("    "+ds.getPatchSet());
+        LocalServer server = LocalServer.attach(loc);
+        List<DataSource> x = server.listDataSources();
+        
+        DeltaLink dLink = DeltaLinkLocal.connect(server);
+        
+        Id clientId = Id.create();
+        dLink.register(clientId);
+        Id dsRef;
+        if ( cleanServer ) {
+            // Predates DeltaConnection.create
+            dLink.register(clientId);
+            dsRef = dLink.newDataSource(datasourceName, "http://example/new");
+            dLink.deregister();
+            
+            String FN = "DeltaServer/XYZ/source.cfg";
+            if ( ! Files.exists(Paths.get(FN)) )
+                System.err.println("No file!");
+            
+        } else {
+            dsRef = dLink.listDatasets().get(0);
+        }
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+
+        DeltaConnection dConn = DeltaConnection.connect("ConnectionToXYZ", clientId, dsRef, dsg0, dLink);
+
+        DeltaConnectionState dcs = new DeltaConnectionState(dConn, dsRef, Location.create("DConn"));
+        dConn.sync();
+        
+        
+        DatasetGraph dsg = dConn.getDatasetGraph();
+        Txn.executeWrite(dsg,  ()->{
+            Quad q = SSE.parseQuad("(_ :ss :pp :oo)");
+            dsg.add(q);
         });
+        
+        
+        
+        //dLink.listDatasets();
+        
+        
+        //Must register to create.
+//        
+//        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+//        Location localData = null;
+//        
+//        
+//        //DeltaConnection dConn1 = DeltaConnection.create(clientId, dsRef, localData, dLink);
+//        
+//   
+//        // Shoduk be rejected if it does not exist.
+//        DeltaConnection dConn2 = DeltaConnection.connect("ConnectionToXYZ", clientId, dsRef, dsg, dLink);
+//        dConn2.sync();
+        
+        System.out.println("DONE");
+        System.exit(0);
     }
+        
+    
+    
 }

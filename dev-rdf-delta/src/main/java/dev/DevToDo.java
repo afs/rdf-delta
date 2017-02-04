@@ -22,7 +22,18 @@ public class DevToDo {
     // Documentation
     //   Patch
     //   Protocol/delta
-    // Version -> long
+    // Version -> long?
+    // Eliminate use of Location and just use Path.
+
+    // Server local "Patch" - relevant?
+    //   PatchLog.HistoryEntry - keep jyst meta data and have a "RDFPatch cache".
+    
+    //PatchLog - conflates "index" and "version" - acceptable?
+    //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
+    // 
+    
+    // PatchLog.VALIDATE_PATCH_LOG
+    // Cache patches, not hold in memory.
     
     // rdf-delta -> Delta
     
@@ -42,7 +53,7 @@ public class DevToDo {
     // * License header
     // * Examples.
     // * Persistent state : counter+UUID
-    // * Restart with disabled [done]
+    // * Test Restart
     // * Disabled filter to requests.
     // * Test apply patch, not in sequence
     

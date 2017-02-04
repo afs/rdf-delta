@@ -49,15 +49,15 @@ public class RunDeltaServer {
         
         org.seaborne.delta.server.http.CmdDeltaServer.main(args);
         System.out.println();
+
+        
         
         String datafile = "D.ttl"; 
-        
         String url = "http://localhost:1066/" ;
         
         // Building.
         //MethodHandles.
         Id clientId = Id.create();
-        
         DeltaLink link = new DeltaLinkHTTP(url);
         
         //RegToken token = link.register(clientId);
@@ -77,7 +77,7 @@ public class RunDeltaServer {
         
         Id datasourceId = Id.fromString("id:0c5943d8-2b54-11b2-801b-024218167bb0");
         
-        DeltaConnection dConn = DeltaConnection.create("D1", clientId, datasourceId, dsg0, link);
+        DeltaConnection dConn = DeltaConnection.connect("D1", clientId, datasourceId, dsg0, link);
         
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
