@@ -18,10 +18,9 @@
 
 package org.seaborne.delta.server.local;
 
-import java.util.Map;
-
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.Id;
+import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 
@@ -44,21 +43,21 @@ public class Patch implements RDFPatch {
     public RDFPatch get() { return patch ; }
     
     @Override
-    public Node getIdNode() {
-        return patch.getIdNode() ;
+    public Node getId() {
+        return patch.getId() ;
     }
 
     @Override
-    public Node getParentNode() {
-        return patch.getParentNode() ;
+    public Node getParent() {
+        return patch.getParent() ;
     }
 
     public Id getIdAsId() {
-        return Id.fromNode(patch.getIdNode()) ;
+        return Id.fromNode(patch.getId()) ;
     }
 
     public Id getParentIdAsId() {
-        return Id.fromNode(patch.getParentNode()) ;
+        return Id.fromNode(patch.getParent()) ;
     }
 
     @Override
@@ -68,7 +67,7 @@ public class Patch implements RDFPatch {
     }
     
     @Override
-    public Map<String, Node> header() {
+    public PatchHeader header() {
         return patch.header() ;
     }
 

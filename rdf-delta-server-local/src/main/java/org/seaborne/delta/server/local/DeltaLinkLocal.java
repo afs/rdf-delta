@@ -105,14 +105,14 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
         FileEntry entry = source.getReceiver().receive(rdfPatch, null);
         // id -> registation
-        FmtLog.info(LOG, "Patch: %s", rdfPatch.getIdNode()) ;
+        FmtLog.info(LOG, "Patch: %s", rdfPatch.getId()) ;
         
         // Debug
         if ( false ) {
             RDFPatchOps.write(System.out, rdfPatch) ;
         }
         PatchLog patchLog = source.getPatchLog() ;
-        patchLog.addMeta(rdfPatch);
+        patchLog.addMeta(rdfPatch, entry.version);
         return entry.version; 
     }
 
@@ -167,7 +167,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef) ;
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {
-            Id id = Id.fromNode(patch.getIdNode());
+            Id id = Id.fromNode(patch.getId());
             FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id) ;
         }
         return patch;

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.graph.Node ;
+import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.items.* ;
@@ -43,16 +44,16 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
 //    }
     
     public static class RDFPatchStored implements RDFPatch {
-        private final Map<String, Node> header ; 
+        private final PatchHeader header ; 
         private final List<ChangeItem> actions ;
 
         public RDFPatchStored(Map<String, Node> header, List<ChangeItem> actions) {
-            this.header = header ;
+            this.header = new PatchHeader(header) ;
             this.actions = actions ;
         }
 
         @Override
-        public Map<String, Node> header() {
+        public PatchHeader header() {
             return header;
         }
 
@@ -62,10 +63,6 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
             header.forEach((k,v)->changes.header(k, v));
             actions.forEach(a -> enact(a, changes)) ;
             changes.finish();
-        }
-
-        public Map<String, Node> getHeader() {
-            return header;
         }
 
         public List<ChangeItem> getActions() {

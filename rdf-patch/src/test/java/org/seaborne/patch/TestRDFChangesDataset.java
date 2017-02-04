@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue ;
 
 import java.io.ByteArrayInputStream ;
 import java.io.ByteArrayOutputStream ;
+import java.io.IOException;
 import java.util.Arrays ;
 import java.util.List ;
 
@@ -57,10 +58,11 @@ public class TestRDFChangesDataset  {
     
     private DatasetGraph replay() {
         IO.close(bout) ;
-        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray()) ;
-        DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem() ;
-        RDFPatchOps.applyChange(dsg2, bin);
-        return dsg2 ;
+        try(ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray())) {
+            DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem() ;
+            RDFPatchOps.applyChange(dsg2, bin);
+            return dsg2 ;
+        } catch (IOException ex) { IO.exception(ex); return null; }
     }
         
     private static void check(DatasetGraph dsg, Quad...quads) {

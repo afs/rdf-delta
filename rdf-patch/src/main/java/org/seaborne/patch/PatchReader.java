@@ -84,7 +84,7 @@ public class PatchReader implements PatchProcessor {
         }
         return false ;
     }
-        
+    
     // Return true on end of transaction.
     private boolean doOneLine(Tuple<Token> line, RDFChanges sink) {
         Token token1 = line.get(0) ;
@@ -92,7 +92,7 @@ public class PatchReader implements PatchProcessor {
             throw new PatchException("["+token1.getLine()+"] Token1 is not a word "+token1) ;
         String code = token1.getImage() ;
         if ( ! code.equals("H") && code.length() != 2 )
-            throw new PatchException("["+token1.getLine()+"] Code is header nor 2 characters "+code) ;
+            throw new PatchException("["+token1.getLine()+"] Code is not 'H' (header) nor 2+ characters "+code) ;
 
         switch (code) {
             case "H": {
@@ -100,7 +100,7 @@ public class PatchReader implements PatchProcessor {
                     throw new PatchException("["+token1.getLine()+"] Header: length = "+line.len()) ;
                 Token token2 = line.get(1) ;
                 if ( ! token2.isWord() && ! token2.isString() )
-                    throw new PatchException("["+token1.getLine()+"] Header doesnot what with a word: "+token2) ;
+                    throw new PatchException("["+token1.getLine()+"] Header does not have a key that is a word: "+token2) ;
                 String field = line.get(1).getImage() ;
                 Node v = tokenToNode(line.get(2)) ;
                 sink.header(field, v);

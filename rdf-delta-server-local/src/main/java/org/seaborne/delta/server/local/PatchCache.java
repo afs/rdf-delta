@@ -18,11 +18,11 @@
 
 package org.seaborne.delta.server.local;
 
-import org.apache.jena.atlas.lib.Cache;
-import org.apache.jena.atlas.lib.CacheFactory;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.DPConst;
 import org.seaborne.delta.Id;
+import org.seaborne.patch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +30,31 @@ import org.slf4j.LoggerFactory;
 public class PatchCache {
     private static Logger  LOG     = LoggerFactory.getLogger(PatchCache.class);
     
-    // Global id->patch cache.
-    private static Cache<Node, Patch> patchCache = CacheFactory.createCache(DPConst.PATCH_CACHE_SIZE);
-    static {
-        patchCache.setDropHandler((node,patch)->LOG.info("Cache drop patch: "+Id.fromNode(node)));
+//    private Cache<Node, RDFPatch> patchCache;
+//    private PatchCache() { 
+//        patchCache = CacheFactory.createCache(DPConst.PATCH_CACHE_SIZE);
+//        patchCache.setDropHandler((node,patch)->LOG.info("Cache drop patch: "+Id.fromNode(node)));
+//    }
+    
+    private ConcurrentHashMap<Node, RDFPatch> patchCache;
+    private PatchCache() { 
+        patchCache = new ConcurrentHashMap<>();
+        //patchCache.setDropHandler((node,patch)->LOG.info("Cache drop patch: "+Id.fromNode(node)));
+    }
+    private static PatchCache singleton = new PatchCache();
+    
+    public static  PatchCache get() { return singleton ; } 
+    
+    public RDFPatch get(Id id) {
+        //return patchCache.getIfPresent(id.asNode());
+        return patchCache.get(id.asNode());
+    }
+
+    public void put(Id id, RDFPatch patch) {
+        put(id.asNode(), patch);
+    }
+
+    public void put(Node node, RDFPatch patch) {
+        patchCache.put(node, patch);
     }
 }

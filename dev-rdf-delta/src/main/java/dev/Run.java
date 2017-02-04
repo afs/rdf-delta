@@ -54,6 +54,8 @@ public class Run {
     //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
     // Look for [DISK]
     
+    // Fix unbounded cache.
+    
     public static void main1(String... args) throws IOException {
         Id dsRef = Id.create();
         PatchLog patchLog = PatchLog.attach(dsRef, Location.create("Patches"));

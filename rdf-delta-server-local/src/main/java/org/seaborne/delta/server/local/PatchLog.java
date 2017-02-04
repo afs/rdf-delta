@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.server.local;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -33,6 +35,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
@@ -44,22 +47,17 @@ public class PatchLog {
     private static Logger  LOG     = LoggerFactory.getLogger(PatchLog.class);
     // Tree?
 
-    // All patches.
-    // Need indirection? Patch[local]->RDFPatch
-    // --> LRU cache.
-    private Map<Id, RDFPatch> patches = new ConcurrentHashMap<>();
-    
     // HISTORY
     // The history list is immutable except for the last (most recent) entry
     // which is updated to
     static class HistoryEntry {
         final Id    prev;       // == patch(next).getParent()
               Id    next;       // Not final! == null at end, and can be extended.
-        final RDFPatch patch;      // Remove.
+        final PatchHeader patch;   // Remove : replace with header.
         final int   version;
         final Id id;
 
-        HistoryEntry(RDFPatch patch, int version, Id prev, Id thisId, Id next) {
+        HistoryEntry(PatchHeader patch, int version, Id prev, Id thisId, Id next) {
             this.patch = patch;
             this.prev = prev;
             this.id = thisId;
@@ -76,6 +74,7 @@ public class PatchLog {
     //Id of the DataSource 
     private final Id              dsRef;
     private final FileStore       fileStore;
+    private final PatchCache      patches = PatchCache.get();
 
     private HistoryEntry          start = null;
     private HistoryEntry          finish = null;
@@ -89,28 +88,63 @@ public class PatchLog {
     public static PatchLog attach(Id dsRef, Location location) {
         FileStore fileStore = FileStore.attach(location, "patch");
 
+        // Read headers.
+        fileStore.getIndexes().forEach(idx->{
+            Path fn = fileStore.filename(idx);
+            Id prev = null;
+            HistoryEntry startEntry = null;
+            HistoryEntry lastEntry = null;
+            try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
+                PatchHeader header = RDFPatchOps.readHeader(in);
+                if ( header.getId() == null ) {}
+                if ( header.getParent() == null && lastEntry != null ) {}
+                Id patchId = Id.fromNode(header.getId());
+                Id parentId = Id.fromNode(header.getParent());
+                if ( lastEntry != null ) {
+                    if ( Objects.equals(lastEntry.id, parentId) )
+                        FmtLog.warn(LOG, "Patch id=%s (parent=%s) does not refer to previous patch (id=%s)", patchId, parentId, lastEntry.id);
+                    lastEntry.next = patchId;
+                }
+                HistoryEntry entry = new HistoryEntry(null, idx, parentId, patchId, prev);
+                prev = patchId;
+                lastEntry = entry;
+                if ( startEntry == null )
+                    startEntry = entry;
+            } catch ( IOException ex ) { throw IOX.exception(ex); } 
+        });
+        
+        // XXX Fill unbounded cache.
+        fileStore.getIndexes().forEach(idx->{
+            Path fn = fileStore.filename(idx);
+            try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
+                RDFPatch patch = RDFPatchOps.read(in);
+                Id patchId = Id.fromNode(patch.getId());
+                PatchCache.get().put(patchId, patch);
+            } catch ( IOException ex ) { throw IOX.exception(ex); } 
+        });
+        
         if ( VALIDATE_PATCH_LOG ) {
+            // read all patches.
+            // validate
             ;
         }
         
-        final HistoryEntry currentEntry;
+        
+        HistoryEntry currentEntry;
         if ( fileStore.isEmpty() ) {
             currentEntry = null;
             FmtLog.info(LOG, "PatchLog for %s, starts empty", dsRef);
         } else {
+            // Last patch starts history.
             int x = fileStore.getCurrentIndex();
-            // Patch read meta only?
-            // Why the "Patch" class for an History Entry?
             RDFPatch patch = fetch(fileStore, x);
-            Id patchId = Id.fromNode(patch.getIdNode());
-            currentEntry = new HistoryEntry(patch, x, null, patchId, null);
+            Id patchId = Id.fromNode(patch.getId());
+            currentEntry = new HistoryEntry(patch.header(), x, null, patchId, null);
             FmtLog.info(LOG, "PatchLog for %s, history until %s", dsRef, patchId); 
         }
         
         // Validate the patch chain.
         // Find the last patch id.
-        
-        
         return new PatchLog(dsRef, location, currentEntry);
     }
 
@@ -148,8 +182,8 @@ public class PatchLog {
 
     /** Validate a patch for this {@code PatchLog} */
     public boolean validate(RDFPatch patch) {
-        Node parent = patch.getParentNode();
-        Node patchId = patch.getIdNode();
+        Node parent = patch.getParent();
+        Node patchId = patch.getId();
         if ( parent == null ) {
             if ( !isEmpty() ) {
                 FmtLog.warn(LOG, "No parent for patch when PatchLog is not empty: patch=%s", patchId);
@@ -175,41 +209,38 @@ public class PatchLog {
      * it is expected to be already persisted.
      * Only the {@code PatchLog} in-mmeory metadata is updated. 
      */
-    void addMeta(RDFPatch patch) {
+    void addMeta(RDFPatch patch, int version) {
         // Validate.
         validate(patch);
-        Id patchId = Id.fromNode(patch.getIdNode());
-        Id parentId = Id.fromNode(patch.getParentNode());
-        patches.put(patchId, patch);
-        // XXX Version
-        int version = -99;
-        HistoryEntry e = new HistoryEntry(patch, version, parentId, patchId, null);
+        Id patchId = Id.fromNode(patch.getId());
+        Id parentId = Id.fromNode(patch.getParent());
+        HistoryEntry e = new HistoryEntry(patch.header(), version, parentId, patchId, null);
         addHistoryEntry(e);
+        patches.put(patchId, patch);
     }
 
     synchronized private void addHistoryEntry(HistoryEntry e) {
-        RDFPatch patch = e.patch;
-        Id id = Id.fromNode(patch.getIdNode());
-        Node parentId = patch.getParentNode();
+        PatchHeader patch = e.patch;
+        Id id = Id.fromNode(patch.getId());
+        Node parentId = patch.getParent();
         FmtLog.info(LOG, "Patch id=%s (parent=%s)", id, parentId);
-        patches.put(id, patch);
         if ( start == null ) {
             start = e;
             // start.prev == null?
             finish = e;
             historyEntries.put(id, e);
-            FmtLog.info(LOG, "Patch starts history: id=%s", patch.getIdNode());
+            FmtLog.info(LOG, "Patch starts history: id=%s", patch.getId());
         } else {
             
             if ( parentId != null ) {
-                if ( patch.getParentNode().equals(finish.patch.getIdNode()) ) {
+                if ( patch.getParent().equals(finish.patch.getId()) ) {
                     finish.next = id;
                     finish = e;
                     historyEntries.put(id, e);
                     // if ( Objects.equals(currentHead(), patch.getParent()) ) {
-                    FmtLog.info(LOG, "Patch added to history: id=%s", patch.getIdNode());
+                    FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
                 } else {
-                    FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getIdNode());
+                    FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getId());
                 }
             }
         }
@@ -232,8 +263,9 @@ public class PatchLog {
         
         List<RDFPatch> x = new ArrayList<>();
         while (e != null) {
-            x.add(e.patch);
-            if ( finish != null && e.patch.getIdNode().equals(finish) )
+            RDFPatch patch = fetch(e.id);
+            x.add(patch);
+            if ( finish != null && e.patch.getId().equals(finish) )
                 break;
             if ( e.next == null )
                 e = null;
@@ -248,11 +280,7 @@ public class PatchLog {
     }
 
     public Stream<RDFPatch> range(Id start, Id finish) {
-        RDFPatch p = patches.get(start);
-        // "Next"
-
-        System.err.println("Unfinished: PatchLog.range");
-        return null;
+        return getPatchesFromHistory(start, finish).stream();
     }
 
     public void addHandler(PatchHandler handler) {
@@ -278,7 +306,7 @@ public class PatchLog {
     private Id currentHead() {
         if ( finish == null )
             return null;
-        return Id.fromNode(finish.patch.getIdNode());
+        return Id.fromNode(finish.patch.getId());
     }
 
 //    public void processHistoryFrom(Id start, PatchHandler c) {
@@ -286,9 +314,9 @@ public class PatchLog {
 //        x.forEach((p) -> c.handle(p));
 //    }
 
-    public boolean contains(Id patchId) {
-        return patches.containsKey(patchId) ;
-    }
+//    public boolean contains(Id patchId) {
+//        return patches.containsKey(patchId) ;
+//    }
 
     public RDFPatch fetch(Id patchId) {
         return patches.get(patchId) ;
@@ -315,7 +343,8 @@ public class PatchLog {
         try {
             InputStream in = Files.newInputStream(p);
             RDFPatch patch = RDFPatchOps.read(in) ;
-            return Id.fromNode(patch.getIdNode());
+            validate(patch);
+            return Id.fromNode(patch.getId());
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 

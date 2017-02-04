@@ -135,8 +135,16 @@ public abstract class AbstractTestDeltaLink {
         
         RDFPatch patch1 = dLink.fetch(dsRef, version1) ;
         assertNotNull(patch1);
+//        if ( ! equals(patch1, patch) ) {
+//            System.out.println("**** Patch (as read)");
+//            RDFPatchOps.write(System.out, patch);
+//            System.out.println("**** Patch (as fetched)");
+//            RDFPatchOps.write(System.out, patch);
+//            equals(patch1, patch);
+//        }
+        
         assertTrue(equals(patch1, patch));
-        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getIdNode())) ;
+        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getId())) ;
         assertNotNull(patch2);
         assertTrue(equals(patch1, patch2));
     }
