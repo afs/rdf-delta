@@ -18,6 +18,7 @@
 
 package org.seaborne.delta;
 
+import java.util.Objects;
 import java.util.UUID ;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -90,13 +91,13 @@ public final class Id {
     private final String string ;
 
     private Id(UUID id) {
-        uuid = id ;
+        uuid = Objects.requireNonNull(id) ;
         string = null ;
     }
 
     private Id(String id) {
         uuid = null ;
-        string = id ;
+        string = Objects.requireNonNull(id) ;
     }
 
     /** Suitable for putting into an HTTP request query string. */ 

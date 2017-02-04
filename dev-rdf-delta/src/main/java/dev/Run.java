@@ -46,26 +46,9 @@ public class Run {
     
     // Local.
     // Local cache / HTTP only
-    /* LocalDeltaLinkState
-     * FileSystem:
-     *    /
-     *       state.json
-     *
-     * One of TDB of a file for data:
-     *       /data -- TDB database
-     *       [ /base -- Copy of starting point ]
-     * or
-     *       /data.ttl -- "current" data file.
-     *       [ /base.ttl -- initial data - file - not updated (?) - lots of catch up ]
-     */
     
-    // Restart : need last patchId for parent.
-    //   Local state.
-    // Need PatchLog to find parent on restart.
-    // Need PatchLog to find version on restart.
-    //     Code in "new PatchLog"¬
-    // Need parent in patch
-    // Need rejection
+    // Tests for restart
+    // Need patch rejection
     
     // PatchLog - conflates "index" and "version" - acceptable?
     //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
@@ -88,8 +71,7 @@ public class Run {
         System.out.println();
         
         RDFPatch rdfPatch = RDFPatchOps.fileToPatch("Patches/test");
-        Patch holder = new Patch(rdfPatch, null, null);
-        patchLog.validate(holder);
+        patchLog.validate(rdfPatch);
         
 //        int version2 = ps.getLatestVersion();
 //        System.out.printf("Latest: %d\n", version2);

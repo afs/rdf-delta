@@ -105,25 +105,24 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
         FileEntry entry = source.getReceiver().receive(rdfPatch, null);
         // id -> registation
-        FmtLog.info(LOG, "Patch: %s", rdfPatch.getId()) ;
+        FmtLog.info(LOG, "Patch: %s", rdfPatch.getIdNode()) ;
         
         // Debug
         if ( false ) {
             RDFPatchOps.write(System.out, rdfPatch) ;
         }
-        Patch patch = new Patch(rdfPatch, source, entry);
         PatchLog patchLog = source.getPatchLog() ;
-        patchLog.addMeta(patch);
+        patchLog.addMeta(rdfPatch);
         return entry.version; 
     }
 
     /** Process an {@code InputStream} and return an RDFPatch */
-    private static Patch streamToPatch(DataSource source, InputStream in) {
+    private static RDFPatch streamToPatch(DataSource source, InputStream in) {
         // Not RDFPatchOps.read(in) because receiver adds preprocessing.
         RDFChangesCollector collector = new RDFChangesCollector();
         Receiver receiver = source.getReceiver();
         FileEntry entry = receiver.receive(in, collector);
-        return new Patch(collector.getRDFPatch(), source, entry);
+        return collector.getRDFPatch();
     }
     
     @Override
@@ -155,7 +154,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         DataSource source = getDataSource(dsRef);
-        Patch patch = source.getPatchLog().fetch(patchId) ;
+        RDFPatch patch = source.getPatchLog().fetch(patchId) ;
         if ( patch == null )
             throw new DeltaBadRequestException(404, "No such patch: "+patchId) ;
         FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
@@ -168,7 +167,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef) ;
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {
-            Id id = Id.fromNode(patch.getId());
+            Id id = Id.fromNode(patch.getIdNode());
             FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id) ;
         }
         return patch;

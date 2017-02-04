@@ -16,34 +16,23 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package org.seaborne.delta.server.local;
 
-import java.util.Map;
-
+import org.apache.jena.atlas.lib.Cache;
+import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.graph.Node;
+import org.seaborne.delta.DPConst;
+import org.seaborne.delta.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface RDFPatch {
-    public static final String ID = "id" ;
-    public static final String PARENT = "parent" ;
+/** Server-wide cache of patches */ 
+public class PatchCache {
+    private static Logger  LOG     = LoggerFactory.getLogger(PatchCache.class);
     
-    public Map<String, Node> header() ;
-    
-    public default Node getHeader(String field) { 
-        Map<String, Node> header = header() ;
-        if ( header == null )
-            return null ;
-        return header.get(field) ; 
+    // Global id->patch cache.
+    private static Cache<Node, Patch> patchCache = CacheFactory.createCache(DPConst.PATCH_CACHE_SIZE);
+    static {
+        patchCache.setDropHandler((node,patch)->LOG.info("Cache drop patch: "+Id.fromNode(node)));
     }
-    
-    public default Node getIdNode() { 
-        return header().get(ID) ;
-    }
-
-    public default Node getParentNode() {
-        return header().get(PARENT) ;
-    }
-    
-    /** Act of the patch by sending it to the changes processor. */ 
-    public void apply(RDFChanges changes) ;
-    
 }

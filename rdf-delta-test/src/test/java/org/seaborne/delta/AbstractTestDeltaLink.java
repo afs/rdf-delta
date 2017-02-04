@@ -136,7 +136,7 @@ public abstract class AbstractTestDeltaLink {
         RDFPatch patch1 = dLink.fetch(dsRef, version1) ;
         assertNotNull(patch1);
         assertTrue(equals(patch1, patch));
-        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getId())) ;
+        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getIdNode())) ;
         assertNotNull(patch2);
         assertTrue(equals(patch1, patch2));
     }

@@ -95,6 +95,9 @@ public class DPConst {
     public static final String DATA            = "data";
     public static final String VERSION         = "version";
     public static final String DISABLED        = "disabled";
+    
+    /** The size of the server-wide LRU cache */
+    public static final int PATCH_CACHE_SIZE   = 1000;
 
     
 }

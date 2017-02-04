@@ -29,11 +29,13 @@ import org.seaborne.patch.RDFPatch ;
  * such as where the patch is stored and any local version number. 
  */
 public class Patch implements RDFPatch {
+    // PatchWrapper
+    
     private final RDFPatch patch;
     private final DataSource dataSource;
     private final FileEntry fileEntry;
     
-    public Patch(RDFPatch patch, DataSource source, FileEntry entry) {
+    public Patch(boolean unused, RDFPatch patch, DataSource source, FileEntry entry) {
         this.patch = patch;
         this.dataSource = source;
         this.fileEntry = entry;
@@ -42,21 +44,21 @@ public class Patch implements RDFPatch {
     public RDFPatch get() { return patch ; }
     
     @Override
-    public Node getId() {
-        return patch.getId() ;
+    public Node getIdNode() {
+        return patch.getIdNode() ;
     }
 
     @Override
-    public Node getParentId() {
-        return patch.getParentId() ;
+    public Node getParentNode() {
+        return patch.getParentNode() ;
     }
 
     public Id getIdAsId() {
-        return Id.fromNode(patch.getId()) ;
+        return Id.fromNode(patch.getIdNode()) ;
     }
 
     public Id getParentIdAsId() {
-        return Id.fromNode(patch.getParentId()) ;
+        return Id.fromNode(patch.getParentNode()) ;
     }
 
     @Override
