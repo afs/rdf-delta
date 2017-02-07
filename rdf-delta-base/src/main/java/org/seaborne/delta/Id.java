@@ -35,7 +35,12 @@ public final class Id {
     private static final String schemeUuid = "uuid:" ;
     private static final String schemeUrnUuid = "urn:uuid:" ;
     private static final String SCHEME = "id:";
+    // private static final UUID nilUUID = new UUID(0, 0); 
+    // All zeros : https://tools.ietf.org/html/rfc4122#page-9
+    private static final Id nilId = Id.fromUUID(UUID.fromString("00000000-0000-0000-0000-000000000000"));
 
+    public static Id nullId() { return nilId; }
+        
     public static Id create() {
         return new Id(genUUID()) ;
     }
@@ -100,6 +105,10 @@ public final class Id {
         string = Objects.requireNonNull(id) ;
     }
 
+    public boolean isNil() {
+        return this.equals(nilId);
+    }
+    
     /** Suitable for putting into an HTTP request query string. */ 
     public String asParam() {
         if ( uuid != null ) 
@@ -132,15 +141,10 @@ public final class Id {
         return NodeFactory.createLiteral(string);
     }
 
-    // Not needed.
-//    /** Suitable for using as a JSON string. Note this is encoded (if necessary).
-//     * {@link JsonBuilder} applies encoding and this method is not needed to build a JSON object. */ 
-//    public String asJsonString() {
-//        return asPlainString();
-//    }
-    
     @Override
     public String toString() {
+        if ( this == nilId  )
+            return "id:nil";
         if ( uuid != null ) 
             return SCHEME+shortUUIDstr(uuid);
         return SCHEME+"\""+string+"\"" ;
@@ -150,7 +154,7 @@ public final class Id {
         String str = uuid.toString();
         int version = uuid.version();
         if ( version == 1 )
-            //Type 1 : include varying part! xxxx-yyyy
+            // Type 1 : include varying part! xxxx-yyyy
             return str.substring(19, 28);
         if ( version == 4 )
             // Type 4 - use the first few hex characters. 

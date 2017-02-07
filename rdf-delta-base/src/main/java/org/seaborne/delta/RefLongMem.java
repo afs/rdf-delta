@@ -18,15 +18,21 @@
 
 package org.seaborne.delta;
 
-/** Reference to an integer value */ 
-public interface RefLong {
-    
-    /** Get the current value */
-    public long getInteger();
-    
-    /** Set the current value */
-    public void setInteger(long value);
+public class RefLongMem implements RefLong {
+    private long value;
 
-    /** Increment the current value and return the new value (link {@code ++x} not like {@code X++}) */ 
-    public long inc();
+    RefLongMem(long x) { this.value = x; }
+
+    @Override
+    public long getInteger() {
+        return value;
+    }
+
+    @Override
+    public void setInteger(long value) { this.value = value; } 
+
+    @Override
+    public long inc() {
+        return (++value);
+    }
 }

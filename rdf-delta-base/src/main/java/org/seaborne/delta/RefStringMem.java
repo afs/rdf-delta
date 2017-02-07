@@ -18,15 +18,16 @@
 
 package org.seaborne.delta;
 
-/** Reference to an integer value */ 
-public interface RefLong {
-    
-    /** Get the current value */
-    public long getInteger();
-    
-    /** Set the current value */
-    public void setInteger(long value);
+public class RefStringMem implements RefString {
+    private String value;
 
-    /** Increment the current value and return the new value (link {@code ++x} not like {@code X++}) */ 
-    public long inc();
+    public RefStringMem(String x) { this.value = x; }
+
+    @Override
+    public String getString() {
+        return value;
+    }
+
+    @Override
+    public void setString(String value) { this.value = value; }
 }

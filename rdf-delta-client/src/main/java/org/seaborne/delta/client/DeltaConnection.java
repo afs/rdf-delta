@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.client;
 
-import java.math.BigInteger;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -27,7 +26,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.system.Txn;
+import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.Id;
@@ -38,7 +37,6 @@ import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.slf4j.Logger;
-import txnx.TransPInteger;
 
 /** Provides an interface to a specific dataset over the general {@link DeltaLink} API. 
  * This is the client API, c.f. JDBC connection
@@ -58,22 +56,42 @@ public class DeltaConnection {
     private final DeltaLink dLink ;
     
     private final AtomicInteger remoteEpoch = new AtomicInteger(0);
-    private final AtomicInteger localEpoch = new AtomicInteger(0);
-    private final TransPInteger localEpochPersistent;
 
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
     
     private final RDFChanges target;
-    private final String label;
     private final Id datasourceId;
+    private final DataState state;
     
-    /** Connect to an existing {@code DataSource}. */  
-    public static DeltaConnection connect(String label, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
+    /**
+     * Create and connect to a new  {@code DataSource}. 
+     * Must be registered with the {@code DelatLink}.
+     */
+    public static DeltaConnection create(Id clientId, Location stateArea, String datasourceName, String uri, DatasetGraph dsg, DeltaLink dLink) {
+        Objects.requireNonNull(datasourceName, "Null datasource name");
+        Objects.requireNonNull(dLink, "Null link");
+        ensureRegistered(dLink, clientId);
+        
+        // Prepare state area.
+        DataState.format(stateArea);
+        
+        Id datasourceId = dLink.newDataSource(datasourceName, uri);
+        DeltaConnection client = DeltaConnection.connect(clientId, stateArea, datasourceId, dsg, dLink);
+        client.start();
+        FmtLog.info(Delta.DELTA_LOG, "%s", client);
+        return client;
+    }
+
+    /** 
+     * Connect to an existing {@code DataSource}.
+     * Must be registered with the {@code DelatLink}.
+     */  
+    public static DeltaConnection connect(Id clientId, Location stateArea, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
         Objects.requireNonNull(dLink, "Null link");
         ensureRegistered(dLink, clientId);
-        DeltaConnection client = new DeltaConnection(label, datasourceId, dsg, dLink);
+        DeltaConnection client = new DeltaConnection(stateArea, datasourceId, dsg, dLink);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
@@ -84,14 +102,10 @@ public class DeltaConnection {
             link.register(clientId);
     }
     
-    private DeltaConnection(String label, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
-        localEpochPersistent = new TransPInteger(label);
-        localEpoch.set(0);
-        
+    private DeltaConnection(Location stateArea, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
         if ( dsg instanceof DatasetGraphChanges )
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient");
         
-        this.label = label;
         this.base = dsg;
         this.datasourceId = datasourceId ;
         this.dLink = link;
@@ -107,6 +121,7 @@ public class DeltaConnection {
             this.target = null;
             this.managed = null;
         }
+        state = new DataState(this, datasourceId, stateArea);
     }
     
     public void start() {
@@ -141,7 +156,7 @@ public class DeltaConnection {
         //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
 
         if ( localVer > remoteVer ) 
-            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localEpoch.get(), remoteEpoch.get());
+            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", state.version(), remoteEpoch.get());
         if ( localVer >= remoteVer ) {
             //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
             return;
@@ -167,12 +182,7 @@ public class DeltaConnection {
     public DeltaLink getLink() {
         return dLink;
     }
-    
 
-    public String getName() {
-        return label;
-    }
-    
     public Id getClientId() {
         return dLink.getClientId();
     }
@@ -192,15 +202,12 @@ public class DeltaConnection {
     
     /** Return the version of the local data store */ 
     public int getLocalVersionNumber() {
-        return localEpoch.get();
+        return state.version();
     }
     
     /** Update the version of the local data store */ 
     public void setLocalVersionNumber(int version) {
-        Txn.executeWrite(localEpochPersistent, ()->{
-            localEpochPersistent.set(BigInteger.valueOf(version));
-        });
-        localEpoch.set(version);
+        state.updateVersion(version);
     }
     
     /** Return our local track of the remote version */ 
@@ -225,10 +232,10 @@ public class DeltaConnection {
 
     private synchronized void sendPatch(RDFPatch patch) {
         int ver = dLink.sendPatch(datasourceId, patch);
-        int ver0 = localEpoch.get();
+        int ver0 = state.version();
         if ( ver0 > ver )
-            FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver); 
-        localEpoch.set(ver);
+            FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver);
+        state.updateVersion(ver);
     }
 
     private RDFPatch fetchPatch(int id) {
@@ -237,7 +244,7 @@ public class DeltaConnection {
     
     @Override
     public String toString() {
-        return String.format("Client '%s' [local=%d, remote=%d]", getName(),
+        return String.format("Data '%s' [local=%d, remote=%d]", datasourceId, 
                              getLocalVersionNumber(), getRemoteVersionNumber());
     }
 

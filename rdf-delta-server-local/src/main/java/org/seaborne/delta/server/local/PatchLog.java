@@ -19,18 +19,18 @@
 package org.seaborne.delta.server.local;
 
 import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.ext.com.google.common.collect.BiMap;
+import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.graph.Node;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
@@ -41,15 +41,18 @@ import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Collection of patches for on dataset */
+/** A sequence of patches for an {@link DataSource}. */
 public class PatchLog {
-    // Centralized logger for regualr lifecyle reporting.
+    // Terminology: "index" and "version"
+    //   version number if the short form so be consistent.
+    
+    // Centralized logger for regular lifecyle reporting.
     private static Logger  LOG     = LoggerFactory.getLogger(PatchLog.class);
-    // Tree?
-
     // HISTORY
     // The history list is immutable except for the last (most recent) entry
-    // which is updated to
+    // which is updated when new entries arrive.
+    // Is just a list of Id's enough if we have version->id. (versions are not contiguous). 
+    
     static class HistoryEntry {
         final Id    prev;       // == patch(next).getParent()
               Id    next;       // Not final! == null at end, and can be extended.
@@ -70,25 +73,28 @@ public class PatchLog {
             return String.format("History: Version=%d, Id=%d, Next=%s, Prev=%s", version, id, next, prev);
         }
     }
-
+    
     //Id of the DataSource 
     private final Id              dsRef;
     private final FileStore       fileStore;
-    private final PatchCache      patches = PatchCache.get();
+    private List<PatchHandler>    handlers       = new ArrayList<>();
+    
+//    private final PatchCache      patches = PatchCache.get();
 
+    // XXX Reorganise datastructures. 
     private HistoryEntry          start = null;
     private HistoryEntry          finish = null;
     private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
-    //private Map<Integer, Id>      versionToId = new ConcurrentHashMap<>();
-
-    private List<PatchHandler>    handlers       = new ArrayList<>();
+    // Two way id <-> version mampong of patch for this PatchLog
+    private final BiMap<Id, Integer> idToNumber;
 
     private static boolean VALIDATE_PATCH_LOG = true;
     
     public static PatchLog attach(Id dsRef, Location location) {
         FileStore fileStore = FileStore.attach(location, "patch");
-
+        BiMap<Id, Integer> idToNumber = HashBiMap.create();
         // Read headers.
+        // Builds the id to version index.
         fileStore.getIndexes().forEach(idx->{
             Path fn = fileStore.filename(idx);
             Id prev = null;
@@ -96,8 +102,12 @@ public class PatchLog {
             HistoryEntry lastEntry = null;
             try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
                 PatchHeader header = RDFPatchOps.readHeader(in);
-                if ( header.getId() == null ) {}
-                if ( header.getParent() == null && lastEntry != null ) {}
+                
+                if ( header.getId() == null )
+                    LOG.warn("No id: "+fn);
+                if ( header.getParent() == null && lastEntry != null )
+                    LOG.warn("No parent id: "+fn);
+                
                 Id patchId = Id.fromNode(header.getId());
                 Id parentId = Id.fromNode(header.getParent());
                 if ( lastEntry != null ) {
@@ -110,10 +120,12 @@ public class PatchLog {
                 lastEntry = entry;
                 if ( startEntry == null )
                     startEntry = entry;
+                idToNumber.put(patchId, idx);
+                FmtLog.info(LOG, "Patch id=%s parent=%s version=%d", patchId, parentId, idx);
             } catch ( IOException ex ) { throw IOX.exception(ex); } 
         });
         
-        // XXX Fill unbounded cache.
+        // XXX Fill cache.
         fileStore.getIndexes().forEach(idx->{
             Path fn = fileStore.filename(idx);
             try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
@@ -145,11 +157,12 @@ public class PatchLog {
         
         // Validate the patch chain.
         // Find the last patch id.
-        return new PatchLog(dsRef, location, currentEntry);
+        return new PatchLog(dsRef, location, idToNumber, currentEntry);
     }
 
-    private PatchLog(Id dsRef, Location location, HistoryEntry startEntry) {
+    private PatchLog(Id dsRef, Location location, BiMap<Id, Integer> idToNumber, HistoryEntry startEntry) {
         this.dsRef = dsRef;
+        this.idToNumber = idToNumber;
         // Linked list of one.
         this.start = startEntry;
         this.finish = startEntry;
@@ -182,24 +195,46 @@ public class PatchLog {
 
     /** Validate a patch for this {@code PatchLog} */
     public boolean validate(RDFPatch patch) {
-        Node parent = patch.getParent();
-        Node patchId = patch.getId();
-        if ( parent == null ) {
+        Id parentId = Id.fromNode(patch.getParent());
+        Id patchId = Id.fromNode(patch.getId());
+        if ( parentId == null ) {
             if ( !isEmpty() ) {
                 FmtLog.warn(LOG, "No parent for patch when PatchLog is not empty: patch=%s", patchId);
                 return false;
             }
         } else {
             if ( isEmpty() ) {
-                FmtLog.warn(LOG, "Parent for patch but PatchLog is empty: patch=%s : parent=%s", patchId, parent);
+                FmtLog.warn(LOG, "Parent for patch but PatchLog is empty: patch=%s : parent=%s", patchId, parentId);
                 return false ;
-            } else {
-                if ( ! parent.equals(finish.id) ) {
-                    FmtLog.warn(LOG, "Parent for patch does not match PatchLog latest: patch=(%s  parent=%s) : latest=%s", patchId, parent, finish.id);
-                    return false ;
-                }
             }
         }
+        return true;
+    }
+    
+    private boolean validateEntry(RDFPatch patch) {
+        Id parentId = Id.fromNode(patch.getParent());
+        Id patchId = Id.fromNode(patch.getId());
+        HistoryEntry entry = findHistoryEntry(patchId);
+        if ( entry != null ) {
+            Integer ver = idToNumber.get(patchId);
+            if ( ver == null )
+                FmtLog.warn(LOG, "Patch not registered: patch=%s (entry version=%d)", patchId, entry.version);
+            else if ( ver != entry.version )
+                FmtLog.warn(LOG, "Patch version=%d, but entry version=%d : %s", ver, entry.version, patchId);
+            if ( parentId == null || parentId.isNil() ) {
+                if ( entry.prev != null && ! entry.prev.isNil() )
+                    FmtLog.warn(LOG, "Patch has parent, entry does not : %s (parent=%s)", patchId, parentId);
+            } else {
+                if ( entry.prev == null || entry.prev.isNil() )
+                    FmtLog.warn(LOG, "Patch has no parent, but entry does : %s (entry.prev=%s)", patchId, entry.prev);
+            }
+        } else {
+            // No entry.
+            if ( parentId != null && ! parentId.isNil() ) {
+                FmtLog.warn(LOG, "Patch has parent, but no entry : %s (parent=%s)", patchId, parentId);
+            }
+        }
+        
         return true;
     }
     
@@ -216,7 +251,8 @@ public class PatchLog {
         Id parentId = Id.fromNode(patch.getParent());
         HistoryEntry e = new HistoryEntry(patch.header(), version, parentId, patchId, null);
         addHistoryEntry(e);
-        patches.put(patchId, patch);
+        idToNumber.put(patchId, version);
+        validateEntry(patch);
     }
 
     synchronized private void addHistoryEntry(HistoryEntry e) {
@@ -319,14 +355,16 @@ public class PatchLog {
 //    }
 
     public RDFPatch fetch(Id patchId) {
-        return patches.get(patchId) ;
+        Integer version = idToNumber.get(patchId);
+        if ( version == null ) {}
+        return fetch(version) ;
     }
 
     public RDFPatch fetch(int version) {
         return fetch(fileStore, version); 
     }
     
-    // XXX sPatchCache.
+    // XXX PatchCache.
     
     private static RDFPatch fetch(FileStore fileStore, int version) {
         Path p = fileStore.filename(version);
@@ -334,18 +372,24 @@ public class PatchLog {
             InputStream in = Files.newInputStream(p);
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;
-        } catch (IOException ex) { throw IOX.exception(ex); }
+        } 
+        catch (FileNotFoundException ex) { return null; }
+        catch (IOException ex) { throw IOX.exception(ex); }
     }
 
     public Id find(int version) {
-        // XXX Do better!
-        Path p = fileStore.filename(version);
-        try {
-            InputStream in = Files.newInputStream(p);
-            RDFPatch patch = RDFPatchOps.read(in) ;
-            validate(patch);
-            return Id.fromNode(patch.getId());
-        } catch (IOException ex) { throw IOX.exception(ex); }
+        return idToNumber.inverse().get(version);
+//        // XXX Do better!
+//        // Scan history?
+//        Path p = fileStore.filename(version);
+//        try {
+//            InputStream in = Files.newInputStream(p);
+//            RDFPatch patch = RDFPatchOps.read(in) ;
+//            validate(patch);
+//            return Id.fromNode(patch.getId());
+//        }
+//        catch (FileNotFoundException ex) { return null; }
+//        catch (IOException ex) { throw IOX.exception(ex); }
     }
 
     // Clear out.

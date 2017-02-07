@@ -30,6 +30,7 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
+import org.apache.jena.tdb.base.file.Location;
 import org.junit.Test;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.link.DeltaLink;
@@ -54,10 +55,8 @@ public abstract class AbstractTestDeltaConnection {
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
         Id dsRef = dLink.newDataSource("foo", "http://example/datasource");
-        DeltaConnection dConn = DeltaConnection.connect("label",
-                                                       clientId, dsRef,
-                                                       shadow,
-                                                       dLink);
+        DeltaConnection dConn = DeltaConnection.connect(clientId, Location.mem(), dsRef,
+                                                        shadow, dLink);
         return dConn;
     }
 

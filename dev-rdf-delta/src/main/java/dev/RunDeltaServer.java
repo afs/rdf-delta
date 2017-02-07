@@ -25,6 +25,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
+import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
@@ -77,7 +78,8 @@ public class RunDeltaServer {
         
         Id datasourceId = Id.fromString("id:0c5943d8-2b54-11b2-801b-024218167bb0");
         
-        DeltaConnection dConn = DeltaConnection.connect("D1", clientId, datasourceId, dsg0, link);
+        Location state = Location.create("DConn"); 
+        DeltaConnection dConn = DeltaConnection.connect(clientId, state, datasourceId, dsg0, link);
         
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));

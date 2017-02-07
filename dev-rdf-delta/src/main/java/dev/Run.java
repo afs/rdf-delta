@@ -19,9 +19,6 @@
 package dev;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -34,9 +31,8 @@ import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.local.*;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.delta.server.local.DeltaLinkLocal;
+import org.seaborne.delta.server.local.LocalServer;
 
 public class Run {
     static { 
@@ -44,79 +40,73 @@ public class Run {
         LogCtl.setJavaLogging();
     }
     
-    // Local.
-    // Local cache / HTTP only
-    
     // Tests for restart
-    // Need patch rejection
     
-    // PatchLog - conflates "index" and "version" - acceptable?
-    //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
-    // Look for [DISK]
+    // Remove (hide) DSG from DeltaConnection start-up : TDB or file only.
     
-    // Fix unbounded cache.
+    // ** Need patch rejection
+    // ** Start at id:nil (or id:datasource?)
     
-    public static void main1(String... args) throws IOException {
-        Id dsRef = Id.create();
-        PatchLog patchLog = PatchLog.attach(dsRef, Location.create("Patches"));
-        
-        patchLog.getFileStore().getIndexes().forEach(idx->System.out.printf("idx=%d\n", idx));
-        
-        patchLog.getFileStore().getIndexes().forEach(idx->{
-            RDFPatch patch = patchLog.fetch(idx);
-        });
-        
-        // Find latest.
-        Id latest = patchLog.getLatestId();
-        int version = patchLog.getLatestVersion();
-        System.out.printf("Latest: %d : %s\n", version, latest);
-        System.out.println();
-        
-        RDFPatch rdfPatch = RDFPatchOps.fileToPatch("Patches/test");
-        patchLog.validate(rdfPatch);
-        
-//        int version2 = ps.getLatestVersion();
-//        System.out.printf("Latest: %d\n", version2);
-        
-        System.out.println("DONE");
-        System.exit(0);
-    }
+    // TransPBlob not PersistentState ; memory versions.
+    
+    // [PersistentVersion] in client 
+    //   DeltaLink? DeltaConnection? 
+    //   Persistent counter, integritity of the log and client side. 
+    
+    // PatchCache
+    
+    // Client side persistence.
+    // Client side shadow.
+    // DataState init
+
+    /*
+18:04:55 INFO  Delta                : Patch range [4, 4]
+18:04:55 INFO  Delta                : Sync: patch=4
+
+Don't read 4!
+     */
     
     public static void main(String... args) throws IOException {
         boolean cleanServer = false;
         String datasourceName = "XYZ";
-        Location loc = Location.create("DeltaServer");
-        if ( cleanServer )
-            FileOps.clearAll(loc.getPath(datasourceName));
-
-        LocalServer server = LocalServer.attach(loc);
-        List<DataSource> x = server.listDataSources();
+        Location serverLoc = Location.create("DeltaServer");
+        Location dConnLoc = Location.create("DConn");
         
+        if ( cleanServer ) {
+            FileOps.clearAll(dConnLoc.getDirectoryPath());
+            FileOps.clearAll(serverLoc.getPath(datasourceName));
+            FileOps.delete(serverLoc.getPath(datasourceName));
+        }
+
+        LocalServer server = LocalServer.attach(serverLoc);
+        
+        // --------
+        //List<DataSource> x = server.listDataSources();
         DeltaLink dLink = DeltaLinkLocal.connect(server);
         
         Id clientId = Id.create();
-        dLink.register(clientId);
+        //dLink.register(clientId);
+        
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
         Id dsRef;
+        DeltaConnection dConn;
+         
+        
         if ( cleanServer ) {
-            // Predates DeltaConnection.create
-            dLink.register(clientId);
-            dsRef = dLink.newDataSource(datasourceName, "http://example/new");
-            dLink.deregister();
-            
-            String FN = "DeltaServer/XYZ/source.cfg";
-            if ( ! Files.exists(Paths.get(FN)) )
-                System.err.println("No file!");
-            
+            dConn = DeltaConnection.create(clientId, dConnLoc, datasourceName, "http://example/new", dsg0, dLink);
+//            String FN = "DeltaServer/XYZ/source.cfg";
+//            if ( ! Files.exists(Paths.get(FN)) )
+//                System.err.println("No file!");
+            dsRef = dConn.getDatasourceId();
         } else {
             dsRef = dLink.listDatasets().get(0);
+            dConn = DeltaConnection.connect(clientId, dConnLoc, dsRef, dsg0, dLink);
         }
-        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-
-        DeltaConnection dConn = DeltaConnection.connect("ConnectionToXYZ", clientId, dsRef, dsg0, dLink);
-
-        DeltaConnectionState dcs = new DeltaConnectionState(dConn, dsRef, Location.create("DConn"));
-        dConn.sync();
         
+        
+        
+//        DataState dcs = new DataState(dConn, dsRef, Location.create("DConn"));
+        dConn.sync();
         
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeWrite(dsg,  ()->{
@@ -127,8 +117,6 @@ public class Run {
         
         
         //dLink.listDatasets();
-        
-        
         //Must register to create.
 //        
 //        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();

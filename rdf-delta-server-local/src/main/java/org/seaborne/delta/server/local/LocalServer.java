@@ -132,7 +132,7 @@ public class LocalServer {
         List<Path> disabledDataSources = pair.getRight();
         
         dataSources.stream().forEach(p->LOG.info("Data source: "+p));
-        dataSources.stream().forEach(p->LOG.info("Data source: "+p+" : Disabled"));
+        disabledDataSources.stream().forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
         for ( Path p : dataSources ) {
             DataSource ds = makeDataSource(p);
@@ -370,7 +370,6 @@ public class LocalServer {
                 JSON.write(out, obj);
             } catch (IOException ex)  { throw IOX.exception(ex); }
         }
-        // [DISK] XXX Persistent counter.
         DataSource newDataSource = DataSource.connect(dsRef, baseURI, name, sourceArea);
         // Atomic.
         dataRegistry.put(dsRef, newDataSource);
@@ -404,13 +403,12 @@ public class LocalServer {
     
     /** SourceDescriptor -> JsonObject */
     private static JsonObject toJsonObj(SourceDescriptor descr) {
-        JsonBuilder builder = JsonBuilder.create() ;
-        builder.startObject();
-        set(builder, F_ID, descr.id.asPlainString());
-        set(builder, F_URI, descr.uri);
-        set(builder, F_BASE, descr.base);
-        builder.finishObject();
-        return builder.build().getAsObject();
+        return
+            JSONX.buildObject(builder->{
+                set(builder, F_ID, descr.id.asPlainString());
+                set(builder, F_URI, descr.uri);
+                set(builder, F_BASE, descr.base);
+            });
     }
 
     private static void set(JsonBuilder builder, String field, String value) {

@@ -31,8 +31,6 @@ import org.apache.jena.sparql.core.Transactional ;
 /** A Transactional 'X' supporting multiple readers and a single writer. */ 
 public abstract class TransactionalBlob<X> implements Transactional {
     
-    // ---- TransactionCoordinator.
-    
     // Semaphore to implement "Single Active Writer" - independent of readers
     // This is not reentrant.
     private Semaphore writersWaiting = new Semaphore(1, true) ;

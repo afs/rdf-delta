@@ -58,13 +58,14 @@ public class PatchReaderHeader {
     
     static boolean readHeaderLine(Tuple<Token> line, BiConsumer<String, Node> action) {
         Token token1 = line.get(0) ;
+        String code = token1.getImage() ;
+        if ( ! code.equals("H") )
+            return false;
+        
         if ( line.len() != 3 )
             throw new PatchException("["+token1.getLine()+"] Header: length = "+line.len()) ;
         if ( ! token1.isWord() )
             throw new PatchException("["+token1.getLine()+"] Token1 is not a word "+token1) ;
-        String code = token1.getImage() ;
-        if ( ! code.equals('H') )
-            return false;
         Token token2 = line.get(1) ;
         if ( ! token2.isWord() && ! token2.isString() )
             throw new PatchException("["+token1.getLine()+"] Header does not have a key that is a word: "+token2) ;
