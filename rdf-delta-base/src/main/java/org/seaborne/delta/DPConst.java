@@ -92,12 +92,15 @@ public class DPConst {
     public static final String SOURCES         = "Sources";
     // Relative path name in ENV_BASE for the patches area.
     public static final String PATCHES         = "Patches";
+    // The database area (TDB or a file  
     public static final String DATA            = "data";
-    public static final String VERSION         = "version";
+    
+    /** Name of the file holding the persistent state, client DeltaConnection. */
+    public static final String STATE_CLIENT    = "state";
+    /** Name of the file holding the persistent state, local server data source .*/
+    public static final String STATE_DS        = "state";
     public static final String DISABLED        = "disabled";
     
     /** The size of the server-wide LRU cache */
     public static final int PATCH_CACHE_SIZE   = 1000;
-
-    
 }

@@ -37,9 +37,9 @@ public class DataSourceClient {
     // XXX DeltaConnectionState.
     
     private static Logger LOG = Delta.DELTA_LOG;
-    private static String versionFile = DPConst.VERSION;
-    // Either a DB database or a file "data/daat.ttl".
-    private static String dataDiectory = DPConst.DATA;
+    private static String stateFile = DPConst.STATE_DS;
+    // Either a DB database or a file "data/data.ttl".
+    private static String dataDirectory = DPConst.DATA;
     
     private final DatasetGraph dsg;
     private final RefLong counter;
@@ -55,10 +55,11 @@ public class DataSourceClient {
             throw new DeltaException("Not a directory: "+filearea);
         }            
         
-        Path statePath = path.resolve(versionFile);
+        Path statePath = path.resolve(stateFile);
         RefLong version = new PersistentState(statePath);
         
-        Path dataPath = path.resolve(versionFile);
+        Path dataPath = path.resolve(dataDirectory);
+        // XXX Check data path
         if ( Files.exists(dataPath) ) {}
         
         throw new NotImplemented();

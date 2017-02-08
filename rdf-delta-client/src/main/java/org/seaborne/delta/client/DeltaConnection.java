@@ -28,6 +28,7 @@ import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
@@ -42,6 +43,8 @@ import org.slf4j.Logger;
  * This is the client API, c.f. JDBC connection
  */ 
 public class DeltaConnection {
+    
+    public enum Backing { TDB, FILE }
     
     // Need local version tracking?
     //   yes - for bring DSG up to date.
@@ -63,6 +66,13 @@ public class DeltaConnection {
     private final RDFChanges target;
     private final Id datasourceId;
     private final DataState state;
+
+//    public static DataState init(Location stateArea, Id datasourceId, Backing backing) {
+//        // Prepare state area.
+//        DataState.format(stateArea, datasourceId, Backing.FILE);
+//        DataState dataState = DataState.attach(stateArea, datasourceId);
+//        return dataState; 
+//    }
     
     /**
      * Create and connect to a new  {@code DataSource}. 
@@ -72,26 +82,38 @@ public class DeltaConnection {
         Objects.requireNonNull(datasourceName, "Null datasource name");
         Objects.requireNonNull(dLink, "Null link");
         ensureRegistered(dLink, clientId);
-        
-        // Prepare state area.
-        DataState.format(stateArea);
-        
+
+        // Create remote.
         Id datasourceId = dLink.newDataSource(datasourceName, uri);
-        DeltaConnection client = DeltaConnection.connect(clientId, stateArea, datasourceId, dsg, dLink);
-        client.start();
-        FmtLog.info(Delta.DELTA_LOG, "%s", client);
+        // Prepare state area.
+        
+        DataState.format(stateArea, datasourceId, Backing.FILE);
+        DataState dataState = DataState.attach(stateArea, datasourceId);
+
+        DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
         return client;
     }
 
     /** 
      * Connect to an existing {@code DataSource}.
-     * Must be registered with the {@code DelatLink}.
+     * Must be registered with the {@code DeltaLink}.
      */  
     public static DeltaConnection connect(Id clientId, Location stateArea, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
         Objects.requireNonNull(dLink, "Null link");
-        ensureRegistered(dLink, clientId);
-        DeltaConnection client = new DeltaConnection(stateArea, datasourceId, dsg, dLink);
+        //ensureRegistered(dLink, clientId);
+        DataState dataState = DataState.attach(stateArea, datasourceId);
+        if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
+            throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
+        
+        DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+        return client;
+    }
+    
+    private static DeltaConnection connect(DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
+        if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
+            throw new DeltaException("State ds id: "+dataState.getDataSourceId()+" but app passed "+datasourceId);
+        DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
@@ -102,12 +124,12 @@ public class DeltaConnection {
             link.register(clientId);
     }
     
-    private DeltaConnection(Location stateArea, Id datasourceId, DatasetGraph dsg, DeltaLink link) {
+    private DeltaConnection(DataState dataState, DatasetGraph dsg, DeltaLink link) {
         if ( dsg instanceof DatasetGraphChanges )
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient");
-        
+        this.state = dataState;
         this.base = dsg;
-        this.datasourceId = datasourceId ;
+        this.datasourceId = dataState.getDataSourceId();
         this.dLink = link;
         
         if ( dsg != null  ) {
@@ -121,7 +143,6 @@ public class DeltaConnection {
             this.target = null;
             this.managed = null;
         }
-        state = new DataState(this, datasourceId, stateArea);
     }
     
     public void start() {

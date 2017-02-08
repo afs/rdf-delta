@@ -182,9 +182,10 @@ public class LocalServer {
         Path patchesArea = path.resolve(DPConst.PATCHES);
         if ( ! Files.exists(patchesArea) )
             return false;
-        Path pathVersion = path.resolve(DPConst.VERSION);
-        if ( ! Files.exists(pathVersion) )
-            return false;
+        // If we keep a state file....
+//        Path pathVersion = path.resolve(DPConst.STATE_FILE);
+//        if ( ! Files.exists(pathVersion) )
+//            return false;
         return true ;
     }
     
