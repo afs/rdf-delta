@@ -325,7 +325,6 @@ public class TokenWriterText implements TokenWriter
             case BNODE:
                 return "_:"+token.getImage() ;
             //BOOLEAN,
-            // One kind of string?
             case STRING:
             case STRING1:
             case STRING2:
