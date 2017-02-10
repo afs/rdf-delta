@@ -21,18 +21,15 @@ package org.seaborne.delta.client;
 import static org.seaborne.delta.DPConst.F_DATASOURCE;
 import static org.seaborne.delta.DPConst.F_VERSION;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
-import org.seaborne.delta.client.DeltaConnection.Backing;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +40,10 @@ public class DataState {
     // XXX Can this be shared between client and server?
     // DataSourceDescription
     
-    private static Logger LOG = LoggerFactory.getLogger(DataState.class);
-    private static String STATE_FILE = DPConst.STATE_CLIENT;
+    static Logger LOG = LoggerFactory.getLogger(DataState.class);
+    /*package*/ static String STATE_FILE = DPConst.STATE_CLIENT;
     
-    private final Location workspace;
+    private final Zone zone;
     private RefString state;
 
     // Persistent state that varies.
@@ -90,48 +87,62 @@ public class DataState {
 //         return new DataState 
 //}
 
-    /** Intialize */ 
-    public static void format(Location workspace, Id dsRef, Backing backing) {
-        if ( workspace.isMem() )
-            return;
-        if ( ! workspace.exists() )
-            FmtLog.warn(LOG, "Not such directory: %s", workspace);
-        FileOps.ensureDir(workspace.getPath(DPConst.DATA));
-        
-//        switch (backing) {
-//            case TDB:
-//            case FILE:
-//                
-//            default:
-//                throw new InternalErrorException("Unknow backign storage type: "+backing);
-//                    
-//        }
+    // XXX Needs a lot of clean-up
 
-        // Write state file.
-        RefString state = new PersistentState(STATE_FILE); 
-        writeState(state, dsRef, 0);
-    }
+    // XXX Zone object.
+    // Global problems - per zone?
     
-    public static DataState attach(Location workspace, Id dsRef) {
-//        if ( workspace.isMem() ) {
-//            FmtLog.error(LOG, "Requires a disk-back Location: %s", workspace);
-//            throw new DeltaException("Requires a disk-back Location: "+workspace);
+//    public static DataState attach(Id dsRef) {
+//        DataState ds = Zone.states.get(dsRef);
+//        if ( ds == null ) {
+//            LOG.error("No state for "+dsRef);
+//            throw new DeltaConfigException("No state for "+dsRef);
 //        }
-        if ( ! workspace.exists() )
-            FmtLog.warn(LOG, "Not such directory: %s", workspace);
-        
-        return new DataState(dsRef, workspace);
+//        return ds;
+//    }
+//    
+//    public static DataState attach(Location workspace, Id dsRef) {
+////        if ( workspace.isMem() ) {
+////            FmtLog.error(LOG, "Requires a disk-backed Location: %s", workspace);
+////            throw new DeltaException("Requires a disk-back Location: "+workspace);
+////        }
+//        if ( ! workspace.exists() )
+//            FmtLog.warn(LOG, "Not such directory: %s", workspace);
+//        
+//        return new DataState(dsRef, workspace);
+//    }
+//    
+//    private DataState(Id dsRef, Location workspace) {
+//        // Memory and disk versions.
+//        this.workspace = workspace;
+//        loadState(workspace, dsRef);
+//        FmtLog.info(LOG, "%s : version = %s", dsRef, version);
+//    }
+//    
+    
+    /** Create from existing state */ 
+    /*package*/ DataState(Zone zone, PersistentState state) {
+        this.zone = zone;
+        this.state = state;
+        setStateFromString(this, state.getString());
+        FmtLog.info(LOG, "%s : version = %s", datasource, version);
     }
     
-    public /*for now*/ DataState(Id dsRef, Location workspace) {
-        // Memory and disk versions.
-        this.workspace = workspace;
-        loadState(workspace, dsRef);
-        FmtLog.info(LOG, "%s : version = %s", dsRef, version);
+    /** Create new, initialize state. */ 
+    /*package*/ DataState(Zone zone, Path state, Id dsRef, int version) {
+        this.zone = zone;
+        this.state = new PersistentState(state);
+        this.datasource = dsRef;
+        this.version.set(version);
+        writeState(this);
     }
-    
+
     public int version() {
         return version.get();
+    }
+
+    public Zone zone() {
+        return zone;
     }
 
     // XXX Sort out concurrency!
@@ -150,6 +161,8 @@ public class DataState {
         return datasource;
     }
 
+    private static Map<Id, DataState> dataState = new ConcurrentHashMap<>();
+    
     private void initData() {
 //        sync();
 //    }
@@ -160,39 +173,44 @@ public class DataState {
 //        dConn.sync();
     }
 
-    private void loadState(Location workspace, Id dsRef) {
-        if ( workspace.isMem() ) {
-            loadStateEphemeral(workspace, dsRef);
-            return ;
-        }
-        loadStatePersistent(workspace);
-        return ;
-        
-    }
-    
-    private void loadStateEphemeral(Location workspace, Id dsRef) {
-        datasource = dsRef;
-        version.set(0);
-        String str = stateToString(datasource, version());
-        state = new RefStringMem(str);
-    }
+//    private void loadState(Location workspace, Id dsRef) {
+//        if ( workspace.isMem() ) {
+//            loadStateEphemeral(workspace, dsRef);
+//            return ;
+//        }
+//        loadStatePersistent(workspace);
+//        return ;
+//        
+//    }
+//    
+//    private void loadStateEphemeral(Location workspace, Id dsRef) {
+//        datasource = dsRef;
+//        version.set(0);
+//        String str = stateToString(datasource, version());
+//        state = new RefStringMem(str);
+//    }
+//
+//    private void loadStatePersistent(Location workspace) {
+//        Path p = IOX.asPath(workspace);
+//        if ( ! Files.exists(p) )
+//            throw new DeltaConfigException("No directory: "+p);
+//        if ( ! Files.isDirectory(p) )
+//            throw new DeltaConfigException("Not a directory: "+p);
+//        Path versionFile = p.resolve(STATE_FILE);
+//        if ( ! Files.exists(versionFile) )
+//            throw new DeltaConfigException("No state file: "+versionFile);
+//        
+//        state = new PersistentState(versionFile);
+//        if ( state.getString().isEmpty() )
+//            throw new DeltaConfigException("Error reading state: version file exist but is empty");  
+//        setStateFromString(this, state.getString());
+//    }
 
-    private void loadStatePersistent(Location workspace) {
-        Path p = IOX.asPath(workspace);
-        if ( ! Files.exists(p) )
-            throw new DeltaConfigException("No directory: "+p);
-        if ( ! Files.isDirectory(p) )
-            throw new DeltaConfigException("Not a directory: "+p);
-        Path versionFile = p.resolve(STATE_FILE);
-        if ( ! Files.exists(versionFile) )
-            throw new DeltaConfigException("No state file: "+versionFile);
-        
-        state = new PersistentState(versionFile);
-        if ( state.getString().isEmpty() )
-            throw new DeltaConfigException("Error reading state: version file exist but is empty");  
+    private void readState(RefString state) {
         setStateFromString(this, state.getString());
     }
 
+    
     private void writeState(DataState dataState) {
         writeState(this.state, dataState.datasource, dataState.version());
     }

@@ -30,6 +30,7 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 
 public class RunDeltaServer {
@@ -79,7 +80,7 @@ public class RunDeltaServer {
         Id datasourceId = Id.fromString("id:0c5943d8-2b54-11b2-801b-024218167bb0");
         
         Location state = Location.create("DConn"); 
-        DeltaConnection dConn = DeltaConnection.connect(clientId, state, datasourceId, dsg0, link);
+        DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, datasourceId, dsg0, link);
         
         DatasetGraph dsg = dConn.getDatasetGraph();
         Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));

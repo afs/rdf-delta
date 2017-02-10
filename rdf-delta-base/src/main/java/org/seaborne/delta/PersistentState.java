@@ -35,8 +35,7 @@ import org.seaborne.delta.lib.IOX;
 public class PersistentState implements RefLong, RefString {
     private static final long DEFAULT = 0;
     private final Object lock = new Object(); 
-    private Path pathname = null;
-    private final Path dir ;
+    private final Path pathname;
     
     private byte[] value = null;
     private String valueStr = null;
@@ -47,11 +46,12 @@ public class PersistentState implements RefLong, RefString {
     
     public PersistentState(Path stateFilePath) {
         Objects.requireNonNull(stateFilePath);
-        this.pathname = stateFilePath.toAbsolutePath();
-        this.dir = pathname.getParent();
+        pathname = stateFilePath.toAbsolutePath();
         reset();
     }
 
+    public Path getPath() { return pathname; }
+    
     public void reset() {
         if ( Files.exists(pathname) ) {
             value = readLocation();

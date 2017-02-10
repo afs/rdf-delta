@@ -19,7 +19,9 @@
 package dev;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -30,6 +32,7 @@ import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
@@ -55,7 +58,7 @@ public class Run {
     
     // PatchCache
     
-    // Client side persistence.
+    // Client side persistence. 
     // Client side shadow.
     // DataState init
 
@@ -66,18 +69,53 @@ public class Run {
 Don't read 4!
      */
     
+    // Tests for persistence lifecycle: client, server.
+    //   AbstractTestDeltaConnection
+    //   TestLocalServer
+    // Client-shadow data.
+    
+    // DataState - map of dsRef->area.
+    //   Scan for existing.
+    
+    // try-resource fo DeltaConnection.
+    
     public static void main(String... args) throws IOException {
-        boolean cleanServer = false;
+        System.out.println("**** run 1");
+        // Create clean.
+        run(true, true);
+        System.out.println();
+        System.out.println("**** run 2");
+        // Resonnect to existing local and remote.
+        run(false, false);
+        System.out.println();
+        System.out.println("**** run 3");
+        // Connect to existing remote.
+        run(false, true);
+
+        System.out.println("DONE");
+        System.exit(0);
+    }
+    
+    public static void run(boolean cleanServer, boolean cleanConnections) throws IOException {
+        Zone zone = Zone.get();
+        zone.reset();
         String datasourceName = "XYZ";
         Location serverLoc = Location.create("DeltaServer");
         Location dConnLoc = Location.create("DConn");
         
         if ( cleanServer ) {
-            FileOps.clearAll(dConnLoc.getDirectoryPath());
             FileOps.clearAll(serverLoc.getPath(datasourceName));
             FileOps.delete(serverLoc.getPath(datasourceName));
         }
 
+        if ( cleanConnections ) {
+            FileOps.clearAll(dConnLoc.getDirectoryPath());
+        }
+
+        zone.init(dConnLoc);
+        System.out.println("Local connections: "+zone.localConnections());
+
+        
         LocalServer server = LocalServer.attach(serverLoc);
         
         // --------
@@ -86,54 +124,42 @@ Don't read 4!
         
         Id clientId = Id.create();
         //dLink.register(clientId);
-        
         DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-        Id dsRef;
-        DeltaConnection dConn;
-         
         
         if ( cleanServer ) {
-            dConn = DeltaConnection.create(clientId, dConnLoc, datasourceName, "http://example/new", dsg0, dLink);
-//            String FN = "DeltaServer/XYZ/source.cfg";
-//            if ( ! Files.exists(Paths.get(FN)) )
-//                System.err.println("No file!");
-            dsRef = dConn.getDatasourceId();
-        } else {
-            dsRef = dLink.listDatasets().get(0);
-            dConn = DeltaConnection.connect(clientId, dConnLoc, dsRef, dsg0, dLink);
+            // Create, but do not open.
+            // Two cases. Local TDB, local file.
+            // v1 - initialialy empty.
+            
+            //DeltaConnection.create(clientId, dConnLoc, datasourceName, "http://example/new");
         }
         
-        
-        
-//        DataState dcs = new DataState(dConn, dsRef, Location.create("DConn"));
-        dConn.sync();
-        
-        DatasetGraph dsg = dConn.getDatasetGraph();
-        Txn.executeWrite(dsg,  ()->{
-            Quad q = SSE.parseQuad("(_ :ss :pp :oo)");
-            dsg.add(q);
-        });
-        
-        
-        
-        //dLink.listDatasets();
-        //Must register to create.
-//        
-//        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-//        Location localData = null;
-//        
-//        
-//        //DeltaConnection dConn1 = DeltaConnection.create(clientId, dsRef, localData, dLink);
-//        
-//   
-//        // Shoduk be rejected if it does not exist.
-//        DeltaConnection dConn2 = DeltaConnection.connect("ConnectionToXYZ", clientId, dsRef, dsg, dLink);
-//        dConn2.sync();
-        
-        System.out.println("DONE");
-        System.exit(0);
+        try(DeltaConnection dConn = connectOrCreate(zone, clientId, datasourceName, dsg0, dLink, cleanServer) ) {
+            dConn.sync();
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            Txn.executeWrite(dsg,  ()->{
+                Quad q = SSE.parseQuad("(_ :ss :pp '"+DateTimeUtils.nowAsXSDDateTimeString()+"'^^xsd:dateTimeStamp)");
+                dsg.add(q);
+            });
+            
+            //dLink.listDatasets();
+            System.out.println("Local connections: "+zone.localConnections());
+            
+        }        
     }
-        
     
-    
+    static DeltaConnection connectOrCreate(Zone zone, Id clientId, String datasourceName, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
+        if ( create ) {
+            DeltaConnection dConn = DeltaConnection.create(zone, clientId, datasourceName, "http://example/new", dsg0, dLink);
+            Id dsRef = dConn.getDatasourceId();
+            System.out.println("++++ Create: "+dsRef);
+            return dConn;
+        } else {
+            List<Id> datasources = dLink.listDatasets();
+            System.out.println("++++ "+datasources);
+            Id dsRef = datasources.get(0);
+            DeltaConnection dConn = DeltaConnection.connect(zone, clientId, dsRef, dsg0, dLink);
+            return dConn;
+        }
+    }
 }

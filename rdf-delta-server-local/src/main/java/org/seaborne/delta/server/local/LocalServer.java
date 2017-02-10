@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -131,8 +130,8 @@ public class LocalServer {
         List<Path> dataSources = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();
         
-        dataSources.stream().forEach(p->LOG.info("Data source: "+p));
-        disabledDataSources.stream().forEach(p->LOG.info("Data source: "+p+" : Disabled"));
+        dataSources.forEach(p->LOG.info("Data source: "+p));
+        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
         for ( Path p : dataSources ) {
             DataSource ds = makeDataSource(p);
@@ -154,11 +153,11 @@ public class LocalServer {
      * These must have a file called source.cfg.
      */
     private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Location serverRoot, DataRegistry dataRegistry) {
-        Path dir = Paths.get(serverRoot.getDirectoryPath());
+        Path dir = IOX.asPath(serverRoot);
         try { 
             List<Path> directory = ListUtils.toList( Files.list(dir).filter(p->Files.isDirectory(p)) );
             directory.stream()
-                .filter(LocalServer::isFormatterDataSource)
+                .filter(LocalServer::isFormattedDataSource)
                 .collect(Collectors.toList());
             List<Path> enabled = directory.stream()
                 .filter(path -> isEnabled(path))
@@ -175,7 +174,7 @@ public class LocalServer {
     }
 
     /** Test for a valid data source - does not check "disabled" */
-    private static boolean isFormatterDataSource(Path path) {
+    private static boolean isFormattedDataSource(Path path) {
         if ( ! isMinimalDataSource(path) )
             return false;
         // Additional requirements

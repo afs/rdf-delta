@@ -26,11 +26,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.Delta;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
@@ -42,7 +38,7 @@ import org.slf4j.Logger;
 /** Provides an interface to a specific dataset over the general {@link DeltaLink} API. 
  * This is the client API, c.f. JDBC connection
  */ 
-public class DeltaConnection {
+public class DeltaConnection implements AutoCloseable {
     
     public enum Backing { TDB, FILE }
     
@@ -78,18 +74,13 @@ public class DeltaConnection {
      * Create and connect to a new  {@code DataSource}. 
      * Must be registered with the {@code DelatLink}.
      */
-    public static DeltaConnection create(Id clientId, Location stateArea, String datasourceName, String uri, DatasetGraph dsg, DeltaLink dLink) {
+    public static DeltaConnection create(Zone zone, Id clientId, String datasourceName, String uri, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceName, "Null datasource name");
         Objects.requireNonNull(dLink, "Null link");
         ensureRegistered(dLink, clientId);
-
-        // Create remote.
-        Id datasourceId = dLink.newDataSource(datasourceName, uri);
-        // Prepare state area.
         
-        DataState.format(stateArea, datasourceId, Backing.FILE);
-        DataState dataState = DataState.attach(stateArea, datasourceId);
-
+        Id datasourceId = dLink.newDataSource(datasourceName, uri);
+        DataState dataState = zone.create(datasourceName, datasourceId, Backing.TDB);
         DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
         return client;
     }
@@ -98,14 +89,27 @@ public class DeltaConnection {
      * Connect to an existing {@code DataSource}.
      * Must be registered with the {@code DeltaLink}.
      */  
-    public static DeltaConnection connect(Id clientId, Location stateArea, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
+    public static DeltaConnection connect(Zone zone, Id clientId, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
         Objects.requireNonNull(dLink, "Null link");
-        //ensureRegistered(dLink, clientId);
-        DataState dataState = DataState.attach(stateArea, datasourceId);
+        ensureRegistered(dLink, clientId);
+        
+        // DataSourceDescription desc = dLink.getDataSourceDescription(datasourceId);
+        
+        if ( ! zone.exists(datasourceId) ) {
+            // No local - is there a remote?
+            DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
+            if ( dsd == null ) {
+                
+            }
+            //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
+            DataState dataState = zone.create(dsd.name, datasourceId, Backing.TDB);
+            DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+            return dConn;
+        }        
+        DataState dataState = zone.attach(datasourceId);
         if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
             throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
-        
         DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
         return client;
     }
@@ -200,6 +204,11 @@ public class DeltaConnection {
 //        
 //    }
     
+    @Override
+    public void close() {
+        //state.zone().release(state);
+    }
+
     public DeltaLink getLink() {
         return dLink;
     }
