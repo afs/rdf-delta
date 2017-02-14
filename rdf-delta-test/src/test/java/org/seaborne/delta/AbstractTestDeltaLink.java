@@ -123,7 +123,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_01", "http://example/");
         
-        InputStream in = IO.openFile(DeltaTestLib.DIR+"/patch1.rdfp");
+        InputStream in = IO.openFile(DeltaTestLib.TDIR+"/patch1.rdfp");
         RDFPatch patch = RDFPatchOps.read(in);
 
         int version = dLink.getCurrentVersion(dsRef);
@@ -157,7 +157,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_02", "http://example/");
         dLink.deregister();
         try { 
-            InputStream in = IO.openFile(DeltaTestLib.DIR+"/patch1.rdfp");
+            InputStream in = IO.openFile(DeltaTestLib.TDIR+"/patch1.rdfp");
             RDFPatch patch = RDFPatchOps.read(in);
             int version1 = dLink.sendPatch(dsRef, patch);
             fail("Managed to send a patch wnen not registered");

@@ -24,6 +24,10 @@ public class DevToDo {
     //   Protocol/delta
     // Version -> long?
     // Eliminate use of Location and just use Path.
+    
+    // Streaming patches.
+    // Currently not because of DeltaLink.sendPatch takes a patch as argument. 
+    
 
     // Server local "Patch" - relevant?
     //   PatchLog.HistoryEntry - keep jyst meta data and have a "RDFPatch cache".

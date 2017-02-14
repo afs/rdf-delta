@@ -18,7 +18,10 @@
 
 package org.seaborne.delta;
 
+import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.FileStore;
@@ -26,7 +29,7 @@ import org.seaborne.delta.server.local.LocalServer;
 
 public class DeltaTestLib {
     // Static resources area.
-    protected static String DIR = "testing/";
+    protected static String TDIR = "testing/";
     public static Location ServerArea = Location.create("target/test/server");
     
     private static void ensureClear(String area) {
@@ -39,8 +42,12 @@ public class DeltaTestLib {
         FileStore.resetTracked();
         String cfg = "delta.cfg";
         ensureClear(ServerArea.getDirectoryPath());
-        IOX.copy(DIR+cfg, ServerArea.getDirectoryPath());//.getPath(cfg)); 
+        IOX.copy(TDIR+cfg, ServerArea.getDirectoryPath());//.getPath(cfg)); 
         LocalServer localServer = LocalServer.attach(ServerArea);
         return localServer;
+    }
+    
+    static Quad freshQuad() {
+        return SSE.parseQuad("(_ :s :p '"+DateTimeUtils.nowAsXSDDateTimeString()+"'^^xsd:dateTimeStamp)");
     }
 }

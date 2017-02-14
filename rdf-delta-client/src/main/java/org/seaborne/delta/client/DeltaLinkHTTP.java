@@ -20,6 +20,7 @@ package org.seaborne.delta.client;
 
 import java.io.InputStream ;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
@@ -72,12 +73,12 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
         return r.getAsNumber().value().intValue();
     }
 
-    @Override
     public RDFChangesHTTP createRDFChanges(Id dsRef) {
         String s = DeltaLib.makeURL(remoteSend, DPConst.paramReg, regToken.asString(), DPConst.paramDatasource, dsRef.asParam());
         return new RDFChangesHTTP(s);
     }
 
+    // Non-streaming - collect patch then replay to send it.  
     @Override
     public int sendPatch(Id dsRef, RDFPatch patch) {
         RDFChangesHTTP remote = createRDFChanges(dsRef);
@@ -188,9 +189,11 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
 
     @Override
     public Id newDataSource(String name, String uri) {
+        Objects.requireNonNull(name);
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DPConst.F_NAME).value(name);
-            b.key(DPConst.F_URI).value(uri);
+            if ( uri != null )
+                b.key(DPConst.F_URI).value(uri);
         });
         JsonObject obj = rpc(DPConst.OP_CREATE_DS, arg);
 

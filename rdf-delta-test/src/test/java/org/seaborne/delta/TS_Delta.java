@@ -37,6 +37,6 @@ import org.junit.runners.Suite.SuiteClasses;
 public class TS_Delta {
     @BeforeClass public static void setForTesting() { 
         //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
 }

@@ -30,6 +30,7 @@ import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
+import org.junit.Test;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.Zone;
@@ -43,25 +44,18 @@ public class Run {
         LogCtl.setJavaLogging();
     }
     
-    // Tests for restart
-    
     // Remove (hide) DSG from DeltaConnection start-up : TDB or file only.
     
     // ** Need patch rejection
     // ** Start at id:nil (or id:datasource?)
     
-    // TransPBlob not PersistentState ; memory versions.
-    
-    // [PersistentVersion] in client 
-    //   DeltaLink? DeltaConnection? 
-    //   Persistent counter, integritity of the log and client side. 
+    // TransPBlob not PersistentState : memory versions.
     
     // PatchCache
     
-    // Client side persistence. 
-    // Client side shadow.
-    // DataState init
-
+    // DataSource - better naming? Feed, RDFFeed?  DataFeed?
+    //  = (zone,) name, id, PatchLog, start point, + optionally data. 
+    
     /*
 18:04:55 INFO  Delta                : Patch range [4, 4]
 18:04:55 INFO  Delta                : Sync: patch=4
@@ -69,15 +63,27 @@ public class Run {
 Don't read 4!
      */
     
+    
+    //PathX. 
+    
+    // Next?
     // Tests for persistence lifecycle: client, server.
+    
+    // DConn setups in "testing/Dconn1", DConn2 
+    // Server setups:
+    
+    // And from scratch create - 
+    
     //   AbstractTestDeltaConnection
     //   TestLocalServer
+
+    // and then
     // Client-shadow data.
     
-    // DataState - map of dsRef->area.
-    //   Scan for existing.
     
-    // try-resource fo DeltaConnection.
+    // Can DataSources be shared across zones? Not unless the name is the same.  Acceptable?
+    // DataSource Descriptior and LocalServer.SourceDescriptor are the same.
+    
     
     public static void main(String... args) throws IOException {
         System.out.println("**** run 1");
@@ -91,10 +97,29 @@ Don't read 4!
         System.out.println("**** run 3");
         // Connect to existing remote.
         run(false, true);
+        System.out.println("**** run 4");
+        // Resonnect to existing local and remote.
+        run(false, false);
+        System.out.println();
 
         System.out.println("DONE");
         System.exit(0);
     }
+    
+    @Test public void connect_01() {
+        // Clear
+    }
+    
+    // Modularise
+    /*
+     *  target/zone
+     * Zone.init
+     * Create server
+     * Reset client
+     */
+
+    
+    
     
     public static void run(boolean cleanServer, boolean cleanConnections) throws IOException {
         Zone zone = Zone.get();

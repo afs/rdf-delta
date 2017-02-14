@@ -26,12 +26,17 @@ public class DeltaBadRequestException extends DeltaException {
     { this(400, msg) ; }
     
     public DeltaBadRequestException(int code, String msg) {
-        super(code+" "+msg) ;
+        super(msg) ;
         statusCode = code ;
     }
 
     public int getStatusCode() {
         return statusCode;
+    }
+    
+    @Override
+    public String getMessage() {
+        return super.getMessage();
     }
     
     //public Throwable fillInStackTrace() {}

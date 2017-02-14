@@ -35,6 +35,16 @@ public class TestLocalServerBuildConfig {
     // This is the pre-setup testing area and is not modified in tests.
     public static String TESTING = "testing/";
 
+    @Test public void local_server_config_builder_01() {
+        // Server configuration builder.
+        LocalServerConfig conf = LocalServerConfig.create()
+            .parse(TESTING+"delta.cfg")
+            .build();
+        Location x = Location.create(TESTING);
+        assertEquals(x, conf.location);
+        assertEquals(5050, conf.port);
+    }
+
     @Test public void local_server_config_01() {
         // Blank start up.
         LocalServerConfig conf = LocalServerConfig.create()
@@ -45,15 +55,6 @@ public class TestLocalServerBuildConfig {
     }
 
     @Test public void local_server_config_02() {
-        LocalServerConfig conf = LocalServerConfig.create()
-            .parse(TESTING+"delta.cfg")
-            .build();
-        Location x = Location.create(TESTING);
-        assertEquals(x, conf.location);
-        assertEquals(5050, conf.port);
-    }
-
-    @Test public void local_server_config_03() {
         // Configuration file not in server area. 
         LocalServerConfig conf = LocalServerConfig.create()
             .parse(TESTING+"delta.cfg")

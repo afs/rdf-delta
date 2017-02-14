@@ -30,6 +30,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServerConfig;
 
 public class Setup {
     interface LinkSetup {
@@ -38,6 +39,10 @@ public class Setup {
         public void beforeClass();
         public void afterClass();
         public void beforeTest();
+        
+        public void relink();       // Same server, new link.
+        public void restart();      // Different server, same state.
+
         public void afterTest();
         public DeltaLink getLink();
     }
@@ -68,6 +73,26 @@ public class Setup {
             if ( lserver != null )
                 LocalServer.release(lserver);
         }
+
+        @Override
+        public void relink() {
+            Id clientId = dlink.getClientId();
+            dlink =  DeltaLinkLocal.connect(lserver);
+            if ( clientId != null )
+                dlink.register(clientId);
+        }
+        
+        @Override
+        public void restart() {
+            if ( lserver == null )
+                lserver = DeltaTestLib.createEmptyTestServer();
+            else {
+                LocalServerConfig config = lserver.getConfig() ;
+                LocalServer.release(lserver);
+                lserver = LocalServer.attach(config);
+            }
+            relink();
+        }
     }
 
     public static class RemoteSetup implements LinkSetup {
@@ -95,7 +120,7 @@ public class Setup {
         // Local server of the patch server.
         private LocalServer localServer = null;
         private static DataPatchServer server = null;
-        private DeltaLink link = null;
+        private DeltaLink dlink = null;
         
         @Override
         public void beforeClass() {
@@ -115,19 +140,40 @@ public class Setup {
             localServer = DeltaTestLib.createEmptyTestServer();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server.setEngine(localLink);
-            link = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
+            dlink = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
         }
 
         @Override
         public void afterTest() {
             LocalServer.release(localServer);
             server.setEngine(null);
-            link = null;
+            dlink = null;
+        }
+        
+        @Override
+        public void relink() {
+            Id clientId = dlink.getClientId();
+            resetDefaultHttpClient();
+            dlink = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
+            if ( clientId != null )
+                dlink.register(clientId);
+        }
+        
+        
+        @Override
+        public void restart() {
+            LocalServerConfig config = localServer.getConfig() ;
+            LocalServer.release(localServer);
+            localServer = LocalServer.attach(config);
+            resetDefaultHttpClient();
+            DeltaLink localLink = DeltaLinkLocal.connect(localServer);
+            server.setEngine(localLink);
+            relink();
         }
 
         @Override
         public DeltaLink getLink() {
-            return link;
+            return dlink;
         }
 
         private static void resetDefaultHttpClient() {

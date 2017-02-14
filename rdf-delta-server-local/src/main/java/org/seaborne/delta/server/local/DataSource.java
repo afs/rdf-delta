@@ -54,7 +54,6 @@ public class DataSource {
      * @return DataSource
      */
     public static DataSource connect(Id dsRef, String uri, String name, Location sourceArea) {
-        
         Location patchesArea = LocalServer.patchArea(sourceArea);
         if ( sourceArea.isMem() && patchesArea.isMem() ) {
             return null ;

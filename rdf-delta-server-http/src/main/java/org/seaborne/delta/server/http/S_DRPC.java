@@ -271,7 +271,7 @@ public class S_DRPC extends DeltaServletBase {
     
     private JsonValue createDataSource(DeltaAction action) {
         String name = getFieldAsString(action, F_NAME);
-        String uri = getFieldAsString(action, F_URI);
+        String uri = getFieldAsString(action, F_URI, false);
         Id dsRef = getLink(action).newDataSource(name, uri);
         return JSONX.buildObject(b->b.key(F_ID).value(dsRef.asPlainString()));
     }
@@ -285,6 +285,10 @@ public class S_DRPC extends DeltaServletBase {
     
     private static String getFieldAsString(DeltaAction action, String field) {
         return getFieldAsString(action.rpcArg, field); 
+    }
+    
+    private static String getFieldAsString(DeltaAction action, String field, boolean required) {
+        return getFieldAsString(action.rpcArg, field, required); 
     }
     
     private static JsonObject getFieldAsObject(DeltaAction action, String field) {

@@ -38,14 +38,17 @@ public class DataSourceDescription {
         return JSONX.buildObject(b->{
             b.key(F_ID).value(id.asString());
             b.key(F_NAME).value(name);
-            b.key(F_URI).value(uri);
+            if ( uri != null )
+                b.key(F_URI).value(uri);
         });
     }
     
     public static DataSourceDescription fromJson(JsonObject obj) {
         String idStr = obj.get(F_ID).getAsString().value();
         String name = obj.get(F_NAME).getAsString().value();
-        String uri = obj.get(F_URI).getAsString().value();
+        String uri = null;
+        if ( obj.hasKey(F_URI) )
+         uri = obj.get(F_URI).getAsString().value();
         return new DataSourceDescription(Id.fromString(idStr), name, uri);
     }
     

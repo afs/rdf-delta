@@ -51,8 +51,6 @@ public class RunDeltaServer {
         
         org.seaborne.delta.server.http.CmdDeltaServer.main(args);
         System.out.println();
-
-        
         
         String datafile = "D.ttl"; 
         String url = "http://localhost:1066/" ;

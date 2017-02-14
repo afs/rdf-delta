@@ -17,7 +17,7 @@ package org.seaborne.delta.client;
  * limitations under the License.
  */
 
-import static org.seaborne.delta.DPConst.*;
+import static org.seaborne.delta.DPConst.DATA;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,16 +60,32 @@ public class Zone {
         states.clear();
     }
     
+    /** Reset to the uninitialized state., Shodul not bne needed in normal operation 
+     * mainly for testing. */
+    public void shutdown() {
+        synchronized(zoneLock) {
+            if ( ! INITIALIZED )
+                return ;
+            states.clear();
+            connectionStateArea = null;
+            INITIALIZED = false;
+        }
+    }
+    
     public List<Id> localConnections() {
         return new ArrayList<>(states.keySet());
     }
     
     public void init(Location area) {
-        if ( INITIALIZED )
+        if ( INITIALIZED ) {
+            checkInit(area);
             return;
+        }
         synchronized(zoneLock) {
-            if ( INITIALIZED )
+            if ( INITIALIZED ) {
+                checkInit(area);
                 return;
+            }
             INITIALIZED = true;
             connectionStateArea = IOX.asPath(area);
             List<Path> x = scanForDataState(area);
@@ -81,6 +97,15 @@ public class Zone {
         }
     }
     
+    private boolean isInitialized() {
+        return INITIALIZED;
+    }
+
+    private void checkInit(Location area) {
+        if ( ! connectionStateArea.equals(area) )
+            throw new DeltaException("Attempt to reinitialize the Zone: "+connectionStateArea+" => "+area);
+    }
+
     /** Is there an area aready? */
     public boolean exists(Id dsRef) {
         return states.containsKey(dsRef);

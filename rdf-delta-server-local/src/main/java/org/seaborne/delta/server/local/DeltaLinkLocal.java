@@ -22,13 +22,11 @@ import java.io.InputStream ;
 import java.util.List;
 
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.apache.jena.graph.Node;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
@@ -49,30 +47,6 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         this.localServer = localServer;
     }
     
-    @Override
-    public RDFChanges createRDFChanges(Id dsRef) {
-        RDFChanges c = new RDFChangesCollector() {
-            private Node currentTransactionId = null;
-            
-            @Override
-            public void txnBegin() {
-                super.txnBegin();
-                if ( currentTransactionId == null ) {
-                    currentTransactionId = Id.create().asNode();
-                    super.header(RDFPatch.ID, currentTransactionId);
-                }
-            }
-
-            @Override
-            public void txnCommit() {
-                super.txnCommit();
-                RDFPatch p = getRDFPatch();
-                sendPatch(dsRef, p);
-            }
-        };
-        return c ;
-    }
-
     @Override
     public Id newDataSource(String name, String baseURI) {
         checkRegistered();

@@ -310,6 +310,7 @@ public class LocalServer {
         return descr;
     }
     
+    // Isn't this DataSourceDescription?
     static class SourceDescriptor {
         final String uri;
         final Id id;

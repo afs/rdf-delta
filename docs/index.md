@@ -1,6 +1,8 @@
 # RDF Delta
 
-RDF Delta is a system for replication of RDF Triplestores. Changes made at one store are propagated to other places - other stores, or to an archive area, or to a log or ....
+RDF Delta is a system for replication of RDF Triplestores. Changes made
+at one store are propagated to other places - other stores, or to an
+archive area, or to a log or ....
 
 ## Scenarios
 

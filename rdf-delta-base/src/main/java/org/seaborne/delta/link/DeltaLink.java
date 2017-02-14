@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 
 /** Interface to the server for the operations.
@@ -62,18 +61,6 @@ public interface DeltaLink {
 
     /** Retrieve a patch and write it to the {@code OutputStream}. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);
-
-    /** Create an {@link RDFChanges} for this link. */
-    public RDFChanges createRDFChanges(Id dsRef);
-    
-//    public void existingDataset() {} 
-//    
-//    public Id newDataset() { return null ; }
-//    public void deleteDataset(Id uuid) { }
-//
-//    // Graph-only system
-//    
-//    public Id newGraph(String uri) { return null ; }
 
     /** Register a client id.
      * Only one client can be registered on a link at a time.

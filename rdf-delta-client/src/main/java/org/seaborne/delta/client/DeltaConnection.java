@@ -25,6 +25,7 @@ import java.util.stream.IntStream;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
@@ -32,6 +33,7 @@ import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesApply ;
+import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.slf4j.Logger;
 
@@ -63,16 +65,9 @@ public class DeltaConnection implements AutoCloseable {
     private final Id datasourceId;
     private final DataState state;
 
-//    public static DataState init(Location stateArea, Id datasourceId, Backing backing) {
-//        // Prepare state area.
-//        DataState.format(stateArea, datasourceId, Backing.FILE);
-//        DataState dataState = DataState.attach(stateArea, datasourceId);
-//        return dataState; 
-//    }
-    
     /**
-     * Create and connect to a new  {@code DataSource}. 
-     * Must be registered with the {@code DelatLink}.
+     * Create and connect to a new {@code DataSource}. 
+     * The caller must be registered with the {@code DelatLink}.
      */
     public static DeltaConnection create(Zone zone, Id clientId, String datasourceName, String uri, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceName, "Null datasource name");
@@ -100,9 +95,11 @@ public class DeltaConnection implements AutoCloseable {
             // No local - is there a remote?
             DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
             if ( dsd == null ) {
-                
+                // Does not exist.
+                throw new DeltaBadRequestException("No such datasorce: "+datasourceId);
+                // Autocreate?
+                //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
             }
-            //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
             DataState dataState = zone.create(dsd.name, datasourceId, Backing.TDB);
             DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
             return dConn;
@@ -141,12 +138,40 @@ public class DeltaConnection implements AutoCloseable {
             this.target = new RDFChangesApply(dsg);
             // Where to send outgoing changes.
             // Make RDFChangesHTTP one shot.
-            RDFChanges monitor = link.createRDFChanges(datasourceId);
+            
+            
+            // XXX Wrap in version updater 
+            RDFChanges monitor = createRDFChanges(datasourceId);
+            // 
             this.managed = new DatasetGraphChanges(dsg, monitor);
         } else {
             this.target = null;
             this.managed = null;
         }
+    }
+    
+    private RDFChanges createRDFChanges(Id dsRef) {
+        RDFChanges c = new RDFChangesCollector() {
+            private Node currentTransactionId = null;
+            
+            @Override
+            public void txnBegin() {
+                super.txnBegin();
+                if ( currentTransactionId == null ) {
+                    currentTransactionId = Id.create().asNode();
+                    super.header(RDFPatch.ID, currentTransactionId);
+                }
+            }
+
+            @Override
+            public void txnCommit() {
+                super.txnCommit();
+                RDFPatch p = getRDFPatch();
+                int newVersion = dLink.sendPatch(dsRef, p);
+                setLocalVersionNumber(newVersion);
+            }
+        };
+        return c ;
     }
     
     public void start() {
@@ -178,10 +203,10 @@ public class DeltaConnection implements AutoCloseable {
 
         int localVer = getLocalVersionNumber();
 
-        //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
+        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
 
         if ( localVer > remoteVer ) 
-            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", state.version(), remoteEpoch.get());
+            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localVer, remoteEpoch.get());
         if ( localVer >= remoteVer ) {
             //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
             return;
@@ -227,7 +252,12 @@ public class DeltaConnection implements AutoCloseable {
 
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
-        return dLink.getCurrentVersion(datasourceId);
+        int version = dLink.getCurrentVersion(datasourceId);
+        if ( remoteEpoch.get() < version )
+            remoteEpoch.set(version);
+        else if ( remoteEpoch.get() > version ) 
+            FmtLog.warn(LOG, "Remote version behind local tracking of remote version: [%d, %d]", version, remoteEpoch.get());
+        return version;
     }
     
     /** Return the version of the local data store */ 
@@ -260,7 +290,7 @@ public class DeltaConnection implements AutoCloseable {
         return base;
     }
 
-    private synchronized void sendPatch(RDFPatch patch) {
+    public synchronized void sendPatch(RDFPatch patch) {
         int ver = dLink.sendPatch(datasourceId, patch);
         int ver0 = state.version();
         if ( ver0 > ver )
