@@ -25,10 +25,17 @@ public class DevToDo {
     // Version -> long?
     // Eliminate use of Location and just use Path.
     
+    // One endpoint variant: /patch-log
+    // two endpotjb variant /patch, /fetch (= /patch/*) 
+    // Sort out send/fetch endpoints.
+    // Just one fetch type.
+    
     // Streaming patches.
     // Currently not because of DeltaLink.sendPatch takes a patch as argument. 
     
-
+    // Test cleaning:
+    //   target/test/server/... target/Zone ... inconsistent placement. 
+    
     // Server local "Patch" - relevant?
     //   PatchLog.HistoryEntry - keep jyst meta data and have a "RDFPatch cache".
     
