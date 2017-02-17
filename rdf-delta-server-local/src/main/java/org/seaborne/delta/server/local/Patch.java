@@ -48,16 +48,16 @@ public class Patch implements RDFPatch {
     }
 
     @Override
-    public Node getParent() {
-        return patch.getParent() ;
+    public Node getPrevious() {
+        return patch.getPrevious() ;
     }
 
     public Id getIdAsId() {
         return Id.fromNode(patch.getId()) ;
     }
 
-    public Id getParentIdAsId() {
-        return Id.fromNode(patch.getParent()) ;
+    public Id getPreviousIdAsId() {
+        return Id.fromNode(patch.getPrevious()) ;
     }
 
     @Override

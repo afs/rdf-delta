@@ -28,7 +28,7 @@ import org.apache.jena.riot.tokens.Token ;
 
 /** Deliver {@code Tuple<Token>} */
 public interface TupleReader extends Iterator<Tuple<Token>>, Iterable<Tuple<Token>>, Closeable {
-    // Not AutoClosable because this typcially wraps a stream provided by the caller. 
+    // Not AutoClosable because this typically wraps a stream provided by the caller. 
     // XXX Convert to stream only?
     public default Stream<Tuple<Token>> stream() {
         return Iter.asStream(this) ;

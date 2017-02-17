@@ -111,7 +111,7 @@ public class TestRDFChanges {
         });
         assertNotEquals(0, output.length) ;
         String x = StrUtils.fromUTF8bytes(output);
-        assertEquals("TB .\nTC .\n", x);
+        assertEquals("TX .\nTC .\n", x);
     }
 
     @Test public void changes_write_read_06() {

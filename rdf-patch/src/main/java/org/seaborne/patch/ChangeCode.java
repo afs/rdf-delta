@@ -27,7 +27,7 @@ public enum ChangeCode {
     
     SET_BASE("BA") ,
     
-    TXN_BEGIN("TB") ,
+    TXN_BEGIN("TX") ,
     TXN_COMMIT("TC") ,
     TXN_ABORT("TA") ,
     ;

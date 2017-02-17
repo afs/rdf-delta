@@ -30,7 +30,7 @@ import org.apache.jena.riot.tokens.Token ;
 import org.seaborne.riot.tio.TupleIO ;
 import org.seaborne.riot.tio.TupleReader ;
 
-/** Read header (up until the TB or end of file). */
+/** Read header (up until the TX or end of file). */
 public class PatchReaderHeader {
     private PatchReaderHeader() {}
     

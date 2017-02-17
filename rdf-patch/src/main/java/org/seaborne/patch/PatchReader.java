@@ -144,7 +144,7 @@ public class PatchReader implements PatchProcessor {
                 sink.deletePrefix(gn, prefix);
                 return false ;
             }
-            case "TB": {
+            case "TX": {
                 sink.txnBegin();
                 return false ;
             }
@@ -158,7 +158,15 @@ public class PatchReader implements PatchProcessor {
                 sink.txnAbort();
                 return true ;
             }
+            case "SB": {
+                Node base = line.get(1).asNode();
+                if ( ! base.isURI() )
+                    throw new PatchException("["+token1.getLine()+"] Expected <...> for the base  URI") ;
+                sink.setBase(base.getURI());
+                return false;
+            }
             default:  {
+                sink.setBase(code);
                 throw new PatchException("["+token1.getLine()+"] Code '"+code+"' not recognized") ;
             }
         }

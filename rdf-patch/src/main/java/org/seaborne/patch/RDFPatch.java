@@ -22,7 +22,7 @@ import org.apache.jena.graph.Node;
 
 public interface RDFPatch {
     public static final String ID       = "id" ;
-    public static final String PARENT   = "parent" ;
+    public static final String PREVIOUS = "previous" ;
     
     public PatchHeader header() ;
     
@@ -34,8 +34,8 @@ public interface RDFPatch {
         return header().get(ID) ;
     }
 
-    public default Node getParent() {
-        return header().get(PARENT) ;
+    public default Node getPrevious() {
+        return header().get(PREVIOUS) ;
     }
     
     /** Act of the patch by sending it to the changes processor. */ 

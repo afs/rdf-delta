@@ -21,7 +21,7 @@ package org.seaborne.delta;
 public class DPConst {
     // Endpoints.
     public static final String EP_RPC          = "rpc";
-    public static final String EP_Patch        = "patch";
+    public static final String EP_Patch        = "patch-log";
     public static final String EP_Fetch        = "fetch";
 
     // RPC calls - operation names.

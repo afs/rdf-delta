@@ -55,8 +55,7 @@ public class DataPatchServer {
 
         S_Patch patchMgr = new S_Patch(this.engineRef);
         // Receive patches
-        addServlet("/patch", patchMgr);
-
+        addServlet("/"+DPConst.EP_Patch, patchMgr);
         // Return patches
         addServlet("/"+DPConst.EP_Fetch, new S_FetchId(this.engineRef));
         addServlet("/"+DPConst.EP_Patch+"/*", new S_Fetch(this.engineRef));

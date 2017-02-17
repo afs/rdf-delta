@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.logging.FmtLog;
@@ -54,7 +55,7 @@ public class PatchLog {
     // Is just a list of Id's enough if we have version->id. (versions are not contiguous). 
     
     static class HistoryEntry {
-        final Id    prev;       // == patch(next).getParent()
+        final Id    prev;       // == patch(next).getPrevious()
               Id    next;       // Not final! == null at end, and can be extended.
         final PatchHeader patch;   // Remove : replace with header.
         final int   version;
@@ -105,23 +106,23 @@ public class PatchLog {
                 
                 if ( header.getId() == null )
                     LOG.warn("No id: "+fn);
-                if ( header.getParent() == null && lastEntry != null )
-                    LOG.warn("No parent id: "+fn);
+                if ( header.getPrevious() == null && lastEntry != null )
+                    LOG.warn("No previous id: "+fn);
                 
                 Id patchId = Id.fromNode(header.getId());
-                Id parentId = Id.fromNode(header.getParent());
+                Id previousId = Id.fromNode(header.getPrevious());
                 if ( lastEntry != null ) {
-                    if ( Objects.equals(lastEntry.id, parentId) )
-                        FmtLog.warn(LOG, "Patch id=%s (parent=%s) does not refer to previous patch (id=%s)", patchId, parentId, lastEntry.id);
+                    if ( Objects.equals(lastEntry.id, previousId) )
+                        FmtLog.warn(LOG, "Patch id=%s (previous=%s) does not refer to previous patch (id=%s)", patchId, previousId, lastEntry.id);
                     lastEntry.next = patchId;
                 }
-                HistoryEntry entry = new HistoryEntry(null, idx, parentId, patchId, prev);
+                HistoryEntry entry = new HistoryEntry(null, idx, previousId, patchId, prev);
                 prev = patchId;
                 lastEntry = entry;
                 if ( startEntry == null )
                     startEntry = entry;
                 idToNumber.put(patchId, idx);
-                FmtLog.info(LOG, "Patch id=%s parent=%s version=%d", patchId, parentId, idx);
+                FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, idx);
             } catch ( IOException ex ) { throw IOX.exception(ex); } 
         });
         
@@ -180,12 +181,12 @@ public class PatchLog {
     }
 
     public PatchLogInfo getInfo(boolean unimplemented) {
-        // XXX PatchLogInfo
-        return new PatchLogInfo(dsRef, -1, -1, null); 
+        if ( start == null )
+            new PatchLogInfo(dsRef, -1, -1, null); 
+        return new PatchLogInfo(dsRef, start.version, finish.version, finish.id); 
     }
     
     public boolean isEmpty() {
-        // 
         boolean b1 = fileStore.isEmpty();
         boolean b2 = finish == null;
         if ( b1 != b2 )
@@ -195,16 +196,16 @@ public class PatchLog {
 
     /** Validate a patch for this {@code PatchLog} */
     public boolean validate(RDFPatch patch) {
-        Id parentId = Id.fromNode(patch.getParent());
+        Id previousId = Id.fromNode(patch.getPrevious());
         Id patchId = Id.fromNode(patch.getId());
-        if ( parentId == null ) {
+        if ( previousId == null ) {
             if ( !isEmpty() ) {
-                FmtLog.warn(LOG, "No parent for patch when PatchLog is not empty: patch=%s", patchId);
+                FmtLog.warn(LOG, "No previous for patch when PatchLog is not empty: patch=%s", patchId);
                 return false;
             }
         } else {
             if ( isEmpty() ) {
-                FmtLog.warn(LOG, "Parent for patch but PatchLog is empty: patch=%s : parent=%s", patchId, parentId);
+                FmtLog.warn(LOG, "Previous reference for patch but PatchLog is empty: patch=%s : previous=%s", patchId, previousId);
                 return false ;
             }
         }
@@ -212,7 +213,7 @@ public class PatchLog {
     }
     
     private boolean validateEntry(RDFPatch patch) {
-        Id parentId = Id.fromNode(patch.getParent());
+        Id previousId = Id.fromNode(patch.getPrevious());
         Id patchId = Id.fromNode(patch.getId());
         HistoryEntry entry = findHistoryEntry(patchId);
         if ( entry != null ) {
@@ -221,17 +222,17 @@ public class PatchLog {
                 FmtLog.warn(LOG, "Patch not registered: patch=%s (entry version=%d)", patchId, entry.version);
             else if ( ver != entry.version )
                 FmtLog.warn(LOG, "Patch version=%d, but entry version=%d : %s", ver, entry.version, patchId);
-            if ( parentId == null || parentId.isNil() ) {
+            if ( previousId == null || previousId.isNil() ) {
                 if ( entry.prev != null && ! entry.prev.isNil() )
-                    FmtLog.warn(LOG, "Patch has parent, entry does not : %s (parent=%s)", patchId, parentId);
+                    FmtLog.warn(LOG, "Patch has a previous link, entry does not : %s (previous=%s)", patchId, previousId);
             } else {
                 if ( entry.prev == null || entry.prev.isNil() )
-                    FmtLog.warn(LOG, "Patch has no parent, but entry does : %s (entry.prev=%s)", patchId, entry.prev);
+                    FmtLog.warn(LOG, "Patch has no previous link, but entry does : %s (entry.prev=%s)", patchId, entry.prev);
             }
         } else {
             // No entry.
-            if ( parentId != null && ! parentId.isNil() ) {
-                FmtLog.warn(LOG, "Patch has parent, but no entry : %s (parent=%s)", patchId, parentId);
+            if ( previousId != null && ! previousId.isNil() ) {
+                FmtLog.warn(LOG, "Patch has a previous link, but theer is no entry for this patch: %s (previous=%s)", patchId, previousId);
             }
         }
         
@@ -248,8 +249,8 @@ public class PatchLog {
         // Validate.
         validate(patch);
         Id patchId = Id.fromNode(patch.getId());
-        Id parentId = Id.fromNode(patch.getParent());
-        HistoryEntry e = new HistoryEntry(patch.header(), version, parentId, patchId, null);
+        Id previousId = Id.fromNode(patch.getPrevious());
+        HistoryEntry e = new HistoryEntry(patch.header(), version, previousId, patchId, null);
         addHistoryEntry(e);
         idToNumber.put(patchId, version);
         validateEntry(patch);
@@ -258,8 +259,8 @@ public class PatchLog {
     synchronized private void addHistoryEntry(HistoryEntry e) {
         PatchHeader patch = e.patch;
         Id id = Id.fromNode(patch.getId());
-        Node parentId = patch.getParent();
-        FmtLog.info(LOG, "Patch id=%s (parent=%s)", id, parentId);
+        Node previousId = patch.getPrevious();
+        FmtLog.info(LOG, "Patch id=%s (previous=%s)", id, previousId);
         if ( start == null ) {
             start = e;
             // start.prev == null?
@@ -268,12 +269,12 @@ public class PatchLog {
             FmtLog.info(LOG, "Patch starts history: id=%s", patch.getId());
         } else {
             
-            if ( parentId != null ) {
-                if ( patch.getParent().equals(finish.patch.getId()) ) {
+            if ( previousId != null ) {
+                if ( patch.getPrevious().equals(finish.patch.getId()) ) {
                     finish.next = id;
                     finish = e;
                     historyEntries.put(id, e);
-                    // if ( Objects.equals(currentHead(), patch.getParent()) ) {
+                    // if ( Objects.equals(currentHead(), patch.getPrevious()) ) {
                     FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
                 } else {
                     FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getId());
@@ -300,6 +301,14 @@ public class PatchLog {
         List<RDFPatch> x = new ArrayList<>();
         while (e != null) {
             RDFPatch patch = fetch(e.id);
+            if ( patch == null ) {
+                if ( x.size() > 0 ) {
+                    List<String> sofar = x.stream().map(p->p.getId().toString()).collect(Collectors.toList());
+                    FmtLog.error(LOG,  "No patch for id=%s (broken history after %d entries: %s)", e.id, sofar.size(), sofar);
+                } else
+                    FmtLog.error(LOG,  "No patch for id=%s", e.id);
+                return null;
+            }
             x.add(patch);
             if ( finish != null && e.patch.getId().equals(finish) )
                 break;
@@ -345,18 +354,14 @@ public class PatchLog {
         return Id.fromNode(finish.patch.getId());
     }
 
-//    public void processHistoryFrom(Id start, PatchHandler c) {
-//        List<Patch> x = getPatchesFromHistory(start, null);
-//        x.forEach((p) -> c.handle(p));
-//    }
-
-//    public boolean contains(Id patchId) {
-//        return patches.containsKey(patchId) ;
-//    }
+    public boolean contains(Id patchId) {
+        return idToNumber.containsKey(patchId) ;
+    }
 
     public RDFPatch fetch(Id patchId) {
         Integer version = idToNumber.get(patchId);
-        if ( version == null ) {}
+        if ( version == null )
+            return null;
         return fetch(version) ;
     }
 
@@ -365,7 +370,6 @@ public class PatchLog {
     }
     
     // XXX PatchCache.
-    
     private static RDFPatch fetch(FileStore fileStore, int version) {
         Path p = fileStore.filename(version);
         try {
@@ -379,19 +383,5 @@ public class PatchLog {
 
     public Id find(int version) {
         return idToNumber.inverse().get(version);
-//        // XXX Do better!
-//        // Scan history?
-//        Path p = fileStore.filename(version);
-//        try {
-//            InputStream in = Files.newInputStream(p);
-//            RDFPatch patch = RDFPatchOps.read(in) ;
-//            validate(patch);
-//            return Id.fromNode(patch.getId());
-//        }
-//        catch (FileNotFoundException ex) { return null; }
-//        catch (IOException ex) { throw IOX.exception(ex); }
     }
-
-    // Clear out.
-
 }

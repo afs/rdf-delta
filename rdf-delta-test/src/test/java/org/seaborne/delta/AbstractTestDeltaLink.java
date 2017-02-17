@@ -40,11 +40,6 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 /** Tests for the link (multiplex connection to the server or local engine) */
 public abstract class AbstractTestDeltaLink {
-    @BeforeClass public static void setForTesting() { 
-        //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
-    }
-    
     public abstract Setup.LinkSetup getSetup();
     public DeltaLink getLink() { return getSetup().getLink(); }
 

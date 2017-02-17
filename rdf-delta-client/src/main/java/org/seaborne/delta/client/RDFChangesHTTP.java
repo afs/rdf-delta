@@ -56,7 +56,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private Node currentTransactionId = null;
     
     // XXX Text token specific.
-    private static final byte[] noChange =  "TB .\nTC .\n".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] noChange =  "TX .\nTC .\n".getBytes(StandardCharsets.UTF_8);
 
     public RDFChangesHTTP(String url) {
         this(null, url);

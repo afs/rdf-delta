@@ -37,8 +37,8 @@ public class PatchHeader {
         return get(RDFPatch.ID) ;
     }
 
-    public Node getParent() {
-        return get(RDFPatch.PARENT) ;
+    public Node getPrevious() {
+        return get(RDFPatch.PREVIOUS) ;
     }
     
     public Node get(String field) {
