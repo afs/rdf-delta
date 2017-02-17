@@ -105,4 +105,17 @@ Changes to the RDF datasets
 
 ### Blank nodes
 
-@@
+Handling blank nodes.
+
+RDF Delta supports changes involving blank nodes. Triplestores uses some
+kind of internal system id to idenitify blanks. RDF Delta encourages
+using this to create a URI that can be trsnamitted and used to
+reconstruct the same internal system id.
+
+For further discussion, see the 
+section [3.5 Replacing Blank Nodes with IRIs](https://www.w3.org/TR/rdf11-concepts/#section-skolemization)
+in
+["RDF 1.1 Concepts and Abstract Syntax"](https://www.w3.org/TR/rdf11-concepts/)
+
+Apache Jena ARQ uses the form ``<_:...>`` for such URIs.  It's parsers
+systematically turn such URI back into blank nodes.

@@ -14,6 +14,7 @@ an [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
 This section is a brief outline of RDF Patch. 
 
 See also:
+
 * "[Introduction to RDF Patch](rdf-patch-intro.md)"
 * "[RDF Patch Specification](rdf-patch.md)"
 
