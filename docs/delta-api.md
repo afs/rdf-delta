@@ -12,9 +12,8 @@ link in each client application to a server.
 A DetaConnection is a per-client, per-dataset.
 
 
+## Example Code
+
 ## Control
-
-JSON documents (lightweight RPC).
-
 
 ## Patches
