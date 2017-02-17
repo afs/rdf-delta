@@ -9,7 +9,7 @@ an [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
 
 -- check @@ --
 
-## RDF Patch {#rdf-patch}
+## RDF Patch
 
 This section is a brief outline of RDF Patch. 
 
@@ -48,7 +48,7 @@ TC .
 
 @@ to rdf-patch-intro.md
 
-## Delta {#delta}
+## Delta
 
 Delta is for ...
 
