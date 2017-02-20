@@ -31,7 +31,7 @@ import org.seaborne.delta.lib.LibX ;
 import org.seaborne.patch.PatchReader ;
 
 public class LibPatchFetcher {
-    static private AtomicInteger epoch = new AtomicInteger(0) ;
+    static private AtomicInteger version = new AtomicInteger(0) ;
     
     public static PatchReader __fetch_byID(String url, String datasource, int idx) {
         String s = String.format("%s?%s=&%s=%s", url, DPConst.paramDatasource, datasource, DPConst.paramVersion, idx);

@@ -56,7 +56,7 @@ public class DeltaConnection implements AutoCloseable {
     
     private final DeltaLink dLink ;
     
-    private final AtomicInteger remoteEpoch = new AtomicInteger(0);
+    private final AtomicInteger remoteVersion = new AtomicInteger(0);
 
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
@@ -206,7 +206,7 @@ public class DeltaConnection implements AutoCloseable {
         FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
 
         if ( localVer > remoteVer ) 
-            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localVer, remoteEpoch.get());
+            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localVer, remoteVersion.get());
         if ( localVer >= remoteVer ) {
             //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
             return;
@@ -253,10 +253,10 @@ public class DeltaConnection implements AutoCloseable {
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
         int version = dLink.getCurrentVersion(datasourceId);
-        if ( remoteEpoch.get() < version )
-            remoteEpoch.set(version);
-        else if ( remoteEpoch.get() > version ) 
-            FmtLog.warn(LOG, "Remote version behind local tracking of remote version: [%d, %d]", version, remoteEpoch.get());
+        if ( remoteVersion.get() < version )
+            remoteVersion.set(version);
+        else if ( remoteVersion.get() > version ) 
+            FmtLog.warn(LOG, "Remote version behind local tracking of remote version: [%d, %d]", version, remoteVersion.get());
         return version;
     }
     
@@ -272,12 +272,12 @@ public class DeltaConnection implements AutoCloseable {
     
     /** Return our local track of the remote version */ 
     public int getRemoteVersionNumber() {
-        return remoteEpoch.get();
+        return remoteVersion.get();
     }
     
     /** Update the version of the local belief of remote version */ 
     private void setRemoteVersionNumber(int version) {
-        remoteEpoch.set(version);
+        remoteVersion.set(version);
     }
 
     /** The "record changes" version */  

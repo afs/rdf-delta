@@ -25,7 +25,7 @@ public class DPConst {
     public static final String EP_Fetch        = "fetch";
 
     // RPC calls - operation names.
-    public static final String OP_EPOCH        = "epoch";
+    public static final String OP_VERSION      = "version";
     public static final String OP_REGISTER     = "register";
     public static final String OP_DEREGISTER   = "deregister";
     public static final String OP_ISREGISTERED = "isregistered";

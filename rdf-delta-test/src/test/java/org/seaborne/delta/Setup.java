@@ -105,7 +105,7 @@ public class Setup {
          * synchronous to the tests otherwise).   
          */
         public static DataPatchServer startPatchServer() {
-            DataPatchServer dps = new DataPatchServer(TEST_PORT, null) ;
+            DataPatchServer dps = DataPatchServer.create(TEST_PORT, null) ;
             try { dps.start(); }
             catch (BindException ex) { throw IOX.exception(ex); }
             return dps;

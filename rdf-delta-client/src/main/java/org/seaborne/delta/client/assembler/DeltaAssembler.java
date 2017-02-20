@@ -133,7 +133,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
         if ( true )
             throw new NotImplemented("NEED THE STATE AREA; NEED THE DATASOURCE ID; NEED THE CLIENT ID");
-        DeltaLink dc = new DeltaLinkHTTP(source) ;
+        DeltaLink dc = DeltaLinkHTTP.connect(source) ;
         DeltaConnection client = DeltaConnection.connect(null, null, null, dsg, dc) ;
         Runnable r = ()->{
             try { client.sync(); }

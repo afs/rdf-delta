@@ -31,7 +31,7 @@ import static org.seaborne.delta.DPConst.F_VALUE;
 import static org.seaborne.delta.DPConst.OP_CREATE_DS;
 import static org.seaborne.delta.DPConst.OP_DEREGISTER;
 import static org.seaborne.delta.DPConst.OP_DESCR_DS;
-import static org.seaborne.delta.DPConst.OP_EPOCH;
+import static org.seaborne.delta.DPConst.OP_VERSION;
 import static org.seaborne.delta.DPConst.OP_ISREGISTERED;
 import static org.seaborne.delta.DPConst.OP_LIST_DS;
 import static org.seaborne.delta.DPConst.OP_REGISTER;
@@ -128,7 +128,7 @@ public class S_DRPC extends DeltaServletBase {
                 
                 break;
             // Registration required.
-            case OP_EPOCH:
+            case OP_VERSION:
             case OP_DEREGISTER:
             case OP_CREATE_DS:
             case OP_REMOVE_DS:
@@ -152,8 +152,8 @@ public class S_DRPC extends DeltaServletBase {
         JsonValue rslt = null ;
         JsonObject arg = action.rpcArg;
         switch(action.opName) {
-            case OP_EPOCH:
-                rslt = epoch(action);
+            case OP_VERSION:
+                rslt = version(action);
                 break ;
             case OP_REGISTER:
                 rslt = register(action);
@@ -181,7 +181,7 @@ public class S_DRPC extends DeltaServletBase {
         }
         
         OutputStream out = action.response.getOutputStream() ;
-        if ( ! OP_EPOCH.equals(action.opName) )
+        if ( ! OP_VERSION.equals(action.opName) )
             FmtLog.info(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
         sendJsonResponse(action.response, rslt);
     }
@@ -244,7 +244,7 @@ public class S_DRPC extends DeltaServletBase {
         return noResults;
     }
     
-    private JsonValue epoch(DeltaAction action) {
+    private JsonValue version(DeltaAction action) {
         Id dsRef = getFieldAsId(action, F_DATASOURCE);
         int version = getLink(action).getCurrentVersion(dsRef);
         return JsonNumber.value(version);

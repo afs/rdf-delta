@@ -50,7 +50,11 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     
     private final static JsonObject emptyObject = new JsonObject();
     
-    public DeltaLinkHTTP(String serverURL) {
+    public static DeltaLink connect(String serverURL) {
+        return new DeltaLinkHTTP(serverURL);
+    }
+    
+    private DeltaLinkHTTP(String serverURL) {
         if ( ! serverURL.endsWith("/" ))
             serverURL= serverURL+"/";
         
@@ -66,7 +70,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             b.key("datasource").value(dsRef.asPlainString());
         });
         
-        JsonValue r = rpcToValue(DPConst.OP_EPOCH, arg);
+        JsonValue r = rpcToValue(DPConst.OP_VERSION, arg);
         if ( ! r.isNumber() )
             System.err.println("Not a number: "+r);
         return r.getAsNumber().value().intValue();

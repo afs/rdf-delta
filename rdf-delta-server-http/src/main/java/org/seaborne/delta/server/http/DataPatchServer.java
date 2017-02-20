@@ -41,8 +41,13 @@ public class DataPatchServer {
     private final int port;
     // Shared across servlets.
     private final AtomicReference<DeltaLink> engineRef;
+    
+    /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */   
+    public static DataPatchServer create(int port, DeltaLink engine) {
+        return new DataPatchServer(port, engine);
+    }
 
-    public DataPatchServer(int port, DeltaLink engine) {
+    private DataPatchServer(int port, DeltaLink engine) {
         DPS.init();
         this.port= port;
         this.server = new Server(port);
