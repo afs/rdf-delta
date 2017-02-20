@@ -59,9 +59,15 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             serverURL= serverURL+"/";
         
         this.remoteServer = serverURL;
+
+        // One URL
+//        this.remoteSend = serverURL+DPConst.EP_PatchLog;
+//        this.remoteReceive = serverURL+DPConst.EP_PatchLog;
+        // Separate URLs
+      this.remoteSend = serverURL+DPConst.EP_Append;
+      this.remoteReceive = serverURL+DPConst.EP_Fetch;
+
         
-        this.remoteSend = serverURL+DPConst.EP_Patch;
-        this.remoteReceive = serverURL+DPConst.EP_Fetch;
     }
     
     @Override

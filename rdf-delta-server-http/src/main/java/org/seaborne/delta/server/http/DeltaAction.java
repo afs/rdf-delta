@@ -22,47 +22,51 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.json.JsonObject;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 
 class DeltaAction {
     public final HttpServletRequest request;
     public final HttpServletResponse response;
-    //public final Id clientId;
+    public final DeltaLink dLink;
     public final RegToken regToken;
+    public final String opName;
     
-    // Should subclass but thatthen needs casting.
+    // Should subclass but that then needs casting.
     
     // For RPC.
-    public final String opName;
     public final JsonObject rpcArg;
     public final JsonObject requestObject;
     // For HTTP
     public final Args httpArgs;
     
-    /** Basic action */
-    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, Id clientId, RegToken regToken) {
-        return new DeltaAction(request, response, regToken, null, null, null, null);
-    }
+//    /** Basic action */
+//    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, Id clientId, RegToken regToken) {
+//        return new DeltaAction(request, response, regToken, null, null, null, null);
+//    }
 
     /** HTTP action */
-    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, Id clientId, RegToken regToken, String opName, Args args) {
-        return new DeltaAction(request, response, regToken, null, null, null, args);
+    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
+                                     DeltaLink deltaLink, RegToken regToken,
+                                     String opName, Args args) {
+        return new DeltaAction(request, response, deltaLink, regToken, null, null, null, args);
     }
         
     /** DRPC action */
-    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, RegToken regToken, String opName, JsonObject arg, JsonObject requestObject) {
-        return new DeltaAction(request, response, regToken, opName, arg, requestObject, null);
+    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
+                                     DeltaLink deltaLink, RegToken regToken,
+                                     String opName, JsonObject arg, JsonObject requestObject) {
+        return new DeltaAction(request, response, deltaLink, regToken, opName, arg, requestObject, null);
     }
     
     /** DRPC action */
     private DeltaAction(HttpServletRequest request, HttpServletResponse response, 
-                        RegToken regToken, 
+                        DeltaLink deltaLink, RegToken regToken, 
                         String opName, JsonObject arg, JsonObject requestObject, 
                         Args args) {
         this.request = request;
         this.response = response;
-        //this.clientId = clientId;
+        this.dLink = deltaLink;
         this.regToken = regToken;
         this.opName = opName;
         this.rpcArg = arg;

@@ -44,7 +44,7 @@ public class Run {
         LogCtl.setJavaLogging();
     }
     
-    // patch-log URL
+    // patch-log URL - tests
     // previous checking.
     // Remove (hide) DSG from DeltaConnection start-up : TDB or file only.
     // Connect by name.

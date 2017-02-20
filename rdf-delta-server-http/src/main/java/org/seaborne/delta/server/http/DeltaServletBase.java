@@ -67,7 +67,7 @@ public abstract class DeltaServletBase extends HttpServlet {
         return null ;
     }
 
-    public DeltaLink getLink(DeltaAction action) {
+    public DeltaLink getLink() {
         return engine.get();
     }
     
@@ -120,9 +120,11 @@ public abstract class DeltaServletBase extends HttpServlet {
         }
     }
 
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    // Default actions - do nothing.
+    
+    protected void notSupported(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String protocol = req.getProtocol();
-        String msg = "HTTP PATCH not support" ;
+        String msg = "HTTP "+req.getMethod()+" not supported" ;
         if (protocol.endsWith("1.1")) {
             ServletOps.error(HttpServletResponse.SC_METHOD_NOT_ALLOWED, msg);
         } else {
@@ -130,6 +132,22 @@ public abstract class DeltaServletBase extends HttpServlet {
         }
     }
 
+    // Override in the actual operation to select which of GET/POST/PATCH is supported */  
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        notSupported(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        notSupported(req, resp);
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        notSupported(req, resp);
+    }
+
+    
     @Override
     public String getServletInfo() {
         return this.getClass().getSimpleName();
@@ -138,12 +156,7 @@ public abstract class DeltaServletBase extends HttpServlet {
     @Override
     public void destroy() {}
     
-    @Override
-    final 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doCommon(req, resp);
-    }
-    
+    /** The common lifecycle. */
     protected void doCommon(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             DeltaAction action = parseRequest(req, resp);

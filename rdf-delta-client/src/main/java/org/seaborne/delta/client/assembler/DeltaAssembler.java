@@ -86,7 +86,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
             FmtLog.info(log, "Destination: '%s'", dest) ;
-            RDFChanges sc = DeltaLib.destination(dest+DPConst.EP_Patch) ;
+            RDFChanges sc = DeltaLib.destination(dest+DPConst.EP_Append) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         

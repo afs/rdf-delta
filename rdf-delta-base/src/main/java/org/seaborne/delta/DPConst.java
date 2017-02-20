@@ -21,8 +21,9 @@ package org.seaborne.delta;
 public class DPConst {
     // Endpoints.
     public static final String EP_RPC          = "rpc";
-    public static final String EP_Patch        = "patch-log";
+    public static final String EP_PatchLog     = "patch-log";
     public static final String EP_Fetch        = "fetch";
+    public static final String EP_Append       = "patch";
 
     // RPC calls - operation names.
     public static final String OP_VERSION      = "version";
@@ -57,7 +58,7 @@ public class DPConst {
 
     /** Default choice of port */
     public static final int    PORT            = 1066;
-    public static final int SYSTEM_VERSION     = 1; 
+    public static final int    SYSTEM_VERSION  = 1; 
 
     // HTTP query string.
     public static final String paramZone       = "zone";
@@ -86,7 +87,7 @@ public class DPConst {
     // Default name for the server configuration file.
     public static final String SERVER_CONFIG   = "delta.cfg";
     // Name for the datasource configuration file.
-    public static final String DS_CONFIG      = "source.cfg";
+    public static final String DS_CONFIG       = "source.cfg";
 
     // Relative path name in ENV_BASE for the "sources" area.
     public static final String SOURCES         = "Sources";

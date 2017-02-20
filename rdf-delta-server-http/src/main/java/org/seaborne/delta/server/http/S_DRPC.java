@@ -67,15 +67,16 @@ public class S_DRPC extends DeltaServletBase {
 
     private static Logger     LOG       = Delta.DELTA_RPC_LOG;
     private static JsonObject noResults = new JsonObject();
-    private static JsonObject resultTrue = JSONX.buildObject((b)->{
-        b.key(F_VALUE).value(true);  
-    });
-    private static JsonObject resultFalse = JSONX.buildObject((b)->{
-        b.key(F_VALUE).value(false);  
-    });
+    private static JsonObject resultTrue = JSONX.buildObject(b -> b.key(F_VALUE).value(true));  
+    private static JsonObject resultFalse = JSONX.buildObject(b-> b.key(F_VALUE).value(false));  
     
     public S_DRPC(AtomicReference<DeltaLink> engine) {
         super(engine) ;
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCommon(req, resp);
     }
     
     @Override
@@ -109,7 +110,7 @@ public class S_DRPC extends DeltaServletBase {
             RegToken regToken = null;
             if ( input.hasKey(F_TOKEN) )
                 regToken = new RegToken(getFieldAsString(input,  F_TOKEN));
-            return DeltaAction.create(req, resp, regToken, op, arg, input);
+            return DeltaAction.create(req, resp, getLink(), regToken, op, arg, input);
         } catch (JsonException ex) {
             throw new DeltaBadRequestException("Bad JSON in request: "+ex.getMessage()+ " : "+JSON.toStringFlat(input));
         } 
@@ -220,7 +221,7 @@ public class S_DRPC extends DeltaServletBase {
     // Header: { client: } -> { token: }   
     private JsonValue register(DeltaAction action) {
         Id client = getFieldAsId(action, F_CLIENT);
-        RegToken token = getLink(action).register(client);
+        RegToken token = action.dLink.register(client);
         register(client, token);
         JsonValue jv = JSONX.buildObject((x)-> {
             x.key(F_TOKEN).value(token.getUUID().toString());
@@ -239,19 +240,19 @@ public class S_DRPC extends DeltaServletBase {
     }
 
     private JsonValue deregister(DeltaAction action) {
-        getLink(action).deregister();
+        action.dLink.deregister();
         deregister(action.regToken);
         return noResults;
     }
     
     private JsonValue version(DeltaAction action) {
         Id dsRef = getFieldAsId(action, F_DATASOURCE);
-        int version = getLink(action).getCurrentVersion(dsRef);
+        int version = action.dLink.getCurrentVersion(dsRef);
         return JsonNumber.value(version);
     }
 
     private JsonValue listDataSources(DeltaAction action) {
-        List<Id> ids = getLink(action).listDatasets();
+        List<Id> ids = action.dLink.listDatasets();
         return JSONX.buildObject(b->{
             b.key(F_ARRAY);
             b.startArray();
@@ -263,7 +264,7 @@ public class S_DRPC extends DeltaServletBase {
     private JsonValue describeDataSource(DeltaAction action) {
         String dataSourceId = getFieldAsString(action, F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
-        DataSourceDescription dsd = getLink(action).getDataSourceDescription(dsRef);
+        DataSourceDescription dsd = action.dLink.getDataSourceDescription(dsRef);
         if ( dsd == null )
             return noResults;
         return dsd.asJson();
@@ -272,14 +273,14 @@ public class S_DRPC extends DeltaServletBase {
     private JsonValue createDataSource(DeltaAction action) {
         String name = getFieldAsString(action, F_NAME);
         String uri = getFieldAsString(action, F_URI, false);
-        Id dsRef = getLink(action).newDataSource(name, uri);
+        Id dsRef = action.dLink.newDataSource(name, uri);
         return JSONX.buildObject(b->b.key(F_ID).value(dsRef.asPlainString()));
     }
     
     private JsonValue removeDataSource(DeltaAction action) {
         String dataSourceId = getFieldAsString(action, F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
-        getLink(action).removeDataset(dsRef);
+        action.dLink.removeDataset(dsRef);
         return noResults;
     }
     

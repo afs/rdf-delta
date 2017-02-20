@@ -18,38 +18,81 @@
 
 package org.seaborne.delta.server.http;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.servlet.http.HttpServletRequest ;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.Delta ;
+import org.apache.jena.atlas.io.IO;
+import org.apache.jena.web.HttpSC;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
-import org.slf4j.Logger ;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps ;
 
-/** Fetch a patch from a container: id is part of the path name.  */
-public class S_Fetch extends FetchBase {
+/** Framework for fetching a patch over HTTP. */ 
+public class S_Fetch extends HttpOperationBase {
 
-    static public Logger LOG = Delta.getDeltaLogger("Fetch");
-    
     public S_Fetch(AtomicReference<DeltaLink> engine) {
-        super(engine) ;
+        super(engine);
     }
 
+    // Fetch a file
     @Override
-    protected Args getArgs(HttpServletRequest req) {
-        throw new DeltaBadRequestException(HttpSC.INTERNAL_SERVER_ERROR_500, "Not implemented");
-//        String x = req.getRequestURI();
-//        int j = x.lastIndexOf('/');
-//        if ( j < 0 )
-//            throw new DeltaExceptionBadRequest("Failed to find the patch id");
-//        return x.substring(j + 1);
-        
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCommon(req, resp);
     }
-
+    
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCommon(req, resp);
+    }
+    
+    @Override
+    protected void checkRegistration(DeltaAction action) {
+        // Only warnings.
+        if ( action.regToken == null )
+            logger.warn("Fetch: No registration token") ;
+        if ( !isRegistered(action.regToken) )
+            logger.warn("Fetch: Not registered") ;
+    }
+    
+    @Override
+    protected void validateAction(Args httpArgs) {
+        if ( httpArgs.zone == null )
+            Delta.DELTA_HTTP_LOG.warn("No Zone specified");
+        if ( httpArgs.dataset == null )
+            throw new DeltaBadRequestException("No datasource specified");
+        if ( httpArgs.patchId == null && httpArgs.version == null )
+            throw new DeltaBadRequestException("No version, no patch id");
+    }
+    
+    @Override
+    protected void executeAction(DeltaAction action) throws IOException {
+        Id dsRef = Id.fromString(action.httpArgs.dataset);
+        RDFPatch patch;
+        if ( action.httpArgs.patchId != null ) {
+            Id patchId = Id.fromString(action.httpArgs.patchId) ;
+            patch = action.dLink.fetch(dsRef, patchId);
+        } else if ( action.httpArgs.version != null ) {
+            int version = Integer.parseInt(action.httpArgs.version);
+            patch = action.dLink.fetch(dsRef, version);
+        } else
+            throw new DeltaBadRequestException("No version, no patch id");
+        OutputStream out = action.response.getOutputStream() ;
+        //action.response.setCharacterEncoding(WebContent.charsetUTF8);
+        action.response.setStatus(HttpSC.OK_200);
+        action.response.setContentType("application/rdf-patch+text"); 
+        RDFPatchOps.write(out, patch);
+        IO.flush(out);
+    }
+    
     @Override
     protected String getOpName() {
-        return "fetch:path";
+        return "patch-fetch";
     }
 }

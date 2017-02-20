@@ -58,12 +58,16 @@ public class DataPatchServer {
         server.setHandler(handler);
         server.addBean(eh);
 
-        S_Patch patchMgr = new S_Patch(this.engineRef);
+        // Combined name.
+        addServlet("/"+DPConst.EP_PatchLog, new S_PatchLog(this.engineRef));
+        
         // Receive patches
-        addServlet("/"+DPConst.EP_Patch, patchMgr);
+        addServlet("/"+DPConst.EP_Append, new S_Patch(this.engineRef));
         // Return patches
-        addServlet("/"+DPConst.EP_Fetch, new S_FetchId(this.engineRef));
-        addServlet("/"+DPConst.EP_Patch+"/*", new S_Fetch(this.engineRef));
+        addServlet("/"+DPConst.EP_Fetch, new S_Fetch(this.engineRef));
+
+//        // Trailing name.
+//        addServlet("/"+DPConst.EP_Fetch+"/*", new S_Fetch(this.engineRef));
 
         // Other
         addServlet("/rpc", new S_DRPC(this.engineRef));

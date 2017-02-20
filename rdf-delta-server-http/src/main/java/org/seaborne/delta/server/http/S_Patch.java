@@ -55,6 +55,11 @@ public class S_Patch extends HttpOperationBase {
     }
 
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCommon(req, resp);
+    }
+    
+    @Override
     protected void checkRegistration(DeltaAction action) {
         if ( action.regToken == null )
             throw new DeltaBadRequestException("No registration token") ;
@@ -79,7 +84,7 @@ public class S_Patch extends HttpOperationBase {
         Id ref = Id.fromString(action.httpArgs.dataset);
         try (InputStream in = action.request.getInputStream()) {
             RDFPatch patch = RDFPatchOps.read(in);
-            int version = getLink(action).sendPatch(ref, patch);
+            int version = action.dLink.sendPatch(ref, patch);
             JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()
                 .startObject()

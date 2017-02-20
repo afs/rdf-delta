@@ -18,19 +18,19 @@
 
 package org.seaborne.delta;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.InputStream;
 import java.util.UUID;
 
 import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.ext.com.google.common.base.Objects;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;

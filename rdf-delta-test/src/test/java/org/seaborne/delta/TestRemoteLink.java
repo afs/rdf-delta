@@ -18,9 +18,15 @@
 
 package org.seaborne.delta;
 
+import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.*;
 
 public class TestRemoteLink extends AbstractTestDeltaLink {
+    @BeforeClass public static void setForTesting() { 
+        //LogCtl.setLog4j();
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+    }
+    
     static Setup.LinkSetup setup = new Setup.RemoteSetup();
     
     @Override

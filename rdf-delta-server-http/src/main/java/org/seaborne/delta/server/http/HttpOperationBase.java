@@ -40,7 +40,7 @@ public abstract class HttpOperationBase extends DeltaServletBase {
     final
     protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Args args = getArgs(req);
-        return DeltaAction.create(req, resp, args.clientId, args.regToken, getOpName(), args);
+        return DeltaAction.create(req, resp, getLink(), args.regToken, getOpName(), args);
     }
 
     @Override
@@ -50,12 +50,9 @@ public abstract class HttpOperationBase extends DeltaServletBase {
         validateAction(action.httpArgs);
     }
 
-    protected abstract String getOpName();
-    
     protected abstract void checkRegistration(DeltaAction action);
 
     protected abstract void validateAction(Args httpArgs);
     
-    
-
+    protected abstract String getOpName();
 }
