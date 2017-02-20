@@ -194,8 +194,17 @@ its patch log.
 DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
 
 // Connect to a patch log within that server by name.
-try ( DeltaConnection dConn = DeltaConnection.connect("DataName", ... , dLink) ) {
-    int version = dConn.getRemoteVersionLatest();
-    System.out.println("Version = "+version);
+try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null, dLink) ) {
+    int version1 = dConn.getRemoteVersionLatest();
+    System.out.println("Version = "+version1);
+
+    // Change the dataset
+    DatasetGraph dsg = dConn.getDatasetGraph();
+    Txn.executeWrite(dsg, ()->{
+        dsg.add(quad);
+    });
+            
+    int version2 = dConn.getRemoteVersionLatest();
+    System.out.println("Version = "+version2);
 }
 ```
