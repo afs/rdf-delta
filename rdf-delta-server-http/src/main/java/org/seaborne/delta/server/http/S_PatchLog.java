@@ -21,9 +21,11 @@ package org.seaborne.delta.server.http;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DPConst;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.link.DeltaLink;
@@ -93,7 +95,7 @@ public class S_PatchLog extends HttpOperationBase {
             super.doGet(request, response);
             return;
         }
-//        String alt = getTrailing(request);
+        String alt = getTrailing(request);
 //        if ( alt != null ) {
 //            ServletOps.errorNotImplemented("Access patch by path \"log/id\": trailing part is "+alt);
 //        }
@@ -139,12 +141,12 @@ public class S_PatchLog extends HttpOperationBase {
      * @return The trailing part or   
      */
     protected String getTrailing(HttpServletRequest request) {
-//      Log.info(this, "URI                     = '"+request.getRequestURI()) ;
-//      Log.info(this, "Context path            = '"+request.getContextPath()+"'") ;
-//      Log.info(this, "Servlet path            = '"+request.getServletPath()+"'") ;
+      Log.info(this, "URI                     = '"+request.getRequestURI()) ;
+      Log.info(this, "Context path            = '"+request.getContextPath()+"'") ;
+      Log.info(this, "Servlet path            = '"+request.getServletPath()+"'") ;
       // Only valid for webapps.
-//      ServletContext cxt = this.getServletContext() ;
-//      Log.info(this, "ServletContext path     = '"+cxt.getContextPath()+"'") ;
+      ServletContext cxt = this.getServletContext() ;
+      Log.info(this, "ServletContext path     = '"+cxt.getContextPath()+"'") ;
         
         // URL naming version ; URI is "context/servletname/   
         String servletPath = request.getServletPath() ;

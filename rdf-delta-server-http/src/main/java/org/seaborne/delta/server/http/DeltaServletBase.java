@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.servlet.ServletConfig ;
-import javax.servlet.ServletException ;
 import javax.servlet.http.HttpServlet ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
@@ -59,13 +57,15 @@ public abstract class DeltaServletBase extends HttpServlet {
         this.engine = engine;
     }
     
-    @Override
-    public void init(ServletConfig config) throws ServletException {}
-
-    @Override
-    public ServletConfig getServletConfig() {
-        return null ;
-    }
+//    @Override
+//    public void init(ServletConfig config) throws ServletException {
+//        super.init(config);
+//    }
+//
+//    @Override
+//    public ServletConfig getServletConfig() {
+//        return super.getServletConfig() ;
+//    }
 
     public DeltaLink getLink() {
         return engine.get();

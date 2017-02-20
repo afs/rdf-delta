@@ -23,9 +23,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.Servlet;
 
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.seaborne.delta.DPConst;
 import org.seaborne.delta.Delta;
@@ -37,7 +40,6 @@ public class DataPatchServer {
     
     private final boolean loopback = false;
     private final Server server;
-    private final ServletHandler handler;
     private final int port;
     // Shared across servlets.
     private final AtomicReference<DeltaLink> engineRef;
@@ -50,29 +52,59 @@ public class DataPatchServer {
     private DataPatchServer(int port, DeltaLink engine) {
         DPS.init();
         this.port= port;
-        this.server = new Server(port);
+        this.server = jettyServer(port, false);
         this.engineRef = new AtomicReference<>(engine);
-        ErrorHandler eh = new HttpErrorHandler();
-        eh.setServer(server);
-        this.handler = new ServletHandler();
-        server.setHandler(handler);
-        server.addBean(eh);
-
+        
+        ServletContextHandler handler = buildServletContext("/");
+        
         // Combined name.
-        addServlet("/"+DPConst.EP_PatchLog, new S_PatchLog(this.engineRef));
+        addServlet(handler, "/"+DPConst.EP_PatchLog, new S_PatchLog(this.engineRef));
         
         // Receive patches
-        addServlet("/"+DPConst.EP_Append, new S_Patch(this.engineRef));
+        addServlet(handler, "/"+DPConst.EP_Append, new S_Patch(this.engineRef));
         // Return patches
-        addServlet("/"+DPConst.EP_Fetch, new S_Fetch(this.engineRef));
+        addServlet(handler, "/"+DPConst.EP_Fetch, new S_Fetch(this.engineRef));
 
 //        // Trailing name.
 //        addServlet("/"+DPConst.EP_Fetch+"/*", new S_Fetch(this.engineRef));
 
         // Other
-        addServlet("/rpc", new S_DRPC(this.engineRef));
-        addServlet("/restart", new S_Restart());
-        addServlet("/ping", new S_Ping());
+        addServlet(handler, "/rpc", new S_DRPC(this.engineRef));
+        addServlet(handler, "/restart", new S_Restart());
+        addServlet(handler, "/ping", new S_Ping());
+
+        server.setHandler(handler);
+    }
+    
+    /** Build a ServletContextHandler. */
+    private static ServletContextHandler buildServletContext(String contextPath) {
+        if ( contextPath == null || contextPath.isEmpty() )
+            contextPath = "/" ;
+        else if ( !contextPath.startsWith("/") )
+            contextPath = "/" + contextPath ;
+        ServletContextHandler context = new ServletContextHandler() ;
+        context.setDisplayName("PatchLogServer") ;
+        ErrorHandler eh = new HttpErrorHandler();
+        context.setErrorHandler(eh) ;
+        return context ;
+    }
+    
+    /** Build a Jetty server */
+    private static Server jettyServer(int port, boolean loopback) {
+        Server server = new Server() ;
+        HttpConnectionFactory f1 = new HttpConnectionFactory() ;
+        // Some people do try very large operations ... really, should use POST.
+        f1.getHttpConfiguration().setRequestHeaderSize(512 * 1024);
+        f1.getHttpConfiguration().setOutputBufferSize(5 * 1024 * 1024) ;
+        // Do not add "Server: Jetty(....) when not a development system.
+        if ( true )
+            f1.getHttpConfiguration().setSendServerVersion(false) ;
+        ServerConnector connector = new ServerConnector(server, f1) ;
+        connector.setPort(port) ;
+        server.addConnector(connector);
+        if ( loopback )
+            connector.setHost("localhost");
+        return server ;
     }
     
     /** Internal */
@@ -80,8 +112,8 @@ public class DataPatchServer {
         engineRef.set(engine);
     }
     
-    private void addServlet(String path, Servlet servlet) {
-        handler.addServletWithMapping(new ServletHolder(servlet), path);
+    private void addServlet(ServletContextHandler holder, String path, Servlet servlet) {
+        holder.addServlet(new ServletHolder(servlet), path);
     }
     
     public void start() throws BindException {
