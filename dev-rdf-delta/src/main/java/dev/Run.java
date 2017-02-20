@@ -44,7 +44,10 @@ public class Run {
         LogCtl.setJavaLogging();
     }
     
+    // patch-log URL
+    // previous checking.
     // Remove (hide) DSG from DeltaConnection start-up : TDB or file only.
+    // Connect by name.
     
     // ** Need patch rejection
     // ** Start at id:nil (or id:datasource?)
@@ -56,34 +59,12 @@ public class Run {
     // DataSource - better naming? Feed, RDFFeed?  DataFeed?
     //  = (zone,) name, id, PatchLog, start point, + optionally data. 
     
-    /*
-18:04:55 INFO  Delta                : Patch range [4, 4]
-18:04:55 INFO  Delta                : Sync: patch=4
-
-Don't read 4!
-     */
-    
-    
     //PathX. 
     
     // Next?
-    // Tests for persistence lifecycle: client, server.
-    
-    // DConn setups in "testing/Dconn1", DConn2 
-    // Server setups:
-    
-    // And from scratch create - 
-    
-    //   AbstractTestDeltaConnection
-    //   TestLocalServer
-
-    // and then
-    // Client-shadow data.
-    
     
     // Can DataSources be shared across zones? Not unless the name is the same.  Acceptable?
     // DataSource Descriptior and LocalServer.SourceDescriptor are the same.
-    
     
     public static void main(String... args) throws IOException {
         System.out.println("**** run 1");

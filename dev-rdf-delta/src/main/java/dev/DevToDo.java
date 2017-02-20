@@ -63,9 +63,6 @@ public class DevToDo {
     // ToDo
     // * License header
     // * Examples.
-    // * Persistent state : counter+UUID
-    // * Test Restart
-    // * Disabled filter to requests.
     // * Test apply patch, not in sequence
     
     // * Tests assembler
@@ -75,26 +72,14 @@ public class DevToDo {
     // Document, "Design" protocol
     // -- History and parenthood.
 
-    // TIO
-    //   Token getType -> STRING, + getActualType "seen as".
-    
     // -- javacc tokenizer:
     //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)
     //   See TestTokenizerJavaccTerms
     //     "0xXYZ"
     //     "''@lang- "
 
-    //  Differences: token backtracking.
-    //     0xXYZ is integer 0 (!)
-    //  javacctokeizer has "push token" not "emit token".
-    //    Compounds like RDFLiterals.
-
     // -- Others
     // Extract polling support to DeltaClient.
 
     // DatasetGraphBuffering
-    // 
-    // -- TIO
-    //   Stream<Tuple<Token>>
-    //     STRING1, STRING2 vs STRING
 }
