@@ -19,7 +19,6 @@
 package dev.examples;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
@@ -28,7 +27,6 @@ import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
-import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 

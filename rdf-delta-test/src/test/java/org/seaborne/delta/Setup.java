@@ -140,7 +140,7 @@ public class Setup {
             localServer = DeltaTestLib.createEmptyTestServer();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server.setEngine(localLink);
-            dlink = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
+            dlink = DeltaLinkHTTP.connect("http://localhost:"+TEST_PORT+"/");
         }
 
         @Override
@@ -154,7 +154,7 @@ public class Setup {
         public void relink() {
             Id clientId = dlink.getClientId();
             resetDefaultHttpClient();
-            dlink = new DeltaLinkHTTP("http://localhost:"+TEST_PORT+"/");
+            dlink = DeltaLinkHTTP.connect("http://localhost:"+TEST_PORT+"/");
             if ( clientId != null )
                 dlink.register(clientId);
         }

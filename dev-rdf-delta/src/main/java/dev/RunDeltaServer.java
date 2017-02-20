@@ -58,7 +58,7 @@ public class RunDeltaServer {
         // Building.
         //MethodHandles.
         Id clientId = Id.create();
-        DeltaLink link = new DeltaLinkHTTP(url);
+        DeltaLink link = DeltaLinkHTTP.connect(url);
         
         //RegToken token = link.register(clientId);
         
