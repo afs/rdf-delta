@@ -54,7 +54,7 @@ QA _ <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#label> "Sub
 TC .
 ```
 
-'H` is a header, `TB` , `TC` the start and end of changes, `PA` meanas "Prefix Add",
+`H` is a header, `TB` , `TC` the start and end of changes, `PA` meanas "Prefix Add",
 `QA` is "Quad add" and "_" means default graph.
 
 Applying this patch when it has alreayd been applied results in the same
@@ -147,24 +147,10 @@ and retrieved by
 ### Control
 
 In addition there are operations to find out about the patch log:
-
-| Operation | |
-| --------- | ---- |
-| List datasets and logs | |
-| Describe a log | |
-| REGISTER | | 
-| ISREGISTERED | |
-| LIST_DS | |
-| DESCR_DS | |
-| EPOCH | |
-| DEREGISTER | |
-| CREATE_DS | |
-| REMOVE_DS  | |
-
-These are provides as a simple JSON API to easy use from javascript
+These are provided as a simple JSON API to easy use from javascript
 applications.
 
-The request is a JSOn document of the form:
+The request is a JSON document of the form:
 
 ```
 {
@@ -174,7 +160,9 @@ The request is a JSOn document of the form:
 }
 ```
 
-`"op"` gives the operation bname:
+`"op"` gives the operation name, `"arg"` is the operation specific
+arguments, and `"token"` the connection registration.  The result is a
+JSON value that depends entirely on the operation called.
 
 @@ _DS => _LOG?
 
@@ -210,5 +198,4 @@ try ( DeltaConnection dConn = DeltaConnection.connect("DataName", ... , dLink) )
     int version = dConn.getRemoteVersionLatest();
     System.out.println("Version = "+version);
 }
-
 ```
