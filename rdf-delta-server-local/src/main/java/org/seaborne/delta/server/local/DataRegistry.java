@@ -18,6 +18,9 @@
 
 package org.seaborne.delta.server.local;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.jena.atlas.lib.Registry ;
 import org.seaborne.delta.Id;
 import org.slf4j.Logger ;
@@ -27,25 +30,28 @@ public class DataRegistry extends Registry<Id, DataSource> {
     
     private static Logger LOG = DPS.LOG ;
     private final String label ; 
+    // Index DataSources by URI, only if the URI is not null. 
+    private Map<String, DataSource> indexByURI = new ConcurrentHashMap<>();   
     
     public DataRegistry(String label) {
         this.label = label ;
     }
     
-    // Probably need separate registries to divide up the managed space.
-    // e.g. dev-staging-prod
-    
-    private static DataRegistry singleton = new DataRegistry("central") ;
-
     @Override
     public void put(Id key, DataSource ds) {
         LOG.info("Register: "+key );
         super.put(key, ds) ;
+        if ( ds.getURI() != null )
+            indexByURI.put(ds.getURI(), ds);
     }
     
     @Override
     public DataSource get(Id key) {
         return super.get(key) ;
+    }
+
+    public DataSource get(String uri) {
+        return indexByURI.get(uri);
     }
 
     @Override

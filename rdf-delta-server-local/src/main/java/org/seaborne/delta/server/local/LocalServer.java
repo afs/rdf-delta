@@ -134,7 +134,7 @@ public class LocalServer {
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
         for ( Path p : dataSources ) {
-            DataSource ds = makeDataSource(p);
+            DataSource ds = makeDataSource(p, dataRegistry);
             dataRegistry.put(ds.getId(), ds);
         }
         return attach(conf, dataRegistry);
@@ -147,7 +147,7 @@ public class LocalServer {
             localServer.shutdown$();
         }
     }
-     
+
     /** 
      * Scan a directory for datasource areas.
      * These must have a file called source.cfg.
@@ -209,7 +209,7 @@ public class LocalServer {
         return ! Files.exists(disabled);
     }
 
-    private static DataSource makeDataSource(Path dataSourceArea) {
+    private static DataSource makeDataSource(Path dataSourceArea, DataRegistry dataRegistry) {
         JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DPConst.DS_CONFIG).toString());
         SourceDescriptor dss = fromJsonObject(sourceObj);
 
@@ -227,7 +227,7 @@ public class LocalServer {
         //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
         
         // --> Path
-        DataSource dataSource = DataSource.connect(id, uriStr, dataSourceArea.getFileName().toString(), IOX.asLocation(dataSourceArea));
+        DataSource dataSource = DataSource.connect(dataRegistry, id, uriStr, dataSourceArea.getFileName().toString(), IOX.asLocation(dataSourceArea));
         FmtLog.info(LOG, "DataSource: %s (%s)", dataSource, baseStr);
       
         return dataSource ;
@@ -274,6 +274,15 @@ public class LocalServer {
         if ( disabledDatasources.contains(dsRef) )
             return null;
         return dataRegistry.get(dsRef);
+    }
+
+    public DataSource getDataSource(String uri) {
+        DataSource ds = dataRegistry.get(uri);
+        if ( ds == null )
+            return null;
+        if ( disabledDatasources.contains(ds.getId()) )
+            return null;
+        return ds;
     }
 
     /** Get port - may be negative to indicate "no valid port" */
@@ -371,7 +380,7 @@ public class LocalServer {
                 JSON.write(out, obj);
             } catch (IOException ex)  { throw IOX.exception(ex); }
         }
-        DataSource newDataSource = DataSource.connect(dsRef, baseURI, name, sourceArea);
+        DataSource newDataSource = DataSource.connect(dataRegistry, dsRef, baseURI, name, sourceArea);
         // Atomic.
         dataRegistry.put(dsRef, newDataSource);
         return dsRef ;

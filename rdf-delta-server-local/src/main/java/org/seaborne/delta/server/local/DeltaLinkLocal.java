@@ -21,6 +21,7 @@ package org.seaborne.delta.server.local;
 import java.io.InputStream ;
 import java.util.List;
 
+import static org.apache.jena.atlas.lib.ListUtils.toList;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
@@ -63,6 +64,11 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     public List<Id> listDatasets() {
         return localServer.listDataSourcesIds();
     }
+    
+    @Override
+    public List<DataSourceDescription> allDescriptions() {
+        return toList(localServer.listDataSources().stream().map(ds->ds.getDescription()));
+    }
 
     @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
@@ -72,6 +78,14 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         return source.getDescription();
     }
 
+    @Override
+    public DataSourceDescription getDataSourceDescription(String uri) {
+        DataSource source = localServer.getDataSource(uri);
+        if ( source == null )
+            return null;
+        return source.getDescription();
+    }
+    
     @Override
     public int sendPatch(Id dsRef, RDFPatch rdfPatch) {
         checkRegistered();
@@ -85,6 +99,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         if ( false ) {
             RDFPatchOps.write(System.out, rdfPatch) ;
         }
+        // File store updated.
+        
         PatchLog patchLog = source.getPatchLog() ;
         patchLog.addMeta(rdfPatch, entry.version);
         return entry.version; 

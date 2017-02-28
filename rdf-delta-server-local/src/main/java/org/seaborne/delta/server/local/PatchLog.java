@@ -24,7 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +37,7 @@ import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.graph.Node;
 import org.apache.jena.tdb.base.file.Location;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
@@ -71,12 +75,13 @@ public class PatchLog {
 
         @Override
         public String toString() {
-            return String.format("History: Version=%d, Id=%d, Next=%s, Prev=%s", version, id, next, prev);
+            return String.format("History: Version=%d, Id=%s, Next=%s, Prev=%s", version, id, next, prev);
         }
     }
     
     //Id of the DataSource 
     private final Id              dsRef;
+    private final String          name;
     private final FileStore       fileStore;
     private List<PatchHandler>    handlers       = new ArrayList<>();
     
@@ -88,10 +93,9 @@ public class PatchLog {
     private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
     // Two way id <-> version mampong of patch for this PatchLog
     private final BiMap<Id, Integer> idToNumber;
-
     private static boolean VALIDATE_PATCH_LOG = true;
     
-    public static PatchLog attach(Id dsRef, Location location) {
+    public static PatchLog attach(Id dsRef, String name, Location location) {
         FileStore fileStore = FileStore.attach(location, "patch");
         BiMap<Id, Integer> idToNumber = HashBiMap.create();
         // Read headers.
@@ -142,7 +146,6 @@ public class PatchLog {
             ;
         }
         
-        
         HistoryEntry currentEntry;
         if ( fileStore.isEmpty() ) {
             currentEntry = null;
@@ -158,16 +161,19 @@ public class PatchLog {
         
         // Validate the patch chain.
         // Find the last patch id.
-        return new PatchLog(dsRef, location, idToNumber, currentEntry);
+        return new PatchLog(dsRef, name, location, idToNumber, currentEntry);
     }
 
-    private PatchLog(Id dsRef, Location location, BiMap<Id, Integer> idToNumber, HistoryEntry startEntry) {
+    private PatchLog(Id dsRef, String name, Location location, BiMap<Id, Integer> idToNumber, HistoryEntry startEntry) {
         this.dsRef = dsRef;
+        this.name = name;
         this.idToNumber = idToNumber;
         // Linked list of one.
         this.start = startEntry;
         this.finish = startEntry;
         this.fileStore = FileStore.attach(location, "patch");
+        isEmpty();
+        
     }
 
     public Id getLatestId() {
@@ -185,13 +191,27 @@ public class PatchLog {
             new PatchLogInfo(dsRef, -1, -1, null); 
         return new PatchLogInfo(dsRef, start.version, finish.version, finish.id); 
     }
-    
+
     public boolean isEmpty() {
+        if (start == null && finish == null )
+            return true;
+        if (start != null && finish != null )
+            return false;
+        FmtLog.warn(LOG, "Inconsistent: start %s, finish %s", start, finish);
+        return false;
+    }
+    
+    private void checkConsistent() {
         boolean b1 = fileStore.isEmpty();
-        boolean b2 = finish == null;
-        if ( b1 != b2 )
-            FmtLog.warn(LOG, "Inconsistent: fileStore.isEmpty=%s : history empty=%s", b1, b2);
-        return b2;
+        boolean b2 = (finish == null);
+        if ( b1 != b2 ) {
+            FmtLog.error(LOG, "Inconsistent: fileStore.isEmpty=%s : history empty=%s", b1, b2);
+            if ( ! b1 )
+                FmtLog.error(LOG, "    fileStore [%d, %d]", fileStore.getMinIndex(), fileStore.getCurrentIndex());
+            if ( ! b2 )
+                FmtLog.error(LOG, "    start %s, finish %s", start, finish);
+            throw new DeltaException("PatchLog: "+name);  
+        }
     }
 
     /** Validate a patch for this {@code PatchLog} */
@@ -383,5 +403,10 @@ public class PatchLog {
 
     public Id find(int version) {
         return idToNumber.inverse().get(version);
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("PatchLog [%s, ver=%d]", name, getLatestVersion());
     }
 }

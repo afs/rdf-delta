@@ -53,7 +53,7 @@ public class DataSource {
      * @param sourceArea    {@code Sources}
      * @return DataSource
      */
-    public static DataSource connect(Id dsRef, String uri, String name, Location sourceArea) {
+    public static DataSource connect(DataRegistry dataRegistry, Id dsRef, String uri, String name, Location sourceArea) {
         Location patchesArea = LocalServer.patchArea(sourceArea);
         if ( sourceArea.isMem() && patchesArea.isMem() ) {
             return null ;
@@ -64,13 +64,13 @@ public class DataSource {
         }
         
         formatSourceArea(sourceArea, patchesArea);
-        PatchLog patchSet = loadPatchLog(dsRef, patchesArea);
+        PatchLog patchSet = loadPatchLog(dsRef, name, patchesArea);
         Receiver receiver = new Receiver(patchSet.getFileStore());
         return new DataSource(dsRef, sourceArea, name, uri, patchSet, receiver);
     }
 
-    private static PatchLog loadPatchLog(Id dsRef, Location patchesArea) {
-        return PatchLog.attach(dsRef, patchesArea);
+    private static PatchLog loadPatchLog(Id dsRef, String name, Location patchesArea) {
+        return PatchLog.attach(dsRef, name, patchesArea);
     }
 
     private DataSource(Id id, Location location, String name, String uri, PatchLog patchLog, Receiver receiver) {

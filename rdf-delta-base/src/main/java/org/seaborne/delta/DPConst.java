@@ -32,18 +32,17 @@ public class DPConst {
     public static final String OP_ISREGISTERED = "isregistered";
     
     public static final String OP_LIST_DS      = "list_datasource";
+    public static final String OP_LIST_DSD     = "list_descriptions";
     public static final String OP_DESCR_DS     = "describe_datasource";
     public static final String OP_CREATE_DS    = "create_datasource";
     public static final String OP_REMOVE_DS    = "remove_datasource";
 
-    // RPC header fields
+    // RPC fields
     public static final String F_OP            = "operation";
     public static final String F_ARG           = "arg";
     public static final String F_DATASOURCE    = "datasource";
     public static final String F_CLIENT        = "client";
     public static final String F_TOKEN         = "token";
-
-    // RPC arguments and results.
     public static final String F_BASE          = "base";
     public static final String F_PORT          = "port";
     public static final String F_SOURCES       = "sources";

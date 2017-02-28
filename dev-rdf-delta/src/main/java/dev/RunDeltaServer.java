@@ -44,7 +44,6 @@ public class RunDeltaServer {
         }
     }
     
-    
     public static void main$(String... args) {
         if ( args.length == 0 )
             args = new String[] {"--base=DeltaServer"};

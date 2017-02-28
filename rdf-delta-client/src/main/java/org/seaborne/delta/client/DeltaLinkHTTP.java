@@ -51,6 +51,9 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     private final static JsonObject emptyObject = new JsonObject();
     
     public static DeltaLink connect(String serverURL) {
+        Objects.requireNonNull(serverURL, "DelatLinkHTTP: Null URL for the server");
+        if ( ! serverURL.startsWith("http://") && ! serverURL.startsWith("https://") )  
+            throw new IllegalArgumentException("Bad server URL: '"+serverURL+"'");
         return new DeltaLinkHTTP(serverURL);
     }
     
@@ -197,6 +200,16 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     }
 
     @Override
+    public List<DataSourceDescription> allDescriptions() {
+        JsonObject obj = rpc(DPConst.OP_LIST_DSD, emptyObject);
+        JsonArray array = obj.get(DPConst.F_ARRAY).getAsArray();
+        List<DataSourceDescription> x = array.stream()
+            .map(jv->getDataSourceDescription(jv.getAsObject()))
+            .collect(Collectors.toList()) ;
+        return x ;
+    }
+    
+    @Override
     public Id newDataSource(String name, String uri) {
         Objects.requireNonNull(name);
         JsonObject arg = JSONX.buildObject((b) -> {
@@ -228,12 +241,24 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DPConst.F_DATASOURCE).value(dsRef.asPlainString());
         });
+        return getDataSourceDescription(arg);
+    }
+
+    @Override
+    public DataSourceDescription getDataSourceDescription(String uri) {
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DPConst.F_URI).value(uri);
+        });
+        return getDataSourceDescription(arg);
+    }
+    
+    private DataSourceDescription getDataSourceDescription(JsonObject arg) {
         JsonObject obj = rpc(DPConst.OP_DESCR_DS, arg);
         if ( obj.isEmpty() )
             return null;
         return DataSourceDescription.fromJson(obj);
     }
-
+    
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         if ( arg == null )
             arg = emptyObject;

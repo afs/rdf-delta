@@ -159,7 +159,6 @@ public abstract class AbstractTestDeltaLink {
         } catch (DeltaException ex) {} 
     }
     
-    
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
         RDFChangesCollector c1 = new RDFChangesCollector();
         patch1.apply(c1);
@@ -181,7 +180,7 @@ public abstract class AbstractTestDeltaLink {
         assertTrue(dLink.listDatasets().isEmpty());
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
-        Id dsRef = dLink.newDataSource("datasource_01", "http://example/uri");
+        Id dsRef = dLink.newDataSource("datasource_02", "http://example/uri");
         assertFalse(dLink.listDatasets().isEmpty());
     }
         
@@ -190,6 +189,8 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
 
         assertTrue(dLink.listDatasets().isEmpty());
+        assertTrue(dLink.allDescriptions().isEmpty());
+
         Id dsRef = dLink.newDataSource("datasource_01", "http://example/uri");
 
         assertEquals(1, dLink.listDatasets().size());
@@ -201,13 +202,32 @@ public abstract class AbstractTestDeltaLink {
         assertNotNull(dsd);
         assertEquals("http://example/uri", dsd.uri);
         assertEquals(dsRef, dsd.id);
+        // Ensure this works.
         dsd.asJson();
+    }
+
+    @Test
+    public void datasource_02a() {
+        // As 02 but by URI.
+        DeltaLink dLink = getLinkRegistered();
+        String uri = "http://example/uri2a";
+        Id dsRef = dLink.newDataSource("datasource_02a", uri);
+
+        assertEquals(1, dLink.listDatasets().size());
+        assertEquals(dsRef, dLink.listDatasets().get(0));
+        
+        DataSourceDescription dsd = dLink.getDataSourceDescription(uri);
+        assertNotNull(dsd);
+        assertEquals(uri, dsd.uri);
+        assertEquals(dsRef, dsd.id);
     }
 
     @Test(expected=DeltaException.class)
     public void datasource_03() {
         DeltaLink dLink = getLink();
         assertEquals(0, dLink.listDatasets().size());
+        assertEquals(0, dLink.allDescriptions().size());
+
         // Not registered.
         Id dsRef1 = dLink.newDataSource("datasource_03", "http://example/uri");
     }
@@ -218,6 +238,7 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(0, dLink.listDatasets().size());
         Id dsRef1 = dLink.newDataSource("datasource_04", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
+        assertEquals(1, dLink.allDescriptions().size());
 
         try { // Check where the exception occurs.
             // Already exists : URI is not a factor.
@@ -265,4 +286,25 @@ public abstract class AbstractTestDeltaLink {
         // Again.
         dLink.removeDataset(dsRef);
     }
+    
+    @Test
+    public void datasource_13_not_found() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
+        assertEquals(1, dLink.listDatasets().size());
+        Id dsRef1 = Id.create();
+        DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef1);
+        assertNull(dsd);
+    }
+    
+    @Test
+    public void datasource_14_not_found() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
+        assertEquals(1, dLink.listDatasets().size());
+        DataSourceDescription dsd = dLink.getDataSourceDescription("http://example/uri-not-present");
+        assertNull(dsd);
+    }
+
+
 }

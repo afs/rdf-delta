@@ -30,6 +30,7 @@ import org.seaborne.patch.RDFPatch ;
  * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
 public interface DeltaLink {
+    // XXX Rename to "log"
     /** 
      * Create a new dataset and return the unique Id for it.
      * <p>
@@ -48,8 +49,14 @@ public interface DeltaLink {
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;
     
+    /** Return an array of {@link DataSourceDescription}s of datasets */
+    public List<DataSourceDescription> allDescriptions();
+
     /** Return details of a dataset (or null if not registered) */
     public DataSourceDescription getDataSourceDescription(Id dsRef) ;
+
+    /** Return details of a dataset (or null if not registered) */
+    public DataSourceDescription getDataSourceDescription(String uri);
 
     /** Send patch, return new version */
     public int sendPatch(Id dsRef, RDFPatch patch);

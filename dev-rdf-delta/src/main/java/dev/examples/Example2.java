@@ -20,6 +20,10 @@ package dev.examples;
 
 import java.io.IOException;
 
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
@@ -32,6 +36,9 @@ import org.seaborne.delta.server.local.LocalServer;
 
 /** Connect to a local server, create a new DataSource, remove it. */ 
 public class Example2 {
+    
+    public static Quad quad = SSE.parseQuad("(:g :s :p :o)");
+    
     public static void example_local(String... args) throws IOException {
         // The local state of the server.
         Location loc = Location.create("DeltaServer");
@@ -52,8 +59,17 @@ public class Example2 {
 
         // and now connect to it again.
         try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null, dLink) ) {
-            int version = dConn.getRemoteVersionLatest();
-            System.out.println("Version = "+version);
+            int version1 = dConn.getRemoteVersionLatest();
+            System.out.println("Version = "+version1);
+
+            // Change the dataset
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            Txn.executeWrite(dsg, ()->{
+                dsg.add(quad);
+            });
+            
+            int version2 = dConn.getRemoteVersionLatest();
+            System.out.println("Version = "+version2);
         }
 
         System.out.println("DONE");

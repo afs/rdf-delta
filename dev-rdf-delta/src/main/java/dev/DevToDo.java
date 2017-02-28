@@ -31,6 +31,7 @@ public class DevToDo {
     // Just one fetch type.
     
     // Streaming patches.
+    //    RDFChanges -> StreamPatch
     // Currently not because of DeltaLink.sendPatch takes a patch as argument. 
     
     // Test cleaning:

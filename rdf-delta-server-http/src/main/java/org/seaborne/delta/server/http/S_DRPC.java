@@ -18,25 +18,8 @@
 
 package org.seaborne.delta.server.http;
 
-import static org.seaborne.delta.DPConst.F_ARG;
-import static org.seaborne.delta.DPConst.F_ARRAY;
-import static org.seaborne.delta.DPConst.F_CLIENT;
-import static org.seaborne.delta.DPConst.F_DATASOURCE;
-import static org.seaborne.delta.DPConst.F_ID;
-import static org.seaborne.delta.DPConst.F_NAME;
-import static org.seaborne.delta.DPConst.F_OP;
-import static org.seaborne.delta.DPConst.F_TOKEN;
-import static org.seaborne.delta.DPConst.F_URI;
-import static org.seaborne.delta.DPConst.F_VALUE;
-import static org.seaborne.delta.DPConst.OP_CREATE_DS;
-import static org.seaborne.delta.DPConst.OP_DEREGISTER;
-import static org.seaborne.delta.DPConst.OP_DESCR_DS;
-import static org.seaborne.delta.DPConst.OP_VERSION;
-import static org.seaborne.delta.DPConst.OP_ISREGISTERED;
-import static org.seaborne.delta.DPConst.OP_LIST_DS;
-import static org.seaborne.delta.DPConst.OP_REGISTER;
-import static org.seaborne.delta.DPConst.OP_REMOVE_DS;
-
+import static org.seaborne.delta.DPConst.*;
+import static java.lang.String.format;
 import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
@@ -120,11 +103,12 @@ public class S_DRPC extends DeltaServletBase {
     protected void validateAction(DeltaAction action) throws IOException {
         // Checking once basic parsing of the request has been done to produce the JsonAction 
         switch(action.opName) {
-            // No registration required.
-            case OP_REGISTER:
                 // Does own check.
+            case OP_REGISTER:
+                // No registration required.
             case OP_ISREGISTERED:
             case OP_LIST_DS:
+            case OP_LIST_DSD:
             case OP_DESCR_DS:
                 
                 break;
@@ -170,6 +154,9 @@ public class S_DRPC extends DeltaServletBase {
                 break ;
             case OP_DESCR_DS:
                 rslt = describeDataSource(action);
+                break ;
+            case OP_LIST_DSD:
+                rslt = describeAllDataSources(action);
                 break ;
             case OP_CREATE_DS:
                 rslt = createDataSource(action);
@@ -262,12 +249,33 @@ public class S_DRPC extends DeltaServletBase {
     }
 
     private JsonValue describeDataSource(DeltaAction action) {
-        String dataSourceId = getFieldAsString(action, F_DATASOURCE);
-        Id dsRef = Id.fromString(dataSourceId);
-        DataSourceDescription dsd = action.dLink.getDataSourceDescription(dsRef);
+        String uri = getFieldAsString(action, F_URI, false);
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE, false);
+        if ( uri == null && dataSourceId == null )
+            throw new DeltaBadRequestException(format("No field: '%s' nor '%s'", F_DATASOURCE, F_URI));
+        if ( uri != null && dataSourceId != null )
+            throw new DeltaBadRequestException(format("Only one of fields '%s' nor '%s' allowed", F_DATASOURCE, F_URI));
+        
+        DataSourceDescription dsd;
+        if ( dataSourceId != null ) {
+            Id dsRef = Id.fromString(dataSourceId);
+            dsd = action.dLink.getDataSourceDescription(dsRef);
+        } else {
+            dsd = action.dLink.getDataSourceDescription(uri);
+        }
         if ( dsd == null )
             return noResults;
         return dsd.asJson();
+    }
+    
+    private JsonValue describeAllDataSources(DeltaAction action) {
+        List<DataSourceDescription> x = action.dLink.allDescriptions();
+        return JSONX.buildObject(b->{
+            b.key(F_ARRAY);
+            b.startArray();
+            x.forEach(dsd->b.value(dsd.asJson()));
+            b.finishArray();
+        });
     }
     
     private JsonValue createDataSource(DeltaAction action) {
