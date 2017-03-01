@@ -45,6 +45,7 @@ public class Setup {
 
         public void afterTest();
         public DeltaLink getLink();
+        public DeltaLink createLink();  // New link every time.
     }
     
     public static class LocalSetup implements LinkSetup {
@@ -63,9 +64,14 @@ public class Setup {
         }
 
         @Override
+        public DeltaLink createLink() {
+            return DeltaLinkLocal.connect(lserver); 
+        }
+        
+        @Override
         public void beforeTest() {
             lserver = DeltaTestLib.createEmptyTestServer();
-            dlink =  DeltaLinkLocal.connect(lserver);
+            dlink = createLink();
         }
         
         @Override
@@ -140,7 +146,7 @@ public class Setup {
             localServer = DeltaTestLib.createEmptyTestServer();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server.setEngine(localLink);
-            dlink = DeltaLinkHTTP.connect("http://localhost:"+TEST_PORT+"/");
+            dlink = createLink();
         }
 
         @Override
@@ -154,7 +160,7 @@ public class Setup {
         public void relink() {
             Id clientId = dlink.getClientId();
             resetDefaultHttpClient();
-            dlink = DeltaLinkHTTP.connect("http://localhost:"+TEST_PORT+"/");
+            dlink = createLink();
             if ( clientId != null )
                 dlink.register(clientId);
         }
@@ -174,6 +180,11 @@ public class Setup {
         @Override
         public DeltaLink getLink() {
             return dlink;
+        }
+        
+        @Override
+        public DeltaLink createLink() {
+            return DeltaLinkHTTP.connect("http://localhost:"+TEST_PORT+"/");
         }
 
         private static void resetDefaultHttpClient() {

@@ -102,14 +102,31 @@ public abstract class AbstractTestDeltaLink {
         assertFalse(dLink.isRegistered());
     }
 
-    @Test(expected=DeltaException.class)
+    @Test
     public void register_06() { 
+        // Not valid for DeltaLinkLocal.  Registration is not provided. 
+        // Valid for for DeltaLinkHTTP (client restart).
         DeltaLink dLink = getLink();
         Id clientId1 = Id.create();
         Id clientId2 = Id.create();
         assertNotEquals(clientId1, clientId2);
         RegToken regToken1 = dLink.register(clientId1);
         RegToken regToken2 = dLink.register(clientId2);
+        // New registration token.
+        assertNotEquals(regToken1, regToken2);
+    }
+
+    @Test
+    public void register_07() {
+        // Two separate registrations.
+        DeltaLink dLink1 = getSetup().createLink();
+        DeltaLink dLink2 = getSetup().createLink();
+        Id clientId1 = Id.create();
+        Id clientId2 = Id.create();
+        assertNotEquals(clientId1, clientId2);
+        RegToken regToken1 = dLink1.register(clientId1);
+        RegToken regToken2 = dLink2.register(clientId2);
+        assertNotEquals(regToken1, regToken2);
     }
 
     // Patch at the link level. 

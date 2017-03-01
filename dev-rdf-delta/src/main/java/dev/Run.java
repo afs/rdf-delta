@@ -21,22 +21,14 @@ package dev;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.apache.jena.sparql.core.Quad;
-import org.apache.jena.sparql.sse.SSE;
-import org.apache.jena.system.Txn;
-import org.apache.jena.tdb.base.file.Location;
-import org.junit.Test;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.http.DataPatchServer;
 
 public class Run {
     static { 
@@ -66,91 +58,17 @@ public class Run {
     // DataSource Descriptior and LocalServer.SourceDescriptor are the same.
     
     public static void main(String... args) throws IOException {
-        System.out.println("**** run 1");
-        // Create clean.
-        run(true, true);
-        System.out.println();
-        System.out.println("**** run 2");
-        // Resonnect to existing local and remote.
-        run(false, false);
-        System.out.println();
-        System.out.println("**** run 3");
-        // Connect to existing remote.
-        run(false, true);
-        System.out.println("**** run 4");
-        // Resonnect to existing local and remote.
-        run(false, false);
-        System.out.println();
-
+        DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
+        server.start();
+        String URL = "http://localhost:1066/";
+        
+        DeltaLink dLink1 = DeltaLinkHTTP.connect(URL);
+        dLink1.register(Id.create());
+        DeltaLink dLink2 = DeltaLinkHTTP.connect(URL);
+        dLink2.register(Id.create());
+        
         System.out.println("DONE");
         System.exit(0);
-    }
-    
-    @Test public void connect_01() {
-        // Clear
-    }
-    
-    // Modularise
-    /*
-     *  target/zone
-     * Zone.init
-     * Create server
-     * Reset client
-     */
-
-    
-    
-    
-    public static void run(boolean cleanServer, boolean cleanConnections) throws IOException {
-        Zone zone = Zone.get();
-        zone.reset();
-        String datasourceName = "XYZ";
-        Location serverLoc = Location.create("DeltaServer");
-        Location dConnLoc = Location.create("DConn");
-        
-        if ( cleanServer ) {
-            FileOps.clearAll(serverLoc.getPath(datasourceName));
-            FileOps.delete(serverLoc.getPath(datasourceName));
-        }
-
-        if ( cleanConnections ) {
-            FileOps.clearAll(dConnLoc.getDirectoryPath());
-        }
-
-        zone.init(dConnLoc);
-        System.out.println("Local connections: "+zone.localConnections());
-
-        
-        LocalServer server = LocalServer.attach(serverLoc);
-        
-        // --------
-        //List<DataSource> x = server.listDataSources();
-        DeltaLink dLink = DeltaLinkLocal.connect(server);
-        
-        Id clientId = Id.create();
-        //dLink.register(clientId);
-        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-        
-        if ( cleanServer ) {
-            // Create, but do not open.
-            // Two cases. Local TDB, local file.
-            // v1 - initialialy empty.
-            
-            //DeltaConnection.create(clientId, dConnLoc, datasourceName, "http://example/new");
-        }
-        
-        try(DeltaConnection dConn = connectOrCreate(zone, clientId, datasourceName, dsg0, dLink, cleanServer) ) {
-            dConn.sync();
-            DatasetGraph dsg = dConn.getDatasetGraph();
-            Txn.executeWrite(dsg,  ()->{
-                Quad q = SSE.parseQuad("(_ :ss :pp '"+DateTimeUtils.nowAsXSDDateTimeString()+"'^^xsd:dateTimeStamp)");
-                dsg.add(q);
-            });
-            
-            //dLink.listDatasets();
-            System.out.println("Local connections: "+zone.localConnections());
-            
-        }        
     }
     
     static DeltaConnection connectOrCreate(Zone zone, Id clientId, String datasourceName, DatasetGraph dsg0, DeltaLink dLink, boolean create) {

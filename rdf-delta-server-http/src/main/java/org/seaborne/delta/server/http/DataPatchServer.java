@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.Servlet;
 
+import org.apache.jena.tdb.base.file.Location;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -31,8 +32,11 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.seaborne.delta.DPConst;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DeltaLinkLocal;
+import org.seaborne.delta.server.local.LocalServer;
 
 /** A simple packaging of Jetty to provide an embeddable HTTP server that just supports servlets */ 
 public class DataPatchServer {
@@ -43,6 +47,15 @@ public class DataPatchServer {
     // Shared across servlets.
     private final AtomicReference<DeltaLink> engineRef;
     
+    /** Packaged start up : one area, with config file.*/
+    public static DataPatchServer server(int port, String path) {
+        Location baseArea = Location.create(path);
+        String configFile = baseArea.getPath(DPConst.SERVER_CONFIG);
+        LocalServer server = LocalServer.attach(baseArea, configFile);
+        DeltaLink link = DeltaLinkLocal.connect(server);
+        return DataPatchServer.create(port, link) ;
+    }
+    
     /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */   
     public static DataPatchServer create(int port, DeltaLink engine) {
         return new DataPatchServer(port, engine);
@@ -52,7 +65,8 @@ public class DataPatchServer {
         DPS.init();
         this.port= port;
         this.server = jettyServer(port, false);
-        this.engineRef = new AtomicReference<>(engine);
+        this.engineRef = new AtomicReference<>(null);
+        setEngine(engine);
         
         ServletContextHandler handler = buildServletContext("/");
         
@@ -108,6 +122,11 @@ public class DataPatchServer {
     
     /** Internal */
     public void setEngine(DeltaLink engine) {
+        if ( engine != null ) {
+            // Local registration to underlying engine
+            Id clientId = Id.create();
+            engine.register(clientId);
+        }
         engineRef.set(engine);
     }
     

@@ -145,6 +145,11 @@ public class DataState {
         return zone;
     }
 
+    @Override
+    public String toString() {
+        return String.format("data state: %s version=%d", datasource, version());
+    }
+    
     // XXX Sort out concurrency!
     // XXX concurrency : Coordinate win DeltaConnection. 
     public synchronized void updateVersion(int version2) {

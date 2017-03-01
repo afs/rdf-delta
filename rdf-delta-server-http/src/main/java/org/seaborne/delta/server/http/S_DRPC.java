@@ -208,7 +208,8 @@ public class S_DRPC extends DeltaServletBase {
     // Header: { client: } -> { token: }   
     private JsonValue register(DeltaAction action) {
         Id client = getFieldAsId(action, F_CLIENT);
-        RegToken token = action.dLink.register(client);
+        // XXX Proper Registration - hook to policy here.
+        RegToken token = new RegToken();
         register(client, token);
         JsonValue jv = JSONX.buildObject((x)-> {
             x.key(F_TOKEN).value(token.getUUID().toString());
@@ -218,7 +219,7 @@ public class S_DRPC extends DeltaServletBase {
 
     // Header: { token: } -> { boolean: }   
     private JsonValue isRegistered(DeltaAction action) {
-        // Registation not checked (it would be a "bad request" is done in validateAction 
+        // Registation not checked (it would be a "bad request" - this is done in validateAction) 
        if ( action.regToken == null )
            return resultFalse;
        if ( !isRegistered(action.regToken) )

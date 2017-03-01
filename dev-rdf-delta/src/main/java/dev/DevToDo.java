@@ -25,6 +25,25 @@ public class DevToDo {
     // Version -> long?
     // Eliminate use of Location and just use Path.
     
+//    public class GraphChanges 
+//    //extends GraphWrapper  -- Not a GraphWithPerform
+//    extends WrappedGraph
+    
+    // Module? : delta-rpc ; hanlder design
+    //    client and servlet
+    // System-of-record :
+    //    * ServiceLoader and add to PatchHandler chain.
+    //    * need displatch by log name or id.
+    
+    // SOR
+    //   DatasetGraph
+    //   Stream of patches.
+    
+    interface SOR {
+        
+    }
+    
+    
     // One endpoint variant: /patch-log
     // two endpotjb variant /patch, /fetch (= /patch/*) 
     // Sort out send/fetch endpoints.

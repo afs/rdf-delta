@@ -22,19 +22,18 @@ import java.util.Map ;
 
 import org.apache.jena.graph.* ;
 import org.apache.jena.shared.PrefixMapping ;
-import org.apache.jena.sparql.graph.GraphWrapper ;
+import org.apache.jena.sparql.graph.GraphWrapper;
 import org.seaborne.patch.RDFChanges ;
 
 // Needed? Or graphView over a dataset?
-public class GraphChanges extends GraphWrapper {
+public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ // Or WrappedGraph
+{
     private final RDFChanges changes ;
-    private final Graph graph ;
     protected final Node graphName ;
     private PrefixMapping pm = null ;
 
     public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
         super(graph) ;
-        this.graph = graph ;
         this.graphName = graphName ;
         this.changes = changes ;
         this.pm = new PrefixMappingMonitorChanges(graph.getPrefixMapping(), graphName, changes) ;
@@ -52,6 +51,9 @@ public class GraphChanges extends GraphWrapper {
         super.delete(t);
     }
 
+//    @Override public void performAdd( Triple t )    { add(t); }
+//    @Override public void performDelete( Triple t ) { delete(t); }
+    
     @Override
     public void clear() {
         remove(Node.ANY, Node.ANY, Node.ANY) ;
