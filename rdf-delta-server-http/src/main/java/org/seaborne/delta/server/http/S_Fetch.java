@@ -83,6 +83,8 @@ public class S_Fetch extends HttpOperationBase {
             patch = action.dLink.fetch(dsRef, version);
         } else
             throw new DeltaBadRequestException("No version, no patch id");
+        if ( patch == null )
+            throw new DeltaBadRequestException(HttpSC.NOT_FOUND_404, "Not found");
         OutputStream out = action.response.getOutputStream() ;
         //action.response.setCharacterEncoding(WebContent.charsetUTF8);
         action.response.setStatus(HttpSC.OK_200);

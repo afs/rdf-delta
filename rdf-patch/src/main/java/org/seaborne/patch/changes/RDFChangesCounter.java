@@ -36,6 +36,20 @@ public class RDFChangesCounter implements RDFChanges {
     public long countTxnAbort     = 0;
 
     public RDFChangesCounter() {}
+    
+    public void reset() {
+        countStart        = 0;
+        countFinish       = 0;
+        countHeader       = 0;
+        countAddQuad      = 0;
+        countDeleteQuad   = 0;
+        countAddPrefix    = 0;
+        countDeletePrefix = 0;
+        countSetBase      = 0;
+        countTxnBegin     = 0;
+        countTxnCommit    = 0;
+        countTxnAbort     = 0;
+    }
 
     @Override
     public void start() {

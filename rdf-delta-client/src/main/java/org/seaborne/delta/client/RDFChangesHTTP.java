@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -54,10 +53,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private final Object syncObject;
     private String response = null;
     private Node currentTransactionId = null;
+    private boolean changeOccurred = false;
     
-    // XXX Text token specific.
-    private static final byte[] noChange =  "TX .\nTC .\n".getBytes(StandardCharsets.UTF_8);
-
     public RDFChangesHTTP(String url) {
         this(null, url);
     }
@@ -83,11 +80,42 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
     
     @Override
+    public void add(Node g, Node s, Node p, Node o) {
+        markChanged();
+        super.add(g, s, p, o);
+    }
+
+    @Override
+    public void delete(Node g, Node s, Node p, Node o) {
+        markChanged();
+        super.delete(g, s, p, o);
+    }
+
+    @Override
+    public void addPrefix(Node gn, String prefix, String uriStr) {
+        markChanged();
+        super.addPrefix(gn, prefix, uriStr);
+    }
+
+    @Override
+    public void deletePrefix(Node gn, String prefix) {
+        markChanged();
+        super.deletePrefix(gn, prefix);
+    }
+
+    @Override
+    public void setBase(String uriStr) {
+        markChanged();
+        super.setBase(uriStr);
+    }
+    
+    @Override
     public void txnBegin() {
         if ( currentTransactionId == null ) {
             currentTransactionId = Id.create().asNode();
             super.header(RDFPatch.ID, currentTransactionId);
         }
+        changeOccurred = false ;
         super.txnBegin();
     }
 
@@ -103,8 +131,17 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         // Forget.
     }
     
+    private void markChanged() {
+        changeOccurred = true;
+    }
+
+    private boolean changed() {
+        return changeOccurred;
+    }
+
     private void reset() {
         currentTransactionId = null ;
+        changeOccurred = false ;
         bytes.reset();
     }
 
@@ -116,6 +153,11 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     
     public void send() {
         synchronized(syncObject) {
+            if ( ! changed() ) {
+                reset();
+                LOG.info("Skip TX-TC no change");
+                return;
+            }
             send$();
         }
     }
@@ -168,13 +210,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private void send$() {
         HttpPost postRequest = new HttpPost(url);
         byte[] bytes = collected();
-        // XXX better way elsewhere to determine TB-TC. 
-        if ( Arrays.equals(bytes, noChange) ) {
-            reset();
-            LOG.info("Skip TB-TC no chanage");
-            // Skip TB,TC.
-            return; 
-        }
 
         String s = new String(bytes, StandardCharsets.UTF_8);
         if ( true ) {

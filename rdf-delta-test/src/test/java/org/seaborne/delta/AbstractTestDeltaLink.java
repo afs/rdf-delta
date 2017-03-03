@@ -138,8 +138,8 @@ public abstract class AbstractTestDeltaLink {
         InputStream in = IO.openFile(DeltaTestLib.TDIR+"/patch1.rdfp");
         RDFPatch patch = RDFPatchOps.read(in);
 
-        int version = dLink.getCurrentVersion(dsRef);
-        int version1 = dLink.sendPatch(dsRef, patch);
+        int version = dLink.getCurrentVersion(dsRef); // 0??
+        int version1 = dLink.sendPatch(dsRef, patch); // Should be 0 ***********
         assertNotEquals(version, version1);
 
         int version2 = dLink.getCurrentVersion(dsRef);

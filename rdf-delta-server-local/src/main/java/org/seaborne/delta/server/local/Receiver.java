@@ -28,6 +28,7 @@ import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesLog ;
+import org.seaborne.patch.changes.RDFChangesLogSummary;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
@@ -42,7 +43,7 @@ public class Receiver {
      */
     public Receiver(FileStore fileStore) {
         this.fileStore = fileStore;
-        addProcessor(new RDFChangesLog(RDFChangesLog::printer)) ;
+        addProcessor(new RDFChangesLogSummary(RDFChangesLog::printer)) ;
     }
     
     // -- Builderish.

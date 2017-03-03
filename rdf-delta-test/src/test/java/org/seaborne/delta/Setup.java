@@ -103,7 +103,7 @@ public class Setup {
 
     public static class RemoteSetup implements LinkSetup {
 
-        private static int TEST_PORT=4141;
+        private static int TEST_PORT=1086;
         
         /** Start a server - this server has no backing local DelaLink
          * which is reset for each test. This enables the server to be reused 

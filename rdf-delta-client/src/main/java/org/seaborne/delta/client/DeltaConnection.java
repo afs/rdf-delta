@@ -20,7 +20,6 @@ package org.seaborne.delta.client;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
@@ -203,8 +202,13 @@ public class DeltaConnection implements AutoCloseable {
 
         int localVer = getLocalVersionNumber();
 
-        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
-
+        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer); // -1, 0
+        // XXX -1 ==> Initialize data.
+//        if ( localVer < 0 ) {
+//            localVer = 0 ;
+//            setLocalVersionNumber(0);
+//        }
+        
         if ( localVer > remoteVer ) 
             FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localVer, remoteVersion.get());
         if ( localVer >= remoteVer ) {
@@ -213,14 +217,19 @@ public class DeltaConnection implements AutoCloseable {
         }
         // bring up-to-date.
         FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer);
-        IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
+        //IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
+        for ( int x = localVer+1 ; x <= remoteVer ; x++) {
             FmtLog.info(LOG, "Sync: patch=%d", x);
             RDFPatch patch = fetchPatch(x);
+            if ( patch == null ) { 
+                FmtLog.info(LOG, "Sync: patch=%d : not found", x);
+                continue;
+            }
             RDFChanges c = target;
             if ( true )
                 c = DeltaOps.print(c);
             patch.apply(c);
-        });
+        }
         setRemoteVersionNumber(remoteVer);
         setLocalVersionNumber(remoteVer);
     }

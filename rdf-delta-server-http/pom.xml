@@ -21,8 +21,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-
-  <groupId>org.seaborne.rdf-delta</groupId>
   <artifactId>rdf-delta-server-http</artifactId>
   <packaging>jar</packaging>
 
@@ -43,7 +41,7 @@
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-delta-server-local</artifactId>
+      <artifactId>rdf-delta-server-local</artifactId> 
       <version>0.0.0-SNAPSHOT</version>
     </dependency>
 

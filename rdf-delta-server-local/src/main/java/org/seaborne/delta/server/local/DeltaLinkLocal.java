@@ -157,8 +157,12 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef) ;
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {
-            Id id = Id.fromNode(patch.getId());
-            FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id) ;
+            if ( patch == null ) {
+                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Not found", source, version) ;
+            } else {
+                Id id = Id.fromNode(patch.getId());
+                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id) ;
+            }
         }
         return patch;
     }

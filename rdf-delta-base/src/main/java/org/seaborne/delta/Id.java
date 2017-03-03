@@ -161,6 +161,7 @@ public final class Id {
             return uuid.toString().substring(0,6);
         return uuid.toString().substring(0,8);
     }
+    
     @Override
     public int hashCode() {
         final int prime = 31 ;

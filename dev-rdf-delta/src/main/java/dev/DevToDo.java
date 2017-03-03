@@ -19,6 +19,15 @@
 package dev;
 
 public class DevToDo {
+    // DeltaConnection.sync.
+    //   local version = -1 ==> must initialize data. 
+    
+    // Tests:
+    //   bad patch
+    //   empty patch
+    
+    // Remove setBase ... or make graph relative. 
+    
     // Documentation
     //   Patch
     //   Protocol/delta
@@ -38,6 +47,18 @@ public class DevToDo {
     // SOR
     //   DatasetGraph
     //   Stream of patches.
+
+    /*
+    Log - Append
+    Log<X>
+      append => start(token), write, finish(token)
+    EventLog, PatchLog
+  send = grab token then append => early feedback
+  ** Archive log **
+  Need a datastructure to record the log structure
+  (version, id) log
+  State: Keep start.
+     */
     
     interface SOR {
         

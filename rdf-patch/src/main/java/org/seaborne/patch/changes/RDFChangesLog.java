@@ -26,6 +26,13 @@ import org.seaborne.patch.RDFChanges ;
 public class RDFChangesLog implements RDFChanges {
     final private Printer printer ;
 
+    // Two versions - for chaining (RDFChangesN) and wrapping.
+    public RDFChangesLog() { this(RDFChangesLog::printer) ; }
+    
+    public RDFChangesLog(Printer printer) {
+        this.printer = printer ;
+    }
+
     @Override
     public void start() {}
     @Override
@@ -45,16 +52,9 @@ public class RDFChangesLog implements RDFChanges {
         printer.print("> "+fmt, args);
     }
     
-    // Two versions - for chaining (RDFChangesN) and wrapping.
-    public RDFChangesLog() { this(RDFChangesLog::printer) ; }
-    
     public static void printer(String fmt, Object... args) {
         System.out.printf(fmt, args);
         System.out.println();
-    }
-    
-    public RDFChangesLog(Printer printer) {
-        this.printer = printer ;
     }
     
     @Override

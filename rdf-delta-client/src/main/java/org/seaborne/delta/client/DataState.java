@@ -152,12 +152,12 @@ public class DataState {
     
     // XXX Sort out concurrency!
     // XXX concurrency : Coordinate win DeltaConnection. 
-    public synchronized void updateVersion(int version2) {
+    public synchronized void updateVersion(int newVersion) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
-        writeState(this.state, this.datasource, version2);
+        writeState(this.state, this.datasource, newVersion);
         // Update local
-        version.set(version2);
+        version.set(newVersion);
         // Failure: disk is ahead of memory: shadow data must already be updated.
         // Concurrency: app thinks at earlier version.
     }

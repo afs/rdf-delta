@@ -65,7 +65,7 @@ public class RDFChangesWriter implements RDFChanges {
     public void add(Node g, Node s, Node p, Node o) {
         output(ADD_QUAD, g, s, p, o) ;
     }
-
+    
     private void output(ChangeCode change, Node g, Node s, Node p, Node o) {
         tok.startTuple();
         output(change) ;
