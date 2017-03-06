@@ -19,8 +19,13 @@
 package dev;
 
 public class DevToDo {
+    // Initial data : "version 0"
+    
     // DeltaConnection.sync.
     //   local version = -1 ==> must initialize data. 
+    
+    // DeltaLinkHTTP : encapsuate all remote request with error handling.
+    // DeltaLink : Add an "open" step rathe rthan part of the construction of the implementation.
     
     // Tests:
     //   bad patch

@@ -32,6 +32,7 @@ import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaNotConnectedException;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFPatch ;
@@ -47,6 +48,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     private final String remoteReceive;
     private RegToken regToken = null;
     private Id clientId = null;
+    private boolean linkOpen = false;
     
     private final static JsonObject emptyObject = new JsonObject();
     
@@ -62,6 +64,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             serverURL= serverURL+"/";
 
         this.remoteServer = serverURL;
+        this.linkOpen = true;
 
         // One URL
         this.remoteSend = serverURL+DPConst.EP_PatchLog;
@@ -74,7 +77,18 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     }
     
     @Override
+    public void close() {
+        linkOpen = false;
+    }
+    
+    private void checkLink() {
+        if ( ! linkOpen )
+            throw new DeltaNotConnectedException("Not connected to URL = "+remoteServer);
+    }
+
+    @Override
     public int getCurrentVersion(Id dsRef) {
+        checkLink();
         JsonObject arg = JSONX.buildObject((b)-> {
             b.key("datasource").value(dsRef.asPlainString());
         });
@@ -86,6 +100,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     }
 
     public RDFChangesHTTP createRDFChanges(Id dsRef) {
+        checkLink();
         String s = DeltaLib.makeURL(remoteSend, DPConst.paramReg, regToken.asString(), DPConst.paramDatasource, dsRef.asParam());
         return new RDFChangesHTTP(s);
     }
@@ -93,6 +108,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     // Non-streaming - collect patch then replay to send it.  
     @Override
     public int sendPatch(Id dsRef, RDFPatch patch) {
+        checkLink();
         RDFChangesHTTP remote = createRDFChanges(dsRef);
         patch.apply(remote);
         String str = remote.getResponse();
@@ -110,12 +126,14 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
 
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
+        checkLink();
         String s = DeltaLib.makeURL(remoteReceive, DPConst.paramDatasource, dsRef.asParam(), DPConst.paramVersion, version);
         return fetchCommon(s);
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
+        checkLink();
         String s = DeltaLib.makeURL(remoteReceive, DPConst.paramDatasource, dsRef.asParam(), DPConst.paramPatch, patchId.asParam());
         return fetchCommon(s);
     }
@@ -156,6 +174,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     
     @Override
     public RegToken register(Id clientId) {
+        checkLink();
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DPConst.F_CLIENT).value(clientId.asPlainString());
         });
@@ -169,12 +188,14 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
 
     @Override
     public void deregister() {
+        checkLink();
         JsonObject obj = rpc(DPConst.OP_DEREGISTER, emptyObject);
         regToken = null;
     }
 
     @Override
     public boolean isRegistered() {
+        checkLink();
         JsonObject obj = rpc(DPConst.OP_ISREGISTERED, emptyObject);
         return obj.get(DPConst.F_VALUE).getAsBoolean().value();
     }

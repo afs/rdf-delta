@@ -28,6 +28,7 @@ import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
+import org.seaborne.delta.link.DeltaNotConnectedException;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
@@ -39,6 +40,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     private static Logger LOG = LoggerFactory.getLogger(DeltaLinkLocal.class) ;
     
     private final LocalServer localServer;
+    private boolean linkOpen = false;
     
     public static DeltaLink connect(LocalServer localServer) {
         return new DeltaLinkLocal(localServer);
@@ -46,32 +48,48 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     private DeltaLinkLocal(LocalServer localServer) {
         this.localServer = localServer;
+        this.linkOpen = true;
     }
     
     @Override
     public Id newDataSource(String name, String baseURI) {
+        checkLink();
         checkRegistered();
         return localServer.createDataSource(false, name, baseURI);
     }
 
     @Override
+    public void close() {
+        linkOpen = false;
+    }
+
+    private void checkLink() {
+        if ( ! linkOpen )
+            throw new DeltaNotConnectedException("Not connected");
+    }
+    
+    @Override
     public void removeDataset(Id dsRef) {
+        checkLink();
         checkRegistered();
         localServer.removeDataSource(dsRef);
     }
 
     @Override
     public List<Id> listDatasets() {
+        checkLink();
         return localServer.listDataSourcesIds();
     }
     
     @Override
     public List<DataSourceDescription> allDescriptions() {
+        checkLink();
         return toList(localServer.listDataSources().stream().map(ds->ds.getDescription()));
     }
 
     @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
+        checkLink();
         DataSource source = localServer.getDataSource(dsRef);
         if ( source == null )
             return null;
@@ -80,6 +98,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     @Override
     public DataSourceDescription getDataSourceDescription(String uri) {
+        checkLink();
         DataSource source = localServer.getDataSource(uri);
         if ( source == null )
             return null;
@@ -88,6 +107,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     
     @Override
     public int sendPatch(Id dsRef, RDFPatch rdfPatch) {
+        checkLink();
         checkRegistered();
         DataSource source = getDataSource(dsRef);
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
@@ -143,6 +163,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
+        checkLink();
         DataSource source = getDataSource(dsRef);
         RDFPatch patch = source.getPatchLog().fetch(patchId) ;
         if ( patch == null )
@@ -154,6 +175,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
+        checkLink();
         DataSource source = getDataSource(dsRef) ;
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {

@@ -22,7 +22,6 @@ import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -399,9 +398,8 @@ public class PatchLog {
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;
         }
-        catch (AccessDeniedException ex)    { return null; }
-        catch (NoSuchFileException ex)      { return null; }
-        catch (FileNotFoundException ex)    { return null; }    // Old world.
+        catch (NoSuchFileException | FileNotFoundException ex)
+        { return null; }
         catch (IOException ex) { 
             throw IOX.exception(ex); 
         }

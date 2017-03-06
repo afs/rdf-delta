@@ -46,7 +46,6 @@ public class DS_State {
         LogCtl.setJavaLogging();
     }
     
-    
     public static void main(String... args) throws IOException {
         String filename = "datafile";
         DS_State.DSS_IO dssIO = new DS_State.DSS_JSON();
@@ -68,7 +67,6 @@ public class DS_State {
         System.out.println("DONE");
         System.exit(0);
     }
-        
     
     // Add to datasource description.
     static class DataSourceState {

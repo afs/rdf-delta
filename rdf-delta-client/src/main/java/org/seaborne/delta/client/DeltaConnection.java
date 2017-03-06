@@ -202,12 +202,13 @@ public class DeltaConnection implements AutoCloseable {
 
         int localVer = getLocalVersionNumber();
 
-        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer); // -1, 0
+        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
         // XXX -1 ==> Initialize data.
-//        if ( localVer < 0 ) {
-//            localVer = 0 ;
-//            setLocalVersionNumber(0);
-//        }
+        if ( localVer < 0 ) {
+            FmtLog.warn(LOG, "Sync: **** No initialization");
+            localVer = 0 ;
+            setLocalVersionNumber(0);
+        }
         
         if ( localVer > remoteVer ) 
             FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", localVer, remoteVersion.get());

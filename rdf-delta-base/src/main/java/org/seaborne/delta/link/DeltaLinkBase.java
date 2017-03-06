@@ -29,7 +29,7 @@ public abstract class DeltaLinkBase implements DeltaLink {
     
     protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
     protected RegToken regToken = null;
-    protected Id clientId = null; 
+    protected Id clientId = null;
     
     @Override
     final

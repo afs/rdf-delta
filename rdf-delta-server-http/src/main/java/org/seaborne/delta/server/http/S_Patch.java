@@ -62,9 +62,9 @@ public class S_Patch extends HttpOperationBase {
     @Override
     protected void checkRegistration(DeltaAction action) {
         if ( action.regToken == null )
-            throw new DeltaBadRequestException("No registration token") ;
+            throw new DeltaBadRequestException(HttpSC.FORBIDDEN_403, "No registration token") ;
         if ( !isRegistered(action.regToken) )
-            throw new DeltaBadRequestException("Not registered") ;
+            throw new DeltaBadRequestException(HttpSC.FORBIDDEN_403, "Not registered") ;
     }
 
     @Override

@@ -31,6 +31,8 @@ import org.seaborne.patch.RDFPatch ;
  */
 public interface DeltaLink {
     // XXX Rename to "log"
+    // XXX Add an "open" step rather than part of the construction of the implementation.
+    
     /** 
      * Create a new dataset and return the unique Id for it.
      * <p>
@@ -95,4 +97,8 @@ public interface DeltaLink {
      * This operation is local. 
      */
     public Id getClientId();
+    
+    /** Shutdown the link. */
+    public void close();
+    
 }
