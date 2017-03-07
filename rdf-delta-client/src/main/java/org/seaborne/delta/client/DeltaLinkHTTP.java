@@ -86,6 +86,12 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             throw new DeltaNotConnectedException("Not connected to URL = "+remoteServer);
     }
 
+    // A quick local check only.
+    private void checkRegistered() {
+        if ( regToken == null ) 
+            throw new DeltaNotConnectedException("Not registered");
+    }
+
     @Override
     public int getCurrentVersion(Id dsRef) {
         checkLink();
@@ -100,7 +106,10 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     }
 
     public RDFChangesHTTP createRDFChanges(Id dsRef) {
+        Objects.requireNonNull(dsRef);
         checkLink();
+        checkRegistered();
+        
         String s = DeltaLib.makeURL(remoteSend, DPConst.paramReg, regToken.asString(), DPConst.paramDatasource, dsRef.asParam());
         return new RDFChangesHTTP(s);
     }

@@ -18,13 +18,15 @@
 
 package org.seaborne.delta.server.local;
 
+import static org.apache.jena.atlas.lib.ListUtils.toList;
+
 import java.io.InputStream ;
 import java.util.List;
 
-import static org.apache.jena.atlas.lib.ListUtils.toList;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
@@ -61,6 +63,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public void close() {
         linkOpen = false;
+        localServer.shutdown();
     }
 
     private void checkLink() {
@@ -144,7 +147,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     private DataSource getDataSource(Id dsRef) {
         DataSource source = localServer.getDataSource(dsRef);
         if ( source == null )
-            throw new DeltaBadRequestException(404, "No such data source: " + dsRef);
+            throw new DeltaNotFoundException("No such data source: " + dsRef);
         return source;
     }
 
@@ -167,7 +170,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef);
         RDFPatch patch = source.getPatchLog().fetch(patchId) ;
         if ( patch == null )
-            throw new DeltaBadRequestException(404, "No such patch: "+patchId) ;
+            throw new DeltaNotFoundException("No such patch: "+patchId) ;
         FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
         return patch ;
     }

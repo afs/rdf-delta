@@ -20,6 +20,8 @@ package dev;
 
 public class DevToDo {
     // Initial data : "version 0"
+    // getInitialData -> stream of quads (as a patch?)
+    // XXX [INIT]
     
     // DeltaConnection.sync.
     //   local version = -1 ==> must initialize data. 

@@ -153,11 +153,11 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     
     public void send() {
         synchronized(syncObject) {
-            if ( ! changed() ) {
-                reset();
-                LOG.info("Skip TX-TC no change");
-                return;
-            }
+//            if ( ! changed() ) {
+//                reset();
+//                LOG.info("Skip TX-TC no change");
+//                return;
+//            }
             send$();
         }
     }
@@ -211,6 +211,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         HttpPost postRequest = new HttpPost(url);
         byte[] bytes = collected();
 
+        FmtLog.info(LOG, "Send patch : %s", url);
+        
         String s = new String(bytes, StandardCharsets.UTF_8);
         if ( true ) {
             LOG.info("== Sending ...");

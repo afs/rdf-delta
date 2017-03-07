@@ -20,7 +20,9 @@ package org.seaborne.delta.link;
 
 import java.util.List;
 
+import org.apache.jena.atlas.web.TypedInputStream;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFPatch ;
 
@@ -63,13 +65,21 @@ public interface DeltaLink {
     /** Send patch, return new version */
     public int sendPatch(Id dsRef, RDFPatch patch);
     
+    /** Get the current version: if this is an HTTP connection, this causes network traffic. */
     public int getCurrentVersion(Id dsRef);
 
-    /** Retrieve a patch by datasource and version, and write it to the {@code OutputStream}. */ 
+    /** Retrieve a patch by datasource and version. */ 
     public RDFPatch fetch(Id dsRef, int version);
 
-    /** Retrieve a patch and write it to the {@code OutputStream}. */ 
+    /** Retrieve a patch by datasource and patch id. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);
+
+    // XXX [INIT]
+//    /** Retrieve the initial state of a datasource. 
+//     *  Returns null if there is no registered initial state.
+//     *  @throws DeltaNotFoundException if the datasource does not exist.  
+//     */
+//    public TypedInputStream initialState(Id dsRef);
 
     /** Register a client id.
      * Only one client can be registered on a link at a time.

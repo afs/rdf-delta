@@ -51,7 +51,10 @@ public abstract class DeltaServletBase extends HttpServlet {
     // Static to catch cross contamination.
     protected final Map<Id, DeltaLink> links = new ConcurrentHashMap<>();
     // These should be unique across the server.
-    protected static final Map<RegToken, Id>  registrations = new ConcurrentHashMap<>();
+    // XXX [JVM-global registrations]
+    protected static final Map<RegToken, Id> registrations = new ConcurrentHashMap<>();
+    public static void clearRegistration(RegToken regToken) { registrations.remove(regToken) ; }  
+    public static void clearAllRegistrations()              { registrations.clear(); }
     
     protected DeltaServletBase(AtomicReference<DeltaLink> engine) {
         this.engine = engine;

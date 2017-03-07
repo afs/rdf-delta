@@ -39,7 +39,7 @@ public class DataRegistry extends Registry<Id, DataSource> {
     
     @Override
     public void put(Id key, DataSource ds) {
-        LOG.info("Register: "+key );
+        LOG.info("Register datasource: "+key );
         super.put(key, ds) ;
         if ( ds.getURI() != null )
             indexByURI.put(ds.getURI(), ds);

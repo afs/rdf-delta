@@ -20,8 +20,12 @@ package org.seaborne.patch;
 
 import java.io.InputStream ;
 import java.io.OutputStream ;
+import java.util.Collections;
 
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.shared.uuid.JenaUUID;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
@@ -40,7 +44,44 @@ public class RDFPatchOps {
         InputStream in = IO.openFile(filename) ;
         return read(in) ;
     }
+
+    private static class RDFPatchNull implements RDFPatch {
+        private final PatchHeader header = new PatchHeader(Collections.emptyMap());
+        @Override
+        public PatchHeader header() {
+            return header();
+        }
+        @Override
+        public void apply(RDFChanges changes) {}
+    }
+
+    private static class RDFPatchEmpty implements RDFPatch {
+        private final Node id = NodeFactory.createURI(JenaUUID.generate().asURI());
+        private final PatchHeader header = new PatchHeader(Collections.singletonMap(RDFPatch.ID, id));
+        
+        @Override
+        public PatchHeader header() {
+            return header();
+        }
+        @Override
+        public void apply(RDFChanges changes) {
+            changes.txnBegin();
+            changes.txnCommit();
+        }
+    }
     
+    /** A immutable "nullop" patch - no transaction, no id. */
+    public static RDFPatch nullPatch() {
+        return new RDFPatchNull();
+    }
+    
+    /** An immutable "empty" patch - a single transaction of no changes.
+     * Each call generates a new empty patch with a different id.
+     */
+    public static RDFPatch emptyPatch() {
+        return new RDFPatchEmpty();
+    }
+
     /** Read an {@link RDFPatch} from a file. */
     public static RDFPatch read(InputStream input) {
         PatchReader pr = new PatchReader(input) ;

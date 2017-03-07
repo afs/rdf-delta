@@ -21,14 +21,25 @@ package dev;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.cache.CachingHttpClient;
+import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.RegToken;
 import org.seaborne.delta.server.http.DataPatchServer;
+import org.seaborne.delta.server.http.DeltaServletBase;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 
 public class Run {
     static { 
@@ -58,15 +69,51 @@ public class Run {
     // DataSource Descriptior and LocalServer.SourceDescriptor are the same.
     
     public static void main(String... args) throws IOException {
+        try {
+            main$();
+        } catch (Throwable ex) {
+            System.out.println();
+            System.out.flush();
+            ex.printStackTrace();
+            System.exit(1); }
+    }
+    
+    public static void main$() throws IOException {
         DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
         server.start();
         String URL = "http://localhost:1066/";
         
         DeltaLink dLink1 = DeltaLinkHTTP.connect(URL);
         dLink1.register(Id.create());
-        DeltaLink dLink2 = DeltaLinkHTTP.connect(URL);
-        dLink2.register(Id.create());
         
+        Id dsref = dLink1.listDatasets().get(0);
+        RegToken rt = dLink1.getRegToken();
+        // Fakwe server restart.
+        //dLink1.deregister();
+        //DeltaServletBase.clearRegistration(rt);
+        DeltaServletBase.clearAllRegistrations();
+
+//        server.stop();
+//
+//        HttpClient hc = HttpOp.getDefaultHttpClient() ;
+//        if ( hc instanceof CloseableHttpClient )
+//            IO.close((CloseableHttpClient)hc) ;
+//
+//        HttpOp.setDefaultHttpClient(HttpClients.createDefault());
+//
+//        server = null ;
+//        System.out.println();
+//
+//        DataPatchServer server2 = DataPatchServer.server(1066, "DeltaServer");
+//        server2.start();
+        
+        //RDFPatch patch = RDFPatchOps.nullPatch(); 
+        RDFPatch patch = RDFPatchOps.emptyPatch(); 
+        //RDFPatch patch = RDFPatchOps.onePatch(); 
+
+        System.out.println();
+        // No registration check on DeltaLinkLocal
+        dLink1.sendPatch(dsref, patch);
         System.out.println("DONE");
         System.exit(0);
     }

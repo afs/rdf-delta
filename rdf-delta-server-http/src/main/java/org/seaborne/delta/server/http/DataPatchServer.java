@@ -63,7 +63,7 @@ public class DataPatchServer {
 
     private DataPatchServer(int port, DeltaLink engine) {
         DPS.init();
-        this.port= port;
+        this.port = port;
         this.server = jettyServer(port, false);
         this.engineRef = new AtomicReference<>(null);
         setEngine(engine);
@@ -123,7 +123,8 @@ public class DataPatchServer {
     /** Internal */
     public void setEngine(DeltaLink engine) {
         if ( engine != null ) {
-            // Local registration to underlying engine
+            if ( engineRef.get() != null )
+                engineRef.get().close();
             Id clientId = Id.create();
             engine.register(clientId);
         }

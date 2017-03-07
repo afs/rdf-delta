@@ -29,6 +29,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.patch.RDFPatch;
@@ -78,13 +79,15 @@ public class S_Fetch extends HttpOperationBase {
         if ( action.httpArgs.patchId != null ) {
             Id patchId = Id.fromString(action.httpArgs.patchId) ;
             patch = action.dLink.fetch(dsRef, patchId);
+            if ( patch == null )
+                throw new DeltaNotFoundException("Patch not found: id="+patchId);
         } else if ( action.httpArgs.version != null ) {
             int version = Integer.parseInt(action.httpArgs.version);
             patch = action.dLink.fetch(dsRef, version);
+            if ( patch == null )
+                throw new DeltaNotFoundException("Patch not found: version="+version);
         } else
             throw new DeltaBadRequestException("No version, no patch id");
-        if ( patch == null )
-            throw new DeltaBadRequestException(HttpSC.NOT_FOUND_404, "Not found");
         OutputStream out = action.response.getOutputStream() ;
         //action.response.setCharacterEncoding(WebContent.charsetUTF8);
         action.response.setStatus(HttpSC.OK_200);
