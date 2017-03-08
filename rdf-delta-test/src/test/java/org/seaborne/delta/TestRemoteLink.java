@@ -34,12 +34,6 @@ public class TestRemoteLink extends AbstractTestDeltaLink {
         return setup;
     }
     
-    // HTTP: Need to fake the low level send.
-    @Test
-    @Ignore
-    @Override
-    public void patch_02() {}
-    
     @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
     @AfterClass  public static void afterClass()    { setup.afterClass(); }
     @Before public void beforeTest()                { setup.beforeTest(); }

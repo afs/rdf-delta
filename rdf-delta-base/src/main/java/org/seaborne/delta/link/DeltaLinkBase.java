@@ -34,7 +34,11 @@ public abstract class DeltaLinkBase implements DeltaLink {
     @Override
     final
     public RegToken register(Id clientId) {
-        if ( isRegistered() ) {
+        // Aligned to DeltaLinkHTTP behaviour for testing purpoes.
+        // Allow multiple registrations.
+        // It has the effect of swapping the valid RegToken, hence link a client restart
+        // XXX Rework later.
+        if ( false && isRegistered() ) {
             if ( this.clientId.equals(clientId) ) {
                 Log.warn(this,  "Already registered: "+clientId);
                 return regToken; 

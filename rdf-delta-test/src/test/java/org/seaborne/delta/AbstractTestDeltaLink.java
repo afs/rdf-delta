@@ -104,8 +104,8 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void register_06() { 
-        // Not valid for DeltaLinkLocal.  Registration is not provided. 
-        // Valid for for DeltaLinkHTTP (client restart).
+        // Not valid for DeltaLinkLocal.  Multiple registration is not provided. 
+        // Valid for for DeltaLinkHTTP and happens when a client restarts.
         DeltaLink dLink = getLink();
         Id clientId1 = Id.create();
         Id clientId2 = Id.create();
@@ -132,6 +132,8 @@ public abstract class AbstractTestDeltaLink {
     // Patch at the link level. 
     @Test
     public void patch_01() {
+        // LOG OUPUT
+        
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_01", "http://example/");
         
@@ -163,7 +165,6 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void patch_02() {
-        // HTTP: Ignored: Need to fake the low level send.
         // Unregistered patch
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_02", "http://example/");
@@ -172,21 +173,8 @@ public abstract class AbstractTestDeltaLink {
             InputStream in = IO.openFile(DeltaTestLib.TDIR+"/patch1.rdfp");
             RDFPatch patch = RDFPatchOps.read(in);
             int version1 = dLink.sendPatch(dsRef, patch);
-            fail("Managed to send a patch wnen not registered");
+            fail("Managed to send a patch when not registered");
         } catch (DeltaException ex) {} 
-    }
-    
-    private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
-        RDFChangesCollector c1 = new RDFChangesCollector();
-        patch1.apply(c1);
-        // The getRDFPatch is a RDFPatchStored which supports hashCode and equals.
-        RDFChangesCollector.RDFPatchStored p1 = (RDFChangesCollector.RDFPatchStored)c1.getRDFPatch();
-        
-        RDFChangesCollector c2 = new RDFChangesCollector();
-        patch2.apply(c2);
-        RDFChangesCollector.RDFPatchStored p2 = (RDFChangesCollector.RDFPatchStored)c2.getRDFPatch();
-        
-        return Objects.equal(p1, p2);
     }
     
     // Link test, connection test.
@@ -248,7 +236,7 @@ public abstract class AbstractTestDeltaLink {
         // Not registered.
         Id dsRef1 = dLink.newDataSource("datasource_03", "http://example/uri");
     }
-        
+
     @Test
     public void datasource_04() {
         DeltaLink dLink = getLinkRegistered();
@@ -257,7 +245,8 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(1, dLink.listDatasets().size());
         assertEquals(1, dLink.allDescriptions().size());
 
-        try { // Check where the exception occurs.
+        try {
+            // Check where the exception occurs.
             // Already exists : URI is not a factor.
             Id dsRef2 = dLink.newDataSource("datasource_04", "http://example/uri2");
             fail("Managed to create twice");
@@ -323,5 +312,16 @@ public abstract class AbstractTestDeltaLink {
         assertNull(dsd);
     }
 
-
+    private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
+        RDFChangesCollector c1 = new RDFChangesCollector();
+        patch1.apply(c1);
+        // The getRDFPatch is a RDFPatchStored which supports hashCode and equals.
+        RDFChangesCollector.RDFPatchStored p1 = (RDFChangesCollector.RDFPatchStored)c1.getRDFPatch();
+        
+        RDFChangesCollector c2 = new RDFChangesCollector();
+        patch2.apply(c2);
+        RDFChangesCollector.RDFPatchStored p2 = (RDFChangesCollector.RDFPatchStored)c2.getRDFPatch();
+        
+        return Objects.equal(p1, p2);
+    }
 }

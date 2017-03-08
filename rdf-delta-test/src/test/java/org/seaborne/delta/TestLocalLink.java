@@ -34,13 +34,6 @@ public class TestLocalLink extends AbstractTestDeltaLink {
         return setup;
     }
     
-    @Override
-    @Ignore
-    @Test
-    public void register_06() {
-        
-    }
-    
     @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
     @AfterClass  public static void afterClass()    { setup.afterClass(); }
     @Before public void beforeTest()                { setup.beforeTest(); }
