@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+ARGS="$@"
+if [[ $# = 0 ]]
+then
+    ARGS="--base=DeltaServer"
+fi
+
+dcmd org.seaborne.delta.server.http.CmdDeltaServer $ARGS
