@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.seaborne.delta.DPConst;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.RegToken;
 
@@ -43,17 +43,17 @@ public class Args {
     private static Map<String,Args> registration = new ConcurrentHashMap<>(); 
 
     public static Args args(HttpServletRequest request) {
-        String ref = request.getParameter(DPConst.paramRef);
+        String ref = request.getParameter(DeltaConst.paramRef);
         if ( ref != null )
             return registration.get(ref);
-        String zone = request.getParameter(DPConst.paramZone);
-        String dataset = request.getParameter(DPConst.paramDatasource);
-        String patchId = request.getParameter(DPConst.paramPatch);
-        String version = request.getParameter(DPConst.paramVersion);
+        String zone = request.getParameter(DeltaConst.paramZone);
+        String dataset = request.getParameter(DeltaConst.paramDatasource);
+        String patchId = request.getParameter(DeltaConst.paramPatch);
+        String version = request.getParameter(DeltaConst.paramVersion);
         
-        String clientIdStr = request.getParameter(DPConst.paramClient);
+        String clientIdStr = request.getParameter(DeltaConst.paramClient);
         Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
-        String regTokenStr = request.getParameter(DPConst.paramReg);  
+        String regTokenStr = request.getParameter(DeltaConst.paramReg);  
         RegToken regToken = regTokenStr == null ? null : new RegToken(regTokenStr);
         return new Args(zone, dataset, patchId, version, clientId, regToken);
     }

@@ -44,6 +44,9 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
         super.header(field, value);
     }
 
+    // 6 chars of UUID.
+    private static int AbbrevUuidLen = "uuid:".length()+6;
+    
     @Override
     public void finish() {
         depth-- ;
@@ -59,8 +62,9 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
             else
                 s = node.getLiteralLexicalForm();
         }
-        if ( s.length() > 11 )
-            s = s.substring(0, 11)+"...";
+        if ( s.startsWith("uuid:") && s.length() > AbbrevUuidLen )
+            //s = s.substring(0, 11)+"...";
+            s = s.substring(0, 11);
         
         printer.print("%s :: QA: %d :: QD %d :: PA %d :: PD %d",
                       s,

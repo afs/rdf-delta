@@ -88,7 +88,7 @@ public class Run {
         
         Id dsref = dLink1.listDatasets().get(0);
         RegToken rt = dLink1.getRegToken();
-        // Fakwe server restart.
+        // Fake server restart.
         //dLink1.deregister();
         //DeltaServletBase.clearRegistration(rt);
         DeltaServletBase.clearAllRegistrations();

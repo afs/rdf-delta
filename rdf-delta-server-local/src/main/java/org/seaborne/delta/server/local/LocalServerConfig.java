@@ -18,9 +18,9 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.seaborne.delta.DPConst.F_PORT;
-import static org.seaborne.delta.DPConst.F_VERSION;
-import static org.seaborne.delta.DPConst.*;
+import static org.seaborne.delta.DeltaConst.F_PORT;
+import static org.seaborne.delta.DeltaConst.F_VERSION;
+import static org.seaborne.delta.DeltaConst.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,7 +29,7 @@ import java.nio.file.Paths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DPConst;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.lib.IOX;
@@ -93,7 +93,7 @@ public class LocalServerConfig {
     static public class Builder {
         private static Logger LOG = Delta.DELTA_CONFIG_LOG;
         private Location location = null;
-        private int port = DPConst.PORT;
+        private int port = DeltaConst.PORT;
         private String configFile = null;
         
         public Builder setPort(int port) {
@@ -129,10 +129,10 @@ public class LocalServerConfig {
             int version = JSONX.getInt(obj, F_VERSION, -99);
             if ( version == -99 ) {
                 LOG.warn("No version number for the configuration file : assuming 'current'");
-                version = DPConst.SYSTEM_VERSION;
+                version = DeltaConst.SYSTEM_VERSION;
             }
             if ( version != SYSTEM_VERSION )
-                throw new DeltaConfigException("Version number for LocalServer must be "+DPConst.SYSTEM_VERSION+".");
+                throw new DeltaConfigException("Version number for LocalServer must be "+DeltaConst.SYSTEM_VERSION+".");
             
             int port = JSONX.getInt(obj, F_PORT, -1);
             if ( port <= 0  ) {

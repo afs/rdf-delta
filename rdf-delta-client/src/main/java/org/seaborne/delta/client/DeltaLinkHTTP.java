@@ -67,13 +67,11 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
         this.linkOpen = true;
 
         // One URL
-        this.remoteSend = serverURL+DPConst.EP_PatchLog;
-        this.remoteReceive = serverURL+DPConst.EP_PatchLog;
+        this.remoteSend = serverURL+DeltaConst.EP_PatchLog;
+        this.remoteReceive = serverURL+DeltaConst.EP_PatchLog;
 //        // Separate URLs
 //        this.remoteSend = serverURL+DPConst.EP_Append;
 //        this.remoteReceive = serverURL+DPConst.EP_Fetch;
-
-        
     }
     
     @Override
@@ -99,7 +97,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
             b.key("datasource").value(dsRef.asPlainString());
         });
         
-        JsonValue r = rpcToValue(DPConst.OP_VERSION, arg);
+        JsonValue r = rpcToValue(DeltaConst.OP_VERSION, arg);
         if ( ! r.isNumber() )
             System.err.println("Not a number: "+r);
         return r.getAsNumber().value().intValue();
@@ -110,7 +108,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
         checkLink();
         checkRegistered();
         
-        String s = DeltaLib.makeURL(remoteSend, DPConst.paramReg, regToken.asString(), DPConst.paramDatasource, dsRef.asParam());
+        String s = DeltaLib.makeURL(remoteSend, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam());
         return new RDFChangesHTTP(s);
     }
 
@@ -124,7 +122,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
         if ( str != null ) {
             try {
                 JsonObject obj = JSON.parse(str);
-                int version = obj.get(DPConst.F_VERSION).getAsNumber().value().intValue();
+                int version = obj.get(DeltaConst.F_VERSION).getAsNumber().value().intValue();
                 return version;
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -136,14 +134,14 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
         checkLink();
-        String s = DeltaLib.makeURL(remoteReceive, DPConst.paramDatasource, dsRef.asParam(), DPConst.paramVersion, version);
+        String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramVersion, version);
         return fetchCommon(s);
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         checkLink();
-        String s = DeltaLib.makeURL(remoteReceive, DPConst.paramDatasource, dsRef.asParam(), DPConst.paramPatch, patchId.asParam());
+        String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramPatch, patchId.asParam());
         return fetchCommon(s);
     }
     
@@ -185,10 +183,10 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     public RegToken register(Id clientId) {
         checkLink();
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_CLIENT).value(clientId.asPlainString());
+            b.key(DeltaConst.F_CLIENT).value(clientId.asPlainString());
         });
-        JsonObject obj = rpc(DPConst.OP_REGISTER, arg);
-        String s = obj.get(DPConst.F_TOKEN).getAsString().value();
+        JsonObject obj = rpc(DeltaConst.OP_REGISTER, arg);
+        String s = obj.get(DeltaConst.F_TOKEN).getAsString().value();
         RegToken token = new RegToken(s);
         this.clientId = clientId; 
         this.regToken = token;
@@ -198,15 +196,15 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public void deregister() {
         checkLink();
-        JsonObject obj = rpc(DPConst.OP_DEREGISTER, emptyObject);
+        JsonObject obj = rpc(DeltaConst.OP_DEREGISTER, emptyObject);
         regToken = null;
     }
 
     @Override
     public boolean isRegistered() {
         checkLink();
-        JsonObject obj = rpc(DPConst.OP_ISREGISTERED, emptyObject);
-        return obj.get(DPConst.F_VALUE).getAsBoolean().value();
+        JsonObject obj = rpc(DeltaConst.OP_ISREGISTERED, emptyObject);
+        return obj.get(DeltaConst.F_VALUE).getAsBoolean().value();
     }
 
     @Override
@@ -221,8 +219,8 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     
     @Override
     public List<Id> listDatasets() {
-        JsonObject obj = rpc(DPConst.OP_LIST_DS, emptyObject);
-        JsonArray array = obj.get(DPConst.F_ARRAY).getAsArray();
+        JsonObject obj = rpc(DeltaConst.OP_LIST_DS, emptyObject);
+        JsonArray array = obj.get(DeltaConst.F_ARRAY).getAsArray();
         List<Id> x = array.stream()
             .map(jv->Id.fromString(jv.getAsString().value()))
             .collect(Collectors.toList()) ;
@@ -231,8 +229,8 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
 
     @Override
     public List<DataSourceDescription> allDescriptions() {
-        JsonObject obj = rpc(DPConst.OP_LIST_DSD, emptyObject);
-        JsonArray array = obj.get(DPConst.F_ARRAY).getAsArray();
+        JsonObject obj = rpc(DeltaConst.OP_LIST_DSD, emptyObject);
+        JsonArray array = obj.get(DeltaConst.F_ARRAY).getAsArray();
         List<DataSourceDescription> x = array.stream()
             .map(jv->getDataSourceDescription(jv.getAsObject()))
             .collect(Collectors.toList()) ;
@@ -243,15 +241,15 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     public Id newDataSource(String name, String uri) {
         Objects.requireNonNull(name);
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_NAME).value(name);
+            b.key(DeltaConst.F_NAME).value(name);
             if ( uri != null )
-                b.key(DPConst.F_URI).value(uri);
+                b.key(DeltaConst.F_URI).value(uri);
         });
-        JsonObject obj = rpc(DPConst.OP_CREATE_DS, arg);
+        JsonObject obj = rpc(DeltaConst.OP_CREATE_DS, arg);
 
         // Exists?
         
-        String idStr = obj.get(DPConst.F_ID).getAsString().value();
+        String idStr = obj.get(DeltaConst.F_ID).getAsString().value();
         Id dsRef = Id.fromString(idStr);
         return dsRef;
     }
@@ -261,15 +259,15 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public void removeDataset(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_DATASOURCE).value(dsRef.asPlainString());
+            b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
         });
-        JsonObject obj = rpc(DPConst.OP_REMOVE_DS, arg);
+        JsonObject obj = rpc(DeltaConst.OP_REMOVE_DS, arg);
     }
 
     @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_DATASOURCE).value(dsRef.asPlainString());
+            b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
         });
         return getDataSourceDescription(arg);
     }
@@ -277,13 +275,13 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     @Override
     public DataSourceDescription getDataSourceDescription(String uri) {
         JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DPConst.F_URI).value(uri);
+            b.key(DeltaConst.F_URI).value(uri);
         });
         return getDataSourceDescription(arg);
     }
     
     private DataSourceDescription getDataSourceDescription(JsonObject arg) {
-        JsonObject obj = rpc(DPConst.OP_DESCR_DS, arg);
+        JsonObject obj = rpc(DeltaConst.OP_DESCR_DS, arg);
         if ( obj.isEmpty() )
             return null;
         return DataSourceDescription.fromJson(obj);
@@ -292,7 +290,7 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         if ( arg == null )
             arg = emptyObject;
-        return DRPC.rpc(remoteServer + DPConst.EP_RPC, opName, regToken, arg);
+        return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, arg);
     }
     
     private JsonObject rpc(String opName, JsonObject arg) {

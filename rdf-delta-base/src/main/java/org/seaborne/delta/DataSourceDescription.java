@@ -20,7 +20,7 @@ package org.seaborne.delta;
 
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.lib.JSONX;
-import static org.seaborne.delta.DPConst.*;
+import static org.seaborne.delta.DeltaConst.*;
 
 public class DataSourceDescription {
     public final Id id;

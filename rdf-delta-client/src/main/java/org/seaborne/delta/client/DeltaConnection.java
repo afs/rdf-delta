@@ -102,7 +102,9 @@ public class DeltaConnection implements AutoCloseable {
             DataState dataState = zone.create(dsd.name, datasourceId, Backing.TDB);
             DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
             return dConn;
-        }        
+        }
+        // Disk refresh.
+        zone.refresh(datasourceId);
         DataState dataState = zone.attach(datasourceId);
         if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
             throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);

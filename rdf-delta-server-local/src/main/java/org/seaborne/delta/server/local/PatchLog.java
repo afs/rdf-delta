@@ -128,7 +128,7 @@ public class PatchLog {
                     startEntry = entry;
                 idToNumber.put(patchId, idx);
                 FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, idx);
-            } catch ( IOException ex ) { throw IOX.exception(ex); } 
+            } catch ( IOException ex ) { throw IOX.exception(ex); }
         });
         
         // XXX Fill cache.
@@ -141,6 +141,8 @@ public class PatchLog {
             } catch ( IOException ex ) { throw IOX.exception(ex); } 
         });
         
+        // Validate the patch chain.
+        // Find the last patch id.
         if ( VALIDATE_PATCH_LOG ) {
             // read all patches.
             // validate
@@ -150,18 +152,16 @@ public class PatchLog {
         HistoryEntry currentEntry;
         if ( fileStore.isEmpty() ) {
             currentEntry = null;
-            FmtLog.info(LOG, "PatchLog for %s, starts empty", dsRef);
+            FmtLog.info(LOG, "PatchLog data id=%s starts empty", dsRef);
         } else {
             // Last patch starts history.
             int x = fileStore.getCurrentIndex();
             RDFPatch patch = fetch(fileStore, x);
             Id patchId = Id.fromNode(patch.getId());
+            
             currentEntry = new HistoryEntry(patch.header(), x, null, patchId, null);
-            FmtLog.info(LOG, "PatchLog for %s, history until %s", dsRef, patchId); 
+            FmtLog.info(LOG, "Patch log data id=%s ends (%s, version=%d)", dsRef, patchId, x);
         }
-        
-        // Validate the patch chain.
-        // Find the last patch id.
         return new PatchLog(dsRef, name, location, idToNumber, currentEntry);
     }
 

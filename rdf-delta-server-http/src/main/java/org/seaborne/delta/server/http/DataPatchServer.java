@@ -30,7 +30,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.seaborne.delta.DPConst;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
@@ -50,7 +50,7 @@ public class DataPatchServer {
     /** Packaged start up : one area, with config file.*/
     public static DataPatchServer server(int port, String path) {
         Location baseArea = Location.create(path);
-        String configFile = baseArea.getPath(DPConst.SERVER_CONFIG);
+        String configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         LocalServer server = LocalServer.attach(baseArea, configFile);
         DeltaLink link = DeltaLinkLocal.connect(server);
         return DataPatchServer.create(port, link) ;
@@ -71,12 +71,12 @@ public class DataPatchServer {
         ServletContextHandler handler = buildServletContext("/");
         
         // Combined name.
-        addServlet(handler, "/"+DPConst.EP_PatchLog, new S_PatchLog(this.engineRef));
+        addServlet(handler, "/"+DeltaConst.EP_PatchLog, new S_PatchLog(this.engineRef));
         
         // Receive patches
-        addServlet(handler, "/"+DPConst.EP_Append, new S_Patch(this.engineRef));
+        addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
         // Return patches
-        addServlet(handler, "/"+DPConst.EP_Fetch, new S_Fetch(this.engineRef));
+        addServlet(handler, "/"+DeltaConst.EP_Fetch, new S_Fetch(this.engineRef));
 
 //        // Trailing name.
 //        addServlet("/"+DPConst.EP_Fetch+"/*", new S_Fetch(this.engineRef));

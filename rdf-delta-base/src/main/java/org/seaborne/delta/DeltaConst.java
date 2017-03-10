@@ -18,7 +18,7 @@
 
 package org.seaborne.delta;
 
-public class DPConst {
+public class DeltaConst {
     // Endpoints.
     public static final String EP_RPC          = "rpc";
     public static final String EP_PatchLog     = "patch-log";

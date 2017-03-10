@@ -18,9 +18,9 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.seaborne.delta.DPConst.F_BASE;
-import static org.seaborne.delta.DPConst.F_ID;
-import static org.seaborne.delta.DPConst.F_URI;
+import static org.seaborne.delta.DeltaConst.F_BASE;
+import static org.seaborne.delta.DeltaConst.F_ID;
+import static org.seaborne.delta.DeltaConst.F_URI;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -89,7 +89,7 @@ public class LocalServer {
      * @return LocalServer
      */
     public static LocalServer attach(Location serverRoot) {
-        return attach(serverRoot, DPConst.SERVER_CONFIG); 
+        return attach(serverRoot, DeltaConst.SERVER_CONFIG); 
     }
     
     /** Attach to the runtime area for the server. 
@@ -178,7 +178,7 @@ public class LocalServer {
         if ( ! isMinimalDataSource(path) )
             return false;
         // Additional requirements
-        Path patchesArea = path.resolve(DPConst.PATCHES);
+        Path patchesArea = path.resolve(DeltaConst.PATCHES);
         if ( ! Files.exists(patchesArea) )
             return false;
         // If we keep a state file....
@@ -194,7 +194,7 @@ public class LocalServer {
     private static boolean isMinimalDataSource(Path path) {
         if ( ! Files.isDirectory(path) ) 
             return false ;
-        Path cfg = path.resolve(DPConst.DS_CONFIG);
+        Path cfg = path.resolve(DeltaConst.DS_CONFIG);
         if ( ! Files.exists(cfg) )
             return false ;
         if ( ! Files.isRegularFile(cfg) ) 
@@ -205,12 +205,12 @@ public class LocalServer {
     }
 
     private static boolean isEnabled(Path path) {
-        Path disabled = path.resolve(DPConst.DISABLED);
+        Path disabled = path.resolve(DeltaConst.DISABLED);
         return ! Files.exists(disabled);
     }
 
     private static DataSource makeDataSource(Path dataSourceArea, DataRegistry dataRegistry) {
-        JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DPConst.DS_CONFIG).toString());
+        JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DeltaConst.DS_CONFIG).toString());
         SourceDescriptor dss = fromJsonObject(sourceObj);
 
         Id id = dss.id;
@@ -222,7 +222,7 @@ public class LocalServer {
 //        String uriStr = JSONX.getStrOrNull(sourceObj, F_URI) ;
 //        String baseStr = JSONX.getStrOrNull(sourceObj, F_BASE);
       
-        Path patchesArea = dataSourceArea.resolve(DPConst.PATCHES);
+        Path patchesArea = dataSourceArea.resolve(DeltaConst.PATCHES);
         FileOps.ensureDir(patchesArea.toString());
         //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
         
@@ -337,7 +337,7 @@ public class LocalServer {
     }
     
     /*package*/ static Location patchArea(Location dataSourceArea) {
-        return dataSourceArea.getSubLocation(DPConst.PATCHES);
+        return dataSourceArea.getSubLocation(DeltaConst.PATCHES);
     }
 
     // static DataSource.createDataSource.
@@ -359,11 +359,11 @@ public class LocalServer {
         if ( ! isEnabled(sourcePath) )
             throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
         
-        String patchesDirName = sourceArea.getPath(DPConst.PATCHES);
+        String patchesDirName = sourceArea.getPath(DeltaConst.PATCHES);
         if ( FileOps.exists(patchesDirName) )
             throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
 
-        String dataDirName = sourceArea.getPath(DPConst.DATA);
+        String dataDirName = sourceArea.getPath(DeltaConst.DATA);
         if ( FileOps.exists(dataDirName) )
             throw new DeltaBadRequestException("DataSource area has a likely looking database already");
         
@@ -376,7 +376,7 @@ public class LocalServer {
         if ( ! inMemory ) {
             JsonObject obj = toJsonObj(descr);
             LOG.info(JSON.toStringFlat(obj));
-            try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DPConst.DS_CONFIG))) {
+            try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
                 JSON.write(out, obj);
             } catch (IOException ex)  { throw IOX.exception(ex); }
         }
@@ -395,7 +395,7 @@ public class LocalServer {
         disabledDatasources.add(dsRef);
         // Mark unavailable.
         if ( ! datasource.inMemory() ) {
-            Path disabled = datasource.getPath().resolve(DPConst.DISABLED);
+            Path disabled = datasource.getPath().resolve(DeltaConst.DISABLED);
             try { Files.createFile(disabled); } 
             catch (IOException ex) { throw IOX.exception(ex); }
         }

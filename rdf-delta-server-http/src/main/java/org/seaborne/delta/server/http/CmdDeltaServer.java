@@ -29,7 +29,7 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DPConst;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
@@ -66,12 +66,12 @@ public class CmdDeltaServer {
         if ( cla.contains(argConf) )
             configFile = cla.getArg(argConf).getValue();
         else
-            configFile = getenv(DPConst.ENV_CONFIG);
+            configFile = getenv(DeltaConst.ENV_CONFIG);
         
         // ---- Environment
         String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
         if ( runtimeArea == null ) {
-            runtimeArea = getenv(DPConst.ENV_BASE);
+            runtimeArea = getenv(DeltaConst.ENV_BASE);
             // Default to "."?
             if ( runtimeArea == null ) {
                 System.err.println("Must use --base or environment variable DELTA_BASE to set the server runtime area.");
@@ -101,7 +101,7 @@ public class CmdDeltaServer {
         Location baseArea = IOX.asLocation(base);
         
         if ( configFile == null )
-            configFile = baseArea.getPath(DPConst.SERVER_CONFIG);
+            configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         
         FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
         LocalServer server = LocalServer.attach(baseArea, configFile);
@@ -131,7 +131,7 @@ public class CmdDeltaServer {
         if ( cla.contains(argPort) ) {
             portStr = cla.getArg(argPort).getValue();
         } else {
-            portStr = getenv(DPConst.ENV_PORT);
+            portStr = getenv(DeltaConst.ENV_PORT);
         }
         
         if ( portStr != null ) {
@@ -144,7 +144,7 @@ public class CmdDeltaServer {
         }
         
         if ( port == -1 )
-            port = DPConst.PORT;
+            port = DeltaConst.PORT;
         
         return port ;
 

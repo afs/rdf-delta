@@ -22,12 +22,25 @@ public class DevToDo {
     // Initial data : "version 0"
     // getInitialData -> stream of quads (as a patch?)
     // XXX [INIT]
+    // Migrate PatchLogServer
+    // Tool: RDF to patch!
+    
+    // QA, QD => A D
+    // G trail or G = "_"
+    
+    // Start from blank each time (ignore "state") vs start from current state.
     
     // DeltaConnection.sync.
     //   local version = -1 ==> must initialize data. 
     
     // DeltaLinkHTTP : encapsuate all remote request with error handling.
     // DeltaLink : Add an "open" step rathe rthan part of the construction of the implementation.
+    
+    // Server PatchLog -> PatchLogStore
+    // DeltaConnection -> PatchLog, DeltaPatchLog.
+    //   PatchLogConnection PatchLogConn
+    
+    // Start up : "start from blank" -> ignore state 
     
     // Tests:
     //   bad patch

@@ -18,9 +18,9 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DPConst.F_ARG;
-import static org.seaborne.delta.DPConst.F_OP;
-import static org.seaborne.delta.DPConst.F_TOKEN;
+import static org.seaborne.delta.DeltaConst.F_ARG;
+import static org.seaborne.delta.DeltaConst.F_OP;
+import static org.seaborne.delta.DeltaConst.F_TOKEN;
 
 import java.io.IOException ;
 import java.util.Objects ;

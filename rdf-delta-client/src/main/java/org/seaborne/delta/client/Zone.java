@@ -17,7 +17,7 @@ package org.seaborne.delta.client;
  * limitations under the License.
  */
 
-import static org.seaborne.delta.DPConst.DATA;
+import static org.seaborne.delta.DeltaConst.DATA;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -139,6 +139,13 @@ public class Zone {
         }
     }
     
+    /** Refresh the DataState of a datasource */  
+    public void refresh(Id datasourceId) {
+        DataState ds = attach(datasourceId);
+        if ( ds == null )
+            return;
+        ds.refresh();
+    }
 
     public DataState attach(Id datasourceId) {
         if ( ! exists(datasourceId) )
@@ -192,7 +199,7 @@ public class Zone {
         // File: "state"
     
         boolean good = true;
-        Path dataArea = path.resolve(DPConst.DATA);
+        Path dataArea = path.resolve(DeltaConst.DATA);
         if ( ! Files.exists(dataArea) ) {
             FmtLog.warn(DataState.LOG,  "No data area: %s", path);
             good = false;

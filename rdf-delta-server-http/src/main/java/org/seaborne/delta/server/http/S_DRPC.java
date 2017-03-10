@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.server.http;
 
-import static org.seaborne.delta.DPConst.*;
+import static org.seaborne.delta.DeltaConst.*;
 import static java.lang.String.format;
 import java.io.IOException ;
 import java.io.InputStream ;

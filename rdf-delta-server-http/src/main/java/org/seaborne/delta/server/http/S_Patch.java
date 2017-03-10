@@ -32,7 +32,7 @@ import org.apache.jena.atlas.json.JsonNumber;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.riot.WebContent;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DPConst;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.Id;
@@ -88,7 +88,7 @@ public class S_Patch extends HttpOperationBase {
             JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()
                 .startObject()
-                .key(DPConst.F_VERSION).value(version)
+                .key(DeltaConst.F_VERSION).value(version)
                 .finishObject()
                 .build();
             OutputStream out = action.response.getOutputStream();

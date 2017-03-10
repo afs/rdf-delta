@@ -41,7 +41,6 @@
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
-      <version>${ver.jena}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

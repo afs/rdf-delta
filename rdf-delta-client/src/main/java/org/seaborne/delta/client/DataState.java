@@ -18,8 +18,8 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DPConst.F_DATASOURCE;
-import static org.seaborne.delta.DPConst.F_VERSION;
+import static org.seaborne.delta.DeltaConst.F_DATASOURCE;
+import static org.seaborne.delta.DeltaConst.F_VERSION;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -41,10 +41,11 @@ public class DataState {
     // DataSourceDescription
     
     static Logger LOG = LoggerFactory.getLogger(DataState.class);
-    /*package*/ static String STATE_FILE = DPConst.STATE_CLIENT;
+    /*package*/ static String STATE_FILE = DeltaConst.STATE_CLIENT;
     
     private final Zone zone;
-    private RefString state;
+    private RefString stateStr;
+    private PersistentState state;
 
     // Persistent state that varies.
     private final AtomicInteger version = new AtomicInteger(-999);
@@ -59,82 +60,36 @@ public class DataState {
     // {
     //   version:    int
     //   datasource: string/uuid
-    //   patch:      string/uuid
+    //   ?? patch:      string/uuid
     // }
-    
-//    public static DataState attach(Location filearea) {
-//        // if creating ...
-//        if ( ! filearea.isMem() ) {
-//            if ( ! filearea.exists() )
-//                FmtLog.warn(LOG, "Not such directory: %s", filearea);
-//        }
-//        Path path = Paths.get(filearea);
-//        if ( ! Files.exists(path) ) {
-//            LOG.error("No such directory: "+filearea);
-//            throw new DeltaException("No such directory: "+filearea);
-//        }
-//        if ( ! Files.isDirectory(path) ) {
-//            LOG.error("Not a directory: "+filearea);
-//            throw new DeltaException("Not a directory: "+filearea);
-//        }            
-//
-//        Path statePath = path.resolve(versionFile);
-//        RefLong version = new PersistentState(statePath);
-//
-//        Path dataPath = path.resolve(versionFile);
-//        if ( Files.exists(dataPath) ) {}
-//
-//         return new DataState 
-//}
-
-    // XXX Needs a lot of clean-up
-
-    // XXX Zone object.
-    // Global problems - per zone?
-    
-//    public static DataState attach(Id dsRef) {
-//        DataState ds = Zone.states.get(dsRef);
-//        if ( ds == null ) {
-//            LOG.error("No state for "+dsRef);
-//            throw new DeltaConfigException("No state for "+dsRef);
-//        }
-//        return ds;
-//    }
-//    
-//    public static DataState attach(Location workspace, Id dsRef) {
-////        if ( workspace.isMem() ) {
-////            FmtLog.error(LOG, "Requires a disk-backed Location: %s", workspace);
-////            throw new DeltaException("Requires a disk-back Location: "+workspace);
-////        }
-//        if ( ! workspace.exists() )
-//            FmtLog.warn(LOG, "Not such directory: %s", workspace);
-//        
-//        return new DataState(dsRef, workspace);
-//    }
-//    
-//    private DataState(Id dsRef, Location workspace) {
-//        // Memory and disk versions.
-//        this.workspace = workspace;
-//        loadState(workspace, dsRef);
-//        FmtLog.info(LOG, "%s : version = %s", dsRef, version);
-//    }
-//    
     
     /** Create from existing state */ 
     /*package*/ DataState(Zone zone, PersistentState state) {
         this.zone = zone;
         this.state = state;
+        this.stateStr = state;
         setStateFromString(this, state.getString());
         FmtLog.info(LOG, "%s : version = %s", datasource, version);
     }
     
     /** Create new, initialize state. */ 
-    /*package*/ DataState(Zone zone, Path state, Id dsRef, int version) {
+    /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, int version) {
         this.zone = zone;
-        this.state = new PersistentState(state);
         this.datasource = dsRef;
+        this.state = new PersistentState(stateFile);
+        this.stateStr = state;
         this.version.set(version);
         writeState(this);
+    }
+
+    public void refresh() {
+        load(getStatePath());
+    }
+    
+    private void load(Path stateFile) {
+        state = new PersistentState(stateFile);
+        stateStr = state;
+        readState(stateStr);
     }
 
     public int version() {
@@ -155,7 +110,7 @@ public class DataState {
     public synchronized void updateVersion(int newVersion) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
-        writeState(this.state, this.datasource, newVersion);
+        writeState(this.stateStr, this.datasource, newVersion);
         // Update local
         version.set(newVersion);
         // Failure: disk is ahead of memory: shadow data must already be updated.
@@ -164,6 +119,11 @@ public class DataState {
     
     public Id getDataSourceId() {
         return datasource;
+    }
+
+    /** Place on-disk where the state is stored. Use with care. */ 
+    public Path getStatePath() {
+        return state.getPath();
     }
 
     private static Map<Id, DataState> dataState = new ConcurrentHashMap<>();
@@ -217,7 +177,7 @@ public class DataState {
 
     
     private void writeState(DataState dataState) {
-        writeState(this.state, dataState.datasource, dataState.version());
+        writeState(this.stateStr, dataState.datasource, dataState.version());
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  
@@ -243,6 +203,7 @@ public class DataState {
             });
     }
     
+    /** Set version and datasource id from a string which is JOSN */
     private static void setStateFromString(DataState state, String string) {
         JsonObject obj = JSON.parse(string);
         setFromJsonObject(state, obj);

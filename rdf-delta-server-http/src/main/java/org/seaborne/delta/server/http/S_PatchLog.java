@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.seaborne.delta.DPConst;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
@@ -106,13 +106,13 @@ public class S_PatchLog extends HttpOperationBase {
     }
     
     protected boolean isAppendOperation(HttpServletRequest request) {
-        return request.getParameter(DPConst.paramPatch) == null &&
-               request.getParameter(DPConst.paramVersion) == null ;
+        return request.getParameter(DeltaConst.paramPatch) == null &&
+               request.getParameter(DeltaConst.paramVersion) == null ;
     }
 
     protected boolean isFetchOperation(HttpServletRequest request) {
-        return request.getParameter(DPConst.paramPatch) != null ||
-               request.getParameter(DPConst.paramVersion) != null ;
+        return request.getParameter(DeltaConst.paramPatch) != null ||
+               request.getParameter(DeltaConst.paramVersion) != null ;
     }
 
     private boolean isFetchOperation(DeltaAction action) {

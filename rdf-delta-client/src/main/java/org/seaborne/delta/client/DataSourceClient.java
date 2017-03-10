@@ -37,9 +37,9 @@ public class DataSourceClient {
     // XXX DeltaConnectionState.
     
     private static Logger LOG = Delta.DELTA_LOG;
-    private static String stateFile = DPConst.STATE_DS;
+    private static String stateFile = DeltaConst.STATE_DS;
     // Either a DB database or a file "data/data.ttl".
-    private static String dataDirectory = DPConst.DATA;
+    private static String dataDirectory = DeltaConst.DATA;
     
     private final DatasetGraph dsg;
     private final RefLong counter;
