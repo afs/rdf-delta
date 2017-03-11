@@ -22,7 +22,6 @@ import static org.seaborne.patch.ChangeCode.ADD_PREFIX ;
 import static org.seaborne.patch.ChangeCode.ADD_QUAD ;
 import static org.seaborne.patch.ChangeCode.DEL_PREFIX ;
 import static org.seaborne.patch.ChangeCode.DEL_QUAD ;
-import static org.seaborne.patch.ChangeCode.SET_BASE ;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
@@ -110,15 +109,6 @@ public class RDFChangesWriter implements RDFChanges {
         tok.sendString(prefix);
         if ( gn != null )
             tok.sendNode(gn);
-        tok.endTuple();
-        tok.flush();
-    }
-
-    @Override
-    public void setBase(String uriStr) {
-        tok.startTuple();
-        output(SET_BASE) ;
-        tok.sendString(uriStr);
         tok.endTuple();
         tok.flush();
     }

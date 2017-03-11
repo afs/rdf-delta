@@ -214,11 +214,6 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
     }
     
     @Override
-    public void setBase(String uriStr) {
-        collect(new SetBase(uriStr)) ;
-    }
-    
-    @Override
     public void txnBegin() {
         collect(new TxnBegin()) ;
     }

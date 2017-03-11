@@ -49,11 +49,6 @@ public class RDFChangesWrapper implements RDFChanges {
     }
 
     @Override
-    public void setBase(String uriStr) {
-        get().setBase(uriStr);
-    }
-
-    @Override
     public void txnBegin() {
         get().txnBegin();
     }

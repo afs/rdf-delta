@@ -96,11 +96,6 @@ public class RDFChangesN implements RDFChanges
     }
     
     @Override
-    public void setBase(String uriStr) {
-        changes.forEach(sc->sc.setBase(uriStr));
-    }
-
-    @Override
     public void txnBegin() {
         changes.forEach(sc->sc.txnBegin());
     }

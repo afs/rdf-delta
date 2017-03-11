@@ -103,9 +103,6 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     public void deletePrefix(Node gn, String prefix) { }
 
     @Override
-    public void setBase(String uriStr) { }
-
-    @Override
     public void txnBegin() { 
         out.write("# Begin\n") ;
     }

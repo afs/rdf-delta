@@ -30,7 +30,6 @@ public class RDFChangesCounter implements RDFChanges {
     public long countDeleteQuad   = 0;
     public long countAddPrefix    = 0;
     public long countDeletePrefix = 0;
-    public long countSetBase      = 0;
     public long countTxnBegin     = 0;
     public long countTxnCommit    = 0;
     public long countTxnAbort     = 0;
@@ -45,7 +44,6 @@ public class RDFChangesCounter implements RDFChanges {
         countDeleteQuad   = 0;
         countAddPrefix    = 0;
         countDeletePrefix = 0;
-        countSetBase      = 0;
         countTxnBegin     = 0;
         countTxnCommit    = 0;
         countTxnAbort     = 0;
@@ -84,11 +82,6 @@ public class RDFChangesCounter implements RDFChanges {
     @Override
     public void deletePrefix(Node gn, String prefix) {
         countDeletePrefix++;
-    }
-
-    @Override
-    public void setBase(String uriStr) {
-        countSetBase++;
     }
 
     @Override

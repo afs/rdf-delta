@@ -25,8 +25,6 @@ public enum ChangeCode {
     ADD_PREFIX("PA") ,
     DEL_PREFIX("PD") ,
     
-    SET_BASE("BA") ,
-    
     TXN_BEGIN("TX") ,
     TXN_COMMIT("TC") ,
     TXN_ABORT("TA") ,

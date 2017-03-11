@@ -40,8 +40,6 @@ public interface RDFChanges {
     public void addPrefix(Node gn, String prefix, String uriStr) ; 
     public void deletePrefix(Node gn, String prefix) ;
     
-    public void setBase(String uriStr) ; 
-
     /** Indicator that a transaction begins */
     public void txnBegin() ;
     

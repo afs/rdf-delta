@@ -39,12 +39,10 @@ public abstract class RDFChangesBase implements RDFChanges {
     
     @Override
     public void addPrefix(Node graph, String prefix, String uriStr) {} 
+    
     @Override
     public void deletePrefix(Node graph, String prefix) {}
     
-    @Override
-    public void setBase(String uriStr) {} 
-
     @Override
     public void txnBegin() {}
     

@@ -104,12 +104,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
 
     @Override
-    public void setBase(String uriStr) {
-        markChanged();
-        super.setBase(uriStr);
-    }
-    
-    @Override
     public void txnBegin() {
         if ( currentTransactionId == null ) {
             currentTransactionId = Id.create().asNode();

@@ -85,11 +85,6 @@ public class RDFChangesLog implements RDFChanges {
     }
     
     @Override
-    public void setBase(String uriStr) {
-        print("SetBase <%s>", uriStr) ;
-    }
-
-    @Override
     public void txnBegin() {
         print("Begin") ;
     }
