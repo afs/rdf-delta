@@ -21,16 +21,17 @@ package dev;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.riot.RDFDataMgr ;
+import org.apache.jena.riot.writer.WriterStreamRDFPlain ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 import org.seaborne.delta.server.http.DataPatchServer;
-import org.seaborne.delta.server.http.DeltaServletBase;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
@@ -78,13 +79,15 @@ public class Run {
         
         DeltaLink dLink1 = DeltaLinkHTTP.connect(URL);
         dLink1.register(Id.create());
-        
         Id dsref = dLink1.listDatasets().get(0);
-        RegToken rt = dLink1.getRegToken();
-        // Fake server restart.
-        //dLink1.deregister();
-        //DeltaServletBase.clearRegistration(rt);
-        DeltaServletBase.clearAllRegistrations();
+        
+        String s = dLink1.initialState(dsref);
+        System.out.println(s);
+        RDFDataMgr.parse(new WriterStreamRDFPlain(IO.wrapUTF8(System.out)), s);
+        System.out.println("DONE");
+        System.exit(0);
+        
+        
 
 //        server.stop();
 //

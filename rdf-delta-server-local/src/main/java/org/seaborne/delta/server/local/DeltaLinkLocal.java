@@ -21,14 +21,12 @@ package org.seaborne.delta.server.local;
 import static org.apache.jena.atlas.lib.ListUtils.toList;
 
 import java.io.InputStream ;
+import java.nio.file.Files ;
+import java.nio.file.Path ;
 import java.util.List;
 
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.apache.jena.atlas.web.TypedInputStream ;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.DeltaNotFoundException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
@@ -40,6 +38,8 @@ import org.slf4j.LoggerFactory ;
 
 /** Implementation of {@link DeltaLink}. */  
 public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
+    private static final int BUF_SIZE = 128*1024;
+
     private static Logger LOG = LoggerFactory.getLogger(DeltaLinkLocal.class) ;
     
     private final LocalServer localServer;
@@ -169,7 +169,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         return source.getPatchLog().getFileStore().getCurrentIndex();
     }
 
-    /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
+    /** Retrieve a patch by patchId. */ 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         checkLink();
@@ -181,7 +181,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         return patch ;
     }
 
-    /** Retrieve a patch and write it to the {@code OutptuSteram}. */ 
+    /** Retrieve a patch by version. */ 
     @Override
     public RDFPatch fetch(Id dsRef, int version) {
         checkLink();
@@ -199,7 +199,18 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
 
     @Override
-    public TypedInputStream initialState(Id dsRef) {
-        return null ;
+    public String initialState(Id dsRef) {
+        DataSource dataSource = getDataSource(dsRef);
+        Path p = dataSource.getInitialDataPath();
+        
+        
+        if ( Files.isDirectory(p) ) {
+            
+            throw new DeltaException("TDB database not supported for initial data");
+        } else if ( ! Files.isRegularFile(p) ) {
+            throw new DeltaException("Not a file or directory: "+p);
+        } else
+            // File.
+            return p.toUri().toString();
     }
 }

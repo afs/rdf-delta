@@ -48,7 +48,7 @@ public class DataSourceDescription {
         String name = obj.get(F_NAME).getAsString().value();
         String uri = null;
         if ( obj.hasKey(F_URI) )
-         uri = obj.get(F_URI).getAsString().value();
+            uri = obj.get(F_URI).getAsString().value();
         return new DataSourceDescription(Id.fromString(idStr), name, uri);
     }
     

@@ -23,7 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.Servlet;
 
+import org.apache.jena.riot.Lang ;
 import org.apache.jena.tdb.base.file.Location;
+import org.eclipse.jetty.http.MimeTypes ;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -77,6 +79,8 @@ public class DataPatchServer {
         addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
         // Return patches
         addServlet(handler, "/"+DeltaConst.EP_Fetch, new S_Fetch(this.engineRef));
+        // Initial data
+        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
 
 //        // Trailing name.
 //        addServlet("/"+DPConst.EP_Fetch+"/*", new S_Fetch(this.engineRef));
@@ -97,11 +101,24 @@ public class DataPatchServer {
             contextPath = "/" + contextPath ;
         ServletContextHandler context = new ServletContextHandler() ;
         context.setDisplayName("PatchLogServer") ;
+        MimeTypes mt = new MimeTypes();
+        addMimeType(mt, Lang.TTL);
+        addMimeType(mt, Lang.NT);
+        addMimeType(mt, Lang.TRIG);
+        addMimeType(mt, Lang.NQ);
+        addMimeType(mt, Lang.RDFXML);
+        context.setMimeTypes(mt);
         ErrorHandler eh = new HttpErrorHandler();
         context.setErrorHandler(eh) ;
         return context ;
     }
     
+    private static void addMimeType(MimeTypes mt, Lang lang) {
+        lang.getFileExtensions().forEach(ext->
+            mt.addMimeMapping(ext, lang.getContentType().getContentType())
+        );
+    }
+
     /** Build a Jetty server */
     private static Server jettyServer(int port, boolean loopback) {
         Server server = new Server() ;

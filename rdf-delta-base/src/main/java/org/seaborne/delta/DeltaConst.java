@@ -24,6 +24,7 @@ public class DeltaConst {
     public static final String EP_PatchLog     = "patch-log";
     public static final String EP_Fetch        = "fetch";
     public static final String EP_Append       = "patch";
+    public static final String EP_InitData     = "init-data";
 
     // RPC calls - operation names.
     public static final String OP_VERSION      = "version";
@@ -49,6 +50,7 @@ public class DeltaConst {
     public static final String F_ID            = "id";
     public static final String F_VERSION       = "version";
     public static final String F_NAME          = "name";
+    public static final String F_DATA          = "data";
     public static final String F_URI           = "uri";
     // Some atomic JSON value.
     public static final String F_VALUE         = "value";   
@@ -92,7 +94,10 @@ public class DeltaConst {
     public static final String SOURCES         = "Sources";
     // Relative path name in ENV_BASE for the patches area.
     public static final String PATCHES         = "Patches";
-    // The database area (TDB or a file  
+    // The intial data area - server side (TDB or a file)  
+    public static final String INITIAL_DATA    = "Data";
+
+    // The database area - client side (TDB or a file)  
     public static final String DATA            = "data";
     
     /** Name of the file holding the persistent state, client DeltaConnection. */

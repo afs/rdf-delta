@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths ;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -217,14 +218,11 @@ public class LocalServer {
         String baseStr = dss.base;
         String uriStr = dss.uri; 
             
-//        String idStr = JSONX.getStrOrNull(sourceObj, F_ID) ;
-//        Id id = Id.fromString(idStr) ; 
-//        String uriStr = JSONX.getStrOrNull(sourceObj, F_URI) ;
-//        String baseStr = JSONX.getStrOrNull(sourceObj, F_BASE);
-      
         Path patchesArea = dataSourceArea.resolve(DeltaConst.PATCHES);
         FileOps.ensureDir(patchesArea.toString());
         //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
+        
+        // XXX [INIT]
         
         // --> Path
         DataSource dataSource = DataSource.connect(dataRegistry, id, uriStr, dataSourceArea.getFileName().toString(), IOX.asLocation(dataSourceArea));
@@ -338,6 +336,17 @@ public class LocalServer {
     
     /*package*/ static Location patchArea(Location dataSourceArea) {
         return dataSourceArea.getSubLocation(DeltaConst.PATCHES);
+    }
+
+    /** Inital data : a file is some RDF format (the file extension determines the syntax)
+     *  or a directory, which is a TDB database.
+     *  null means no initai data.
+     */
+    /*package*/ static Path initialData(Location dataSourceArea) {
+        if ( dataSourceArea.isMem() )
+            return null;
+        //return IOX.asPath(dataSourceArea.getSubLocation(DeltaConst.INITIAL_DATA).);
+        return Paths.get(dataSourceArea.getPath("data.ttl"));
     }
 
     // static DataSource.createDataSource.

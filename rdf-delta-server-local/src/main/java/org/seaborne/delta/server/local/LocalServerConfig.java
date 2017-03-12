@@ -52,40 +52,6 @@ public class LocalServerConfig {
     
     public static Builder create() { return new Builder(); }
     
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((configFile == null) ? 0 : configFile.hashCode());
-        result = prime * result + ((location == null) ? 0 : location.hashCode());
-        result = prime * result + port;
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if ( this == obj )
-            return true;
-        if ( obj == null )
-            return false;
-        if ( getClass() != obj.getClass() )
-            return false;
-        LocalServerConfig other = (LocalServerConfig)obj;
-        if ( configFile == null ) {
-            if ( other.configFile != null )
-                return false;
-        } else if ( !configFile.equals(other.configFile) )
-            return false;
-        if ( location == null ) {
-            if ( other.location != null )
-                return false;
-        } else if ( !location.equals(other.location) )
-            return false;
-        if ( port != other.port )
-            return false;
-        return true;
-    }
-
     /** Configuration builder.
      *  Call "parse" or ("setPort" and "setLocation").
      *  Can call "parse" and then modify 
@@ -147,6 +113,40 @@ public class LocalServerConfig {
         public LocalServerConfig build() {
             return new LocalServerConfig(location, port, configFile);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((configFile == null) ? 0 : configFile.hashCode());
+        result = prime * result + ((location == null) ? 0 : location.hashCode());
+        result = prime * result + port;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if ( this == obj )
+            return true;
+        if ( obj == null )
+            return false;
+        if ( getClass() != obj.getClass() )
+            return false;
+        LocalServerConfig other = (LocalServerConfig)obj;
+        if ( configFile == null ) {
+            if ( other.configFile != null )
+                return false;
+        } else if ( !configFile.equals(other.configFile) )
+            return false;
+        if ( location == null ) {
+            if ( other.location != null )
+                return false;
+        } else if ( !location.equals(other.location) )
+            return false;
+        if ( port != other.port )
+            return false;
+        return true;
     }
     
 }

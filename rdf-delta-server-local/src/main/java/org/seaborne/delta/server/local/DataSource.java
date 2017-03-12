@@ -39,6 +39,7 @@ public class DataSource {
 
     private final Id       id;
     private final String   uri;
+    private final Path     initialData;
     private final Location location;
     // Process that can take an input stream and put a patch safe on storage.
     private final Receiver receiver;
@@ -63,21 +64,25 @@ public class DataSource {
             throw new IllegalArgumentException("Mixed in-memory add persistent: source area = "+sourceArea+" : patch area = "+patchesArea);
         }
         
-        formatSourceArea(sourceArea, patchesArea);
+        Path initialData = LocalServer.initialData(sourceArea)   ;          
+
+        formatSourceArea(sourceArea, patchesArea, initialData);
         PatchLog patchSet = loadPatchLog(dsRef, name, patchesArea);
         Receiver receiver = new Receiver(patchSet.getFileStore());
-        return new DataSource(dsRef, sourceArea, name, uri, patchSet, receiver);
+        
+        return new DataSource(dsRef, sourceArea, initialData, name, uri, patchSet, receiver);
     }
 
     private static PatchLog loadPatchLog(Id dsRef, String name, Location patchesArea) {
         return PatchLog.attach(dsRef, name, patchesArea);
     }
 
-    private DataSource(Id id, Location location, String name, String uri, PatchLog patchLog, Receiver receiver) {
+    private DataSource(Id id, Location location, Path initialData, String name, String uri, PatchLog patchLog, Receiver receiver) {
         super();
         this.id = id;
         this.location = location;
         this.path = location.isMem() ? null : IOX.asPath(location);
+        this.initialData = initialData;  
         this.receiver = receiver;
         this.name = name;
         this.uri = uri;
@@ -98,6 +103,10 @@ public class DataSource {
 
     public Location getLocation() {
         return location;
+    }
+
+    public Path getInitialDataPath() {
+        return initialData;
     }
 
     /** Get path to file area - returns null if this is an in-memory DataSource. */
@@ -121,9 +130,11 @@ public class DataSource {
         return location.isMem(); 
     }
     
-    private static void formatSourceArea(Location sourcesArea, Location patchesArea) {
+    private static void formatSourceArea(Location sourcesArea, Location patchesArea, Path initialData) {
         FileOps.ensureDir(sourcesArea.getDirectoryPath());
         FileOps.ensureDir(patchesArea.getDirectoryPath());
+        if ( initialData != null )
+            FileOps.ensureDir(initialData.toString());
     }
 
     @Override

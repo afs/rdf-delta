@@ -22,14 +22,21 @@ public class DevToDo {
     // Initial data : "version 0"
     // getInitialData -> stream of quads (as a patch?)
     // XXX [INIT]
+    // DLink : get URL for initial data. (file, 
+    // DeltaConnection.initData : read URL. 
+    //   Conneg for DPS.
+    /*
+    <mime-type>application/rdf+xml;charset=utf-8</mime-type>
+    <mime-type>text/turtle;charset=utf-8</mime-type>
+    <mime-type>text/plain;charset=utf-8</mime-type>
+    <mime-type>text/nquads;charset=utf-8</mime-type>
+    <mime-type>application/trig;charset=utf-8</mime-type>
+    
+    */
     // Migrate PatchLogServer
 
-    // Tool: RDF to patch!
-
     // Log to update triple store
-    // Log strofage abstraction.
-    
-    // TokenWriterText: Half-way house of NodeFormatterTTL and NodeFormatterNT
+    // Log storage abstraction.
     
     // Start from blank each time (ignore "state") vs start from current state.
 
@@ -39,7 +46,7 @@ public class DevToDo {
     //   Send patch => append patch
     
     //   Server PatchLog -> PatchLogStore
-    //   DeltaConnection -> PatchLog, DeltaPatchLog.
+    //   DeltaConnection -> PatchLog, DeltaPatchLog, DataSource
     //     PatchLogConnection PatchLogConn
     
     // Tests:
@@ -52,16 +59,11 @@ public class DevToDo {
     // Version -> long?
     // Eliminate use of Location and just use Path.
     
-//    public class GraphChanges 
-//    //extends GraphWrapper  -- Not a GraphWithPerform
-//    extends WrappedGraph
-    
     // Streaming patches.
     // Currently not because of DeltaLink.sendPatch takes a patch as argument. 
     
     //PatchLog - conflates "index" and "version" - acceptable?
     //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
-    // 
     
     // ------------------------------------------------------------------------
     // Document, "Design" protocol

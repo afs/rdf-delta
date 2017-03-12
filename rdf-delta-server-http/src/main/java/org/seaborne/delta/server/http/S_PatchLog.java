@@ -34,7 +34,6 @@ public class S_PatchLog extends HttpOperationBase {
     private final HttpOperationBase fetchServlet;
     private final HttpOperationBase appendServlet; 
     
-    
     public S_PatchLog(AtomicReference<DeltaLink> engine) {
         super(engine);
         this.fetchServlet = new S_Fetch(engine);

@@ -28,7 +28,6 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.web.HttpException ;
-import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
@@ -45,8 +44,11 @@ import org.seaborne.patch.changes.RDFChangesCollector ;
 public class DeltaLinkHTTP implements DeltaLink {
 
     private final String remoteServer;
+    
     private final String remoteSend;
     private final String remoteReceive;
+    private final String remoteData;
+    
     private RegToken regToken = null;
     private Id clientId = null;
     private boolean linkOpen = false;
@@ -68,8 +70,9 @@ public class DeltaLinkHTTP implements DeltaLink {
         this.linkOpen = true;
 
         // One URL
-        this.remoteSend = serverURL+DeltaConst.EP_PatchLog;
-        this.remoteReceive = serverURL+DeltaConst.EP_PatchLog;
+        this.remoteSend     = serverURL+DeltaConst.EP_PatchLog;
+        this.remoteReceive  = serverURL+DeltaConst.EP_PatchLog;
+        this.remoteData     = serverURL+DeltaConst.EP_InitData;
 //        // Separate URLs
 //        this.remoteSend = serverURL+DPConst.EP_Append;
 //        this.remoteReceive = serverURL+DPConst.EP_Fetch;
@@ -160,6 +163,13 @@ public class DeltaLinkHTTP implements DeltaLink {
             System.err.println("HTTP Exception: "+ex.getMessage()) ;
             return null ;
         }
+    }
+
+    @Override
+    public String initialState(Id dsRef) {
+        Delta.DELTA_HTTP_LOG.info("initialState request: "+dsRef);
+        // XXX Better URI design
+        return DeltaLib.makeURL(remoteData, DeltaConst.paramDatasource, dsRef.asParam());
     }
 
     public String getServerURL() {
@@ -299,10 +309,5 @@ public class DeltaLinkHTTP implements DeltaLink {
         if ( ! r.isObject() )
             throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
         return r.getAsObject();
-    }
-
-    @Override
-    public TypedInputStream initialState(Id dsRef) {
-        return null ;
     }
 }
