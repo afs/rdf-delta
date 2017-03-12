@@ -18,74 +18,65 @@
 
 package org.seaborne.delta.cmds;
 
-import java.io.OutputStream ;
-import java.util.UUID ;
+import java.io.InputStream ;
 
+import jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.graph.NodeFactory ;
-import org.apache.jena.graph.Triple ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDF ;
-import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.riot.tio.TokenWriter ;
-import org.seaborne.riot.tio.impl.TokenWriterText ;
+import org.seaborne.patch.StreamPatch ;
 
 /** Write an RDF file to a patch file of adds */
-public class rdf2patch {
-
-    static { LogCtl.setCmdLogging(); }
+public class rdf2patch extends CmdGeneral
+{
+    static { LogCtl.setCmdLogging() ; }
     
     public static void main(String[] args) {
-        StreamRDF s  = new StreamPatch(System.out);
-        // Add to riot!
-        RDFDataMgr.parse(s, args[0]);
+        new rdf2patch(args).mainRun();
     }
 
-    static class StreamPatch implements StreamRDF {
+    public rdf2patch(String[] argv) {
+        super(argv) ;
+    }
 
-        private OutputStream out ;
-        private RDFChanges c;
+    @Override
+    protected String getSummary() {
+        return "rdf2patch FILE" ;
+    }
+
+    @Override
+    protected void processModulesAndArgs() {
+        super.processModulesAndArgs();
+    }
+    
+    // System.in not fworkign yet.
+    // Extend "riot"?
+    
+    @Override
+    protected void exec() {
+        StreamRDF dest  = new StreamPatch(System.out);
+        dest.start();
         
-        public StreamPatch(OutputStream out) {
-            this.out = out;
-            TokenWriter t = new TokenWriterText(out);
-            this.c = new RDFChangesWriter(t);
-        }
+        if ( getPositional().isEmpty() )
+            execOne(System.in);
+        getPositional().forEach(fn->{
+            RDFDataMgr.parse(dest, fn);
+//            InputStream input = IO.openFile(fn);
+//            execOne(input);
+        });
+
+        dest.finish();
+    }
+    
+
+    private void execOne(InputStream input) {
         
-        @Override
-        public void start() {
-            // Header
-            //Node n = NodeFactory.createURI(JenaUUID.getFactory().generate().asURI());
-            Node n = NodeFactory.createURI("uuid:"+UUID.randomUUID().toString());
-            c.header(RDFPatch.ID, n); 
-        }
         
-
-        @Override
-        public void triple(Triple triple) {
-            c.add(null, triple.getSubject(), triple.getPredicate(), triple.getObject());
-        }
-
-        @Override
-        public void quad(Quad quad) {
-            c.add(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
-        }
-
-        @Override
-        public void base(String base) {}
-
-        @Override
-        public void prefix(String prefix, String iri) {
-            c.addPrefix(null, prefix, iri);
-        }
-
-        @Override
-        public void finish() {}
-        
+    }
+    
+    @Override
+    protected String getCommandName() {
+        return null ;
     }
     
 }

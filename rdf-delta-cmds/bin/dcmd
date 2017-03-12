@@ -29,7 +29,7 @@ done
 DELTA_CP="$D"
 
 ##LOGGING=-Djava.util.logging.config.file=logging.properties
-LOGGING=-Dlog4j.configuration=file:log4j.properties
+##LOGGING=-Dlog4j.configuration=file:log4j.properties
 
 if [[ $# = 0 ]]
 then
