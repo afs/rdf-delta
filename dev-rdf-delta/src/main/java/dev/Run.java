@@ -21,14 +21,7 @@ package dev;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.cache.CachingHttpClient;
-import org.apache.jena.atlas.io.IO;
-import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;

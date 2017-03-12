@@ -91,8 +91,8 @@ public class PatchReader implements PatchProcessor {
         if ( ! token1.isWord() )
             throw new PatchException("["+token1.getLine()+"] Token1 is not a word "+token1) ;
         String code = token1.getImage() ;
-        if ( ! code.equals("H") && code.length() != 2 )
-            throw new PatchException("["+token1.getLine()+"] Code is not 'H' (header) nor 2+ characters "+code) ;
+        if ( code.length() > 2 )
+            throw new PatchException("["+token1.getLine()+"] Code too long: "+code) ;
 
         switch (code) {
             case "H": {
@@ -107,7 +107,7 @@ public class PatchReader implements PatchProcessor {
                 return false ;
             }
             
-            case "QA": {
+            case "A": {
                 if ( line.len() != 4 && line.len() != 5 )
                     throw new PatchException("["+token1.getLine()+"] Quad add tuple error: length = "+line.len()) ;
                 Node s = tokenToNode(line.get(1)) ;
@@ -117,7 +117,7 @@ public class PatchReader implements PatchProcessor {
                 sink.add(g, s, p, o);
                 return false ;
             }
-            case "QD": {
+            case "D": {
                 if ( line.len() != 4 && line.len() != 5 )
                     throw new PatchException("["+token1.getLine()+"] Quad delete tuple error: length = "+line.len()) ;
                 Node s = tokenToNode(line.get(1)) ;

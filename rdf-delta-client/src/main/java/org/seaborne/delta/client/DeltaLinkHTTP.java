@@ -28,6 +28,7 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.web.HttpException ;
+import org.apache.jena.atlas.web.TypedInputStream ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
@@ -41,7 +42,7 @@ import org.seaborne.patch.changes.RDFChangesCollector ;
 /** Implementation of {@link DeltaLink} that encodes operations
  * onto the HTTP protocol and decode results.    
  */
-public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
+public class DeltaLinkHTTP implements DeltaLink {
 
     private final String remoteServer;
     private final String remoteSend;
@@ -298,5 +299,10 @@ public class DeltaLinkHTTP implements DeltaLink { // DeltaLinkBase?
         if ( ! r.isObject() )
             throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
         return r.getAsObject();
+    }
+
+    @Override
+    public TypedInputStream initialState(Id dsRef) {
+        return null ;
     }
 }

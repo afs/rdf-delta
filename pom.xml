@@ -58,7 +58,9 @@
     <module>rdf-delta-client</module>
     <module>rdf-delta-server-local</module>
     <module>rdf-delta-server-http</module>
+    <module>rdf-delta-cmds</module>
     <module>rdf-delta-test</module>
+    
     <!-- Distribution -->
     <module>rdf-delta-system</module>
   </modules>

@@ -127,8 +127,8 @@ public class TestRDFChanges {
         RDFChangesCounter changes2 = new RDFChangesCounter();
         
         patch2.apply(changes2);
-        assertEquals(1, changes2.countAddQuad);
-        assertEquals(1, changes2.countDeleteQuad);
+        assertEquals(1, changes2.countAddData);
+        assertEquals(1, changes2.countDeleteData);
         assertEquals(1, changes2.countTxnBegin);
         assertEquals(1, changes2.countTxnCommit);
         assertEquals(0, changes2.countTxnAbort);
@@ -170,11 +170,11 @@ public class TestRDFChanges {
         assertEquals(1, c1.countTxnBegin);
         assertEquals(1, c1.countTxnCommit);
         assertEquals(0, c1.countTxnAbort);
-        assertEquals(2, c1.countAddQuad);
+        assertEquals(2, c1.countAddData);
         
         assertEquals(1, c2.countTxnBegin);
         assertEquals(1, c2.countTxnCommit);
         assertEquals(0, c2.countTxnAbort);
-        assertEquals(2, c2.countAddQuad);
+        assertEquals(2, c2.countAddData);
     }
 }

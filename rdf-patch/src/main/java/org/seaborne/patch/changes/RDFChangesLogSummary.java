@@ -66,10 +66,10 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
             //s = s.substring(0, 11)+"...";
             s = s.substring(0, 11);
         
-        printer.print("%s :: QA: %d :: QD %d :: PA %d :: PD %d",
+        printer.print("%s :: Add %d :: Del %d :: P-Add %d :: P-Del %d",
                       s,
-                      countAddQuad,
-                      countDeleteQuad,
+                      countAddData,
+                      countDeleteData,
                       countAddPrefix,
                       countDeletePrefix);
         super.reset();

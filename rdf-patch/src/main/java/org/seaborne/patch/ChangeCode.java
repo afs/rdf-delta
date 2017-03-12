@@ -19,8 +19,8 @@
 package org.seaborne.patch;
 
 public enum ChangeCode {
-    ADD_QUAD("QA") ,
-    DEL_QUAD("QD") ,
+    ADD_DATA("A") ,
+    DEL_DATA("D") ,
     
     ADD_PREFIX("PA") ,
     DEL_PREFIX("PD") ,
@@ -29,6 +29,14 @@ public enum ChangeCode {
     TXN_COMMIT("TC") ,
     TXN_ABORT("TA") ,
     ;
+    
+//    public static final String ADD        = ADD_DATA.label;
+//    public static final String DEL        = DEL_DATA.label;
+//    public static final String PREFIX_ADD = ADD_PREFIX.label;
+//    public static final String PREFIX_DEL = DEL_PREFIX.label;
+//    public static final String TX         = TXN_BEGIN.label;
+//    public static final String TC         = TXN_COMMIT.label ;
+//    public static final String TA         = TXN_ABORT.label;
     
     public final String label ;
     private ChangeCode(String label) { this.label = label ; }

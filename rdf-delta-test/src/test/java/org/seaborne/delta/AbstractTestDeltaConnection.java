@@ -174,6 +174,9 @@ public abstract class AbstractTestDeltaConnection {
             DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
             int ver = dConn.getRemoteVersionLatest();
             RDFPatch patch1 = dConn.getLink().fetch(dsRef, ver) ;
+            
+            
+            
             RDFPatchOps.applyChange(dsg2, patch1);
 
             Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));

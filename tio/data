@@ -1,7 +1,7 @@
-QA <http://example> 1 .
+A <http://example> 1 .
 # Comment
-QD _ <http://example>
+D _ <http://example>
 
 """2""" .
-PA x <http://example/prefix> .
+A x <http://example/prefix> .
 .

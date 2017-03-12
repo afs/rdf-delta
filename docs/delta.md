@@ -42,20 +42,20 @@ This example ensures ceratin prefixes are in the dataset and adds some
 basic triples for a new subclass of `<http://example/SUPER_CLASS>`.
 
 ```
-H id       <uuid:016f5292-2b49-11b2-80fe-6057182f557b> .
-H previous <uuid:dd85b5f7-9965-42df-866c-d456bd1409de> .
+H  id       <uuid:016f5292-2b49-11b2-80fe-6057182f557b> .
+H  previous <uuid:dd85b5f7-9965-42df-866c-d456bd1409de> .
 TB .
 PA "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#" .
 PA "owl" "http://www.w3.org/2002/07/owl#" .
 PA "rdfs" "http://www.w3.org/2000/01/rdf-schema#" .
-QA _ <http://example/SubClass> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
-QA _ <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example/SUPER_CLASS> .
-QA _ <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#label> "SubClass" .
+A  <http://example/SubClass> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+A  <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example/SUPER_CLASS> .
+A  <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#label> "SubClass" .
 TC .
 ```
 
 `H` is a header, `TB` , `TC` the start and end of changes, `PA` meanas "Prefix Add",
-`QA` is "Quad add" and "_" means default graph.
+and `A` is "data add".
 
 Applying this patch when it has alreayd been applied results in the same
 dataset state. Applying patches in the order the patches were

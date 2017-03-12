@@ -26,8 +26,8 @@ public class RDFChangesCounter implements RDFChanges {
     public long countStart        = 0;
     public long countFinish       = 0;
     public long countHeader       = 0;
-    public long countAddQuad      = 0;
-    public long countDeleteQuad   = 0;
+    public long countAddData      = 0;
+    public long countDeleteData   = 0;
     public long countAddPrefix    = 0;
     public long countDeletePrefix = 0;
     public long countTxnBegin     = 0;
@@ -40,8 +40,8 @@ public class RDFChangesCounter implements RDFChanges {
         countStart        = 0;
         countFinish       = 0;
         countHeader       = 0;
-        countAddQuad      = 0;
-        countDeleteQuad   = 0;
+        countAddData      = 0;
+        countDeleteData   = 0;
         countAddPrefix    = 0;
         countDeletePrefix = 0;
         countTxnBegin     = 0;
@@ -66,12 +66,12 @@ public class RDFChangesCounter implements RDFChanges {
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        countAddQuad++;
+        countAddData++;
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        countDeleteQuad++;
+        countDeleteData++;
     }
 
     @Override

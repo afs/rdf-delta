@@ -47,7 +47,7 @@ public class PHandlerLog implements PatchHandler {
         patch.play(scc);
         FmtLog.info(log,
                     "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
-                    scc.countAddQuad, scc.countDeleteQuad, 
+                    scc.countAddData, scc.countDeleteData, 
                     scc.countAddPrefix, scc.countDeletePrefix) ;
     }
 }

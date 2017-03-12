@@ -24,6 +24,7 @@ import java.io.InputStream ;
 import java.util.List;
 
 import org.apache.jena.atlas.logging.FmtLog ;
+import org.apache.jena.atlas.web.TypedInputStream ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaNotFoundException;
@@ -71,6 +72,11 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
             throw new DeltaNotConnectedException("Not connected");
     }
     
+    private void checkRegistered() {
+        if ( ! isRegistered() )
+            throw new DeltaBadRequestException("Not registered");
+    }
+
     @Override
     public void removeDataset(Id dsRef) {
         checkLink();
@@ -192,8 +198,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         return patch;
     }
 
-    private void checkRegistered() {
-        if ( ! isRegistered() )
-            throw new DeltaBadRequestException("Not registered");
+    @Override
+    public TypedInputStream initialState(Id dsRef) {
+        return null ;
     }
 }

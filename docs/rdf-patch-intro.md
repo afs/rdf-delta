@@ -20,8 +20,8 @@ v2](rdf-patch.md).
 | --------- | ----------------- |
 | `H`                  | Header |
 | `TX`, `TC`, `TA`     | Transactions |
-| `PA`, `PD`, `BA`    | Prefix and base |
-| `QA`, `QD`           | Quad add and delete |
+| `PA`, `PD`           | Prefix add and delete |
+| `A`, `D`             | Add and Delete triples and quads   |
 
 ## Structure
 
@@ -41,7 +41,7 @@ TC or TA
 Multiple transaction blocks are allowed for multiple sets of changes in one
 patch.
 
-A binary version base on [RDF Thrift](http://afs.github.io/rdf-thrift/) will be provided
+A binary version based on [RDF Thrift](http://afs.github.io/rdf-thrift/) will be provided
 sometime.  Parsing binary compared to text for N-triples achieves a x3-x4 increase in
 throughput.
 
@@ -81,12 +81,11 @@ Transactions should be applied atomically when a patch is applied.
 
 ### Changes
 
-A change is an add or delete of a quad or a prefix. In addition, a base
-URI can be give.
+A change is an add or delete of a quad or a prefix.
 
 #### Prefixes
 
-Neither prefixed nor base URI apply to the data of the patch. They are
+Prefixes do not apply to the data of the patch. They are
 chnages to the data the patch is applied to.
 
 The prefix name is without the trailing colon. It can be given as a

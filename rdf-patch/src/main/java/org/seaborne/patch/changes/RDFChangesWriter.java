@@ -19,9 +19,9 @@
 package org.seaborne.patch.changes;
 
 import static org.seaborne.patch.ChangeCode.ADD_PREFIX ;
-import static org.seaborne.patch.ChangeCode.ADD_QUAD ;
+import static org.seaborne.patch.ChangeCode.ADD_DATA ;
 import static org.seaborne.patch.ChangeCode.DEL_PREFIX ;
-import static org.seaborne.patch.ChangeCode.DEL_QUAD ;
+import static org.seaborne.patch.ChangeCode.DEL_DATA ;
 
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
@@ -62,7 +62,7 @@ public class RDFChangesWriter implements RDFChanges {
     
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        output(ADD_QUAD, g, s, p, o) ;
+        output(ADD_DATA, g, s, p, o) ;
     }
     
     private void output(ChangeCode change, Node g, Node s, Node p, Node o) {
@@ -87,7 +87,7 @@ public class RDFChangesWriter implements RDFChanges {
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        output(DEL_QUAD, g, s, p, o) ;
+        output(DEL_DATA, g, s, p, o) ;
     }
 
     @Override

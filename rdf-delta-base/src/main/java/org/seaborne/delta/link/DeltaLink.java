@@ -32,9 +32,6 @@ import org.seaborne.patch.RDFPatch ;
  * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
 public interface DeltaLink {
-    // XXX Rename to "log"
-    // XXX Add an "open" step rather than part of the construction of the implementation.
-    
     /** 
      * Create a new dataset and return the unique Id for it.
      * <p>
@@ -74,12 +71,12 @@ public interface DeltaLink {
     /** Retrieve a patch by datasource and patch id. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);
 
-    // XXX [INIT]
-//    /** Retrieve the initial state of a datasource. 
-//     *  Returns null if there is no registered initial state.
-//     *  @throws DeltaNotFoundException if the datasource does not exist.  
-//     */
-//    public TypedInputStream initialState(Id dsRef);
+    /** Retrieve the initial state of a datasource.
+     *  <p> 
+     *  Returns null if there is no registered initial state.
+     *  @throws DeltaNotFoundException if the datasource does not exist.  
+     */
+    public TypedInputStream initialState(Id dsRef);
 
     /** Register a client id.
      * Only one client can be registered on a link at a time.
