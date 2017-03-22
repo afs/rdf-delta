@@ -67,6 +67,9 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         localServer.shutdown();
     }
 
+    @Override
+    public void ping() {}
+
     private void checkLink() {
         if ( ! linkOpen )
             throw new DeltaNotConnectedException("Not connected");
@@ -202,10 +205,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     public String initialState(Id dsRef) {
         DataSource dataSource = getDataSource(dsRef);
         Path p = dataSource.getInitialDataPath();
-        
-        
         if ( Files.isDirectory(p) ) {
-            
             throw new DeltaException("TDB database not supported for initial data");
         } else if ( ! Files.isRegularFile(p) ) {
             throw new DeltaException("Not a file or directory: "+p);

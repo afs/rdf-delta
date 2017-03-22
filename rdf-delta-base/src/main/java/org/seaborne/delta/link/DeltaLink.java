@@ -102,6 +102,9 @@ public interface DeltaLink {
      */
     public Id getClientId();
     
+    /** No-op end-to-end operation */
+    public void ping();
+    
     /** Shutdown the link. */
     public void close();
     

@@ -221,13 +221,8 @@ public class LocalServer {
         Path patchesArea = dataSourceArea.resolve(DeltaConst.PATCHES);
         FileOps.ensureDir(patchesArea.toString());
         //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
-        
-        // XXX [INIT]
-        
-        // --> Path
         DataSource dataSource = DataSource.connect(dataRegistry, id, uriStr, dataSourceArea.getFileName().toString(), IOX.asLocation(dataSourceArea));
         FmtLog.info(LOG, "DataSource: %s (%s)", dataSource, baseStr);
-      
         return dataSource ;
     }
     

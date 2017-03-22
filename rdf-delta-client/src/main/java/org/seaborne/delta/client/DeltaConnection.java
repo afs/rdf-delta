@@ -254,6 +254,10 @@ public class DeltaConnection implements AutoCloseable {
         return dLink.getClientId();
     }
 
+    public String getInitialStateURL() {
+        return dLink.initialState(datasourceId);
+    }
+
     public Id getDatasourceId() {
         return datasourceId;
     }

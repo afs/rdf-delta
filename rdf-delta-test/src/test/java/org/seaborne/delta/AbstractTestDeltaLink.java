@@ -27,10 +27,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.InputStream;
-import java.util.UUID;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.ext.com.google.common.base.Objects;
+import org.apache.jena.riot.RDFDataMgr ;
+import org.apache.jena.riot.system.StreamRDFLib ;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -49,25 +50,28 @@ public abstract class AbstractTestDeltaLink {
         RegToken regToken = dLink.register(clientId);
         return dLink;
     }
-    
-    protected static UUID uuid1 = UUID.randomUUID();
-    protected static Id id1 = Id.fromUUID(uuid1);
-    protected static UUID uuid2 = UUID.randomUUID();
-    protected static Id id2 = Id.fromUUID(uuid2);
+
+    @Test
+    public void ping_01() {
+        DeltaLink dLink = getLink();
+        dLink.ping();
+    }
     
     @Test
     public void register_01() {
         DeltaLink dLink = getLink();
-        RegToken regToken = dLink.register(id2);
+        Id id = Id.create();
+        RegToken regToken = dLink.register(id);
         assertNotNull(regToken);
     }
 
     @Test
     public void register_02() { 
         DeltaLink dLink = getLink();
+        Id id = Id.create();
         assertFalse(dLink.isRegistered());
-        RegToken regToken = dLink.register(id1);
-        assertEquals(id1, dLink.getClientId());
+        RegToken regToken = dLink.register(id);
+        assertEquals(id, dLink.getClientId());
         assertEquals(regToken, dLink.getRegToken());
         assertTrue(dLink.isRegistered());
     }
@@ -75,8 +79,9 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void register_03() { 
         DeltaLink dLink = getLink();
+        Id id = Id.create();
         assertFalse(dLink.isRegistered());
-        RegToken regToken = dLink.register(id1);
+        RegToken regToken = dLink.register(id);
         assertTrue(dLink.isRegistered());
         dLink.deregister();
         assertFalse(dLink.isRegistered());
@@ -310,6 +315,17 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(1, dLink.listDatasets().size());
         DataSourceDescription dsd = dLink.getDataSourceDescription("http://example/uri-not-present");
         assertNull(dsd);
+    }
+
+    @Test
+    public void datasource_15_init() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("datasource_15", "http://example/uri");
+        assertEquals(1, dLink.listDatasets().size());
+        DataSourceDescription dsd = dLink.getDataSourceDescription("http://example/uri-not-present");
+        String url = dLink.initialState(dsRef);
+        assertNotNull(url);
+        RDFDataMgr.parse(StreamRDFLib.sinkNull(), url);
     }
 
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {

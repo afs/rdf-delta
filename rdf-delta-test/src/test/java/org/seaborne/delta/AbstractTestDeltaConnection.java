@@ -18,7 +18,7 @@
 
 package org.seaborne.delta;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -28,6 +28,8 @@ import java.util.Set;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.ext.com.google.common.base.Objects;
+import org.apache.jena.riot.RDFDataMgr ;
+import org.apache.jena.riot.system.StreamRDFLib ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
@@ -133,6 +135,17 @@ public abstract class AbstractTestDeltaConnection {
             DeltaConnection dConn2 = DeltaConnection.create(getZone(), clientId, "NEW", /*shadow*/null, /*uri*/null, dLink);
             fail("Didn't get a DeltaBadRequestException");
         } catch (DeltaBadRequestException ex) {}
+    }
+
+    @Test
+    public void create_3() {
+        // Create twice
+        DeltaLink dLink = getLink();
+        Id clientId = Id.create();
+        DeltaConnection dConn = DeltaConnection.create(getZone(), clientId, "NEW", /*shadow*/null, /*uri*/null, dLink);
+        String url1 = dConn.getInitialStateURL();
+        assertNotNull(url1);
+        RDFDataMgr.parse(StreamRDFLib.sinkNull(), url1);
     }
 
     // Make a change, ensure the local dataset is changed. 

@@ -103,6 +103,8 @@ public class S_DRPC extends DeltaServletBase {
     protected void validateAction(DeltaAction action) throws IOException {
         // Checking once basic parsing of the request has been done to produce the JsonAction 
         switch(action.opName) {
+            case OP_PING:
+                return;
                 // Does own check.
             case OP_REGISTER:
                 // No registration required.
@@ -110,7 +112,6 @@ public class S_DRPC extends DeltaServletBase {
             case OP_LIST_DS:
             case OP_LIST_DSD:
             case OP_DESCR_DS:
-                
                 break;
             // Registration required.
             case OP_VERSION:
@@ -137,6 +138,9 @@ public class S_DRPC extends DeltaServletBase {
         JsonValue rslt = null ;
         JsonObject arg = action.rpcArg;
         switch(action.opName) {
+            case OP_PING:
+                rslt = ping(action);
+                break ;
             case OP_VERSION:
                 rslt = version(action);
                 break ;
@@ -204,7 +208,12 @@ public class S_DRPC extends DeltaServletBase {
             this.code = code ;
         }
     }
-    
+
+    // {} -> {}
+    private JsonValue ping(DeltaAction action) {
+        return new JsonObject();
+    }
+
     // Header: { client: } -> { token: }   
     private JsonValue register(DeltaAction action) {
         Id client = getFieldAsId(action, F_CLIENT);

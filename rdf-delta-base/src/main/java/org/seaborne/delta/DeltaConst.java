@@ -27,6 +27,7 @@ public class DeltaConst {
     public static final String EP_InitData     = "init-data";
 
     // RPC calls - operation names.
+    public static final String OP_PING         = "ping";
     public static final String OP_VERSION      = "version";
     public static final String OP_REGISTER     = "register";
     public static final String OP_DEREGISTER   = "deregister";

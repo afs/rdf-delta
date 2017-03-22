@@ -25,15 +25,15 @@ public class DevToDo {
     // DLink : get URL for initial data. (file, 
     // DeltaConnection.initData : read URL. 
     //   Conneg for DPS.
-    /*
-    <mime-type>application/rdf+xml;charset=utf-8</mime-type>
-    <mime-type>text/turtle;charset=utf-8</mime-type>
-    <mime-type>text/plain;charset=utf-8</mime-type>
-    <mime-type>text/nquads;charset=utf-8</mime-type>
-    <mime-type>application/trig;charset=utf-8</mime-type>
     
-    */
     // Migrate PatchLogServer
+    
+    // URI design.
+    //   http://server:1066/{WebAppCxt}/{shortName}/
+    //                                 /{shortName}/init = "version 0" but dataset vs patch.
+    //                                 /{shortName}/current = "version MaxInt"
+    //                                 /{shortName}/patch/version
+    //                                 /{shortName}/patch/id
 
     // Log to update triple store
     // Log storage abstraction.
@@ -79,4 +79,7 @@ public class DevToDo {
     // Extract polling support to DeltaClient.
 
     // DatasetGraphBuffering
+    // GraphBuffering
+    // BufferingTupleSet<X>
+    
 }

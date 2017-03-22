@@ -83,6 +83,14 @@ public class DeltaLinkHTTP implements DeltaLink {
         linkOpen = false;
     }
     
+    @Override
+    public void ping() {
+        checkLink();
+//        String url = remoteServer+"/ping";
+//        HttpOp.execHttpHead(url);
+        JsonObject obj = rpc(DeltaConst.OP_PING, emptyObject);
+    }
+
     private void checkLink() {
         if ( ! linkOpen )
             throw new DeltaNotConnectedException("Not connected to URL = "+remoteServer);

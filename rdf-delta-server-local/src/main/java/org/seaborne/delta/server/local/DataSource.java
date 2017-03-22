@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.server.local;
 
+import java.io.IOException ;
 import java.nio.file.Path;
 
 import org.apache.jena.atlas.lib.FileOps ;
@@ -133,8 +134,11 @@ public class DataSource {
     private static void formatSourceArea(Location sourcesArea, Location patchesArea, Path initialData) {
         FileOps.ensureDir(sourcesArea.getDirectoryPath());
         FileOps.ensureDir(patchesArea.getDirectoryPath());
-        if ( initialData != null )
-            FileOps.ensureDir(initialData.toString());
+        // Does not overwrite an existing file.
+        try { initialData.toFile().createNewFile(); }
+        catch (IOException e) { throw IOX.exception(e); }
+//        if ( initialData != null )
+//            FileOps.ensureDir(initialData.toString());
     }
 
     @Override

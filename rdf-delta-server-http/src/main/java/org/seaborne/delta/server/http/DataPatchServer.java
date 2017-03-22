@@ -40,7 +40,10 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 
-/** A simple packaging of Jetty to provide an embeddable HTTP server that just supports servlets */ 
+/**
+ * A simple packaging of Jetty to provide an embeddable HTTP server that just
+ * supports servlets for Delta.
+ */
 public class DataPatchServer {
     
     private final boolean loopback = false;
@@ -88,7 +91,7 @@ public class DataPatchServer {
         // Other
         addServlet(handler, "/rpc", new S_DRPC(this.engineRef));
         addServlet(handler, "/restart", new S_Restart());
-        addServlet(handler, "/ping", new S_Ping());
+        addServlet(handler, "/ping", new S_Ping()); //-- Also the "ping" DRPC.
 
         server.setHandler(handler);
     }

@@ -36,12 +36,12 @@ public class S_Ping extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LOG.info("Ping:GET");
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+        resp.setStatus(HttpSC.NO_CONTENT_204);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LOG.info("Ping:POST");
-        resp.setStatus(HttpSC.NO_CONTENT_204) ;
+        resp.setStatus(HttpSC.NO_CONTENT_204);
     }
 }
