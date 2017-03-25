@@ -23,9 +23,12 @@ import java.util.List;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.writer.WriterStreamRDFPlain ;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory ;
+import org.apache.jena.system.Txn ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
@@ -71,6 +74,35 @@ public class Run {
             ex.printStackTrace();
             System.exit(1); }
     }
+
+public static void example() {
+    String URL = "http://localhost:1066/";
+    Id clientId = Id.create();
+    
+    DeltaLink dLink = DeltaLinkHTTP.connect(URL);
+    dLink.register(clientId);
+    
+    // Find the dataset.
+    List<Id> datasources = dLink.listDatasets();
+    Id dsRef = datasources.get(0);
+    
+    DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+    
+    try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg0, dLink)) {
+        // Work with this dataset:
+        DatasetGraph dsg = dConn.getDatasetGraph();
+        Txn.executeWrite(dsg, ()->
+            RDFDataMgr.read(dsg, "some_data.ttl")
+        );
+        dsg.begin(ReadWrite.WRITE);
+        try {
+            RDFDataMgr.read(dsg, "some_data.ttl");
+            dsg.commit();
+        } finally {
+            dsg.end();
+        }
+    }
+}
     
     public static void main$() throws IOException {
         DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
