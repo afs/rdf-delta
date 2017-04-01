@@ -68,10 +68,10 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
         
         printer.print("%s :: Add %d :: Del %d :: P-Add %d :: P-Del %d",
                       s,
-                      countAddData,
-                      countDeleteData,
-                      countAddPrefix,
-                      countDeletePrefix);
+                      summary.countAddData,
+                      summary.countDeleteData,
+                      summary.countAddPrefix,
+                      summary.countDeletePrefix);
         super.reset();
     }
 }

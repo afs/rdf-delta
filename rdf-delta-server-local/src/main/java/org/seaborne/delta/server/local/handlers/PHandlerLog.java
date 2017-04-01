@@ -21,7 +21,8 @@ package org.seaborne.delta.server.local.handlers;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
-import org.seaborne.patch.changes.RDFChangesCounter ;
+import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.changes.PatchSummary;
 import org.slf4j.Logger ;
 
 /** Log a infroamtion about a patch */
@@ -36,15 +37,8 @@ public class PHandlerLog implements PatchHandler {
     /** Safe handler */
     @Override
     public void handle(Patch patch) {
-        RDFChangesCounter scc = new RDFChangesCounter() ;
-//        RDFChanges x = new RDFChangesOnStartFinish(scc,
-//                                                   null,
-//                                                   ()-> FmtLog.info(log,
-//                                                                    "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
-//                                                                    scc.countAddQuad, scc.countDeleteQuad, 
-//                                                                    scc.countAddPrefix, scc.countDeletePrefix
-//                                                       ));
-        patch.play(scc);
+        
+        PatchSummary scc = RDFPatchOps.summary(patch) ;
         FmtLog.info(log,
                     "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
                     scc.countAddData, scc.countDeleteData, 

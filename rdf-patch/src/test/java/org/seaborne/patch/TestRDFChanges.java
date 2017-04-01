@@ -27,6 +27,7 @@ import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
+import org.seaborne.patch.changes.PatchSummary;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.changes.RDFChangesCounter;
 import org.seaborne.patch.changes.RDFChangesN;
@@ -127,13 +128,15 @@ public class TestRDFChanges {
         RDFChangesCounter changes2 = new RDFChangesCounter();
         
         patch2.apply(changes2);
-        assertEquals(1, changes2.countAddData);
-        assertEquals(1, changes2.countDeleteData);
-        assertEquals(1, changes2.countTxnBegin);
-        assertEquals(1, changes2.countTxnCommit);
-        assertEquals(0, changes2.countTxnAbort);
-        assertEquals(0, changes2.countAddPrefix);
-        assertEquals(0, changes2.countDeletePrefix);
+        PatchSummary ps = changes2.summary();
+        
+        assertEquals(1, ps.getCountAddData());
+        assertEquals(1, ps.getCountDeleteData());
+        assertEquals(1, ps.getCountTxnBegin());
+        assertEquals(1, ps.getCountTxnCommit());
+        assertEquals(0, ps.getCountTxnAbort());
+        assertEquals(0, ps.getCountAddPrefix());
+        assertEquals(0, ps.getCountDeletePrefix());
     }
 
     @Test public void changes_prefix_01() {
@@ -146,11 +149,12 @@ public class TestRDFChanges {
         });
         RDFChangesCounter changes = new RDFChangesCounter();
         patch.apply(changes);
-        assertEquals(1, changes.countTxnBegin);
-        assertEquals(1, changes.countTxnCommit);
-        assertEquals(0, changes.countTxnAbort);
-        assertEquals(2, changes.countAddPrefix);
-        assertEquals(1, changes.countDeletePrefix);
+        PatchSummary ps = changes.summary();
+        assertEquals(1, ps.getCountTxnBegin());
+        assertEquals(1, ps.getCountTxnCommit());
+        assertEquals(0, ps.getCountTxnAbort());
+        assertEquals(2, ps.getCountAddPrefix());
+        assertEquals(1, ps.getCountDeletePrefix());
     }
 
     // Specific implementations.
@@ -167,14 +171,14 @@ public class TestRDFChanges {
         RDFChangesCounter c2 = new RDFChangesCounter();
         RDFChanges changes = new RDFChangesN(c1, c2);
         patch.apply(changes);
-        assertEquals(1, c1.countTxnBegin);
-        assertEquals(1, c1.countTxnCommit);
-        assertEquals(0, c1.countTxnAbort);
-        assertEquals(2, c1.countAddData);
+        assertEquals(1, c1.summary().getCountTxnBegin());
+        assertEquals(1, c1.summary().getCountTxnCommit());
+        assertEquals(0, c1.summary().getCountTxnAbort());
+        assertEquals(2, c1.summary().getCountAddData());
         
-        assertEquals(1, c2.countTxnBegin);
-        assertEquals(1, c2.countTxnCommit);
-        assertEquals(0, c2.countTxnAbort);
-        assertEquals(2, c2.countAddData);
+        assertEquals(1, c2.summary().getCountTxnBegin());
+        assertEquals(1, c2.summary().getCountTxnCommit());
+        assertEquals(0, c2.summary().getCountTxnAbort());
+        assertEquals(2, c2.summary().getCountAddData());
     }
 }

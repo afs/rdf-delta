@@ -84,6 +84,10 @@ public class S_Patch extends HttpOperationBase {
         Id ref = Id.fromString(action.httpArgs.dataset);
         try (InputStream in = action.request.getInputStream()) {
             RDFPatch patch = RDFPatchOps.read(in);
+            
+            if ( false )
+                RDFPatchOps.write(System.out, patch);
+            
             int version = action.dLink.sendPatch(ref, patch);
             JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()

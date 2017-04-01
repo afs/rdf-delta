@@ -23,79 +23,63 @@ import org.seaborne.patch.RDFChanges;
 
 public class RDFChangesCounter implements RDFChanges {
 
-    public long countStart        = 0;
-    public long countFinish       = 0;
-    public long countHeader       = 0;
-    public long countAddData      = 0;
-    public long countDeleteData   = 0;
-    public long countAddPrefix    = 0;
-    public long countDeletePrefix = 0;
-    public long countTxnBegin     = 0;
-    public long countTxnCommit    = 0;
-    public long countTxnAbort     = 0;
-
+    protected PatchSummary summary = new PatchSummary();
+    
     public RDFChangesCounter() {}
     
     public void reset() {
-        countStart        = 0;
-        countFinish       = 0;
-        countHeader       = 0;
-        countAddData      = 0;
-        countDeleteData   = 0;
-        countAddPrefix    = 0;
-        countDeletePrefix = 0;
-        countTxnBegin     = 0;
-        countTxnCommit    = 0;
-        countTxnAbort     = 0;
+        summary.reset();
     }
 
-    @Override
-    public void start() {
-        countStart++;
+
+    public PatchSummary summary() {
+        return summary.clone();
     }
 
+    
     @Override
-    public void finish() {
-        countFinish++;
-    }
+    public void start() {}
+    
+    @Override
+    public void finish() {}
 
     @Override
     public void header(String field, Node value) {
-        countHeader++;
+        summary.countHeader++;
     }
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        countAddData++;
+        summary.countAddData++;
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        countDeleteData++;
+        summary.countDeleteData++;
     }
 
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
-        countAddPrefix++;
+        summary.countAddPrefix++;
     }
 
     @Override
     public void deletePrefix(Node gn, String prefix) {
-        countDeletePrefix++;
+        summary.countDeletePrefix++;
     }
 
     @Override
     public void txnBegin() {
-        countTxnBegin++;
+        summary.countTxnBegin++;
     }
 
     @Override
     public void txnCommit() {
-        countTxnCommit++;
+        summary.countTxnCommit++;
     }
 
     @Override
     public void txnAbort() {
-        countTxnAbort++;
+        summary.countTxnAbort++;
     }
 }

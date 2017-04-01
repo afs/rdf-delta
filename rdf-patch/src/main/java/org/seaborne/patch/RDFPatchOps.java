@@ -27,9 +27,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.shared.uuid.JenaUUID;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.patch.changes.RDFChangesApply ;
-import org.seaborne.patch.changes.RDFChangesCollector ;
-import org.seaborne.patch.changes.RDFChangesWriter ;
+import org.seaborne.patch.changes.*;
 import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.TupleIO ;
@@ -82,6 +80,16 @@ public class RDFPatchOps {
         return new RDFPatchEmpty();
     }
 
+    /** Create a brief cummary of a patch.
+     * <p> 
+     * This function plays the patch.
+     * */
+    public static PatchSummary summary(RDFPatch patch) {
+        RDFChangesCounter x = new RDFChangesCounter();
+        patch.apply(x);
+        return x.summary();
+    }
+    
     /** Read an {@link RDFPatch} from a file. */
     public static RDFPatch read(InputStream input) {
         PatchReader pr = new PatchReader(input) ;
