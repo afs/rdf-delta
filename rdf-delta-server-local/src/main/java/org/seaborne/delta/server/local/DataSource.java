@@ -70,8 +70,8 @@ public class DataSource {
         formatSourceArea(sourceArea, patchesArea, initialData);
         PatchLog patchSet = loadPatchLog(dsRef, name, patchesArea);
         Receiver receiver = new Receiver(patchSet.getFileStore());
-        
-        return new DataSource(dsRef, sourceArea, initialData, name, uri, patchSet, receiver);
+        DataSource dataSource = new DataSource(dsRef, sourceArea, initialData, name, uri, patchSet, receiver);
+        return dataSource;
     }
 
     private static PatchLog loadPatchLog(Id dsRef, String name, Location patchesArea) {

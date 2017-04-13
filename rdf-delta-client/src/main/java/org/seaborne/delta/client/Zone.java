@@ -76,6 +76,10 @@ public class Zone {
         return new ArrayList<>(states.keySet());
     }
     
+    public void init(String area) {
+        init(Location.create(area));
+    }
+    
     public void init(Location area) {
         if ( INITIALIZED ) {
             checkInit(area);

@@ -85,63 +85,52 @@ public static void example() {
     // Find the dataset.
     List<Id> datasources = dLink.listDatasets();
     Id dsRef = datasources.get(0);
+    System.out.printf("dsRef = %s\n", dsRef);
     
     DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
     
     try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg0, dLink)) {
-        // Work with this dataset:
-        DatasetGraph dsg = dConn.getDatasetGraph();
-        Txn.executeWrite(dsg, ()->
-            RDFDataMgr.read(dsg, "some_data.ttl")
-        );
-        dsg.begin(ReadWrite.WRITE);
-        try {
-            RDFDataMgr.read(dsg, "some_data.ttl");
-            dsg.commit();
-        } finally {
-            dsg.end();
-        }
+        
+//        // Work with this dataset:
+//        DatasetGraph dsg = dConn.getDatasetGraph();
+//        Txn.executeWrite(dsg, ()->
+//            RDFDataMgr.read(dsg, "some_data.ttl")
+//        );
+//        dsg.begin(ReadWrite.WRITE);
+//        try {
+//            RDFDataMgr.read(dsg, "some_data.ttl");
+//            dsg.commit();
+//        } finally {
+//            dsg.end();
+//        }
     }
 }
     
     public static void main$() throws IOException {
+        // Server
         DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
         server.start();
         String URL = "http://localhost:1066/";
-        
+        // Zone
+        Zone.get().init("Zone");
+        //Client
         DeltaLink dLink1 = DeltaLinkHTTP.connect(URL);
-        dLink1.register(Id.create());
-        Id dsref = dLink1.listDatasets().get(0);
+        Id clientId = Id.create();
+        dLink1.register(clientId);
         
-        String s = dLink1.initialState(dsref);
-        System.out.println(s);
-        RDFDataMgr.parse(new WriterStreamRDFPlain(IO.wrapUTF8(System.out)), s);
-        System.out.println("DONE");
-        System.exit(0);
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         
-        
+        try ( DeltaConnection dConn = DeltaConnection.create(Zone.get(), clientId, "ABC", "http://example/ABC", dsg, dLink1) ) {
+            Txn.executeWrite(dConn.getDatasetGraph(), 
+                             ()->RDFDataMgr.read(dConn.getDatasetGraph().getDefaultGraph(), "D.ttl"));
+                             
+        }
+//        
+//        Id dsref = dLink1.listDatasets().get(0);
+//        String s = dLink1.initialState(dsref);
+//        System.out.println(s);
+//        RDFDataMgr.parse(new WriterStreamRDFPlain(IO.wrapUTF8(System.out)), s);
 
-//        server.stop();
-//
-//        HttpClient hc = HttpOp.getDefaultHttpClient() ;
-//        if ( hc instanceof CloseableHttpClient )
-//            IO.close((CloseableHttpClient)hc) ;
-//
-//        HttpOp.setDefaultHttpClient(HttpClients.createDefault());
-//
-//        server = null ;
-//        System.out.println();
-//
-//        DataPatchServer server2 = DataPatchServer.server(1066, "DeltaServer");
-//        server2.start();
-        
-        //RDFPatch patch = RDFPatchOps.nullPatch(); 
-        RDFPatch patch = RDFPatchOps.emptyPatch(); 
-        //RDFPatch patch = RDFPatchOps.onePatch(); 
-
-        System.out.println();
-        // No registration check on DeltaLinkLocal
-        dLink1.sendPatch(dsref, patch);
         System.out.println("DONE");
         System.exit(0);
     }

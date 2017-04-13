@@ -13,8 +13,8 @@ JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.13/slf4j-jdk14-1.7.13.jar"
 H="$HOME/ASF/rdf-delta"
 D=
 
-
-for X in rdf-delta-base rdf-delta-client rdf-delta-server-http rdf-delta-server-local rdf-delta-system rdf-delta-test rdf-patch tio dev-rdf-delta
+MODULES="rdf-delta-base rdf-delta-client rdf-delta-server-http rdf-delta-server-local rdf-delta-test rdf-patch tio dev-rdf-delta"
+for X in $MODULES
 do
     [[ $D = "" ]] || D="$D:"
     D="${D}$H/$X/target/classes"
@@ -27,7 +27,7 @@ DELTA_CP="$D"
 ## mvn -nsu exec:java -Dexec:mainClass=dev.RunDeltaServer
 ## in dev-rdf-delta module.
 
-## LOGGING=-Djava.util.logging.config.file=logging.properties
+##LOGGING=-Djava.util.logging.config.file=logging.properties
 LOGGING=-Dlog4j.configuration=file:log4j.properties
 
 if [[ $# = 0 ]]
@@ -38,12 +38,11 @@ then
 else
     CLASS="$1"
     shift
-    CLASS=${CLASS#dev.}
-    CLASS=dev.$CLASS
 fi
 
 ## echo "DELTA_CP=$DELTA_CP"
 ## echo "JENA_CP=$JENA_CP"
 ## echo java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CLASS" "$@"
+
 
 java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CLASS" "$@"

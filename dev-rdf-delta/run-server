@@ -6,4 +6,5 @@ then
     ARGS="--base=DeltaServer"
 fi
 
-dev dev.RunDeltaServer $ARGS
+## dev dev.RunDeltaServer $ARGS
+dev org.seaborne.delta.server.http.CmdDeltaServer $ARGS

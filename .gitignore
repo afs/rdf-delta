@@ -49,6 +49,7 @@ gradle-app.setting
 /run/
 DB*
 Files/
+Zone/
 
 ## Development files
 *.dlt

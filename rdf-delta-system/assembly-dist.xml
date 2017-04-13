@@ -33,15 +33,15 @@
 
   <baseDirectory>${project.artifactId}-${project.version}</baseDirectory>
 
+  <!-- Split module into shader (makes the HTTP Delta server)
+       and distribution (makes the zip)
+  -->
+
   <dependencySets>
     <!-- Standalone JAR -->
     <dependencySet>
+      <outputDirectory></outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
-      <!--
-      <includes>
-        <include>org.seaborne.delta:rdf-delta:jar</include>
-      </includes>
-      -->
       <outputFileNameMapping>delta-server.jar</outputFileNameMapping>
     </dependencySet>
 
@@ -49,16 +49,19 @@
 
   <files>
     <file>
+      <outputDirectory></outputDirectory>
       <source>dist/LICENSE</source>
       <destName>LICENSE</destName>
     </file>
     <file>
+      <outputDirectory></outputDirectory>
       <source>dist/NOTICE</source>
       <destName>NOTICE</destName>
     </file>
     <file>
       <source>dist/README</source>
       <destName>README</destName>
+      <outputDirectory></outputDirectory>
     </file>
   </files>
 
@@ -71,22 +74,5 @@
         <include>DEPENDENCIES*</include>
       </includes>
     </fileSet>
-
-    <fileSet>
-      <outputDirectory></outputDirectory>
-      <includes>
-        <include>log4j.properties</include>
-        <include>fuseki</include>
-        <include>fuseki-server</include>
-        <include>fuseki-server.bat</include>
-        <include>bin/*</include>
-      </includes>
-    </fileSet>
-
-    <fileSet>
-      <directory>../jena-fuseki-core/src/main/webapp</directory>
-      <outputDirectory>webapp</outputDirectory>
-    </fileSet>
-
   </fileSets>
 </assembly>

@@ -61,8 +61,11 @@
     <module>rdf-delta-cmds</module>
     <module>rdf-delta-test</module>
     
-    <!-- Distribution -->
+    <!-- Distribution - ->
+         Split module into shader (makes the HTTP Delta server)
+       and distribution (makes the zip)
     <module>rdf-delta-system</module>
+    -->
   </modules>
 
   <dependencyManagement>

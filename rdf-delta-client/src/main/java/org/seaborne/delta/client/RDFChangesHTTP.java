@@ -30,6 +30,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaOps;
@@ -209,11 +210,20 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         
         String s = new String(bytes, StandardCharsets.UTF_8);
         if ( true ) {
-            LOG.info("== Sending ...");
-            System.out.print(s);
-            if ( ! s.endsWith("\n") )
-                System.out.println();
-            LOG.info("== ==");
+            if ( LOG.isInfoEnabled() ) {
+                LOG.info("== Sending ...");
+                // Do NOT close!
+                @SuppressWarnings("resource")
+                IndentedWriter w = new IndentedWriter(System.out);
+                String x = w.getLinePrefix();
+                w.setLinePrefix(">> ");
+                w.print(s);
+                w.setLinePrefix(x);
+                if ( ! s.endsWith("\n") )
+                    w.println();
+                w.flush();
+                LOG.info("== ==");
+            }
         }
         FmtLog.info(LOG, "Send patch (%d bytes)", bytes.length);
         postRequest.setEntity(new ByteArrayEntity(bytes));

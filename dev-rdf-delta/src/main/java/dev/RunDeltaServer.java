@@ -18,8 +18,6 @@
 
 package dev;
 
-import org.apache.jena.atlas.lib.Lib;
-
 public class RunDeltaServer {
 
     public static void main(String... args) {
@@ -34,49 +32,7 @@ public class RunDeltaServer {
     public static void main$(String... args) {
         if ( args.length == 0 )
             args = new String[] {"--base=DeltaServer"};
-        
         org.seaborne.delta.server.http.CmdDeltaServer.main(args);
-        for(;;) Lib.sleep(5000) ;
-        
-//        String datafile = "D.ttl"; 
-//        String url = "http://localhost:1066/" ;
-//        
-//        // Building.
-//        //MethodHandles.
-//        Id clientId = Id.create();
-//        DeltaLink link = DeltaLinkHTTP.connect(url);
-//        
-//        //RegToken token = link.register(clientId);
-//        
-//        // Find Dataset
-//        // TestDeltaServer in rdf-delta-server-http
-//        //   AbstractTestDeltaLink in rdf-delta-test
-//        //   ** TestRemoteLink
-//
-//        List<Id> a = link.listDatasets();
-//        for(Id id : a ) {
-//            DataSourceDescription dss = link.getDataSourceDescription(id);
-//            System.out.println(dss);
-//        }
-//
-//        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem(); 
-//        
-//        Id datasourceId = Id.fromString("id:0c5943d8-2b54-11b2-801b-024218167bb0");
-//        
-//        Location state = Location.create("DConn"); 
-//        DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, datasourceId, dsg0, link);
-//        
-//        DatasetGraph dsg = dConn.getDatasetGraph();
-//        Txn.executeRead(dsg,()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
-//        //Txn.executeWrite(dsg,()->RDFDataMgr.read(dsg, datafile));
-//        link.deregister();
-//        
-//        // Error cases
-//        
-//        System.out.println("** DONE **");
-//        System.exit(0);
-        
-        
     }
 
 }

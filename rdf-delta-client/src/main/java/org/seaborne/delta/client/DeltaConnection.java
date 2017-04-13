@@ -139,11 +139,8 @@ public class DeltaConnection implements AutoCloseable {
             this.target = new RDFChangesApply(dsg);
             // Where to send outgoing changes.
             // Make RDFChangesHTTP one shot.
-            
-            
             // XXX Wrap in version updater 
             RDFChanges monitor = createRDFChanges(datasourceId);
-            // 
             this.managed = new DatasetGraphChanges(dsg, monitor);
         } else {
             this.target = null;
@@ -182,24 +179,11 @@ public class DeltaConnection implements AutoCloseable {
     public void finish() { }
 
     public void sync() {
-        // [Delta] replace with a one-shot "get all missing patches" operation.
 
-        // Their update id.
-        int remoteVer;
-        try {
-            remoteVer = getRemoteVersionLatest();
-        } catch (HttpException ex) {
-            // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
-            if ( ex.getCause() instanceof java.net.ConnectException ) {
-                FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
-                return;
-            }
-            if ( ex.getStatusLine() != null ) {
-                FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
-                return;
-            }
-            FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
-            throw ex;
+        int remoteVer = getRemoteVersionLatestOrDefault(-1);
+        if ( remoteVer < 0 ) {
+            FmtLog.warn(LOG, "Sync: Failed to sync");
+            return;
         }
 
         int localVer = getLocalVersionNumber();
@@ -219,9 +203,46 @@ public class DeltaConnection implements AutoCloseable {
             return;
         }
         // bring up-to-date.
-        FmtLog.info(LOG, "Patch range [%d, %d]", localVer+1, remoteVer);
-        //IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
-        for ( int x = localVer+1 ; x <= remoteVer ; x++) {
+        
+        playPatches(localVer+1, remoteVer) ;
+    }
+
+    /** Get getRemoteVersionLatest with HTTP handling */
+    private int getRemoteVersionLatestOrDefault(int dftValue) {
+        try {
+            return getRemoteVersionLatest();
+        } catch (HttpException ex) {
+            // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
+            if ( ex.getCause() instanceof java.net.ConnectException ) {
+                FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
+                return dftValue;
+            }
+            if ( ex.getStatusLine() != null ) {
+                FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
+                return dftValue;
+            }
+            FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
+            throw ex;
+        }
+    }
+
+    /** Play all the patches from the named version to the latested */
+    public void playFrom(int firstVersion) {
+        int remoteVer = getRemoteVersionLatestOrDefault(-1);
+        if ( remoteVer < 0 ) {
+            FmtLog.warn(LOG, "Sync: Failed to sync");
+            return;
+        }
+        playPatches(firstVersion, remoteVer);
+    }
+    
+    
+    /** Play the patches (range is inclusive at both ends) */
+    private void playPatches(int firstPatchVer, int lastPatchVer) {
+        // [Delta] replace with a one-shot "get all patches" operation.
+        FmtLog.info(LOG, "Patch range [%d, %d]", firstPatchVer, lastPatchVer);
+      //IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
+        for ( int x = firstPatchVer ; x <= lastPatchVer ; x++) {
             FmtLog.info(LOG, "Sync: patch=%d", x);
             RDFPatch patch = fetchPatch(x);
             if ( patch == null ) { 
@@ -233,14 +254,10 @@ public class DeltaConnection implements AutoCloseable {
                 c = DeltaOps.print(c);
             patch.apply(c);
         }
-        setRemoteVersionNumber(remoteVer);
-        setLocalVersionNumber(remoteVer);
+        setRemoteVersionNumber(lastPatchVer);
+        setLocalVersionNumber(lastPatchVer);
     }
 
-//    public void syncAll() {
-//        
-//    }
-    
     @Override
     public void close() {
         //state.zone().release(state);

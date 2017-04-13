@@ -98,7 +98,7 @@ public class DeltaConst {
     // The intial data area - server side (TDB or a file)  
     public static final String INITIAL_DATA    = "Data";
 
-    // The database area - client side (TDB or a file)  
+    // The database area - client side directory (TDB or with files)  
     public static final String DATA            = "data";
     
     /** Name of the file holding the persistent state, client DeltaConnection. */
