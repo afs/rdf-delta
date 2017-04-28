@@ -6,7 +6,6 @@
 CP=
 
 #JENA_CP="$(jena)"
-
 ## If Jena development, this needs to be different.
 JENA_CP="$HOME/jlib/fuseki2/fuseki-server.jar"
 
@@ -18,12 +17,22 @@ JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.13/slf4j-jdk14-1.7.13.jar"
 H="$HOME/ASF/rdf-delta"
 D=
 
+read -r -d '' VAR << EOM
+This is line 1.
+This is line 2.
+Line 3.
+EOM
+
 # Delta classes
-for X in \
-    rdf-delta-base rdf-delta-client rdf-delta-server-http \
-		   rdf-delta-server-local rdf-delta-system rdf-delta-test \
-		   rdf-patch tio dev-rdf-delta \
-		   rdf-delta-cmds
+MODULES=$(cat <<-END
+rdf-delta-base rdf-delta-client rdf-delta-server-http
+rdf-delta-server-local rdf-delta-system rdf-delta-test
+rdf-patch tio dev-rdf-delta
+rdf-delta-cmds
+END
+)
+
+for X in $MODULES
 do
     [[ $D = "" ]] || D="$D:"
     D="${D}$H/$X/target/classes"
@@ -31,8 +40,14 @@ done
 
 DELTA_CP="$D"
 
-##LOGGING=-Djava.util.logging.config.file=logging.properties
-##LOGGING=-Dlog4j.configuration=file:log4j.properties
+if [[ -e logging.properties ]]
+then
+    LOGGING_JUL=-Djava.util.logging.config.file=logging.properties
+fi
+if [[ -e log4j.properties ]]
+then
+    LOGGING_LOG4J=-Dlog4j.configuration=file:log4j.properties
+fi
 
 if [[ $# = 0 ]]
 then
@@ -61,8 +76,13 @@ case $CMD in
     rdf2patch)
 	CMD="$DMCD_PKG"."$CMD"
 	;;
+    patchserver)
+	CMD="org.seaborne.delta.server.http.CmdDeltaServer"
+	;;
+    org.seaborne.delta.*)
+	;;
     *)
-	echo "Unknown command" 2>&1
+	echo "Unknown command $CMD" 2>&1
 	exit 1
     ;;
 
@@ -74,4 +94,4 @@ esac
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
-java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD" "$@"
+java $JVM_ARGS $LOGGING_LOG4J $LOGGING_JUL -cp "$DELTA_CP:${JENA_CP}" "$CMD" "$@"

@@ -1,4 +1,0 @@
-1/ disabled
-2/ List logs on styart.
-3/ One log message.
-4/ Server side - check DSD name :"^[\w-_]+$"

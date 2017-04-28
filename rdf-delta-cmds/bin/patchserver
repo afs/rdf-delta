@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
+DP_ROOT="${DP_ROOT:-$HOME/ASF/rdf-delta/}"
 ARGS="$@"
-if [[ $# = 0 ]]
-then
-    ARGS="--base=DeltaServer"
-fi
 
-dcmd org.seaborne.delta.server.http.CmdDeltaServer $ARGS
+$DP_ROOT/rdf-delta-cmds/bin/dcmd "$(basename $0)" $ARGS

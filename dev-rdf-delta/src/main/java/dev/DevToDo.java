@@ -19,8 +19,11 @@
 package dev;
 
 public class DevToDo {
+    
+    // Server side - check DSD name :"^[\w-_]+$"
     // Initial data : "version 0"
     // getInitialData -> stream of quads (as a patch?)
+
     // XXX [INIT]
     // DLink : get URL for initial data. (file, 
     // DeltaConnection.initData : read URL. 
@@ -37,16 +40,11 @@ public class DevToDo {
 
     // Log to update triple store
     // Log storage abstraction.
-    
-    // Start from blank each time (ignore "state") vs start from current state.
 
     // POST patch -> 201 Created + ** Location: **
     
     // Renames:
-    //    RDFChanges -> StreamPatch
-    // 
     //   Send patch => append patch
-    
     //   Server PatchLog -> PatchLogStore
     //   DeltaConnection -> PatchLog, DeltaPatchLog, DataSource
     //     PatchLogConnection PatchLogConn

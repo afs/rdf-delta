@@ -21,11 +21,8 @@ package dev;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.riot.RDFDataMgr ;
-import org.apache.jena.riot.writer.WriterStreamRDFPlain ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.system.Txn ;
@@ -35,8 +32,6 @@ import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
 
 public class Run {
     static { 
@@ -75,21 +70,21 @@ public class Run {
             System.exit(1); }
     }
 
-public static void example() {
-    String URL = "http://localhost:1066/";
-    Id clientId = Id.create();
-    
-    DeltaLink dLink = DeltaLinkHTTP.connect(URL);
-    dLink.register(clientId);
-    
-    // Find the dataset.
-    List<Id> datasources = dLink.listDatasets();
-    Id dsRef = datasources.get(0);
-    System.out.printf("dsRef = %s\n", dsRef);
-    
-    DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-    
-    try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg0, dLink)) {
+    public static void example() {
+        String URL = "http://localhost:1066/";
+        Id clientId = Id.create();
+
+        DeltaLink dLink = DeltaLinkHTTP.connect(URL);
+        dLink.register(clientId);
+
+        // Find the dataset.
+        List<Id> datasources = dLink.listDatasets();
+        Id dsRef = datasources.get(0);
+        System.out.printf("dsRef = %s\n", dsRef);
+
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+
+        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg0, dLink)) {
         
 //        // Work with this dataset:
 //        DatasetGraph dsg = dConn.getDatasetGraph();

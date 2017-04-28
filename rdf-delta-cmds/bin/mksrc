@@ -2,4 +2,5 @@
 
 DP_ROOT="${DP_ROOT:-$HOME/ASF/rdf-delta/}"
 ARGS="$@"
+
 $DP_ROOT/rdf-delta-cmds/bin/dcmd "$(basename $0)" $ARGS
