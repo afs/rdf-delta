@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+## Usage: dcmd <delta_main>
+## Sets up the java enviroment to run a command from RDF Delta.
+
 CP=
 
 #JENA_CP="$(jena)"
@@ -33,13 +36,37 @@ DELTA_CP="$D"
 
 if [[ $# = 0 ]]
 then
-    #CLASS=org.seaborne.delta.server.http.CmdDeltaServer
-    echo "No class to run" 1>&2
-    exit 1
+    echo "Commands: mksrc, rmsrc, list" 1>&2
+    ##echo "Class path: $DELTA_CP:${JENA_CP}"
+    exit
+    #echo "No class to run" 1>&2
+    #exit 1
 else
-    CLASS="$1"
+    CMD="$1"
     shift
 fi
+
+# Map CMD to class name
+DMCD_PKG="org.seaborne.delta.cmds"
+
+case $CMD in
+    "")
+    ;;
+    mksrc | rmsrc | list)
+	CMD="$DMCD_PKG"."$CMD"
+	;;
+    ls)
+        CMD="${DMCD_PKG}.list"
+	;;
+    rdf2patch)
+	CMD="$DMCD_PKG"."$CMD"
+	;;
+    *)
+	echo "Unknown command" 2>&1
+	exit 1
+    ;;
+
+esac
 
 ## echo "DELTA_CP=$DELTA_CP"
 ## echo "JENA_CP=$JENA_CP"
@@ -47,4 +74,4 @@ fi
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
-java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CLASS" "$@"
+java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD" "$@"

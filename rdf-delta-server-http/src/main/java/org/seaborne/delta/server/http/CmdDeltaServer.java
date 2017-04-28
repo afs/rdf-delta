@@ -22,6 +22,7 @@ import java.net.BindException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List ;
 
 import jena.cmd.ArgDecl;
 import jena.cmd.CmdLineArgs;
@@ -29,8 +30,9 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
@@ -103,13 +105,22 @@ public class CmdDeltaServer {
         if ( configFile == null )
             configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         
-        FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
+        //FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
         LocalServer server = LocalServer.attach(baseArea, configFile);
         int port = choosePort(cla, server);
         DeltaLink link = DeltaLinkLocal.connect(server);
+        
+
         DataPatchServer dps = DataPatchServer.create(port, link) ;
+        FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
+        
+        List<DataSourceDescription> descriptions = link.allDescriptions();
+        if ( descriptions.isEmpty() )
+            FmtLog.info(LOG, "   No data sources");
+        else
+            descriptions.forEach(dsd->FmtLog.info(LOG, "   Data source : %s", dsd));
+
         // And away we go.
-        FmtLog.info(LOG, "START: Delta Server port=%d, base=%s", port, base.toString());
         try { 
             dps.start();
         } catch(BindException ex) {

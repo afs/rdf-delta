@@ -89,4 +89,16 @@ public class DataSourceDescription {
             return false;
         return true;
     }
+
+    public Id getId() {
+        return id ;
+    }
+
+    public String getUri() {
+        return uri ;
+    }
+
+    public String getName() {
+        return name ;
+    }
 }

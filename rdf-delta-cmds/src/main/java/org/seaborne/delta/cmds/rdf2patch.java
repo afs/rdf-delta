@@ -26,12 +26,12 @@ import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.seaborne.patch.StreamPatch ;
 
-/** Write an RDF file to a patch file of adds */
+/** Write an RDF file as a patch file of "adds" (prefixes and triples/quads). */
 public class rdf2patch extends CmdGeneral
 {
     static { LogCtl.setCmdLogging() ; }
     
-    public static void main(String[] args) {
+    public static void main(String... args) {
         new rdf2patch(args).mainRun();
     }
 

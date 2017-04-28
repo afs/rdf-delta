@@ -50,7 +50,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes ;
     private final String url;
-    // Used to coordinate with reading paches in.
+    // Used to coordinate with reading patches in.
     private final Object syncObject;
     private String response = null;
     private Node currentTransactionId = null;
