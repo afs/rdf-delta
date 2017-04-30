@@ -63,11 +63,11 @@
     
     <!-- rdf-delta-libs ?? -->
 
-    <!-- Distribution - ->
+    <!-- Distribution
          Split module into shader (makes the HTTP Delta server)
        and distribution (makes the zip)
-    <module>rdf-delta-system</module>
     -->
+    <module>rdf-delta-system</module>
   </modules>
 
   <scm>

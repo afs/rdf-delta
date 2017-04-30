@@ -37,17 +37,25 @@
        and distribution (makes the zip)
   -->
 
+  <!-- Standalone JAR - ->
   <dependencySets>
-    <!-- Standalone JAR -->
     <dependencySet>
       <outputDirectory></outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
       <outputFileNameMapping>delta-server.jar</outputFileNameMapping>
     </dependencySet>
-
   </dependencySets>
+  -->
+
 
   <files>
+     <file>
+       <!-- Copy in the server jar -->
+       <outputDirectory></outputDirectory>
+       <source>target/rdf-delta-server.jar</source>
+       <destName>rdf-delta-server.jar</destName>
+    </file>
+
     <file>
       <outputDirectory></outputDirectory>
       <source>dist/LICENSE</source>
