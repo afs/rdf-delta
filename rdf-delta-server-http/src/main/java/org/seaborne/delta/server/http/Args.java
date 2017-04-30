@@ -23,7 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.RegToken;
 
@@ -47,15 +49,20 @@ public class Args {
         if ( ref != null )
             return registration.get(ref);
         String zone = request.getParameter(DeltaConst.paramZone);
-        String dataset = request.getParameter(DeltaConst.paramDatasource);
+        String datasourceName = request.getParameter(DeltaConst.paramDatasource);
         String patchId = request.getParameter(DeltaConst.paramPatch);
         String version = request.getParameter(DeltaConst.paramVersion);
+
+        if ( datasourceName != null ) {
+            if ( ! DeltaOps.isValidName(datasourceName) )
+                throw new DeltaBadRequestException("Bad name for a data source: "+datasourceName);
+        }
         
         String clientIdStr = request.getParameter(DeltaConst.paramClient);
         Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
         String regTokenStr = request.getParameter(DeltaConst.paramReg);  
         RegToken regToken = regTokenStr == null ? null : new RegToken(regTokenStr);
-        return new Args(zone, dataset, patchId, version, clientId, regToken);
+        return new Args(zone, datasourceName, patchId, version, clientId, regToken);
     }
     
     public final String zone;

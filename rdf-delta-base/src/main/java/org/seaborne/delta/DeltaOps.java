@@ -52,11 +52,18 @@ public class DeltaOps {
 //        pr.apply(sc);
 //    }
     
+    /** Validate a name as a DataSource name */
+    
+    public static boolean isValidName(String dsName) {
+        if ( dsName == null )
+            return false;
+        return DeltaConst.DataSourceRegex.matcher(dsName).matches();
+    }
+    
     /** Add a printer to a {@link RDFChanges} */
     public static RDFChanges print(RDFChanges changes) {
         return RDFChangesN.multi(changes, new RDFChangesLog()) ;
     }
-    
     
     /** Create a {@link TokenWriter} */
     public static TokenWriter tokenWriter(OutputStream out) {

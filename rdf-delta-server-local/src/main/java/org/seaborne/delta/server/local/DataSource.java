@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
 import org.slf4j.Logger;
@@ -57,13 +58,14 @@ public class DataSource {
      */
     public static DataSource connect(DataRegistry dataRegistry, Id dsRef, String uri, String name, Location sourceArea) {
         Location patchesArea = LocalServer.patchArea(sourceArea);
-        if ( sourceArea.isMem() && patchesArea.isMem() ) {
+        if ( sourceArea.isMem() && patchesArea.isMem() )
             return null ;
-        }
         
-        if ( sourceArea.isMem() || patchesArea.isMem() ) {
+        if ( sourceArea.isMem() || patchesArea.isMem() )
             throw new IllegalArgumentException("Mixed in-memory add persistent: source area = "+sourceArea+" : patch area = "+patchesArea);
-        }
+        
+        if ( ! DeltaOps.isValidName(name) )
+            throw new IllegalArgumentException("Illegal name for DataSource: "+name);
         
         Path initialData = LocalServer.initialData(sourceArea)   ;          
 

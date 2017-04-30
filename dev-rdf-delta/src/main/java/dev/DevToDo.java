@@ -23,6 +23,7 @@ public class DevToDo {
     // Server side - check DSD name :"^[\w-_]+$"
     // Initial data : "version 0"
     // getInitialData -> stream of quads (as a patch?)
+    // Shaded jar sever - check
 
     // XXX [INIT]
     // DLink : get URL for initial data. (file, 

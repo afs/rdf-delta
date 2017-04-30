@@ -32,7 +32,7 @@ static { LogCtl.setCmdLogging() ; }
     public list(String[] argv) {
         super(argv) ;
         super.add(argDataSourceName);
-        super.add(argDataSourceURL);
+        super.add(argDataSourceURI);
     }
 
     @Override

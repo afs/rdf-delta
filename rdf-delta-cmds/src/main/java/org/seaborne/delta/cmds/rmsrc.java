@@ -33,7 +33,7 @@ static { LogCtl.setCmdLogging() ; }
     public rmsrc(String[] argv) {
         super(argv) ;
         super.add(argDataSourceName);
-        super.add(argDataSourceURL);
+        super.add(argDataSourceURI);
     }
 
     @Override
@@ -43,12 +43,12 @@ static { LogCtl.setCmdLogging() ; }
     
     @Override
     protected void execCmd() {
-        hide(super.dataSourceName);
+        hide(super.dataSourceName, super.dataSourceURI);
     }
 
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argDataSourceName) && ! contains(argDataSourceURL) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURL);
+        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
+            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI);
     }
 }

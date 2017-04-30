@@ -30,7 +30,7 @@ public class mksrc extends DeltaCmd {
     public mksrc(String[] argv) {
         super(argv) ;
         super.add(argDataSourceName);
-        super.add(argDataSourceURL);
+        super.add(argDataSourceURI);
     }
 
     @Override
@@ -42,12 +42,12 @@ public class mksrc extends DeltaCmd {
     @Override
     protected void execCmd() {
         //ping();
-        create(dataSourceName, dataSourceURL);
+        create(dataSourceName, dataSourceURI);
     }
 
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argDataSourceName) && ! contains(argDataSourceURL) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURL.getKeyName());
+        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
+            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
     }
 }

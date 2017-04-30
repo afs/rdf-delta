@@ -49,7 +49,7 @@ public class DevCmds extends DeltaCmd {
         create("ABC", url);
         System.out.println();
         
-        hide(name);
+        hide(name, null);
         System.out.println();
 
         list();

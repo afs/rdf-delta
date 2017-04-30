@@ -21,6 +21,7 @@ package org.seaborne.delta.cmds;
 import java.util.List ;
 import java.util.Objects ;
 import java.util.Optional ;
+import java.util.function.Predicate ;
 
 import jena.cmd.ArgDecl ;
 import jena.cmd.CmdException ;
@@ -30,6 +31,7 @@ import org.apache.jena.atlas.json.JsonException ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.seaborne.delta.DataSourceDescription ;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
@@ -40,7 +42,7 @@ abstract public class DeltaCmd extends CmdGeneral {
     
     static ArgDecl argServer            = new ArgDecl(true, "server");
     static ArgDecl argDataSourceName    = new ArgDecl(true, "dsrc", "log", "dataset");
-    static ArgDecl argDataSourceURL     = new ArgDecl(true, "dsrcurl");
+    static ArgDecl argDataSourceURI     = new ArgDecl(true, "dsrcurl", "uri", "url");
     
     public DeltaCmd(String[] argv) {
         super(argv) ;
@@ -69,21 +71,21 @@ abstract public class DeltaCmd extends CmdGeneral {
             if ( dataSourceName.isEmpty() )
                 throw new CmdException("Empty string for data source name");
             
-            if ( StringUtils.containsAny(dataSourceURL, "/ ?#") )
-                throw new CmdException("Illegal character in data source name");
-            
-            if ( ! dataSourceName.matches("^[\\w-_]+$") )
-            {}
+            if ( StringUtils.containsAny(dataSourceURI, "/ ?#") )
+                throw new CmdException("Illegal character in data source name: '"+dataSourceName+"'");
+            if ( ! DeltaOps.isValidName(dataSourceName) )
+                throw new CmdException("Not a valid data source name: '"+dataSourceName+"'");
             
             String s = serverURL;
             if ( ! s.endsWith("/") )
                 s = s+"/";
-            dataSourceURL = s + dataSourceName;
+            dataSourceURI = s + dataSourceName;
         }
-        if ( contains(argDataSourceURL) ) {
-            dataSourceURL = getValue(argDataSourceURL);
+        if ( contains(argDataSourceURI) ) {
+            dataSourceURI = getValue(argDataSourceURI);
+            if ( StringUtils.containsAny(dataSourceURI, "<>?#") )
+                throw new CmdException("Bad data source URI: '"+dataSourceURI+"'");
         }
-        
         dLink = DeltaLinkHTTP.connect(serverURL);
     }
     
@@ -91,7 +93,7 @@ abstract public class DeltaCmd extends CmdGeneral {
 
     protected String    serverURL       = null ;
     protected String    dataSourceName  = null ;
-    protected String    dataSourceURL   = null ;
+    protected String    dataSourceURI   = null ;
     protected DeltaLink dLink           = null ;
 
     @Override
@@ -108,7 +110,6 @@ abstract public class DeltaCmd extends CmdGeneral {
         catch (HttpException ex) { throw new CmdException(messageFromHttpException(ex)) ; }
     }
 
-    // --- The commands 
     @Override
     protected String getCommandName() {
         String name = this.getClass().getSimpleName();
@@ -121,6 +122,8 @@ abstract public class DeltaCmd extends CmdGeneral {
     
     protected abstract void execCmd();
 
+    // --- The commands 
+
     protected void ping() {
         try {
             dLink.ping();
@@ -131,12 +134,7 @@ abstract public class DeltaCmd extends CmdGeneral {
         }
     }
 
-    protected String messageFromHttpException(HttpException ex) {
-        Throwable ex2 = ex;
-        if ( ex.getCause() != null )
-            ex2 = ex.getCause();
-        return ex2.getMessage();
-    }
+    
     
     // Library of operations on the DeltaLink.
     
@@ -161,29 +159,45 @@ abstract public class DeltaCmd extends CmdGeneral {
         System.out.println("Created "+dsd);
     }
 
-    protected void hide(String name) {
-        Optional<Id> opt = find(name);
-        if ( ! opt.isPresent() )
-            throw new CmdException("Source '"+name+"' does not exist");
+    protected void hide(String name, String url) {
+        Optional<Id> opt = find(name, url);
+        if ( ! opt.isPresent() ) {
+            String s = (name != null) ? name : url;  
+            throw new CmdException("Source '"+s+"' does not exist");
+        }
         Id dsRef = opt.get(); 
         dLink.removeDataset(dsRef);
     }
 
-    // Find DSD for the command line data source.
-    protected Optional<Id> find() {
-        return null;
+    protected String messageFromHttpException(HttpException ex) {
+        Throwable ex2 = ex;
+        if ( ex.getCause() != null )
+            ex2 = ex.getCause();
+        return ex2.getMessage();
+    }
+
+    protected Optional<Id> find(String name, String url) {
+        if ( name != null )
+            return findByName(name);
+        if ( url != null )
+            return findByName(url);
+        throw new CmdException("No name or URI for the source");
     }
     
+    protected Optional<Id> findByURI(String uri) {
+        return find(dsd-> Objects.equals(dsd.name, uri)) ;
+    }
     
-    protected Optional<Id> find(String name) {
-        Objects.requireNonNull(name);
-        
+    protected Optional<Id> findByName(String name) {
+        return find(dsd-> Objects.equals(dsd.name, name)) ;
+    }
+
+    protected Optional<Id> find(Predicate<DataSourceDescription> predicate) {
         List <DataSourceDescription> all = dLink.allDescriptions();
         return 
             all.stream()
-               .filter(dsd-> Objects.equals(dsd.name, name))
+               .filter(predicate)
                .findFirst()
                .map(dsd->dsd.id);
     }
-
 }
