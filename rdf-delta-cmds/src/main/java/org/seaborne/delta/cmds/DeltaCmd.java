@@ -71,8 +71,12 @@ abstract public class DeltaCmd extends CmdGeneral {
             if ( dataSourceName.isEmpty() )
                 throw new CmdException("Empty string for data source name");
             
-            if ( StringUtils.containsAny(dataSourceURI, "/ ?#") )
-                throw new CmdException("Illegal character in data source name: '"+dataSourceName+"'");
+            if ( StringUtils.containsAny(dataSourceName, "/ ?#") ) {
+                // First bad character:
+                int idx = StringUtils.indexOfAny(serverURL, dataSourceName);
+                char ch = dataSourceName.charAt(idx);
+                throw new CmdException(String.format("Illegal character '%c' in data source name: '%s'", ch, dataSourceName));
+            }
             if ( ! DeltaOps.isValidName(dataSourceName) )
                 throw new CmdException("Not a valid data source name: '"+dataSourceName+"'");
             

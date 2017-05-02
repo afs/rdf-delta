@@ -236,12 +236,11 @@ public class DeltaConnection implements AutoCloseable {
         playPatches(firstVersion, remoteVer);
     }
     
-    
     /** Play the patches (range is inclusive at both ends) */
     private void playPatches(int firstPatchVer, int lastPatchVer) {
         // [Delta] replace with a one-shot "get all patches" operation.
         FmtLog.info(LOG, "Patch range [%d, %d]", firstPatchVer, lastPatchVer);
-      //IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
+        //IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
         for ( int x = firstPatchVer ; x <= lastPatchVer ; x++) {
             FmtLog.info(LOG, "Sync: patch=%d", x);
             RDFPatch patch = fetchPatch(x);
@@ -250,7 +249,7 @@ public class DeltaConnection implements AutoCloseable {
                 continue;
             }
             RDFChanges c = target;
-            if ( true )
+            if ( false )
                 c = DeltaOps.print(c);
             patch.apply(c);
         }

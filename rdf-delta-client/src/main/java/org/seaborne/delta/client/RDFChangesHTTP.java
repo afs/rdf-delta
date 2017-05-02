@@ -209,12 +209,11 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         FmtLog.info(LOG, "Send patch : %s", url);
         
         String s = new String(bytes, StandardCharsets.UTF_8);
-        if ( true ) {
+        if ( false ) {
             if ( LOG.isInfoEnabled() ) {
                 LOG.info("== Sending ...");
                 // Do NOT close!
-                @SuppressWarnings("resource")
-                IndentedWriter w = new IndentedWriter(System.out);
+                IndentedWriter w = IndentedWriter.stdout;
                 String x = w.getLinePrefix();
                 w.setLinePrefix(">> ");
                 w.print(s);
