@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.InputStream;
+import java.util.List ;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.ext.com.google.common.base.Objects;
@@ -326,6 +327,31 @@ public abstract class AbstractTestDeltaLink {
         String url = dLink.initialState(dsRef);
         assertNotNull(url);
         RDFDataMgr.parse(StreamRDFLib.sinkNull(), url);
+    }
+
+    @Test
+    public void datasource_16_listDescr() {
+        DeltaLink dLink = getLinkRegistered();
+        List<DataSourceDescription> all = dLink.allDescriptions();
+        assertEquals(0, all.size());
+        Id dsRef = dLink.newDataSource("datasource_16", "http://example/uri16");
+        assertEquals(1, dLink.listDatasets().size());
+        all = dLink.allDescriptions();
+        assertEquals(1, all.size());
+        boolean b = all.stream().anyMatch(dsd->dsd.getUri().equals("http://example/uri16"));
+        assertTrue(b);
+    }
+
+    @Test
+    public void datasource_17_listLog() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("datasource_17", "http://example/uri17");
+        List<Id> x = dLink.listDatasets();
+        assertEquals(1, x.size());
+        assertTrue(x.contains(dsRef));
+        
+        PatchLogInfo logInfo = dLink.getPatchLogInfo(dsRef);
+        assertEquals(dsRef, logInfo.dataSourceId);
     }
 
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {

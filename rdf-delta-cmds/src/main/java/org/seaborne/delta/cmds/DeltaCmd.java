@@ -176,7 +176,7 @@ abstract public class DeltaCmd extends CmdGeneral {
             System.out.print(dsd);
             PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
             if ( logInfo != null )
-                String.format("[%s, %s, <%s> [%d,%d] %s]", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
+                String.format("[%s %s <%s> [%d,%d] %s]", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
                               (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString());
             else
                 System.out.println(dsd);

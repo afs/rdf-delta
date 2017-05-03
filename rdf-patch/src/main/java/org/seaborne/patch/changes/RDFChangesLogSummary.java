@@ -21,14 +21,14 @@ package org.seaborne.patch.changes;
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.graph.Node;
 import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.changes.RDFChangesLog.Printer;
+import org.seaborne.patch.system.Printer ;
 
 public class RDFChangesLogSummary extends RDFChangesCounter {
     final private Printer printer;
     private Node node = null;
     private int depth = 0;
 
-    public RDFChangesLogSummary() { this(RDFChangesLog::printer) ; }
+//    public RDFChangesLogSummary() { this(RDFChangesLog::printer) ; }
     
     public RDFChangesLogSummary(Printer printer) {
         this.printer = printer ;

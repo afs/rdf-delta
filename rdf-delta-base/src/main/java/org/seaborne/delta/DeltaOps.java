@@ -33,10 +33,21 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;
+import org.seaborne.patch.system.Printer ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
+import org.slf4j.Logger ;
 
 public class DeltaOps {
+    
+    public static void printer(String fmt, Object... args) {
+        System.out.printf(fmt, args);
+        System.out.println();
+    }
+    
+    public static Printer printerToLog(Logger log) {
+        return (fmt, args) -> log.info(String.format(fmt, args));
+    }
     
 //    public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
 //        RDFChangesHTTP changes = LibPatchSender.create1(url) ;
@@ -62,7 +73,7 @@ public class DeltaOps {
     
     /** Add a printer to a {@link RDFChanges} */
     public static RDFChanges print(RDFChanges changes) {
-        return RDFChangesN.multi(changes, new RDFChangesLog()) ;
+        return RDFChangesN.multi(changes, new RDFChangesLog(DeltaOps::printer)) ;
     }
     
     /** Create a {@link TokenWriter} */

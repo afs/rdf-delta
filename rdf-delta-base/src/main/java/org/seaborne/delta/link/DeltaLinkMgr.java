@@ -47,7 +47,8 @@ public class DeltaLinkMgr {
         
         synchronized(syncObject) {
             if ( isRegistered(clientId) ) {
-                LOG.warn("Repeat registration of client : "+clientId);
+                if ( LOG.isInfoEnabled() )
+                    LOG.info("Repeat registration of client : "+clientId);
                 // Existing registration - client restart?
                 // Do a new registration.
                 activeLinks.remove(clientId);

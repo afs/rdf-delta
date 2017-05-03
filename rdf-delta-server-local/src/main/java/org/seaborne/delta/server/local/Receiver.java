@@ -24,10 +24,11 @@ import java.util.ArrayList ;
 import java.util.List ;
 import java.util.function.Consumer ;
 
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaOps ;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesLogSummary;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
@@ -37,13 +38,12 @@ import org.seaborne.riot.tio.impl.TokenWriterText ;
 public class Receiver {
     private FileStore fileStore;
     private List<RDFChanges> additionalProcessors = new ArrayList<>();
-
     /*
      * In-bound processing: parse (=check) and place in the patch area
      */
     public Receiver(FileStore fileStore) {
         this.fileStore = fileStore;
-        addProcessor(new RDFChangesLogSummary(RDFChangesLog::printer)) ;
+        addProcessor(new RDFChangesLogSummary(DeltaOps.printerToLog(Delta.DELTA_PATCH))) ;
     }
     
     // -- Builderish.

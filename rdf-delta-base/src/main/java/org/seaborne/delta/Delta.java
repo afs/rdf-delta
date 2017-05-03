@@ -37,6 +37,7 @@ public class Delta {
     }
     
     public final static Logger DELTA_LOG        = getDeltaLogger("") ;
+    public final static Logger DELTA_PATCH      = getDeltaLogger("Patch") ;
     public final static Logger DELTA_HTTP_LOG   = getDeltaLogger("HTTP") ;
     public final static Logger DELTA_RPC_LOG    = getDeltaLogger("RPC") ;
     public final static Logger DELTA_CONFIG_LOG = getDeltaLogger("Config") ;

@@ -22,13 +22,11 @@ import static org.apache.jena.sparql.sse.SSE.str ;
 
 import org.apache.jena.graph.Node ;
 import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.system.Printer ;
 
 public class RDFChangesLog implements RDFChanges {
     final private Printer printer ;
 
-    // Two versions - for chaining (RDFChangesN) and wrapping.
-    public RDFChangesLog() { this(RDFChangesLog::printer) ; }
-    
     public RDFChangesLog(Printer printer) {
         this.printer = printer ;
     }
@@ -43,18 +41,8 @@ public class RDFChangesLog implements RDFChanges {
         print("H   %s %s", field, str(value)) ;
     }
     
-    @FunctionalInterface
-    public interface Printer {
-        void print(String fmt, Object... args) ;
-    }
-    
     private void print(String fmt, Object... args) {
         printer.print("> "+fmt, args);
-    }
-    
-    public static void printer(String fmt, Object... args) {
-        System.out.printf(fmt, args);
-        System.out.println();
     }
     
     @Override
