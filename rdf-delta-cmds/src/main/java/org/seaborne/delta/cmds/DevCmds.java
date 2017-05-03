@@ -20,8 +20,12 @@ package org.seaborne.delta.cmds;
 
 public class DevCmds extends DeltaCmd {
     public static void main(String ... argv) {
+        
+        
+        
         //list.main("--server=http://localhost:1066/");
-        mksrc.main("--server=http://localhost:1066/", "--dsrc=ABC");
+        //mksrc.main("--server=http://localhost:1066/", "--dsrc=ABC");
+        sendpatch.main("--server=http://localhost:1066/", "--dsrc=ABC", "P");
         System.exit(0);
         
         new DevCmds(argv).mainRun();

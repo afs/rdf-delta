@@ -237,7 +237,6 @@ public class S_DRPC extends DeltaServletBase {
     }
 
     private JsonValue deregister(DeltaAction action) {
-        action.dLink.deregister();
         deregister(action.regToken);
         return noResults;
     }

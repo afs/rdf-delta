@@ -95,19 +95,21 @@ abstract public class DeltaCmd extends CmdGeneral {
     
     protected abstract void checkForMandatoryArgs();
 
-    protected String    serverURL       = null ;
-    protected String    dataSourceName  = null ;
-    protected String    dataSourceURI   = null ;
-    protected DeltaLink dLink           = null ;
-
+    protected String    serverURL           = null ;
+    protected String    dataSourceName      = null ;
+    protected String    dataSourceURI       = null ;
+    protected DeltaLink dLink               = null ;
+    protected Id clientId                   = Id.create() ;
+    protected List<DataSourceDescription> descriptions = null ; 
+    protected DataSourceDescription       description = null ;
+    
     @Override
     protected void exec() {
-        Id clientId = Id.create() ;
         try { 
             dLink.register(clientId) ;
             try { execCmd() ; }
-            finally { 
-                if ( dLink.isRegistered() )
+            finally {
+                //if ( dLink.isRegistered() )
                     dLink.deregister();
             }
         }
@@ -126,6 +128,28 @@ abstract public class DeltaCmd extends CmdGeneral {
     
     protected abstract void execCmd();
 
+    protected List<DataSourceDescription> getDescriptions() {
+        if ( descriptions == null )
+            descriptions = dLink.allDescriptions();
+        return descriptions;
+    }
+    
+    protected DataSourceDescription getDescription() {
+        if ( description == null ) {
+            description = 
+                getDescriptions().stream()
+                    .filter(dsd-> Objects.equals(dsd.name, dataSourceName) || Objects.equals(dsd.uri, dataSourceURI))
+                    .findFirst().orElse(null);
+            if ( description == null )
+                throw new CmdException("Source '"+dataSourceName+"' does not exist");
+        }
+        return description;
+    }
+    
+    protected Id getDataSourceRef() {
+        return getDescription().getId();
+    }
+    
     // --- The commands 
 
     protected void ping() {
@@ -137,16 +161,14 @@ abstract public class DeltaCmd extends CmdGeneral {
             throw new CmdException("Not an RDF Patch server"); 
         }
     }
-
-    
     
     // Library of operations on the DeltaLink.
     
     protected void list() {
-        List <DataSourceDescription> all = dLink.allDescriptions();
+        List <DataSourceDescription> all = getDescriptions();
         if ( all.isEmpty())
             System.out.println("-- No logs --");
-        else    
+        else
             all.forEach(System.out::println);
     }
 

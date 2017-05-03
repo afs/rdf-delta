@@ -67,7 +67,7 @@ DMCD_PKG="org.seaborne.delta.cmds"
 case $CMD in
     "")
     ;;
-    mksrc | rmsrc | list)
+    mksrc | rmsrc | list | sendpatch | getpatch )
 	CMD="$DMCD_PKG"."$CMD"
 	;;
     ls)

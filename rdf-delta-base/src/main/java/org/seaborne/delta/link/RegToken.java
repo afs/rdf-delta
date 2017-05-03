@@ -20,6 +20,8 @@ package org.seaborne.delta.link;
 
 import java.util.UUID;
 
+import org.seaborne.delta.Id ;
+
 /** registration */
 public class RegToken {
     private final UUID uuid;
@@ -48,7 +50,7 @@ public class RegToken {
     // For Display 
     @Override
     public String toString() {
-        return "token:"+uuid;
+        return "token:"+Id.shortUUIDstr(uuid);
     }
     
     @Override

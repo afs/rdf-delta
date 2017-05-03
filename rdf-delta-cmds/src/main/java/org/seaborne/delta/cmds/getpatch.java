@@ -19,6 +19,7 @@
 package org.seaborne.delta.cmds;
 
 import jena.cmd.CmdException ;
+import org.seaborne.delta.client.DeltaConnection ;
 
 /** Create a new log */
 public class getpatch extends DeltaCmd {
@@ -40,6 +41,9 @@ public class getpatch extends DeltaCmd {
     
     @Override
     protected void execCmd() {
+        
+        DeltaConnection dConn = DeltaConnection.connect(null, null, null, null, dLink);
+        
         throw new CmdException(getCommandName()+" : Not implemented"); 
     }
 

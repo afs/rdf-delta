@@ -44,6 +44,7 @@ public class DeltaLinkMgr {
     }
     
     public RegToken register(Id clientId) {
+        
         synchronized(syncObject) {
             if ( isRegistered(clientId) ) {
                 LOG.warn("Repeat registration of client : "+clientId);
@@ -54,6 +55,8 @@ public class DeltaLinkMgr {
             // New.
             RegToken token = new RegToken();
             activeLinks.put(clientId, token);
+            if ( LOG.isDebugEnabled() )
+                LOG.debug("Register: {} {}", clientId, token);
             return token;
         }
     }
@@ -65,6 +68,8 @@ public class DeltaLinkMgr {
     }
     
     public void deregister(RegToken token) {
+        if ( LOG.isDebugEnabled() )
+            LOG.debug("Deregister: {}", token);
         synchronized(syncObject) {
             if ( isRegistered(token) ) {
                 activeLinks.inverse().remove(token);
@@ -74,6 +79,8 @@ public class DeltaLinkMgr {
     }
 
     public void deregister(Id clientId) {
+        if ( LOG.isDebugEnabled() )
+            LOG.debug("Deregister: {}", clientId);
         synchronized(syncObject) {
             if ( isRegistered(clientId) ) {
                 activeLinks.remove(clientId); 

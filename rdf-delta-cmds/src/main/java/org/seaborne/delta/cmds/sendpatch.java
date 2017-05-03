@@ -18,7 +18,17 @@
 
 package org.seaborne.delta.cmds;
 
+import java.io.IOException ;
+import java.io.InputStream ;
+import java.nio.file.Files ;
+import java.nio.file.Path ;
+import java.nio.file.Paths ;
+
 import jena.cmd.CmdException ;
+import org.apache.jena.atlas.io.IO ;
+import org.seaborne.delta.Id ;
+import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchOps ;
 
 /** Create a new log */
 public class sendpatch extends DeltaCmd {
@@ -35,17 +45,29 @@ public class sendpatch extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        return getCommandName()+"--server URL --dsrc NAME PATCH...";
+        return getCommandName()+"--server URL --dsrc NAME PATCH ...";
     }
     
     @Override
     protected void execCmd() {
-        throw new CmdException(getCommandName()+" : Not implemented"); 
+        getPositional().forEach(fn->exec1(fn));
     }
 
+    protected void exec1(String fn) {
+        Path path = Paths.get(fn) ;
+        try(InputStream in = Files.newInputStream(path) ) {
+            RDFPatch patch = RDFPatchOps.read(in);
+            Id dsRef = getDataSourceRef();
+            dLink.sendPatch(dsRef, patch);
+        } catch (IOException ex ) { IO.exception(ex); }
+    }
+    
     @Override
     protected void checkForMandatoryArgs() {
         if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
             throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
+        if ( getPositional().isEmpty() ) {
+            throw new CmdException(getCommandName()+" : No patch files"); 
+        }
     }
 }

@@ -150,7 +150,7 @@ public final class Id {
         return SCHEME+"\""+string+"\"" ;
     }
 
-    private String shortUUIDstr(UUID uuid) {
+    public static String shortUUIDstr(UUID uuid) {
         String str = uuid.toString();
         int version = uuid.version();
         if ( version == 1 )
