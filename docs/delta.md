@@ -164,12 +164,11 @@ The request is a JSON document of the form:
 arguments, and `"token"` the connection registration.  The result is a
 JSON value that depends entirely on the operation called.
 
-@@ _DS => _LOG?
-
 | Operation     | |
 | ------------- | ---- |
 | LIST_DS       | List datasets and logs |
-| DESCR_DS      | Describe a log |
+| DESCR_DS      | Describe a datasource |
+| DESCR_LOG     | Describe a log |
 | VERSION       | Latest version number of a log |
 | CREATE_DS     | Create a log for a dataset |
 | REMOVE_DS     | Remove a log for a dataset |
