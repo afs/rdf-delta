@@ -118,6 +118,16 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
     
     @Override
+    public PatchLogInfo getPatchLogInfo(Id dsRef) {
+        checkLink();
+        checkRegistered();
+        DataSource source = getDataSource(dsRef);
+        if ( source == null )
+            return null;
+        return source.getPatchLog().getDescription();
+    }
+
+    @Override
     public int sendPatch(Id dsRef, RDFPatch rdfPatch) {
         checkLink();
         checkRegistered();

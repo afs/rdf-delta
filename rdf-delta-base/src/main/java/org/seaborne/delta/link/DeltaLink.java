@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.patch.RDFPatch ;
 
 /** Interface to the server for the operations.
@@ -50,6 +51,9 @@ public interface DeltaLink {
     
     /** Return an array of {@link DataSourceDescription}s of datasets */
     public List<DataSourceDescription> allDescriptions();
+
+    /** Return details of the patch log (or null if not registered) */
+    public PatchLogInfo getPatchLogInfo(Id dsRef) ;
 
     /** Return details of a dataset (or null if not registered) */
     public DataSourceDescription getDataSourceDescription(Id dsRef) ;

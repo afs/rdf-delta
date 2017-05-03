@@ -67,9 +67,9 @@ public class DRPC {
             throw new DeltaException() ; 
         
         String argStr = JSON.toString(object) ;
-        try (TypedInputStream x = HttpOp.execHttpPostStream(url, 
-                                                            WebContent.contentTypeJSON, argStr,
-                                                            WebContent.contentTypeJSON)) {
+        try (TypedInputStream x = 
+                 HttpOp.execHttpPostStream(url, WebContent.contentTypeJSON, argStr, WebContent.contentTypeJSON)
+            ) {
             if ( x == null )
                 throw new JsonException("No response") ;
             
@@ -88,6 +88,4 @@ public class DRPC {
             throw ex;
         }
     }
-    
-    //public static JsonValue rpc(String url, JsonObject object) {
 }

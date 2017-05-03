@@ -305,6 +305,21 @@ public class DeltaLinkHTTP implements DeltaLink {
             return null;
         return DataSourceDescription.fromJson(obj);
     }
+
+    @Override
+    public PatchLogInfo getPatchLogInfo(Id dsRef) {
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
+        });
+        return getPatchLogInfo(arg);
+    }
+
+    private PatchLogInfo getPatchLogInfo(JsonObject arg) {
+        JsonObject obj = rpc(DeltaConst.OP_DESCR_LOG, arg);
+        if ( obj.isEmpty() )
+            return null;
+        return PatchLogInfo.fromJson(obj);
+    }
     
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         if ( arg == null )

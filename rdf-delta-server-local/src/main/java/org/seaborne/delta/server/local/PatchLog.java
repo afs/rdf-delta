@@ -40,6 +40,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
@@ -177,20 +178,32 @@ public class PatchLog {
         
     }
 
+    public Id getEarliestId() {
+        if ( start == null )
+            return null;
+        return start.id;
+    }
+
+    public int getEarliestVersion() {
+        if ( start == null )
+            return -1;
+        return start.version;
+    }
+
     public Id getLatestId() {
-        HistoryEntry e = finish;
-        return e.id;
+        if ( finish == null )
+            return null;
+        return finish.id;
     }
 
     public int getLatestVersion() {
-        HistoryEntry e = finish;
-        return e.version;
+        if ( finish == null )
+            return -1;
+        return finish.version;
     }
 
-    public PatchLogInfo getInfo(boolean unimplemented) {
-        if ( start == null )
-            new PatchLogInfo(dsRef, -1, -1, null); 
-        return new PatchLogInfo(dsRef, start.version, finish.version, finish.id); 
+    public PatchLogInfo getDescription() {
+        return new PatchLogInfo(dsRef, name, getLatestVersion(), getEarliestVersion(), getLatestId());
     }
 
     public boolean isEmpty() {

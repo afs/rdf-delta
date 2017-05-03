@@ -18,8 +18,29 @@
 
 package org.seaborne.delta.server.http;
 
-import static org.seaborne.delta.DeltaConst.*;
 import static java.lang.String.format;
+import static org.seaborne.delta.DeltaConst.F_ARG ;
+import static org.seaborne.delta.DeltaConst.F_ARRAY ;
+import static org.seaborne.delta.DeltaConst.F_CLIENT ;
+import static org.seaborne.delta.DeltaConst.F_DATASOURCE ;
+import static org.seaborne.delta.DeltaConst.F_ID ;
+import static org.seaborne.delta.DeltaConst.F_NAME ;
+import static org.seaborne.delta.DeltaConst.F_OP ;
+import static org.seaborne.delta.DeltaConst.F_TOKEN ;
+import static org.seaborne.delta.DeltaConst.F_URI ;
+import static org.seaborne.delta.DeltaConst.F_VALUE ;
+import static org.seaborne.delta.DeltaConst.OP_CREATE_DS ;
+import static org.seaborne.delta.DeltaConst.OP_DEREGISTER ;
+import static org.seaborne.delta.DeltaConst.OP_DESCR_DS ;
+import static org.seaborne.delta.DeltaConst.OP_DESCR_LOG ;
+import static org.seaborne.delta.DeltaConst.OP_ISREGISTERED ;
+import static org.seaborne.delta.DeltaConst.OP_LIST_DS ;
+import static org.seaborne.delta.DeltaConst.OP_LIST_DSD ;
+import static org.seaborne.delta.DeltaConst.OP_PING ;
+import static org.seaborne.delta.DeltaConst.OP_REGISTER ;
+import static org.seaborne.delta.DeltaConst.OP_REMOVE_DS ;
+import static org.seaborne.delta.DeltaConst.OP_VERSION ;
+
 import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
@@ -35,10 +56,7 @@ import org.apache.jena.atlas.json.* ;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
@@ -112,6 +130,7 @@ public class S_DRPC extends DeltaServletBase {
             case OP_LIST_DS:
             case OP_LIST_DSD:
             case OP_DESCR_DS:
+            case OP_DESCR_LOG:
                 break;
             // Registration required.
             case OP_VERSION:
@@ -158,6 +177,9 @@ public class S_DRPC extends DeltaServletBase {
                 break ;
             case OP_DESCR_DS:
                 rslt = describeDataSource(action);
+                break ;
+            case OP_DESCR_LOG:
+                rslt = describePatchLog(action);
                 break ;
             case OP_LIST_DSD:
                 rslt = describeAllDataSources(action);
@@ -275,6 +297,25 @@ public class S_DRPC extends DeltaServletBase {
         if ( dsd == null )
             return noResults;
         return dsd.asJson();
+    }
+    
+    private JsonValue describePatchLog(DeltaAction action) {
+        // If Id or URI.
+//        String uri = getFieldAsString(action, F_URI, false);
+//        String dataSourceId = getFieldAsString(action, F_DATASOURCE, false);
+//        if ( uri == null && dataSourceId == null )
+//            throw new DeltaBadRequestException(format("No field: '%s' nor '%s'", F_DATASOURCE, F_URI));
+//        if ( uri != null && dataSourceId != null )
+//            throw new DeltaBadRequestException(format("Only one of fields '%s' nor '%s' allowed", F_DATASOURCE, F_URI));
+        // Must be by Id.
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE, false);
+        if ( dataSourceId == null )
+            throw new DeltaBadRequestException(format("No field: '%s' ", F_DATASOURCE));
+        Id dsRef = Id.fromString(dataSourceId);
+        PatchLogInfo logInfo = action.dLink.getPatchLogInfo(dsRef);
+        if ( logInfo == null )
+            return noResults;
+        return logInfo.asJson();
     }
     
     private JsonValue describeAllDataSources(DeltaAction action) {

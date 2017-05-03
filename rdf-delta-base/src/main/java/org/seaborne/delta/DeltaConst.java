@@ -43,6 +43,7 @@ public class DeltaConst {
     public static final String OP_LIST_DS      = "list_datasource";
     public static final String OP_LIST_DSD     = "list_descriptions";
     public static final String OP_DESCR_DS     = "describe_datasource";
+    public static final String OP_DESCR_LOG    = "describe_log";
     public static final String OP_CREATE_DS    = "create_datasource";
     public static final String OP_REMOVE_DS    = "remove_datasource";
 
@@ -57,6 +58,9 @@ public class DeltaConst {
     public static final String F_SOURCES       = "sources";
     public static final String F_ID            = "id";
     public static final String F_VERSION       = "version";
+    public static final String F_MINVER        = "min_version";
+    public static final String F_MAXVER        = "max_version";
+    public static final String F_LATEST        = "latest";
     public static final String F_NAME          = "name";
     public static final String F_DATA          = "data";
     public static final String F_URI           = "uri";

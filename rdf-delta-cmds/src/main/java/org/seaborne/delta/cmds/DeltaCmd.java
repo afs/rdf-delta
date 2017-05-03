@@ -33,6 +33,7 @@ import org.apache.jena.atlas.web.HttpException ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id ;
+import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
 
@@ -166,10 +167,21 @@ abstract public class DeltaCmd extends CmdGeneral {
     
     protected void list() {
         List <DataSourceDescription> all = getDescriptions();
-        if ( all.isEmpty())
+        if ( all.isEmpty()) {
             System.out.println("-- No logs --");
-        else
-            all.forEach(System.out::println);
+            return ;
+        }
+        
+        all.forEach(dsd->{
+            System.out.print(dsd);
+            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
+            if ( logInfo != null )
+                String.format("[%s, %s, <%s> [%d,%d] %s]", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
+                              (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString());
+            else
+                System.out.println(dsd);
+            
+        });
     }
 
     protected void create(String name, String url) {
