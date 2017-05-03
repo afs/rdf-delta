@@ -30,6 +30,8 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.cmds.list ;
+import org.seaborne.delta.cmds.sendpatch ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
 
@@ -106,6 +108,17 @@ public class Run {
         DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
         server.start();
         String URL = "http://localhost:1066/";
+        
+        //server.join();
+        
+        list.main("--server="+URL);
+        System.out.println();
+        System.err.println();
+        //mksrc.main("--server=http://localhost:1066/", "--dsrc=ABC");
+        sendpatch.main("--server="+URL, "--dsrc=ABC", "P");
+        System.exit(0);
+
+        
         // Zone
         Zone.get().init("Zone");
         //Client

@@ -20,6 +20,9 @@ package dev;
 
 public class DevToDo {
     
+    // Tests for cmds.
+    // DeltaLinkLocal without chcking registration etc.
+    
     // Server side - check DSD name :"^[\w-_]+$"
     // Initial data : "version 0"
     // getInitialData -> stream of quads (as a patch?)
