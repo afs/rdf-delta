@@ -33,14 +33,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.lib.InternalErrorException ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
-import org.apache.jena.graph.Node;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
@@ -203,7 +201,7 @@ public class PatchLog {
     }
 
     public PatchLogInfo getDescription() {
-        return new PatchLogInfo(dsRef, name, getLatestVersion(), getEarliestVersion(), getLatestId());
+        return new PatchLogInfo(dsRef, name, getEarliestVersion(), getLatestVersion(), getLatestId());
     }
 
     public boolean isEmpty() {
@@ -246,9 +244,47 @@ public class PatchLog {
         return true;
     }
     
-    private boolean validateEntry(RDFPatch patch) {
-        Id previousId = Id.fromNode(patch.getPrevious());
-        Id patchId = Id.fromNode(patch.getId());
+    private void validateEx(Id patchId, Id previousId) {
+        if ( patchId == null )
+            badPatchEx("No id");
+        
+        // Check id is new.
+        if ( historyEntries.containsKey(patchId) )
+            badPatchEx("Patch already in the log: patch=%s", patchId);
+        
+        if ( isEmpty() ) {
+            if ( previousId != null )
+                badPatchEx("Previous reference for patch but PatchLog is empty: patch=%s : previous=%s", patchId, previousId);
+            return ;
+        }
+
+        // Non-empty
+        if ( previousId == null )
+            badPatchEx("No previous for patch when PatchLog is non-empty: patch=%s", patchId);
+        
+        if  ( patchId.equals(previousId) )
+            badPatchEx("Patch id and patch previous are the same : patch=%s", patchId);
+        
+        // Check id is new.
+        if ( historyEntries.containsKey(patchId) )
+            badPatchEx("Duplicate patch: patch=%s, previous=%s", patchId, previousId);   
+    }
+    
+    private void badPatchEx(String fmt, Object...args) {
+        String msg = String.format(fmt, args);
+        FmtLog.warn(LOG, msg); 
+        throw new DeltaBadPatchException(msg);
+    }
+    
+    private void validateVersionEx(int version) {
+        if ( idToNumber.inverse().containsKey(version) )
+            // Internal consistency error. FleStore was supposed to make it unique.
+            throw new InternalErrorException("Version already in-use: "+version);
+    }
+    
+    private boolean validateEntry(RDFPatch patch, Id patchId, Id previousId) {
+//        Id previousId = Id.fromNode(patch.getPrevious());
+//        Id patchId = Id.fromNode(patch.getId());
         HistoryEntry entry = findHistoryEntry(patchId);
         if ( entry != null ) {
             Integer ver = idToNumber.get(patchId);
@@ -266,7 +302,7 @@ public class PatchLog {
         } else {
             // No entry.
             if ( previousId != null && ! previousId.isNil() ) {
-                FmtLog.warn(LOG, "Patch has a previous link, but theer is no entry for this patch: %s (previous=%s)", patchId, previousId);
+                FmtLog.warn(LOG, "Patch has a previous link, but there is no entry for this patch: %s (previous=%s)", patchId, previousId);
             }
         }
         
@@ -277,41 +313,49 @@ public class PatchLog {
      * Add a patch to the PatchLog.
      * This operation does not store the patch; 
      * it is expected to be already persisted.
-     * Only the {@code PatchLog} in-mmeory metadata is updated. 
+     * Only the {@code PatchLog} in-memory metadata is updated.
+     * @param patch
+     * @param version -- as decided by the filestore.
      */
-    void addMeta(RDFPatch patch, int version) {
-        // Validate.
-        validate(patch);
+    void append(RDFPatch patch, int version) {
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());
+
+        validateEx(patchId, previousId);
+        validateVersionEx(version);
+        
+        FmtLog.info(LOG, "Patch id=%s", patchId.asString());
+        FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, version);
+        
         HistoryEntry e = new HistoryEntry(patch.header(), version, previousId, patchId, null);
         addHistoryEntry(e);
         idToNumber.put(patchId, version);
-        validateEntry(patch);
+        validateEntry(patch, patchId, previousId);
     }
 
+    
     synchronized private void addHistoryEntry(HistoryEntry e) {
         PatchHeader patch = e.patch;
         Id id = Id.fromNode(patch.getId());
-        Node previousId = patch.getPrevious();
-        FmtLog.info(LOG, "Patch id=%s (previous=%s)", id, previousId);
+        Id previousId = Id.fromNode(patch.getPrevious());
         if ( start == null ) {
             start = e;
             // start.prev == null?
             finish = e;
             historyEntries.put(id, e);
-            FmtLog.info(LOG, "Patch starts history: id=%s", patch.getId());
+            FmtLog.info(LOG, "Patch starts history: id=%s", patch);
         } else {
-            
             if ( previousId != null ) {
                 if ( patch.getPrevious().equals(finish.patch.getId()) ) {
                     finish.next = id;
                     finish = e;
                     historyEntries.put(id, e);
                     // if ( Objects.equals(currentHead(), patch.getPrevious()) ) {
-                    FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
+                    FmtLog.info(LOG, "Patch added to history: id=%s", patch);
                 } else {
-                    FmtLog.warn(LOG, "Patch not added to the history: id=%s", patch.getId());
+                    // Validation should have caught this. 
+                    FmtLog.warn(LOG, "Patch not added to the history: id=%s ", patch);
+                    throw new DeltaException("Patch not added to the history");
                 }
             }
         }

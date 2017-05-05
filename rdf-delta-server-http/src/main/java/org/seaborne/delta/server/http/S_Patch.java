@@ -32,10 +32,7 @@ import org.apache.jena.atlas.json.JsonNumber;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.riot.WebContent;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
@@ -100,11 +97,6 @@ public class S_Patch extends HttpOperationBase {
             action.response.setStatus(HttpSC.OK_200);
             JSON.write(out, rslt);
             out.flush();
-        } catch (RuntimeException ex) {
-            ex.printStackTrace(System.err);
-            LOG.warn("Failed to process", ex); 
-            action.response.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ;
-            return ;
         }
     }
     

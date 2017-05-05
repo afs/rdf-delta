@@ -142,7 +142,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
             RDFPatchOps.write(System.out, rdfPatch) ;
         // File store updated.
         PatchLog patchLog = source.getPatchLog() ;
-        patchLog.addMeta(rdfPatch, entry.version);
+        patchLog.append(rdfPatch, entry.version);
         return entry.version; 
     }
 

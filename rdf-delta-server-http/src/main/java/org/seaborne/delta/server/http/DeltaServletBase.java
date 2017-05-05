@@ -31,10 +31,7 @@ import org.apache.jena.fuseki.server.RequestLog ;
 import org.apache.jena.fuseki.servlets.ServletOps ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
@@ -110,10 +107,10 @@ public abstract class DeltaServletBase extends HttpServlet {
                 logger.info(x);
             }
         } catch (DeltaBadRequestException ex) {
-            ex.printStackTrace(System.err);
+            //ex.printStackTrace(System.err);
             Delta.DELTA_LOG.warn("Bad request: "+ex.getMessage());
             try {
-                resp.sendError(HttpSC.BAD_REQUEST_400, ex.getMessage()) ;
+                resp.sendError(ex.getStatusCode(), ex.getMessage()) ;
             } catch (IOException ex2) {}
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
@@ -149,7 +146,6 @@ public abstract class DeltaServletBase extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         notSupported(req, resp);
     }
-
     
     @Override
     public String getServletInfo() {

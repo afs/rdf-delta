@@ -131,7 +131,7 @@ public final class Id {
             return SCHEME+uuid.toString() ;
         if ( string != null )
             return string ;
-        throw new InternalErrorException("Id has null UUID and string");
+        throw new InternalErrorException("Id has null UUID and null string");
     }
 
     /** Convert to a Node, URI or plain string. */ 
@@ -155,7 +155,10 @@ public final class Id {
         int version = uuid.version();
         if ( version == 1 )
             // Type 1 : include varying part! xxxx-yyyy
-            return str.substring(19, 28);
+            // 19-28 is 
+            //return str.substring(19, 28);
+            // 0-6 is the low end of the clock.
+            return uuid.toString().substring(0,6);
         if ( version == 4 )
             // Type 4 - use the first few hex characters. 
             return uuid.toString().substring(0,6);

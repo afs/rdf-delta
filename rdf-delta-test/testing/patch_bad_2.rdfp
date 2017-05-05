@@ -1,4 +1,5 @@
-H id <uuid:15724832-96c5-11e6-9d7f-131fb3e5c030> .
+# No "H id"
+H PREV <uuid:12fbbab6-c47d-4ceb-a7c2-d6e893bd846f> .
 TX .
 A <http://example/s> <http://example/p> <http://example/o1> <http://example/g> .
 TC .

@@ -145,6 +145,6 @@ public class DataSource {
 
     @Override
     public String toString() {
-        return String.format("Source: %s [%s]", id, uri);
+        return String.format("Source: %s %s [%s]", id, name, uri);
     }
 }

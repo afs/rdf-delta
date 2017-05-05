@@ -134,6 +134,25 @@ public abstract class AbstractTestDeltaLink {
         RegToken regToken2 = dLink2.register(clientId2);
         assertNotEquals(regToken1, regToken2);
     }
+    
+    //---- Patches that are bad in some way.
+    
+    @Test(expected=DeltaException.class)
+    public void patch_bad_01()  { patch_bad("patch_bad_1.rdfp"); }
+    
+    @Test(expected=DeltaException.class)
+    public void patch_bad_02()  { patch_bad("patch_bad_2.rdfp"); }
+    
+    @Test(expected=DeltaException.class)
+    public void patch_bad_03()  { patch_bad("patch_bad_3.rdfp"); }
+    
+    private void patch_bad(String filename) {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource(filename, "http://example/");
+        RDFPatch patch = RDFPatchOps.read(DeltaTestLib.TDIR+filename);
+        int version = dLink.sendPatch(dsRef, patch);
+        fail("Should not get here");
+    }
 
     // Patch at the link level. 
     @Test
@@ -176,13 +195,68 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_02", "http://example/");
         dLink.deregister();
         try { 
-            InputStream in = IO.openFile(DeltaTestLib.TDIR+"/patch1.rdfp");
-            RDFPatch patch = RDFPatchOps.read(in);
+            RDFPatch patch = RDFPatchOps.read(DeltaTestLib.TDIR+"/patch1.rdfp");
             int version1 = dLink.sendPatch(dsRef, patch);
             fail("Managed to send a patch when not registered");
         } catch (DeltaException ex) {} 
     }
     
+    @Test
+    public void patch_03() {
+        // patch1 then patch2
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("patch_03", "http://example/");
+
+        RDFPatch patch1 = RDFPatchOps.read(DeltaTestLib.TDIR+"/patch1.rdfp");
+        RDFPatch patch2 = RDFPatchOps.read(DeltaTestLib.TDIR+"/patch2.rdfp");
+
+        int version1 = dLink.sendPatch(dsRef, patch1);
+        assertEquals(1, version1);
+        PatchLogInfo logInfo1 = dLink.getPatchLogInfo(dsRef);
+        assertEquals(1, logInfo1.maxVersion);
+        
+        int version2 = dLink.sendPatch(dsRef, patch2);
+        assertEquals(2, version2);
+        PatchLogInfo logInfo2 = dLink.getPatchLogInfo(dsRef);
+        assertEquals(2, logInfo2.maxVersion);
+        assertEquals(1, logInfo2.minVersion);
+    }
+    
+    static int counter = 1 ;
+    private void patch_seq(String...filenames) {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("patch_seq_"+(counter++), "http://example/");
+        for ( String fn : filenames ) {
+            RDFPatch patch = RDFPatchOps.read(DeltaTestLib.TDIR+fn);
+            dLink.sendPatch(dsRef, patch);
+        }
+    }
+    
+    public void patch_seq_01() {
+        patch_seq("patch1.rdfp", "patch2.rdfp", "patch3.rdfp");
+    }
+    
+    @Test(expected=DeltaException.class)
+    public void patch_seq_bad_02() {
+        // patch1 then patch1 again -> error.
+        patch_seq("patch1.rdfp", "patch1.rdfp");
+        fail("Should not get here");
+    }
+    
+    @Test(expected=DeltaException.class)
+    public void patch_seq_bad_03() {
+        // patch1 then patch3 (non-existent previous)
+        patch_seq("patch1.rdfp", "patch3.rdfp");
+        fail("Should not get here");
+    }
+    
+    @Test(expected=DeltaException.class)
+    public void patch_seq_bad_04() {
+        // patch1 then patch2 then patch2 again
+        patch_seq("patch1.rdfp", "patch2.rdfp", "patch2.rdfp");
+        fail("Should not get here");
+    }
+
     // Link test, connection test.
     
     @Test

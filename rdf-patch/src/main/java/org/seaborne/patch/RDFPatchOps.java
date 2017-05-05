@@ -18,6 +18,7 @@
 
 package org.seaborne.patch;
 
+import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.util.Collections;
@@ -96,6 +97,13 @@ public class RDFPatchOps {
         RDFChangesCollector c = new RDFChangesCollector() ;
         pr.apply(c);
         return c.getRDFPatch() ; 
+    }
+
+    /** Read an {@link RDFPatch} from a file. */
+    public static RDFPatch read(String filename) {
+        try ( InputStream input = IO.openFile(filename) ) {
+            return read(input);
+        } catch (IOException ex) { IO.exception(ex); return null; }
     }
 
     /** Read an {@link RDFPatch} header. */

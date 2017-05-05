@@ -18,8 +18,10 @@
 
 package org.seaborne.patch;
 
+import java.util.Locale ;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors ;
 
 import org.apache.jena.graph.Node;
 
@@ -29,8 +31,10 @@ public class PatchHeader {
     private Map<String, Node> header;
 
     public PatchHeader(Map<String, Node> header) {
-        // Isolate => copy.
-        this.header = header;
+        // Isolate and llower case
+        this.header = header.entrySet()
+            .stream().collect(Collectors.toMap(e->e.getKey().toLowerCase(Locale.ROOT),
+                                               e->e.getValue()));
     }
     
     public Node getId() { 
@@ -38,11 +42,14 @@ public class PatchHeader {
     }
 
     public Node getPrevious() {
-        return get(RDFPatch.PREVIOUS) ;
+        Node n = get(RDFPatch.PREV) ;
+        if ( n == null )
+            n = get(RDFPatch.PREVIOUS) ;
+        return n;
     }
     
     public Node get(String field) {
-        return header.get(field) ;
+        return header.get(field.toLowerCase(Locale.ROOT)) ;
     }
 
     public void forEach(BiConsumer<String, Node> action) {
@@ -72,5 +79,10 @@ public class PatchHeader {
         } else if ( !header.equals(other.header) )
             return false;
         return true;
+    }
+    
+    @Override 
+    public String toString() {
+        return header.toString();
     }
 }

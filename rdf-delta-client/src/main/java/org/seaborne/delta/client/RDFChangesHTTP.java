@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse ;
+import org.apache.http.StatusLine ;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
@@ -33,8 +35,9 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
+import org.seaborne.delta.DeltaBadRequestException ;
+import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
@@ -52,9 +55,10 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private final String url;
     // Used to coordinate with reading patches in.
     private final Object syncObject;
-    private String response = null;
-    private Node currentTransactionId = null;
-    private boolean changeOccurred = false;
+    private StatusLine statusLine       = null;
+    private String response             = null;
+    private Node currentTransactionId   = null;
+    private boolean changeOccurred      = false;
     
     public RDFChangesHTTP(String url) {
         this(null, url);
@@ -106,10 +110,10 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 
     @Override
     public void txnBegin() {
-        if ( currentTransactionId == null ) {
-            currentTransactionId = Id.create().asNode();
-            super.header(RDFPatch.ID, currentTransactionId);
-        }
+//        if ( currentTransactionId == null ) {
+//            currentTransactionId = Id.create().asNode();
+//            super.header(RDFPatch.ID, currentTransactionId);
+//        }
         changeOccurred = false ;
         super.txnBegin();
     }
@@ -228,20 +232,30 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         postRequest.setEntity(new ByteArrayEntity(bytes));
 
         try(CloseableHttpResponse r = httpClient.execute(postRequest) ) {
+            statusLine = r.getStatusLine();
+            response = readResponse(r);
             int sc = r.getStatusLine().getStatusCode();
-            if ( sc < 200 || sc >= 300 )
-                LOG.warn("HTTP response: "+r.getStatusLine()+" ("+url+")");
-            else { 
-                HttpEntity e = r.getEntity();
-                if ( e != null ) {
-                    try ( InputStream ins = e.getContent() ) {
-                        response = IO.readWholeFileAsUTF8(ins);
-                    }
-                } else 
-                    response = null;
+            if ( sc >= 200 && sc <= 299 )
+                return ;
+            if ( sc >= 300 && sc <= 399 ) {
+                FmtLog.info(LOG, "Send patch : got HTTP %d", sc);
+                throw new DeltaBadRequestException(sc, "HTTP Redirect");
             }
+            if ( sc >= 400 && sc <= 499 )
+                throw new DeltaBadRequestException(sc, r.getStatusLine().getReasonPhrase());
+            if ( sc >= 500 )
+                throw new DeltaException(sc+"  "+r.getStatusLine().getReasonPhrase());
         } catch (IOException e) { e.printStackTrace(); }
-        // Notify of send.
         reset(); 
+    }
+        
+    private static String readResponse(HttpResponse resp) {
+        HttpEntity e = resp.getEntity();
+        if ( e != null ) {
+            try ( InputStream ins = e.getContent() ) {
+                return IO.readWholeFileAsUTF8(ins);
+            } catch (IOException ex) { ex.printStackTrace(); }
+        } 
+        return null;
     }
 }

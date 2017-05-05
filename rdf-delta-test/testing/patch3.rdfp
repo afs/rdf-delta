@@ -1,0 +1,5 @@
+H id   <uuid:5ed200c0-789f-494c-be00-56860d768675> .
+H prev <uuid:3e2f70fa-5a0e-4857-ad41-5e3bb91b4840> .
+TX .
+A <http://example/s> <http://example/p> <http://example/o2> <http://example/g> .
+TC .

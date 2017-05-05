@@ -1,0 +1,6 @@
+# "H id" and H prev are the same.
+H ID   <uuid:c9849115-c74c-40c7-a13c-3425f4c83d1f> .
+H PREV <uuid:c9849115-c74c-40c7-a13c-3425f4c83d1f> .
+TX .
+A <http://example/s> <http://example/p> <http://example/o1> <http://example/g> .
+TC .
