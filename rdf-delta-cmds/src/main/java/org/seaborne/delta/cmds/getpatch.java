@@ -19,7 +19,9 @@
 package org.seaborne.delta.cmds;
 
 import jena.cmd.CmdException ;
-import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.Id ;
+import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchOps ;
 
 /** Create a new log */
 public class getpatch extends DeltaCmd {
@@ -41,15 +43,32 @@ public class getpatch extends DeltaCmd {
     
     @Override
     protected void execCmd() {
+        getPositional().forEach(this::exec1);
+    }
+
+    protected void exec1(String patchRef) {
+        Id patchId = null;
+        int patchVersion = -1;
+        try {
+            patchVersion = Integer.parseInt(patchRef);
+        } catch (NumberFormatException ex) {
+            throw new CmdException(getCommandName()+" : Invalid version");
+        }
         
-        DeltaConnection dConn = DeltaConnection.connect(null, null, null, null, dLink);
-        
-        throw new CmdException(getCommandName()+" : Not implemented"); 
+        Id dsRef = getDataSourceRef();
+        RDFPatch patch = dLink.fetch(dsRef, patchVersion);
+        if ( patch == null )
+            throw new CmdException(getCommandName()+" : No such patch : "+patchVersion);
+        else
+            RDFPatchOps.write(System.out, patch);
     }
 
     @Override
     protected void checkForMandatoryArgs() {
         if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
             throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
+        if ( getPositional().isEmpty() ) {
+            throw new CmdException(getCommandName()+" : No patch id"); 
+        }
     }
 }

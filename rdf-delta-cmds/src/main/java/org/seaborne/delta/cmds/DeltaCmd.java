@@ -171,19 +171,19 @@ abstract public class DeltaCmd extends CmdGeneral {
             System.out.println("-- No logs --");
             return ;
         }
-        
         all.forEach(dsd->{
-            System.out.print(dsd);
             PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
-            if ( logInfo != null )
-                String.format("[%s %s <%s> [%d,%d] %s]", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
-                              (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString());
+            if ( logInfo != null ) {
+                System.out.print(
+                    String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
+                                  (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString()));
+            }
             else
                 System.out.println(dsd);
             
         });
     }
-
+    
     protected void create(String name, String url) {
         Objects.requireNonNull(name);
         Objects.requireNonNull(url);
