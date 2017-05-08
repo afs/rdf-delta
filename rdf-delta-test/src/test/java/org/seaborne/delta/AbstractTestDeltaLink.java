@@ -30,9 +30,11 @@ import java.io.InputStream;
 import java.util.List ;
 
 import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDFLib ;
+import org.junit.BeforeClass ;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -42,6 +44,13 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 /** Tests for the link (multiplex connection to the server or local engine) */
 public abstract class AbstractTestDeltaLink {
+    @BeforeClass public static void setForTesting() { 
+        LogCtl.setLog4j();
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+    }
+
+    protected static final String FILES_DIR = DeltaTestLib.TDIR+"test_dlink/";
+    
     public abstract Setup.LinkSetup getSetup();
     public DeltaLink getLink() { return getSetup().getLink(); }
 
@@ -149,7 +158,7 @@ public abstract class AbstractTestDeltaLink {
     private void patch_bad(String filename) {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource(filename, "http://example/");
-        RDFPatch patch = RDFPatchOps.read(DeltaTestLib.TDIR+filename);
+        RDFPatch patch = RDFPatchOps.read(FILES_DIR+filename);
         int version = dLink.sendPatch(dsRef, patch);
         fail("Should not get here");
     }
@@ -162,7 +171,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_01", "http://example/");
         
-        InputStream in = IO.openFile(DeltaTestLib.TDIR+"/patch1.rdfp");
+        InputStream in = IO.openFile(FILES_DIR+"/patch1.rdfp");
         RDFPatch patch = RDFPatchOps.read(in);
 
         int version = dLink.getCurrentVersion(dsRef); // 0??
@@ -195,7 +204,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_02", "http://example/");
         dLink.deregister();
         try { 
-            RDFPatch patch = RDFPatchOps.read(DeltaTestLib.TDIR+"/patch1.rdfp");
+            RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
             int version1 = dLink.sendPatch(dsRef, patch);
             fail("Managed to send a patch when not registered");
         } catch (DeltaException ex) {} 
@@ -207,8 +216,8 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_03", "http://example/");
 
-        RDFPatch patch1 = RDFPatchOps.read(DeltaTestLib.TDIR+"/patch1.rdfp");
-        RDFPatch patch2 = RDFPatchOps.read(DeltaTestLib.TDIR+"/patch2.rdfp");
+        RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
+        RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
 
         int version1 = dLink.sendPatch(dsRef, patch1);
         assertEquals(1, version1);
@@ -227,7 +236,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_seq_"+(counter++), "http://example/");
         for ( String fn : filenames ) {
-            RDFPatch patch = RDFPatchOps.read(DeltaTestLib.TDIR+fn);
+            RDFPatch patch = RDFPatchOps.read(FILES_DIR+fn);
             dLink.sendPatch(dsRef, patch);
         }
     }

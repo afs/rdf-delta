@@ -23,6 +23,13 @@ public class DevToDo {
     // Tests for cmds.
     // DeltaLinkLocal without chcking registration etc.
     
+    // DeltaConnection, DeltaLink operations to all use PatchLogInfo: 
+    //   DeltaLink.getCurrentVersion
+    //   
+    
+    // Abstract DeltaConnection - more tests.
+    //   Rebuild directly. rebuild by sync.
+    
     // Server side - check DSD name :"^[\w-_]+$"
     // Initial data : "version 0"
     // getInitialData -> stream of quads (as a patch?)

@@ -42,17 +42,9 @@ import org.slf4j.Logger;
 public class DeltaConnection implements AutoCloseable {
     
     public enum Backing { TDB, FILE }
-    
-    // Need local version tracking?
-    //   yes - for bring DSG up to date.
-    
-    // Or via DeltaLink?
-    
-    
     private static Logger LOG = Delta.DELTA_LOG;
     
     // The version of the remote copy.
-    
     private final DeltaLink dLink ;
     
     private final AtomicInteger remoteVersion = new AtomicInteger(0);
@@ -62,6 +54,8 @@ public class DeltaConnection implements AutoCloseable {
     
     private final RDFChanges target;
     private final Id datasourceId;
+    // The Id of the last patch sent. This will become the "previous" of the next patch.
+    private Id    patchLastId = null;
     private final DataState state;
 
     /**
@@ -163,10 +157,17 @@ public class DeltaConnection implements AutoCloseable {
 
             @Override
             public void txnCommit() {
+                // Put in the commit 
+                // [DP-Verify] Isn't this local commit before remote commit? 
                 super.txnCommit();
                 RDFPatch p = getRDFPatch();
+                if ( p.getPrevious() == null && patchLastId != null )
+                    super.header(RDFPatch.PREV, patchLastId.asNode());
+                
                 int newVersion = dLink.sendPatch(dsRef, p);
                 setLocalVersionNumber(newVersion);
+                patchLastId = Id.fromNode(p.getId());
+                currentTransactionId = null;
             }
         };
         return c ;
@@ -282,6 +283,19 @@ public class DeltaConnection implements AutoCloseable {
         return dLink.getRegToken();
     }
 
+    /** Actively get the remote log latest id */  
+    public Id getRemoteIdLatest() {
+        PatchLogInfo logInfo = dLink.getPatchLogInfo(datasourceId);
+        
+        if ( logInfo == null ) {
+            // Can this happen? Deleted datasourceId?
+            FmtLog.warn(LOG, "Failed to get remote latest patchId");
+            return null;
+        }
+        return logInfo.latestPatch;
+    }
+
+    
     /** Actively get the remote version */  
     public int getRemoteVersionLatest() {
         int version = dLink.getCurrentVersion(datasourceId);
@@ -325,7 +339,7 @@ public class DeltaConnection implements AutoCloseable {
     public synchronized void sendPatch(RDFPatch patch) {
         int ver = dLink.sendPatch(datasourceId, patch);
         int ver0 = state.version();
-        if ( ver0 > ver )
+        if ( ver0 >= ver )
             FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver);
         state.updateVersion(ver);
     }

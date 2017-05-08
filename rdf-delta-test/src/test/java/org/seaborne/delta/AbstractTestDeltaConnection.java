@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDFLib ;
@@ -49,8 +50,10 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 /** Test a client connection over a link */  
 public abstract class AbstractTestDeltaConnection {
-
+    protected static final String FILES_DIR = DeltaTestLib.TDIR+"test_dconn/";
+    
     @BeforeClass public static void setupZone() { 
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
         String DIR = "target/Zone";
         Location loc = Location.create(DIR);
         FileOps.ensureDir(DIR);
@@ -183,13 +186,10 @@ public abstract class AbstractTestDeltaConnection {
                 Quad q = SSE.parseQuad("(_ :s1 :p1 :o1)");
                 dsg.add(q);
             });
-
+            // Rebuild directly.
             DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
             int ver = dConn.getRemoteVersionLatest();
             RDFPatch patch1 = dConn.getLink().fetch(dsRef, ver) ;
-            
-            
-            
             RDFPatchOps.applyChange(dsg2, patch1);
 
             Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));
@@ -198,6 +198,39 @@ public abstract class AbstractTestDeltaConnection {
         }
     }
     
+    // Make two changes.
+    @Test
+    public void change_10() {
+        try(DeltaConnection dConn = create()) {
+            Id dsRef = dConn.getDatasourceId();
+            int version = dConn.getRemoteVersionLatest();
+
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            
+            Txn.executeWrite(dsg, ()->{
+                Quad q = SSE.parseQuad("(_ :s1 :p1 :o1)");
+                dsg.add(q);
+            });
+
+            Txn.executeWrite(dsg, ()->{
+                Quad q = SSE.parseQuad("(_ :s2 :p2 :o2)");
+                dsg.add(q);
+            });
+            
+            // Rebuild directly.
+            DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
+
+            int ver = dConn.getRemoteVersionLatest();
+            RDFPatch patch1 = dConn.getLink().fetch(dsRef, ver) ;
+            RDFPatchOps.applyChange(dsg2, patch1);
+
+            Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));
+            Set<Quad> set2 = Txn.calculateRead(dsg2, ()->Iter.toSet(dsg2.find()));
+            assertEquals(set1, set2);
+        }
+        
+    }
+
     private void changeTest(Runnable betweenSections) {
         // Make change.
         // Reconnect to the same server and see if the versions reflect the change.
@@ -234,7 +267,6 @@ public abstract class AbstractTestDeltaConnection {
             boolean b = Txn.calculateRead(dsg, ()->dsg.contains(quad));
             assertTrue(b);
         }
-
     }
     
     @Test public void change_03() {

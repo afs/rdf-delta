@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 public class TestLocalConnection extends AbstractTestDeltaConnection {
-static Setup.LinkSetup setup = new Setup.LocalSetup();
+    static Setup.LinkSetup setup = new Setup.LocalSetup();
     
     @Override
     public Setup.LinkSetup getSetup() {

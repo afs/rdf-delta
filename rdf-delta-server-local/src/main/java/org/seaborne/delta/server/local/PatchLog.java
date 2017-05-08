@@ -262,7 +262,7 @@ public class PatchLog {
         if ( previousId == null )
             badPatchEx("No previous for patch when PatchLog is non-empty: patch=%s", patchId);
         
-        if  ( patchId.equals(previousId) )
+        if ( patchId.equals(previousId) )
             badPatchEx("Patch id and patch previous are the same : patch=%s", patchId);
         
         // Check id is new.
@@ -276,6 +276,10 @@ public class PatchLog {
         throw new DeltaBadPatchException(msg);
     }
     
+    private void badPatchWarn(String fmt, Object...args) {
+        FmtLog.warn(LOG, String.format(fmt, args)); 
+    }
+
     private void validateVersionEx(int version) {
         if ( idToNumber.inverse().containsKey(version) )
             // Internal consistency error. FleStore was supposed to make it unique.
@@ -318,8 +322,20 @@ public class PatchLog {
      * @param version -- as decided by the filestore.
      */
     void append(RDFPatch patch, int version) {
+        // [DP-Fix]
+        // If the patch is bad, we need to remove it else it will be assilated on restart.
+        // Timing hole.
+        
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());
+
+        FmtLog.info(LOG, "Append: id=%s to log %s", patchId, getDescription());
+        
+        // [DP-Fake]
+        if ( finish != null && previousId == null ) {
+            previousId = finish.id;
+            // then it breaks in addHistoryEntry
+        }
 
         validateEx(patchId, previousId);
         validateVersionEx(version);
@@ -357,6 +373,10 @@ public class PatchLog {
                     FmtLog.warn(LOG, "Patch not added to the history: id=%s ", patch);
                     throw new DeltaException("Patch not added to the history");
                 }
+            } else {
+                FmtLog.warn(LOG, "No previous id but start!=null: Patch not added to the history: id=%s ", patch);
+                // No previousId.
+                
             }
         }
     }
