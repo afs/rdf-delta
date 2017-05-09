@@ -21,19 +21,24 @@ package dev;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
+import org.apache.jena.sparql.core.Quad ;
+import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
+import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.Zone;
-import org.seaborne.delta.cmds.list ;
-import org.seaborne.delta.cmds.sendpatch ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.DataPatchServer;
+import org.seaborne.delta.server.http.DataPatchServer ;
+import org.seaborne.delta.server.local.DeltaLinkLocal ;
+import org.seaborne.delta.server.local.LocalServer ;
 
 public class Run {
     static { 
@@ -104,35 +109,59 @@ public class Run {
 }
     
     public static void main$() throws IOException {
-        // Server
-        DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
-        server.start();
-        String URL = "http://localhost:1066/";
-        
-        //server.join();
-        
-        list.main("--server="+URL);
-        System.out.println();
-        System.err.println();
-        //mksrc.main("--server=http://localhost:1066/", "--dsrc=ABC");
-        sendpatch.main("--server="+URL, "--dsrc=ABC", "P");
-        System.exit(0);
+        // --- Reset state.
+        FileOps.clearAll("DeltaServer/ABC");
+        FileOps.delete("DeltaServer/ABC");
+        FileOps.clearAll("Zone");
+        Zone.get().init("Zone");
 
         
-        // Zone
-        Zone.get().init("Zone");
-        //Client
-        DeltaLink dLink1 = DeltaLinkHTTP.connect(URL);
+        DeltaLink dLink1 = null;
+        if ( true ) {
+            // Server
+            DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
+            server.start();
+            String URL = "http://localhost:1066/";
+            //Client
+            dLink1 = DeltaLinkHTTP.connect(URL);
+        } else {
+            LocalServer lServer = LocalServer.attach(Location.create("DeltaServer"));
+            dLink1 = DeltaLinkLocal.connect(lServer);
+        }
+        
         Id clientId = Id.create();
         dLink1.register(clientId);
         
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         
+        System.out.println();
+        Id dsRef;
+        
+        Quad quad1 = SSE.parseQuad("(:g :s :p 111)");
+        Quad quad2 = SSE.parseQuad("(:g :s :p 222)");
+        Quad quad3 = SSE.parseQuad("(:g :s :p 333)");
+        
         try ( DeltaConnection dConn = DeltaConnection.create(Zone.get(), clientId, "ABC", "http://example/ABC", dsg, dLink1) ) {
-            Txn.executeWrite(dConn.getDatasetGraph(), 
-                             ()->RDFDataMgr.read(dConn.getDatasetGraph().getDefaultGraph(), "D.ttl"));
-                             
+            dsRef = dConn.getDatasourceId();
+            Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
         }
+        
+        
+        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg, dLink1)) {
+            dsRef = dConn.getDatasourceId();
+            Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad2) );
+        }
+        
+        
+//        DataState dataState = Zone.get().attach(dsRef);
+//        System.out.println();
+//        System.out.println("Data State : "+dataState);
+//        System.out.println();
+        DatasetGraph dsg1 = DatasetGraphFactory.createTxnMem();
+        try ( DeltaConnection dConn = DeltaConnection.attach(Zone.get(), clientId, dsRef, dsg1, dLink1) ) {
+            RDFDataMgr.write(System.out, dsg1, Lang.TRIG);
+        }
+
 //        
 //        Id dsref = dLink1.listDatasets().get(0);
 //        String s = dLink1.initialState(dsref);

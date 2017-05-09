@@ -18,13 +18,13 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DeltaConst.F_DATASOURCE;
+import static org.seaborne.delta.DeltaConst.F_DATASOURCE ;
+import static org.seaborne.delta.DeltaConst.F_ID ;
 import static org.seaborne.delta.DeltaConst.F_VERSION;
 
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
@@ -47,10 +47,12 @@ public class DataState {
     private RefString stateStr;
     private PersistentState state;
 
-    // Persistent state that varies.
-    private final AtomicInteger version = new AtomicInteger(-999);
     // Data source id for the state
     private Id datasource;
+    
+    // Persistent state that varies.
+    private long version = -999;
+    private Id patchId = null;
     
     // State is:
     //   version - at least an int
@@ -60,7 +62,7 @@ public class DataState {
     // {
     //   version:    int
     //   datasource: string/uuid
-    //   ?? patch:      string/uuid
+    //   patch:      string/uuid
     // }
     
     /** Create from existing state */ 
@@ -73,12 +75,13 @@ public class DataState {
     }
     
     /** Create new, initialize state. */ 
-    /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, int version) {
+    /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, int version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
         this.state = new PersistentState(stateFile);
         this.stateStr = state;
-        this.version.set(version);
+        this.version = version;
+        this.patchId = patchId;
         writeState(this);
     }
 
@@ -93,7 +96,11 @@ public class DataState {
     }
 
     public int version() {
-        return version.get();
+        return (int)version;
+    }
+
+    public Id latestPatchId() {
+        return patchId;
     }
 
     public Zone zone() {
@@ -102,19 +109,18 @@ public class DataState {
 
     @Override
     public String toString() {
-        return String.format("data state: %s version=%d", datasource, version());
+        return String.format("data state: %s version=%d id=%s", datasource, version(), latestPatchId());
     }
     
     // XXX Sort out concurrency!
     // XXX concurrency : Coordinate win DeltaConnection. 
-    public synchronized void updateVersion(int newVersion) {
+    public synchronized void updateState(int newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
-        writeState(this.stateStr, this.datasource, newVersion);
+        writeState(this.stateStr, this.datasource, newVersion, patchId);
         // Update local
-        version.set(newVersion);
-        // Failure: disk is ahead of memory: shadow data must already be updated.
-        // Concurrency: app thinks at earlier version.
+        this.version = newVersion;
+        this.patchId = patchId;
     }
     
     public Id getDataSourceId() {
@@ -177,28 +183,33 @@ public class DataState {
 
     
     private void writeState(DataState dataState) {
-        writeState(this.stateStr, dataState.datasource, dataState.version());
+        writeState(this.stateStr, dataState.datasource, dataState.version, dataState.patchId);
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  
-    private static void writeState(RefString state, Id datasource, int version) {
-        String x = stateToString(datasource, version);
+    private static void writeState(RefString state, Id datasource, long version, Id patchId) {
+        String x = stateToString(datasource, version, patchId);
         if ( ! x.endsWith("\n") )
             x = x+"\n";
         state.setString(x);
     }
     
-    private static String stateToString(Id datasource, int version) {
-        JsonObject json = stateToJson(datasource, version);
+    private static String stateToString(Id datasource, long version, Id patchId) {
+        JsonObject json = stateToJson(datasource, version, patchId);
         return JSON.toString(json);
     }
     
-    private static JsonObject stateToJson(Id datasource, int version) {
+    private static JsonObject stateToJson(Id datasource, long version, Id patchId) {
+        String x = "";
+        if ( patchId != null )
+            x = patchId.asString();
+        String patchStr = x;
         return
             JSONX.buildObject(builder->{
                 // --> pair.
                 builder
                     .key(F_VERSION).value(version)
+                    .key(F_ID).value(patchStr)
                     .key(F_DATASOURCE).value(datasource.asPlainString());
             });
     }
@@ -215,8 +226,15 @@ public class DataState {
         if ( version == -99 ) {
             LOG.warn("No version: "+JSON.toStringFlat(sourceObj));
         }
-        dataState.version.set(version);
-
+        dataState.version = version;
+        
+        String patchStr = JSONX.getStrOrNull(sourceObj, F_ID);
+        if ( patchStr == null || patchStr.isEmpty() ) {
+            dataState.patchId = null;
+        } else {
+            dataState.patchId = Id.fromString(patchStr);
+        }
+            
         String dsStr = JSONX.getStrOrNull(sourceObj, F_DATASOURCE);
         if ( dsStr != null )
             dataState.datasource = Id.fromString(dsStr);

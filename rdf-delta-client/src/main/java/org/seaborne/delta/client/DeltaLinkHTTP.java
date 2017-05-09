@@ -35,10 +35,8 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotConnectedException;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.PatchReader ;
-import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
-import org.seaborne.patch.changes.RDFChangesLog ;
 
 /** Implementation of {@link DeltaLink} that encodes operations
  * onto the HTTP protocol and decode results.    
@@ -128,7 +126,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     // Non-streaming - collect patch then replay to send it.  
     @Override
-    public int sendPatch(Id dsRef, RDFPatch patch) {
+    public int append(Id dsRef, RDFPatch patch) {
         checkLink();
         RDFChangesHTTP remote = createRDFChanges(dsRef);
         patch.apply(remote);

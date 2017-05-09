@@ -159,7 +159,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource(filename, "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+filename);
-        int version = dLink.sendPatch(dsRef, patch);
+        int version = dLink.append(dsRef, patch);
         fail("Should not get here");
     }
 
@@ -175,7 +175,7 @@ public abstract class AbstractTestDeltaLink {
         RDFPatch patch = RDFPatchOps.read(in);
 
         int version = dLink.getCurrentVersion(dsRef); // 0??
-        int version1 = dLink.sendPatch(dsRef, patch); // Should be 0 ***********
+        int version1 = dLink.append(dsRef, patch); // Should be 0 ***********
         assertNotEquals(version, version1);
 
         int version2 = dLink.getCurrentVersion(dsRef);
@@ -205,7 +205,7 @@ public abstract class AbstractTestDeltaLink {
         dLink.deregister();
         try { 
             RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
-            int version1 = dLink.sendPatch(dsRef, patch);
+            int version1 = dLink.append(dsRef, patch);
             fail("Managed to send a patch when not registered");
         } catch (DeltaException ex) {} 
     }
@@ -219,12 +219,12 @@ public abstract class AbstractTestDeltaLink {
         RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
 
-        int version1 = dLink.sendPatch(dsRef, patch1);
+        int version1 = dLink.append(dsRef, patch1);
         assertEquals(1, version1);
         PatchLogInfo logInfo1 = dLink.getPatchLogInfo(dsRef);
         assertEquals(1, logInfo1.maxVersion);
         
-        int version2 = dLink.sendPatch(dsRef, patch2);
+        int version2 = dLink.append(dsRef, patch2);
         assertEquals(2, version2);
         PatchLogInfo logInfo2 = dLink.getPatchLogInfo(dsRef);
         assertEquals(2, logInfo2.maxVersion);
@@ -237,7 +237,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_seq_"+(counter++), "http://example/");
         for ( String fn : filenames ) {
             RDFPatch patch = RDFPatchOps.read(FILES_DIR+fn);
-            dLink.sendPatch(dsRef, patch);
+            dLink.append(dsRef, patch);
         }
     }
     

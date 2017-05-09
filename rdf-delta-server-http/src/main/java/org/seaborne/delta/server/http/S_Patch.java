@@ -85,7 +85,7 @@ public class S_Patch extends HttpOperationBase {
             if ( false )
                 RDFPatchOps.write(System.out, patch);
             
-            int version = action.dLink.sendPatch(ref, patch);
+            int version = action.dLink.append(ref, patch);
             JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()
                 .startObject()

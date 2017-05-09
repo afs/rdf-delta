@@ -185,12 +185,17 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
     public void finish() {}
 
     public void reset() {
+        header.clear();
         actions.clear();
     }
     
     @Override
     public void header(String field, Node value) {
         header.put(field, value) ;
+    }
+
+    protected Node header(String field) {
+        return header.get(field) ;
     }
 
     @Override

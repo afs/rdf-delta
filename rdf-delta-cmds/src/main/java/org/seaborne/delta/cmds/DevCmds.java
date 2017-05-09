@@ -25,7 +25,7 @@ public class DevCmds extends DeltaCmd {
         
         //list.main("--server=http://localhost:1066/");
         //mksrc.main("--server=http://localhost:1066/", "--dsrc=ABC");
-        sendpatch.main("--server=http://localhost:1066/", "--dsrc=ABC", "P");
+        addpatch.main("--server=http://localhost:1066/", "--dsrc=ABC", "P");
         System.exit(0);
         
         new DevCmds(argv).mainRun();

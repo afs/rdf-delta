@@ -31,13 +31,13 @@ import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 
 /** Create a new log */
-public class sendpatch extends DeltaCmd {
+public class addpatch extends DeltaCmd {
     
     public static void main(String... args) {
-        new sendpatch(args).mainRun();
+        new addpatch(args).mainRun();
     }
 
-    public sendpatch(String[] argv) {
+    public addpatch(String[] argv) {
         super(argv) ;
         super.add(argDataSourceName);
         super.add(argDataSourceURI);
@@ -58,7 +58,7 @@ public class sendpatch extends DeltaCmd {
         try(InputStream in = Files.newInputStream(path) ) {
             RDFPatch patch = RDFPatchOps.read(in);
             Id dsRef = getDataSourceRef();
-            dLink.sendPatch(dsRef, patch);
+            dLink.append(dsRef, patch);
         } catch (IOException ex ) { IO.exception(ex); }
     }
     

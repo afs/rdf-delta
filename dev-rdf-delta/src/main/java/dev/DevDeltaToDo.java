@@ -18,17 +18,35 @@
 
 package dev;
 
-public class DevToDo {
+public class DevDeltaToDo {
+    
+    // Getting rpevious oatch
+    //    DeltaConnection.attach
+    //    DeltaConnection.connect
+    //    DeltaConnection.create
+    // Zone+DataState
+    
+    // Id.nil for no previous.
+    
+    // XXX remove DConn, DLink remote version getting. and only have PatchLogInfo. 
+    
+    // Start a DeltaConnection from an empty datasets
+    //   Move spin up code to DLink.
     
     // Tests for cmds.
-    // DeltaLinkLocal without chcking registration etc.
+    //   Get previous then append for dcmd
     
     // DeltaConnection, DeltaLink operations to all use PatchLogInfo: 
     //   DeltaLink.getCurrentVersion
-    //   
+
+    // Write patch to tmp file, move into place to accept.
+    //    Or verify in mem space then write when accepted. 
     
-    // Abstract DeltaConnection - more tests.
-    //   Rebuild directly. rebuild by sync.
+    // Abstract DeltaConnection - more tests, clean tests
+    //   Rebuild directly rebuild by sync.
+    
+    // DeltaConnection : commit order
+    //   Fake a "prepare"
     
     // Server side - check DSD name :"^[\w-_]+$"
     // Initial data : "version 0"
@@ -42,12 +60,13 @@ public class DevToDo {
     
     // Migrate PatchLogServer
     
-    // URI design.
+    // URI design. For patch logs 
     //   http://server:1066/{WebAppCxt}/{shortName}/
     //                                 /{shortName}/init = "version 0" but dataset vs patch.
     //                                 /{shortName}/current = "version MaxInt"
     //                                 /{shortName}/patch/version
     //                                 /{shortName}/patch/id
+    // Then delta is admin/control.
 
     // Log to update triple store
     // Log storage abstraction.

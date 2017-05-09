@@ -19,9 +19,6 @@
 package org.seaborne.delta;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Set;
 
@@ -73,13 +70,13 @@ public abstract class AbstractTestDeltaConnection {
     
     protected DeltaConnection create() {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-        return create(dsg, 0);
+        return create(dsg);
     }
     
     protected static final String DS_NAME = "dsTest";
     protected static final String DS_URI = "http://example/"+DS_NAME;
 
-    protected DeltaConnection create(DatasetGraph shadow, int localVersion) {
+    protected DeltaConnection create(DatasetGraph shadow) {
         DeltaLink dLink = getLink();
         if ( ! dLink.isRegistered() ) {
             Id clientId = Id.create();
@@ -90,10 +87,16 @@ public abstract class AbstractTestDeltaConnection {
         return dConn;
     }
     
-    protected DeltaConnection reconnect(Id dsRef, DatasetGraph shadow) {
-        return DeltaConnection.connect(getZone(), getLink().getClientId(), dsRef, shadow, getLink());
+    protected DeltaConnection connect(Id dsRef, DatasetGraph shadow) {
+        DeltaConnection dConn = DeltaConnection.connect(getZone(), getLink().getClientId(), dsRef, shadow, getLink());
+        return dConn;
     }
     
+    protected DeltaConnection attach(Id dsRef, DatasetGraph shadow) {
+        DeltaConnection dConn = DeltaConnection.attach(getZone(), getLink().getClientId(), dsRef, shadow, getLink());
+        return dConn;
+    }
+
     @Test(expected=DeltaBadRequestException.class)
     public void connect_non_existing() {
         DeltaLink dLink = getLink();
@@ -105,7 +108,7 @@ public abstract class AbstractTestDeltaConnection {
     }
     
     @Test
-    public void create_0() {
+    public void create_dconn_0() {
         // Create on the Delta link then connect DeltaConnection.
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
@@ -116,7 +119,7 @@ public abstract class AbstractTestDeltaConnection {
     }
 
     @Test
-    public void create_1() {
+    public void create_dconn_1() {
         // Create via DeltaConnection.
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
@@ -126,7 +129,7 @@ public abstract class AbstractTestDeltaConnection {
     }
 
     @Test
-    public void create_2() {
+    public void create_dconn_2() {
         // Create twice
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
@@ -141,7 +144,7 @@ public abstract class AbstractTestDeltaConnection {
     }
 
     @Test
-    public void create_3() {
+    public void initial_data_1() {
         // Create twice
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
@@ -153,7 +156,7 @@ public abstract class AbstractTestDeltaConnection {
 
     // Make a change, ensure the local dataset is changed. 
     @Test
-    public void change_01() {
+    public void change_1() {
         try(DeltaConnection dConn = create()) {
             long verLocal0 = dConn.getLocalVersionNumber();
             long verRemotel0 = dConn.getRemoteVersionLatest();
@@ -174,9 +177,9 @@ public abstract class AbstractTestDeltaConnection {
         }
     }
 
-    //Make a change, get the patch, apply to a clean dsg. Are the datasets the same?
+    // Make a change, get the patch, apply to a clean dsg. Are the datasets the same?
     @Test
-    public void change_02() {
+    public void change_2() {
         try(DeltaConnection dConn = create()) {
             Id dsRef = dConn.getDatasourceId();
             int version = dConn.getRemoteVersionLatest();
@@ -198,52 +201,63 @@ public abstract class AbstractTestDeltaConnection {
         }
     }
     
-    // Make two changes.
+    // Make two changes in one DeltaConnection.
     @Test
-    public void change_10() {
+    public void change_change_1() {
         try(DeltaConnection dConn = create()) {
-            Id dsRef = dConn.getDatasourceId();
-            int version = dConn.getRemoteVersionLatest();
-
+//            Id dsRef = dConn.getDatasourceId();
+//            int version = dConn.getRemoteVersionLatest();
+    
             DatasetGraph dsg = dConn.getDatasetGraph();
             
             Txn.executeWrite(dsg, ()->{
                 Quad q = SSE.parseQuad("(_ :s1 :p1 :o1)");
                 dsg.add(q);
             });
-
+    
             Txn.executeWrite(dsg, ()->{
                 Quad q = SSE.parseQuad("(_ :s2 :p2 :o2)");
                 dsg.add(q);
             });
-            
-            // Rebuild directly.
-            DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
 
-            int ver = dConn.getRemoteVersionLatest();
-            RDFPatch patch1 = dConn.getLink().fetch(dsRef, ver) ;
-            RDFPatchOps.applyChange(dsg2, patch1);
-
-            Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));
-            Set<Quad> set2 = Txn.calculateRead(dsg2, ()->Iter.toSet(dsg2.find()));
-            assertEquals(set1, set2);
+            long c = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()));
+            assertEquals(2,c);
         }
-        
     }
 
-    private void changeTest(Runnable betweenSections) {
+    // ---- Same dataset carried across connections
+    
+    @Test public void change_read_same_1() {
+        change_read_same(()->{});
+    }
+
+    @Test public void change_read_same_2() {
+        change_read_same(()->getSetup().relink());
+    }
+
+    @Test public void change_read_same_3() {
+        change_read_same(()->getSetup().restart());
+    }
+
+    /** 
+     * Make change.
+     * Some kind of reset.
+     * Reconnect to the same server and see if the versions reflect the change.
+     * Same dataset.
+     */
+    private void change_read_same(Runnable betweenSections) {
         // Make change.
         // Reconnect to the same server and see if the versions reflect the change.
         Quad quad = DeltaTestLib.freshQuad();
+        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
+    
         int verLocal = -999;
         int verRemote = -999;
         Id dsRef;
-        String name;
-        DatasetGraph dsg0;
         
-        try(DeltaConnection dConn = create()) {
+        try(DeltaConnection dConn = create(dsgBase)) {
             dsRef = dConn.getDatasourceId();
-            dsg0 = dConn.getStorage();
+            dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
             int ver = dConn.getLocalVersionNumber();
             verRemote = dConn.getRemoteVersionLatest();
@@ -257,29 +271,214 @@ public abstract class AbstractTestDeltaConnection {
         betweenSections.run();
         
         // Reconnect
-        try(DeltaConnection dConn = reconnect(dsRef, dsg0)) {
+        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
             int ver = dConn.getLocalVersionNumber();
             int ver2 = dConn.getRemoteVersionLatest();
-
+    
             assertEquals(verLocal, ver);
             assertEquals(verLocal, ver2);
             boolean b = Txn.calculateRead(dsg, ()->dsg.contains(quad));
             assertTrue(b);
         }
     }
+
+    // ---- Different dataset each connection. 
     
-    @Test public void change_03() {
-        changeTest(()->{});
-    }
-    
-    @Test public void change_04() {
-        changeTest(()->getSetup().relink());
+    @Test
+    public void change_read_new_1() {
+        change_read_new(()->{});
     }
 
-    @Test public void change_05() {
-        changeTest(()->getSetup().restart());
+    @Test
+    public void change_read_new_2() {
+        change_read_new(()->getSetup().relink());
     }
+
+    @Test
+    public void change_read_new_3() {
+        change_read_new(()->getSetup().restart());
+    }
+
+    // ---- Different dataset each connection. 
+    
+    // Update, reset, read.
+    private void change_read_new(Runnable betweenSections) {
+        Quad quad = DeltaTestLib.freshQuad();
+        Id dsRef = null;
+        
+        try(DeltaConnection dConn = create()) {
+            dsRef = dConn.getDatasourceId();
+            int version = dConn.getRemoteVersionLatest();
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            Txn.executeWrite(dsg, ()->dsg.add(quad) );
+        }
+
+        betweenSections.run();
+
+        DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
+        try(DeltaConnection dConn = attach(dsRef, dsg2)) {
+            boolean b = dsg2.contains(quad);
+            assertTrue(b);
+        }
+    }
+
+    @Test public void change_change_read_same_1() {
+        change_change_read_Same(()->{});
+    }
+
+    @Test public void change_change_read_same_2() {
+        change_change_read_Same(()->getSetup().relink());
+    }
+
+    @Test public void change_change_read_same_3() {
+        change_change_read_Same(()->getSetup().restart());
+    }
+
+    /** Make change.
+     * Reset
+     * Reconnect and make another change.
+     * Reset
+     * Reconnect to the same server and see if the versions reflect the change.
+     * Same dataset.
+     */
+    private void change_change_read_Same(Runnable betweenSections) {
+        change_change_read_Same(betweenSections, betweenSections);
+    }
+
+    private void change_change_read_Same(Runnable betweenSections1, Runnable betweenSections2) {
+        Quad quad1 = DeltaTestLib.freshQuad();
+        Quad quad2 = DeltaTestLib.freshQuad();
+        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
+    
+        int verLocal = -999;
+        int verRemote = -999;
+        Id dsRef;
+        
+        try(DeltaConnection dConn = create(dsgBase)) {
+            dsRef = dConn.getDatasourceId();
+            dsgBase = dConn.getStorage();
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            int ver = dConn.getLocalVersionNumber();
+            verRemote = dConn.getRemoteVersionLatest();
+            assertEquals(0, ver);
+            // Make change.
+            Txn.executeWrite(dsg, ()->dsg.add(quad1));
+            verLocal = dConn.getLocalVersionNumber();
+            verRemote = dConn.getRemoteVersionLatest();
+            assertEquals(ver+1, verLocal);
+        }
+        
+        betweenSections1.run();
+        
+        // Reconnect, make second change.
+        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            
+            Txn.executeWrite(dsg, ()->dsg.add(quad2));
+            
+            int ver = dConn.getLocalVersionNumber();
+            int ver2 = dConn.getRemoteVersionLatest();
+            
+            assertEquals(verLocal+1, ver);
+            assertEquals(verRemote+1, ver2);
+            
+            verLocal = dConn.getLocalVersionNumber();
+            verRemote = dConn.getRemoteVersionLatest();
+        }
+    
+        betweenSections2.run();
+        
+        // Reconnect and read
+        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            int ver = dConn.getLocalVersionNumber();
+            int ver2 = dConn.getRemoteVersionLatest();
+    
+            assertEquals(verLocal, ver);
+            assertEquals(verLocal, ver2);
+            boolean b = Txn.calculateRead(dsg, ()-> dsg.contains(quad1)&&dsg.contains(quad2) );
+            assertTrue(b);
+        }
+    }
+    
+//    @Test public void change_change_read_new_1() {
+//        createChangeChangeReadNew(()->{});
+//    }
+//
+//    @Test public void change_change_read_new_2() {
+//        createChangeChangeReadNew(()->getSetup().relink());
+//    }
+//
+//    @Test public void change_change_read_new_3() {
+//        createChangeChangeReadNew(()->getSetup().restart());
+//    }
+//
+//    /** Make change.
+//     * Reset
+//     * Reconnect and make another change.
+//     * Reset
+//     * Reconnect to the same server and see if the versions reflect the change.
+//     * Different dataset.
+//     */
+//    private void createChangeChangeReadNew(Runnable betweenSections) {
+//        createChangeChangeReadNew(betweenSections, betweenSections);
+//    }
+//
+//    private void createChangeChangeReadNew(Runnable betweenSections1, Runnable betweenSections2) {
+//        Quad quad1 = DeltaTestLib.freshQuad();
+//        Quad quad2 = DeltaTestLib.freshQuad();
+//        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
+//    
+//        int verLocal = -999;
+//        int verRemote = -999;
+//        Id dsRef;
+//        
+//        try(DeltaConnection dConn = create(dsgBase)) {
+//            dsRef = dConn.getDatasourceId();
+//            dsgBase = dConn.getStorage();
+//            DatasetGraph dsg = dConn.getDatasetGraph();
+//            int ver = dConn.getLocalVersionNumber();
+//            verRemote = dConn.getRemoteVersionLatest();
+//            assertEquals(0, ver);
+//            // Make change.
+//            Txn.executeWrite(dsg, ()->dsg.add(quad1));
+//            verLocal = dConn.getLocalVersionNumber();
+//            assertEquals(ver+1, verLocal);
+//        }
+//        
+//        betweenSections1.run();
+//        
+//        // Reconnect, make second change.
+//        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+//            DatasetGraph dsg = dConn.getDatasetGraph();
+//            
+//            Txn.executeWrite(dsg, ()->dsg.add(quad2));
+//            
+//            int ver = dConn.getLocalVersionNumber();
+//            int ver2 = dConn.getRemoteVersionLatest();
+//            
+//            assertEquals(verLocal+1, ver);
+//            assertEquals(verRemote+1, ver2);
+//            
+//            verLocal = dConn.getLocalVersionNumber();
+//            verRemote = dConn.getRemoteVersionLatest();
+//        }
+//    
+//        betweenSections2.run();
+//        
+//        // Reconnect and read
+//        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+//            DatasetGraph dsg = dConn.getDatasetGraph();
+//            int ver = dConn.getLocalVersionNumber();
+//            int ver2 = dConn.getRemoteVersionLatest();
+//    
+//            assertEquals(verLocal, ver);
+//            assertEquals(verLocal, ver2);
+//            boolean b = Txn.calculateRead(dsg, ()-> dsg.contains(quad1)&&dsg.contains(quad2) );
+//            assertTrue(b);
+//        }
+//    }
 
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
         RDFChangesCollector c1 = new RDFChangesCollector();

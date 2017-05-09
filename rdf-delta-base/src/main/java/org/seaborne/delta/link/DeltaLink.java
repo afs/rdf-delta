@@ -62,7 +62,7 @@ public interface DeltaLink {
     public DataSourceDescription getDataSourceDescription(String uri);
 
     /** Send patch, return new version */
-    public int sendPatch(Id dsRef, RDFPatch patch);
+    public int append(Id dsRef, RDFPatch patch);
     
     /** Get the current version: if this is an HTTP connection, this causes network traffic. */
     public int getCurrentVersion(Id dsRef);

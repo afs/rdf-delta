@@ -128,7 +128,7 @@ public class Zone {
             FileOps.ensureDir(dataPath.toString());
 
             // Write disk.
-            DataState dataState = new DataState(this, statePath, dsRef, 0);
+            DataState dataState = new DataState(this, statePath, dsRef, 0, null);
             states.put(dsRef, dataState);
 
             // switch (backing) {

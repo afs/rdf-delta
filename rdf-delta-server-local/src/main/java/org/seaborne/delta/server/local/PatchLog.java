@@ -289,6 +289,9 @@ public class PatchLog {
     private boolean validateEntry(RDFPatch patch, Id patchId, Id previousId) {
 //        Id previousId = Id.fromNode(patch.getPrevious());
 //        Id patchId = Id.fromNode(patch.getId());
+        
+        FmtLog.warn(LOG, "validateEntry id=%s prev=%s", patchId, previousId);
+        
         HistoryEntry entry = findHistoryEntry(patchId);
         if ( entry != null ) {
             Integer ver = idToNumber.get(patchId);
@@ -329,13 +332,13 @@ public class PatchLog {
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());
 
-        FmtLog.info(LOG, "Append: id=%s to log %s", patchId, getDescription());
+        FmtLog.info(LOG, "Append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
         
-        // [DP-Fake]
-        if ( finish != null && previousId == null ) {
-            previousId = finish.id;
-            // then it breaks in addHistoryEntry
-        }
+//        // [DP-Fake]
+//        if ( finish != null && previousId == null ) {
+//            previousId = finish.id;
+//            // then it breaks in addHistoryEntry
+//        }
 
         validateEx(patchId, previousId);
         validateVersionEx(version);
@@ -367,14 +370,14 @@ public class PatchLog {
                     finish = e;
                     historyEntries.put(id, e);
                     // if ( Objects.equals(currentHead(), patch.getPrevious()) ) {
-                    FmtLog.info(LOG, "Patch added to history: id=%s", patch);
+                    FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
                 } else {
                     // Validation should have caught this. 
-                    FmtLog.warn(LOG, "Patch not added to the history: id=%s ", patch);
+                    FmtLog.warn(LOG, "Patch not added to the history: id=%s ", patch.getId());
                     throw new DeltaException("Patch not added to the history");
                 }
             } else {
-                FmtLog.warn(LOG, "No previous id but start!=null: Patch not added to the history: id=%s ", patch);
+                FmtLog.warn(LOG, "No previous id but start!=null: Patch not added to the history: id=%s ", patch.getId());
                 // No previousId.
                 
             }
