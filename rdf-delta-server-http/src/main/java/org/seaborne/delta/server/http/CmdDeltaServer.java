@@ -109,7 +109,6 @@ public class CmdDeltaServer {
         LocalServer server = LocalServer.attach(baseArea, configFile);
         int port = choosePort(cla, server);
         DeltaLink link = DeltaLinkLocal.connect(server);
-        
 
         DataPatchServer dps = DataPatchServer.create(port, link) ;
         FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());

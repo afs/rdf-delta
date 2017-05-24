@@ -16,22 +16,24 @@
  * limitations under the License.
  */
 
-package dev;
+package org.seaborne.delta.client;
 
-public class RunDeltaServer {
+import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.DatasetGraphWrapper ;
 
-    public static void main(String... args) {
-        try {
-            main$(args);
-        } finally {
-            System.out.println("** DONE **");
-            System.exit(0);
-        }
+public class DatasetGraphConnected extends DatasetGraphWrapper implements AutoCloseable {
+
+    private final DeltaConnectionPool pool ;
+    private final DeltaConnection dConn ;
+
+    public DatasetGraphConnected(DatasetGraph dsg, DeltaConnection dConn, DeltaConnectionPool pool) {
+        super(dsg) ;
+        this.dConn = dConn;
+        this.pool = pool; 
     }
-    
-    public static void main$(String... args) {
-        if ( args.length == 0 )
-            args = new String[] {"--base=DeltaServer"};
-        org.seaborne.delta.server.http.CmdDeltaServer.main(args);
+
+    @Override
+    public void close() {
+        pool.release(dConn);
     }
 }

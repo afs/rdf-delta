@@ -19,69 +19,64 @@
 package dev;
 
 public class DevDeltaToDo {
+
+    // Id.nil for "no previous".
+    // Id for "any previous" (risky!)
     
-    // Getting rpevious oatch
-    //    DeltaConnection.attach
-    //    DeltaConnection.connect
-    //    DeltaConnection.create
-    // Zone+DataState
+    // DeltaConnection pooling.
+    // so try(DeltaConnection){} works well.
     
-    // Id.nil for no previous.
+    // Zone to track remote server.
+    //   ==> PatchLogServer
+    //   DataSources, their state, adds and deletes.
+    //   Manage a backing dataset. Zone 1:1 DLink.
     
-    // XXX remove DConn, DLink remote version getting. and only have PatchLogInfo. 
+    // Check bnode URIs
     
-    // Start a DeltaConnection from an empty datasets
-    //   Move spin up code to DLink.
+    // XXX remove DConn, DLink remote version getting, and only have PatchLogInfo.
+    // Combine with Zone?
+    // Get allLogStates at once.
+    // zone.attach -- bad name.
+    
+    // Tests:
+    //   bad patch
+    //   empty patch
     
     // Tests for cmds.
     //   Get previous then append for dcmd
     
-    // DeltaConnection, DeltaLink operations to all use PatchLogInfo: 
-    //   DeltaLink.getCurrentVersion
-
     // Write patch to tmp file, move into place to accept.
-    //    Or verify in mem space then write when accepted. 
+    //    Or verify in mem space then write when accepted.
+    //    Current bug,
     
-    // Abstract DeltaConnection - more tests, clean tests
-    //   Rebuild directly rebuild by sync.
-    
-    // DeltaConnection : commit order
-    //   Fake a "prepare"
-    
-    // Server side - check DSD name :"^[\w-_]+$"
-    // Initial data : "version 0"
-    // getInitialData -> stream of quads (as a patch?)
-    // Shaded jar sever - check
+    // Check DeltaConnection : commit order
 
-    // XXX [INIT]
-    // DLink : get URL for initial data. (file, 
-    // DeltaConnection.initData : read URL. 
-    //   Conneg for DPS.
+    // ** Initial data : "version 0"
+    // getInitialData -> stream of quads (as a patch?)
+
+    // Migrate PatchLogServer; relationship to Zone?
+    // Migrate AutoCommitGraph; PrefixMappingTxn; PrefixMappingWrapper
+    // Migrate?? TransactionHandlerDP_txn
     
-    // Migrate PatchLogServer
-    
-    // URI design. For patch logs 
+    // URI design. RDF Patch REST 
     //   http://server:1066/{WebAppCxt}/{shortName}/
     //                                 /{shortName}/init = "version 0" but dataset vs patch.
     //                                 /{shortName}/current = "version MaxInt"
     //                                 /{shortName}/patch/version
     //                                 /{shortName}/patch/id
+    // Container: POST = append; GET = description in JSON.
+    //  Subunits are individual patches. 
     // Then delta is admin/control.
 
     // Log to update triple store
-    // Log storage abstraction.
+    // ** Log storage abstraction.
 
     // POST patch -> 201 Created + ** Location: **
     
     // Renames:
-    //   Send patch => append patch
     //   Server PatchLog -> PatchLogStore
     //   DeltaConnection -> PatchLog, DeltaPatchLog, DataSource
     //     PatchLogConnection PatchLogConn
-    
-    // Tests:
-    //   bad patch
-    //   empty patch
     
     // Documentation
     //   Patch

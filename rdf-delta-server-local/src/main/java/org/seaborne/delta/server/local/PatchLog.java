@@ -25,11 +25,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.* ;
+import java.util.concurrent.ConcurrentHashMap ;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,7 +35,10 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.* ;
+import org.seaborne.delta.DeltaBadPatchException ;
+import org.seaborne.delta.DeltaException ;
+import org.seaborne.delta.Id ;
+import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
@@ -59,9 +59,9 @@ public class PatchLog {
     // Is just a list of Id's enough if we have version->id. (versions are not contiguous). 
     
     static class HistoryEntry {
-        final Id    prev;       // == patch(next).getPrevious()
-              Id    next;       // Not final! == null at end, and can be extended.
-        final PatchHeader patch;   // Remove : replace with header.
+        final Id    prev;        // == patch.getPrevious(), except there may not be a patch object.
+              Id    next;        // == fwd pointer in the list to next patch. 
+        final PatchHeader patch; // Remove : replace with header.
         final int   version;
         final Id id;
 
@@ -172,8 +172,6 @@ public class PatchLog {
         this.start = startEntry;
         this.finish = startEntry;
         this.fileStore = FileStore.attach(location, "patch");
-        isEmpty();
-        
     }
 
     public Id getEarliestId() {
@@ -267,7 +265,21 @@ public class PatchLog {
         
         // Check id is new.
         if ( historyEntries.containsKey(patchId) )
-            badPatchEx("Duplicate patch: patch=%s, previous=%s", patchId, previousId);   
+            badPatchEx("Duplicate patch: patch=%s, previous=%s", patchId, previousId);
+        
+        // Currently invalid check - the history is only from the last entry at startup forwards.
+//        // Check previous exists
+//        if ( ! historyEntries.containsKey(previousId) ) {
+//            badPatchEx("Previous patch not in log: patch=%s, previous=%s", patchId, previousId);
+//        }
+
+        // and is latest (i.e. log head).
+        if ( ! previousId.equals(getLatestId()) ) {
+            // No empty log, previousId != null but does not match log head.
+            // Validation should have caught this. 
+            badPatchEx("Patch not an update on the latest logged one: id=%s prev=%s (log=[%d, %s])", 
+                        patchId, previousId, getLatestVersion(), getLatestId());
+        }
     }
     
     private void badPatchEx(String fmt, Object...args) {
@@ -289,9 +301,6 @@ public class PatchLog {
     private boolean validateEntry(RDFPatch patch, Id patchId, Id previousId) {
 //        Id previousId = Id.fromNode(patch.getPrevious());
 //        Id patchId = Id.fromNode(patch.getId());
-        
-        FmtLog.warn(LOG, "validateEntry id=%s prev=%s", patchId, previousId);
-        
         HistoryEntry entry = findHistoryEntry(patchId);
         if ( entry != null ) {
             Integer ver = idToNumber.get(patchId);
@@ -361,17 +370,18 @@ public class PatchLog {
             start = e;
             // start.prev == null?
             finish = e;
-            historyEntries.put(id, e);
+            putHistoryEntry(id, e);
             FmtLog.info(LOG, "Patch starts history: id=%s", patch);
         } else {
             if ( previousId != null ) {
                 if ( patch.getPrevious().equals(finish.patch.getId()) ) {
                     finish.next = id;
                     finish = e;
-                    historyEntries.put(id, e);
+                    putHistoryEntry(id, e);
                     // if ( Objects.equals(currentHead(), patch.getPrevious()) ) {
                     FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
                 } else {
+                    // No empty log, previousId != null but does not match log head.
                     // Validation should have caught this. 
                     FmtLog.warn(LOG, "Patch not added to the history: id=%s ", patch.getId());
                     throw new DeltaException("Patch not added to the history");
@@ -384,6 +394,12 @@ public class PatchLog {
         }
     }
 
+    private void putHistoryEntry(Id id, HistoryEntry e) {
+        System.out.printf("Put %s  \n", id);
+        historyEntries.put(id, e);
+        System.out.printf(" -->  %s\n", historyEntries);
+    }
+    
     /**
      * Get, as a copy, a slice of the history from the start point until the latest patch.
      */
@@ -416,7 +432,7 @@ public class PatchLog {
             if ( e.next == null )
                 e = null;
             else
-                e = historyEntries.get(e.next);
+                e = findHistoryEntry(e.next);
         }
         return x;
     }
@@ -425,6 +441,17 @@ public class PatchLog {
         return historyEntries.get(start);
     }
 
+    private void dumpHistory() {
+        System.out.println("Map - "+historyEntries);
+        HistoryEntry e = this.start;
+        while(e!= null) {
+            System.out.println("-- "+e);
+            if ( e.next == null )
+                break;
+            e = historyEntries.get(e.next);
+        }
+    }
+    
     public Stream<RDFPatch> range(Id start, Id finish) {
         return getPatchesFromHistory(start, finish).stream();
     }
@@ -491,6 +518,6 @@ public class PatchLog {
     
     @Override
     public String toString() {
-        return String.format("PatchLog [%s, ver=%d]", name, getLatestVersion());
+        return String.format("PatchLog [%s, ver=%d head=%s]", name, getLatestVersion(), getLatestId());
     }
 }
