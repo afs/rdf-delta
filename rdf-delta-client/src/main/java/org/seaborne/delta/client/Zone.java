@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects ;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -116,7 +117,10 @@ public class Zone {
     }
 
     /** Initialize a new area. */
-    public DataState create(String name, Id dsRef, Backing backing) {
+    public DataState create(Id dsRef, String name, String uri, Backing backing) {
+        Objects.requireNonNull(dsRef);
+        Objects.requireNonNull(name);
+        
         synchronized (zoneLock) {
             if ( states.containsKey(dsRef) )
                 throw new DeltaException("Already exists: data state for " + dsRef + " : name=" + name);
@@ -128,7 +132,7 @@ public class Zone {
             FileOps.ensureDir(dataPath.toString());
 
             // Write disk.
-            DataState dataState = new DataState(this, statePath, dsRef, 0, null);
+            DataState dataState = new DataState(this, statePath, dsRef, name, uri, 0, null);
             states.put(dsRef, dataState);
 
             // switch (backing) {
@@ -140,6 +144,17 @@ public class Zone {
             //
             // }
             return dataState;
+        }
+    }
+    
+    public void delete(Id dsRef) {
+        synchronized (zoneLock) {
+            DataState dataState = get(dsRef);
+            String name = dataState.getName();
+            states.remove(dataState.getDataSourceId());
+            // deletes the data area as well. 
+            Path conn = connectionStateArea.resolve(name);
+            FileOps.delete(conn.toString());
         }
     }
     

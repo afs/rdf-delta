@@ -395,9 +395,7 @@ public class PatchLog {
     }
 
     private void putHistoryEntry(Id id, HistoryEntry e) {
-        System.out.printf("Put %s  \n", id);
         historyEntries.put(id, e);
-        System.out.printf(" -->  %s\n", historyEntries);
     }
     
     /**

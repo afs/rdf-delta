@@ -70,7 +70,7 @@ public class DeltaConnection implements AutoCloseable {
         ensureRegistered(dLink, clientId);
         
         Id datasourceId = dLink.newDataSource(datasourceName, uri);
-        DataState dataState = zone.create(datasourceName, datasourceId, Backing.TDB);
+        DataState dataState = zone.create(datasourceId, datasourceName, uri, Backing.TDB);
         DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
         return client;
     }
@@ -146,7 +146,7 @@ public class DeltaConnection implements AutoCloseable {
                 // Autocreate?
                 //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
             }
-            DataState dataState = zone.create(dsd.name, datasourceId, Backing.TDB);
+            DataState dataState = zone.create(datasourceId, dsd.name, dsd.uri, Backing.TDB);
             DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
             return dConn;
         }

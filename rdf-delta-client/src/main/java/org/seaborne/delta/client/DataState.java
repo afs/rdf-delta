@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DeltaConst.F_DATASOURCE ;
+import static org.seaborne.delta.DeltaConst.* ;
 import static org.seaborne.delta.DeltaConst.F_ID ;
 import static org.seaborne.delta.DeltaConst.F_VERSION;
 
@@ -44,6 +44,8 @@ public class DataState {
     /*package*/ static String STATE_FILE = DeltaConst.STATE_CLIENT;
     
     private final Zone zone;
+    private String name;
+    private String uri;
     private RefString stateStr;
     private PersistentState state;
 
@@ -75,13 +77,15 @@ public class DataState {
     }
     
     /** Create new, initialize state. */ 
-    /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, int version, Id patchId) {
+    /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, String name, String uri, int version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
         this.state = new PersistentState(stateFile);
         this.stateStr = state;
         this.version = version;
         this.patchId = patchId;
+        this.name = name;
+        this.uri = uri;
         writeState(this);
     }
 
@@ -117,7 +121,7 @@ public class DataState {
     public synchronized void updateState(int newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
-        writeState(this.stateStr, this.datasource, newVersion, patchId);
+        writeState(this.stateStr, this.datasource, this.toString(), this.uri, newVersion, patchId);
         // Update local
         this.version = newVersion;
         this.patchId = patchId;
@@ -130,6 +134,22 @@ public class DataState {
     /** Place on-disk where the state is stored. Use with care. */ 
     public Path getStatePath() {
         return state.getPath();
+    }
+
+    public String getName() {
+        return name ;
+    }
+
+    public void setName(String name) {
+        this.name = name ;
+    }
+
+    public String getUri() {
+        return uri ;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri ;
     }
 
     private static Map<Id, DataState> dataState = new ConcurrentHashMap<>();
@@ -183,34 +203,36 @@ public class DataState {
 
     
     private void writeState(DataState dataState) {
-        writeState(this.stateStr, dataState.datasource, dataState.version, dataState.patchId);
+        writeState(this.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.version, dataState.patchId);
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  
-    private static void writeState(RefString state, Id datasource, long version, Id patchId) {
-        String x = stateToString(datasource, version, patchId);
+    private static void writeState(RefString state, Id datasource, String name, String uri, long version, Id patchId) {
+        String x = stateToString(datasource, name, uri, version, patchId);
         if ( ! x.endsWith("\n") )
             x = x+"\n";
         state.setString(x);
     }
     
-    private static String stateToString(Id datasource, long version, Id patchId) {
-        JsonObject json = stateToJson(datasource, version, patchId);
+    private static String stateToString(Id datasource, String name, String uri, long version, Id patchId) {
+        JsonObject json = stateToJson(datasource, name, uri, version, patchId);
         return JSON.toString(json);
     }
     
-    private static JsonObject stateToJson(Id datasource, long version, Id patchId) {
+    private static JsonObject stateToJson(Id datasource, String name, String uri, long version, Id patchId) {
         String x = "";
         if ( patchId != null )
             x = patchId.asString();
         String patchStr = x;
         return
             JSONX.buildObject(builder->{
-                // --> pair.
                 builder
                     .key(F_VERSION).value(version)
                     .key(F_ID).value(patchStr)
+                    .key(F_NAME).value(name)
                     .key(F_DATASOURCE).value(datasource.asPlainString());
+                if ( uri != null )
+                    builder.key(F_URI).value(uri);
             });
     }
     
@@ -242,5 +264,17 @@ public class DataState {
             LOG.error("No datasource: "+JSON.toStringFlat(sourceObj));
             throw new DeltaException("No datasource: "+JSON.toStringFlat(sourceObj));
         }
+        
+        String name = JSONX.getStrOrNull(sourceObj, F_NAME);
+        if ( name != null )
+            dataState.name = name;
+        else {
+            LOG.error("No datasource name: "+JSON.toStringFlat(sourceObj));
+            throw new DeltaException("No datasource name: "+JSON.toStringFlat(sourceObj));
+        }
+        
+        String uri = JSONX.getStrOrNull(sourceObj, F_URI);
+        if ( uri != null )
+            dataState.uri = uri;
     }
 }
