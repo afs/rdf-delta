@@ -157,6 +157,11 @@ public class Zone {
         return states.get(datasourceId);
     }
 
+    // Synonym for attach.
+    public DataState get(Id datasourceId) {
+        return attach(datasourceId);
+    }
+    
     /** Release a {@code DataState}. Do not use the {@code DataState} again. */ 
     public void release(DataState dataState) {
         release(dataState.getDataSourceId());
