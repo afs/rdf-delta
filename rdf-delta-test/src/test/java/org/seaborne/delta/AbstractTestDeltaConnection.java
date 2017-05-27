@@ -18,7 +18,12 @@
 
 package org.seaborne.delta;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals ;
+import static org.junit.Assert.assertFalse ;
+import static org.junit.Assert.assertNotNull ;
+import static org.junit.Assert.assertNull ;
+import static org.junit.Assert.assertTrue ;
+import static org.junit.Assert.fail ;
 
 import java.util.Set;
 
@@ -37,6 +42,7 @@ import org.apache.jena.tdb.base.file.Location;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.seaborne.delta.client.DataState ;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
@@ -143,6 +149,44 @@ public abstract class AbstractTestDeltaConnection {
         } catch (DeltaBadRequestException ex) {}
     }
 
+
+    @Test
+    public void create_delete_dconn_1() {
+        Id dsRef = null;
+        try(DeltaConnection dConn = create()) {
+            assertTrue(dConn.isValid());
+            dsRef = dConn.getDataSourceId();
+            dConn.removeDataSource();
+            
+            assertFalse(dConn.isValid());
+
+            // Immediately gone. 
+            assertFalse(getZone().exists(dsRef));
+            
+            DataState ds = getZone().get(dsRef);
+            assertNull(ds);
+        }
+    }
+    
+    @Test
+    public void create_delete_dconn_2() {
+        Id dsRef = null;
+        try(DeltaConnection dConn = create()) {
+            assertTrue(dConn.isValid());
+            dsRef = dConn.getDataSourceId();
+            dConn.removeDataSource();
+            assertFalse(dConn.isValid());
+        }
+        
+        assertFalse(getZone().exists(dsRef));
+            
+        DataState ds = getZone().get(dsRef);
+        assertNull(ds);
+//        // And on disk.
+//        ***************
+//        throw new NotImplemented();
+    }
+
     @Test
     public void initial_data_1() {
         // Create twice
@@ -181,7 +225,7 @@ public abstract class AbstractTestDeltaConnection {
     @Test
     public void change_2() {
         try(DeltaConnection dConn = create()) {
-            Id dsRef = dConn.getDatasourceId();
+            Id dsRef = dConn.getDataSourceId();
             int version = dConn.getRemoteVersionLatest();
 
             DatasetGraph dsg = dConn.getDatasetGraph();
@@ -256,7 +300,7 @@ public abstract class AbstractTestDeltaConnection {
         Id dsRef;
         
         try(DeltaConnection dConn = create(dsgBase)) {
-            dsRef = dConn.getDatasourceId();
+            dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
             int ver = dConn.getLocalVersionNumber();
@@ -308,7 +352,7 @@ public abstract class AbstractTestDeltaConnection {
         Id dsRef = null;
         
         try(DeltaConnection dConn = create()) {
-            dsRef = dConn.getDatasourceId();
+            dsRef = dConn.getDataSourceId();
             int version = dConn.getRemoteVersionLatest();
             DatasetGraph dsg = dConn.getDatasetGraph();
             Txn.executeWrite(dsg, ()->dsg.add(quad) );
@@ -356,7 +400,7 @@ public abstract class AbstractTestDeltaConnection {
         Id dsRef;
         
         try(DeltaConnection dConn = create(dsgBase)) {
-            dsRef = dConn.getDatasourceId();
+            dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
             int ver = dConn.getLocalVersionNumber();

@@ -204,7 +204,7 @@ abstract public class DeltaCmd extends CmdGeneral {
             throw new CmdException("Source '"+s+"' does not exist");
         }
         Id dsRef = opt.get(); 
-        dLink.removeDataset(dsRef);
+        dLink.removeDataSource(dsRef);
     }
 
     protected String messageFromHttpException(HttpException ex) {

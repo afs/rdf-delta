@@ -358,7 +358,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
-        dLink.removeDataset(dsRef);
+        dLink.removeDataSource(dsRef);
         assertEquals(0, dLink.listDatasets().size());
     }
 
@@ -367,7 +367,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
-        dLink.removeDataset(dsRef);
+        dLink.removeDataSource(dsRef);
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
         assertNull(dsd);
     }
@@ -376,10 +376,10 @@ public abstract class AbstractTestDeltaLink {
     public void datasource_12() {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
-        dLink.removeDataset(dsRef);
+        dLink.removeDataSource(dsRef);
         assertEquals(0, dLink.listDatasets().size());
         // Again.
-        dLink.removeDataset(dsRef);
+        dLink.removeDataSource(dsRef);
     }
     
     @Test
@@ -437,6 +437,18 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(dsRef, logInfo.dataSourceId);
     }
 
+    @Test
+    public void create_delete_dLink_1() {
+        DeltaLink dLink = getLink();
+        Id clientId = Id.create();
+        RegToken regToken = dLink.register(clientId);
+
+        Id dsRef = dLink.newDataSource("create_delete_01", "http://example/cd1");
+        dLink.removeDataSource(dsRef);
+        DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
+        assertNull(dsd);
+    }
+    
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
         RDFChangesCollector c1 = new RDFChangesCollector();
         patch1.apply(c1);

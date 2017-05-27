@@ -49,7 +49,8 @@ public class DeltaConnection implements AutoCloseable {
     
     // The version of the remote copy.
     private final DeltaLink dLink ;
-    
+    private final Zone zone ;
+
     // XXX remove and only have PatchLogInfo. 
     private final AtomicInteger remoteVersion = new AtomicInteger(0);
     //private final AtomicReference<Id> remotePatchHead = new AtomicReference<>(null);
@@ -59,6 +60,8 @@ public class DeltaConnection implements AutoCloseable {
     private final RDFChanges target;
     private final Id datasourceId;
     private final DataState state;
+
+    private boolean valid;
 
     /**
      * Create and connect to a new {@code DataSource}. 
@@ -71,7 +74,7 @@ public class DeltaConnection implements AutoCloseable {
         
         Id datasourceId = dLink.newDataSource(datasourceName, uri);
         DataState dataState = zone.create(datasourceId, datasourceName, uri, Backing.TDB);
-        DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+        DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
         return client;
     }
 
@@ -147,7 +150,7 @@ public class DeltaConnection implements AutoCloseable {
                 //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
             }
             DataState dataState = zone.create(datasourceId, dsd.name, dsd.uri, Backing.TDB);
-            DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+            DeltaConnection dConn = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
             return dConn;
         }
         // Disk refresh.
@@ -155,15 +158,15 @@ public class DeltaConnection implements AutoCloseable {
         DataState dataState = zone.attach(datasourceId);
         if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
             throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
-        DeltaConnection client = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+        DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
         return client;
     }
     
     /* Common code to create the local DeltaConnection and set it up. */
-    private static DeltaConnection connect(DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
+    private static DeltaConnection connect$(Zone zone,DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
         if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
             throw new DeltaException("State ds id: "+dataState.getDataSourceId()+" but app passed "+datasourceId);
-        DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
+        DeltaConnection client = new DeltaConnection(zone, dataState, dsg, dLink);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
@@ -174,13 +177,15 @@ public class DeltaConnection implements AutoCloseable {
             link.register(clientId);
     }
     
-    private DeltaConnection(DataState dataState, DatasetGraph dsg, DeltaLink link) {
+    private DeltaConnection(Zone zone, DataState dataState, DatasetGraph dsg, DeltaLink link) {
         if ( dsg instanceof DatasetGraphChanges )
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient");
         this.state = dataState;
         this.base = dsg;
         this.datasourceId = dataState.getDataSourceId();
         this.dLink = link;
+        this.zone = zone;
+        this.valid = true;
         
         if ( dsg != null  ) {
             // Where to put incoming changes. 
@@ -194,6 +199,11 @@ public class DeltaConnection implements AutoCloseable {
             this.target = null;
             this.managed = null;
         }
+    }
+    
+    private void checkDeltaConnection() {
+        if ( ! valid )
+            throw new DeltaConfigException("DeltaConnection not valid");
     }
     
     private RDFChanges createRDFChanges(Id dsRef) {
@@ -235,13 +245,14 @@ public class DeltaConnection implements AutoCloseable {
     }
     
     /*package*/ void start() {
+        checkDeltaConnection();
         sync();
     }
     
     /*package*/ void finish() { }
 
     public void sync() {
-
+        checkDeltaConnection();
         int remoteVer = getRemoteVersionLatestOrDefault(-1);
         if ( remoteVer < 0 ) {
             FmtLog.warn(LOG, "Sync: Failed to sync");
@@ -325,11 +336,25 @@ public class DeltaConnection implements AutoCloseable {
 
     @Override
     public void close() {
-        //state.zone().release(state);
+    }
+    
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void removeDataSource() {
+        checkDeltaConnection();
+        valid = false;
+        dLink.removeDataSource(datasourceId);
+        zone.release(datasourceId);
     }
 
     public DeltaLink getLink() {
         return dLink;
+    }
+
+    public Zone getZone() {
+        return zone;
     }
 
     public Id getClientId() {
@@ -337,23 +362,28 @@ public class DeltaConnection implements AutoCloseable {
     }
 
     public String getInitialStateURL() {
+        checkDeltaConnection();
         return dLink.initialState(datasourceId);
     }
 
-    public Id getDatasourceId() {
+    public Id getDataSourceId() {
+        checkDeltaConnection();
         return datasourceId;
     }
 
     public PatchLogInfo getPatchLogInfo() {
+        checkDeltaConnection();
         return dLink.getPatchLogInfo(datasourceId);
     }
 
     public RegToken getRegToken() {
+        checkDeltaConnection();
         return dLink.getRegToken();
     }
 
     /** Actively get the remote log latest id */  
     public Id getRemoteIdLatest() {
+        checkDeltaConnection();
         PatchLogInfo logInfo = dLink.getPatchLogInfo(datasourceId);
         
         if ( logInfo == null ) {
@@ -368,6 +398,7 @@ public class DeltaConnection implements AutoCloseable {
     // XXX remove and only have PatchLogInfo. 
     /** Actively get the remote version */
     public int getRemoteVersionLatest() {
+        checkDeltaConnection();
         int version = dLink.getCurrentVersion(datasourceId);
         if ( remoteVersion.get() < version )
             remoteVersion.set(version);
@@ -378,17 +409,20 @@ public class DeltaConnection implements AutoCloseable {
     
     /** Return the version of the local data store */ 
     public int getLocalVersionNumber() {
+        checkDeltaConnection();
         return state.version();
     }
     
     /** Return the version of the local data store */ 
     public Id getLatestPatchId() {
+        checkDeltaConnection();
         return state.latestPatchId();
     }
 
     // XXX remove and only have PatchLogInfo. 
     /** Actively get the remote latest patch id */
     public Id getRemotePatchId() {
+        checkDeltaConnection();
         return dLink.getPatchLogInfo(datasourceId).latestPatch;
     }
 
@@ -404,16 +438,19 @@ public class DeltaConnection implements AutoCloseable {
 
     /** Return our local track of the remote version */ 
     public int getRemoteVersionNumber() {
+        checkDeltaConnection();
         return remoteVersion.get();
     }
     
     /** Update the version of the local belief of remote version */ 
     private void setRemoteVersionNumber(int version) {
+        checkDeltaConnection();
         remoteVersion.set(version);
     }
 
     /** The "record changes" version */  
     public DatasetGraph getDatasetGraph() {
+        checkDeltaConnection();
         return managed;
     }
 
@@ -423,6 +460,7 @@ public class DeltaConnection implements AutoCloseable {
     }
 
     public synchronized void append(RDFPatch patch) {
+        checkDeltaConnection();
         // Autoallocated previous problem. 
         int ver = dLink.append(datasourceId, patch);
         int ver0 = state.version();
@@ -437,8 +475,10 @@ public class DeltaConnection implements AutoCloseable {
     
     @Override
     public String toString() {
-        return String.format("DConn '%s' [local=%d, remote=%d]", datasourceId, 
-                             getLocalVersionNumber(), getRemoteVersionNumber());
+        String str = String.format("DConn '%s' [local=%d, remote=%d]", datasourceId, getLocalVersionNumber(), getRemoteVersionNumber());
+        if ( ! valid )
+            str = str + " : invalid";
+        return str;
     }
 
 }

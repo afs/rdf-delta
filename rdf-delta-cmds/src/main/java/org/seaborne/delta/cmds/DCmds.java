@@ -73,7 +73,7 @@ class DCmds {
         if ( ! opt.isPresent() )
             throw new CmdException("Source '"+name+"' does not exist");
         Id dsRef = opt.get(); 
-        dLink.removeDataset(dsRef);
+        dLink.removeDataSource(dsRef);
     }
 
     static Optional<Id> find(DeltaLink dLink, String name) {

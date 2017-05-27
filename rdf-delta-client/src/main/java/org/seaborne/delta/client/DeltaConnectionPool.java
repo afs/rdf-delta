@@ -103,7 +103,7 @@ public class DeltaConnectionPool {
     }
 
     public void release(DeltaConnection dConn) {
-        pool.remove(dConn.getDatasourceId());
+        pool.remove(dConn.getDataSourceId());
     }
     
 }

@@ -44,7 +44,7 @@ public interface DeltaLink {
      *  Actual deleting of resources depends on the implementation.
      *  (A server will tend not to really delete a persistent database.)
      */
-    public void removeDataset(Id dsRef);
+    public void removeDataSource(Id dsRef);
 
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;

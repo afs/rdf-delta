@@ -338,7 +338,7 @@ public class S_DRPC extends DeltaServletBase {
     private JsonValue removeDataSource(DeltaAction action) {
         String dataSourceId = getFieldAsString(action, F_DATASOURCE);
         Id dsRef = Id.fromString(dataSourceId);
-        action.dLink.removeDataset(dsRef);
+        action.dLink.removeDataSource(dsRef);
         return noResults;
     }
     

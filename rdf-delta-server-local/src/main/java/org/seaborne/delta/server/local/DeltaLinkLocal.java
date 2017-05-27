@@ -70,6 +70,10 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public void ping() {}
 
+    public LocalServer getLocalServer() {
+        return localServer;
+    }
+    
     private void checkLink() {
         if ( ! linkOpen )
             throw new DeltaNotConnectedException("Not connected");
@@ -81,7 +85,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
 
     @Override
-    public void removeDataset(Id dsRef) {
+    public void removeDataSource(Id dsRef) {
         checkLink();
         checkRegistered();
         localServer.removeDataSource(dsRef);

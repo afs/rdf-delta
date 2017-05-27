@@ -276,7 +276,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     // XXX getFieldAsXXX - share with S_DRPC.
     
     @Override
-    public void removeDataset(Id dsRef) {
+    public void removeDataSource(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
         });

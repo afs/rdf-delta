@@ -142,13 +142,13 @@ public class Run {
         Quad quad3 = SSE.parseQuad("(:g :s :p 333)");
         
         try ( DeltaConnection dConn = DeltaConnection.create(Zone.get(), clientId, "ABC", "http://example/ABC", dsg, dLink1) ) {
-            dsRef = dConn.getDatasourceId();
+            dsRef = dConn.getDataSourceId();
             Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
         }
         
         
         try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg, dLink1)) {
-            dsRef = dConn.getDatasourceId();
+            dsRef = dConn.getDataSourceId();
             Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad2) );
         }
         
@@ -175,7 +175,7 @@ public class Run {
     static DeltaConnection connectOrCreate(Zone zone, Id clientId, String datasourceName, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
         if ( create ) {
             DeltaConnection dConn = DeltaConnection.create(zone, clientId, datasourceName, "http://example/new", dsg0, dLink);
-            Id dsRef = dConn.getDatasourceId();
+            Id dsRef = dConn.getDataSourceId();
             System.out.println("++++ Create: "+dsRef);
             return dConn;
         } else {
