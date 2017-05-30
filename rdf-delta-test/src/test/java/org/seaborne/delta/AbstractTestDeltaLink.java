@@ -438,7 +438,7 @@ public abstract class AbstractTestDeltaLink {
     }
 
     @Test
-    public void create_delete_dLink_1() {
+    public void create_delete_dLink() {
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
@@ -449,6 +449,26 @@ public abstract class AbstractTestDeltaLink {
         assertNull(dsd);
     }
     
+    @Test
+    //@Ignore
+    public void create_delete_create_dLink() {
+        DeltaLink dLink = getLink();
+        Id clientId = Id.create();
+        RegToken regToken = dLink.register(clientId);
+
+        Id dsRef = dLink.newDataSource("create_delete_create", "http://example/cdc");
+        // Options.
+        dLink.removeDataSource(dsRef);
+        DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
+        assertNull(dsd);
+
+        // Need to remove from disk for this to pass.
+        // Markign "disabled" in-place will fail. 
+        
+        Id dsRef2 = dLink.newDataSource("create_delete_create", "http://example/cdc");
+        assertNotEquals(dsRef,  dsRef2);
+    }
+
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
         RDFChangesCollector c1 = new RDFChangesCollector();
         patch1.apply(c1);

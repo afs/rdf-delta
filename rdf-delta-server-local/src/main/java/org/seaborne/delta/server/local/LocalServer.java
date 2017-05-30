@@ -22,14 +22,17 @@ import static org.seaborne.delta.DeltaConst.F_BASE;
 import static org.seaborne.delta.DeltaConst.F_ID;
 import static org.seaborne.delta.DeltaConst.F_URI;
 
+import java.io.File ;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths ;
+import java.nio.file.StandardCopyOption ;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function ;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
@@ -397,12 +400,60 @@ public class LocalServer {
         // Atomic.
         dataRegistry.remove(dsRef);
         disabledDatasources.add(dsRef);
-        // Mark unavailable.
+        
+        // Decision what to do with the state?
+        //  1 - mark unavailable 
+        //  2 - move aside
+        //  3 - really delete
+        
         if ( ! datasource.inMemory() ) {
-            Path disabled = datasource.getPath().resolve(DeltaConst.DISABLED);
-            try { Files.createFile(disabled); } 
-            catch (IOException ex) { throw IOX.exception(ex); }
+            synchronized(lock) {
+                if ( true ) {
+                    // Mark unavailable.
+                    Path disabled = datasource.getPath().resolve(DeltaConst.DISABLED);
+                    try { Files.createFile(disabled); } 
+                    catch (IOException ex) { throw IOX.exception(ex); }
+                }
+                if ( true ) {
+                    // Move to "NAME-deleted-N"
+                    Path dest = uniqueDerivedPath(datasource.getPath(), (x)->x+"-deleted");
+                    try { Files.move(datasource.getPath(), dest, StandardCopyOption.ATOMIC_MOVE); }
+                    catch (IOException e) { throw IOX.exception(e); }
+                }
+                if ( false ) {
+                    // Destroy.
+                    try {
+                        Files.walk(datasource.getPath())
+                            // So a directory path itself is after its entries. 
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
+                    }
+                    catch (IOException e) { throw IOX.exception(e); }
+                    File d = datasource.getPath().toFile();
+                    FileOps.clearAll(d);
+                    d.delete();
+                }
+            }
         }
+    }
+
+    /** Generate a unique place related to path; 
+     * Optionally, provide a mapping of old name to new nae base.
+     * This method always adds "-1", "-2" etc. 
+     */  
+    private static Path uniqueDerivedPath(Path path, Function<String, String> basenameMapping) {
+        String base = path.getFileName().toString();
+        if ( basenameMapping != null )
+            base = basenameMapping.apply(base);
+        // Some large limit "just in case"
+        for(int x = 0 ; x < 10_000 ; x++ ) {
+            String destname = base+"-"+x; 
+            Path destpath = path.resolveSibling(destname);
+            if ( ! Files.exists(destpath) )
+                return destpath;
+        }
+        return null ;
     }
 
     /** JsonObject -> SourceDescriptor */
