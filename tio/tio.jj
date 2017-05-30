@@ -57,7 +57,7 @@ package org.seaborne.riot.tio.alt.javacc ;
 import org.seaborne.riot.tio.alt.* ;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.expr.* ;
-import org.apache.jena.riot.tokens.TokenType ;
+import org.apache.jena.riot.tokens.* ;
 
 public class TIOjavacc extends TIOParserBase
 {}
@@ -192,14 +192,15 @@ void BooleanLiteral() : { Token t ; }
   t = <FALSE> { emitBoolean(t.image, t.beginLine, t.beginColumn) ; }
 }
 
-String String() : { Token t ; TokenType tt ; String lex ; }
+String String() : { Token t ; String lex ; TokenType tt ; StringType st ; }
 {
-  ( t = <STRING_LITERAL1> { lex = stripQuotes(t.image) ; tt = TokenType.STRING1 ; }
-  | t = <STRING_LITERAL2> { lex = stripQuotes(t.image) ; tt = TokenType.STRING2 ; }
-  | t = <STRING_LITERAL_LONG1> { lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING1 ; }
-  | t = <STRING_LITERAL_LONG2> { lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING2 ; }
+  ( t = <STRING_LITERAL1>      { tt = TokenType.STRING ; st = StringType.STRING1 ; lex = stripQuotes(t.image) ; }
+  | t = <STRING_LITERAL2>      { tt = TokenType.STRING ; st = StringType.STRING2 ; lex = stripQuotes(t.image) ; }
+  | t = <STRING_LITERAL_LONG1> { tt = TokenType.STRING ; st = StringType.LONG_STRING1 ; lex = stripQuotes3(t.image) ; }
+  | t = <STRING_LITERAL_LONG2> { tt = TokenType.STRING ; st = StringType.LONG_STRING2 ; lex = stripQuotes3(t.image) ; }
   )
     {
+      tt = TokenType.STRING ;
       lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
       return lex ;
     }

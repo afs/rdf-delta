@@ -34,7 +34,6 @@ import org.apache.jena.atlas.lib.tuple.Tuple;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.tokens.Token;
-import org.apache.jena.riot.tokens.TokenType;
 import org.apache.jena.riot.tokens.Tokenizer;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
@@ -85,14 +84,10 @@ public abstract class AbstractTestTokenIO
     @Test public void tokens3() {
         send(n1, n2, n3, n4, n5, n6, n7);
         
-        // Because tokenForNode sets the type as TokenType.STRING
-        Token t4 = tokenForNode(n4);
-        t4.setType(TokenType.STRING2);
-        
         expect(tokenForNode(n1),
                tokenForNode(n2),
                tokenForNode(n3),
-               t4,
+               tokenForNode(n4),
                tokenForNode(n5),
                tokenForNode(n6),
                tokenForNode(n7));

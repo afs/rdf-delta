@@ -37,7 +37,7 @@ import org.apache.jena.riot.tokens.TokenizerText ;
 import org.apache.jena.sparql.util.FmtUtils ;
 import org.seaborne.riot.tio.TokenWriter ;
 
-public class TokenWriterTextExtras implements TokenWriter
+abstract class TokenWriterTextExtras implements TokenWriter
 {
     // Both token output stream and tuple abbreviation rules.
     // Separate out abbreviation/LastTuple support?
@@ -326,10 +326,6 @@ public class TokenWriterTextExtras implements TokenWriter
                 return "_:"+token.getImage() ;
             //BOOLEAN,
             case STRING:
-            case STRING1:
-            case STRING2:
-            case LONG_STRING1:
-            case LONG_STRING2:
                 // XXX
                 //return "'"+NodeFmtLib.esc(token.getImage())+"'" ;
                 return "\""+FmtUtils.stringEsc(token.getImage())+"\"" ;

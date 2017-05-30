@@ -289,10 +289,6 @@ public class TokenWriterText implements TokenWriter {
                 return "_:" + token.getImage() ;
             // BOOLEAN,
             case STRING :
-            case STRING1 :
-            case STRING2 :
-            case LONG_STRING1 :
-            case LONG_STRING2 :
                 // XXX
                 // return "'"+NodeFmtLib.esc(token.getImage())+"'";
                 return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"" ;

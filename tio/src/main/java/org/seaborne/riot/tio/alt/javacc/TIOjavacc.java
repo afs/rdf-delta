@@ -23,7 +23,7 @@ package org.seaborne.riot.tio.alt.javacc ;
 import org.seaborne.riot.tio.alt.* ;
 import org.apache.jena.graph.* ;
 import org.apache.jena.sparql.expr.* ;
-import org.apache.jena.riot.tokens.TokenType ;
+import org.apache.jena.riot.tokens.* ;
 
 
 @SuppressWarnings("all")
@@ -586,26 +586,26 @@ emitBoolean(t.image, t.beginLine, t.beginColumn) ;
     }
   }
 
-  final public String String() throws ParseException {Token t ; TokenType tt ; String lex ;
+  final public String String() throws ParseException {Token t ; String lex ; TokenType tt ; StringType st ;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case STRING_LITERAL1:{
       t = jj_consume_token(STRING_LITERAL1);
-lex = stripQuotes(t.image) ; tt = TokenType.STRING1 ;
+tt = TokenType.STRING ; st = StringType.STRING1 ; lex = stripQuotes(t.image) ;
       break;
       }
     case STRING_LITERAL2:{
       t = jj_consume_token(STRING_LITERAL2);
-lex = stripQuotes(t.image) ; tt = TokenType.STRING2 ;
+tt = TokenType.STRING ; st = StringType.STRING2 ; lex = stripQuotes(t.image) ;
       break;
       }
     case STRING_LITERAL_LONG1:{
       t = jj_consume_token(STRING_LITERAL_LONG1);
-lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING1 ;
+tt = TokenType.STRING ; st = StringType.LONG_STRING1 ; lex = stripQuotes3(t.image) ;
       break;
       }
     case STRING_LITERAL_LONG2:{
       t = jj_consume_token(STRING_LITERAL_LONG2);
-lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING2 ;
+tt = TokenType.STRING ; st = StringType.LONG_STRING2 ; lex = stripQuotes3(t.image) ;
       break;
       }
     default:
@@ -613,7 +613,8 @@ lex = stripQuotes3(t.image) ; tt = TokenType.LONG_STRING2 ;
       jj_consume_token(-1);
       throw new ParseException();
     }
-lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
+tt = TokenType.STRING ;
+      lex = unescapeStr(lex,  t.beginLine, t.beginColumn) ;
       {if ("" != null) return lex ;}
     throw new Error("Missing return statement in function");
   }

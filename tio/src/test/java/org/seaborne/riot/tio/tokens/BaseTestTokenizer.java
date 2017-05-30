@@ -69,8 +69,6 @@ public abstract class BaseTestTokenizer {
     private static boolean isString(TokenType tokenType) {
         switch(tokenType) {
             case STRING: 
-            case STRING1: case STRING2:
-            case LONG_STRING1: case LONG_STRING2:
                 return true ;
             default:
                 return false ;
