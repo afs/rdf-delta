@@ -30,6 +30,7 @@ import org.seaborne.delta.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
+import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
@@ -81,7 +82,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     
     private void checkRegistered() {
         if ( ! isRegistered() )
-            throw new DeltaBadRequestException("Not registered");
+            throw new DeltaNotRegisteredException("Not registered");
     }
 
     @Override

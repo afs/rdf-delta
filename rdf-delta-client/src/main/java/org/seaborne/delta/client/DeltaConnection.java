@@ -346,7 +346,7 @@ public class DeltaConnection implements AutoCloseable {
         checkDeltaConnection();
         valid = false;
         dLink.removeDataSource(datasourceId);
-        zone.release(datasourceId);
+        zone.delete(datasourceId);
     }
 
     public DeltaLink getLink() {

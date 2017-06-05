@@ -18,16 +18,18 @@
 
 package org.seaborne.delta.cmds;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.atlas.logging.LogCtl ;
 
-/** Create a new log */
-public class mksrc extends DeltaCmd {
+/** Reread the on-disk state. */
+public class resync extends DeltaCmd {
+
+static { LogCtl.setCmdLogging() ; }
     
     public static void main(String... args) {
-        new mksrc(args).mainRun();
+        new resync(args).mainRun();
     }
 
-    public mksrc(String[] argv) {
+    public resync(String[] argv) {
         super(argv) ;
         super.add(argDataSourceName);
         super.add(argDataSourceURI);
@@ -35,19 +37,16 @@ public class mksrc extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        // [--data FILE]
-        return getCommandName()+" --server URL --dsrc NAME";
+        return getCommandName()+" --server URL";
     }
     
     @Override
     protected void execCmd() {
-        //ping();
-        create(dataSourceName, dataSourceURI);
     }
 
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
+//        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
+//            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
     }
 }

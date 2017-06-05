@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
+import java.util.function.Function ;
 
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -141,5 +142,25 @@ public class IOX {
             return Files.createTempFile(dir, prefix, suffix, attrs);
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
+
+    /** Generate a unique place related to path; 
+     * Optionally, provide a mapping of old name to new nae base.
+     * This method always adds "-1", "-2" etc. 
+     */  
+    public static Path uniqueDerivedPath(Path path, Function<String, String> basenameMapping) {
+        String base = path.getFileName().toString();
+        if ( basenameMapping != null )
+            base = basenameMapping.apply(base);
+        // Some large limit "just in case"
+        for(int x = 0 ; x < 10_000 ; x++ ) {
+            String destname = base+"-"+x; 
+            Path destpath = path.resolveSibling(destname);
+            if ( ! Files.exists(destpath) )
+                return destpath;
+        }
+        return null ;
+    }
+    
+    
     
 }

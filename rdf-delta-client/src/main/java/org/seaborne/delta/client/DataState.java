@@ -80,7 +80,9 @@ public class DataState {
     /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, String name, String uri, int version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
-        this.state = new PersistentState(stateFile);
+        this.state = null;
+        if ( stateFile != null ) 
+            this.state = new PersistentState(stateFile);
         this.stateStr = state;
         this.version = version;
         this.patchId = patchId;
@@ -90,7 +92,8 @@ public class DataState {
     }
 
     public void refresh() {
-        load(getStatePath());
+        if ( state != null )
+            load(getStatePath());
     }
     
     private void load(Path stateFile) {
@@ -203,7 +206,8 @@ public class DataState {
 
     
     private void writeState(DataState dataState) {
-        writeState(this.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.version, dataState.patchId);
+        if ( dataState.state != null )
+            writeState(this.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.version, dataState.patchId);
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  

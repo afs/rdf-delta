@@ -32,7 +32,8 @@ import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaNotConnectedException;
+import org.seaborne.delta.link.DeltaNotConnectedException ;
+import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFPatch ;
@@ -99,7 +100,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     // A quick local check only.
     private void checkRegistered() {
         if ( regToken == null ) 
-            throw new DeltaNotConnectedException("Not registered");
+            throw new DeltaNotRegisteredException("Not registered");
     }
 
     @Override
@@ -129,8 +130,13 @@ public class DeltaLinkHTTP implements DeltaLink {
     public int append(Id dsRef, RDFPatch patch) {
         checkLink();
         RDFChangesHTTP remote = createRDFChanges(dsRef);
+        // XXX [NET] Network point
+        // : appendInternal
+        // : RDFChangesHTTP -> a collector and a function to call at the end (disk or network)
+        // : how does the disk writing work?
         patch.apply(remote);
         String str = remote.getResponse();
+        
         if ( str != null ) {
             try {
                 JsonObject obj = JSON.parse(str);
@@ -160,6 +166,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     private RDFPatch fetchCommon(String s) {
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
         try {
+            // XXX [NET] Network point
             InputStream in = HttpOp.execHttpGet(s) ;
             if ( in == null )
                 return null ;
@@ -176,7 +183,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     @Override
     public String initialState(Id dsRef) {
         Delta.DELTA_HTTP_LOG.info("initialState request: "+dsRef);
-        // XXX Better URI design
+        // Better URI design
         return DeltaLib.makeURL(remoteData, DeltaConst.paramDatasource, dsRef.asParam());
     }
 
@@ -273,8 +280,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         return dsRef;
     }
 
-    // XXX getFieldAsXXX - share with S_DRPC.
-    
     @Override
     public void removeDataSource(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
@@ -324,6 +329,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         if ( arg == null )
             arg = emptyObject;
+        // XXX [NET] Network point
         return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, arg);
     }
     

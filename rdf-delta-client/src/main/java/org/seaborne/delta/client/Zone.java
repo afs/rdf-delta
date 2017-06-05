@@ -22,11 +22,13 @@ import static org.seaborne.delta.DeltaConst.DATA;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption ;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects ;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern ;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.lib.FileOps;
@@ -40,12 +42,14 @@ import org.slf4j.LoggerFactory;
 
 /** A "Zone" is a collection of named data sources. */
 public class Zone {
-    private static Logger LOG = LoggerFactory.getLogger(Zone.class);
-
+    private static final Logger LOG = LoggerFactory.getLogger(Zone.class);
+    private static final String DELETE_MARKER = "-deleted";
+    
     // Zone state
     private volatile boolean INITIALIZED = false;
     private Map<Id, DataState> states = new ConcurrentHashMap<>();
     private Path connectionStateArea = null;
+    private Location connectionStateLocation = null;
     private Object zoneLock = new Object();
     
     //XXX Current Restriction : one zone. 
@@ -61,8 +65,10 @@ public class Zone {
         states.clear();
     }
     
-    /** Reset to the uninitialized state., Shodul not bne needed in normal operation 
-     * mainly for testing. */
+    /**
+     * Reset to the uninitialized state.
+     * Should not be needed in normal operation; mainly for testing.
+     */
     public void shutdown() {
         synchronized(zoneLock) {
             if ( ! INITIALIZED )
@@ -92,6 +98,12 @@ public class Zone {
                 return;
             }
             INITIALIZED = true;
+            connectionStateLocation = area;
+            if ( area == null || area.isMem() ) {
+                // In-memory only.
+                connectionStateArea = null;
+                return ;
+            }
             connectionStateArea = IOX.asPath(area);
             List<Path> x = scanForDataState(area);
             x.forEach(p->LOG.info("Connection : "+p));
@@ -107,7 +119,7 @@ public class Zone {
     }
 
     private void checkInit(Location area) {
-        if ( ! connectionStateArea.equals(area) )
+        if ( ! Objects.equals(connectionStateLocation, area) )
             throw new DeltaException("Attempt to reinitialize the Zone: "+connectionStateArea+" => "+area);
     }
 
@@ -120,29 +132,21 @@ public class Zone {
     public DataState create(Id dsRef, String name, String uri, Backing backing) {
         Objects.requireNonNull(dsRef);
         Objects.requireNonNull(name);
+        Path statePath = null;
         
         synchronized (zoneLock) {
             if ( states.containsKey(dsRef) )
                 throw new DeltaException("Already exists: data state for " + dsRef + " : name=" + name);
-            Path conn = connectionStateArea.resolve(name);
-            FileOps.ensureDir(conn.toString());
-            Path statePath = conn.resolve(DataState.STATE_FILE);
-            // XXX PathOps.
-            Path dataPath = conn.resolve(DATA);
-            FileOps.ensureDir(dataPath.toString());
-
-            // Write disk.
+            if ( connectionStateArea != null ) {
+                Path conn = connectionStateArea.resolve(name);
+                FileOps.ensureDir(conn.toString());
+                statePath = conn.resolve(DataState.STATE_FILE);
+                // XXX PathOps.
+                Path dataPath = conn.resolve(DATA);
+                FileOps.ensureDir(dataPath.toString());
+            }
             DataState dataState = new DataState(this, statePath, dsRef, name, uri, 0, null);
             states.put(dsRef, dataState);
-
-            // switch (backing) {
-            // case TDB:
-            // case FILE:
-            //
-            // default:
-            // throw new InternalErrorException("Unknow backing storage type: "+backing);
-            //
-            // }
             return dataState;
         }
     }
@@ -150,12 +154,34 @@ public class Zone {
     public void delete(Id dsRef) {
         synchronized (zoneLock) {
             DataState dataState = get(dsRef);
-            String name = dataState.getName();
             states.remove(dataState.getDataSourceId());
-            // deletes the data area as well. 
-            Path conn = connectionStateArea.resolve(name);
-            FileOps.delete(conn.toString());
+            if ( connectionStateArea != null ) {
+                Path path = connectionStateArea.resolve(dataState.getName());
+                if ( false ) {
+                    // real delete.
+                    FileOps.delete(path.toString());
+                } else {
+                    // Move aside.
+                    Path path2 = IOX.uniqueDerivedPath(path, (x)->x+DELETE_MARKER);
+                    try { Files.move(path, path2, StandardCopyOption.ATOMIC_MOVE); }
+                    catch (IOException e) { throw IOX.exception(e); }
+                }
+            }
         }
+    }
+    
+    // Agrees with IOX.uniqueDerivedPath for DELETE_MARKER
+    private static Pattern DELETED = Pattern.compile(DELETE_MARKER+"-\\d+"); 
+    private static boolean isDeleted(Path path) {
+        String fn = path.getFileName().toString();
+        return DELETED.matcher(fn).matches();
+    }
+    
+    public Path statePath(DataState dataState) {
+        if ( connectionStateArea == null )
+            return null;
+        dataState.getStatePath();
+        return connectionStateArea.resolve(dataState.getName());
     }
     
     /** Refresh the DataState of a datasource */  
@@ -176,6 +202,8 @@ public class Zone {
     public DataState get(Id datasourceId) {
         return states.get(datasourceId);
     }
+    
+    // "release" removes from the active zone but leaves untouched on disk.
     
     /** Release a {@code DataState}. Do not use the {@code DataState} again. */ 
     public void release(DataState dataState) {
@@ -208,6 +236,8 @@ public class Zone {
         try { 
             List<Path> datasources = Files.list(dir)
                 .filter(p->Files.isDirectory(p))
+                // Not deleted and moved aside.
+                .filter(p->!isDeleted(p))
                 .filter(Zone::isFormattedDataState)
                 .collect(Collectors.toList());
             return datasources;

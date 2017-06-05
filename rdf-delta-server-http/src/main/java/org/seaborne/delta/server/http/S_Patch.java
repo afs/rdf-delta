@@ -32,8 +32,12 @@ import org.apache.jena.atlas.json.JsonNumber;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.riot.WebContent;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.* ;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException ;
+import org.seaborne.delta.DeltaConst ;
+import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
@@ -61,7 +65,7 @@ public class S_Patch extends HttpOperationBase {
         if ( action.regToken == null )
             throw new DeltaBadRequestException(HttpSC.FORBIDDEN_403, "No registration token") ;
         if ( !isRegistered(action.regToken) )
-            throw new DeltaBadRequestException(HttpSC.FORBIDDEN_403, "Not registered") ;
+            throw new DeltaNotRegisteredException("Not registered") ;
     }
 
     @Override

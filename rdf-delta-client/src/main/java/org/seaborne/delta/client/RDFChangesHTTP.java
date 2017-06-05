@@ -38,6 +38,7 @@ import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.DeltaOps;
+import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
@@ -245,7 +246,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 throw new DeltaBadRequestException(sc, r.getStatusLine().getReasonPhrase());
             if ( sc >= 500 )
                 throw new DeltaException(sc+"  "+r.getStatusLine().getReasonPhrase());
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) { throw IOX.exception(e); }
         reset(); 
     }
         

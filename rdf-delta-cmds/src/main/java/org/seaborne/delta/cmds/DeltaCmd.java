@@ -43,7 +43,7 @@ abstract public class DeltaCmd extends CmdGeneral {
     
     static ArgDecl argServer            = new ArgDecl(true, "server");
     static ArgDecl argDataSourceName    = new ArgDecl(true, "dsrc", "log", "dataset");
-    static ArgDecl argDataSourceURI     = new ArgDecl(true, "dsrcurl", "uri", "url");
+    static ArgDecl argDataSourceURI     = new ArgDecl(true, "uri", "dsrcuri");
     
     public DeltaCmd(String[] argv) {
         super(argv) ;

@@ -32,7 +32,6 @@ import java.nio.file.StandardCopyOption ;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function ;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
@@ -416,7 +415,7 @@ public class LocalServer {
                 }
                 if ( true ) {
                     // Move to "NAME-deleted-N"
-                    Path dest = uniqueDerivedPath(datasource.getPath(), (x)->x+"-deleted");
+                    Path dest = IOX.uniqueDerivedPath(datasource.getPath(), (x)->x+"-deleted");
                     try { Files.move(datasource.getPath(), dest, StandardCopyOption.ATOMIC_MOVE); }
                     catch (IOException e) { throw IOX.exception(e); }
                 }
@@ -436,24 +435,6 @@ public class LocalServer {
                 }
             }
         }
-    }
-
-    /** Generate a unique place related to path; 
-     * Optionally, provide a mapping of old name to new nae base.
-     * This method always adds "-1", "-2" etc. 
-     */  
-    private static Path uniqueDerivedPath(Path path, Function<String, String> basenameMapping) {
-        String base = path.getFileName().toString();
-        if ( basenameMapping != null )
-            base = basenameMapping.apply(base);
-        // Some large limit "just in case"
-        for(int x = 0 ; x < 10_000 ; x++ ) {
-            String destname = base+"-"+x; 
-            Path destpath = path.resolveSibling(destname);
-            if ( ! Files.exists(destpath) )
-                return destpath;
-        }
-        return null ;
     }
 
     /** JsonObject -> SourceDescriptor */

@@ -23,14 +23,13 @@ This is line 2.
 Line 3.
 EOM
 
-# Delta classes
-MODULES=$(cat <<-END
+# Delta modules
+read -r -d '' MODULES << EOM
 rdf-delta-base rdf-delta-client rdf-delta-server-http
 rdf-delta-server-local rdf-delta-system rdf-delta-test
 rdf-patch tio dev-rdf-delta
 rdf-delta-cmds
-END
-)
+EOM
 
 for X in $MODULES
 do
@@ -64,27 +63,35 @@ fi
 # Map CMD to class name
 DMCD_PKG="org.seaborne.delta.cmds"
 
+# Alternative names.
+case $CMD in
+    appendpatch)
+	CMD=addpatch ;;
+    mk)
+	CMD=mksrc ;;
+    rm)
+	CMD=rmsrc ;;
+    *) ;;
+esac
+
+# Map to class name.
 case $CMD in
     "")
     ;;
-    appendpatch)
-	# Alt name
-	CMD=addpatch
-	# Fall-through
-	;&
     mksrc | rmsrc | list | addpatch | getpatch )
-	CMD="$DMCD_PKG"."$CMD"
+	CMD_CLS="$DMCD_PKG"."$CMD"
 	;;
     ls)
-        CMD="${DMCD_PKG}.list"
+        CMD_CLS="${DMCD_PKG}.list"
 	;;
     rdf2patch)
-	CMD="$DMCD_PKG"."$CMD"
+	CMD_CLS="$DMCD_PKG"."$CMD"
 	;;
     patchserver)
-	CMD="org.seaborne.delta.server.http.CmdDeltaServer"
+	CMD_CLS="org.seaborne.delta.server.http.CmdDeltaServer"
 	;;
     org.seaborne.delta.*)
+	CMD_CLS=$CMD
 	;;
     *)
 	echo "Unknown command $CMD" 2>&1
@@ -99,4 +106,4 @@ esac
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
-java $JVM_ARGS $LOGGING_LOG4J $LOGGING_JUL -cp "$DELTA_CP:${JENA_CP}" "$CMD" "$@"
+java $JVM_ARGS $LOGGING_LOG4J $LOGGING_JUL -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"

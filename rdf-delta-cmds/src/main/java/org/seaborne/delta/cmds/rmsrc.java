@@ -49,6 +49,6 @@ static { LogCtl.setCmdLogging() ; }
     @Override
     protected void checkForMandatoryArgs() {
         if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI);
+            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
     }
 }

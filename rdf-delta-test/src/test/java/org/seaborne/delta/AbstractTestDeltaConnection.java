@@ -25,6 +25,8 @@ import static org.junit.Assert.assertNull ;
 import static org.junit.Assert.assertTrue ;
 import static org.junit.Assert.fail ;
 
+import java.nio.file.Files ;
+import java.nio.file.Path ;
 import java.util.Set;
 
 import org.apache.jena.atlas.iterator.Iter;
@@ -70,7 +72,6 @@ public abstract class AbstractTestDeltaConnection {
     public abstract Setup.LinkSetup getSetup();
     
     public DeltaLink getLink() { return getSetup().getLink(); }
-    
     
     public Zone getZone() { return Zone.get(); }
     
@@ -171,20 +172,21 @@ public abstract class AbstractTestDeltaConnection {
     @Test
     public void create_delete_dconn_2() {
         Id dsRef = null;
+        Path path = null;
         try(DeltaConnection dConn = create()) {
             assertTrue(dConn.isValid());
             dsRef = dConn.getDataSourceId();
+            path = getZone().get(dsRef).getStatePath();
             dConn.removeDataSource();
             assertFalse(dConn.isValid());
         }
         
         assertFalse(getZone().exists(dsRef));
-            
         DataState ds = getZone().get(dsRef);
         assertNull(ds);
-//        // And on disk.
-//        ***************
-//        throw new NotImplemented();
+
+        if ( path != null )
+            assertFalse("Zone data state persistence", Files.exists(path));
     }
 
     @Test

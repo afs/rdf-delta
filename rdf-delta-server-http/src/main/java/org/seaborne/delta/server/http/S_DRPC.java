@@ -60,6 +60,7 @@ import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
@@ -149,7 +150,7 @@ public class S_DRPC extends DeltaServletBase {
         if ( action.regToken == null )
             throw new DeltaBadRequestException("No registration token") ;
         if ( !isRegistered(action.regToken) )
-            throw new DeltaBadRequestException("Not registered") ;
+            throw new DeltaNotRegisteredException("Not registered") ;
     }
 
     @Override
