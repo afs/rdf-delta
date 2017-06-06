@@ -144,7 +144,10 @@ public class PatchReader implements PatchProcessor {
                 sink.deletePrefix(gn, prefix);
                 return false ;
             }
-            case "TX": {
+            case "TX": 
+                // Alternative name:
+            case "TB": 
+            {
                 sink.txnBegin();
                 return false ;
             }

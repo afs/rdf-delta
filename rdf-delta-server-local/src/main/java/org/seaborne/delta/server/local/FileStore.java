@@ -76,15 +76,15 @@ public class FileStore {
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
             throw new IllegalArgumentException("basename is equal to the reserved name '"+tmpBasename+"'") ;
-        Path path = IOX.asPath(dirname);
-        Path k = key(path, basename);
+        Path dirPath = IOX.asPath(dirname);
+        Path k = key(dirPath, basename);
         if ( areas.containsKey(k) )
             return areas.get(k);
-        if ( ! Files.exists(path) || ! Files.isDirectory(path) )
-            throw new IllegalArgumentException("Path '" + path + "' does not name a directory");
+        if ( ! Files.exists(dirPath) || ! Files.isDirectory(dirPath) )
+            throw new IllegalArgumentException("Path '" + dirPath + "' does not name a directory");
 
         // Find existing files.
-        List<Integer> indexes = scanForIndex(path, basename);
+        List<Integer> indexes = scanForIndex(dirPath, basename);
         int min;
         int max;
         if ( indexes.isEmpty() ) {
@@ -96,11 +96,11 @@ public class FileStore {
             max = indexes.get(indexes.size()-1);
             FmtLog.info(LOG, "FileStore '%s' : index [%d,%d]", dirname, min, max);
         }
-        FileStore fs = new FileStore(path, basename, indexes, min, max);
+        FileStore fs = new FileStore(dirPath, basename, indexes, min, max);
         areas.put(k, fs);
         return fs;
     }
-
+    
     private static Path key(Path path, String basename) {
         Path p = path.resolve(basename);
         return p.normalize().toAbsolutePath();
@@ -196,6 +196,15 @@ public class FileStore {
         file.write(action);
         return file;
     }
+
+    /** Release this {@code FileStore} - do not use again. */
+    public void release() {
+        // Overlapping outstanding operations can continue. 
+        Path k = key(directory, basename);
+        FileStore old = areas.remove(k);
+        if ( old == null )
+            FmtLog.warn(LOG, "Releasing non-existent FileStore: (%s, %s)", directory, basename);
+    }
     
     /** Stop managing files */
     public static void resetTracked() {
@@ -213,6 +222,11 @@ public class FileStore {
      */
     public String basename(int idx) {
         return basename(basename, idx);
+    }
+    
+    @Override
+    public String toString() {
+        return "FileStore["+directory+", "+basename+"]"; 
     }
 
     private static final String SEP = "-";

@@ -235,6 +235,11 @@ public abstract class AbstractTestDeltaLink {
     private void patch_seq(String...filenames) {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_seq_"+(counter++), "http://example/");
+        patch_send(dsRef, filenames);
+    }
+    
+    private void patch_send(Id dsRef, String...filenames) {
+        DeltaLink dLink = getLinkRegistered();
         for ( String fn : filenames ) {
             RDFPatch patch = RDFPatchOps.read(FILES_DIR+fn);
             dLink.append(dsRef, patch);
@@ -450,13 +455,12 @@ public abstract class AbstractTestDeltaLink {
     }
     
     @Test
-    //@Ignore
-    public void create_delete_create_dLink() {
+    public void create_delete_create_dLink_1() {
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
 
-        Id dsRef = dLink.newDataSource("create_delete_create", "http://example/cdc");
+        Id dsRef = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
         // Options.
         dLink.removeDataSource(dsRef);
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
@@ -465,7 +469,24 @@ public abstract class AbstractTestDeltaLink {
         // Need to remove from disk for this to pass.
         // Markign "disabled" in-place will fail. 
         
-        Id dsRef2 = dLink.newDataSource("create_delete_create", "http://example/cdc");
+        Id dsRef2 = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
+        assertNotEquals(dsRef,  dsRef2);
+    }
+
+    @Test
+    public void create_delete_create_dLink_2() {
+        DeltaLink dLink = getLink();
+        Id clientId = Id.create();
+        RegToken regToken = dLink.register(clientId);
+        Id dsRef = dLink.newDataSource("create_delete_create_2", "http://example/cdc");
+
+        // Add a patch
+        patch_send(dsRef, "patch-empty.rdfp");
+        
+        // Delete
+        dLink.removeDataSource(dsRef);
+        // remake
+        Id dsRef2 = dLink.newDataSource("create_delete_create_2", "http://example/cdc");
         assertNotEquals(dsRef,  dsRef2);
     }
 

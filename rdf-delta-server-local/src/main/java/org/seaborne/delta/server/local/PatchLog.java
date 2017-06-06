@@ -127,6 +127,9 @@ public class PatchLog {
                     startEntry = entry;
                 idToNumber.put(patchId, idx);
                 FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, idx);
+            } catch (NoSuchFileException | FileNotFoundException ex) {
+                FmtLog.error(LOG, "No such file: "+fn);
+                throw IOX.exception(ex);
             } catch ( IOException ex ) { throw IOX.exception(ex); }
         });
         
@@ -135,6 +138,12 @@ public class PatchLog {
             Path fn = fileStore.filename(idx);
             try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
                 RDFPatch patch = RDFPatchOps.read(in);
+                if ( patch.getId() == null ) {
+                    // Skip - already logged above. 
+                    //FmtLog.warn(LOG, "Bad patch: no ID : %s", fn);
+                    return;
+                }
+                //if ( patch.getPrevious() == null) {}
                 Id patchId = Id.fromNode(patch.getId());
                 PatchCache.get().put(patchId, patch);
             } catch ( IOException ex ) { throw IOX.exception(ex); } 

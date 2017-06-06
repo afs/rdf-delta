@@ -83,7 +83,7 @@ public class LocalServer {
     private final Location serverRoot;
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
-    // Cache of known disabled data sources. (Not set of startup).
+    // Cache of known disabled data sources. (Not set at startup).
     private Set<Id> disabledDatasources = new HashSet<>();
     private Object lock = new Object();
     
@@ -352,61 +352,68 @@ public class LocalServer {
      * This can not be one that has been removed (i.e disabled) whose files must be cleaned up manually.
      */
     public Id createDataSource(boolean inMemory, String name, String baseURI/*, details*/) {
-        Location sourceArea = dataSourceArea(serverRoot, name);
-        Path sourcePath = IOX.asPath(sourceArea);
-        
-        // Checking.
-        // The area can exist, but it must not be formatted for a DataSource 
-//        if ( sourceArea.exists() )
-//            throw new DeltaException("Area already exists");
+        synchronized(lock) { 
+            Location sourceArea = dataSourceArea(serverRoot, name);
+            Path sourcePath = IOX.asPath(sourceArea);
 
-        if ( isMinimalDataSource(sourcePath) )
-            throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
-        if ( ! isEnabled(sourcePath) )
-            throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
-        
-        String patchesDirName = sourceArea.getPath(DeltaConst.PATCHES);
-        if ( FileOps.exists(patchesDirName) )
-            throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
+            // Checking.
+            // The area can exist, but it must not be formatted for a DataSource 
+            //        if ( sourceArea.exists() )
+            //            throw new DeltaException("Area already exists");
 
-        String dataDirName = sourceArea.getPath(DeltaConst.DATA);
-        if ( FileOps.exists(dataDirName) )
-            throw new DeltaBadRequestException("DataSource area has a likely looking database already");
-        
-        //Location db = sourceArea.getSubLocation(DPConst.DATA);
-        
-        Id dsRef = Id.create();
-        SourceDescriptor descr = new SourceDescriptor(dsRef, baseURI, name);
-        
-        // Create source.cfg.
-        if ( ! inMemory ) {
-            JsonObject obj = toJsonObj(descr);
-            LOG.info(JSON.toStringFlat(obj));
-            try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
-                JSON.write(out, obj);
-            } catch (IOException ex)  { throw IOX.exception(ex); }
+            if ( isMinimalDataSource(sourcePath) )
+                throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
+            if ( ! isEnabled(sourcePath) )
+                throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
+
+            String patchesDirName = sourceArea.getPath(DeltaConst.PATCHES);
+            if ( FileOps.exists(patchesDirName) )
+                throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
+
+            String dataDirName = sourceArea.getPath(DeltaConst.DATA);
+            if ( FileOps.exists(dataDirName) )
+                throw new DeltaBadRequestException("DataSource area has a likely looking database already");
+
+            //Location db = sourceArea.getSubLocation(DPConst.DATA);
+
+            Id dsRef = Id.create();
+            SourceDescriptor descr = new SourceDescriptor(dsRef, baseURI, name);
+
+            // Create source.cfg.
+            if ( ! inMemory ) {
+                JsonObject obj = toJsonObj(descr);
+                LOG.info(JSON.toStringFlat(obj));
+                try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
+                    JSON.write(out, obj);
+                } catch (IOException ex)  { throw IOX.exception(ex); }
+            }
+            DataSource newDataSource = DataSource.connect(dataRegistry, dsRef, baseURI, name, sourceArea);
+            // Atomic.
+            dataRegistry.put(dsRef, newDataSource);
+            return dsRef ;
         }
-        DataSource newDataSource = DataSource.connect(dataRegistry, dsRef, baseURI, name, sourceArea);
-        // Atomic.
-        dataRegistry.put(dsRef, newDataSource);
-        return dsRef ;
     }
     
     public void removeDataSource(Id dsRef) {
-        DataSource datasource = getDataSource(dsRef);
-        if ( datasource == null )
+        DataSource datasource1 = getDataSource(dsRef);
+        if ( datasource1 == null )
             return;
-        // Atomic.
-        dataRegistry.remove(dsRef);
-        disabledDatasources.add(dsRef);
-        
-        // Decision what to do with the state?
-        //  1 - mark unavailable 
-        //  2 - move aside
-        //  3 - really delete
-        
-        if ( ! datasource.inMemory() ) {
-            synchronized(lock) {
+        // Lock with create.
+        synchronized(lock) {
+            DataSource datasource = getDataSource(dsRef);
+            if ( datasource == null )
+                return;
+            // Make inaccessible to getDataSource (for create and remove). 
+            dataRegistry.remove(dsRef);
+            disabledDatasources.add(dsRef);
+            datasource.getPatchLog().getFileStore().release();
+
+            // Decision what to do with the state?
+            //  1 - mark unavailable 
+            //  2 - move aside
+            //  3 - really delete
+
+            if ( ! datasource.inMemory() ) {
                 if ( true ) {
                     // Mark unavailable.
                     Path disabled = datasource.getPath().resolve(DeltaConst.DISABLED);
@@ -423,10 +430,10 @@ public class LocalServer {
                     // Destroy.
                     try {
                         Files.walk(datasource.getPath())
-                            // So a directory path itself is after its entries. 
-                            .sorted(Comparator.reverseOrder())
-                            .map(Path::toFile)
-                            .forEach(File::delete);
+                        // So a directory path itself is after its entries. 
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
                     }
                     catch (IOException e) { throw IOX.exception(e); }
                     File d = datasource.getPath().toFile();
