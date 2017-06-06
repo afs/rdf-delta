@@ -21,6 +21,7 @@ package org.seaborne.delta.client;
 import java.io.InputStream ;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier ;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
@@ -29,6 +30,7 @@ import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
+import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
@@ -103,6 +105,37 @@ public class DeltaLinkHTTP implements DeltaLink {
             throw new DeltaNotRegisteredException("Not registered");
     }
 
+    private static int RETRIES_REGISTRATION = 2 ;
+    
+    // With backoff.
+    private static int RETRIES_COMMS_FAILURE = 2 ;
+
+    private static int RETRIES_HTTP_FAILURE = 2 ;
+
+    // Like Callable but no Exception.
+    interface Action<T> { T action() ; }
+
+    private <T> T retry(Action<T> callable, Supplier<String> retryMsg, Supplier<String> failureMsg) {
+        for ( int i = 1 ; ; i++ ) {
+            try {
+                return callable.action();
+            } catch (HttpException ex) {
+                if ( ex.getResponseCode() == HttpSC.UNAUTHORIZED_401 ) {
+                    if ( i < RETRIES_REGISTRATION ) {
+                        reregister();
+                        if ( retryMsg != null  )
+                            Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
+                        continue;
+                    }
+                    throw new DeltaNotRegisteredException(failureMsg.get());
+                }
+                // Other...
+                Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
+                throw ex;
+            }
+        }
+    }
+
     @Override
     public int getCurrentVersion(Id dsRef) {
         checkLink();
@@ -120,7 +153,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         Objects.requireNonNull(dsRef);
         checkLink();
         checkRegistered();
-        
         String s = DeltaLib.makeURL(remoteSend, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam());
         return new RDFChangesHTTP(s);
     }
@@ -129,13 +161,15 @@ public class DeltaLinkHTTP implements DeltaLink {
     @Override
     public int append(Id dsRef, RDFPatch patch) {
         checkLink();
-        RDFChangesHTTP remote = createRDFChanges(dsRef);
-        // XXX [NET] Network point
-        // : appendInternal
-        // : RDFChangesHTTP -> a collector and a function to call at the end (disk or network)
-        // : how does the disk writing work?
-        patch.apply(remote);
-        String str = remote.getResponse();
+        String str = retry(()->{
+            RDFChangesHTTP remote = createRDFChanges(dsRef);
+            // XXX [NET] Network point
+            // : appendInternal
+            // : RDFChangesHTTP -> a collector and a function to call at the end (disk or network)
+            // : how does the disk writing work?
+            patch.apply(remote);
+            return remote.getResponse();
+        }, ()->"Retry append patch.", ()->"Failed to append patch : "+dsRef);
         
         if ( str != null ) {
             try {
@@ -153,19 +187,19 @@ public class DeltaLinkHTTP implements DeltaLink {
     public RDFPatch fetch(Id dsRef, int version) {
         checkLink();
         String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramVersion, version);
-        return fetchCommon(s);
+        return fetchCommon(s, 1);
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         checkLink();
         String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramPatch, patchId.asParam());
-        return fetchCommon(s);
+        return fetchCommon(s, 1);
     }
-    
-    private RDFPatch fetchCommon(String s) {
+
+    private RDFPatch fetchCommon(String s, int attempt) {
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
-        try {
+        return retry(()->{
             // XXX [NET] Network point
             InputStream in = HttpOp.execHttpGet(s) ;
             if ( in == null )
@@ -174,10 +208,7 @@ public class DeltaLinkHTTP implements DeltaLink {
             RDFChangesCollector collector = new RDFChangesCollector();
             pr.apply(collector);
             return collector.getRDFPatch();
-        } catch (HttpException ex) {
-            System.err.println("HTTP Exception: "+ex.getMessage()) ;
-            return null ;
-        }
+        }, ()->"Retry fetch patch.", ()->"Failed to fetch patch.");
     }
 
     @Override
@@ -233,6 +264,11 @@ public class DeltaLinkHTTP implements DeltaLink {
         return obj.get(DeltaConst.F_VALUE).getAsBoolean().value();
     }
 
+    /** Re-register with the same client id. A new {@link RegToken} is likely.  */ 
+    private RegToken reregister() {
+        return register(clientId);
+    }
+    
     @Override
     public RegToken getRegToken() {
         return regToken;
@@ -326,17 +362,17 @@ public class DeltaLinkHTTP implements DeltaLink {
         return PatchLogInfo.fromJson(obj);
     }
     
-    private JsonValue rpcToValue(String opName, JsonObject arg) {
-        if ( arg == null )
-            arg = emptyObject;
-        // XXX [NET] Network point
-        return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, arg);
-    }
-    
     private JsonObject rpc(String opName, JsonObject arg) {
         JsonValue r = rpcToValue(opName, arg);
         if ( ! r.isObject() )
             throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
         return r.getAsObject();
+    }
+
+    private JsonValue rpcToValue(String opName, JsonObject arg) {
+        JsonObject argx = ( arg == null ) ? emptyObject : arg;
+        return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx),
+                     ()->"Retry rpc : "+opName,
+                     ()->"Failed rpc :"+opName);
     }
 }
