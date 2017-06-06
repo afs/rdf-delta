@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
@@ -64,8 +63,8 @@ public class S_Fetch extends HttpOperationBase {
     
     @Override
     protected void validateAction(Args httpArgs) {
-        if ( httpArgs.zone == null )
-            Delta.DELTA_HTTP_LOG.warn("No Zone specified");
+//        if ( httpArgs.zone == null )
+//            Delta.DELTA_HTTP_LOG.warn("No Zone specified");
         if ( httpArgs.dataset == null )
             throw new DeltaBadRequestException("No datasource specified");
         if ( httpArgs.patchId == null && httpArgs.version == null )

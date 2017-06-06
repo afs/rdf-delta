@@ -45,7 +45,7 @@ public interface RDFPatch {
         return n;
     }
     
-    /** Act of the patch by sending it to the changes processor. */ 
+    /** Act on the patch by sending it to the changes processor. */ 
     public void apply(RDFChanges changes) ;
     
 }

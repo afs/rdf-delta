@@ -24,16 +24,16 @@ public class DevDeltaToDo {
     // rm --server URL x1 x2 x3 ...
     // mk --server URL x1 x2 x3 ...
     // list -server=
-    // server from environment variable? from conf file?
+    // resync
     
-    // cmd: "resync" - rsync the local server from disk. Ho, ho, ho. 
-
+    // Concurrency while creaing and deleting DataSources.
+    
     // No registration is "error", "warning".
     
     // Initial data.
     
-    // DeltaLinkHTTP ToDo s about network handling
-    //How does writing to disk work? Unify with collect->write
+    // DeltaLinkHTTP ToDo about network handling
+    // How does writing to disk work? Unify with collect->write
     
     // Interface for patch send, receive, get all.
     // PatchLog--

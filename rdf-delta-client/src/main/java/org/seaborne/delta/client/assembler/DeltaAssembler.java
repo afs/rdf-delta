@@ -44,6 +44,7 @@ import org.apache.jena.assembler.exceptions.AssemblerException ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog ;
+import org.apache.jena.atlas.logging.Log ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.rdf.model.RDFNode ;
@@ -131,8 +132,11 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     }
 
     private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
-        if ( true )
+        if ( true ) {
+            Log.warn(DeltaAssembler.class, "forkUpdateFetcher not set up");
+            if ( true ) return;
             throw new NotImplemented("NEED THE STATE AREA; NEED THE DATASOURCE ID; NEED THE CLIENT ID");
+        }
         DeltaLink dc = DeltaLinkHTTP.connect(source) ;
         DeltaConnection client = DeltaConnection.connect(null, null, null, dsg, dc) ;
         Runnable r = ()->{
