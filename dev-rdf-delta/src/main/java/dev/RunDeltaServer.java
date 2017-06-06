@@ -23,9 +23,13 @@ public class RunDeltaServer {
     public static void main(String... args) {
         try {
             main$(args);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
         } finally {
-            System.out.println("** DONE **");
-            System.exit(0);
+            // Server running in the background.
+            //System.out.println();
+            //System.out.println("** DONE **");
+            //System.exit(0);
         }
     }
     
