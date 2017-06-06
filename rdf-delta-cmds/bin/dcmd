@@ -10,18 +10,12 @@ CP=
 JENA_CP="$HOME/jlib/fuseki2/fuseki-server.jar"
 
 ## Log4j
-LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.21/slf4j-log4j12-1.7.21.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
+LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
 ## JUL
-JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.13/slf4j-jdk14-1.7.13.jar"
+JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar"
 
 H="$HOME/ASF/rdf-delta"
 D=
-
-read -r -d '' VAR << EOM
-This is line 1.
-This is line 2.
-Line 3.
-EOM
 
 # Delta modules
 read -r -d '' MODULES << EOM
@@ -31,11 +25,19 @@ rdf-patch tio dev-rdf-delta
 rdf-delta-cmds
 EOM
 
-for X in $MODULES
-do
-    [[ $D = "" ]] || D="$D:"
-    D="${D}$H/$X/target/classes"
-done    
+if true # if in development area ./
+then
+    for X in $MODULES
+    do
+	[[ $D = "" ]] || D="$D:"
+	D="${D}$H/$X/target/classes"
+    done
+else
+    ## @@ By artifacts ...
+    echo "Not implemented: classpath by artifacts" 2>&1
+    exit 9
+fi
+
 
 DELTA_CP="$D"
 
@@ -50,7 +52,7 @@ fi
 
 if [[ $# = 0 ]]
 then
-    echo "Commands: mksrc, rmsrc, list" 1>&2
+    echo "Commands: mk, rm, list, get" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
     #echo "No class to run" 1>&2
@@ -71,6 +73,8 @@ case $CMD in
 	CMD=mksrc ;;
     rm)
 	CMD=rmsrc ;;
+    get)
+	CMD=getpatch ;;
     *) ;;
 esac
 

@@ -30,10 +30,7 @@ import org.apache.commons.lang3.StringUtils ;
 import org.apache.jena.atlas.json.JsonException ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.atlas.web.HttpException ;
-import org.seaborne.delta.DataSourceDescription ;
-import org.seaborne.delta.DeltaOps ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
 
@@ -41,6 +38,9 @@ abstract public class DeltaCmd extends CmdGeneral {
 
     static { LogCtl.setCmdLogging() ; }
     
+    // Environment variable, for commands, for the remote server to work with.
+    public static final String ENV_SERVER_URL =  "DELTA_SERVER_URL";
+
     static ArgDecl argServer            = new ArgDecl(true, "server");
     static ArgDecl argDataSourceName    = new ArgDecl(true, "dsrc", "log", "dataset");
     static ArgDecl argDataSourceURI     = new ArgDecl(true, "uri", "dsrcuri");
@@ -57,9 +57,13 @@ abstract public class DeltaCmd extends CmdGeneral {
     @Override
     final
     protected void processModulesAndArgs() {
+        
+        // Set a default for serverURL
+        serverURL = System.getenv(ENV_SERVER_URL);
+        
         super.processModulesAndArgs();
         
-        if ( ! contains(argServer) )
+        if ( serverURL == null && ! contains(argServer) )
             throw new CmdException("Required: --server URL");
         checkForMandatoryArgs();
         
