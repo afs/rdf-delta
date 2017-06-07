@@ -18,6 +18,8 @@
 
 package dev;
 
+import org.apache.jena.atlas.lib.FileOps ;
+
 public class RunDeltaServer {
 
     public static void main(String... args) {
@@ -34,6 +36,8 @@ public class RunDeltaServer {
     }
     
     public static void main$(String... args) {
+        String base = "DeltaServer";
+        FileOps.clearAll(base);
         if ( args.length == 0 )
             args = new String[] {"--base=DeltaServer"};
         org.seaborne.delta.server.http.CmdDeltaServer.main(args);

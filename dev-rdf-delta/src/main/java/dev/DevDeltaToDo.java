@@ -26,6 +26,10 @@ public class DevDeltaToDo {
     // list -server=
     // resync
     
+    // DeltaBadRequestException covers all 4xx. Rename.
+    // ping to return timeofday.
+    // dlink.getCurrent isn't an RPC?
+    
     // Concurrency while creaing and deleting DataSources.
     
     // No registration is "error", "warning".
