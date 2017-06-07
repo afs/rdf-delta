@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.seaborne.delta.link.DeltaLink;
 
 /** Base class for operations working on HTTPrequest directly, unlike RPCs */ 
-public abstract class HttpOperationBase extends DeltaServletBase {
+public abstract class HttpOperationBase extends DeltaServlet {
 
     public HttpOperationBase(AtomicReference<DeltaLink> engine) {
         super(engine);

@@ -202,16 +202,23 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     private RDFPatch fetchCommon(String s, int attempt) {
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
-        return retry(()->{
-            // XXX [NET] Network point
-            InputStream in = HttpOp.execHttpGet(s) ;
-            if ( in == null )
-                return null ;
-            PatchReader pr = new PatchReader(in) ;
-            RDFChangesCollector collector = new RDFChangesCollector();
-            pr.apply(collector);
-            return collector.getRDFPatch();
-        }, ()->"Retry fetch patch.", ()->"Failed to fetch patch.");
+        try { 
+            return retry(()->{
+                // XXX [NET] Network point
+                InputStream in = HttpOp.execHttpGet(s) ;
+                if ( in == null )
+                    return null ;
+                PatchReader pr = new PatchReader(in) ;
+                RDFChangesCollector collector = new RDFChangesCollector();
+                pr.apply(collector);
+                return collector.getRDFPatch();
+            }, ()->"Retry fetch patch.", ()->"Failed to fetch patch.");
+        }
+        catch ( HttpException ex) {
+            if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )
+                return null;
+            throw ex;
+        }
     }
 
     @Override

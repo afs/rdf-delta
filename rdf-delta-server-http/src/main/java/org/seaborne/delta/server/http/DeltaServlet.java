@@ -37,7 +37,7 @@ import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Servlet and multiplexer for DeltaLinks */
-public abstract class DeltaServletBase extends HttpServlet { 
+public abstract class DeltaServlet extends HttpServlet { 
 
     protected static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
     // Switchable (for tests).
@@ -53,7 +53,7 @@ public abstract class DeltaServletBase extends HttpServlet {
     public static void clearRegistration(RegToken regToken) { registrations.remove(regToken) ; }  
     public static void clearAllRegistrations()              { registrations.clear(); }
     
-    protected DeltaServletBase(AtomicReference<DeltaLink> engine) {
+    protected DeltaServlet(AtomicReference<DeltaLink> engine) {
         this.engine = engine;
     }
     
@@ -93,6 +93,10 @@ public abstract class DeltaServletBase extends HttpServlet {
         return registrations.containsKey(token);
     }
 
+    /**
+     * {@code HttpServlet.service} : add PATCH, add protection for exceptions.
+     * ({@link doCommon} should handle these).
+     */
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
         try {
@@ -106,12 +110,15 @@ public abstract class DeltaServletBase extends HttpServlet {
                 String x = RequestLog.combinedNCSA(req, resp) ;
                 logger.info(x);
             }
+//        } catch (DeltaNotFoundException ex) {
+//            try {
+//                resp.sendError(ex.getStatusCode(), ex.getMessage()) ;
+//            } catch (IOException ex2) {}
         } catch (DeltaBadRequestException ex) {
             //ex.printStackTrace(System.err);
-            Delta.DELTA_LOG.warn("Bad request: "+ex.getMessage());
-            try {
-                resp.sendError(ex.getStatusCode(), ex.getMessage()) ;
-            } catch (IOException ex2) {}
+            Delta.DELTA_LOG.error("Bad request: "+ex.getStatusCode()+ " -- "+ex.getMessage());
+            try { resp.sendError(ex.getStatusCode(), ex.getMessage()) ; }
+            catch (IOException ex2) {}
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
             Delta.DELTA_LOG.error(ex.getMessage(), ex);
@@ -163,12 +170,16 @@ public abstract class DeltaServletBase extends HttpServlet {
             executeAction(action);
         }
         catch (DeltaBadRequestException ex) {
-            logger.error("400 Bad request : "+ex.getMessage());
-            resp.sendError(HttpSC.BAD_REQUEST_400, "Bad request: "+ex.getMessage());
+            String msg = ex.getMessage();
+            if ( msg == null )
+                msg = "Bad request";
+            int sc = ex.getStatusCode();
+            logger.info(sc+" Bad request : "+ex.getMessage());
+            resp.sendError(ex.getStatusCode(), msg);
         }
         catch (DeltaException ex) {
             logger.error("400 Bad request : "+ex.getMessage(), ex);
-            resp.sendError(HttpSC.BAD_REQUEST_400, "Bad request: "+ex.getMessage());
+            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "DeltaException: "+ex.getMessage());
         }
         catch (Throwable ex) {
             logger.error("Internal server error", ex);

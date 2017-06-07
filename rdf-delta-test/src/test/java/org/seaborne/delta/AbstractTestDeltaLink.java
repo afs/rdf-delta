@@ -231,6 +231,28 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(1, logInfo2.minVersion);
     }
     
+    @Test
+    public void patch_http404_01() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("patch_04", "http://example/");
+        RDFPatch patch = dLink.fetch(dsRef, 99);
+        assertNull(patch);
+    }
+    
+    @Test
+    public void patch_http404_02() {
+        // Patches start at 1.
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("patch_04", "http://example/");
+        RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
+        int version1 = dLink.append(dsRef, patch);
+        
+        RDFPatch patch0 = dLink.fetch(dsRef, 0);
+        assertNull(patch0);
+        RDFPatch patch1 = dLink.fetch(dsRef, 1);
+        assertNotNull(patch1);
+    }
+    
     static int counter = 1 ;
     private void patch_seq(String...filenames) {
         DeltaLink dLink = getLinkRegistered();

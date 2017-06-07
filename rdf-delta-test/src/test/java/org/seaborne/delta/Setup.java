@@ -28,7 +28,7 @@ import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
-import org.seaborne.delta.server.http.DeltaServletBase;
+import org.seaborne.delta.server.http.DeltaServlet;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -92,7 +92,7 @@ public class Setup {
         @Override
         public void restart() {
             // XXX [JVM-global registrations]
-            DeltaServletBase.clearAllRegistrations();
+            DeltaServlet.clearAllRegistrations();
             if ( lserver == null )
                 lserver = DeltaTestLib.createEmptyTestServer();
             else {
@@ -115,7 +115,7 @@ public class Setup {
          */
         public static DataPatchServer startPatchServer() {
             // XXX [JVM-global registrations]
-            DeltaServletBase.clearAllRegistrations();
+            DeltaServlet.clearAllRegistrations();
             DataPatchServer dps = DataPatchServer.create(TEST_PORT, null) ;
             try { dps.start(); }
             catch (BindException ex) { throw IOX.exception(ex); }

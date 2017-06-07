@@ -65,7 +65,7 @@ import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
-public class S_DRPC extends DeltaServletBase {
+public class S_DRPC extends DeltaServlet {
 
     private static Logger     LOG       = Delta.DELTA_RPC_LOG;
     private static JsonObject noResults = new JsonObject();
@@ -133,7 +133,7 @@ public class S_DRPC extends DeltaServletBase {
             case OP_DESCR_DS:
             case OP_DESCR_LOG:
                 break;
-            // Registration required.
+                // Registration required.
             case OP_VERSION:
             case OP_DEREGISTER:
             case OP_CREATE_DS:
