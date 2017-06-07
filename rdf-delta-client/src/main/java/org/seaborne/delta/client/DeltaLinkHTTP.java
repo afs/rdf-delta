@@ -89,9 +89,8 @@ public class DeltaLinkHTTP implements DeltaLink {
     @Override
     public void ping() {
         checkLink();
-//        String url = remoteServer+"/ping";
-//        HttpOp.execHttpHead(url);
-        JsonObject obj = rpc(DeltaConst.OP_PING, emptyObject);
+        JsonObject obj = rpcOnce(DeltaConst.OP_PING, emptyObject);
+        // Pass/fail.  Ignore the result.
     }
 
     private void checkLink() {
@@ -122,15 +121,19 @@ public class DeltaLinkHTTP implements DeltaLink {
             } catch (HttpException ex) {
                 if ( ex.getResponseCode() == HttpSC.UNAUTHORIZED_401 ) {
                     if ( i < RETRIES_REGISTRATION ) {
-                        reregister();
                         if ( retryMsg != null  )
                             Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
+                        reregister();
                         continue;
                     }
-                    throw new DeltaNotRegisteredException(failureMsg.get());
+                    if ( failureMsg != null )
+                        throw new DeltaNotRegisteredException(failureMsg.get());
+                    else
+                        throw new DeltaNotRegisteredException(ex.getMessage());
                 }
-                // Other...
-                Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
+                if ( failureMsg != null )
+                    // Other...
+                    Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
                 throw ex;
             }
         }
@@ -373,6 +376,19 @@ public class DeltaLinkHTTP implements DeltaLink {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx),
                      ()->"Retry rpc : "+opName,
-                     ()->"Failed rpc :"+opName);
+                     ()->"Failed rpc : "+opName);
+    }
+    
+    // Perform an RPC, once - no retries, no logging.
+    private JsonObject rpcOnce(String opName, JsonObject arg) {
+        JsonValue r = rpcOnceToValue(opName, arg);
+        if ( ! r.isObject() )
+            throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
+        return r.getAsObject();
+    }
+
+    private JsonValue rpcOnceToValue(String opName, JsonObject arg) {
+        JsonObject argx = ( arg == null ) ? emptyObject : arg;
+        return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx);
     }
 }

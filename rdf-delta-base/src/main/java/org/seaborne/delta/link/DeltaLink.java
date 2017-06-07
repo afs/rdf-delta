@@ -106,7 +106,10 @@ public interface DeltaLink {
      */
     public Id getClientId();
     
-    /** No-op end-to-end operation */
+    /** No-op end-to-end operation. This operation succeeds or throws an exception.
+     *  This operation makes one attempt only to perform the ping even if the {@code DeltaLink}
+     *  has some level of retry policy.
+     */
     public void ping();
     
     /** Shutdown the link. */
