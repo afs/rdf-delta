@@ -39,13 +39,13 @@ public class addpatch extends DeltaCmd {
 
     public addpatch(String[] argv) {
         super(argv) ;
-        super.add(argDataSourceName);
+        super.add(argLogName);
         super.add(argDataSourceURI);
     }
 
     @Override
     protected String getSummary() {
-        return getCommandName()+"--server URL --dsrc NAME PATCH ...";
+        return getCommandName()+" --server URL --dsrc NAME PATCH ...";
     }
     
     @Override
@@ -55,17 +55,23 @@ public class addpatch extends DeltaCmd {
 
     protected void exec1(String fn) {
         Path path = Paths.get(fn) ;
+        
+        Id dsRef = getDescription().getId();
+        Id latest = dLink.getPatchLogInfo(dsRef).latestPatch;
+        
         try(InputStream in = Files.newInputStream(path) ) {
             RDFPatch patch = RDFPatchOps.read(in);
-            Id dsRef = getDataSourceRef();
+            // Add previous.
+            //patch.header().
+            
             dLink.append(dsRef, patch);
         } catch (IOException ex ) { IO.exception(ex); }
     }
     
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
+        if ( !contains(argLogName) && ! contains(argDataSourceURI) ) 
+            throw new CmdException("Required: one of --"+argLogName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
         if ( getPositional().isEmpty() ) {
             throw new CmdException(getCommandName()+" : No patch files"); 
         }

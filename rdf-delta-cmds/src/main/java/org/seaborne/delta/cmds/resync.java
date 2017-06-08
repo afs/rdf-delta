@@ -31,7 +31,7 @@ static { LogCtl.setCmdLogging() ; }
 
     public resync(String[] argv) {
         super(argv) ;
-        super.add(argDataSourceName);
+        super.add(argLogName);
         super.add(argDataSourceURI);
     }
 

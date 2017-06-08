@@ -32,7 +32,7 @@ public class getpatch extends DeltaCmd {
 
     public getpatch(String[] argv) {
         super(argv) ;
-        super.add(argDataSourceName);
+        super.add(argLogName);
         super.add(argDataSourceURI);
     }
 
@@ -55,7 +55,8 @@ public class getpatch extends DeltaCmd {
             throw new CmdException(getCommandName()+" : Invalid version");
         }
         
-        Id dsRef = getDataSourceRef();
+        Id dsRef =  getDescription().getId();
+
         RDFPatch patch = dLink.fetch(dsRef, patchVersion);
         if ( patch == null )
             throw new CmdException(getCommandName()+" : No such patch : "+patchVersion);
@@ -65,8 +66,8 @@ public class getpatch extends DeltaCmd {
 
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
+        if ( !contains(argLogName) && ! contains(argDataSourceURI) ) 
+            throw new CmdException("Required: one of --"+argLogName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
         if ( getPositional().isEmpty() ) {
             throw new CmdException(getCommandName()+" : No patch id"); 
         }

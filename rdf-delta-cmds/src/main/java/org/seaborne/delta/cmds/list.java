@@ -18,20 +18,21 @@
 
 package org.seaborne.delta.cmds;
 
-import org.apache.jena.atlas.logging.LogCtl ;
+import java.util.List ;
+
+import org.seaborne.delta.DataSourceDescription ;
+import org.seaborne.delta.PatchLogInfo ;
 
 /** Create a new log */
 public class list extends DeltaCmd {
 
-static { LogCtl.setCmdLogging() ; }
-    
     public static void main(String... args) {
         new list(args).mainRun();
     }
 
     public list(String[] argv) {
         super(argv) ;
-        super.add(argDataSourceName);
+        super.add(argLogName);
         super.add(argDataSourceURI);
     }
 
@@ -42,7 +43,25 @@ static { LogCtl.setCmdLogging() ; }
     
     @Override
     protected void execCmd() {
-        list();
+        execList();
+    }
+
+    protected void execList() {
+        List <DataSourceDescription> all = getDescriptions();
+        if ( all.isEmpty()) {
+            System.out.println("-- No logs --");
+            return ;
+        }
+        all.forEach(dsd->{
+            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
+            if ( logInfo != null ) {
+                System.out.print(
+                                 String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
+                                               (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString()));
+            }
+            else
+                System.out.println(dsd);
+        });
     }
 
     @Override

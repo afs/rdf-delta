@@ -67,12 +67,12 @@ DMCD_PKG="org.seaborne.delta.cmds"
 
 # Alternative names.
 case $CMD in
-    appendpatch)
+    appendpatch|append|add)
 	CMD=addpatch ;;
     mk)
-	CMD=mksrc ;;
+	CMD=mklog ;;
     rm)
-	CMD=rmsrc ;;
+	CMD=rmlog ;;
     get)
 	CMD=getpatch ;;
     *) ;;
@@ -82,7 +82,7 @@ esac
 case $CMD in
     "")
     ;;
-    mksrc | rmsrc | list | addpatch | getpatch )
+    mklog | rmlog | list | addpatch | getpatch )
 	CMD_CLS="$DMCD_PKG"."$CMD"
 	;;
     ls)

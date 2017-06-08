@@ -18,36 +18,37 @@
 
 package org.seaborne.delta.cmds;
 
+import java.util.Optional ;
+
 import jena.cmd.CmdException ;
+import org.seaborne.delta.Id ;
 
-/** Create a new log */
-public class mksrc extends DeltaCmd {
-    
+/** Remove a log */
+public class rmlog extends DeltaCmdServerOp {
+
     public static void main(String... args) {
-        new mksrc(args).mainRun();
+        new rmlog(args).mainRun();
     }
 
-    public mksrc(String[] argv) {
+    public rmlog(String[] argv) {
         super(argv) ;
-        super.add(argDataSourceName);
-        super.add(argDataSourceURI);
     }
 
     @Override
-    protected String getSummary() {
-        // [--data FILE]
-        return getCommandName()+" --server URL --dsrc NAME";
-    }
-    
-    @Override
-    protected void execCmd() {
-        //ping();
-        create(dataSourceName, dataSourceURI);
+    protected void execCmdName(String name) {
+        Optional<Id> opt = findByName(name);
+        if ( ! opt.isPresent() )
+            throw new CmdException("Source '"+name+"' does not exist"); 
+        Id dsRef = opt.get(); 
+        dLink.removeDataSource(dsRef);
     }
 
     @Override
-    protected void checkForMandatoryArgs() {
-        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
-            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
+    protected void execCmdURI(String uriStr) {
+        Optional<Id> opt = findByURI(uriStr);
+        if ( ! opt.isPresent() )
+            throw new CmdException("Source <"+uriStr+"> does not exist"); 
+        Id dsRef = opt.get(); 
+        dLink.removeDataSource(dsRef);
     }
 }
