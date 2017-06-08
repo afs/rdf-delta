@@ -19,25 +19,7 @@
 package org.seaborne.delta;
 
 /** Exception to throw when a request is wrong in some way : 4xx */ 
-public class DeltaBadRequestException extends DeltaException {
-    private final int statusCode ;  
-    
+public class DeltaBadRequestException extends DeltaHttpException {
     public DeltaBadRequestException(String msg)
-    { this(400, msg) ; }
-    
-    public DeltaBadRequestException(int code, String msg) {
-        super(msg) ;
-        statusCode = code ;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-    
-    @Override
-    public String getMessage() {
-        return super.getMessage();
-    }
-    
-    //public Throwable fillInStackTrace() {}
+    { super(400, msg) ; }
 }

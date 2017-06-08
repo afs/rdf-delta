@@ -35,8 +35,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.DeltaBadRequestException ;
-import org.seaborne.delta.DeltaException ;
+import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatch;
@@ -240,12 +239,12 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 return ;
             if ( sc >= 300 && sc <= 399 ) {
                 FmtLog.info(LOG, "Send patch : got HTTP %d", sc);
-                throw new DeltaBadRequestException(sc, "HTTP Redirect");
+                throw new DeltaHttpException(sc, "HTTP Redirect");
             }
             if ( sc >= 400 && sc <= 499 )
-                throw new DeltaBadRequestException(sc, r.getStatusLine().getReasonPhrase());
+                throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
             if ( sc >= 500 )
-                throw new DeltaException(sc+"  "+r.getStatusLine().getReasonPhrase());
+                throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
         } catch (IOException e) { throw IOX.exception(e); }
         reset(); 
     }

@@ -37,7 +37,7 @@ import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
-/** Implementation of {@link DeltaLink}. */  
+/** Implementation of {@link DeltaLink} backed by a {@link LocalServer}. */  
 public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     private static final int BUF_SIZE = 128*1024;
 
@@ -59,6 +59,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     public Id newDataSource(String name, String baseURI) {
         checkLink();
         checkRegistered();
+        if ( ! DeltaOps.isValidName(name) )
+            throw new IllegalArgumentException("Invalid data soirce name: '"+name+"'"); 
         return localServer.createDataSource(false, name, baseURI);
     }
 

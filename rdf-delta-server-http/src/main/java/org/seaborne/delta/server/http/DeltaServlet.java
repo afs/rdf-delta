@@ -110,16 +110,12 @@ public abstract class DeltaServlet extends HttpServlet {
                 String x = RequestLog.combinedNCSA(req, resp) ;
                 logger.info(x);
             }
-//        } catch (DeltaNotFoundException ex) {
-//            try {
-//                resp.sendError(ex.getStatusCode(), ex.getMessage()) ;
-//            } catch (IOException ex2) {}
-        } catch (DeltaBadRequestException ex) {
-            //ex.printStackTrace(System.err);
-            Delta.DELTA_LOG.error("Bad request: "+ex.getStatusCode()+ " -- "+ex.getMessage());
+        } catch (DeltaHttpException ex) {
+            // doCommon() should handle these.
+            Delta.DELTA_LOG.error("HTTP exception: "+ex.getStatusCode()+ " -- "+ex.getMessage());
             try { resp.sendError(ex.getStatusCode(), ex.getMessage()) ; }
             catch (IOException ex2) {}
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             ex.printStackTrace(System.err);
             Delta.DELTA_LOG.error(ex.getMessage(), ex);
             try { resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ; }
@@ -177,14 +173,10 @@ public abstract class DeltaServlet extends HttpServlet {
             logger.info(sc+" Bad request : "+ex.getMessage());
             resp.sendError(ex.getStatusCode(), msg);
         }
-        catch (DeltaException ex) {
-            logger.error("400 Bad request : "+ex.getMessage(), ex);
-            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "DeltaException: "+ex.getMessage());
+        catch (DeltaHttpException ex) {
+            logger.info(ex.getStatusCode()+" "+ex.getMessage());
+            resp.sendError(ex.getStatusCode(), ex.getMessage());
         }
-        catch (Throwable ex) {
-            logger.error("Internal server error", ex);
-            ex.printStackTrace();
-            resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error: "+ex.getMessage());
-        }
+        // Unexpected exceptions case handled by service()
     }
 }

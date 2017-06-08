@@ -25,14 +25,13 @@ public class DevDeltaToDo {
     // mk --server URL x1 x2 x3 ...
     // list -server=
     // resync
+    // append (gets patch head and fils that in)
     
-    // DeltaBadRequestException covers all 4xx. Rename.
+    // Quick poll : server epoch - avoid calc of list of datasources
+    
     // ping to return timeofday.
-    // dlink.getCurrent isn't an RPC?
     
     // Concurrency while creaing and deleting DataSources.
-    
-    // No registration is "error", "warning".
     
     // Initial data.
     
@@ -60,25 +59,12 @@ public class DevDeltaToDo {
     // Get allLogStates at once.
     // zone.attach -- bad name.
     
-    // Tests:
-    //   bad patch
-    //   empty patch
-    
-    // Tests for cmds.
-    //   Get previous then append for dcmd
-    
     // Write patch to tmp file, move into place to accept.
     //    Or verify in mem space then write when accepted.
     //    Current bug,
     
-    // Check DeltaConnection : commit order
-
-    // ** Initial data : "version 0"
-    // getInitialData -> stream of quads (as a patch?)
-
     // Migrate PatchLogServer; relationship to Zone?
-    // Migrate AutoCommitGraph; PrefixMappingTxn; PrefixMappingWrapper
-    // Migrate?? TransactionHandlerDP_txn
+    // Migrate autocommit package.
     
     // URI design. RDF Patch REST 
     //   http://server:1066/{WebAppCxt}/{shortName}/
@@ -114,7 +100,6 @@ public class DevDeltaToDo {
     
     // ------------------------------------------------------------------------
     // Document, "Design" protocol
-    // -- History and parenthood.
 
     // -- javacc tokenizer:
     //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)
@@ -122,11 +107,7 @@ public class DevDeltaToDo {
     //     "0xXYZ"
     //     "''@lang- "
 
-    // -- Others
-    // Extract polling support to DeltaClient.
-
     // DatasetGraphBuffering
     // GraphBuffering
     // BufferingTupleSet<X>
-    
 }

@@ -41,7 +41,8 @@ import org.seaborne.patch.PatchReader ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 
-/** Implementation of {@link DeltaLink} that encodes operations
+/** 
+ * Implementation of {@link DeltaLink} that encodes operations
  * onto the HTTP protocol and decode results.    
  */
 public class DeltaLinkHTTP implements DeltaLink {
@@ -166,10 +167,8 @@ public class DeltaLinkHTTP implements DeltaLink {
         checkLink();
         String str = retry(()->{
             RDFChangesHTTP remote = createRDFChanges(dsRef);
-            // XXX [NET] Network point
-            // : appendInternal
-            // : RDFChangesHTTP -> a collector and a function to call at the end (disk or network)
-            // : how does the disk writing work?
+            // [NET] Network point
+            // If not re-applyable, we need a copy.
             patch.apply(remote);
             return remote.getResponse();
         }, ()->"Retry append patch.", ()->"Failed to append patch : "+dsRef);
@@ -204,7 +203,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
         try { 
             return retry(()->{
-                // XXX [NET] Network point
+                // [NET] Network point
                 InputStream in = HttpOp.execHttpGet(s) ;
                 if ( in == null )
                     return null ;
@@ -312,6 +311,10 @@ public class DeltaLinkHTTP implements DeltaLink {
     @Override
     public Id newDataSource(String name, String uri) {
         Objects.requireNonNull(name);
+        
+        if ( ! DeltaOps.isValidName(name) )
+            throw new IllegalArgumentException("Invalid data soirce name: '"+name+"'"); 
+        
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DeltaConst.F_NAME).value(name);
             if ( uri != null )
@@ -381,6 +384,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
+        // [NET] Network point
         return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx),
                      ()->"Retry rpc : "+opName,
                      ()->"Failed rpc : "+opName);
@@ -396,6 +400,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     private JsonValue rpcOnceToValue(String opName, JsonObject arg) {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
+        // [NET] Network point
         return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx);
     }
 }
