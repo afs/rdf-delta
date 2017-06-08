@@ -23,7 +23,7 @@ import java.util.regex.Pattern ;
 public class DeltaConst {
     // Letters, numbers, "."  "_" and "-"
     // Can't start with a "-".
-    public static final String  DataSourceRegexStr = "^[\\w_\\.\\$][\\w-\\._\\$]+$";
+    public static final String  DataSourceRegexStr = "^[\\w_\\.\\$][\\w-\\._\\$]*$";
     public static final Pattern DataSourceRegex    = Pattern.compile(DataSourceRegexStr);
     
     // Endpoints.
