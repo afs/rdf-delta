@@ -142,7 +142,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         FmtLog.info(LOG, "receive: Dest=%s", source) ;
         FileEntry entry = source.getReceiver().receive(rdfPatch, null);
         // id -> registation
-        FmtLog.info(LOG, "Patch: %s %s", rdfPatch.getId(), source.getDescription().name);
+        FmtLog.info(LOG, "Patch: %s %s", rdfPatch.getId(), source.getDescription().getName());
         
         // Debug
         if ( false )

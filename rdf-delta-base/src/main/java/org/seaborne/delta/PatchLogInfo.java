@@ -32,14 +32,15 @@ import org.seaborne.delta.lib.JSONX ;
  * Snapshot of the state of a {@code PatchLog}. 
  * This description of the patch log is "at a point in time" and is fixes.
  * It goes out of date as the patch log evolves.
+ * 
  * @see DataSourceDescription
  */
 public class PatchLogInfo {
-    public final Id dataSourceId ;
-    public final String dataSourceName ;
-    public final long minVersion ;
-    public final long maxVersion ;
-    public final Id latestPatch ;
+    private final Id dataSourceId ;
+    private final String dataSourceName ;
+    private final long minVersion ;
+    private final long maxVersion ;
+    private final Id latestPatch ;
     
     public PatchLogInfo(Id dsRef, String name, long minVersion, long maxVersion, Id latestPatch) {
         this.dataSourceId = dsRef ;
@@ -94,16 +95,14 @@ public class PatchLogInfo {
     }
     
     public static PatchLogInfo fromJson(JsonObject obj) {
-        String dsRefStr = obj.get(F_ID).getAsString().value();
-        String name = obj.get(F_NAME).getAsString().value();
-        long minVer = JSONX.getLong(obj, F_MINVER, -1);
-        long maxVer = JSONX.getLong(obj, F_MAXVER, -1);
-        String latestPatchStr = null;
+        String dsRefStr = JSONX.getStrOrNull(obj, F_ID) ;
+        String name = JSONX.getStrOrNull(obj, F_NAME) ;
+        long minVer = JSONX.getLong(obj, F_MINVER, -1) ;
+        long maxVer = JSONX.getLong(obj, F_MAXVER, -1) ;
+        String latestPatchStr = JSONX.getStrOrNull(obj, F_LATEST);
         Id latestPatch = null;
-        if ( obj.hasKey(F_LATEST) ) {
-            latestPatchStr = obj.get(F_LATEST).getAsString().value();
+        if ( latestPatchStr != null )
             latestPatch = Id.fromString(latestPatchStr);
-        }
         return new PatchLogInfo(Id.fromString(dsRefStr), name, minVer, maxVer, latestPatch); 
     }
     
@@ -113,5 +112,25 @@ public class PatchLogInfo {
                              dataSourceId, dataSourceName, 
                              minVersion, maxVersion,
                              (latestPatch==null)?"":latestPatch.toString());
+    }
+
+    public Id getDataSourceId() {
+        return dataSourceId ;
+    }
+
+    public String getDataSourceName() {
+        return dataSourceName ;
+    }
+
+    public long getMinVersion() {
+        return minVersion ;
+    }
+
+    public long getMaxVersion() {
+        return maxVersion ;
+    }
+
+    public Id getLatestPatch() {
+        return latestPatch ;
     }
 }

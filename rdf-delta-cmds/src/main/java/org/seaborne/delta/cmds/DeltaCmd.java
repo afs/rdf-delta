@@ -140,7 +140,7 @@ abstract public class DeltaCmd extends CmdGeneral {
         if ( description == null ) {
             description = 
                 getDescriptions().stream()
-                    .filter(dsd-> Objects.equals(dsd.name, dataSourceName) || Objects.equals(dsd.uri, dataSourceURI))
+                    .filter(dsd-> Objects.equals(dsd.getName(), dataSourceName) || Objects.equals(dsd.getUri(), dataSourceURI))
                     .findFirst().orElse(null);
             if ( description == null )
                 throw new CmdException("Source '"+dataSourceName+"' does not exist");
@@ -195,11 +195,11 @@ abstract public class DeltaCmd extends CmdGeneral {
     }
     
     protected Optional<Id> findByURI(String uri) {
-        return find(dsd-> Objects.equals(dsd.name, uri)) ;
+        return find(dsd-> Objects.equals(dsd.getName(), uri)) ;
     }
     
     protected Optional<Id> findByName(String name) {
-        return find(dsd-> Objects.equals(dsd.name, name)) ;
+        return find(dsd-> Objects.equals(dsd.getName(), name)) ;
     }
 
     protected Optional<Id> find(Predicate<DataSourceDescription> predicate) {
@@ -208,6 +208,6 @@ abstract public class DeltaCmd extends CmdGeneral {
             all.stream()
                .filter(predicate)
                .findFirst()
-               .map(dsd->dsd.id);
+               .map(dsd->dsd.getId());
     }
 }

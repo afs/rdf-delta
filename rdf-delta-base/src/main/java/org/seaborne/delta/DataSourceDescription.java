@@ -22,10 +22,14 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.lib.JSONX;
 import static org.seaborne.delta.DeltaConst.*;
 
+/** The fixed information about a {@code DataSource}.
+ * 
+ * @see PatchLogInfo 
+ */
 public class DataSourceDescription {
-    public final Id id;
-    public final String uri;
-    public final String name;
+    private final Id id;
+    private final String uri;
+    private final String name;
     
     public DataSourceDescription(Id id, String name, String uri) {
         super();
@@ -33,6 +37,14 @@ public class DataSourceDescription {
         this.name = name;
         this.uri = uri;
     }
+    
+    /*
+     * {
+     *    id:
+     *    name:
+     *    uri:
+     * }
+     */
     
     public JsonObject asJson() {
         return JSONX.buildObject(b->{

@@ -60,7 +60,7 @@ class DCmds {
         Objects.requireNonNull(url);
         
         List <DataSourceDescription> all = dLink.allDescriptions();
-        boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.name, name));
+        boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.getName(), name));
         if ( b )
             throw new CmdException("Source '"+name+"' already exists");
         Id id = dLink.newDataSource(name, url);
@@ -83,8 +83,8 @@ class DCmds {
         List <DataSourceDescription> all = dLink.allDescriptions();
         return 
             all.stream()
-               .filter(dsd-> Objects.equals(dsd.name, name))
+               .filter(dsd-> Objects.equals(dsd.getName(), name))
                .findFirst()
-               .map(dsd->dsd.id);
+               .map(dsd->dsd.getId());
     }
 }

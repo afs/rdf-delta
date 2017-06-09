@@ -57,7 +57,7 @@ public class addpatch extends DeltaCmd {
         Path path = Paths.get(fn) ;
         
         Id dsRef = getDescription().getId();
-        Id latest = dLink.getPatchLogInfo(dsRef).latestPatch;
+        Id latest = dLink.getPatchLogInfo(dsRef).getLatestPatch();
         
         try(InputStream in = Files.newInputStream(path) ) {
             RDFPatch patch = RDFPatchOps.read(in);

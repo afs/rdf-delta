@@ -53,11 +53,11 @@ public class list extends DeltaCmd {
             return ;
         }
         all.forEach(dsd->{
-            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
+            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.getId());
             if ( logInfo != null ) {
                 System.out.print(
-                                 String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
-                                               (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString()));
+                                 String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getMinVersion(), logInfo.getMaxVersion(), 
+                                               (logInfo.getLatestPatch()==null)?"--":logInfo.getLatestPatch().toString()));
             }
             else
                 System.out.println(dsd);

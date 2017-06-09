@@ -222,13 +222,13 @@ public abstract class AbstractTestDeltaLink {
         int version1 = dLink.append(dsRef, patch1);
         assertEquals(1, version1);
         PatchLogInfo logInfo1 = dLink.getPatchLogInfo(dsRef);
-        assertEquals(1, logInfo1.maxVersion);
+        assertEquals(1, logInfo1.getMaxVersion());
         
         int version2 = dLink.append(dsRef, patch2);
         assertEquals(2, version2);
         PatchLogInfo logInfo2 = dLink.getPatchLogInfo(dsRef);
-        assertEquals(2, logInfo2.maxVersion);
-        assertEquals(1, logInfo2.minVersion);
+        assertEquals(2, logInfo2.getMaxVersion());
+        assertEquals(1, logInfo2.getMinVersion());
     }
     
     @Test
@@ -321,8 +321,8 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(0, version);
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
         assertNotNull(dsd);
-        assertEquals("http://example/uri", dsd.uri);
-        assertEquals(dsRef, dsd.id);
+        assertEquals("http://example/uri", dsd.getUri());
+        assertEquals(dsRef, dsd.getId());
         // Ensure this works.
         dsd.asJson();
     }
@@ -339,8 +339,8 @@ public abstract class AbstractTestDeltaLink {
         
         DataSourceDescription dsd = dLink.getDataSourceDescription(uri);
         assertNotNull(dsd);
-        assertEquals(uri, dsd.uri);
-        assertEquals(dsRef, dsd.id);
+        assertEquals(uri, dsd.getUri());
+        assertEquals(dsRef, dsd.getId());
     }
 
     @Test(expected=DeltaException.class)
@@ -461,7 +461,7 @@ public abstract class AbstractTestDeltaLink {
         assertTrue(x.contains(dsRef));
         
         PatchLogInfo logInfo = dLink.getPatchLogInfo(dsRef);
-        assertEquals(dsRef, logInfo.dataSourceId);
+        assertEquals(dsRef, logInfo.getDataSourceId());
     }
 
     @Test

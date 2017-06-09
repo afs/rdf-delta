@@ -105,7 +105,7 @@ public class DeltaConnection implements AutoCloseable {
             Txn.executeWrite(dsg, ()->RDFDataMgr.read(dsg, url));  
         PatchLogInfo logInfo = dLink.getPatchLogInfo(datasourceId);
         // XXX Check with zone.
-        play(datasourceId, dsg, dLink, (int)logInfo.minVersion, (int)logInfo.maxVersion);
+        play(datasourceId, dsg, dLink, (int)logInfo.getMinVersion(), (int)logInfo.getMaxVersion());
     }
     
     // XXX DRY See playPatches.
@@ -149,7 +149,7 @@ public class DeltaConnection implements AutoCloseable {
                 // Autocreate?
                 //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
             }
-            DataState dataState = zone.create(datasourceId, dsd.name, dsd.uri, Backing.TDB);
+            DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), Backing.TDB);
             DeltaConnection dConn = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
             return dConn;
         }
@@ -391,7 +391,7 @@ public class DeltaConnection implements AutoCloseable {
             FmtLog.warn(LOG, "Failed to get remote latest patchId");
             return null;
         }
-        return logInfo.latestPatch;
+        return logInfo.getLatestPatch();
     }
 
     
@@ -423,7 +423,7 @@ public class DeltaConnection implements AutoCloseable {
     /** Actively get the remote latest patch id */
     public Id getRemotePatchId() {
         checkDeltaConnection();
-        return dLink.getPatchLogInfo(datasourceId).latestPatch;
+        return dLink.getPatchLogInfo(datasourceId).getLatestPatch();
     }
 
         /** Update the version of the local data store */ 

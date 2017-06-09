@@ -64,6 +64,7 @@ public interface DeltaLink {
     /** Send patch, return new version */
     public int append(Id dsRef, RDFPatch patch);
     
+    // Remove and replace by getPatchLogInfo()
     /** Get the current version: if this is an HTTP connection, this causes network traffic. */
     public int getCurrentVersion(Id dsRef);
 

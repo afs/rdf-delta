@@ -61,7 +61,7 @@ public class mklog extends DeltaCmdServerOp {
         Objects.requireNonNull(url);
         
         List <DataSourceDescription> all = dLink.allDescriptions();
-        boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.name, name));
+        boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.getName(), name));
         if ( b )
             throw new CmdException("Source '"+name+"' already exists");
         Id id = dLink.newDataSource(name, url);
