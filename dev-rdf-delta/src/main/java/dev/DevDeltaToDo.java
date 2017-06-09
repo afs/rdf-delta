@@ -20,6 +20,13 @@ package dev;
 
 public class DevDeltaToDo {
 
+    // Tests for spaces in base name.
+    // Initial data fetch.
+    
+    // Protect read in S_Data.
+    
+    // base is a directory with spaces in the path name.
+    
     // Cmds 
     // rm --server URL x1 x2 x3 ...
     // mk --server URL x1 x2 x3 ...
@@ -33,7 +40,19 @@ public class DevDeltaToDo {
     
     // Concurrency while creaing and deleting DataSources.
     
-    // Initial data.
+    // "Get all patches"
+    // Initial data in DeltaConnection.create.
+    
+    // Zone-only managed dataset.
+    // Don't allow DSG in DeltaConnection.connect
+    
+    // **** DeltaConnectionPool.
+    
+    // DeltaPatchLog:
+//        void append(RDFPatch patch, int version) {
+//            // [DP-Fix]
+//            // If the patch is bad, we need to remove it else it will be assilated on restart.
+//            // Timing hole.
     
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write

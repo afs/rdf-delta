@@ -18,19 +18,25 @@ remoteData; * Licensed to the Apache Software Foundation (ASF) under one
 
 package org.seaborne.delta.server.http;
 
-import java.io.FileInputStream ;
+import java.io.FileNotFoundException ;
 import java.io.IOException;
 import java.io.InputStream ;
+import java.nio.file.Files ;
+import java.nio.file.NoSuchFileException ;
+import java.nio.file.Path ;
+import java.nio.file.Paths ;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils ;
+import org.apache.jena.atlas.lib.IRILib ;
 import org.apache.jena.atlas.web.ContentType ;
 import org.apache.jena.riot.RDFLanguages ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaNotFoundException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger ;
@@ -71,23 +77,30 @@ public class S_Data extends HttpOperationBase {
     
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
-        LOG.info("GET");
+        LOG.info("GET "+action.getURL());
         Id dsRef = Id.fromString(action.httpArgs.dataset);
         String filenameIRI = determineData(action, dsRef);
         ContentType ct = RDFLanguages.guessContentType(filenameIRI) ;
-        String fn = filenameIRI.substring("file:".length());
-        InputStream in = new FileInputStream(fn);
-        action.response.setStatus(HttpSC.OK_200);
-        action.response.setContentType(ct.getContentType());
-        IOUtils.copy(in, action.response.getOutputStream());
+        String fn = IRILib.IRIToFilename(filenameIRI);
+        Path path = Paths.get(fn);
+        try ( InputStream in = Files.newInputStream(path) ) {
+            action.response.setStatus(HttpSC.OK_200);
+            action.response.setContentType(ct.getContentType());
+            IOUtils.copy(in, action.response.getOutputStream());
+        } catch (NoSuchFileException | FileNotFoundException ex) {
+            throw new DeltaNotFoundException(action.getURL());
+        }
     }
     
-    private String determineData(DeltaAction action, Id dsRef) {
+    /** Decide which data to return.
+     *  Default is the initial data for a {@link DataSource}.
+     */
+    protected String determineData(DeltaAction action, Id dsRef) {
         return action.dLink.initialState(dsRef);
     }
 
     @Override
     protected String getOpName() {
-        return "initial-data";
+        return "data";
     }
 }

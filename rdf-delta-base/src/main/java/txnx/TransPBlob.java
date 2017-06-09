@@ -20,6 +20,7 @@ package txnx;
 
 import java.io.* ;
 import java.nio.file.Files ;
+import java.nio.file.NoSuchFileException ;
 import java.nio.file.Path ;
 import java.nio.file.Paths ;
 import java.util.Map ;
@@ -124,9 +125,9 @@ public abstract class TransPBlob<X> extends TransactionalBlob<X> {
     }
     
     private static byte[] readPersistent(Path fn) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(fn.toFile()), 64*1024)) { 
+        try (InputStream in = new BufferedInputStream(Files.newInputStream(fn), 64*1024)) { 
             return IO.readWholeFile(in) ;
-        } catch (FileNotFoundException ex) {
+        } catch (FileNotFoundException | NoSuchFileException ex) {
             return null ;
         } catch (IOException ex) { throw IOX.exception(ex); }
     }

@@ -73,4 +73,13 @@ class DeltaAction {
         this.requestObject = requestObject;
         this.httpArgs = args;
     }
+
+    /** Return the full URL, including the query string */
+    public String getURL() {
+        StringBuffer sBuff = request.getRequestURL();
+        String queryString = request.getQueryString();
+        if ( queryString != null )
+            sBuff.append('?').append(queryString);
+        return sBuff.toString(); 
+    }
 }

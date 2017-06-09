@@ -507,12 +507,13 @@ public class PatchLog {
     // XXX PatchCache.
     private static RDFPatch fetch(FileStore fileStore, int version) {
         Path p = fileStore.filename(version);
-        try {
-            InputStream in = Files.newInputStream(p);
+        try (InputStream in = Files.newInputStream(p)) {
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;
         }
-        catch (NoSuchFileException | FileNotFoundException ex)
+        // FileNotFoundException - old style,included many error situations.
+        // NIO -> NoSuchFileException
+        catch ( NoSuchFileException | FileNotFoundException ex)
         { return null; }
         catch (IOException ex) { 
             throw IOX.exception(ex); 

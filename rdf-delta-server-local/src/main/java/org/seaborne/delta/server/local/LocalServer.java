@@ -337,12 +337,11 @@ public class LocalServer {
 
     /** Inital data : a file is some RDF format (the file extension determines the syntax)
      *  or a directory, which is a TDB database.
-     *  null means no initai data.
+     *  null means no initial data.
      */
     /*package*/ static Path initialData(Location dataSourceArea) {
         if ( dataSourceArea.isMem() )
             return null;
-        //return IOX.asPath(dataSourceArea.getSubLocation(DeltaConst.INITIAL_DATA).);
         return Paths.get(dataSourceArea.getPath("data.ttl"));
     }
 

@@ -40,7 +40,7 @@ import org.slf4j.Logger ;
 public abstract class DeltaServlet extends HttpServlet { 
 
     protected static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
-    // Switchable (for tests).
+    // Switchable so the server does not need to be restarted (for tests and admin operations).
     protected final AtomicReference<DeltaLink> engine;
     
     //protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();

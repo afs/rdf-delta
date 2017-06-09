@@ -77,7 +77,6 @@ public class DataPatchServer {
         
         // Combined name.
         addServlet(handler, "/"+DeltaConst.EP_PatchLog, new S_PatchLog(this.engineRef));
-        
         // Receive patches
         addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
         // Return patches

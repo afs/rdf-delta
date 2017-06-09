@@ -19,6 +19,7 @@
 package dev;
 
 import java.io.IOException;
+import java.net.BindException ;
 import java.util.List;
 
 import org.apache.jena.atlas.lib.FileOps ;
@@ -31,6 +32,7 @@ import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.Delta ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
@@ -67,6 +69,8 @@ public class Run {
     // Can DataSources be shared across zones? Not unless the name is the same.  Acceptable?
     // DataSource Descriptior and LocalServer.SourceDescriptor are the same.
     
+    static int PORT = 1068;
+    
     public static void main(String... args) throws IOException {
         try {
             main$();
@@ -75,54 +79,18 @@ public class Run {
             System.out.flush();
             ex.printStackTrace();
             System.exit(1); }
+        finally { System.exit(0); }
     }
 
-    public static void example() {
-        String URL = "http://localhost:1066/";
-        Id clientId = Id.create();
-
-        DeltaLink dLink = DeltaLinkHTTP.connect(URL);
-        dLink.register(clientId);
-
-        // Find the dataset.
-        List<Id> datasources = dLink.listDatasets();
-        Id dsRef = datasources.get(0);
-        System.out.printf("dsRef = %s\n", dsRef);
-
-        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-
-        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg0, dLink)) {
-        
-//        // Work with this dataset:
-//        DatasetGraph dsg = dConn.getDatasetGraph();
-//        Txn.executeWrite(dsg, ()->
-//            RDFDataMgr.read(dsg, "some_data.ttl")
-//        );
-//        dsg.begin(ReadWrite.WRITE);
-//        try {
-//            RDFDataMgr.read(dsg, "some_data.ttl");
-//            dsg.commit();
-//        } finally {
-//            dsg.end();
-//        }
-    }
-}
-    
     public static void main$() throws IOException {
         // --- Reset state.
-        FileOps.clearAll("DeltaServer/ABC");
-        FileOps.delete("DeltaServer/ABC");
         FileOps.clearAll("Zone");
         Zone.get().init("Zone");
-
         
         DeltaLink dLink1 = null;
         if ( true ) {
-            // Server
-            DataPatchServer server = DataPatchServer.server(1066, "DeltaServer");
-            server.start();
-            String URL = "http://localhost:1066/";
-            //Client
+            server(PORT, "DeltaServer");
+            String URL = "http://localhost:"+PORT+"/";
             dLink1 = DeltaLinkHTTP.connect(URL);
         } else {
             LocalServer lServer = LocalServer.attach(Location.create("DeltaServer"));
@@ -140,8 +108,14 @@ public class Run {
         Quad quad1 = SSE.parseQuad("(:g :s :p 111)");
         Quad quad2 = SSE.parseQuad("(:g :s :p 222)");
         Quad quad3 = SSE.parseQuad("(:g :s :p 333)");
+
+        try ( DeltaConnection dConn = DeltaConnection.create(Zone.get(), clientId, "ABC", "http://example/ABC", dsg, dLink1) ) {
+            String x = dConn.getInitialStateURL();
+            Txn.executeWrite(dConn.getDatasetGraph(), ()->RDFDataMgr.read(dConn.getDatasetGraph(), x));
+        }
         
         try ( DeltaConnection dConn = DeltaConnection.create(Zone.get(), clientId, "ABC", "http://example/ABC", dsg, dLink1) ) {
+            dConn.sync();
             dsRef = dConn.getDataSourceId();
             Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
         }
@@ -172,7 +146,22 @@ public class Run {
         System.exit(0);
     }
     
-    static DeltaConnection connectOrCreate(Zone zone, Id clientId, String datasourceName, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
+    private static void server(int port, String base) {
+            // --- Reset state.
+    //        FileOps.clearAll("DeltaServer/ABC");
+    //        FileOps.delete("DeltaServer/ABC");
+        FileOps.clearAll(base);
+        DataPatchServer dps = DataPatchServer.server(port, base);
+        try { 
+            dps.start();
+        } catch(BindException ex) {
+            Delta.DELTA_LOG.error("Address in use: port="+port);
+            System.exit(0);
+        }
+    }
+
+    // Initial state.
+    static DeltaConnection xconnectOrCreate(Zone zone, Id clientId, String datasourceName, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
         if ( create ) {
             DeltaConnection dConn = DeltaConnection.create(zone, clientId, datasourceName, "http://example/new", dsg0, dLink);
             Id dsRef = dConn.getDataSourceId();
@@ -184,6 +173,37 @@ public class Run {
             Id dsRef = datasources.get(0);
             DeltaConnection dConn = DeltaConnection.connect(zone, clientId, dsRef, dsg0, dLink);
             return dConn;
+        }
+    }
+
+    public static void example() {
+            String URL = "http://localhost:"+PORT+"/";
+            Id clientId = Id.create();
+    
+            DeltaLink dLink = DeltaLinkHTTP.connect(URL);
+            dLink.register(clientId);
+    
+            // Find the dataset.
+            List<Id> datasources = dLink.listDatasets();
+            Id dsRef = datasources.get(0);
+            System.out.printf("dsRef = %s\n", dsRef);
+    
+            DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+    
+            try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), clientId, dsRef, dsg0, dLink)) {
+            
+    //        // Work with this dataset:
+    //        DatasetGraph dsg = dConn.getDatasetGraph();
+    //        Txn.executeWrite(dsg, ()->
+    //            RDFDataMgr.read(dsg, "some_data.ttl")
+    //        );
+    //        dsg.begin(ReadWrite.WRITE);
+    //        try {
+    //            RDFDataMgr.read(dsg, "some_data.ttl");
+    //            dsg.commit();
+    //        } finally {
+    //            dsg.end();
+    //        }
         }
     }
 }

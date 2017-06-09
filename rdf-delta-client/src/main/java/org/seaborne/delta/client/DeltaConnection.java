@@ -73,6 +73,7 @@ public class DeltaConnection implements AutoCloseable {
         ensureRegistered(dLink, clientId);
         
         Id datasourceId = dLink.newDataSource(datasourceName, uri);
+        // Inital data.
         DataState dataState = zone.create(datasourceId, datasourceName, uri, Backing.TDB);
         DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
         return client;
