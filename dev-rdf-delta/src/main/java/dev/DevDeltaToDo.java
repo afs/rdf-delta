@@ -20,6 +20,54 @@ package dev;
 
 public class DevDeltaToDo {
 
+    /*
+     * State machine. Concurrent safe
+Check all concurrent paths.
+Plugin architecture for patch handlers
+Service loader
+Initial data
+
+Use cases
+Two triple stores, sync or batch
+Embedded store
+     */
+    
+    // DeltaConnection XXX's
+    
+    // PatchLog.HistoryEntry - why?
+    //   If cache - put in filestore?
+    
+    // PatchLogServer
+	//   Server lifecycle.
+	// 
+    //      ping (RPC1), RPC, HTTP / POST / GET / Non-retriable POST.
+    //   Retry policy.
+    //   op - ping - ping - op 
+    
+    // DeltaConnection + DSG = ?
+    
+    // DeltaLink
+    // Remove: dLink.listDatasets() , only listDescriptions -> listDescriptions()
+    
+    // ** DeltaConnection clean-up.
+    // Split create into create-> id, no connection. Adds to pool.
+    // Always pool.
+    // DLink..connect then only DeltaConnection.connect
+    
+    // DeltaConnection.connect
+    // DeltaConnection.attach = connect + new state. = connect + dConn.setupLocal(dsg) -> ??
+    // Take out registration.
+    
+    interface DeltaConnection2 {
+        
+    }
+
+    
+    // Simplify DeltaConnection to be 
+
+	// Registration token on S_Fetch
+	// --autoregister
+    
     // Tests for spaces in base name.
     // Initial data fetch.
     
@@ -33,14 +81,19 @@ public class DevDeltaToDo {
     // list -server=
     // resync
     // append (gets patch head and fils that in)
-    
+
+	// Patch input and system of record API
+	// Clearer HTTPand admin/RPC split.
+	
     // Quick poll : server epoch - avoid calc of list of datasources
+    // "ping" like (RPC1).
     
     // ping to return timeofday.
     
-    // Concurrency while creaing and deleting DataSources.
+    // Concurrency while creating and deleting DataSources, accessing PatchLogs.
     
-    // "Get all patches"
+    // "Get all patches x to y."
+
     // Initial data in DeltaConnection.create.
     
     // Zone-only managed dataset.
@@ -51,7 +104,7 @@ public class DevDeltaToDo {
     // DeltaPatchLog:
 //        void append(RDFPatch patch, int version) {
 //            // [DP-Fix]
-//            // If the patch is bad, we need to remove it else it will be assilated on restart.
+//            // If the patch is bad, we need to remove it else it will be assimilated on restart.
 //            // Timing hole.
     
     // DeltaLinkHTTP ToDo about network handling

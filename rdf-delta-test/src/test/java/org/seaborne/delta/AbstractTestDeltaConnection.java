@@ -90,17 +90,17 @@ public abstract class AbstractTestDeltaConnection {
             RegToken regToken = dLink.register(clientId);
         }                
         Id clientId = dLink.getClientId();
-        DeltaConnection dConn = DeltaConnection.create(getZone(), clientId, DS_NAME, DS_URI, shadow, dLink);
+        DeltaConnection dConn = DeltaConnection.create(getZone(), DS_NAME, DS_URI, shadow, dLink);
         return dConn;
     }
     
     protected DeltaConnection connect(Id dsRef, DatasetGraph shadow) {
-        DeltaConnection dConn = DeltaConnection.connect(getZone(), getLink().getClientId(), dsRef, shadow, getLink());
+        DeltaConnection dConn = DeltaConnection.connect(getZone(), dsRef, shadow, getLink());
         return dConn;
     }
     
     protected DeltaConnection attach(Id dsRef, DatasetGraph shadow) {
-        DeltaConnection dConn = DeltaConnection.attach(getZone(), getLink().getClientId(), dsRef, shadow, getLink());
+        DeltaConnection dConn = DeltaConnection.attach(getZone(), dsRef, shadow, getLink());
         return dConn;
     }
 
@@ -111,7 +111,7 @@ public abstract class AbstractTestDeltaConnection {
         RegToken regToken = dLink.register(clientId);
         DatasetGraph shadow = null;
         Id dsRef = Id.create();
-        DeltaConnection dConn = DeltaConnection.connect(getZone(), clientId, dsRef, shadow, dLink);
+        DeltaConnection dConn = DeltaConnection.connect(getZone(), dsRef, shadow, dLink);
     }
     
     @Test
@@ -122,7 +122,7 @@ public abstract class AbstractTestDeltaConnection {
         RegToken regToken = dLink.register(clientId);
         String DS_NAME = "123";
         Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource");
-        DeltaConnection dConn = DeltaConnection.connect(getZone(), clientId, dsRef, /*shadow*/null, dLink);
+        DeltaConnection dConn = DeltaConnection.connect(getZone(), dsRef, /*shadow*/null, dLink);
     }
 
     @Test
@@ -132,7 +132,7 @@ public abstract class AbstractTestDeltaConnection {
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
         Id dsRef = Id.create();
-        DeltaConnection dConn = DeltaConnection.create(getZone(), clientId, "NEW", /*shadow*/null, /*uri*/null, dLink);
+        DeltaConnection dConn = DeltaConnection.create(getZone(), "create_dconn_1", /*shadow*/null, /*uri*/null, dLink);
     }
 
     @Test
@@ -143,13 +143,25 @@ public abstract class AbstractTestDeltaConnection {
         RegToken regToken = dLink.register(clientId);
         DatasetGraph shadow = null;
         
-        DeltaConnection dConn1 = DeltaConnection.create(getZone(), clientId, "NEW", /*shadow*/null, /*uri*/null, dLink);
+        DeltaConnection dConn1 = DeltaConnection.create(getZone(), "create_dconn_2", /*shadow*/null, /*uri*/null, dLink);
         try {
-            DeltaConnection dConn2 = DeltaConnection.create(getZone(), clientId, "NEW", /*shadow*/null, /*uri*/null, dLink);
+            DeltaConnection dConn2 = DeltaConnection.create(getZone(), "create_dconn_2", /*shadow*/null, /*uri*/null, dLink);
             fail("Didn't get a DeltaBadRequestException");
         } catch (DeltaBadRequestException ex) {}
     }
 
+    @Test
+    public void create_dconn_3() {
+        // Versions
+        DeltaLink dLink = getLink();
+        Id clientId = Id.create();
+        RegToken regToken = dLink.register(clientId);
+        DatasetGraph shadow = null;
+        
+        DeltaConnection dConn = DeltaConnection.create(getZone(), "create_dconn_3", /*shadow*/null, /*uri*/null, dLink);
+        assertEquals(0, dConn.getLocalVersion());
+        assertEquals(0, dConn.getRemoteVersionLatest());
+    }
 
     @Test
     public void create_delete_dconn_1() {
@@ -194,7 +206,8 @@ public abstract class AbstractTestDeltaConnection {
         // Create twice
         DeltaLink dLink = getLink();
         Id clientId = Id.create();
-        DeltaConnection dConn = DeltaConnection.create(getZone(), clientId, "NEW", /*shadow*/null, /*uri*/null, dLink);
+        dLink.register(clientId);
+        DeltaConnection dConn = DeltaConnection.create(getZone(), "NEW", /*shadow*/null, /*uri*/null, dLink);
         String url1 = dConn.getInitialStateURL();
         assertNotNull(url1);
         RDFDataMgr.parse(StreamRDFLib.sinkNull(), url1);
@@ -204,7 +217,7 @@ public abstract class AbstractTestDeltaConnection {
     @Test
     public void change_1() {
         try(DeltaConnection dConn = create()) {
-            long verLocal0 = dConn.getLocalVersionNumber();
+            long verLocal0 = dConn.getLocalVersion();
             long verRemotel0 = dConn.getRemoteVersionLatest();
             
             DatasetGraph dsg = dConn.getDatasetGraph();
@@ -212,9 +225,9 @@ public abstract class AbstractTestDeltaConnection {
                 dsg.add(SSE.parseQuad("(:gx :sx :px :ox)"));
             });
             
-            int verLocal1 = dConn.getLocalVersionNumber();
+            int verLocal1 = dConn.getLocalVersion();
             int verRemotel1 = dConn.getRemoteVersionLatest();
-            assertEquals(verLocal1, dConn.getLocalVersionNumber());
+            assertEquals(verLocal1, dConn.getLocalVersion());
             assertEquals(verRemotel1, dConn.getRemoteVersionLatest());
             
             assertFalse(dConn.getDatasetGraph().isEmpty());
@@ -305,12 +318,12 @@ public abstract class AbstractTestDeltaConnection {
             dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
-            int ver = dConn.getLocalVersionNumber();
+            int ver = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
             assertEquals(0, ver);
             // Make change.
             Txn.executeWrite(dsg, ()->dsg.add(quad));
-            verLocal = dConn.getLocalVersionNumber();
+            verLocal = dConn.getLocalVersion();
             assertEquals(ver+1, verLocal);
         }
         
@@ -319,7 +332,7 @@ public abstract class AbstractTestDeltaConnection {
         // Reconnect
         try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
-            int ver = dConn.getLocalVersionNumber();
+            int ver = dConn.getLocalVersion();
             int ver2 = dConn.getRemoteVersionLatest();
     
             assertEquals(verLocal, ver);
@@ -405,12 +418,12 @@ public abstract class AbstractTestDeltaConnection {
             dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
-            int ver = dConn.getLocalVersionNumber();
+            int ver = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
             assertEquals(0, ver);
             // Make change.
             Txn.executeWrite(dsg, ()->dsg.add(quad1));
-            verLocal = dConn.getLocalVersionNumber();
+            verLocal = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
             assertEquals(ver+1, verLocal);
         }
@@ -423,13 +436,13 @@ public abstract class AbstractTestDeltaConnection {
             
             Txn.executeWrite(dsg, ()->dsg.add(quad2));
             
-            int ver = dConn.getLocalVersionNumber();
+            int ver = dConn.getLocalVersion();
             int ver2 = dConn.getRemoteVersionLatest();
             
             assertEquals(verLocal+1, ver);
             assertEquals(verRemote+1, ver2);
             
-            verLocal = dConn.getLocalVersionNumber();
+            verLocal = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
         }
     
@@ -438,7 +451,7 @@ public abstract class AbstractTestDeltaConnection {
         // Reconnect and read
         try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
-            int ver = dConn.getLocalVersionNumber();
+            int ver = dConn.getLocalVersion();
             int ver2 = dConn.getRemoteVersionLatest();
     
             assertEquals(verLocal, ver);

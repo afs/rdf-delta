@@ -101,7 +101,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
     
     @Override
-    public List<DataSourceDescription> allDescriptions() {
+    public List<DataSourceDescription> listDescriptions() {
         checkLink();
         return toList(localServer.listDataSources().stream().map(ds->ds.getDescription()));
     }
@@ -162,12 +162,6 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         return collector.getRDFPatch();
     }
     
-    @Override
-    public int getCurrentVersion(Id dsRef) {
-        DataSource source = getDataSource(dsRef);
-        return getCurrentVersion(source);
-    }
-
     private DataSource getDataSource(Id dsRef) {
         DataSource source = localServer.getDataSource(dsRef);
         if ( source == null )
@@ -181,10 +175,6 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     
     private FileStore getFileStore(DataSource source) {
         return source.getPatchLog().getFileStore();
-    }
-
-    private static int getCurrentVersion(DataSource source) {
-        return source.getPatchLog().getFileStore().getCurrentIndex();
     }
 
     /** Retrieve a patch by patchId. */ 

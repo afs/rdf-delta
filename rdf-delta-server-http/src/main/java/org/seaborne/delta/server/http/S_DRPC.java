@@ -39,7 +39,6 @@ import static org.seaborne.delta.DeltaConst.OP_LIST_DSD ;
 import static org.seaborne.delta.DeltaConst.OP_PING ;
 import static org.seaborne.delta.DeltaConst.OP_REGISTER ;
 import static org.seaborne.delta.DeltaConst.OP_REMOVE_DS ;
-import static org.seaborne.delta.DeltaConst.OP_VERSION ;
 
 import java.io.IOException ;
 import java.io.InputStream ;
@@ -134,7 +133,6 @@ public class S_DRPC extends DeltaServlet {
             case OP_DESCR_LOG:
                 break;
                 // Registration required.
-            case OP_VERSION:
             case OP_DEREGISTER:
             case OP_CREATE_DS:
             case OP_REMOVE_DS:
@@ -160,9 +158,6 @@ public class S_DRPC extends DeltaServlet {
         switch(action.opName) {
             case OP_PING:
                 rslt = ping(action);
-                break ;
-            case OP_VERSION:
-                rslt = version(action);
                 break ;
             case OP_REGISTER:
                 rslt = register(action);
@@ -196,8 +191,7 @@ public class S_DRPC extends DeltaServlet {
         }
         
         OutputStream out = action.response.getOutputStream() ;
-        if ( ! OP_VERSION.equals(action.opName) )
-            FmtLog.info(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
+        FmtLog.info(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
         sendJsonResponse(action.response, rslt);
     }
     
@@ -264,12 +258,6 @@ public class S_DRPC extends DeltaServlet {
         return noResults;
     }
     
-    private JsonValue version(DeltaAction action) {
-        Id dsRef = getFieldAsId(action, F_DATASOURCE);
-        int version = action.dLink.getCurrentVersion(dsRef);
-        return JsonNumber.value(version);
-    }
-
     private JsonValue listDataSources(DeltaAction action) {
         List<Id> ids = action.dLink.listDatasets();
         return JSONX.buildObject(b->{
@@ -320,7 +308,7 @@ public class S_DRPC extends DeltaServlet {
     }
     
     private JsonValue describeAllDataSources(DeltaAction action) {
-        List<DataSourceDescription> x = action.dLink.allDescriptions();
+        List<DataSourceDescription> x = action.dLink.listDescriptions();
         return JSONX.buildObject(b->{
             b.key(F_ARRAY);
             b.startArray();

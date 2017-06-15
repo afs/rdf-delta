@@ -97,8 +97,8 @@ public class PatchLogInfo {
     public static PatchLogInfo fromJson(JsonObject obj) {
         String dsRefStr = JSONX.getStrOrNull(obj, F_ID) ;
         String name = JSONX.getStrOrNull(obj, F_NAME) ;
-        long minVer = JSONX.getLong(obj, F_MINVER, -1) ;
-        long maxVer = JSONX.getLong(obj, F_MAXVER, -1) ;
+        long minVer = JSONX.getLong(obj, F_MINVER, DeltaConst.VERSION_UNSET) ;
+        long maxVer = JSONX.getLong(obj, F_MAXVER, DeltaConst.VERSION_UNSET) ;
         String latestPatchStr = JSONX.getStrOrNull(obj, F_LATEST);
         Id latestPatch = null;
         if ( latestPatchStr != null )
@@ -108,12 +108,18 @@ public class PatchLogInfo {
     
     @Override
     public String toString() {
-        return String.format("[%s, %s, [%d,%d] <%s>]",
+        return String.format("[%s, %s, [%s,%s] <%s>]",
                              dataSourceId, dataSourceName, 
-                             minVersion, maxVersion,
+                             verString(minVersion), verString(maxVersion),
                              (latestPatch==null)?"":latestPatch.toString());
     }
 
+    private static String verString(long version) {
+        if ( version == DeltaConst.VERSION_UNSET )
+            return "--";
+        return Long.toString(version);
+    }
+    
     public Id getDataSourceId() {
         return dataSourceId ;
     }

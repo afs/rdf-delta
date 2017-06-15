@@ -35,10 +35,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DeltaBadPatchException ;
-import org.seaborne.delta.DeltaException ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
@@ -190,8 +187,10 @@ public class PatchLog {
     }
 
     public int getEarliestVersion() {
+        int x = fileStore.getMinIndex();
+        
         if ( start == null )
-            return -1;
+            return DeltaConst.VERSION_INIT;
         return start.version;
     }
 
@@ -202,8 +201,10 @@ public class PatchLog {
     }
 
     public int getLatestVersion() {
+        int x = fileStore.getCurrentIndex();
+        
         if ( finish == null )
-            return -1;
+            return fileStore.getCurrentIndex();
         return finish.version;
     }
 
@@ -342,7 +343,7 @@ public class PatchLog {
      * @param patch
      * @param version -- as decided by the filestore.
      */
-    void append(RDFPatch patch, int version) {
+    /*pakcage*/ void append(RDFPatch patch, int version) {
         // [DP-Fix]
         // If the patch is bad, we need to remove it else it will be assilated on restart.
         // Timing hole.

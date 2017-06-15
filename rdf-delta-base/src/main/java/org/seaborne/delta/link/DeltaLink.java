@@ -19,6 +19,7 @@
 package org.seaborne.delta.link;
 
 import java.util.List;
+import java.util.stream.Collectors ;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
@@ -49,8 +50,14 @@ public interface DeltaLink {
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;
     
+    public default List<Id> x_listDatasets() { return listDescriptions().stream().map(dsd->dsd.getId()).collect(Collectors.toList()); }
+    
     /** Return an array of {@link DataSourceDescription}s of datasets */
-    public List<DataSourceDescription> allDescriptions();
+    public List<DataSourceDescription> listDescriptions();
+    
+    /** @deprecated Use {@link #listDescriptions()} */
+    @Deprecated
+    public default List<DataSourceDescription> allDescriptions() { return listDescriptions(); } 
 
     /** Return details of the patch log (or null if not registered) */
     public PatchLogInfo getPatchLogInfo(Id dsRef) ;
@@ -64,9 +71,8 @@ public interface DeltaLink {
     /** Send patch, return new version */
     public int append(Id dsRef, RDFPatch patch);
     
-    // Remove and replace by getPatchLogInfo()
-    /** Get the current version: if this is an HTTP connection, this causes network traffic. */
-    public int getCurrentVersion(Id dsRef);
+//    /** Get the current version: if this is an HTTP connection, this causes network traffic. */
+    public default int getCurrentVersion(Id dsRef) { return (int)getPatchLogInfo(dsRef).getMaxVersion(); }
 
     /** Retrieve a patch by datasource and version. */ 
     public RDFPatch fetch(Id dsRef, int version);

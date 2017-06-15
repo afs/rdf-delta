@@ -132,7 +132,7 @@ abstract public class DeltaCmd extends CmdGeneral {
 
     protected List<DataSourceDescription> getDescriptions() {
         if ( descriptions == null )
-            descriptions = dLink.allDescriptions();
+            descriptions = dLink.listDescriptions();
         return descriptions;
     }
     
@@ -203,7 +203,7 @@ abstract public class DeltaCmd extends CmdGeneral {
     }
 
     protected Optional<Id> find(Predicate<DataSourceDescription> predicate) {
-        List <DataSourceDescription> all = dLink.allDescriptions();
+        List <DataSourceDescription> all = dLink.listDescriptions();
         return 
             all.stream()
                .filter(predicate)

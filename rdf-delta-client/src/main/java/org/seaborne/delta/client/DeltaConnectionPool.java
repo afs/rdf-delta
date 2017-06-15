@@ -47,23 +47,21 @@ public class DeltaConnectionPool {
     
     private ConcurrentHashMap<Id/*data source*/, DeltaConnection> pool = new ConcurrentHashMap<>();
     private final Zone zone ;
-    private final Id clientId ;
     private final DeltaLink dLink ;
     private Function<Id, DeltaConnection> computeConnection ;
     
     // Generator of datasets / Map of existing ones.
     // Function<Id, DeltaConnection>
     // zone?
-    public DeltaConnectionPool(Zone zone, Id clientId, DeltaLink dLink) {
+    public DeltaConnectionPool(Zone zone, DeltaLink dLink) {
         this.zone = zone;
-        this.clientId = clientId;
         this.dLink = dLink;
         // Function to connect if needed.
         this.computeConnection = 
         //Function<Id, DeltaConnection> computer =
             (id) -> {
                 DatasetGraph dsgBase = allocateDatasetGraph();
-                return DeltaConnection.connect(zone, clientId, id, dsgBase, dLink);  
+                return DeltaConnection.connect(zone, id, dsgBase, dLink);  
             };
         // **** Sketching
         
@@ -88,7 +86,7 @@ public class DeltaConnectionPool {
     }
 
     private DeltaConnection create(Id datasourceId) {
-        return DeltaConnection.connect(zone, clientId, datasourceId, null, dLink);
+        return DeltaConnection.connect(zone, datasourceId, null, dLink);
     }
 
     // Make "DeltaConnection.close" collaborate. 

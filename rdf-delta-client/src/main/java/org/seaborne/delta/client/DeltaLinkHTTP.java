@@ -140,19 +140,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         }
     }
 
-    @Override
-    public int getCurrentVersion(Id dsRef) {
-        checkLink();
-        JsonObject arg = JSONX.buildObject((b)-> {
-            b.key("datasource").value(dsRef.asPlainString());
-        });
-        
-        JsonValue r = rpcToValue(DeltaConst.OP_VERSION, arg);
-        if ( ! r.isNumber() )
-            System.err.println("Not a number: "+r);
-        return r.getAsNumber().value().intValue();
-    }
-
     public RDFChangesHTTP createRDFChanges(Id dsRef) {
         Objects.requireNonNull(dsRef);
         checkLink();
@@ -299,7 +286,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public List<DataSourceDescription> allDescriptions() {
+    public List<DataSourceDescription> listDescriptions() {
         JsonObject obj = rpc(DeltaConst.OP_LIST_DSD, emptyObject);
         JsonArray array = obj.get(DeltaConst.F_ARRAY).getAsArray();
         List<DataSourceDescription> x = array.stream()

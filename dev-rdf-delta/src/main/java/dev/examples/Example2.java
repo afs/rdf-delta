@@ -54,11 +54,11 @@ public class Example2 {
         Id clientId = Id.create();
         
         // Create a new patch log.
-        try ( DeltaConnection dConn = DeltaConnection.create(zone, clientId, "TEST", "http://example/", null, dLink) ) {
+        try ( DeltaConnection dConn = DeltaConnection.create(zone, "TEST", "http://example/", null, dLink) ) {
         }
 
         // and now connect to it again.
-        try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null, dLink) ) {
+        try ( DeltaConnection dConn = DeltaConnection.connect(zone, null, null, dLink) ) {
             int version1 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version1);
 

@@ -113,7 +113,7 @@ public class CmdDeltaServer {
         DataPatchServer dps = DataPatchServer.create(port, link) ;
         FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
         
-        List<DataSourceDescription> descriptions = link.allDescriptions();
+        List<DataSourceDescription> descriptions = link.listDescriptions();
         if ( descriptions.isEmpty() )
             FmtLog.info(LOG, "   No data sources");
         else

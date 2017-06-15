@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
+import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.IOX.IOConsumer;
 import org.seaborne.patch.PatchException;
@@ -59,8 +60,6 @@ public class FileStore {
     private static final String tmpBasename = "tmp";
     private static final int BUFSIZE = 128*1024;
     // Setting for "no files": start at one less than the first allocated number.
-    private static final int MIN_DFT = -1;
-    private static final int INITIAL = 0;
     private final int minIndex;
     private final int startMaxIndex;
     private final List<Integer> indexes;
@@ -88,8 +87,9 @@ public class FileStore {
         int min;
         int max;
         if ( indexes.isEmpty() ) {
-            min = MIN_DFT;
-            max = INITIAL;
+            min = DeltaConst.VERSION_INIT;
+            // So increment is the next version.
+            max = DeltaConst.VERSION_FIRST - 1;
             FmtLog.info(LOG, "FileStore '%s' : index [--,%d]", dirname, max);
         } else {
             min = indexes.get(0);

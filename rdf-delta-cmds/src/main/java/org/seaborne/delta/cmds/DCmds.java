@@ -47,7 +47,7 @@ class DCmds {
 
     static void list(DeltaLink dLink) {
         Objects.requireNonNull(dLink);
-        List <DataSourceDescription> all = dLink.allDescriptions();
+        List <DataSourceDescription> all = dLink.listDescriptions();
         if ( all.isEmpty())
             System.out.println("No logs currently");
         else    
@@ -59,7 +59,7 @@ class DCmds {
         Objects.requireNonNull(name);
         Objects.requireNonNull(url);
         
-        List <DataSourceDescription> all = dLink.allDescriptions();
+        List <DataSourceDescription> all = dLink.listDescriptions();
         boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.getName(), name));
         if ( b )
             throw new CmdException("Source '"+name+"' already exists");
@@ -80,7 +80,7 @@ class DCmds {
         Objects.requireNonNull(dLink);
         Objects.requireNonNull(name);
         
-        List <DataSourceDescription> all = dLink.allDescriptions();
+        List <DataSourceDescription> all = dLink.listDescriptions();
         return 
             all.stream()
                .filter(dsd-> Objects.equals(dsd.getName(), name))
