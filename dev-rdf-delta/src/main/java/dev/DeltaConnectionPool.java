@@ -25,6 +25,26 @@ import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.client.DeltaConnection ;
 
+/* * Pool
+ * <pre>
+ * DeltaConnectionPool dcPool = dLink.getDeltaConnectionPool();
+ * try ( DeltaConnection dConn =  dcPool.getFromPool(datasourceId) ) {
+ *     dConn.getDataset
+ * }
+ * </pre>
+ * or
+ * <pre>
+ * DeltaConnectionPool dcPool = dLink.getDeltaConnectionPool();
+ * try ( DatasetGraphConnected dsg = dcPool.getDataset(datasourceId) ) {
+ *     dsg...
+ * }
+ * </pre>
+ */
+
+// Version 2:
+/*
+ * try ( DeltaConnection dConn =  dLink.getConnection(datasourceId) ) {
+ */
 public class DeltaConnectionPool {
     
     interface IDeltaConnection {

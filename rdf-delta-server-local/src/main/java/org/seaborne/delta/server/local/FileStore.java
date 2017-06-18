@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * The basename "tmp" is reserved.
  */
 public class FileStore {
-    private static Logger               LOG   = LoggerFactory.getLogger(FileStore.class);
+    private static Logger       LOG = LoggerFactory.getLogger(FileStore.class);
     
     // Key'ed by directory and name name.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();

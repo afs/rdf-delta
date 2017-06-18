@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package old_pool;
 
 import java.util.concurrent.ConcurrentHashMap ;
 import java.util.function.Function ;
@@ -24,6 +24,8 @@ import java.util.function.Function ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.seaborne.delta.Id ;
+import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink ;
 
 // UNFINISHED

@@ -64,7 +64,7 @@ public class DeltaConnection implements AutoCloseable {
 
     /**
      * Create and connect to a new {@code DataSource}. 
-     * The caller must be registered with the {@code DelatLink}.
+     * The caller must be registered with the {@code DeltaLink}.
      */
     public static DeltaConnection create(Zone zone, String datasourceName, String uri, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceName, "Null datasource name");
@@ -88,7 +88,7 @@ public class DeltaConnection implements AutoCloseable {
         Objects.requireNonNull(dLink, "Null link");
         //DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
         spinUpDSG(datasourceId, dsg, dLink);
-        // If Zone is behind, no problem - patches wizl be replayed.
+        // If Zone is behind, no problem - patches will be replayed.
         DeltaConnection dConn = DeltaConnection.connect(zone, datasourceId, dsg, dLink);
         return dConn;
     }

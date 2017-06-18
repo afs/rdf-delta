@@ -32,6 +32,11 @@ Two triple stores, sync or batch
 Embedded store
      */
     
+    // * DeltaLink.getConnection
+    // * Interface to read-write patches for SoR.
+    // * Discard failed patches.
+    // * HTTP interface / Control interface
+    
     // DeltaConnection XXX's
     
     // PatchLog.HistoryEntry - why?
@@ -58,10 +63,6 @@ Embedded store
     // DeltaConnection.attach = connect + new state. = connect + dConn.setupLocal(dsg) -> ??
     // Take out registration.
     
-    interface DeltaConnection2 {
-        
-    }
-
     
     // Simplify DeltaConnection to be 
 

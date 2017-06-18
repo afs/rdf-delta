@@ -16,17 +16,18 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package old_pool;
 
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphWrapper ;
+import org.seaborne.delta.client.DeltaConnection ;
 
 public class DatasetGraphConnected extends DatasetGraphWrapper implements AutoCloseable {
 
     private final DeltaConnectionPool pool ;
     private final DeltaConnection dConn ;
 
-    public DatasetGraphConnected(DatasetGraph dsg, DeltaConnection dConn, DeltaConnectionPool pool) {
+    public DatasetGraphConnected(int x, DatasetGraph dsg, DeltaConnection dConn, DeltaConnectionPool pool) {
         super(dsg) ;
         this.dConn = dConn;
         this.pool = pool; 
