@@ -165,9 +165,7 @@ public abstract class AbstractTestDeltaLink {
 
     // Patch at the link level. 
     @Test
-    public void patch_01() {
-        // LOG OUPUT
-        
+    public void patch_add_1() {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_01", "http://example/");
         
@@ -198,7 +196,7 @@ public abstract class AbstractTestDeltaLink {
     }
 
     @Test
-    public void patch_02() {
+    public void patch_add_error_1() {
         // Unregistered patch
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_02", "http://example/");
@@ -211,18 +209,24 @@ public abstract class AbstractTestDeltaLink {
     }
     
     @Test
-    public void patch_03() {
-        // patch1 then patch2
+    public void patch_add_add() {
+        // patch1 then patch2,checkign the versions advance as expected.
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_03", "http://example/");
+
+        PatchLogInfo logInfo0 = dLink.getPatchLogInfo(dsRef);
+        assertEquals(0, logInfo0.getMaxVersion());
+        assertEquals(0, logInfo0.getMinVersion());
 
         RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
 
         int version1 = dLink.append(dsRef, patch1);
         assertEquals(1, version1);
+        
         PatchLogInfo logInfo1 = dLink.getPatchLogInfo(dsRef);
         assertEquals(1, logInfo1.getMaxVersion());
+        assertEquals(1, logInfo1.getMinVersion());
         
         int version2 = dLink.append(dsRef, patch2);
         assertEquals(2, version2);

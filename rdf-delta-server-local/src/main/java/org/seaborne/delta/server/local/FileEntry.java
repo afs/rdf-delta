@@ -18,9 +18,9 @@
 
 package org.seaborne.delta.server.local;
 
-import java.io.IOException;
+import java.io.IOException ;
 import java.io.OutputStream;
-import java.nio.file.Files;
+import java.nio.file.Files ;
 import java.nio.file.Path;
 
 import org.apache.jena.atlas.RuntimeIOException;
@@ -103,5 +103,12 @@ public class FileEntry {
     
     public String getDatafileName() {
         return datafile.toString();
+    }
+    
+    @Override
+    public String toString() {
+        // Dirctory is quite long.
+        return String.format("FileEntry[%d, %s, %s]", version, 
+                             datafile.getFileName(), tmpfile.getFileName(), datafile.getParent());
     }
 }

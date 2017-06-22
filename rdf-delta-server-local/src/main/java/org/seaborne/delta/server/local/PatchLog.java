@@ -18,222 +18,129 @@
 
 package org.seaborne.delta.server.local;
 
-import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.util.* ;
+import java.util.Iterator ;
+import java.util.Map ;
+import java.util.Objects ;
 import java.util.concurrent.ConcurrentHashMap ;
-import java.util.stream.Collectors;
+import java.util.stream.LongStream ;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.InternalErrorException ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
+import org.apache.jena.ext.com.google.common.collect.Maps ;
+import org.apache.jena.graph.Node ;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.* ;
+import static org.seaborne.delta.DeltaConst.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
+import org.seaborne.patch.PatchReaderHeader ;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** A sequence of patches for an {@link DataSource}. */
-public class PatchLog {
-    // Terminology: "index" and "version"
-    //   version number if the short form so be consistent.
-    
+public class PatchLog implements IPatchLog {
+    private static final boolean CHECKING = true ;
+
     // Centralized logger for regular lifecyle reporting.
     private static Logger  LOG     = LoggerFactory.getLogger(PatchLog.class);
-    // HISTORY
-    // The history list is immutable except for the last (most recent) entry
-    // which is updated when new entries arrive.
-    // Is just a list of Id's enough if we have version->id. (versions are not contiguous). 
-    
-    static class HistoryEntry {
-        final Id    prev;        // == patch.getPrevious(), except there may not be a patch object.
-              Id    next;        // == fwd pointer in the list to next patch. 
-        final PatchHeader patch; // Remove : replace with header.
-        final int   version;
-        final Id id;
 
-        HistoryEntry(PatchHeader patch, int version, Id prev, Id thisId, Id next) {
-            this.patch = patch;
-            this.prev = prev;
-            this.id = thisId;
-            this.next = next;
-            this.version = version; 
-        }
-
-        @Override
-        public String toString() {
-            return String.format("History: Version=%d, Id=%s, Next=%s, Prev=%s", version, id, next, prev);
-        }
-    }
-    
     //Id of the DataSource 
     private final Id              dsRef;
     private final String          name;
     private final FileStore       fileStore;
-    private List<PatchHandler>    handlers       = new ArrayList<>();
-    
-//    private final PatchCache      patches = PatchCache.get();
 
-    // XXX Reorganise datastructures. 
-    private HistoryEntry          start = null;
-    private HistoryEntry          finish = null;
-    private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
-    // Two way id <-> version mampong of patch for this PatchLog
-    private final BiMap<Id, Integer> idToNumber;
-    private static boolean VALIDATE_PATCH_LOG = true;
+    // Forward, backwards chain?
+    // c.g. HistoryEntry
+    private BiMap<Id, Long> idToVersion =  Maps.synchronizedBiMap(HashBiMap.create()); 
+    private Map<Id, PatchHeader> headers = new ConcurrentHashMap<>();
     
+    private Id latestId = null;
+    private long latestVersion = VERSION_UNSET;
+    
+    /** Attached to an existing {@code PatchLog}. */
     public static PatchLog attach(Id dsRef, String name, Location location) {
-        FileStore fileStore = FileStore.attach(location, "patch");
-        BiMap<Id, Integer> idToNumber = HashBiMap.create();
-        // Read headers.
-        // Builds the id to version index.
-        fileStore.getIndexes().forEach(idx->{
-            Path fn = fileStore.filename(idx);
-            Id prev = null;
-            HistoryEntry startEntry = null;
-            HistoryEntry lastEntry = null;
-            try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
-                PatchHeader header = RDFPatchOps.readHeader(in);
-                
-                if ( header.getId() == null )
-                    LOG.warn("No id: "+fn);
-                if ( header.getPrevious() == null && lastEntry != null )
-                    LOG.warn("No previous id: "+fn);
-                
-                Id patchId = Id.fromNode(header.getId());
-                Id previousId = Id.fromNode(header.getPrevious());
-                if ( lastEntry != null ) {
-                    if ( Objects.equals(lastEntry.id, previousId) )
-                        FmtLog.warn(LOG, "Patch id=%s (previous=%s) does not refer to previous patch (id=%s)", patchId, previousId, lastEntry.id);
-                    lastEntry.next = patchId;
-                }
-                HistoryEntry entry = new HistoryEntry(null, idx, previousId, patchId, prev);
-                prev = patchId;
-                lastEntry = entry;
-                if ( startEntry == null )
-                    startEntry = entry;
-                idToNumber.put(patchId, idx);
-                FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, idx);
-            } catch (NoSuchFileException | FileNotFoundException ex) {
-                FmtLog.error(LOG, "No such file: "+fn);
-                throw IOX.exception(ex);
-            } catch ( IOException ex ) { throw IOX.exception(ex); }
-        });
-        
-        // XXX Fill cache.
-        fileStore.getIndexes().forEach(idx->{
-            Path fn = fileStore.filename(idx);
-            try ( InputStream in = new BufferedInputStream(Files.newInputStream(fn)) ) {
-                RDFPatch patch = RDFPatchOps.read(in);
-                if ( patch.getId() == null ) {
-                    // Skip - already logged above. 
-                    //FmtLog.warn(LOG, "Bad patch: no ID : %s", fn);
-                    return;
-                }
-                //if ( patch.getPrevious() == null) {}
-                Id patchId = Id.fromNode(patch.getId());
-                PatchCache.get().put(patchId, patch);
-            } catch ( IOException ex ) { throw IOX.exception(ex); } 
-        });
-        
-        // Validate the patch chain.
-        // Find the last patch id.
-        if ( VALIDATE_PATCH_LOG ) {
-            // read all patches.
-            // validate
-            ;
-        }
-        
-        HistoryEntry currentEntry;
-        if ( fileStore.isEmpty() ) {
-            currentEntry = null;
-            FmtLog.info(LOG, "PatchLog data id=%s starts empty", dsRef);
-        } else {
-            // Last patch starts history.
-            int x = fileStore.getCurrentIndex();
-            RDFPatch patch = fetch(fileStore, x);
-            Id patchId = Id.fromNode(patch.getId());
-            
-            currentEntry = new HistoryEntry(patch.header(), x, null, patchId, null);
-            FmtLog.info(LOG, "Patch log data id=%s ends (%s, version=%d)", dsRef, patchId, x);
-        }
-        return new PatchLog(dsRef, name, location, idToNumber, currentEntry);
+        return new PatchLog(dsRef, name, location, null);
     }
-
-    private PatchLog(Id dsRef, String name, Location location, BiMap<Id, Integer> idToNumber, HistoryEntry startEntry) {
+    
+    private PatchLog(Id dsRef, String name, Location location, PatchStore patchStore) {
         this.dsRef = dsRef;
         this.name = name;
-        this.idToNumber = idToNumber;
-        // Linked list of one.
-        this.start = startEntry;
-        this.finish = startEntry;
         this.fileStore = FileStore.attach(location, "patch");
+        Iterator<Integer> iter = fileStore.getIndexes().iterator();
+        PatchHeader previous = null;
+        for ( ; iter.hasNext() ; ) {
+            int idx = iter.next();
+            try ( InputStream in = fileStore.open(idx) ) {
+                PatchHeader patchHeader = PatchReaderHeader.readerHeader(in);
+                
+                Id id = Id.fromNode(patchHeader.getId());
+                Id prev = Id.fromNode(patchHeader.getPrevious());
+                if ( previous != null ) {
+                    // Test
+                }
+                headers.put(id, patchHeader);
+                idToVersion.put(id, Long.valueOf(idx));
+                latestId = id;
+                latestVersion = idx;
+            }
+            catch (NoSuchFileException ex) {}
+            catch (IOException ex) {}
+        }
     }
 
+    @Override
     public Id getEarliestId() {
-        if ( start == null )
+        long x = getEarliestVersion();
+        if ( x <= 0 )
+            // Legal versions start 1. 
             return null;
-        return start.id;
+        return idToVersion.inverse().get(x);
     }
 
-    public int getEarliestVersion() {
-        int x = fileStore.getMinIndex();
-        
-        if ( start == null )
-            return DeltaConst.VERSION_INIT;
-        return start.version;
+    @Override
+    public long getEarliestVersion() {
+        return fileStore.getMinIndex();
     }
 
+    @Override
     public Id getLatestId() {
-        if ( finish == null )
-            return null;
-        return finish.id;
+        validateLatest();
+        return latestId;
     }
 
-    public int getLatestVersion() {
-        int x = fileStore.getCurrentIndex();
-        
-        if ( finish == null )
-            return fileStore.getCurrentIndex();
-        return finish.version;
+    @Override
+    public long getLatestVersion() {
+        validateLatest();
+       return fileStore.getCurrentIndex();
     }
 
+    private void validateLatest() {
+        if ( CHECKING ) {
+            long x = fileStore.getCurrentIndex();
+            // Legal versions start 1.
+            if ( latestVersion != x )
+                FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);  
+        }
+    }
+    
+    @Override
     public PatchLogInfo getDescription() {
         return new PatchLogInfo(dsRef, name, getEarliestVersion(), getLatestVersion(), getLatestId());
     }
 
+    @Override
     public boolean isEmpty() {
-        if (start == null && finish == null )
-            return true;
-        if (start != null && finish != null )
-            return false;
-        FmtLog.warn(LOG, "Inconsistent: start %s, finish %s", start, finish);
-        return false;
+        return fileStore.isEmpty();
     }
     
-    private void checkConsistent() {
-        boolean b1 = fileStore.isEmpty();
-        boolean b2 = (finish == null);
-        if ( b1 != b2 ) {
-            FmtLog.error(LOG, "Inconsistent: fileStore.isEmpty=%s : history empty=%s", b1, b2);
-            if ( ! b1 )
-                FmtLog.error(LOG, "    fileStore [%d, %d]", fileStore.getMinIndex(), fileStore.getCurrentIndex());
-            if ( ! b2 )
-                FmtLog.error(LOG, "    start %s, finish %s", start, finish);
-            throw new DeltaException("PatchLog: "+name);  
-        }
-    }
-
     /** Validate a patch for this {@code PatchLog} */
     public boolean validate(RDFPatch patch) {
         Id previousId = Id.fromNode(patch.getPrevious());
@@ -249,41 +156,105 @@ public class PatchLog {
                 return false ;
             }
         }
-        return true;
+        try { 
+            validate(patch.header(), patchId, previousId, this::badPatchEx);
+            return true ;
+        } catch (DeltaException ex) { return false; }
     }
     
-    private void validateEx(Id patchId, Id previousId) {
-        if ( patchId == null )
-            badPatchEx("No id");
-        
-        // Check id is new.
-        if ( historyEntries.containsKey(patchId) )
-            badPatchEx("Patch already in the log: patch=%s", patchId);
-        
-        if ( isEmpty() ) {
-            if ( previousId != null )
-                badPatchEx("Previous reference for patch but PatchLog is empty: patch=%s : previous=%s", patchId, previousId);
-            return ;
+    /**
+         * Add a patch to the PatchLog.
+         * This operation does not store the patch; 
+         * it is expected to be already persisted.
+         * Only the {@code PatchLog} in-memory metadata is updated.
+         * @param patch
+         * @param version -- as decided by the filestore.
+         */
+        // XXX synchronized?
+        synchronized
+        public void append(RDFPatch patch, long version) {
+            // [DP-Fix]
+            // If the patch is bad, we need to remove it else it will be assilated on restart.
+            // Timing hole.
+            
+            Id patchId = Id.fromNode(patch.getId());
+            Id previousId = Id.fromNode(patch.getPrevious());
+    
+            FmtLog.info(LOG, "Append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
+            
+            if ( ! Objects.equals(previousId, this.latestId) ) {
+                String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
+                                           previousId, this.latestId);
+                // Does not point to right previous version.
+                throw new DeltaBadPatchException(msg);
+            }
+            
+    ////        // [DP-Fake]
+    ////        if ( finish != null && previousId == null ) {
+    ////            previousId = finish.id;
+    ////            // then it breaks in addHistoryEntry
+    ////        }
+    //
+            validateNewPatch(patchId, previousId, this::badPatchEx);
+            validateVersionNotInUse(version);
+            
+            idToVersion.put(patchId, version);
+            headers.put(patchId, patch.header());
+            latestId = patchId;
+            latestVersion = version;
+            validateLatest();
+            
+    //        
+    //        FmtLog.info(LOG, "Patch id=%s", patchId.asString());
+    //        FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, version);
+    //        
+    //        HistoryEntry e = new HistoryEntry(patch.header(), version, previousId, patchId, null);
+    //        addHistoryEntry(e);
+    //        idToVersion.put(patchId, version);
+    //        validateEntry(patch, patchId, previousId);
         }
 
-        // Non-empty
-        if ( previousId == null )
-            badPatchEx("No previous for patch when PatchLog is non-empty: patch=%s", patchId);
-        
-        if ( patchId.equals(previousId) )
-            badPatchEx("Patch id and patch previous are the same : patch=%s", patchId);
-        
-        // Check id is new.
-        if ( historyEntries.containsKey(patchId) )
-            badPatchEx("Duplicate patch: patch=%s, previous=%s", patchId, previousId);
-        
-        // Currently invalid check - the history is only from the last entry at startup forwards.
-//        // Check previous exists
-//        if ( ! historyEntries.containsKey(previousId) ) {
-//            badPatchEx("Previous patch not in log: patch=%s, previous=%s", patchId, previousId);
-//        }
+    @FunctionalInterface
+    interface BadHandler { void bad(String fmt, Object ...args) ; }
+    
+    private void validateNewPatch(Id patchId, Id previousId, BadHandler action) {
+        if ( patchId == null )
+            badPatchEx("No id");
+        if ( idToVersion.containsKey(patchId) )
+            action.bad("Patch already exists: patch=%s", patchId);
+        if ( headers.containsKey(patchId) ) 
+            action.bad("Patch header already exists: patch=%s", patchId);
+    }
+    
+    private void validate(Id patchId, Id previousId, BadHandler action) {
+        if ( patchId == null )
+            badPatchEx("No id");
 
-        // and is latest (i.e. log head).
+        if ( ! idToVersion.containsKey(patchId) )
+            action.bad("Patch not found: patch=%s", patchId);
+        if ( ! headers.containsKey(patchId) ) 
+            action.bad("Patch header not found: patch=%s", patchId);
+        
+        PatchHeader header = headers.get(patchId);
+        validate(header, patchId, previousId, action);
+    }
+        
+    private void validate(PatchHeader header, Id patchId, Id previousId, BadHandler action) {
+        // Non header
+        if ( previousId != null ) {
+            if ( ! idToVersion.containsKey(previousId) )
+                action.bad("Patch previous not found: patch=%s, previous=%s", patchId, previousId);
+            if ( ! headers.containsKey(previousId) ) 
+                action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
+            
+            Node prevId = header.getPrevious() ;
+            if ( previousId.asNode().equals(prevId) )
+                action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
+        } else {
+            if ( header.getPrevious() != null )
+                action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
+        }
+           
         if ( ! previousId.equals(getLatestId()) ) {
             // No empty log, previousId != null but does not match log head.
             // Validation should have caught this. 
@@ -293,236 +264,101 @@ public class PatchLog {
     }
     
     private void badPatchEx(String fmt, Object...args) {
+        badPatchError(fmt, args);
         String msg = String.format(fmt, args);
-        FmtLog.warn(LOG, msg); 
         throw new DeltaBadPatchException(msg);
     }
     
-    private void badPatchWarn(String fmt, Object...args) {
-        FmtLog.warn(LOG, String.format(fmt, args)); 
+    private void badPatchError(String fmt, Object...args) {
+        FmtLog.error(LOG, String.format(fmt, args)); 
     }
 
-    private void validateVersionEx(int version) {
-        if ( idToNumber.inverse().containsKey(version) )
+    private void validateVersionNotInUse(long version) {
+        if ( idToVersion.inverse().containsKey(version) )
             // Internal consistency error. FleStore was supposed to make it unique.
             throw new InternalErrorException("Version already in-use: "+version);
     }
     
-    private boolean validateEntry(RDFPatch patch, Id patchId, Id previousId) {
-//        Id previousId = Id.fromNode(patch.getPrevious());
-//        Id patchId = Id.fromNode(patch.getId());
-        HistoryEntry entry = findHistoryEntry(patchId);
-        if ( entry != null ) {
-            Integer ver = idToNumber.get(patchId);
-            if ( ver == null )
-                FmtLog.warn(LOG, "Patch not registered: patch=%s (entry version=%d)", patchId, entry.version);
-            else if ( ver != entry.version )
-                FmtLog.warn(LOG, "Patch version=%d, but entry version=%d : %s", ver, entry.version, patchId);
-            if ( previousId == null || previousId.isNil() ) {
-                if ( entry.prev != null && ! entry.prev.isNil() )
-                    FmtLog.warn(LOG, "Patch has a previous link, entry does not : %s (previous=%s)", patchId, previousId);
-            } else {
-                if ( entry.prev == null || entry.prev.isNil() )
-                    FmtLog.warn(LOG, "Patch has no previous link, but entry does : %s (entry.prev=%s)", patchId, entry.prev);
-            }
-        } else {
-            // No entry.
-            if ( previousId != null && ! previousId.isNil() ) {
-                FmtLog.warn(LOG, "Patch has a previous link, but there is no entry for this patch: %s (previous=%s)", patchId, previousId);
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Add a patch to the PatchLog.
-     * This operation does not store the patch; 
-     * it is expected to be already persisted.
-     * Only the {@code PatchLog} in-memory metadata is updated.
-     * @param patch
-     * @param version -- as decided by the filestore.
-     */
-    /*pakcage*/ void append(RDFPatch patch, int version) {
-        // [DP-Fix]
-        // If the patch is bad, we need to remove it else it will be assilated on restart.
-        // Timing hole.
-        
-        Id patchId = Id.fromNode(patch.getId());
-        Id previousId = Id.fromNode(patch.getPrevious());
-
-        FmtLog.info(LOG, "Append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
-        
-//        // [DP-Fake]
-//        if ( finish != null && previousId == null ) {
-//            previousId = finish.id;
-//            // then it breaks in addHistoryEntry
-//        }
-
-        validateEx(patchId, previousId);
-        validateVersionEx(version);
-        
-        FmtLog.info(LOG, "Patch id=%s", patchId.asString());
-        FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, version);
-        
-        HistoryEntry e = new HistoryEntry(patch.header(), version, previousId, patchId, null);
-        addHistoryEntry(e);
-        idToNumber.put(patchId, version);
-        validateEntry(patch, patchId, previousId);
-    }
-
-    
-    synchronized private void addHistoryEntry(HistoryEntry e) {
-        PatchHeader patch = e.patch;
-        Id id = Id.fromNode(patch.getId());
-        Id previousId = Id.fromNode(patch.getPrevious());
-        if ( start == null ) {
-            start = e;
-            // start.prev == null?
-            finish = e;
-            putHistoryEntry(id, e);
-            FmtLog.info(LOG, "Patch starts history: id=%s", patch);
-        } else {
-            if ( previousId != null ) {
-                if ( patch.getPrevious().equals(finish.patch.getId()) ) {
-                    finish.next = id;
-                    finish = e;
-                    putHistoryEntry(id, e);
-                    // if ( Objects.equals(currentHead(), patch.getPrevious()) ) {
-                    FmtLog.info(LOG, "Patch added to history: id=%s", patch.getId());
-                } else {
-                    // No empty log, previousId != null but does not match log head.
-                    // Validation should have caught this. 
-                    FmtLog.warn(LOG, "Patch not added to the history: id=%s ", patch.getId());
-                    throw new DeltaException("Patch not added to the history");
-                }
-            } else {
-                FmtLog.warn(LOG, "No previous id but start!=null: Patch not added to the history: id=%s ", patch.getId());
-                // No previousId.
-                
-            }
-        }
-    }
-
-    private void putHistoryEntry(Id id, HistoryEntry e) {
-        historyEntries.put(id, e);
-    }
-    
-    /**
-     * Get, as a copy, a slice of the history from the start point until the latest patch.
-     */
-    private List<RDFPatch> getPatchesFromHistory(Id start) {
-        return getPatchesFromHistory(start, null);
-    }
-
-    /**
-     * Get, as a copy, a slice of the history. start and finish as inclusive. finish may
-     * be null meaning, "until latest"
-     */
-    synchronized private List<RDFPatch> getPatchesFromHistory(Id startPt, Id finish) {
-        HistoryEntry e = 
-            startPt==null ? this.start : findHistoryEntry(startPt);
-        
-        List<RDFPatch> x = new ArrayList<>();
-        while (e != null) {
-            RDFPatch patch = fetch(e.id);
-            if ( patch == null ) {
-                if ( x.size() > 0 ) {
-                    List<String> sofar = x.stream().map(p->p.getId().toString()).collect(Collectors.toList());
-                    FmtLog.error(LOG,  "No patch for id=%s (broken history after %d entries: %s)", e.id, sofar.size(), sofar);
-                } else
-                    FmtLog.error(LOG,  "No patch for id=%s", e.id);
-                return null;
-            }
-            x.add(patch);
-            if ( finish != null && e.patch.getId().equals(finish) )
-                break;
-            if ( e.next == null )
-                e = null;
-            else
-                e = findHistoryEntry(e.next);
-        }
-        return x;
-    }
-
-    private HistoryEntry findHistoryEntry(Id start) {
-        return historyEntries.get(start);
-    }
-
-    private void dumpHistory() {
-        System.out.println("Map - "+historyEntries);
-        HistoryEntry e = this.start;
-        while(e!= null) {
-            System.out.println("-- "+e);
-            if ( e.next == null )
-                break;
-            e = historyEntries.get(e.next);
-        }
-    }
-    
+    @Override
     public Stream<RDFPatch> range(Id start, Id finish) {
-        return getPatchesFromHistory(start, finish).stream();
+        Long startVersion = idToVersion.get(start);
+        Long finishVersion = idToVersion.get(finish);
+        if ( startVersion == null ) {}
+        if ( finishVersion == null ) {}
+        // Isolation not necessary. Patch files are immutable once written. 
+        return
+            LongStream
+                .rangeClosed(startVersion, finishVersion)
+                .mapToObj(v->fetch(fileStore, v));
+    }
+    
+    private boolean validVersion(long version) {
+        return version != VERSION_INIT && version != VERSION_UNSET && version <= latestVersion;  
+    }
+    
+    @Override
+    public Stream<RDFPatch> range(long start, long finish) {
+        if ( ! validVersion(start) )
+            throw new DeltaException("Bad start version : "+start);
+        if ( ! validVersion(finish) )
+            throw new DeltaException("Bad finish version : "+finish);
+        // Isolation not necessary. Patch files are immutable once written. 
+        return range$(start, finish);
     }
 
-    public void addHandler(PatchHandler handler) {
-        handlers.add(handler);
+    private Stream<RDFPatch> range$(long startVersion, long finishVersion) {
+        return
+            LongStream
+                .rangeClosed(startVersion, finishVersion)
+                .mapToObj(v->fetch(fileStore, v));
     }
-
-    /**
-     * Access to thr handler list - this can be manipulated but the the caller is
-     * responsible for ensuring no patches are delivered or processed while being changed.
-     * <p>
-     * So safe to do during startup, not while live.
-     * <p>
-     * Low-level access : use with care.
-     */
-    public List<PatchHandler> getHandlers() {
-        return handlers;
-    }
-
+    
     public FileStore getFileStore() {
         return fileStore;
     }
 
-    private Id currentHead() {
-        if ( finish == null )
-            return null;
-        return Id.fromNode(finish.patch.getId());
-    }
-
+    @Override
     public boolean contains(Id patchId) {
-        return idToNumber.containsKey(patchId) ;
+        return idToVersion.containsKey(patchId) ;
     }
 
+    @Override
     public RDFPatch fetch(Id patchId) {
-        Integer version = idToNumber.get(patchId);
+        Long version = idToVersion.get(patchId);
         if ( version == null )
             return null;
         return fetch(version) ;
     }
 
-    public RDFPatch fetch(int version) {
+    @Override
+    public RDFPatch fetch(long version) {
         return fetch(fileStore, version); 
     }
     
-    // XXX PatchCache.
-    private static RDFPatch fetch(FileStore fileStore, int version) {
-        Path p = fileStore.filename(version);
-        try (InputStream in = Files.newInputStream(p)) {
+    // XXX Place for a PatchCache.
+    private static RDFPatch fetch(FileStore fileStore, long version) {
+        try ( InputStream in = fileStore.open((int)version) ) {
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;
         }
-        // FileNotFoundException - old style,included many error situations.
-        // NIO -> NoSuchFileException
-        catch ( NoSuchFileException | FileNotFoundException ex)
+        catch ( DeltaNotFoundException ex)  // Our internal 404.
         { return null; }
         catch (IOException ex) { 
             throw IOX.exception(ex); 
         }
     }
 
-    public Id find(int version) {
-        return idToNumber.inverse().get(version);
+    @Override
+    public long find(Id id) {
+        Long x = idToVersion.get(id);
+        if ( x == null )
+            return VERSION_UNSET;
+        return x.longValue() ;
+    }
+    
+    @Override
+    public Id find(long version) {
+        return idToVersion.inverse().get(version);
     }
     
     @Override

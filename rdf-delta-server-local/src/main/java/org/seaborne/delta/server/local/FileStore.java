@@ -18,11 +18,8 @@
 
 package org.seaborne.delta.server.local;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.* ;
+import java.nio.file.* ;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +31,7 @@ import java.util.stream.Stream;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DeltaConst ;
+import org.seaborne.delta.DeltaNotFoundException ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.IOX.IOConsumer;
 import org.seaborne.patch.PatchException;
@@ -46,10 +44,12 @@ import org.slf4j.LoggerFactory;
  * The set of files is from a basename, with new files being "BASE-0001", "BASE-0002",
  * etc.
  * <p>
- * In addition,  it is possible to allocate a fresh filename (no file with that name existed before) and an
+ * In addition, it is possible to allocate a fresh filename (no file with that name existed before) and an
  * associated temporary file. This supports atomically writing new data; see {@link #writeNewFile}.
  * <p>
  * The basename "tmp" is reserved.
+ * <p>
+ * Once written,file are not changed. 
  */
 public class FileStore {
     private static Logger       LOG = LoggerFactory.getLogger(FileStore.class);
@@ -60,8 +60,9 @@ public class FileStore {
     private static final String tmpBasename = "tmp";
     private static final int BUFSIZE = 128*1024;
     // Setting for "no files": start at one less than the first allocated number.
-    private final int minIndex;
+    private final int startMinIndex;
     private final int startMaxIndex;
+    private int minIndex;
     private final List<Integer> indexes;
 
     // Index - this is the number of the last allocation.
@@ -110,7 +111,8 @@ public class FileStore {
         this.directory = directory;
         this.basename = basename;
         // Record initial setup
-        this.minIndex = minIndex;
+        this.startMinIndex = minIndex;
+        this.minIndex = startMinIndex;
         this.startMaxIndex = maxIndex;
         // Version management.
         this.indexes = indexes;
@@ -148,6 +150,21 @@ public class FileStore {
         return indexes.isEmpty();
     }
 
+    /** Return an {@code InputStream} to data for {@code idx}.
+     * The {@code InputStream} is not buffered.
+     * The caller is responsible for closing the {@code InputStream}.  
+     */
+    public InputStream open(int idx) {
+        Path path = filename(idx);
+        try { 
+            return Files.newInputStream(path);
+        } catch (NoSuchFileException ex) {
+            throw new DeltaNotFoundException(ex.getMessage());
+        } catch (IOException ex) { 
+            throw IOX.exception(ex);
+        }
+    }
+    
     /**
      * Return details of the next file slot to use in the file store. The file for
      * this name does not exist.
@@ -194,7 +211,13 @@ public class FileStore {
     public FileEntry writeNewFile(IOConsumer<OutputStream> action) {
         FileEntry file = allocateFilename();
         file.write(action);
+        completeWrite(file);
         return file;
+    }
+
+    public void completeWrite(FileEntry entry) {
+        if ( minIndex == DeltaConst.VERSION_INIT || minIndex == DeltaConst.VERSION_UNSET )
+            minIndex = entry.version;
     }
 
     /** Release this {@code FileStore} - do not use again. */

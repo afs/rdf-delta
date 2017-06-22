@@ -88,7 +88,9 @@ public class Receiver {
         
         // Finish up.
         dest.flush();
+        dest.close();
         entry.completeWrite();
+        fileStore.completeWrite(entry);
         return entry;
     }
 }

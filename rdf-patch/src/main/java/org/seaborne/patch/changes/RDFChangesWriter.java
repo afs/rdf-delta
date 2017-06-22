@@ -60,6 +60,10 @@ public class RDFChangesWriter implements RDFChanges {
         tok.flush(); 
     }
     
+    public void close() {
+        tok.close(); 
+    }
+    
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         output(ADD_DATA, g, s, p, o) ;

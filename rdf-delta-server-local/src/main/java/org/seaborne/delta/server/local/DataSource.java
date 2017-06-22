@@ -31,8 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** 
- * An item (one dataset and it's associated system resources)
- * under the control of the server.
+ * An item under the control of the server.
  * <p>
  * These are managed through the {@link DataRegistry}.
  */
