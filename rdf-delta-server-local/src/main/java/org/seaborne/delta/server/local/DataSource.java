@@ -42,8 +42,6 @@ public class DataSource {
     private final String   uri;
     private final Path     initialData;
     private final Location location;
-    // Process that can take an input stream and put a patch safe on storage.
-    private final Receiver receiver;
     private final PatchLog patchLog;
 
     // Duplicates location if not in-memory.
@@ -70,8 +68,7 @@ public class DataSource {
 
         formatSourceArea(sourceArea, patchesArea, initialData);
         PatchLog patchLog = loadPatchLog(dsRef, name, patchesArea);
-        Receiver receiver = new Receiver(patchLog.getFileStore());
-        DataSource dataSource = new DataSource(dsRef, sourceArea, initialData, name, uri, patchLog, receiver);
+        DataSource dataSource = new DataSource(dsRef, sourceArea, initialData, name, uri, patchLog);
         return dataSource;
     }
 
@@ -79,13 +76,12 @@ public class DataSource {
         return PatchLog.attach(dsRef, name, patchesArea);
     }
 
-    private DataSource(Id id, Location location, Path initialData, String name, String uri, PatchLog patchLog, Receiver receiver) {
+    private DataSource(Id id, Location location, Path initialData, String name, String uri, PatchLog patchLog) {
         super();
         this.id = id;
         this.location = location;
         this.path = location.isMem() ? null : IOX.asPath(location);
         this.initialData = initialData;  
-        this.receiver = receiver;
         this.name = name;
         this.uri = uri;
         this.patchLog = patchLog;
@@ -97,10 +93,6 @@ public class DataSource {
 
     public String getURI() {
         return uri;
-    }
-
-    public Receiver getReceiver() {
-        return receiver;
     }
 
     public Location getLocation() {

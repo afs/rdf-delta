@@ -59,7 +59,7 @@ public class Example2 {
 
         // and now connect to it again.
         try ( DeltaConnection dConn = DeltaConnection.connect(zone, null, null, dLink) ) {
-            int version1 = dConn.getRemoteVersionLatest();
+            long version1 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version1);
 
             // Change the dataset
@@ -68,7 +68,7 @@ public class Example2 {
                 dsg.add(quad);
             });
             
-            int version2 = dConn.getRemoteVersionLatest();
+            long version2 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version2);
         }
 

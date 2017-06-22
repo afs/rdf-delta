@@ -18,14 +18,19 @@
 
 package org.seaborne.delta.server.local;
 
-import java.io.* ;
-import java.nio.file.* ;
+import java.io.IOException ;
+import java.io.InputStream ;
+import java.io.OutputStream ;
+import java.nio.file.DirectoryStream ;
+import java.nio.file.Files ;
+import java.nio.file.NoSuchFileException ;
+import java.nio.file.Path ;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong ;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.logging.FmtLog;
@@ -60,14 +65,14 @@ public class FileStore {
     private static final String tmpBasename = "tmp";
     private static final int BUFSIZE = 128*1024;
     // Setting for "no files": start at one less than the first allocated number.
-    private final int startMinIndex;
-    private final int startMaxIndex;
-    private int minIndex;
-    private final List<Integer> indexes;
+    private final long startMinIndex;
+    private final long startMaxIndex;
+    private long minIndex;
+    private final List<Long> indexes;
 
     // Index - this is the number of the last allocation.
     // It is incremented then a new number taken.
-    private final AtomicInteger counter;
+    private final AtomicLong    counter;
     private final Path          directory;
     private final String        basename;
 
@@ -84,9 +89,9 @@ public class FileStore {
             throw new IllegalArgumentException("Path '" + dirPath + "' does not name a directory");
 
         // Find existing files.
-        List<Integer> indexes = scanForIndex(dirPath, basename);
-        int min;
-        int max;
+        List<Long> indexes = scanForIndex(dirPath, basename);
+        long min;
+        long max;
         if ( indexes.isEmpty() ) {
             min = DeltaConst.VERSION_INIT;
             // So increment is the next version.
@@ -107,7 +112,7 @@ public class FileStore {
         return p.normalize().toAbsolutePath();
     }
 
-    private FileStore(Path directory, String basename, List<Integer> indexes, int minIndex, int maxIndex) {
+    private FileStore(Path directory, String basename, List<Long> indexes, long minIndex, long maxIndex) {
         this.directory = directory;
         this.basename = basename;
         // Record initial setup
@@ -116,7 +121,7 @@ public class FileStore {
         this.startMaxIndex = maxIndex;
         // Version management.
         this.indexes = indexes;
-        this.counter = new AtomicInteger(maxIndex);
+        this.counter = new AtomicLong(maxIndex);
         deleteFiles(directory, tmpBasename);
     }
 
@@ -124,7 +129,7 @@ public class FileStore {
      * Return the index of the last allocation. Return the integer before the first
      * allocation if there has been no allocation.
      */
-    public int getCurrentIndex() {
+    public long getCurrentIndex() {
         return counter.get();
     }
 
@@ -132,14 +137,14 @@ public class FileStore {
      * Return the index of the last allocation. Return the integer before the first
      * allocation if there has been no allocation.
      */
-    public int getMinIndex() {
+    public long getMinIndex() {
         return minIndex;
     }
 
     /**
      * Return the indexes as a sequential stream from low to high.
      */
-    public Stream<Integer> getIndexes() {
+    public Stream<Long> getIndexes() {
         return indexes.stream();
     }
 
@@ -154,7 +159,7 @@ public class FileStore {
      * The {@code InputStream} is not buffered.
      * The caller is responsible for closing the {@code InputStream}.  
      */
-    public InputStream open(int idx) {
+    public InputStream open(long idx) {
         Path path = filename(idx);
         try { 
             return Files.newInputStream(path);
@@ -185,7 +190,7 @@ public class FileStore {
         // TODO Use Files.createTempFile? Or does recovery mean we need more control?
         synchronized(this) { 
             for ( ;; ) {
-                int idx = nextIndex();
+                long idx = nextIndex();
                 Path fn = filename(idx);
                 if ( Files.exists(fn) ) {
                     FmtLog.warn(LOG, "Skipping existing file: %s", fn);
@@ -234,8 +239,8 @@ public class FileStore {
         areas.clear();
     }
     
-    private int nextIndex() {
-        int x = counter.incrementAndGet();
+    private long nextIndex() {
+        long x = counter.incrementAndGet();
         indexes.add(x);
         return x;
     }
@@ -243,7 +248,7 @@ public class FileStore {
     /**
      * Basename of a file for the index. This does not mean the file exists.
      */
-    public String basename(int idx) {
+    public String basename(long idx) {
         return basename(basename, idx);
     }
     
@@ -254,7 +259,7 @@ public class FileStore {
 
     private static final String SEP = "-";
     
-    private static String basename(String base, int idx) {
+    private static String basename(String base, long idx) {
         if ( idx < 0 )
             throw new IllegalArgumentException("idx = " + idx);
         return String.format("%s%s%04d", base, SEP, idx);
@@ -275,21 +280,21 @@ public class FileStore {
      * {@link #nextFilename}. Use {@link #allocateFilename()} to get a pair of file name
      * and temporary file in the same FileStore.
      */
-    public Path filename(int idx) {
+    public Path filename(long idx) {
         return filename(directory, basename, idx);
     }
 
-    private static Path filename(Path dir, String basename, int idx) {
+    private static Path filename(Path dir, String basename, long idx) {
         String fn = basename(basename, idx);
         return dir.resolve(fn);
     }
 
     /** Find the indexes of files in this FileStore. Return sorted, low to high. */
-    private static List<Integer> scanForIndex(Path directory, String namebase) {
-        List<Integer> indexes = new ArrayList<>();
+    private static List<Long> scanForIndex(Path directory, String namebase) {
+        List<Long> indexes = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, namebase + "*")) {
             for ( Path f : stream ) {
-                int num = extractIndex(f.getFileName().toString(), namebase);
+                long num = extractIndex(f.getFileName().toString(), namebase);
                 if ( num == -1 ) {
                     FmtLog.warn(LOG, "Can't parse filename: %s", f.toString());
                     continue;
@@ -301,7 +306,7 @@ public class FileStore {
             throw new PatchException(ex);
         }
         
-        indexes.sort(Integer::compareTo);
+        indexes.sort(Long::compareTo);
         return indexes;
     }
 

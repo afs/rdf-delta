@@ -69,13 +69,13 @@ public interface DeltaLink {
     public DataSourceDescription getDataSourceDescription(String uri);
 
     /** Send patch, return new version */
-    public int append(Id dsRef, RDFPatch patch);
+    public long append(Id dsRef, RDFPatch patch);
     
-//    /** Get the current version: if this is an HTTP connection, this causes network traffic. */
-    public default int getCurrentVersion(Id dsRef) { return (int)getPatchLogInfo(dsRef).getMaxVersion(); }
+    /** Get the current version: if this is an HTTP connection, this causes network traffic. */
+    public default long getCurrentVersion(Id dsRef) { return getPatchLogInfo(dsRef).getMaxVersion(); }
 
     /** Retrieve a patch by datasource and version. */ 
-    public RDFPatch fetch(Id dsRef, int version);
+    public RDFPatch fetch(Id dsRef, long version);
 
     /** Retrieve a patch by datasource and patch id. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);

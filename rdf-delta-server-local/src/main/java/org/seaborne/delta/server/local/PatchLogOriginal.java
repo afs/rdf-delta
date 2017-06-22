@@ -62,10 +62,10 @@ public class PatchLogOriginal {
         final Id    prev;        // == patch.getPrevious(), except there may not be a patch object.
               Id    next;        // == fwd pointer in the list to next patch. 
         final PatchHeader patch; // Remove : replace with header.
-        final int   version;
+        final long   version;
         final Id id;
 
-        HistoryEntry(PatchHeader patch, int version, Id prev, Id thisId, Id next) {
+        HistoryEntry(PatchHeader patch, long version, Id prev, Id thisId, Id next) {
             this.patch = patch;
             this.prev = prev;
             this.id = thisId;
@@ -91,12 +91,12 @@ public class PatchLogOriginal {
     private HistoryEntry          finish = null;
     private Map<Id, HistoryEntry> historyEntries = new ConcurrentHashMap<>();
     // Two way id <-> version mampong of patch for this PatchLog
-    private final BiMap<Id, Integer> idToNumber;
+    private final BiMap<Id, Long> idToNumber;
     private static boolean VALIDATE_PATCH_LOG = true;
     
     public static PatchLogOriginal attach(Id dsRef, String name, Location location) {
         FileStore fileStore = FileStore.attach(location, "patch");
-        BiMap<Id, Integer> idToNumber = HashBiMap.create();
+        BiMap<Id, Long> idToNumber = HashBiMap.create();
         // Read headers.
         // Builds the id to version index.
         fileStore.getIndexes().forEach(idx->{
@@ -162,7 +162,7 @@ public class PatchLogOriginal {
             FmtLog.info(LOG, "PatchLog data id=%s starts empty", dsRef);
         } else {
             // Last patch starts history.
-            int x = fileStore.getCurrentIndex();
+            long x = fileStore.getCurrentIndex();
             RDFPatch patch = fetch(fileStore, x);
             Id patchId = Id.fromNode(patch.getId());
             
@@ -172,7 +172,7 @@ public class PatchLogOriginal {
         return new PatchLogOriginal(dsRef, name, location, idToNumber, currentEntry);
     }
 
-    private PatchLogOriginal(Id dsRef, String name, Location location, BiMap<Id, Integer> idToNumber, HistoryEntry startEntry) {
+    private PatchLogOriginal(Id dsRef, String name, Location location, BiMap<Id, Long> idToNumber, HistoryEntry startEntry) {
         this.dsRef = dsRef;
         this.name = name;
         this.idToNumber = idToNumber;
@@ -188,8 +188,8 @@ public class PatchLogOriginal {
         return start.id;
     }
 
-    public int getEarliestVersion() {
-        int x = fileStore.getMinIndex();
+    public long getEarliestVersion() {
+        long x = fileStore.getMinIndex();
         
         if ( start == null )
             return DeltaConst.VERSION_UNSET;
@@ -202,8 +202,8 @@ public class PatchLogOriginal {
         return finish.id;
     }
 
-    public int getLatestVersion() {
-        int x = fileStore.getCurrentIndex();
+    public long getLatestVersion() {
+        long x = fileStore.getCurrentIndex();
         
         if ( finish == null )
             return fileStore.getCurrentIndex();
@@ -304,7 +304,7 @@ public class PatchLogOriginal {
         FmtLog.warn(LOG, String.format(fmt, args)); 
     }
 
-    private void validateVersionEx(int version) {
+    private void validateVersionEx(long version) {
         if ( idToNumber.inverse().containsKey(version) )
             // Internal consistency error. FleStore was supposed to make it unique.
             throw new InternalErrorException("Version already in-use: "+version);
@@ -315,7 +315,7 @@ public class PatchLogOriginal {
 //        Id patchId = Id.fromNode(patch.getId());
         HistoryEntry entry = findHistoryEntry(patchId);
         if ( entry != null ) {
-            Integer ver = idToNumber.get(patchId);
+            Long ver = idToNumber.get(patchId);
             if ( ver == null )
                 FmtLog.warn(LOG, "Patch not registered: patch=%s (entry version=%d)", patchId, entry.version);
             else if ( ver != entry.version )
@@ -345,7 +345,7 @@ public class PatchLogOriginal {
      * @param patch
      * @param version -- as decided by the filestore.
      */
-    /*pakcage*/ void append(RDFPatch patch, int version) {
+    /*pakcage*/ void append(RDFPatch patch, long version) {
         // [DP-Fix]
         // If the patch is bad, we need to remove it else it will be assilated on restart.
         // Timing hole.
@@ -481,18 +481,18 @@ public class PatchLogOriginal {
     }
 
     public RDFPatch fetch(Id patchId) {
-        Integer version = idToNumber.get(patchId);
+        Long version = idToNumber.get(patchId);
         if ( version == null )
             return null;
         return fetch(version) ;
     }
 
-    public RDFPatch fetch(int version) {
+    public RDFPatch fetch(long version) {
         return fetch(fileStore, version); 
     }
     
     // XXX PatchCache.
-    private static RDFPatch fetch(FileStore fileStore, int version) {
+    private static RDFPatch fetch(FileStore fileStore, long version) {
         Path p = fileStore.filename(version);
         try (InputStream in = Files.newInputStream(p)) {
             RDFPatch patch = RDFPatchOps.read(in) ;

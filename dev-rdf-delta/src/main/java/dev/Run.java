@@ -28,7 +28,6 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
-import org.apache.jena.system.JenaSystem ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta ;
@@ -41,7 +40,6 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
 import org.seaborne.delta.server.local.LocalServer ;
-import org.seaborne.delta.server.system.DeltaSystem ;
 
 public class Run {
     static { 

@@ -46,7 +46,7 @@ import org.seaborne.delta.lib.IOX.IOConsumer;
  * </pre>
  */
 public class FileEntry {
-    public final int version;
+    public final long version;
     public final Path datafile;
     private final Path tmpfile;
     
@@ -54,7 +54,7 @@ public class FileEntry {
     private OutputStream out = null ;
     private boolean haveWritten = false;
     
-    /*package*/ FileEntry(int index, Path datafile, Path tmpfile) {
+    /*package*/ FileEntry(long index, Path datafile, Path tmpfile) {
         this.version = index;
         this.datafile = datafile;
         this.tmpfile = tmpfile;

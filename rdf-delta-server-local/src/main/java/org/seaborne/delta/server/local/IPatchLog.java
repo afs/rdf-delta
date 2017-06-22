@@ -65,8 +65,8 @@ public interface IPatchLog {
     /** Does the log contain the patch with id {@code patchId}? */
     public boolean contains(Id patchId);
 
-    /** Add a patch to the {@code PatchLog}. */
-    public void append(RDFPatch patch, long version);
+    /** Add a patch to the {@code PatchLog}. Return the version number. */
+    public long append(RDFPatch patch);
     
     /** Get a patch by {@code Id}. */
     public RDFPatch fetch(Id patchId);

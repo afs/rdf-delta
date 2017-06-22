@@ -18,6 +18,9 @@
 
 package org.seaborne.delta.server.local;
 
+import static org.seaborne.delta.DeltaConst.VERSION_INIT ;
+import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.NoSuchFileException;
@@ -36,12 +39,14 @@ import org.apache.jena.ext.com.google.common.collect.Maps ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.* ;
-import static org.seaborne.delta.DeltaConst.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.PatchReaderHeader ;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.changes.RDFChangesWriter ;
+import org.seaborne.riot.tio.TokenWriter ;
+import org.seaborne.riot.tio.impl.TokenWriterText ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,10 +79,10 @@ public class PatchLog implements IPatchLog {
         this.dsRef = dsRef;
         this.name = name;
         this.fileStore = FileStore.attach(location, "patch");
-        Iterator<Integer> iter = fileStore.getIndexes().iterator();
+        Iterator<Long> iter = fileStore.getIndexes().iterator();
         PatchHeader previous = null;
         for ( ; iter.hasNext() ; ) {
-            int idx = iter.next();
+            long idx = iter.next();
             try ( InputStream in = fileStore.open(idx) ) {
                 PatchHeader patchHeader = PatchReaderHeader.readerHeader(in);
                 
@@ -168,12 +173,11 @@ public class PatchLog implements IPatchLog {
          * it is expected to be already persisted.
          * Only the {@code PatchLog} in-memory metadata is updated.
          * @param patch
-         * @param version -- as decided by the filestore.
          */
-        // XXX synchronized?
+        // XXX synchronized with fetching?
         @Override
         synchronized
-        public void append(RDFPatch patch, long version) {
+        public long append(RDFPatch patch) {
             // [DP-Fix]
             // If the patch is bad, we need to remove it else it will be assilated on restart.
             // Timing hole.
@@ -190,13 +194,16 @@ public class PatchLog implements IPatchLog {
                 throw new DeltaBadPatchException(msg);
             }
             
-    ////        // [DP-Fake]
-    ////        if ( finish != null && previousId == null ) {
-    ////            previousId = finish.id;
-    ////            // then it breaks in addHistoryEntry
-    ////        }
-    //
             validateNewPatch(patchId, previousId, this::badPatchEx);
+      
+            FileEntry entry = fileStore.writeNewFile(out -> {
+                    TokenWriter tw = new TokenWriterText(out) ;
+                    RDFChangesWriter dest = new RDFChangesWriter(tw) ;
+                    patch.apply(dest);
+                });
+            long version = entry.version;
+            
+            // ????
             validateVersionNotInUse(version);
             
             idToVersion.put(patchId, version);
@@ -204,15 +211,10 @@ public class PatchLog implements IPatchLog {
             latestId = patchId;
             latestVersion = version;
             validateLatest();
-            
-    //        
+            return version; 
+        
     //        FmtLog.info(LOG, "Patch id=%s", patchId.asString());
     //        FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, version);
-    //        
-    //        HistoryEntry e = new HistoryEntry(patch.header(), version, previousId, patchId, null);
-    //        addHistoryEntry(e);
-    //        idToVersion.put(patchId, version);
-    //        validateEntry(patch, patchId, previousId);
         }
 
     @FunctionalInterface

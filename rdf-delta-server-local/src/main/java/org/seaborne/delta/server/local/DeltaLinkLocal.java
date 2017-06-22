@@ -20,7 +20,6 @@ package org.seaborne.delta.server.local;
 
 import static org.apache.jena.atlas.lib.ListUtils.toList;
 
-import java.io.InputStream ;
 import java.nio.file.Files ;
 import java.nio.file.Path ;
 import java.util.List;
@@ -32,8 +31,6 @@ import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchOps ;
-import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -135,43 +132,30 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
 
     @Override
-    public int append(Id dsRef, RDFPatch rdfPatch) {
+    public long append(Id dsRef, RDFPatch rdfPatch) {
         checkLink();
         checkRegistered();
         DataSource source = getDataSource(dsRef);
-        FmtLog.info(LOG, "receive: Dest=%s", source);
+        FmtLog.info(LOG, "append: Dest=%s Patch=%s", source, Id.fromNode(rdfPatch.getId()));
         
-//        PatchLog patchLog = source.getPatchLog() ;
-//        long version = patchLog.append(rdfPatch, entry.version);
-//        return version; 
+        beforeWrite(dsRef, rdfPatch);
         
-        
-        FileEntry entry = source
-            .getReceiver()
-            .receive(rdfPatch, null);
-        // id -> registation
-        FmtLog.info(LOG, "Patch: %s %s", rdfPatch.getId(), source.getDescription().getName());
-        
-        // Debug
-        if ( false )
-            RDFPatchOps.write(System.out, rdfPatch) ;
-        
-        
-        // File store updated.
         PatchLog patchLog = source.getPatchLog() ;
-        patchLog.append(rdfPatch, entry.version);
-        return entry.version; 
+        long version = patchLog.append(rdfPatch);
+        
+        afterWrite(dsRef, rdfPatch, version);
+
+        FmtLog.info(LOG, "append: Dest=%s Patch=%s version=%d", source, Id.fromNode(rdfPatch.getId()), version);
+        
+        return version; 
     }
 
-    /** Process an {@code InputStream} and return an RDFPatch */
-    private static RDFPatch x_streamToPatch(DataSource source, InputStream in) {
-        // Not RDFPatchOps.read(in) because receiver adds preprocessing.
-        RDFChangesCollector collector = new RDFChangesCollector();
-        Receiver receiver = source.getReceiver();
-        FileEntry entry = receiver.receive(in, collector);
-        return collector.getRDFPatch();
-    }
-    
+    /** Called before writing the patch to the {@link PatchLog}. */
+    protected void beforeWrite(Id dsRef, RDFPatch rdfPatch) {}
+
+    /** Called after writing the patch to the {@link PatchLog}. */
+    protected void afterWrite(Id dsRef, RDFPatch rdfPatch, long version) {}
+
     private DataSource getDataSource(Id dsRef) {
         DataSource source = localServer.getDataSource(dsRef);
         if ( source == null )
@@ -201,7 +185,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     /** Retrieve a patch by version. */ 
     @Override
-    public RDFPatch fetch(Id dsRef, int version) {
+    public RDFPatch fetch(Id dsRef, long version) {
         checkLink();
         DataSource source = getDataSource(dsRef) ;
         RDFPatch patch = source.getPatchLog().fetch(version);

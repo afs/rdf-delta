@@ -35,13 +35,16 @@ import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
+// TO BE DELETED.
+// Pipeline support needs to go in DeltalLinkLocal e.g. beforeWrite, afterWrite.
+
 public class Receiver {
     private FileStore fileStore;
     private List<RDFChanges> additionalProcessors = new ArrayList<>();
     /*
      * In-bound processing: parse (=check) and place in the patch area
      */
-    public Receiver(FileStore fileStore) {
+    public Receiver(int UNUSED, FileStore fileStore) {
         this.fileStore = fileStore;
         addProcessor(new RDFChangesLogSummary(DeltaOps.printerToLog(Delta.DELTA_PATCH))) ;
     }

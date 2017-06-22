@@ -150,7 +150,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     // Non-streaming - collect patch then replay to send it.  
     @Override
-    public int append(Id dsRef, RDFPatch patch) {
+    public long append(Id dsRef, RDFPatch patch) {
         checkLink();
         String str = retry(()->{
             RDFChangesHTTP remote = createRDFChanges(dsRef);
@@ -173,7 +173,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public RDFPatch fetch(Id dsRef, int version) {
+    public RDFPatch fetch(Id dsRef, long version) {
         checkLink();
         String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramVersion, version);
         return fetchCommon(s, 1);

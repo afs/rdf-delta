@@ -102,8 +102,8 @@ public class DataState {
         readState(stateStr);
     }
 
-    public int version() {
-        return (int)version;
+    public long version() {
+        return version;
     }
 
     public Id latestPatchId() {
@@ -121,7 +121,7 @@ public class DataState {
     
     // XXX Sort out concurrency!
     // XXX concurrency : Coordinate win DeltaConnection. 
-    public synchronized void updateState(int newVersion, Id patchId) {
+    public synchronized void updateState(long newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
         writeState(this.stateStr, this.datasource, this.toString(), this.uri, newVersion, patchId);

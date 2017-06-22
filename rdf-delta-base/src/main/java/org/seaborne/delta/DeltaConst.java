@@ -120,9 +120,9 @@ public class DeltaConst {
     /** The size of the server-wide LRU cache */
     public static final int PATCH_CACHE_SIZE   = 1000;
     /** The version number when not set */
-    public static int VERSION_UNSET = -1;
+    public static long VERSION_UNSET = -1;
     /** The version number when there are no patches */
-    public static int VERSION_INIT = 0;
+    public static long VERSION_INIT = 0;
     /** The version number of the first patch */
-    public static int VERSION_FIRST = 1;
+    public static long VERSION_FIRST = 1;
 }

@@ -18,31 +18,11 @@
 
 package dev;
 
-import java.io.InputStream ;
-
-import org.seaborne.delta.server.local.FileEntry ;
-import org.seaborne.patch.PatchReader ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFPatch ;
-
 public class DevDeltaToDo {
 
     // FileStore/PatchLog - cachingheaders.
-    
+    // DeltLinkLocal - pipeline from Receiver.
     // Log Sink iterface
-    
-    //Logs are committing., no need for receiver? Rcever part of PatchLogFileStore.
-    
-//    interface  Receiver {
-//        public FileEntry receive(RDFPatch patch, RDFChanges changes);
-//            return receiveWorker((pipeline) -> patch.apply(pipeline), changes) ;
-//        }
-//        
-//        public FileEntry receive(InputStream in, RDFChanges changes) {
-//            PatchReader scr = new PatchReader(in) ;
-//            return receiveWorker((pipeline) ->scr.apply(pipeline), changes) ;
-//        }
-//    }
     
     /*
      * State machine. Concurrent safe
