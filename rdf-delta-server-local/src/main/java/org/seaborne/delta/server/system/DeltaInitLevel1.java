@@ -16,23 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.server.system;
 
-import org.seaborne.delta.server.system.DeltaSubsystemLifecycle ;
-import org.seaborne.delta.server.system.DeltaSystem ;
+import org.seaborne.delta.Delta ;
+import org.slf4j.Logger ;
 
-public class InitDeltaServerLocal implements DeltaSubsystemLifecycle {
-    
+public class DeltaInitLevel1 implements DeltaSubsystemLifecycle {
+    private Logger log = Delta.DELTA_LOG; 
     @Override
     public void start() {
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - start");
-        DPS.init();
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - finish");
+        log.debug("Delta initialization");
     }
-    
-    @Override
-    public void stop() {}
 
     @Override
-    public int level() { return 10; }
+    public void stop() {
+        log.debug("Delta shutdown");
+    }
+
+    @Override
+    public int level() {
+        return 1;
+    }
 }
+

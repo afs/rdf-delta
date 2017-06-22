@@ -47,6 +47,7 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class LocalServer {
+    static { DeltaSystem.init(); }
     /* File system layout:
      *   Server Root
      *      delta.cfg

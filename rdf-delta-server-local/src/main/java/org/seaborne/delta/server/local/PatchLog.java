@@ -171,6 +171,7 @@ public class PatchLog implements IPatchLog {
          * @param version -- as decided by the filestore.
          */
         // XXX synchronized?
+        @Override
         synchronized
         public void append(RDFPatch patch, long version) {
             // [DP-Fix]

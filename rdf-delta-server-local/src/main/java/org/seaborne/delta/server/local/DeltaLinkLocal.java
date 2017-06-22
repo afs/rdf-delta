@@ -140,6 +140,12 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         checkRegistered();
         DataSource source = getDataSource(dsRef);
         FmtLog.info(LOG, "receive: Dest=%s", source);
+        
+//        PatchLog patchLog = source.getPatchLog() ;
+//        long version = patchLog.append(rdfPatch, entry.version);
+//        return version; 
+        
+        
         FileEntry entry = source
             .getReceiver()
             .receive(rdfPatch, null);
@@ -149,6 +155,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         // Debug
         if ( false )
             RDFPatchOps.write(System.out, rdfPatch) ;
+        
+        
         // File store updated.
         PatchLog patchLog = source.getPatchLog() ;
         patchLog.append(rdfPatch, entry.version);
@@ -156,7 +164,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
 
     /** Process an {@code InputStream} and return an RDFPatch */
-    private static RDFPatch streamToPatch(DataSource source, InputStream in) {
+    private static RDFPatch x_streamToPatch(DataSource source, InputStream in) {
         // Not RDFPatchOps.read(in) because receiver adds preprocessing.
         RDFChangesCollector collector = new RDFChangesCollector();
         Receiver receiver = source.getReceiver();

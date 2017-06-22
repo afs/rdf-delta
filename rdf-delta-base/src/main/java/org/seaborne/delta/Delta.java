@@ -46,6 +46,7 @@ public class Delta {
     
     /** This is automatically called by the Jena subsystem startup cycle.
      * See {@link InitDelta} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
+     * (not the {@code DeltaSystem} initialization) 
      */
     public static void init( ) { init$(); }
     

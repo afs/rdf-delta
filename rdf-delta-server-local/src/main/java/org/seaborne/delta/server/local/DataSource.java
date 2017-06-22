@@ -69,9 +69,9 @@ public class DataSource {
         Path initialData = LocalServer.initialData(sourceArea)   ;          
 
         formatSourceArea(sourceArea, patchesArea, initialData);
-        PatchLog patchSet = loadPatchLog(dsRef, name, patchesArea);
-        Receiver receiver = new Receiver(patchSet.getFileStore());
-        DataSource dataSource = new DataSource(dsRef, sourceArea, initialData, name, uri, patchSet, receiver);
+        PatchLog patchLog = loadPatchLog(dsRef, name, patchesArea);
+        Receiver receiver = new Receiver(patchLog.getFileStore());
+        DataSource dataSource = new DataSource(dsRef, sourceArea, initialData, name, uri, patchLog, receiver);
         return dataSource;
     }
 

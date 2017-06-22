@@ -16,23 +16,31 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.server.system;
 
-import org.seaborne.delta.server.system.DeltaSubsystemLifecycle ;
-import org.seaborne.delta.server.system.DeltaSystem ;
+import org.apache.jena.system.JenaSubsystemLifecycle ;
+import org.apache.jena.system.JenaSystem ;
 
-public class InitDeltaServerLocal implements DeltaSubsystemLifecycle {
-    
+/** If you want to trigger Delta init for jena ...
+ *  name this is META-INF/services/org.apache.jena.system.JenaSubsystemLifecycle
+ *  (not normally done this way - can also happen in InitJenaDeltaServerLocal_
+ */
+public class JenaInitHook implements JenaSubsystemLifecycle {
+
     @Override
     public void start() {
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - start");
-        DPS.init();
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - finish");
+        boolean original = DeltaSystem.DEBUG_INIT;
+        DeltaSystem.DEBUG_INIT = DeltaSystem.DEBUG_INIT | JenaSystem.DEBUG_INIT;
+        //DeltaSystem.init();
+        DeltaSystem.DEBUG_INIT = original;
     }
-    
-    @Override
-    public void stop() {}
 
     @Override
-    public int level() { return 10; }
+    public void stop() {}
+    
+    @Override
+    public int level() {
+        // Jena level
+        return 9000;
+    }
 }

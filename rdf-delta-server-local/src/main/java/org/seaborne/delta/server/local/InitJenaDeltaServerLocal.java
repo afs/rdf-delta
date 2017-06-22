@@ -18,16 +18,21 @@
 
 package org.seaborne.delta.server.local;
 
-import org.seaborne.delta.server.system.DeltaSubsystemLifecycle ;
+import org.apache.jena.system.JenaSubsystemLifecycle ;
+import org.apache.jena.system.JenaSystem;
 import org.seaborne.delta.server.system.DeltaSystem ;
 
-public class InitDeltaServerLocal implements DeltaSubsystemLifecycle {
+public class InitJenaDeltaServerLocal implements JenaSubsystemLifecycle {
     
     @Override
     public void start() {
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - start");
-        DPS.init();
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - finish");
+        boolean original = DeltaSystem.DEBUG_INIT;
+        DeltaSystem.DEBUG_INIT = DeltaSystem.DEBUG_INIT | JenaSystem.DEBUG_INIT;
+        JenaSystem.logLifecycle("InitJenaDeltaServerLocal - start");
+        // Delta's (newer) version of the same imitialization system using different names. 
+        //DeltaSystem.init();
+        JenaSystem.logLifecycle("InitJenaDeltaServerLocal - finish");
+        DeltaSystem.DEBUG_INIT = original;
     }
     
     @Override

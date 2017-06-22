@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.server.local;
 
+import java.util.Objects ;
 import java.util.stream.Stream;
 
 import org.seaborne.delta.Id ;
@@ -79,14 +80,27 @@ public interface IPatchLog {
     /** Get patches by range - start/finish are inclusive */
     public Stream<RDFPatch> range(long start, long finish) ;
 
-//    /** Get a {@link PatchHeader} by {@code Id}.*/
-//    public PatchHeader fetchHeader(Id patchId);
-//    
-//    /** Get a {@link PatchHeader} by version (version number may change across restarts) .*/
-//    public PatchHeader fetchHeader(long version);
-//    
-//    /* Get patch headers by range - start/finish are inclusive */
-//    public Stream<PatchHeader> rangeHeaders(Id start, Id finish);
+    /** Get a {@link PatchHeader} by {@code Id}.*/
+    public default PatchHeader fetchHeader(Id patchId) {
+        RDFPatch p = fetch(patchId) ;
+        return p != null ? p.header() : null; 
+    }
+    
+    /** Get a {@link PatchHeader} by version (version number may change across restarts) .*/
+    public default PatchHeader fetchHeader(long version) {
+        RDFPatch p = fetch(version) ;
+        return p != null ? p.header() : null;
+    }
+
+    /* Get patch headers by range - start/finish are inclusive */
+    public default Stream<PatchHeader> rangeHeaders(Id start, Id finish) {
+        return range(start, finish).filter(Objects::nonNull).map(RDFPatch::header);
+    }
+
+    /* Get patch headers by range - start/finish are inclusive */
+    public default Stream<PatchHeader> rangeHeaders(long start, long finish) {
+        return range(start, finish).filter(Objects::nonNull).map(RDFPatch::header);
+    }
 
     /** Translate a version number into its stable patch id. */
     public Id find(long version);

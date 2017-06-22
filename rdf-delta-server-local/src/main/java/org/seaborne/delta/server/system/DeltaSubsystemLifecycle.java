@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,23 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.server.system;
 
-import org.seaborne.delta.server.system.DeltaSubsystemLifecycle ;
-import org.seaborne.delta.server.system.DeltaSystem ;
+/** Lifecycle interface for subsystems. */ 
+public interface DeltaSubsystemLifecycle extends SubsystemLifecycle {}
 
-public class InitDeltaServerLocal implements DeltaSubsystemLifecycle {
-    
-    @Override
-    public void start() {
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - start");
-        DPS.init();
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - finish");
-    }
-    
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return 10; }
-}
