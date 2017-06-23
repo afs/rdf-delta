@@ -79,17 +79,38 @@ public class PatchLog implements IPatchLog {
         this.dsRef = dsRef;
         this.name = name;
         this.fileStore = FileStore.attach(location, "patch");
+        initFromFileStore();
+    }
+    
+    private void initFromFileStore() {
         Iterator<Long> iter = fileStore.getIndexes().iterator();
         PatchHeader previous = null;
         for ( ; iter.hasNext() ; ) {
             long idx = iter.next();
             try ( InputStream in = fileStore.open(idx) ) {
                 PatchHeader patchHeader = PatchReaderHeader.readerHeader(in);
-                
+                if ( patchHeader == null ) {
+                    FmtLog.error(LOG, "Can't read header: idx=%d", idx);
+                    continue;
+                }
                 Id id = Id.fromNode(patchHeader.getId());
+                if ( id == null ) {
+                    FmtLog.error(LOG, "Can't find previous: idx=%d: id=%s, prev=%s", idx, id);
+                    continue;
+                }
+                else {
+                    if ( contains(id) ) {
+                        FmtLog.error(LOG, "Duplicate: idx=%d: id=%s", idx, id);
+                    }
+                }
+                    
                 Id prev = Id.fromNode(patchHeader.getPrevious());
-                if ( previous != null ) {
-                    // Test
+                if ( prev != null ) {
+                    // We process entries in order so we should have seen previous by now.
+                    if ( ! contains(prev) ) {
+                        FmtLog.error(LOG, "Can't find previous: idx=%d: id=%s, prev=%s", idx, id, prev);
+                        continue;
+                    }
                 }
                 headers.put(id, patchHeader);
                 idToVersion.put(id, Long.valueOf(idx));
@@ -175,11 +196,12 @@ public class PatchLog implements IPatchLog {
          * @param patch
          */
         // XXX synchronized with fetching?
+        // XXX Validation? "knownToBeValid" ?
         @Override
         synchronized
         public long append(RDFPatch patch) {
             // [DP-Fix]
-            // If the patch is bad, we need to remove it else it will be assilated on restart.
+            // If the patch is bad, we need to remove it
             // Timing hole.
             
             Id patchId = Id.fromNode(patch.getId());
@@ -196,6 +218,8 @@ public class PatchLog implements IPatchLog {
             
             validateNewPatch(patchId, previousId, this::badPatchEx);
       
+            // ** Commit point for a patch, 
+            // specifically at the atomic "move file" in FileStore::writeNewFile.
             FileEntry entry = fileStore.writeNewFile(out -> {
                     TokenWriter tw = new TokenWriterText(out) ;
                     RDFChangesWriter dest = new RDFChangesWriter(tw) ;

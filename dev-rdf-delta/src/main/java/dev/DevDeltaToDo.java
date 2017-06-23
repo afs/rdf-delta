@@ -24,6 +24,8 @@ public class DevDeltaToDo {
     // DeltLinkLocal - pipeline from Receiver.
     // Log Sink iterface
     
+    // Id into rdf-patch.
+    
     /*
      * State machine. Concurrent safe
 Check all concurrent paths.

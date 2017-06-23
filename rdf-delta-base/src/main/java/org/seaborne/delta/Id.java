@@ -29,9 +29,22 @@ import org.apache.jena.shared.uuid.UUIDFactory ;
 import org.apache.jena.shared.uuid.UUID_V4_Gen;
 
 /**
- * Move to rdf-patch?
+ * An identifier. When encoded, the {@code Id} can be a URI or string literal.
+ * The preferred form is a {@code <uuid:...>}.
+ * <ul>
+ * <li>{@code <uuid:...>}
+ * <li>{@code <urn:uuid:...>}
+ * <li>{@code "id:..."}
+ * <li>{@code "..."}
+ * </ul>
+ * where {@code ...} is a UUID as a string.
+ * <p>
+ * If anything else is encounted, the lexical form or URI string is used.
  */
 public final class Id {
+    /**
+     * Move to rdf-patch?
+     */
     private static final String schemeUuid = "uuid:" ;
     private static final String schemeUrnUuid = "urn:uuid:" ;
     private static final String SCHEME = "id:";
@@ -41,10 +54,27 @@ public final class Id {
 
     public static Id nullId() { return nilId; }
         
+    /** Create a fresh {@code Id}, based on a UUID. */ 
     public static Id create() {
         return new Id(genUUID()) ;
     }
     
+    /** Convenience operation to make a displayable string from a Node, that has been used for an Id. */
+    public static String str(Node node) {
+        if ( node == null )
+            return "<null>"; 
+        return fromNode(node).toString();
+    }
+    
+    /**
+     * Convert a {@link Node} to an {@code Id}. The {@link Node} can be a URI or
+     * a string literal. The preferred form is a {@code <uuid:...>}.
+     * <p>
+     * An argument of {@code null} returns {@code null}.
+     * 
+     * @param node
+     * @return Id
+     */
     public static Id fromNode(Node node) {
         if ( node == null )
             return null ;
@@ -55,7 +85,6 @@ public final class Id {
             s = node.getURI() ;
         else if ( Util.isSimpleString(node) )
             s = node.getLiteralLexicalForm() ;
-        
         if ( s == null )
             throw new IllegalArgumentException("Id input is not a URI or a string") ;
         return fromString$(s) ;
@@ -72,6 +101,9 @@ public final class Id {
     }
     
     public static Id fromString(String str) {
+        switch(str) {
+            case "id:nil": return nullId(); 
+        }
         if ( str.startsWith(SCHEME) )
             str = str.substring(SCHEME.length());
         try {
@@ -134,7 +166,7 @@ public final class Id {
         throw new InternalErrorException("Id has null UUID and null string");
     }
 
-    /** Convert to a Node, URI or plain string. */ 
+    /** Convert to a Node, as a URI or as a plain string. */ 
     public Node asNode() {
         if ( uuid != null ) 
             return NodeFactory.createURI(schemeUuid+uuid.toString());

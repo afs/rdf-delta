@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.* ;
+import static org.seaborne.delta.Id.str ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
@@ -136,7 +137,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         checkLink();
         checkRegistered();
         DataSource source = getDataSource(dsRef);
-        FmtLog.info(LOG, "append: Dest=%s Patch=%s", source, Id.fromNode(rdfPatch.getId()));
+        
+        FmtLog.info(LOG, "append: Dest=%s Patch=%s", source, str(rdfPatch.getId()));
         
         beforeWrite(dsRef, rdfPatch);
         
@@ -145,13 +147,17 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         
         afterWrite(dsRef, rdfPatch, version);
 
-        FmtLog.info(LOG, "append: Dest=%s Patch=%s version=%d", source, Id.fromNode(rdfPatch.getId()), version);
+        FmtLog.info(LOG, "append: Dest=%s Patch=%s version=%d", source, str(rdfPatch.getId()), version);
         
         return version; 
     }
 
-    /** Called before writing the patch to the {@link PatchLog}. */
-    protected void beforeWrite(Id dsRef, RDFPatch rdfPatch) {}
+    /** Called before writing the patch to the {@link PatchLog}. 
+     * There is no guaranttee that the patch is valid and will be commited to the PatchLog. 
+     */
+    protected void beforeWrite(Id dsRef, RDFPatch rdfPatch) {
+        FmtLog.info(LOG, "Before write: %s", str(rdfPatch.getId()));
+    }
 
     /** Called after writing the patch to the {@link PatchLog}. */
     protected void afterWrite(Id dsRef, RDFPatch rdfPatch, long version) {}

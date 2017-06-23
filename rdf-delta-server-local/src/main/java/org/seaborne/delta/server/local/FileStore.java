@@ -88,6 +88,8 @@ public class FileStore {
         if ( ! Files.exists(dirPath) || ! Files.isDirectory(dirPath) )
             throw new IllegalArgumentException("Path '" + dirPath + "' does not name a directory");
 
+        // Delte any tmp files leaft lying around.
+        
         // Find existing files.
         List<Long> indexes = scanForIndex(dirPath, basename);
         long min;
@@ -308,6 +310,23 @@ public class FileStore {
         
         indexes.sort(Long::compareTo);
         return indexes;
+    }
+
+    /** Find the indexes of files in this FileStore. Return sorted, low to high. */
+    private static boolean deleteTmpFiles(Path directory) {
+        boolean found = false;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, tmpBasename + "*")) {
+            for ( Path f : stream ) {
+                found = true;
+                Files.delete(f);
+                if ( Files.exists(f) )
+                    FmtLog.error(LOG, "Failed to delete tmp file: %s", f);
+            }
+        } catch (IOException ex) {
+            FmtLog.warn(LOG, "Can't check directory for tmp files: %s", directory);
+            throw new PatchException(ex);
+        }
+        return found;
     }
 
     /**

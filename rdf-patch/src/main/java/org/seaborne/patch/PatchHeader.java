@@ -33,7 +33,7 @@ public class PatchHeader {
     public PatchHeader(Map<String, Node> header) {
         // Isolate and llower case
         this.header = header.entrySet()
-            .stream().collect(Collectors.toMap(e->e.getKey().toLowerCase(Locale.ROOT),
+            .stream().collect(Collectors.toMap(e->lc(e.getKey()),
                                                e->e.getValue()));
     }
     
@@ -49,13 +49,17 @@ public class PatchHeader {
     }
     
     public Node get(String field) {
-        return header.get(field.toLowerCase(Locale.ROOT)) ;
+        return header.get(lc(field)) ;
     }
 
     public void forEach(BiConsumer<String, Node> action) {
         header.forEach(action);
     }
 
+    private static String lc(String str) {
+        return str.toLowerCase(Locale.ROOT);
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;

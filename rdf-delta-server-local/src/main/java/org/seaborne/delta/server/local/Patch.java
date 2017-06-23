@@ -53,11 +53,11 @@ public class Patch implements RDFPatch {
     }
 
     public Id getIdAsId() {
-        return Id.fromNode(patch.getId()) ;
+        return Id.fromNode(getId()) ;
     }
 
     public Id getPreviousIdAsId() {
-        return Id.fromNode(patch.getPrevious()) ;
+        return Id.fromNode(getPrevious()) ;
     }
 
     @Override
