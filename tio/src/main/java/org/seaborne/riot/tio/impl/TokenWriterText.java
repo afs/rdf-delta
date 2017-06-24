@@ -287,10 +287,8 @@ public class TokenWriterText implements TokenWriter {
                 return null ;
             case BNODE :
                 return "_:" + token.getImage() ;
-            // BOOLEAN,
+            //case BOOLEAN:
             case STRING :
-                // XXX
-                // return "'"+NodeFmtLib.esc(token.getImage())+"'";
                 return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"" ;
             case LITERAL_LANG :
                 return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"@" + token.getImage2() ;

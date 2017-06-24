@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
@@ -90,6 +91,8 @@ public class Run {
         Zone.get().init("Zone");
         
         DeltaLink dLink1 = null;
+        
+        // ********
         boolean httpServer = true;
         
         if ( httpServer ) {
@@ -127,24 +130,28 @@ public class Run {
         Zone zone = Zone.get();
         //Id datasourceId = dLink1.newDataSource(datasourceName, datasourceURI);
         //DataState dataState = zone.create(datasourceId, datasourceName, datasourceURI, Backing.TDB);
-
         
-        try ( DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, datasourceURI, dsg, dLink1) ) {}
+        boolean exists = dLink1.listDescriptions().stream().anyMatch(x->datasourceName.equals(x.getName()));
+        
+        //try ( DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, datasourceURI, dsg, dLink1) ) {
+        try ( DeltaConnection dConn = x_connectOrCreate(zone, datasourceName, datasourceURI, dsg, dLink1, !exists) ) {
+            String x = dConn.getInitialStateURL();
+            //System.out.println("State URL = "+x);
+            if ( x != null )
+                Txn.executeWrite(dConn.getDatasetGraph(), ()->RDFDataMgr.read(dConn.getDatasetGraph(), x));
+        }
+        
         System.out.println();
-        
-//        try ( DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, datasourceURI, dsg, dLink1) ) {
-//            String x = dConn.getInitialStateURL();
-//            Txn.executeWrite(dConn.getDatasetGraph(), ()->RDFDataMgr.read(dConn.getDatasetGraph(), x));
-//        }
         
         Id dsRef = dLink1.getDataSourceDescription(datasourceURI).getId();
         System.out.println();
         
-//        try ( DeltaConnection dConn = DeltaConnection.create(Zone.get(), clientId, "ABC", "http://example/ABC", dsg, dLink1) ) {
-//            dConn.sync();
-//            dsRef = dConn.getDataSourceId();
-//            Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
-//        }
+        System.out.println("Sync");
+        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), dsRef, dsg, dLink1) ) {
+            dConn.sync();
+            dsRef = dConn.getDataSourceId();
+            Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
+        }
         
         
         try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), dsRef, dsg, dLink1)) {
@@ -196,9 +203,9 @@ public class Run {
     }
 
     // Initial state.
-    static DeltaConnection xconnectOrCreate(Zone zone, Id clientId, String datasourceName, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
+    static DeltaConnection x_connectOrCreate(Zone zone, String datasourceName, String dataSourceURI, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
         if ( create ) {
-            DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, "http://example/new", dsg0, dLink);
+            DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, dataSourceURI, dsg0, dLink);
             Id dsRef = dConn.getDataSourceId();
             System.out.println("++++ Create: "+dsRef);
             return dConn;

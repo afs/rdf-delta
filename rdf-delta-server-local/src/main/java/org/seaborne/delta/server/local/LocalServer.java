@@ -22,13 +22,10 @@ import static org.seaborne.delta.DeltaConst.F_BASE;
 import static org.seaborne.delta.DeltaConst.F_ID;
 import static org.seaborne.delta.DeltaConst.F_URI;
 
-import java.io.File ;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths ;
-import java.nio.file.StandardCopyOption ;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,6 +44,7 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,10 +137,12 @@ public class LocalServer {
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
         for ( Path p : dataSources ) {
-            DataSource ds = makeDataSource(p, dataRegistry);
+            // Extract name from disk name. 
+            String dsName = p.getFileName().toString();
+            DataSource ds = attachDataSource(dsName, p, dataRegistry);
             dataRegistry.put(ds.getId(), ds);
         }
-        return attach(conf, dataRegistry);
+        return attachServer(conf, dataRegistry);
     }
     
     public static void release(LocalServer localServer) {
@@ -151,6 +151,7 @@ public class LocalServer {
             servers.remove(key);
             localServer.shutdown$();
         }
+        PatchStore.clearPatchLogs();
     }
 
     /** 
@@ -183,7 +184,7 @@ public class LocalServer {
         if ( ! isMinimalDataSource(path) )
             return false;
         // Additional requirements
-        Path patchesArea = path.resolve(DeltaConst.PATCHES);
+        Path patchesArea = path.resolve(DeltaConst.LOG);
         if ( ! Files.exists(patchesArea) )
             return false;
         // If we keep a state file....
@@ -214,7 +215,7 @@ public class LocalServer {
         return ! Files.exists(disabled);
     }
 
-    private static DataSource makeDataSource(Path dataSourceArea, DataRegistry dataRegistry) {
+    private static DataSource attachDataSource(String dsName, Path dataSourceArea, DataRegistry dataRegistry) {
         JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DeltaConst.DS_CONFIG).toString());
         SourceDescriptor dss = fromJsonObject(sourceObj);
 
@@ -222,15 +223,21 @@ public class LocalServer {
         String baseStr = dss.base;
         String uriStr = dss.uri; 
             
-        Path patchesArea = dataSourceArea.resolve(DeltaConst.PATCHES);
-        FileOps.ensureDir(patchesArea.toString());
-        //FmtLog.info(LOG, "DataSource: id=%s, source=%s, patches=%s", id, dataSourceArea, patchesArea);
-        DataSource dataSource = DataSource.connect(dataRegistry, id, uriStr, dataSourceArea.getFileName().toString(), IOX.asLocation(dataSourceArea));
+//        PatchStore patchStore = PatchStore.selectPatchStore(id);
+//        PatchLog patchLog = patchStore.attachLog(id, uriStr, dataSourceArea);
+//        
+//        Path patchesArea = dataSourceArea.resolve(DeltaConst.LOG);
+//        // Everything in tis area is under the control of the PatachStore. 
+//        FileOps.ensureDir(patchesArea.toString());
+        
+        FmtLog.info(LOG, "DataSource: id=%s, source=%s", id, dataSourceArea);
+        DataSource dataSource = DataSource.connect(id, uriStr, dsName, dataSourceArea);
+        dataRegistry.put(id, dataSource);
         FmtLog.info(LOG, "DataSource: %s (%s)", dataSource, baseStr);
         return dataSource ;
     }
     
-    private static LocalServer attach(LocalServerConfig config, DataRegistry dataRegistry) {
+    private static LocalServer attachServer(LocalServerConfig config, DataRegistry dataRegistry) {
         Location loc = config.location;
         if ( ! loc.isMemUnique() ) {
             if ( servers.containsKey(loc) ) {
@@ -246,6 +253,7 @@ public class LocalServer {
         LocalServer lServer = new LocalServer(config, dataRegistry);
         if ( ! loc.isMemUnique() ) 
             servers.put(loc, lServer);
+        lServer.init();
         return lServer ;
     }
 
@@ -255,6 +263,10 @@ public class LocalServer {
         this.serverRoot = config.location;
     }
 
+    private void init() {
+        PatchStore.setDefault(DPS.psFile);
+    }
+    
     public void shutdown() {
         LocalServer.release(this);
     }
@@ -333,19 +345,19 @@ public class LocalServer {
         return serverRoot.getSubLocation(name);
     }
     
-    /*package*/ static Location patchArea(Location dataSourceArea) {
-        return dataSourceArea.getSubLocation(DeltaConst.PATCHES);
-    }
+//    /*package*/ static Location patchArea(Location dataSourceArea) {
+//        return dataSourceArea.getSubLocation(DeltaConst.LOG);
+//    }
 
-    /** Inital data : a file is some RDF format (the file extension determines the syntax)
-     *  or a directory, which is a TDB database.
-     *  null means no initial data.
-     */
-    /*package*/ static Path initialData(Location dataSourceArea) {
-        if ( dataSourceArea.isMem() )
-            return null;
-        return Paths.get(dataSourceArea.getPath("data.ttl"));
-    }
+//    /** Inital data : a file is some RDF format (the file extension determines the syntax)
+//     *  or a directory, which is a TDB database.
+//     *  null means no initial data.
+//     */
+//    /*package*/ static Path initialData(Location dataSourceArea) {
+//        if ( dataSourceArea.isMem() )
+//            return null;
+//        return Paths.get(dataSourceArea.getPath("data.ttl"));
+//    }
 
     // static DataSource.createDataSource.
     
@@ -367,7 +379,7 @@ public class LocalServer {
             if ( ! isEnabled(sourcePath) )
                 throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
 
-            String patchesDirName = sourceArea.getPath(DeltaConst.PATCHES);
+            String patchesDirName = sourceArea.getPath(DeltaConst.LOG);
             if ( FileOps.exists(patchesDirName) )
                 throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
 
@@ -388,7 +400,7 @@ public class LocalServer {
                     JSON.write(out, obj);
                 } catch (IOException ex)  { throw IOX.exception(ex); }
             }
-            DataSource newDataSource = DataSource.connect(dataRegistry, dsRef, baseURI, name, sourceArea);
+            DataSource newDataSource = DataSource.connect(dsRef, baseURI, name, sourcePath);
             // Atomic.
             dataRegistry.put(dsRef, newDataSource);
             return dsRef ;
@@ -407,41 +419,7 @@ public class LocalServer {
             // Make inaccessible to getDataSource (for create and remove). 
             dataRegistry.remove(dsRef);
             disabledDatasources.add(dsRef);
-            datasource.getPatchLog().getFileStore().release();
-
-            // Decision what to do with the state?
-            //  1 - mark unavailable 
-            //  2 - move aside
-            //  3 - really delete
-
-            if ( ! datasource.inMemory() ) {
-                if ( true ) {
-                    // Mark unavailable.
-                    Path disabled = datasource.getPath().resolve(DeltaConst.DISABLED);
-                    try { Files.createFile(disabled); } 
-                    catch (IOException ex) { throw IOX.exception(ex); }
-                }
-                if ( true ) {
-                    // Move to "NAME-deleted-N"
-                    Path dest = IOX.uniqueDerivedPath(datasource.getPath(), (x)->x+"-deleted");
-                    try { Files.move(datasource.getPath(), dest, StandardCopyOption.ATOMIC_MOVE); }
-                    catch (IOException e) { throw IOX.exception(e); }
-                }
-                if ( false ) {
-                    // Destroy.
-                    try {
-                        Files.walk(datasource.getPath())
-                        // So a directory path itself is after its entries. 
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-                    }
-                    catch (IOException e) { throw IOX.exception(e); }
-                    File d = datasource.getPath().toFile();
-                    FileOps.clearAll(d);
-                    d.delete();
-                }
-            }
+            datasource.release();
         }
     }
 

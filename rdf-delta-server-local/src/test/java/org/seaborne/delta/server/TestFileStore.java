@@ -35,8 +35,8 @@ import org.apache.jena.util.FileUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.server.local.FileEntry;
-import org.seaborne.delta.server.local.FileStore;
+import org.seaborne.delta.server.local.patchlog.FileEntry ;
+import org.seaborne.delta.server.local.patchlog.FileStore ;
 
 public class TestFileStore {
     static final Location STORE = Location.create("target/test/store");

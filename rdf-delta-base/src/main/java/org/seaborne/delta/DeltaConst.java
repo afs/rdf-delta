@@ -46,7 +46,7 @@ public class DeltaConst {
     public static final String OP_CREATE_DS    = "create_datasource";
     public static final String OP_REMOVE_DS    = "remove_datasource";
 
-    // RPC fields
+    // JSON field names, in RPC and configuration files.
     public static final String F_OP            = "operation";
     public static final String F_ARG           = "arg";
     public static final String F_DATASOURCE    = "datasource";
@@ -63,6 +63,7 @@ public class DeltaConst {
     public static final String F_NAME          = "name";
     public static final String F_DATA          = "data";
     public static final String F_URI           = "uri";
+    public static final String F_LOG_TYPE      = "log_type";
     // Some atomic JSON value.
     public static final String F_VALUE         = "value";   
     // Some JSON array
@@ -98,31 +99,41 @@ public class DeltaConst {
 
     // Default name for the server configuration file.
     public static final String SERVER_CONFIG   = "delta.cfg";
+    
     // Name for the datasource configuration file.
     public static final String DS_CONFIG       = "source.cfg";
 
-    // Relative path name in ENV_BASE for the "sources" area.
+    // Relative path name in a DataSource for the "sources" area.
     public static final String SOURCES         = "Sources";
-    // Relative path name in ENV_BASE for the patches area.
-    public static final String PATCHES         = "Patches";
-    // The intial data area - server side (TDB or a file)  
-    public static final String INITIAL_DATA    = "Data";
+    
+    // Relative path name in a DataSource for the log area.
+    public static final String LOG             = "Log";
+    
+    // The intial data area - server side  
+    //public static final String INITIAL_DATA    = "Data";
+    public static final String INITIAL_DATA    = "data.ttl";
 
     // The database area - client side directory (TDB or with files)  
     public static final String DATA            = "data";
     
     /** Name of the file holding the persistent state, client DeltaConnection. */
     public static final String STATE_CLIENT    = "state";
+    
     /** Name of the file holding the persistent state, local server data source .*/
     public static final String STATE_DS        = "state";
+    
+    /** Marker file for "deletes" data sources (they are only hidden) */  
     public static final String DISABLED        = "disabled";
     
     /** The size of the server-wide LRU cache */
     public static final int PATCH_CACHE_SIZE   = 1000;
+    
     /** The version number when not set */
-    public static long VERSION_UNSET = -1;
+    public static long VERSION_UNSET    = -1;
+    
     /** The version number when there are no patches */
-    public static long VERSION_INIT = 0;
+    public static long VERSION_INIT     = 0;
+    
     /** The version number of the first patch */
-    public static long VERSION_FIRST = 1;
+    public static long VERSION_FIRST    = 1;
 }

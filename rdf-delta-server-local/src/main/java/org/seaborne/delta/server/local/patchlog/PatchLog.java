@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.server.local.patchlog;
 
 import java.util.Objects ;
 import java.util.stream.Stream;
 
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.patch.PatchHeader ;
 import org.seaborne.patch.RDFPatch;
 
@@ -38,7 +39,7 @@ import org.seaborne.patch.RDFPatch;
  * Versions numbers are not guaranteed to be stable across process restart.
  * Clients should use {@link #getDescription()} to find the current range. 
  */
-public interface IPatchLog {
+public interface PatchLog {
     
     /** Return the {@link Id} of first/earliest patch */
     public Id getEarliestId();
@@ -58,7 +59,12 @@ public interface IPatchLog {
      * other words, it is not "live".
      */
     public PatchLogInfo getDescription();
-
+    
+    /**
+     * Get the Id that identifies this log.
+     */
+    public Id getLogId();
+    
     /** Is the {@code IPatchLog} empty? */
     public boolean isEmpty();
     
@@ -107,4 +113,7 @@ public interface IPatchLog {
     
     /** Translate a patch id to version. */ 
     public long find(Id id);
+    
+    /** Release - do not use again */
+    public void release();
 }

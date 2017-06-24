@@ -74,37 +74,4 @@ public class DeltaOps {
         TokenWriter tokenWriter = new TokenWriterText(out) ;
         return tokenWriter ;
     }
-    
-    private static NodeFormatterNT formatter = new NodeFormatterNT();
-
-//    /** Atomically write a version to disk.
-//     *  <p>
-//     *  This is done carefully by writing to temporary file and 
-//     *  then doing a atomic file system move. 
-//     */
-//    public static void writeId(String filename, Id id) {
-//        // Get the bytes.
-//        Node n = id.asNode();
-//        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-//        AWriter aw = IO.wrapUTF8(out2);
-//        formatter.format(aw, n);
-//        byte[] bytes = out2.toByteArray();
-//        
-//        // Prepare names.
-//        Path p = Paths.get(filename);
-//        Path parent = p.getParent();
-//        String fn = p.getFileName().toString();
-//        
-//        if ( parent == null )
-//            parent = IOX.currentDirectory; 
-//        
-//        try {
-//            Path tmp = Files.createTempFile(parent, fn, ".tmp");
-//            tmp.toFile().deleteOnExit();
-//            IOX.safeWrite(p, tmp, (out)->{
-//                out.write(bytes);
-//            });
-//        } catch (IOException ex) { throw IOX.exception(ex); }
-//    }
-
 }

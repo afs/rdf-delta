@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.server.local.patchlog;
 
 import static org.seaborne.delta.DeltaConst.VERSION_INIT ;
 import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
@@ -40,6 +40,7 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.PatchReaderHeader ;
 import org.seaborne.patch.RDFPatch;
@@ -51,11 +52,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** A sequence of patches for an {@link DataSource}. */
-public class PatchLog implements IPatchLog {
+public class PatchLogFile implements PatchLog {
     private static final boolean CHECKING = true ;
 
     // Centralized logger for regular lifecyle reporting.
-    private static Logger  LOG     = LoggerFactory.getLogger(PatchLog.class);
+    private static Logger  LOG     = LoggerFactory.getLogger(PatchLogFile.class);
 
     //Id of the DataSource 
     private final Id              dsRef;
@@ -71,15 +72,25 @@ public class PatchLog implements IPatchLog {
     private long latestVersion = VERSION_UNSET;
     
     /** Attached to an existing {@code PatchLog}. */
-    public static PatchLog attach(Id dsRef, String name, Location location) {
-        return new PatchLog(dsRef, name, location, null);
+    public static PatchLogFile attach(Id dsRef, String name, Location location) {
+        return new PatchLogFile(dsRef, name, location, null);
     }
     
-    private PatchLog(Id dsRef, String name, Location location, PatchStore patchStore) {
+//    /** Create a new {@code PatchLog}. */
+//    public static PatchLog create(Id dsRef, String name, Location location) {
+//        return new PatchLog(dsRef, name, location, null);
+//    }
+
+    private PatchLogFile(Id dsRef, String name, Location location, PatchStore patchStore) {
         this.dsRef = dsRef;
         this.name = name;
         this.fileStore = FileStore.attach(location, "patch");
         initFromFileStore();
+    }
+    
+    @Override
+    public Id getLogId() {
+        return dsRef;
     }
     
     private void initFromFileStore() {
@@ -151,9 +162,18 @@ public class PatchLog implements IPatchLog {
     private void validateLatest() {
         if ( CHECKING ) {
             long x = fileStore.getCurrentIndex();
-            // Legal versions start 1.
-            if ( latestVersion != x )
-                FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);  
+            // latestVersion = -1 (UNSET) and getCurrentIndex==0 (INIT) is OK
+            if ( latestVersion == VERSION_UNSET ) {
+                if ( x != VERSION_INIT )
+                    FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
+            } else if ( x > VERSION_INIT ) {
+                // Legal versions start 1.
+                if ( latestVersion != x )
+                    FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
+            }
+            else if ( latestVersion > VERSION_INIT ) {
+                FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
+            }
         }
     }
     
@@ -165,6 +185,11 @@ public class PatchLog implements IPatchLog {
     @Override
     public boolean isEmpty() {
         return fileStore.isEmpty();
+    }
+    
+    @Override
+    public void release() {
+        fileStore.release();
     }
     
     /** Validate a patch for this {@code PatchLog} */
@@ -189,57 +214,53 @@ public class PatchLog implements IPatchLog {
     }
     
     /**
-         * Add a patch to the PatchLog.
-         * This operation does not store the patch; 
-         * it is expected to be already persisted.
-         * Only the {@code PatchLog} in-memory metadata is updated.
-         * @param patch
-         */
-        // XXX synchronized with fetching?
-        // XXX Validation? "knownToBeValid" ?
-        @Override
-        synchronized
-        public long append(RDFPatch patch) {
-            // [DP-Fix]
-            // If the patch is bad, we need to remove it
-            // Timing hole.
-            
-            Id patchId = Id.fromNode(patch.getId());
-            Id previousId = Id.fromNode(patch.getPrevious());
-    
-            FmtLog.info(LOG, "Append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
-            
-            if ( ! Objects.equals(previousId, this.latestId) ) {
-                String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
-                                           previousId, this.latestId);
-                // Does not point to right previous version.
-                throw new DeltaBadPatchException(msg);
-            }
-            
-            validateNewPatch(patchId, previousId, this::badPatchEx);
-      
-            // ** Commit point for a patch, 
-            // specifically at the atomic "move file" in FileStore::writeNewFile.
-            FileEntry entry = fileStore.writeNewFile(out -> {
-                    TokenWriter tw = new TokenWriterText(out) ;
-                    RDFChangesWriter dest = new RDFChangesWriter(tw) ;
-                    patch.apply(dest);
-                });
-            long version = entry.version;
-            
-            // ????
-            validateVersionNotInUse(version);
-            
-            idToVersion.put(patchId, version);
-            headers.put(patchId, patch.header());
-            latestId = patchId;
-            latestVersion = version;
-            validateLatest();
-            return version; 
-        
-    //        FmtLog.info(LOG, "Patch id=%s", patchId.asString());
-    //        FmtLog.info(LOG, "Patch id=%s previous=%s version=%d", patchId, previousId, version);
+     * Add a patch to the PatchLog.
+     * This operation does not store the patch; 
+     * it is expected to be already persisted.
+     * Only the {@code PatchLog} in-memory metadata is updated.
+     * @param patch
+     */
+    // XXX synchronized with fetching?
+    // XXX Validation? "knownToBeValid" ?
+    @Override
+    synchronized
+    public long append(RDFPatch patch) {
+        // [DP-Fix]
+        // If the patch is bad, we need to remove it
+        // Timing hole.
+
+        Id patchId = Id.fromNode(patch.getId());
+        Id previousId = Id.fromNode(patch.getPrevious());
+
+        FmtLog.info(LOG, "Append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
+
+        if ( ! Objects.equals(previousId, this.latestId) ) {
+            String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
+                                       previousId, this.latestId);
+            // Does not point to right previous version.
+            throw new DeltaBadPatchException(msg);
         }
+
+        validateNewPatch(patchId, previousId, this::badPatchEx);
+
+        // ** Commit point for a patch, 
+        // specifically at the atomic "move file" in FileStore::writeNewFile.
+        FileEntry entry = fileStore.writeNewFile(out -> {
+            TokenWriter tw = new TokenWriterText(out) ;
+            RDFChangesWriter dest = new RDFChangesWriter(tw) ;
+            patch.apply(dest);
+        });
+        long version = entry.version;
+
+        validateVersionNotInUse(version);
+
+        idToVersion.put(patchId, version);
+        headers.put(patchId, patch.header());
+        latestId = patchId;
+        latestVersion = version;
+        validateLatest();
+        return version; 
+    }
 
     @FunctionalInterface
     interface BadHandler { void bad(String fmt, Object ...args) ; }
@@ -362,7 +383,6 @@ public class PatchLog implements IPatchLog {
         return fetch(fileStore, version); 
     }
     
-    // XXX Place for a PatchCache.
     private static RDFPatch fetch(FileStore fileStore, long version) {
         try ( InputStream in = fileStore.open((int)version) ) {
             RDFPatch patch = RDFPatchOps.read(in) ;
@@ -391,5 +411,9 @@ public class PatchLog implements IPatchLog {
     @Override
     public String toString() {
         return String.format("PatchLog [%s, ver=%d head=%s]", name, getLatestVersion(), getLatestId());
+    }
+
+    public Id getDsRef() {
+        return dsRef ;
     }
 }

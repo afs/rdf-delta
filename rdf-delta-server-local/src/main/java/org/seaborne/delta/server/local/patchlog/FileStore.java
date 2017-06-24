@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package org.seaborne.delta.server.local.patchlog;
 
 import java.io.IOException ;
 import java.io.InputStream ;
@@ -132,7 +132,8 @@ public class FileStore {
      * allocation if there has been no allocation.
      */
     public long getCurrentIndex() {
-        return counter.get();
+        long x = counter.get();
+        return x;
     }
 
     /**

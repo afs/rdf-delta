@@ -23,12 +23,16 @@ import java.util.regex.Matcher ;
 import java.util.regex.Pattern ;
 
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 import org.slf4j.Logger ;
 
 public class DPS {
     
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
+    
+    public static String psFile = "PatchStoreFileProvider";
     
     /** Find the highest index in a directpry of files */
     public static int scanForIndex(String directory, String namebase) {
@@ -68,5 +72,10 @@ public class DPS {
     }
     
     private static void initOnce() {
+        System.err.println("Hard coded registration of PatchStoreFile");
+        
+        PatchStore ps = new PatchStoreFile();
+        PatchStore.register(ps);
+        PatchStore.setDefault(ps.getProviderName());
     }
 }

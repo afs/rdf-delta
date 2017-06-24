@@ -28,40 +28,8 @@ import org.apache.jena.riot.tokens.Tokenizer;
 import org.junit.Test;
 
 /** Tests for non-terms and for multiple tokens. */
-public abstract class AbstractTestTokenizerOther extends BaseTestTokenizer {
-
-    // TODO Remove CNTRL
-    // Current only signle charcater codes imeplemtned by TextTokenizer and not atr all by TokenizerJvacc.
-//    @Test
-//    public void tokenUnit_cntrl1() {
-//        tokenizeAndTestExact("*S", TokenType.CNTRL, "S");
-//    }
-//
-//    @Test
-//    public void tokenUnit_cntr2() {
-//        tokenizeAndTestExact("*SXYZ", TokenType.CNTRL, "SXYZ");
-//    }
-//
-//    @Test
-//    public void tokenUnit_cntrl3() {
-//        Tokenizer tokenizer = tokenizer("*S<x>");
-//        assertTrue(tokenizer.hasNext());
-//        Token token = tokenizer.next();
-//        assertNotNull(token);
-//        assertEquals(TokenType.CNTRL, token.getType());
-//        assertEquals('S', token.getCntrlCode());
-//        assertNull(token.getImage());
-//        assertNull(token.getImage2());
-//        //
-//        assertTrue(tokenizer.hasNext());
-//        Token token2 = tokenizer.next();
-//        assertNotNull(token2);
-//        assertEquals(TokenType.IRI, token2.getType());
-//        assertEquals("x", token2.getImage());
-//        assertNull(token2.getImage2());
-//        assertFalse(tokenizer.hasNext());
-//    }
-
+public abstract class AbstractTestTokenizerOther extends BaseTestTokenizer 
+{
     @Test
     public void tokenUnit_syntax1() {
         tokenizeAndTestExact(".", TokenType.DOT, null, null);

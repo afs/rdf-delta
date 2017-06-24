@@ -18,15 +18,21 @@
 
 package org.seaborne.delta.server.local;
 
+import java.io.File ;
 import java.io.IOException ;
+import java.nio.file.Files ;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption ;
+import java.util.Comparator ;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaOps ;
+import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.lib.IOX ;
+import org.seaborne.delta.server.local.patchlog.PatchLog ;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +47,6 @@ public class DataSource {
     private final Id       id;
     private final String   uri;
     private final Path     initialData;
-    private final Location location;
     private final PatchLog patchLog;
 
     // Duplicates location if not in-memory.
@@ -49,38 +54,25 @@ public class DataSource {
     // DataSource short name (final component of path). 
     private final String name;
     
-    /** Attach to a datasource file area. 
-     * @param sourceArea    {@code Sources}
-     * @return DataSource
+    /**
+     * Attach to a datasource file area and return a {@link DataSource} object.
+     * The diretory {@code dsPath} must exist.
      */
-    public static DataSource connect(DataRegistry dataRegistry, Id dsRef, String uri, String name, Location sourceArea) {
-        Location patchesArea = LocalServer.patchArea(sourceArea);
-        if ( sourceArea.isMem() && patchesArea.isMem() )
-            return null ;
-        
-        if ( sourceArea.isMem() || patchesArea.isMem() )
-            throw new IllegalArgumentException("Mixed in-memory add persistent: source area = "+sourceArea+" : patch area = "+patchesArea);
-        
-        if ( ! DeltaOps.isValidName(name) )
-            throw new IllegalArgumentException("Illegal name for DataSource: "+name);
-        
-        Path initialData = LocalServer.initialData(sourceArea)   ;          
-
-        formatSourceArea(sourceArea, patchesArea, initialData);
-        PatchLog patchLog = loadPatchLog(dsRef, name, patchesArea);
-        DataSource dataSource = new DataSource(dsRef, sourceArea, initialData, name, uri, patchLog);
+    public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
+        PatchStore patchStore = PatchStore.selectPatchStore(dsRef);
+        Path patchesArea = dsPath.resolve(DeltaConst.LOG);
+        IOX.ensureDirectory(patchesArea);
+        Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
+        IOX.ensureFile(initialData);
+        PatchLog patchLog = patchStore.attachLog(dsRef, dsName, patchesArea);
+        DataSource dataSource = new DataSource(dsRef, dsPath, initialData, dsName, uri, patchLog);
         return dataSource;
     }
 
-    private static PatchLog loadPatchLog(Id dsRef, String name, Location patchesArea) {
-        return PatchLog.attach(dsRef, name, patchesArea);
-    }
-
-    private DataSource(Id id, Location location, Path initialData, String name, String uri, PatchLog patchLog) {
+    private DataSource(Id id, Path location, Path initialData, String name, String uri, PatchLog patchLog) {
         super();
         this.id = id;
-        this.location = location;
-        this.path = location.isMem() ? null : IOX.asPath(location);
+        this.path = location;
         this.initialData = initialData;  
         this.name = name;
         this.uri = uri;
@@ -96,7 +88,7 @@ public class DataSource {
     }
 
     public Location getLocation() {
-        return location;
+        return Location.create(path.toString());
     }
 
     public Path getInitialDataPath() {
@@ -121,21 +113,49 @@ public class DataSource {
     }
     
     public boolean inMemory() {
-        return location.isMem(); 
+        return false;
     }
     
-    private static void formatSourceArea(Location sourcesArea, Location patchesArea, Path initialData) {
-        FileOps.ensureDir(sourcesArea.getDirectoryPath());
-        FileOps.ensureDir(patchesArea.getDirectoryPath());
-        // Does not overwrite an existing file.
-        try { initialData.toFile().createNewFile(); }
-        catch (IOException e) { throw IOX.exception(e); }
-//        if ( initialData != null )
-//            FileOps.ensureDir(initialData.toString());
-    }
-
     @Override
     public String toString() {
         return String.format("Source: %s %s [%s]", id, name, uri);
+    }
+
+    public void release() {
+        // Decision what to do with the state?
+        //  1 - mark unavailable 
+        //  2 - move aside
+        //  3 - really delete
+
+        PatchStore.release(getPatchLog());
+
+        if ( ! inMemory() ) {
+            if ( true ) {
+                // Mark unavailable.
+                Path disabled = getPath().resolve(DeltaConst.DISABLED);
+                try { Files.createFile(disabled); } 
+                catch (IOException ex) { throw IOX.exception(ex); }
+            }
+            if ( true ) {
+                // Move to "NAME-deleted-N"
+                Path dest = IOX.uniqueDerivedPath(getPath(), (x)->x+"-deleted");
+                try { Files.move(getPath(), dest, StandardCopyOption.ATOMIC_MOVE); }
+                catch (IOException e) { throw IOX.exception(e); }
+            }
+            if ( false ) {
+                // Destroy.
+                try {
+                    Files.walk(getPath())
+                    // So a directory path itself is after its entries. 
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+                }
+                catch (IOException e) { throw IOX.exception(e); }
+                File d = getPath().toFile();
+                FileOps.clearAll(d);
+                d.delete();
+            }
+        }
     }
 }

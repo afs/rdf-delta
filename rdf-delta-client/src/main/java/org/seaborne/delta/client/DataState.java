@@ -124,7 +124,7 @@ public class DataState {
     public synchronized void updateState(long newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
-        writeState(this.stateStr, this.datasource, this.toString(), this.uri, newVersion, patchId);
+        writeState(this.stateStr, this.datasource, this.name, this.uri, newVersion, patchId);
         // Update local
         this.version = newVersion;
         this.patchId = patchId;

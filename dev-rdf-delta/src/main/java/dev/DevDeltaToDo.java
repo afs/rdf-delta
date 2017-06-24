@@ -20,33 +20,20 @@ package dev;
 
 public class DevDeltaToDo {
 
-    // FileStore/PatchLog - cachingheaders.
-    // DeltLinkLocal - pipeline from Receiver.
-    // Log Sink iterface
+    // PatchCache.
     
-    // Id into rdf-patch.
-    
-    /*
-     * State machine. Concurrent safe
-Check all concurrent paths.
-Plugin architecture for patch handlers
-Service loader
-Initial data
+    // PatchLog  concurrency.
+    // PatchLog  source.cfg needs provider name. 
+    //    And use it.
+    // PatchLog  Id for log eparat efrom 
+    // Default provider in server config.
 
-Use cases
-Two triple stores, sync or batch
-Embedded store
-     */
+    // Run - add delete case.
     
     // * DeltaLink.getConnection
-    // * Interface to read-write patches for SoR.
-    // * Discard failed patches.
     // * HTTP interface / Control interface
     
     // DeltaConnection XXX's
-    
-    // PatchLog.HistoryEntry - why?
-    //   If cache - put in filestore?
     
     // PatchLogServer
 	//   Server lifecycle.

@@ -27,7 +27,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.*;
 import org.slf4j.Logger;
 
-/** State of a  DeltaConnection.
+/** State of a DeltaConnection.
  *  <br/>{@link DatasetGraph} for client shadow.
  *  <br/>{@link RefLong} for the version number. 
  *  If a memory-connection, then the  

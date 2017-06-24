@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.jena.atlas.lib.Registry ;
 import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.patchlog.PatchLog ;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.slf4j.Logger ;
 
 /** The registry of all data under the control of server.

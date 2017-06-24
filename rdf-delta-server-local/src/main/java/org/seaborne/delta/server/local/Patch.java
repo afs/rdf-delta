@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local;
 
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.patchlog.FileEntry ;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatch ;

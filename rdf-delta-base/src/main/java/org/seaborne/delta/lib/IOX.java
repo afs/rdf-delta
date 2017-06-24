@@ -28,6 +28,7 @@ import java.util.function.Function ;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
+import org.seaborne.delta.DeltaFileException ;
 
 public class IOX {
     
@@ -133,6 +134,32 @@ public class IOX {
     }
 
     /**
+     * Ensure a directory exists, creating the directory and any missing
+     * directories on the path to it.
+     */
+    public static void ensureDirectory(Path dir, FileAttribute<? >... attrs) {
+        if ( Files.exists(dir) ) {
+            if ( ! Files.isDirectory(dir) )
+                throw new DeltaFileException("Exists but not a directory: "+dir);
+        }
+        try { Files.createDirectories(dir, attrs); }
+        catch (IOException ex) { new DeltaFileException("Failed to create directory: "+dir, ex);}
+    }
+    
+    /**
+     * Ensure a file exists - create an empty one if not. This operation does
+     * not create a directory path to the file.
+     */
+    public static void ensureFile(Path filePath, FileAttribute<? >... attrs) {
+        if ( Files.exists(filePath) ) {
+            if ( ! Files.isRegularFile(filePath) )
+                throw new DeltaFileException("Exists but not a regular file: "+filePath);
+        }
+        try { Files.createFile(filePath); }
+        catch (IOException ex) { new DeltaFileException("Failed to create file: "+filePath, ex);}
+    }
+
+    /**
      * Return a temporary filename path.
      * <p>
      * This operation is thread-safe.
@@ -160,7 +187,4 @@ public class IOX {
         }
         return null ;
     }
-    
-    
-    
 }
