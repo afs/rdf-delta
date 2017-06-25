@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory ;
 
 public abstract class PatchStore {
     // Needs revisiting to redesign.
-    // PatchLog+PatchStore: Worth package?
+    // XXX shared default setting assumes only one LocalServer
     
     protected static Logger LOG = LoggerFactory.getLogger(PatchStore.class); 
     
@@ -42,6 +42,10 @@ public abstract class PatchStore {
     // Providers should not be be removed if there are any in use. 
     static Map<String, PatchStore> patchStores = new HashMap<>();
 
+    public static boolean isRegistered(String providerName) {
+        return patchStores.containsKey(providerName);
+    }
+    
     // The provider name is used in config files. 
     public static void register(PatchStore impl) {
         String providerName = impl.getProviderName();
@@ -57,9 +61,17 @@ public abstract class PatchStore {
             throw new DeltaConfigException("No provider for '"+provideName+"'");  
         dftPatchStore = impl;
     }
+    
+    public static String getDefault() {
+        if ( dftPatchStore == null )
+            return null;
+        return dftPatchStore.getProviderName();
+    }
+    
     // ---- PatchStore.Provider
 
     // -------- Global
+    // XXX Split out PatchStore.Provider management.
     private static Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
     private static PatchStore dftPatchStore;
 
@@ -82,6 +94,14 @@ public abstract class PatchStore {
         return dftPatchStore ;
     }
     
+    /**
+     * Get the PatchStore by provider name.
+     */
+    public static PatchStore getPatchStoreByProvider(String providerName) {
+        return patchStores.get(providerName);
+    }
+    
+
     /** Return the {@link PatchLog}, which must already exist. */ 
     public static PatchLog getLog(Id dsRef) { 
         return logs.get(dsRef);

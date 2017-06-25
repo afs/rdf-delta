@@ -32,7 +32,7 @@ public class InitJenaDeltaServerLocal implements JenaSubsystemLifecycle {
         boolean original = DeltaSystem.DEBUG_INIT;
         DeltaSystem.DEBUG_INIT = DeltaSystem.DEBUG_INIT | JenaSystem.DEBUG_INIT;
         JenaSystem.logLifecycle("InitJenaDeltaServerLocal - start");
-        // Delta's (newer) version of the same imitialization system using different names. 
+        // Delta's (newer) version of the same initialization system using different names. 
         //DeltaSystem.init();
         JenaSystem.logLifecycle("InitJenaDeltaServerLocal - finish");
         DeltaSystem.DEBUG_INIT = original;

@@ -23,6 +23,8 @@ import java.util.List;
 import org.apache.jena.tdb.base.file.Location;
 import org.junit.Test;
 import static org.junit.Assert.*;
+
+import org.seaborne.delta.server.local.DPS ;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -42,19 +44,26 @@ public class TestLocalServerBuildConfig {
             .build();
         Location x = Location.create(TESTING);
         assertEquals(x, conf.location);
-        assertEquals(5050, conf.port);
     }
 
     @Test public void local_server_config_01() {
         // Blank start up.
         LocalServerConfig conf = LocalServerConfig.create()
-            .setPort(10)
             .setLocation("target/test_config01")
             .build();
         LocalServer.attach(conf);
     }
 
     @Test public void local_server_config_02() {
+        // Blank start up.
+        LocalServerConfig conf = LocalServerConfig.create()
+            .setLocation("target/test_config02")
+            .setLogProvider(DPS.PatchStoreProviderFile)
+            .build();
+        LocalServer.attach(conf);
+    }
+
+    @Test public void local_server_config_03() {
         // Configuration file not in server area. 
         LocalServerConfig conf = LocalServerConfig.create()
             .parse(TESTING+"delta.cfg")

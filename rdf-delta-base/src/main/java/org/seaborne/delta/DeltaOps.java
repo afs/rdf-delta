@@ -20,7 +20,6 @@ package org.seaborne.delta;
 
 import java.io.OutputStream ;
 
-import org.apache.jena.riot.out.NodeFormatterNT;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;

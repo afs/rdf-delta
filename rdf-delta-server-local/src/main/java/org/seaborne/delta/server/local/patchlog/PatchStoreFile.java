@@ -30,8 +30,13 @@ import org.seaborne.delta.server.local.DPS ;
 //PatchStoreFileProvider
 public class PatchStoreFile extends PatchStore {
 
+    public static void registerPatchStoreFile() {
+        PatchStore ps = new PatchStoreFile();
+        PatchStore.register(ps);
+    }
+    
     public PatchStoreFile() {
-        super(DPS.psFile) ;
+        super(DPS.PatchStoreProviderFile) ;
     }
 
     @Override

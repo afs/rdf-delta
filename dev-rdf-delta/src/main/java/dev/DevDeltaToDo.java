@@ -25,15 +25,17 @@ public class DevDeltaToDo {
     // PatchLog  concurrency.
     // PatchLog  source.cfg needs provider name. 
     //    And use it.
-    // PatchLog  Id for log eparat efrom 
+    // PatchLog  Id for log separate from dsRef 
     // Default provider in server config.
 
-    // Run - add delete case.
+    // Run - add a delete case.
     
     // * DeltaLink.getConnection
     // * HTTP interface / Control interface
     
     // DeltaConnection XXX's
+    
+    // Initial data in Dlink.createDataSources.
     
     // PatchLogServer
 	//   Server lifecycle.
@@ -44,21 +46,16 @@ public class DevDeltaToDo {
     
     // DeltaConnection + DSG = ?
     
-    // DeltaLink
-    // Remove: dLink.listDatasets() , only listDescriptions -> listDescriptions()
-    
     // ** DeltaConnection clean-up.
     // Split create into create-> id, no connection. Adds to pool.
     // Always pool.
-    // DLink..connect then only DeltaConnection.connect
+    // DLink.connect then only DeltaConnection.connect
     
+    // DeltaConnectionPool.
     // DeltaConnection.connect
     // DeltaConnection.attach = connect + new state. = connect + dConn.setupLocal(dsg) -> ??
     // Take out registration.
     
-    
-    // Simplify DeltaConnection to be 
-
 	// Registration token on S_Fetch
 	// --autoregister
     
@@ -66,8 +63,6 @@ public class DevDeltaToDo {
     // Initial data fetch.
     
     // Protect read in S_Data.
-    
-    // base is a directory with spaces in the path name.
     
     // Cmds 
     // rm --server URL x1 x2 x3 ...
@@ -84,22 +79,10 @@ public class DevDeltaToDo {
     
     // ping to return timeofday.
     
-    // Concurrency while creating and deleting DataSources, accessing PatchLogs.
-    
     // "Get all patches x to y."
 
-    // Initial data in DeltaConnection.create.
-    
     // Zone-only managed dataset.
     // Don't allow DSG in DeltaConnection.connect
-    
-    // **** DeltaConnectionPool.
-    
-    // DeltaPatchLog:
-//        void append(RDFPatch patch, int version) {
-//            // [DP-Fix]
-//            // If the patch is bad, we need to remove it else it will be assimilated on restart.
-//            // Timing hole.
     
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write
@@ -109,6 +92,8 @@ public class DevDeltaToDo {
         
     // Id.nil for "no previous".
     // Id for "any previous" (risky!)
+
+    // POST patch -> 201 Created + ** Location: **
     
     // DeltaConnection pooling.
     // so try(DeltaConnection){} works well.
@@ -120,17 +105,7 @@ public class DevDeltaToDo {
     
     // Check bnode URIs
     
-    // XXX remove DConn, DLink remote version getting, and only have PatchLogInfo.
-    // Combine with Zone?
-    // Get allLogStates at once.
-    // zone.attach -- bad name.
-    
-    // Write patch to tmp file, move into place to accept.
-    //    Or verify in mem space then write when accepted.
-    //    Current bug,
-    
     // Migrate PatchLogServer; relationship to Zone?
-    // Migrate autocommit package.
     
     // URI design. RDF Patch REST 
     //   http://server:1066/{WebAppCxt}/{shortName}/
@@ -142,16 +117,6 @@ public class DevDeltaToDo {
     //  Subunits are individual patches. 
     // Then delta is admin/control.
 
-    // Log to update triple store
-    // ** Log storage abstraction.
-
-    // POST patch -> 201 Created + ** Location: **
-    
-    // Renames:
-    //   Server PatchLog -> PatchLogStore
-    //   DeltaConnection -> PatchLog, DeltaPatchLog, DataSource
-    //     PatchLogConnection PatchLogConn
-    
     // Documentation
     //   Patch
     //   Protocol/delta

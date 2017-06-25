@@ -45,6 +45,7 @@ import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,33 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class LocalServer {
-    static { DeltaSystem.init(); }
+    private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
+
+    static { 
+        DeltaSystem.init();
+        initSystem();
+    }
+    
+    /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
+    static private void initSystem() {
+        // Ensure the file-based PatchStore provider is available
+        if ( ! PatchStore.isRegistered(DPS.PatchStoreProviderFile) ) {
+            FmtLog.warn(LOG, "PatchStoreFile provider not registered");
+            PatchStore ps = new PatchStoreFile();
+            if ( ! DPS.PatchStoreProviderFile.equals(ps.getProviderName())) {
+                FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreProviderFile, ps.getProviderName());
+                throw new DeltaConfigException();
+            }
+            PatchStore.register(ps);
+        }
+        
+        // Default the log provider to "file"
+        if ( PatchStore.getDefault() == null ) {
+            //FmtLog.warn(LOG, "PatchStore default not set.");
+            PatchStore.setDefault(DPS.PatchStoreProviderFile);
+        }
+    }
+    
     /* File system layout:
      *   Server Root
      *      delta.cfg
@@ -75,7 +102,6 @@ public class LocalServer {
      *  Need to stop two LocalServers on one location.
      */
     
-    private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
     
     private static Map<Location, LocalServer> servers = new ConcurrentHashMap<>();
     
@@ -127,6 +153,12 @@ public class LocalServer {
         Objects.requireNonNull(conf, "Null for configuation");
         if ( conf.location == null )
             throw new DeltaConfigException("No location");
+        if ( servers.containsKey(conf.location) ) {
+            LocalServer server = servers.get(conf.location);
+            if ( ! conf.equals(server.getConfig()) )
+                throw new DeltaConfigException("Attempt to have two servers, with different configurations for the same file area"); 
+            return server;
+        }
         
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
         Pair<List<Path>, List<Path>> pair = scanDirectory(conf.location, dataRegistry);
@@ -144,6 +176,7 @@ public class LocalServer {
         }
         return attachServer(conf, dataRegistry);
     }
+    
     
     public static void release(LocalServer localServer) {
         Location key = localServer.serverConfig.location;
@@ -264,7 +297,9 @@ public class LocalServer {
     }
 
     private void init() {
-        PatchStore.setDefault(DPS.psFile);
+        // XXX PatchStore.setDefault -> assumes only one LocalServer
+        if ( serverConfig.logProvider != null )
+            PatchStore.setDefault(serverConfig.logProvider);  
     }
     
     public void shutdown() {
@@ -294,16 +329,10 @@ public class LocalServer {
         return ds;
     }
 
-    /** Get port - may be negative to indicate "no valid port" */
-    public int getPort() {
-        return serverConfig.port;
-    }
-
-    /** Get port - maybe negative to indicate "no valid port" */
+    /** Get the LocalServerConfig use for this server */
     public LocalServerConfig getConfig() {
         return serverConfig;
     }
-
 
     public List<Id> listDataSourcesIds() {
         return new ArrayList<>(dataRegistry.keys());

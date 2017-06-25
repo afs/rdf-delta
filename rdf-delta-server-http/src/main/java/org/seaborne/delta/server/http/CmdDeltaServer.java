@@ -95,11 +95,6 @@ public class CmdDeltaServer {
 
         // Logging.
         
-        // Server setup - find registered sources.
-//        Path sources = base.resolve(DPNames.SOURCES).toAbsolutePath();
-//        Path patches = base.resolve(DPNames.PATCHES).toAbsolutePath();
-//        DataSource.formatSourceArea(sourceArea, patchesArea);
-//        DataSource.cleanSourceArea(sourceArea, patchesArea);
         Location baseArea = IOX.asLocation(base);
         
         if ( configFile == null )

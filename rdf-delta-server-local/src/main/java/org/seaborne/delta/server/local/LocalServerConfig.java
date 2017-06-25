@@ -18,15 +18,15 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.seaborne.delta.DeltaConst.F_PORT ;
+import static org.seaborne.delta.DeltaConst.F_LOG_TYPE ;
 import static org.seaborne.delta.DeltaConst.F_VERSION;
-import static org.seaborne.delta.DeltaConst.PORT ;
 import static org.seaborne.delta.DeltaConst.SYSTEM_VERSION ;
 
 import java.io.IOException ;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects ;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.io.IndentedWriter ;
@@ -42,15 +42,17 @@ import org.slf4j.Logger;
 
 public class LocalServerConfig {
     /** Location of server area for Datasources */ 
-    public Location location;
-    /** Port number */
-    public int port;
-    /** File name of the config file (if any - may be null) */
-    public String configFile;
+    public final Location location;
     
-    private LocalServerConfig(Location location, int port, String configFile) {
+    /** Name of the default PatchStore provider */ 
+    public final String logProvider;
+    
+    /** File name of the config file (if any - may be null) */
+    public final String configFile;
+    
+    private LocalServerConfig(Location location, String logProvider, String configFile) {
         this.location = location;
-        this.port = port;
+        this.logProvider = logProvider;
         this.configFile = configFile;
     }
     
@@ -63,15 +65,11 @@ public class LocalServerConfig {
     static public class Builder {
         private static Logger LOG = Delta.DELTA_CONFIG_LOG;
         private Location location = null;
-        private int port = DeltaConst.PORT;
         private String configFile = null;
-        
-        public Builder setPort(int port) {
-            this.port = port ;
-            return this;
-        }
+        private String logProvider = null;
         
         public Builder setLocation(Location location) {
+            Objects.requireNonNull(location);
             if ( ! location.exists() )
                 throw new DeltaConfigException("No such location: "+location);
             this.location = location ;
@@ -79,8 +77,15 @@ public class LocalServerConfig {
         }
 
         public Builder setLocation(String location) {
+            Objects.requireNonNull(location);
             Location loc = Location.create(location);
             return setLocation(loc);
+        }
+        
+        public Builder setLogProvider(String logProvider) {
+            Objects.requireNonNull(logProvider);
+            this.logProvider = logProvider;
+            return this;
         }
         
         /** parse a config file.
@@ -96,6 +101,7 @@ public class LocalServerConfig {
                 location = IOX.asLocation(locPath);
             }
 
+            // -- version
             JsonObject obj = JSON.read(configFile);
             int version = JSONX.getInt(obj, F_VERSION, -99);
             if ( version == -99 ) {
@@ -105,18 +111,30 @@ public class LocalServerConfig {
             if ( version != SYSTEM_VERSION )
                 throw new DeltaConfigException("Version number for LocalServer must be "+DeltaConst.SYSTEM_VERSION+".");
             
-            int port = JSONX.getInt(obj, F_PORT, -1);
-            if ( port <= 0  ) {
-                LOG.info("No port number: Using default "+PORT);
-                port = PORT;
-            }
-            setPort(port);
             this.configFile = configFile;
+
+            // -- log provider
+            String logProvider = JSONX.getStrOrNull(obj, F_LOG_TYPE);
+            if ( logProvider == null )
+                logProvider = DeltaConst.LOG_FILE;
+            // Map to the provider name.
+            switch (logProvider) {
+                case DeltaConst.LOG_FILE: 
+                    logProvider = DPS.PatchStoreProviderFile;
+                    break;
+//                // Other
+//                case DeltaConst.LOG_SQL:
+//                    logProvider = DPS.????;
+//                    break;
+//                case DeltaConst.LOG_S3:
+//                    logProvider = DPS.????;
+//                    break;
+            }
             return this;  
         }
         
         public LocalServerConfig build() {
-            return new LocalServerConfig(location, port, configFile);
+            return new LocalServerConfig(location, logProvider, configFile);
         }
     }
     
@@ -124,8 +142,8 @@ public class LocalServerConfig {
         //throw new DeltaConfigException("No such file: "+path.toString());
         JsonObject obj = JSONX.buildObject(b->{
             b.key(F_VERSION).value(DeltaConst.SYSTEM_VERSION);
-            // Default port.
-            b.key(F_PORT).value(PORT);
+            // Default log provider
+            b.key(F_LOG_TYPE).value(DeltaConst.LOG_FILE);
         });
         try ( IndentedWriter out = new IndentedWriter(Files.newOutputStream(path)); ) {
             JSON.write(out, obj);
@@ -139,7 +157,6 @@ public class LocalServerConfig {
         int result = 1;
         result = prime * result + ((configFile == null) ? 0 : configFile.hashCode());
         result = prime * result + ((location == null) ? 0 : location.hashCode());
-        result = prime * result + port;
         return result;
     }
 
@@ -161,8 +178,6 @@ public class LocalServerConfig {
             if ( other.location != null )
                 return false;
         } else if ( !location.equals(other.location) )
-            return false;
-        if ( port != other.port )
             return false;
         return true;
     }

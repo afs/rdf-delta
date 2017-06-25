@@ -37,6 +37,7 @@ import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
 
 /**
  * Tests of {@link LocalServer} for creating and 
@@ -52,6 +53,7 @@ public class TestLocalServerCreateDelete {
     private static String DIR = "target/testing/delta";
 
     private static void initialize() {
+        PatchStore.clearPatchLogs();
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
         // copy in setup.

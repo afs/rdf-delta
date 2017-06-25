@@ -53,7 +53,8 @@ public class DeltaConst {
     public static final String F_CLIENT        = "client";
     public static final String F_TOKEN         = "token";
     public static final String F_BASE          = "base";
-    public static final String F_PORT          = "port";
+    //public static final String F_PORT          = "port";
+    
     public static final String F_SOURCES       = "sources";
     public static final String F_ID            = "id";
     public static final String F_VERSION       = "version";
@@ -72,6 +73,11 @@ public class DeltaConst {
     /** Default choice of port */
     public static final int    PORT            = 1066;
     public static final int    SYSTEM_VERSION  = 1; 
+    
+    // Short names of log providers. Lowercase.
+    public static final String LOG_FILE        = "file";
+    public static final String LOG_SQL         = "sql";
+    public static final String LOG_S3          = "s3";
 
     // HTTP query string.
     public static final String paramZone       = "zone";

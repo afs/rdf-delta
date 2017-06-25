@@ -18,12 +18,7 @@
 
 package org.seaborne.delta.server.local;
 
-import java.io.File ;
-import java.util.regex.Matcher ;
-import java.util.regex.Pattern ;
-
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 import org.slf4j.Logger ;
 
@@ -32,34 +27,10 @@ public class DPS {
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
     
-    public static String psFile = "PatchStoreFileProvider";
+    public static String PatchStoreProviderFile = "PatchStoreFileProvider";
     
-    /** Find the highest index in a directpry of files */
-    public static int scanForIndex(String directory, String namebase) {
-        // TODO Come back and make efficient??
-        // - e.g. a PersistentCounter and scan up from there only
-        // - or no scan and combinew with the safe-write dance. 
-        Pattern pattern = Pattern.compile(namebase+"([0-9]*)") ;
-        int max = -1 ;
-        String[] x = new File(directory).list() ;
-        if ( x == null )
-            // No directory.
-            return -1 ;
-        for ( String fn : x ) {
-            Matcher m = pattern.matcher(fn) ;
-            if ( ! m.matches() ) {              // anchored
-                LOG.info("No match: "+fn) ;
-                continue ;
-            }
-            LOG.info("Match:    "+fn) ;
-            String numStr = m.group(1) ;
-            int num = Integer.parseInt(numStr) ;
-            max = Math.max(max, num) ;
-        }
-        return max ;
-    }
+    private static volatile boolean initialized = false ;
     
-    private static volatile boolean initialized = false ; 
     public static void init() { 
         if ( initialized ) 
             return ;
@@ -71,11 +42,8 @@ public class DPS {
         }
     }
     
+    // Things to do once.
     private static void initOnce() {
-        System.err.println("Hard coded registration of PatchStoreFile");
-        
-        PatchStore ps = new PatchStoreFile();
-        PatchStore.register(ps);
-        PatchStore.setDefault(ps.getProviderName());
+        PatchStoreFile.registerPatchStoreFile();
     }
 }

@@ -90,7 +90,7 @@ public class S_Patch extends HttpOperationBase {
             JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()
                 .startObject()
-                .key(DeltaConst.F_VERSION).value(version)
+                .pair(DeltaConst.F_VERSION, version)
                 .finishObject()
                 .build();
             OutputStream out = action.response.getOutputStream();
