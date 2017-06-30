@@ -18,10 +18,11 @@
 
 package org.seaborne.delta;
 
+// AtomicLong.
 public class RefLongMem implements RefLong {
     private long value;
 
-    RefLongMem(long x) { this.value = x; }
+    public RefLongMem(long x) { this.value = x; }
 
     @Override
     public long getInteger() {
@@ -29,7 +30,9 @@ public class RefLongMem implements RefLong {
     }
 
     @Override
-    public void setInteger(long value) { this.value = value; } 
+    public void setInteger(long value) {
+        this.value = value ;
+    }
 
     @Override
     public long inc() {

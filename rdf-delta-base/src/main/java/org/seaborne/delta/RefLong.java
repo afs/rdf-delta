@@ -18,7 +18,7 @@
 
 package org.seaborne.delta;
 
-/** Reference to an integer value */ 
+/** Reference to an integer value (as a long) */ 
 public interface RefLong {
     
     /** Get the current value */

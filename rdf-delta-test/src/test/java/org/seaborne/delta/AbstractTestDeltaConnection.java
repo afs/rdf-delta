@@ -18,23 +18,17 @@
 
 package org.seaborne.delta;
 
-import static org.junit.Assert.assertEquals ;
+import static org.junit.Assert.* ;
 import static org.junit.Assert.assertFalse ;
-import static org.junit.Assert.assertNotNull ;
-import static org.junit.Assert.assertNull ;
 import static org.junit.Assert.assertTrue ;
-import static org.junit.Assert.fail ;
 
-import java.nio.file.Files ;
-import java.nio.file.Path ;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger ;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.ext.com.google.common.base.Objects;
-import org.apache.jena.riot.RDFDataMgr ;
-import org.apache.jena.riot.system.StreamRDFLib ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
@@ -44,9 +38,10 @@ import org.apache.jena.tdb.base.file.Location;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.client.DataState ;
-import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.client.LocalStorageType ;
+import org.seaborne.delta.client.DeltaClient ;
+import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFPatch;
@@ -55,13 +50,13 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 /** Test a client connection over a link */  
 public abstract class AbstractTestDeltaConnection {
-    protected static final String FILES_DIR = DeltaTestLib.TDIR+"test_dconn/";
-    
+    private static String DIR = "target/Zone";
+
     @BeforeClass public static void setupZone() { 
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
-        String DIR = "target/Zone";
         Location loc = Location.create(DIR);
         FileOps.ensureDir(DIR);
+        FileOps.clearAll(DIR);
         Zone.get().init(loc);
     }
     
@@ -69,154 +64,68 @@ public abstract class AbstractTestDeltaConnection {
         Zone.get().shutdown();
     }
     
-    public abstract Setup.LinkSetup getSetup();
+    protected abstract Setup.LinkSetup getSetup();
     
-    public DeltaLink getLink() { return getSetup().getLink(); }
-    
-    public Zone getZone() { return Zone.get(); }
-    
-    protected DeltaConnection create() {
-        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-        return create(dsg);
-    }
-    
-    protected static final String DS_NAME = "dsTest";
-    protected static final String DS_URI = "http://example/"+DS_NAME;
-
-    protected DeltaConnection create(DatasetGraph shadow) {
-        DeltaLink dLink = getLink();
-        if ( ! dLink.isRegistered() ) {
-            Id clientId = Id.create();
-            RegToken regToken = dLink.register(clientId);
-        }                
-        Id clientId = dLink.getClientId();
-        DeltaConnection dConn = DeltaConnection.create(getZone(), DS_NAME, DS_URI, shadow, dLink);
-        return dConn;
-    }
-    
-    protected DeltaConnection connect(Id dsRef, DatasetGraph shadow) {
-        DeltaConnection dConn = DeltaConnection.connect(getZone(), dsRef, shadow, getLink());
-        return dConn;
-    }
-    
-    protected DeltaConnection attach(Id dsRef, DatasetGraph shadow) {
-        DeltaConnection dConn = DeltaConnection.attach(getZone(), dsRef, shadow, getLink());
-        return dConn;
-    }
-
-    @Test(expected=DeltaBadRequestException.class)
-    public void connect_non_existing() {
-        DeltaLink dLink = getLink();
+    protected DeltaLink getLink() {
+        DeltaLink dLink = getSetup().getLink() ;
         Id clientId = Id.create();
         RegToken regToken = dLink.register(clientId);
-        DatasetGraph shadow = null;
-        Id dsRef = Id.create();
-        DeltaConnection dConn = DeltaConnection.connect(getZone(), dsRef, shadow, dLink);
-    }
-    
-    @Test
-    public void create_dconn_0() {
-        // Create on the Delta link then connect DeltaConnection.
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        String DS_NAME = "123";
-        Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource");
-        DeltaConnection dConn = DeltaConnection.connect(getZone(), dsRef, /*shadow*/null, dLink);
+        return dLink;
     }
 
+    protected DeltaLink getLinkUnregister() {
+        return getSetup().getLink() ;
+    }    
+    
+    protected Zone getZone() { return Zone.get(); }
+    
+    protected DeltaClient createDeltaClient() {
+        return DeltaClient.create(getZone(), getLink());  
+    }
+    
+    protected DeltaClient createDeltaClient(String name) {
+        DeltaClient dClient = DeltaClient.create(getZone(), getLink());
+        dClient.newDataSource(name, "http://example/"+name, LocalStorageType.MEM);
+        return dClient;
+    }
+    
+    protected DeltaClient getCreateDeltaClient(String name) {
+        DeltaClient dClient = DeltaClient.create(getZone(), getLink());
+        dClient.newDataSource(name, "http://example/"+name, LocalStorageType.MEM);
+        return dClient;
+    }
+
+    // Connection create.
+    
     @Test
     public void create_dconn_1() {
-        // Create via DeltaConnection.
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        Id dsRef = Id.create();
-        DeltaConnection dConn = DeltaConnection.create(getZone(), "create_dconn_1", /*shadow*/null, /*uri*/null, dLink);
-    }
-
-    @Test
-    public void create_dconn_2() {
-        // Create twice
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        DatasetGraph shadow = null;
-        
-        DeltaConnection dConn1 = DeltaConnection.create(getZone(), "create_dconn_2", /*shadow*/null, /*uri*/null, dLink);
-        try {
-            DeltaConnection dConn2 = DeltaConnection.create(getZone(), "create_dconn_2", /*shadow*/null, /*uri*/null, dLink);
-            fail("Didn't get a DeltaBadRequestException");
-        } catch (DeltaBadRequestException ex) {}
-    }
-
-    @Test
-    public void create_dconn_3() {
-        // Versions
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        DatasetGraph shadow = null;
-        
-        DeltaConnection dConn = DeltaConnection.create(getZone(), "create_dconn_3", /*shadow*/null, /*uri*/null, dLink);
-        assertEquals(0, dConn.getLocalVersion());
-        assertEquals(0, dConn.getRemoteVersionLatest());
-    }
-
-    @Test
-    public void create_delete_dconn_1() {
-        Id dsRef = null;
-        try(DeltaConnection dConn = create()) {
-            assertTrue(dConn.isValid());
-            dsRef = dConn.getDataSourceId();
-            dConn.removeDataSource();
-            
-            assertFalse(dConn.isValid());
-
-            // Immediately gone. 
-            assertFalse(getZone().exists(dsRef));
-            
-            DataState ds = getZone().get(dsRef);
-            assertNull(ds);
-        }
+        DeltaClient dClient = createDeltaClient();
+      
+      String DS_NAME = "create_dconn_1";
+      String DS_URI = "http://example/"+DS_NAME;
+      
+      // This attaches it as well.
+      Id dsRef = dClient.newDataSource(DS_NAME, DS_URI, LocalStorageType.MEM);
+      DeltaConnection dConn = dClient.get(dsRef);
+      assertNotNull(dConn.getDatasetGraph());
+      assertEquals(0, dConn.getLocalVersion());
+      assertEquals(0, dConn.getRemoteVersionLatest());
+      
+      Id dsRef1 = dConn.getDataSourceId();
+      assertEquals(dsRef, dsRef1);
+      
+      PatchLogInfo info = dConn.getPatchLogInfo();
+          
+      assertEquals(DS_NAME, info.getDataSourceName());
+      assertEquals(dsRef, info.getDataSourceId());
     }
     
-    @Test
-    public void create_delete_dconn_2() {
-        Id dsRef = null;
-        Path path = null;
-        try(DeltaConnection dConn = create()) {
-            assertTrue(dConn.isValid());
-            dsRef = dConn.getDataSourceId();
-            path = getZone().get(dsRef).getStatePath();
-            dConn.removeDataSource();
-            assertFalse(dConn.isValid());
-        }
-        
-        assertFalse(getZone().exists(dsRef));
-        DataState ds = getZone().get(dsRef);
-        assertNull(ds);
-
-        if ( path != null )
-            assertFalse("Zone data state persistence", Files.exists(path));
-    }
-
-    @Test
-    public void initial_data_1() {
-        // Create twice
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        dLink.register(clientId);
-        DeltaConnection dConn = DeltaConnection.create(getZone(), "NEW", /*shadow*/null, /*uri*/null, dLink);
-        String url1 = dConn.getInitialStateURL();
-        assertNotNull(url1);
-        RDFDataMgr.parse(StreamRDFLib.sinkNull(), url1);
-    }
-
     // Make a change, ensure the local dataset is changed. 
     @Test
     public void change_1() {
-        try(DeltaConnection dConn = create()) {
+        String NAME = "change_1s";
+        DeltaClient dClient = createDeltaClient(NAME); 
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             long verLocal0 = dConn.getLocalVersion();
             long verRemotel0 = dConn.getRemoteVersionLatest();
             
@@ -239,7 +148,9 @@ public abstract class AbstractTestDeltaConnection {
     // Make a change, get the patch, apply to a clean dsg. Are the datasets the same?
     @Test
     public void change_2() {
-        try(DeltaConnection dConn = create()) {
+        String NAME = "change_2";
+        DeltaClient dClient = createDeltaClient(NAME); 
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             Id dsRef = dConn.getDataSourceId();
             long version = dConn.getRemoteVersionLatest();
 
@@ -263,10 +174,9 @@ public abstract class AbstractTestDeltaConnection {
     // Make two changes in one DeltaConnection.
     @Test
     public void change_change_1() {
-        try(DeltaConnection dConn = create()) {
-//            Id dsRef = dConn.getDatasourceId();
-//            long version = dConn.getRemoteVersionLatest();
-    
+        String NAME = "change_2";
+        DeltaClient dClient = createDeltaClient(NAME); 
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
             
             Txn.executeWrite(dsg, ()->{
@@ -284,6 +194,8 @@ public abstract class AbstractTestDeltaConnection {
         }
     }
 
+    // XXX More cases of chnage-restart inc new zone. 
+    
     // ---- Same dataset carried across connections
     
     @Test public void change_read_same_1() {
@@ -298,6 +210,17 @@ public abstract class AbstractTestDeltaConnection {
         change_read_same(()->getSetup().restart());
     }
 
+    private static AtomicInteger counter = new AtomicInteger(0); 
+    private DeltaClient resetDeltaClient(String name) {
+        DeltaClient dClient = createDeltaClient();
+        Id dsRef = dClient.nameToId(name);
+        if ( ! dClient.getZone().exists(dsRef) )
+            dClient.attach(dsRef, LocalStorageType.MEM);
+        else
+            dClient.connect(dsRef);
+        return dClient; 
+    }
+
     /** 
      * Make change.
      * Some kind of reset.
@@ -308,13 +231,16 @@ public abstract class AbstractTestDeltaConnection {
         // Make change.
         // Reconnect to the same server and see if the versions reflect the change.
         Quad quad = DeltaTestLib.freshQuad();
-        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
+        DatasetGraph dsgBase;
     
         long verLocal = -999;
         long verRemote = -999;
         Id dsRef;
         
-        try(DeltaConnection dConn = create(dsgBase)) {
+        String NAME = "DS-"+counter.incrementAndGet();
+        
+        DeltaClient dClient = createDeltaClient(NAME); 
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
@@ -329,8 +255,12 @@ public abstract class AbstractTestDeltaConnection {
         
         betweenSections.run();
         
-        // Reconnect
-        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+        // New client.
+        dClient = resetDeltaClient(NAME);
+        // Same name.
+        // Zone should have found (or not lost) the existing setup. 
+        // dClient.connect(NAME);
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
             long ver = dConn.getLocalVersion();
             long ver2 = dConn.getRemoteVersionLatest();
@@ -364,9 +294,13 @@ public abstract class AbstractTestDeltaConnection {
     // Update, reset, read.
     private void change_read_new(Runnable betweenSections) {
         Quad quad = DeltaTestLib.freshQuad();
-        Id dsRef = null;
         
-        try(DeltaConnection dConn = create()) {
+        String NAME = "DS-"+counter.incrementAndGet();
+        DeltaClient dClient = createDeltaClient(NAME);
+        Id dsRef;
+        
+        try(DeltaConnection dConn = dClient.get(NAME)) {
+            dConn.getPatchLogInfo().getDataSourceId();
             dsRef = dConn.getDataSourceId();
             long version = dConn.getRemoteVersionLatest();
             DatasetGraph dsg = dConn.getDatasetGraph();
@@ -375,13 +309,15 @@ public abstract class AbstractTestDeltaConnection {
 
         betweenSections.run();
 
-        DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
-        try(DeltaConnection dConn = attach(dsRef, dsg2)) {
-            boolean b = dsg2.contains(quad);
+        // New client.
+        // Rebuild.
+        dClient = resetDeltaClient(NAME);
+        try(DeltaConnection dConn = dClient.get(NAME)) {
+            boolean b = dConn.getDatasetGraph().contains(quad);
             assertTrue(b);
         }
     }
-
+    
     @Test public void change_change_read_same_1() {
         change_change_read_Same(()->{});
     }
@@ -414,7 +350,10 @@ public abstract class AbstractTestDeltaConnection {
         long verRemote = -999;
         Id dsRef;
         
-        try(DeltaConnection dConn = create(dsgBase)) {
+        String NAME = "DS-"+counter.incrementAndGet();
+        DeltaClient dClient = createDeltaClient(NAME); 
+        
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
@@ -431,7 +370,9 @@ public abstract class AbstractTestDeltaConnection {
         betweenSections1.run();
         
         // Reconnect, make second change.
-        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+        dClient = resetDeltaClient(NAME);
+
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
             
             Txn.executeWrite(dsg, ()->dsg.add(quad2));
@@ -449,7 +390,8 @@ public abstract class AbstractTestDeltaConnection {
         betweenSections2.run();
         
         // Reconnect and read
-        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
+        dClient = resetDeltaClient(NAME); 
+        try(DeltaConnection dConn = dClient.get(NAME)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
             long ver = dConn.getLocalVersion();
             long ver2 = dConn.getRemoteVersionLatest();

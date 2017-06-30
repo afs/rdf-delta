@@ -54,8 +54,8 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.util.FmtUtils ;
 import org.apache.jena.sparql.util.NodeUtils ;
 import org.apache.jena.util.iterator.ExtendedIterator ;
-import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.client.DeltaConnection ;
 import org.seaborne.delta.client.DeltaLib ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
@@ -138,7 +138,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             throw new NotImplemented("NEED THE STATE AREA; NEED THE DATASOURCE ID; NEED THE CLIENT ID");
         }
         DeltaLink dc = DeltaLinkHTTP.connect(source) ;
-        DeltaConnection client = DeltaConnection.connect(null, null, dsg, dc) ;
+        DeltaConnection client = null;
         Runnable r = ()->{
             try { client.sync(); }
             catch (Exception ex) { 

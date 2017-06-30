@@ -32,30 +32,37 @@ import java.util.regex.Pattern ;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.DatasetGraphFactory ;
+import org.apache.jena.tdb.TDBFactory ;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
-import org.seaborne.delta.client.DeltaConnection.Backing;
 import org.seaborne.delta.lib.IOX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** A "Zone" is a collection of named data sources. */
+/** A "Zone" is a collection of named data sources. It tracks their state {@link DataState}
+ * across JVM restarts. It does not manage the RDF contents. 
+ */
 public class Zone {
     private static final Logger LOG = LoggerFactory.getLogger(Zone.class);
     private static final String DELETE_MARKER = "-deleted";
+
+    private static Zone singleton = new Zone();
     
     // Zone state
-    private volatile boolean INITIALIZED = false;
-    private Map<Id, DataState> states = new ConcurrentHashMap<>();
-    private Path connectionStateArea = null;
-    private Location connectionStateLocation = null;
-    private Object zoneLock = new Object();
-    
+    private volatile boolean      INITIALIZED             = false ;
+    private Map<Id, DataState>    states                  = new ConcurrentHashMap<>() ;
+    private Map<Id, DatasetGraph> datasets                = new ConcurrentHashMap<>() ;
+    private Map<String, Id>       names                   = new ConcurrentHashMap<>() ;
+    private Path                  connectionStateArea     = null ;
+    private Location              connectionStateLocation = null ;
+    private Object                zoneLock                = new Object() ;
+
     //XXX Current Restriction : one zone. 
     private Zone() {}
-    
-    private static Zone singleton = new Zone();
     
     public static Zone get() {
         return singleton;
@@ -63,6 +70,8 @@ public class Zone {
     
     public void reset() {
         states.clear();
+        datasets.clear();
+        names.clear();
     }
     
     /**
@@ -73,7 +82,7 @@ public class Zone {
         synchronized(zoneLock) {
             if ( ! INITIALIZED )
                 return ;
-            states.clear();
+            reset();
             connectionStateArea = null;
             INITIALIZED = false;
         }
@@ -109,9 +118,18 @@ public class Zone {
             x.forEach(p->LOG.info("Connection : "+p));
             x.forEach(p->{
                 DataState dataState = readDataState(p);
-                states.put(dataState.getDataSourceId(), dataState);
+                register(dataState);
             });
         }
+    }
+    
+    private void register(DataState dataState) {
+        Id dsRef = dataState.getDataSourceId();
+        states.put(dsRef, dataState);
+        DatasetGraph dsg = localStorage(dataState.getStorageType(), dataPath(dataState));
+        if ( dsg != null )
+            datasets.put(dsRef, dsg);
+        names.put(dataState.getName(), dsRef);
     }
     
     private boolean isInitialized() {
@@ -125,29 +143,68 @@ public class Zone {
 
     /** Is there an area aready? */
     public boolean exists(Id dsRef) {
+        // Reame as registered?
         return states.containsKey(dsRef);
     }
 
     /** Initialize a new area. */
-    public DataState create(Id dsRef, String name, String uri, Backing backing) {
-        Objects.requireNonNull(dsRef);
-        Objects.requireNonNull(name);
-        Path statePath = null;
+    public DataState create(Id dsRef, String name, String uri, LocalStorageType storage) {
+        Objects.requireNonNull(dsRef, "Data source reference");
+        Objects.requireNonNull(name, "Data source name");
+        Objects.requireNonNull(storage, "Storage type");
+        
+        // Per data source area.
+        Path conn = connectionStateArea.resolve(name);
+        FileOps.ensureDir(conn.toString());
+        
+        // {zone}/{name}/state
+        Path statePath = conn.resolve(DataState.STATE_FILE);
+        // {zone}/{name}/data
+        Path dataPath = storage.isEphemeral() ? null : conn.resolve(DATA);
+        
         
         synchronized (zoneLock) {
+            if ( ! INITIALIZED )
+                throw new DeltaException("Not initialized");
             if ( states.containsKey(dsRef) )
                 throw new DeltaException("Already exists: data state for " + dsRef + " : name=" + name);
-            if ( connectionStateArea != null ) {
-                Path conn = connectionStateArea.resolve(name);
-                FileOps.ensureDir(conn.toString());
-                statePath = conn.resolve(DataState.STATE_FILE);
-                // XXX PathOps.
-                Path dataPath = conn.resolve(DATA);
+            if ( dataPath != null )
                 FileOps.ensureDir(dataPath.toString());
-            }
-            DataState dataState = new DataState(this, statePath, dsRef, name, uri, 0, null);
-            states.put(dsRef, dataState);
+            DataState dataState = new DataState(this, statePath, storage, dsRef, name, uri, 0, null);
+            register(dataState);
             return dataState;
+        }
+    }
+    
+    private Path stateArea(DataState dataState) {
+        return connectionStateArea.resolve(dataState.getName());
+    }
+    
+    private Path dataPath(DataState dataState) {
+        Path dataPath = stateArea(dataState).resolve(DATA);
+        return dataPath;
+    }
+
+    /** 
+     * Return the zone-managed dataset (if any).
+     * Return null if the dataset is externally managed.  
+     */
+    public DatasetGraph getDataset(DataState dataState) {
+        return datasets.get(dataState.getDataSourceId()); 
+    }
+    
+    /** Create a dataset appropriate to the storage type.
+     * This does <em>not</em> write the configuration details into the on-disk zone information.
+     */
+    public DatasetGraph localStorage(LocalStorageType storage, Path dataPath) {
+        switch(storage) {
+            case EXTERNAL:     return null;
+            case MEM:          return DatasetGraphFactory.createTxnMem();
+//            case NONE:         return null;
+            case TDB:
+                return TDBFactory.createDatasetGraph(IOX.asLocation(dataPath));
+            default :
+                throw new NotImplemented("Zone::localStorage = "+storage);
         }
     }
     
@@ -155,6 +212,7 @@ public class Zone {
         synchronized (zoneLock) {
             DataState dataState = get(dsRef);
             states.remove(dataState.getDataSourceId());
+            datasets.remove(dataState.getDataSourceId());
             if ( connectionStateArea != null ) {
                 Path path = connectionStateArea.resolve(dataState.getName());
                 if ( false ) {
@@ -170,6 +228,21 @@ public class Zone {
         }
     }
     
+    /** Refresh the {@link DataState} of a datasource */  
+    public void refresh(Id datasourceId) {
+        DataState ds = connect(datasourceId);
+        if ( ds == null )
+            return;
+        ds.refresh();
+    }
+
+    /** Connect to a {@code DataSorce} that is already in this zone. */ 
+    public DataState connect(Id datasourceId) {
+        if ( ! exists(datasourceId) )
+            throw new DeltaConfigException("Not found: "+datasourceId);
+        return states.get(datasourceId);
+    }
+
     // Agrees with IOX.uniqueDerivedPath for DELETE_MARKER
     private static Pattern DELETED = Pattern.compile(DELETE_MARKER+"-\\d+"); 
     private static boolean isDeleted(Path path) {
@@ -184,25 +257,15 @@ public class Zone {
         return connectionStateArea.resolve(dataState.getName());
     }
     
-    /** Refresh the DataState of a datasource */  
-    public void refresh(Id datasourceId) {
-        DataState ds = attach(datasourceId);
-        if ( ds == null )
-            return;
-        ds.refresh();
-    }
-
-    public DataState attach(Id datasourceId) {
-        if ( ! exists(datasourceId) )
-            throw new DeltaConfigException("Not found: "+datasourceId);
-        return states.get(datasourceId);
-    }
-
-    // Synonym for attach.
     public DataState get(Id datasourceId) {
         return states.get(datasourceId);
     }
     
+    public Id getIdForName(String name) {
+        return names.get(name);
+    }
+    
+
     // "release" removes from the active zone but leaves untouched on disk.
     
     /** Release a {@code DataState}. Do not use the {@code DataState} again. */ 
@@ -212,7 +275,11 @@ public class Zone {
     
     /** Release by {@Id DataState}. Do not use the associated {@code DataState} again. */ 
     public void release(Id dsRef) {
-        states.remove(dsRef);
+        DataState dataState = states.remove(dsRef);
+        if ( dataState == null )
+            return ;
+        datasets.remove(dsRef);
+        names.remove(dataState.getName());
     }
 
     /** Put state file name into DataState then only have here */  

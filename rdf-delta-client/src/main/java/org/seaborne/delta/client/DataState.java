@@ -18,13 +18,14 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DeltaConst.* ;
+import static org.seaborne.delta.DeltaConst.F_DATASOURCE ;
 import static org.seaborne.delta.DeltaConst.F_ID ;
+import static org.seaborne.delta.DeltaConst.F_NAME ;
+import static org.seaborne.delta.DeltaConst.F_STORAGE ;
+import static org.seaborne.delta.DeltaConst.F_URI ;
 import static org.seaborne.delta.DeltaConst.F_VERSION;
 
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
@@ -55,6 +56,7 @@ public class DataState {
     // Persistent state that varies.
     private long version = -999;
     private Id patchId = null;
+    private LocalStorageType storage ;
     
     // State is:
     //   version - at least an int
@@ -77,7 +79,7 @@ public class DataState {
     }
     
     /** Create new, initialize state. */ 
-    /*package*/ DataState(Zone zone, Path stateFile, Id dsRef, String name, String uri, int version, Id patchId) {
+    /*package*/ DataState(Zone zone, Path stateFile, LocalStorageType storage, Id dsRef, String name, String uri, int version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
         this.state = null;
@@ -88,6 +90,7 @@ public class DataState {
         this.patchId = patchId;
         this.name = name;
         this.uri = uri;
+        this.storage = storage; 
         writeState(this);
     }
 
@@ -116,7 +119,7 @@ public class DataState {
 
     @Override
     public String toString() {
-        return String.format("data state: %s version=%d id=%s", datasource, version(), latestPatchId());
+        return String.format("[DataState: %s version=%d patch=%s]", datasource, version(), latestPatchId());
     }
     
     // XXX Sort out concurrency!
@@ -124,7 +127,7 @@ public class DataState {
     public synchronized void updateState(long newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
-        writeState(this.stateStr, this.datasource, this.name, this.uri, newVersion, patchId);
+        writeState(this.stateStr, this.datasource, this.name, this.uri, this.storage, newVersion, patchId);
         // Update local
         this.version = newVersion;
         this.patchId = patchId;
@@ -143,62 +146,13 @@ public class DataState {
         return name ;
     }
 
-    public void setName(String name) {
-        this.name = name ;
-    }
-
     public String getUri() {
         return uri ;
     }
-
-    public void setUri(String uri) {
-        this.uri = uri ;
-    }
-
-    private static Map<Id, DataState> dataState = new ConcurrentHashMap<>();
     
-    private void initData() {
-//        sync();
-//    }
-//
-//    private void sync() {
-//        int ver = dConn.getRemoteVersionLatest();
-//        
-//        dConn.sync();
+    public LocalStorageType getStorageType() {
+        return storage ;
     }
-
-//    private void loadState(Location workspace, Id dsRef) {
-//        if ( workspace.isMem() ) {
-//            loadStateEphemeral(workspace, dsRef);
-//            return ;
-//        }
-//        loadStatePersistent(workspace);
-//        return ;
-//        
-//    }
-//    
-//    private void loadStateEphemeral(Location workspace, Id dsRef) {
-//        datasource = dsRef;
-//        version.set(0);
-//        String str = stateToString(datasource, version());
-//        state = new RefStringMem(str);
-//    }
-//
-//    private void loadStatePersistent(Location workspace) {
-//        Path p = IOX.asPath(workspace);
-//        if ( ! Files.exists(p) )
-//            throw new DeltaConfigException("No directory: "+p);
-//        if ( ! Files.isDirectory(p) )
-//            throw new DeltaConfigException("Not a directory: "+p);
-//        Path versionFile = p.resolve(STATE_FILE);
-//        if ( ! Files.exists(versionFile) )
-//            throw new DeltaConfigException("No state file: "+versionFile);
-//        
-//        state = new PersistentState(versionFile);
-//        if ( state.getString().isEmpty() )
-//            throw new DeltaConfigException("Error reading state: version file exist but is empty");  
-//        setStateFromString(this, state.getString());
-//    }
 
     private void readState(RefString state) {
         setStateFromString(this, state.getString());
@@ -207,36 +161,39 @@ public class DataState {
     
     private void writeState(DataState dataState) {
         if ( dataState.state != null )
-            writeState(this.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.version, dataState.patchId);
+            writeState(this.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.storage, dataState.version, dataState.patchId);
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  
-    private static void writeState(RefString state, Id datasource, String name, String uri, long version, Id patchId) {
-        String x = stateToString(datasource, name, uri, version, patchId);
+    private static void writeState(RefString state, Id datasource, String name, String uri, LocalStorageType storage, long version, Id patchId) {
+        String x = stateToString(datasource, name, uri, storage, version, patchId);
         if ( ! x.endsWith("\n") )
             x = x+"\n";
         state.setString(x);
     }
     
-    private static String stateToString(Id datasource, String name, String uri, long version, Id patchId) {
-        JsonObject json = stateToJson(datasource, name, uri, version, patchId);
+    private static String stateToString(Id datasource, String name, String uri, LocalStorageType storage, long version, Id patchId) {
+        JsonObject json = stateToJson(datasource, name, uri, storage, version, patchId);
         return JSON.toString(json);
     }
     
-    private static JsonObject stateToJson(Id datasource, String name, String uri, long version, Id patchId) {
+    private static JsonObject stateToJson(Id datasource, String name, String uri,  LocalStorageType storage, long version, Id patchId) {
         String x = "";
         if ( patchId != null )
-            x = patchId.asString();
+            x = patchId.asPlainString();
         String patchStr = x;
         return
             JSONX.buildObject(builder->{
                 builder
-                    .key(F_VERSION).value(version)
-                    .key(F_ID).value(patchStr)
-                    .key(F_NAME).value(name)
-                    .key(F_DATASOURCE).value(datasource.asPlainString());
+                    .pair(F_VERSION, version)
+                    .pair(F_ID, patchStr)
+                    .pair(F_NAME, name)
+                    .pair(F_DATASOURCE, datasource.asPlainString());
+                
+                if ( storage != null )
+                    builder.pair(F_STORAGE, storage.typeName());
                 if ( uri != null )
-                    builder.key(F_URI).value(uri);
+                    builder.pair(F_URI, uri);
             });
     }
     
@@ -280,5 +237,11 @@ public class DataState {
         String uri = JSONX.getStrOrNull(sourceObj, F_URI);
         if ( uri != null )
             dataState.uri = uri;
+        
+        String typeName = JSONX.getStrOrNull(sourceObj, F_STORAGE);
+        LocalStorageType storage = LocalStorageType.fromString(typeName);
+//        if ( storage == null )
+//            throw new DeltaException("No storage type: "+JSON.toStringFlat(sourceObj));
+        dataState.storage = storage;
     }
 }

@@ -19,27 +19,23 @@
 package org.seaborne.delta;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.*;
 
-@RunWith(Suite.class)
-@SuiteClasses( {
-    TestLocalLink.class
-    , TestLocalClient.class
-    , TestLocalConnection.class
-    
-    , TestRemoteLink.class
-    , TestRemoteClient.class
-    , TestRemoteConnection.class
-//    , TestDeltaAssembler.class
-    
-})
-
-public class TS_Delta {
+public class TestRemoteClient extends AbstractTestDeltaLink {
     @BeforeClass public static void setForTesting() { 
         //LogCtl.setLog4j();
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
+    
+    static Setup.LinkSetup setup = new Setup.RemoteSetup();
+    
+    @Override
+    public Setup.LinkSetup getSetup() {
+        return setup;
+    }
+    
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

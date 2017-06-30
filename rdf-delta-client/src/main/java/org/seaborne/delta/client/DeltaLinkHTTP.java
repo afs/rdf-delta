@@ -333,7 +333,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public DataSourceDescription getDataSourceDescription(String uri) {
+    public DataSourceDescription getDataSourceDescriptionByURI(String uri) {
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DeltaConst.F_URI).value(uri);
         });

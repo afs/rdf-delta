@@ -352,7 +352,7 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(dsRef, dLink.listDatasets().get(0));
         assertEquals(dsRef, dLink.listDescriptions().stream().findFirst().get().getId());
         
-        DataSourceDescription dsd = dLink.getDataSourceDescription(uri);
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI(uri);
         assertNotNull(dsd);
         assertEquals(uri, dsd.getUri());
         assertEquals(dsRef, dsd.getId());
@@ -473,7 +473,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
-        DataSourceDescription dsd = dLink.getDataSourceDescription("http://example/uri-not-present");
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI("http://example/uri-not-present");
         assertNull(dsd);
     }
 
@@ -482,7 +482,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_15", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
-        DataSourceDescription dsd = dLink.getDataSourceDescription("http://example/uri-not-present");
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI("http://example/uri-not-present");
         String url = dLink.initialState(dsRef);
         assertNotNull(url);
         RDFDataMgr.parse(StreamRDFLib.sinkNull(), url);

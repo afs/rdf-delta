@@ -16,25 +16,26 @@
  * limitations under the License.
  */
 
-package old_pool;
+package org.seaborne.delta;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.DatasetGraphWrapper ;
-import org.seaborne.delta.client.DeltaConnection ;
+import org.apache.jena.atlas.logging.LogCtl;
+import org.junit.*;
 
-public class DatasetGraphConnected extends DatasetGraphWrapper implements AutoCloseable {
-
-    private final DeltaConnectionPool pool ;
-    private final DeltaConnection dConn ;
-
-    public DatasetGraphConnected(int x, DatasetGraph dsg, DeltaConnection dConn, DeltaConnectionPool pool) {
-        super(dsg) ;
-        this.dConn = dConn;
-        this.pool = pool; 
+public class TestLocalClient extends AbstractTestDeltaClient {
+    @BeforeClass public static void setForTesting() { 
+        //LogCtl.setLog4j();
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-
+    
+    static Setup.LinkSetup setup = new Setup.LocalSetup();
+    
     @Override
-    public void close() {
-        pool.release(dConn);
+    public Setup.LinkSetup getSetup() {
+        return setup;
     }
+    
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

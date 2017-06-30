@@ -26,9 +26,7 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -54,11 +52,14 @@ public class Example2 {
         Id clientId = Id.create();
         
         // Create a new patch log.
-        try ( DeltaConnection dConn = DeltaConnection.create(zone, "TEST", "http://example/", null, dLink) ) {
-        }
-
-        // and now connect to it again.
-        try ( DeltaConnection dConn = DeltaConnection.connect(zone, null, null, dLink) ) {
+        dLink.newDataSource("TEST", "http://example/test");
+        
+        // Put it under client management. 
+        DeltaClient dClient = DeltaClient.create(zone, dLink);
+        Id dsRef = dClient.attach("TEST", LocalStorageType.MEM);
+        
+        // and now connect to it
+        try ( DeltaConnection dConn = dClient.get(dsRef) ) {
             long version1 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version1);
 

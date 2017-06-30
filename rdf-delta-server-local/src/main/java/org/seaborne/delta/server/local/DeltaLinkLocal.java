@@ -115,7 +115,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     }
 
     @Override
-    public DataSourceDescription getDataSourceDescription(String uri) {
+    public DataSourceDescription getDataSourceDescriptionByURI(String uri) {
         checkLink();
         DataSource source = localServer.getDataSource(uri);
         if ( source == null )

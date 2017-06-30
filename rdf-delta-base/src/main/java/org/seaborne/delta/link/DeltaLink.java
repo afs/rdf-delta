@@ -19,7 +19,6 @@
 package org.seaborne.delta.link;
 
 import java.util.List;
-import java.util.stream.Collectors ;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
@@ -50,7 +49,7 @@ public interface DeltaLink {
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;
     
-    public default List<Id> x_listDatasets() { return listDescriptions().stream().map(dsd->dsd.getId()).collect(Collectors.toList()); }
+    //public default List<Id> listDatasets() { return listDescriptions().stream().map(dsd->dsd.getId()).collect(Collectors.toList()); }
     
     /** Return an array of {@link DataSourceDescription}s of datasets */
     public List<DataSourceDescription> listDescriptions();
@@ -66,7 +65,7 @@ public interface DeltaLink {
     public DataSourceDescription getDataSourceDescription(Id dsRef) ;
 
     /** Return details of a dataset (or null if not registered) */
-    public DataSourceDescription getDataSourceDescription(String uri);
+    public DataSourceDescription getDataSourceDescriptionByURI(String uri);
 
     /** Send patch, return new version */
     public long append(Id dsRef, RDFPatch patch);

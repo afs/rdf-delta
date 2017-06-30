@@ -21,17 +21,33 @@ package dev;
 public class DevDeltaToDo {
 
     // PatchCache.
+    // PatchStore.create/attach --> no path.
+    // TestPatchStore(file).
+    
+    // DeltaClient.nameToId : have the zone know the name->id mapping.
+    // Check resetDeltaClient in AbstractTestDeltaConnection
+    
+    // Ugly : AbstractTestDeltaConnection.change_read_new
+//    if ( ! dClient.getZone().exists(dsRef) )
+//        dClient.attach(dsRef, LocalStorageType.MEM);
+//    else
+//        dClient.connect(dsRef);
+
+    
+    // Deltaclient.nameToId - needs caching.
+    // zone.create -> zone.setUp, register.
+    
+    // Zone restart. -> "connect"
+    // Do we need DeltaClient.connect.managed?
+    
+    // Soem sort of "connectOrCreate" in DeltaClient.
     
     // PatchLog  concurrency.
-    // PatchLog  source.cfg needs provider name. 
-    //    And use it.
     // PatchLog  Id for log separate from dsRef 
-    // Default provider in server config.
 
     // Run - add a delete case.
     
-    // * DeltaLink.getConnection
-    // * HTTP interface / Control interface
+    // HTTP interface / Control interface :: clearer split.
     
     // DeltaConnection XXX's
     
@@ -43,24 +59,9 @@ public class DevDeltaToDo {
     //      ping (RPC1), RPC, HTTP / POST / GET / Non-retriable POST.
     //   Retry policy.
     //   op - ping - ping - op 
-    
-    // DeltaConnection + DSG = ?
-    
-    // ** DeltaConnection clean-up.
-    // Split create into create-> id, no connection. Adds to pool.
-    // Always pool.
-    // DLink.connect then only DeltaConnection.connect
-    
-    // DeltaConnectionPool.
-    // DeltaConnection.connect
-    // DeltaConnection.attach = connect + new state. = connect + dConn.setupLocal(dsg) -> ??
-    // Take out registration.
-    
-	// Registration token on S_Fetch
+
+    // Registration token on S_Fetch
 	// --autoregister
-    
-    // Tests for spaces in base name.
-    // Initial data fetch.
     
     // Protect read in S_Data.
     
@@ -69,20 +70,14 @@ public class DevDeltaToDo {
     // mk --server URL x1 x2 x3 ...
     // list -server=
     // resync
-    // append (gets patch head and fils that in)
+    // append (gets patch head and fills that in)
 
-	// Patch input and system of record API
-	// Clearer HTTPand admin/RPC split.
-	
     // Quick poll : server epoch - avoid calc of list of datasources
-    // "ping" like (RPC1).
+    // "ping" like (RPC1). Use ping.
     
     // ping to return timeofday.
     
     // "Get all patches x to y."
-
-    // Zone-only managed dataset.
-    // Don't allow DSG in DeltaConnection.connect
     
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write
@@ -97,13 +92,6 @@ public class DevDeltaToDo {
     
     // DeltaConnection pooling.
     // so try(DeltaConnection){} works well.
-    
-    // Zone to track remote server.
-    //   ==> PatchLogServer
-    //   DataSources, their state, adds and deletes.
-    //   Manage a backing dataset. Zone 1:1 DLink.
-    
-    // Check bnode URIs
     
     // Migrate PatchLogServer; relationship to Zone?
     

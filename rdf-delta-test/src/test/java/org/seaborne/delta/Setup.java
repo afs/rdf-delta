@@ -108,7 +108,7 @@ public class Setup {
 
         private static int TEST_PORT=1086;
         
-        /** Start a server - this server has no backing local DelaLink
+        /** Start a server - this server has no backing local DeltaLink
          * which is reset for each test. This enables the server to be reused 
          * (problems starting and stopping the background server
          * synchronous to the tests otherwise).   

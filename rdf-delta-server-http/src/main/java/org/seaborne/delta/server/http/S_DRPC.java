@@ -281,7 +281,7 @@ public class S_DRPC extends DeltaServlet {
             Id dsRef = Id.fromString(dataSourceId);
             dsd = action.dLink.getDataSourceDescription(dsRef);
         } else {
-            dsd = action.dLink.getDataSourceDescription(uri);
+            dsd = action.dLink.getDataSourceDescriptionByURI(uri);
         }
         if ( dsd == null )
             return noResults;

@@ -25,9 +25,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.graph.Node;
-import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.system.Txn ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -44,12 +42,12 @@ import org.slf4j.LoggerFactory ;
  */ 
 public class DeltaConnection implements AutoCloseable {
     
-    public enum Backing { TDB, FILE }
+    // XXX Remove commented out.
+    
     private static Logger LOG = LoggerFactory.getLogger(DeltaConnection.class);//Delta.DELTA_LOG;
     
     // The version of the remote copy.
     private final DeltaLink dLink ;
-    private final Zone zone ;
 
     // Last seen PatchLogInfo
     private final AtomicReference<PatchLogInfo> remote = new AtomicReference<>(null);
@@ -60,48 +58,8 @@ public class DeltaConnection implements AutoCloseable {
     private final Id datasourceId;
     private final DataState state;
 
-    private boolean valid;
-
-    /**
-     * Create and connect to a new {@code DataSource}. 
-     * The caller must be registered with the {@code DeltaLink}.
-     */
-    public static DeltaConnection create(Zone zone, String datasourceName, String uri, DatasetGraph dsg, DeltaLink dLink) {
-        Objects.requireNonNull(datasourceName, "Null datasource name");
-        Objects.requireNonNull(dLink, "Null link");
-        
-        Id datasourceId = dLink.newDataSource(datasourceName, uri);
-        // Inital data.
-        DataState dataState = zone.create(datasourceId, datasourceName, uri, Backing.TDB);
-        DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
-        return client;
-    }
-
-    /** 
-     * Connect to an existing {@code DataSource} with a fresh {@link DatasetGraph} as local state.
-     * The {@code DatasetGraph} is assumed to empty and is brought up-to-date.
-     * See {@link DeltaConnection#connect} for connecting an existing local dataset.   
-     * The client must be registered with the {@code DeltaLink}.
-     */
-    public static DeltaConnection attach(Zone zone, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
-        Objects.requireNonNull(datasourceId, "Null data source Id");
-        Objects.requireNonNull(dLink, "Null link");
-        //DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
-        spinUpDSG(datasourceId, dsg, dLink);
-        // If Zone is behind, no problem - patches will be replayed.
-        DeltaConnection dConn = DeltaConnection.connect(zone, datasourceId, dsg, dLink);
-        return dConn;
-    }
-    
-    private static void spinUpDSG(Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
-        String url = dLink.initialState(datasourceId);
-        if ( url != null )
-            Txn.executeWrite(dsg, ()->RDFDataMgr.read(dsg, url));  
-        PatchLogInfo logInfo = dLink.getPatchLogInfo(datasourceId);
-        // XXX Check with zone.
-        play(datasourceId, dsg, dLink, (int)logInfo.getMinVersion(), (int)logInfo.getMaxVersion());
-    }
-    
+    private boolean valid = false;
+ 
     // XXX DRY See playPatches.
     private static void play(Id datasourceId, DatasetGraph dsg, DeltaLink dLink, int minVersion, int maxVersion) {
         RDFChanges target = new RDFChangesApply(dsg);
@@ -123,43 +81,25 @@ public class DeltaConnection implements AutoCloseable {
 
     /** 
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
-     * The  {@code DatasetGraph} must be in-step with the zone.
-     * See {@link DeltaConnection#attach} for introducing a new dataset.   
-     * The client must be registered with the {@code DeltaLink}.
-     */  
-    public static DeltaConnection connect(Zone zone, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
+     * The {@code DatasetGraph} must be in-step with the zone.
+     * {@code DeltaConnection} objects are normal obtained via {@link DeltaClient}.
+     */
+    
+    /*package*/ static DeltaConnection connect(DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(datasourceId, "Null data source Id");
         Objects.requireNonNull(dLink, "Null link");
-        
-        // DataSourceDescription desc = dLink.getDataSourceDescription(datasourceId);
-        
-        if ( ! zone.exists(datasourceId) ) {
-            // No local - is there a remote?
-            DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
-            if ( dsd == null ) {
-                // Does not exist.
-                throw new DeltaBadRequestException("No such datasorce: "+datasourceId);
-                // Autocreate?
-                //DeltaConnection dConn = create(clientId, dsd.name, dsd.uri, dsg, dLink);
-            }
-            DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), Backing.TDB);
-            DeltaConnection dConn = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
-            return dConn;
-        }
-        // Disk refresh.
-        zone.refresh(datasourceId);
-        DataState dataState = zone.attach(datasourceId);
+        Objects.requireNonNull(dataState, "Null data state");
         if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
             throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
-        DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
-        return client;
-    }
-    
-    /* Common code to create the local DeltaConnection and set it up. */
-    private static DeltaConnection connect$(Zone zone,DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
-        if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
-            throw new DeltaException("State ds id: "+dataState.getDataSourceId()+" but app passed "+datasourceId);
-        DeltaConnection client = new DeltaConnection(zone, dataState, dsg, dLink);
+//        DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
+//        return client;
+//    }
+//    
+//    /* Common code to create the local DeltaConnection and set it up. */
+//    private static DeltaConnection connect$(Zone zone,DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
+//        if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
+//            throw new DeltaException("State ds id: "+dataState.getDataSourceId()+" but app passed "+datasourceId);
+        DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
@@ -170,14 +110,13 @@ public class DeltaConnection implements AutoCloseable {
             link.register(clientId);
     }
     
-    private DeltaConnection(Zone zone, DataState dataState, DatasetGraph dsg, DeltaLink link) {
+    private DeltaConnection(DataState dataState, DatasetGraph dsg, DeltaLink link) {
         if ( dsg instanceof DatasetGraphChanges )
             Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient");
         this.state = dataState;
         this.base = dsg;
         this.datasourceId = dataState.getDataSourceId();
         this.dLink = link;
-        this.zone = zone;
         this.valid = true;
         
         if ( dsg != null  ) {
@@ -199,7 +138,6 @@ public class DeltaConnection implements AutoCloseable {
         this.base = other.base;
         this.datasourceId = other.datasourceId;
         this.dLink = other.dLink;
-        this.zone = other.zone;
         this.valid = other.valid;
         // Not shared with "other".
         if ( base != null  ) {
@@ -355,19 +293,8 @@ public class DeltaConnection implements AutoCloseable {
         return valid;
     }
 
-    public void removeDataSource() {
-        checkDeltaConnection();
-        valid = false;
-        dLink.removeDataSource(datasourceId);
-        zone.delete(datasourceId);
-    }
-
     public DeltaLink getLink() {
         return dLink;
-    }
-
-    public Zone getZone() {
-        return zone;
     }
 
     public Id getClientId() {
@@ -445,7 +372,7 @@ public class DeltaConnection implements AutoCloseable {
         return dLink.getPatchLogInfo(datasourceId).getLatestPatch();
     }
 
-        /** Update the version of the local data store */ 
+    /** Update the version of the local data store */ 
     private void setLocalState(long version, Node patchId) {
         setLocalState(version, (patchId == null) ? null : Id.fromNode(patchId));
     }

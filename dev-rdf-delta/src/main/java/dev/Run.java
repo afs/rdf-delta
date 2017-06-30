@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
@@ -34,13 +33,13 @@ import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DataPatchServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
 import org.seaborne.delta.server.local.LocalServer ;
+import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchOps ;
 
 public class Run {
     static { 
@@ -76,7 +75,8 @@ public class Run {
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();
         try {
-            main$();
+            //main$misc();
+            main$dc();
         } catch (Throwable ex) {
             System.out.println();
             System.out.flush();
@@ -85,29 +85,59 @@ public class Run {
         finally { System.exit(0); }
     }
 
-    public static void main$() throws IOException {
+    public static void main$dc() throws IOException {
+        FileOps.clearAll("Zone");
+        Zone.get().init("Zone");
+        Zone zone = Zone.get();
+        
+        Quad quad1 = SSE.parseQuad("(:g :s :p 111)");
+        Quad quad2 = SSE.parseQuad("(:g :s :p 222)");
+        Quad quad3 = SSE.parseQuad("(:g :s :p 333)");
+        
+        boolean httpServer = false;
+        DeltaLink dLink = deltaLink(true);
+        
+        DeltaClient dc = DeltaClient.create(zone, dLink);
+        
+        Id dsRef = dLink.newDataSource("ABC", "http://example/ABC");
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+        
+        //dc.attach(dsRef, dsg);
+        //dc.connect(dsRef);
+        
+        // Create zone-managed dataset.
+        
+       
+        
+        //dc.attach(dsRef);
+        
+        try ( DeltaConnection dConn = dc.get(dsRef) ) {
+            dConn.sync();
+            dsRef = dConn.getDataSourceId();
+            Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
+        }
+        
+        try ( DeltaConnection dConn = dc.get(dsRef) ) {
+            PatchLogInfo info = dConn.getPatchLogInfo();
+            Id patchId = info.getLatestPatch();
+            System.out.println("** fetch **");
+            RDFPatch patch = dLink.fetch(dsRef, patchId);
+            RDFPatchOps.write(System.out, patch);
+            System.out.println("** fetch **");  
+        }
+        
+    }
+
+        // Quick run-through of some operations as a durign delveop, pre-test quick check.  
+    public static void main$misc() throws IOException {
+        // Do a delete.
+        
         // --- Reset state.
         FileOps.clearAll("Zone");
         Zone.get().init("Zone");
         
-        DeltaLink dLink1 = null;
-        
-        // ********
         boolean httpServer = true;
-        
-        if ( httpServer ) {
-            // Same process HTTP server.
-            server(PORT, "DeltaServer");
-            String URL = "http://localhost:"+PORT+"/";
-            dLink1 = DeltaLinkHTTP.connect(URL);
-        } else {
-            // Local server
-            LocalServer lServer = LocalServer.attach(Location.create("DeltaServer"));
-            dLink1 = DeltaLinkLocal.connect(lServer);
-        }
-        
-        Id clientId = Id.create();
-        dLink1.register(clientId);
+        DeltaLink dLink = deltaLink(true);
         
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         
@@ -128,66 +158,71 @@ public class Run {
         String datasourceName = "ABC";
         String datasourceURI = "http://example/ABC";
         Zone zone = Zone.get();
+
         //Id datasourceId = dLink1.newDataSource(datasourceName, datasourceURI);
-        //DataState dataState = zone.create(datasourceId, datasourceName, datasourceURI, Backing.TDB);
+        //DataState dataState = zone.create(datasourceId, datasourceName, datasourceURI, StorageType.TDB);
         
-        boolean exists = dLink1.listDescriptions().stream().anyMatch(x->datasourceName.equals(x.getName()));
+        boolean exists = dLink.listDescriptions().stream().anyMatch(x->datasourceName.equals(x.getName()));
+
+        DeltaClient dClient = DeltaClient.create(zone, dLink);
         
-        //try ( DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, datasourceURI, dsg, dLink1) ) {
-        try ( DeltaConnection dConn = x_connectOrCreate(zone, datasourceName, datasourceURI, dsg, dLink1, !exists) ) {
-            String x = dConn.getInitialStateURL();
-            //System.out.println("State URL = "+x);
-            if ( x != null )
-                Txn.executeWrite(dConn.getDatasetGraph(), ()->RDFDataMgr.read(dConn.getDatasetGraph(), x));
-        }
+//        //try ( DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, datasourceURI, dsg, dLink1) ) {
+//        try ( DeltaConnection dConn = x_connectOrCreate(zone, datasourceName, datasourceURI, dsg, dLink, !exists) ) {
+//            String x = dConn.getInitialStateURL();
+//            //System.out.println("State URL = "+x);
+//            if ( x != null )
+//                Txn.executeWrite(dConn.getDatasetGraph(), ()->RDFDataMgr.read(dConn.getDatasetGraph(), x));
+//        }
+//        
+//        System.out.println();
         
-        System.out.println();
-        
-        Id dsRef = dLink1.getDataSourceDescription(datasourceURI).getId();
+        Id dsRef = dLink.getDataSourceDescriptionByURI(datasourceURI).getId();
         System.out.println();
         
         System.out.println("Sync");
-        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), dsRef, dsg, dLink1) ) {
+        try ( DeltaConnection dConn = dClient.get(dsRef) ) {
             dConn.sync();
             dsRef = dConn.getDataSourceId();
             Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad1) );
         }
         
         
-        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), dsRef, dsg, dLink1)) {
+        try ( DeltaConnection dConn = dClient.get(dsRef) ) {
             dsRef = dConn.getDataSourceId();
             Txn.executeWrite(dConn.getDatasetGraph(), ()->dConn.getDatasetGraph().add(quad2) );
         }
         
-        try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), dsRef, dsg, dLink1)) {
+        try ( DeltaConnection dConn = dClient.get(dsRef) ) {
             PatchLogInfo info = dConn.getPatchLogInfo();
             Id patchId = info.getLatestPatch();
             System.out.println("** fetch **");
-            dLink1.fetch(dsRef, patchId);
+            dLink.fetch(dsRef, patchId);
             System.out.println("** fetch **");
             System.out.println();
         }
         
-//        DataState dataState = Zone.get().attach(dsRef);
-//        System.out.println();
-//        System.out.println("Data State : "+dataState);
-//        System.out.println();
-
-//        DatasetGraph dsg1 = DatasetGraphFactory.createTxnMem();
-//        try ( DeltaConnection dConn = DeltaConnection.attach(Zone.get(), dsRef, dsg1, dLink1) ) {
-//            RDFDataMgr.write(System.out, dsg1, Lang.TRIG);
-//        }
-
-//        
-//        Id dsref = dLink1.listDatasets().get(0);
-//        String s = dLink1.initialState(dsref);
-//        System.out.println(s);
-//        RDFDataMgr.parse(new WriterStreamRDFPlain(IO.wrapUTF8(System.out)), s);
-
         System.out.println("DONE");
         System.exit(0);
     }
     
+    private static DeltaLink deltaLink(boolean httpServer) {
+        DeltaLink dLink;
+        if ( httpServer ) {
+            // Same process HTTP server.
+            server(PORT, "DeltaServer");
+            String URL = "http://localhost:"+PORT+"/";
+            dLink = DeltaLinkHTTP.connect(URL);
+        } else {
+            // Local server
+            LocalServer lServer = LocalServer.attach(Location.create("DeltaServer"));
+            dLink = DeltaLinkLocal.connect(lServer);
+        }
+
+        Id clientId = Id.create();
+        dLink.register(clientId);
+        return dLink;
+    }
+
     private static void server(int port, String base) {
             // --- Reset state.
     //        FileOps.clearAll("DeltaServer/ABC");
@@ -199,22 +234,6 @@ public class Run {
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             System.exit(0);
-        }
-    }
-
-    // Initial state.
-    static DeltaConnection x_connectOrCreate(Zone zone, String datasourceName, String dataSourceURI, DatasetGraph dsg0, DeltaLink dLink, boolean create) {
-        if ( create ) {
-            DeltaConnection dConn = DeltaConnection.create(zone, datasourceName, dataSourceURI, dsg0, dLink);
-            Id dsRef = dConn.getDataSourceId();
-            System.out.println("++++ Create: "+dsRef);
-            return dConn;
-        } else {
-            List<Id> datasources = dLink.listDatasets();
-            System.out.println("++++ "+datasources);
-            Id dsRef = datasources.get(0);
-            DeltaConnection dConn = DeltaConnection.connect(zone, dsRef, dsg0, dLink);
-            return dConn;
         }
     }
 
@@ -231,8 +250,10 @@ public class Run {
             System.out.printf("dsRef = %s\n", dsRef);
     
             DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-    
-            try ( DeltaConnection dConn = DeltaConnection.connect(Zone.get(), dsRef, dsg0, dLink)) {
+            DeltaClient dClient = DeltaClient.create(Zone.get(), dLink);
+            dClient.attach(dsRef, LocalStorageType.MEM);
+            
+            try ( DeltaConnection dConn = dClient.get(dsRef) ) {
             
     //        // Work with this dataset:
     //        DatasetGraph dsg = dConn.getDatasetGraph();
