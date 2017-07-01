@@ -16,30 +16,14 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server;
 
-import java.nio.file.Path ;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 
-import org.apache.jena.tdb.base.file.Location ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.server.local.DPS ;
-
-//PatchStoreFileProvider
-public class PatchStoreFile extends PatchStore {
-
-    public static void registerPatchStoreFile() {
-        PatchStore ps = new PatchStoreFile();
-        PatchStore.register(ps);
-    }
-    
-    public PatchStoreFile() {
-        super(DPS.PatchStoreProviderFile) ;
-    }
-
+public class TestPatchStoreFile extends AbstractPatchStore {
     @Override
-    protected PatchLogFile create(Id dsRef, String dsName, Path logPath) {
-        Location loc = Location.create(logPath.toString());
-        PatchLogFile patchLog = PatchLogFile.attach(dsRef, dsName, loc);
-        return patchLog ;
+    protected PatchStore createProvider() {
+        return new PatchStoreFile();
     }
 }

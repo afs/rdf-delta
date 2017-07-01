@@ -64,7 +64,7 @@ public class DataSource {
         IOX.ensureDirectory(patchesArea);
         Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         IOX.ensureFile(initialData);
-        PatchLog patchLog = patchStore.attachLog(dsRef, dsName, patchesArea);
+        PatchLog patchLog = patchStore.createLog(dsRef, dsName, patchesArea);
         DataSource dataSource = new DataSource(dsRef, dsPath, initialData, dsName, uri, patchLog);
         return dataSource;
     }

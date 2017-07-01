@@ -139,4 +139,47 @@ public class PatchLogInfo {
     public Id getLatestPatch() {
         return latestPatch ;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31 ;
+        int result = 1 ;
+        result = prime * result + ((dataSourceId == null) ? 0 : dataSourceId.hashCode()) ;
+        result = prime * result + ((dataSourceName == null) ? 0 : dataSourceName.hashCode()) ;
+        result = prime * result + ((latestPatch == null) ? 0 : latestPatch.hashCode()) ;
+        result = prime * result + (int)(maxVersion ^ (maxVersion >>> 32)) ;
+        result = prime * result + (int)(minVersion ^ (minVersion >>> 32)) ;
+        return result ;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if ( this == obj )
+            return true ;
+        if ( obj == null )
+            return false ;
+        if ( getClass() != obj.getClass() )
+            return false ;
+        PatchLogInfo other = (PatchLogInfo)obj ;
+        if ( dataSourceId == null ) {
+            if ( other.dataSourceId != null )
+                return false ;
+        } else if ( !dataSourceId.equals(other.dataSourceId) )
+            return false ;
+        if ( dataSourceName == null ) {
+            if ( other.dataSourceName != null )
+                return false ;
+        } else if ( !dataSourceName.equals(other.dataSourceName) )
+            return false ;
+        if ( latestPatch == null ) {
+            if ( other.latestPatch != null )
+                return false ;
+        } else if ( !latestPatch.equals(other.latestPatch) )
+            return false ;
+        if ( maxVersion != other.maxVersion )
+            return false ;
+        if ( minVersion != other.minVersion )
+            return false ;
+        return true ;
+    }
 }

@@ -73,7 +73,7 @@ public class PatchLogFile implements PatchLog {
     
     /** Attached to an existing {@code PatchLog}. */
     public static PatchLogFile attach(Id dsRef, String name, Location location) {
-        return new PatchLogFile(dsRef, name, location, null);
+        return new PatchLogFile(dsRef, name, location);
     }
     
 //    /** Create a new {@code PatchLog}. */
@@ -81,7 +81,7 @@ public class PatchLogFile implements PatchLog {
 //        return new PatchLog(dsRef, name, location, null);
 //    }
 
-    private PatchLogFile(Id dsRef, String name, Location location, PatchStore patchStore) {
+    private PatchLogFile(Id dsRef, String name, Location location) {
         this.dsRef = dsRef;
         this.name = name;
         this.fileStore = FileStore.attach(location, "patch");
@@ -106,7 +106,7 @@ public class PatchLogFile implements PatchLog {
                 }
                 Id id = Id.fromNode(patchHeader.getId());
                 if ( id == null ) {
-                    FmtLog.error(LOG, "Can't find previous: idx=%d: id=%s, prev=%s", idx, id);
+                    FmtLog.error(LOG, "Can't find id: idx=%d: id=%s", idx, id);
                     continue;
                 }
                 else {

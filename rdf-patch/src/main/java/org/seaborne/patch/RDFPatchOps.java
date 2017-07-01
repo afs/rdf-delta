@@ -58,12 +58,15 @@ public class RDFPatchOps {
         private final Node id = NodeFactory.createURI(JenaUUID.generate().asURI());
         private final PatchHeader header = new PatchHeader(Collections.singletonMap(RDFPatch.ID, id));
         
+        RDFPatchEmpty() {}
+        
         @Override
         public PatchHeader header() {
-            return header();
+            return header;
         }
         @Override
         public void apply(RDFChanges changes) {
+            header.apply(changes);
             changes.txnBegin();
             changes.txnCommit();
         }

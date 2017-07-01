@@ -28,6 +28,7 @@ import org.apache.jena.atlas.logging.Log ;
 import org.seaborne.delta.DeltaConfigException ;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
+import org.seaborne.delta.lib.IOX ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -143,26 +144,24 @@ public abstract class PatchStore {
         return providerName;
     }
 
-    /** Return a new {@link PatchLog}, which must not already exist. */
+    /**
+     * Return a new {@link PatchLog}. Checking that there is no registered
+     * {@link PatchLog} for this {@code dsRef} has already been done.
+     * 
+     * @param dsRef
+     * @param dsName
+     * @param path : Path to the Logs/ directory. Contents are PatchStore-impl specific.
+     * @return PatchLog
+     */
     protected abstract PatchLog create(Id dsRef, String dsName, Path path);
-    
-    /** Return a new {@link PatchLog}, which must not already exist. */
-    protected abstract PatchLog attach(Id dsRef, String dsName, Path path);
-    
+   
     /** Return a new {@link PatchLog}, which must not already exist. */ 
     public PatchLog createLog(Id dsRef, String dsName, Path path) { 
+        // Path to "Log/" area workspace
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
+        IOX.ensureDirectory(path);
         PatchLog patchLog = create(dsRef, dsName, path);
-        logs.put(dsRef, patchLog);
-        return patchLog;
-    }
-    
-    /** Return a new {@link PatchLog} for an area that already exists */ 
-    public PatchLog attachLog(Id dsRef, String dsName, Path path) { 
-        if ( logExists(dsRef) )
-            throw new DeltaException("Can't attach - PatchLog exists");
-        PatchLog patchLog = attach(dsRef, dsName, path);
         logs.put(dsRef, patchLog);
         return patchLog;
     }

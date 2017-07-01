@@ -118,7 +118,7 @@ public class LocalServer {
      * @return LocalServer
      */
     public static LocalServer attach(Location serverRoot) {
-        return attach(serverRoot, DeltaConst.SERVER_CONFIG); 
+        return create(serverRoot, DeltaConst.SERVER_CONFIG); 
     }
     
     /** Attach to the runtime area for the server. 
@@ -127,11 +127,11 @@ public class LocalServer {
      * @param confFile  Filename
      * @return LocalServer
      */
-    public static LocalServer attach(String confFile) {
+    public static LocalServer create(String confFile) {
         LocalServerConfig conf = LocalServerConfig.create()
             .parse(confFile)
             .build();
-        return attach(conf);
+        return create(conf);
     }
     
 
@@ -140,16 +140,21 @@ public class LocalServer {
      * @param confFile  Filename: absolute filename, or relative to the server process.
      * @return LocalServer
      */
-    public static LocalServer attach(Location serverRoot, String confFile) {
+    public static LocalServer create(Location serverRoot, String confFile) {
         confFile = LibX.resolve(serverRoot, confFile);
         LocalServerConfig conf = LocalServerConfig.create()
             .setLocation(serverRoot)
             .parse(confFile)
             .build();
-        return attach(conf);
+        return create(conf);
     }
     
-    public static LocalServer attach(LocalServerConfig conf) {
+    /** Create a {@code LocalServer} based on a configuration file.
+     * 
+     * @param conf
+     * @return LocalServer
+     */
+    public static LocalServer create(LocalServerConfig conf) {
         Objects.requireNonNull(conf, "Null for configuation");
         if ( conf.location == null )
             throw new DeltaConfigException("No location");

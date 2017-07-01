@@ -59,10 +59,8 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
 
         @Override
         public void apply(RDFChanges changes) {
-            changes.start();
-            header.forEach((k,v)->changes.header(k, v));
+            header.apply(changes);
             actions.forEach(a -> enact(a, changes)) ;
-            changes.finish();
         }
 
         public List<ChangeItem> getActions() {

@@ -77,6 +77,7 @@ public class FileStore {
     private final String        basename;
 
     public static FileStore attach(Location dirname, String basename) {
+        LOG.info("FileStore.attach");
         Objects.requireNonNull(dirname, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
@@ -98,11 +99,11 @@ public class FileStore {
             min = DeltaConst.VERSION_INIT;
             // So increment is the next version.
             max = DeltaConst.VERSION_FIRST - 1;
-            FmtLog.info(LOG, "FileStore '%s' : index [--,%d]", dirname, max);
+            FmtLog.info(LOG, "FileStore : index [--,%d] %s", max, dirname);
         } else {
             min = indexes.get(0);
             max = indexes.get(indexes.size()-1);
-            FmtLog.info(LOG, "FileStore '%s' : index [%d,%d]", dirname, min, max);
+            FmtLog.info(LOG, "FileStore : index [%d,%d] %s", min, max, dirname);
         }
         FileStore fs = new FileStore(dirPath, basename, indexes, min, max);
         areas.put(k, fs);

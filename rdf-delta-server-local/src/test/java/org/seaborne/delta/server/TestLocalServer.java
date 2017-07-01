@@ -39,7 +39,7 @@ public class TestLocalServer {
     @Test public void local_server_01() {
         // Pre-setup.
         Location loc = Location.create(SERVER_DIR);
-        LocalServer server = LocalServer.attach(loc, "delta.cfg");
+        LocalServer server = LocalServer.create(loc, "delta.cfg");
         List<DataSource> sources = server.listDataSources();
         assertEquals(2, sources.size());
         test(sources.get(0));

@@ -71,6 +71,13 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
+        RDFPatch p = RDFPatchOps.emptyPatch();
+        RDFPatchOps.write(System.out, p);
+        
+        
+        
+        System.exit(0);
+        
         //JenaSystem.DEBUG_INIT = true ;
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();

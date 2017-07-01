@@ -56,7 +56,7 @@ public class DataPatchServer {
     public static DataPatchServer server(int port, String path) {
         Location baseArea = Location.create(path);
         String configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
-        LocalServer server = LocalServer.attach(baseArea, configFile);
+        LocalServer server = LocalServer.create(baseArea, configFile);
         DeltaLink link = DeltaLinkLocal.connect(server);
         return DataPatchServer.create(port, link) ;
     }

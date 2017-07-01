@@ -51,7 +51,7 @@ public class TestLocalServerBuildConfig {
         LocalServerConfig conf = LocalServerConfig.create()
             .setLocation("target/test_config01")
             .build();
-        LocalServer.attach(conf);
+        LocalServer.create(conf);
     }
 
     @Test public void local_server_config_02() {
@@ -60,7 +60,7 @@ public class TestLocalServerBuildConfig {
             .setLocation("target/test_config02")
             .setLogProvider(DPS.PatchStoreProviderFile)
             .build();
-        LocalServer.attach(conf);
+        LocalServer.create(conf);
     }
 
     @Test public void local_server_config_03() {
@@ -69,13 +69,13 @@ public class TestLocalServerBuildConfig {
             .parse(TESTING+"delta.cfg")
             .setLocation("target/test_config03")
             .build();
-        LocalServer server = LocalServer.attach(conf);
+        LocalServer server = LocalServer.create(conf);
     }
 
     @Test public void local_server_config_04() {
         // Configuration file in server area. 
         Location loc = Location.create(TESTING+"DeltaServerBlank");
-        LocalServer server = LocalServer.attach(loc, "delta.cfg");
+        LocalServer server = LocalServer.create(loc, "delta.cfg");
         List<DataSource> sources = server.listDataSources();
         assertEquals(0, sources.size());
     }

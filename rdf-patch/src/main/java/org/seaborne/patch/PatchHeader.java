@@ -31,7 +31,7 @@ public class PatchHeader {
     private Map<String, Node> header;
 
     public PatchHeader(Map<String, Node> header) {
-        // Isolate and llower case
+        // Isolate and lower case
         this.header = header.entrySet()
             .stream().collect(Collectors.toMap(e->lc(e.getKey()),
                                                e->e.getValue()));
@@ -52,6 +52,10 @@ public class PatchHeader {
         return header.get(lc(field)) ;
     }
 
+    public void apply(RDFChanges changes) {
+        forEach( (s,n) -> changes.header(s, n) );
+    }
+    
     public void forEach(BiConsumer<String, Node> action) {
         header.forEach(action);
     }

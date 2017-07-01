@@ -101,7 +101,7 @@ public class CmdDeltaServer {
             configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         
         //FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
-        LocalServer server = LocalServer.attach(baseArea, configFile);
+        LocalServer server = LocalServer.create(baseArea, configFile);
         int port = choosePort(cla, server);
         DeltaLink link = DeltaLinkLocal.connect(server);
 

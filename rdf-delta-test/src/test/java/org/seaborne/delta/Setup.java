@@ -98,7 +98,7 @@ public class Setup {
             else {
                 LocalServerConfig config = lserver.getConfig() ;
                 LocalServer.release(lserver);
-                lserver = LocalServer.attach(config);
+                lserver = LocalServer.create(config);
             }
             relink();
         }
@@ -175,7 +175,7 @@ public class Setup {
         public void restart() {
             LocalServerConfig config = localServer.getConfig() ;
             LocalServer.release(localServer);
-            localServer = LocalServer.attach(config);
+            localServer = LocalServer.create(config);
             resetDefaultHttpClient();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server.setEngine(localLink);

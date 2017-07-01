@@ -20,8 +20,14 @@ package dev;
 
 public class DevDeltaToDo {
 
+    //++++
+    // Check for any implementation then...
+    //    RDFChangesWriteUpdate [fixed] but not RDFChangesWriter
+    // Remove RDFChanges.start/finish.
+    //   (Or Patch.play to call start, finish?)
+    //++++
+    
     // PatchCache.
-    // PatchStore.create/attach --> no path.
     // TestPatchStore(file).
     
     // DeltaClient.nameToId : have the zone know the name->id mapping.

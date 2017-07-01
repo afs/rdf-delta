@@ -19,7 +19,6 @@
 package org.seaborne.patch.changes;
 
 import org.apache.jena.atlas.io.AWriter ;
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.out.NodeFmtLib ;
 import org.apache.jena.riot.out.NodeFormatter ;
@@ -41,22 +40,34 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     public void start() { }
     
     @Override
-    public void finish() { IO.flush(out) ; }
+    public void finish() { }
 
     @Override
-    public void header(String field, Node value) {} 
+    public void header(String field, Node value) {
+        header();
+        out.print("# ");
+        out.print(field);
+        out.print(" ");
+        outputNode(out, value) ;
+        out.println();
+    }
  
-    boolean adding = false ;
-    boolean deleting = false ;
+    private boolean doingHeader = false ;
+    private boolean adding = false ;
+    private boolean deleting = false ;
+    
+    // Later : blocks for INSERT , DELETE. 
     
     @Override
     public void add(Node g, Node s, Node p, Node o) {
+        notHeader();
         out.print("INSERT DATA ") ;
         outputData(g, s, p, o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
+        notHeader();
         out.print("DELETE DATA ") ;
         outputData(g, s, p, o);
     }
@@ -80,6 +91,20 @@ public class RDFChangesWriteUpdate implements RDFChanges {
             out.print("} ") ;
         out.println(" } ;") ;
     }
+    
+    private void notHeader() {
+        if ( doingHeader ) {
+            out.println();
+            doingHeader = false;
+        }
+    }
+
+    private void header() {
+        if ( ! doingHeader ) {
+            out.println();
+            doingHeader = true;
+        }
+    }
 
     static NodeFormatter formatter = new NodeFormatterNT() {
         // Write a URI.
@@ -97,23 +122,43 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     }
     
     @Override
-    public void addPrefix(Node gn, String prefix, String uriStr) {}
+    public void addPrefix(Node gn, String prefix, String uriStr) {
+        notHeader();
+        out.print("# AddPrefix ");
+        outputNode(out, gn);
+        out.print(" ");
+        out.print(prefix);
+        out.print(" <");
+        out.print(uriStr);
+        out.print(">");
+        out.println();
+    }
 
     @Override
-    public void deletePrefix(Node gn, String prefix) { }
+    public void deletePrefix(Node gn, String prefix) { 
+        notHeader();
+        out.print("# DelPrefix ");
+        outputNode(out, gn);
+        out.print(" ");
+        out.print(prefix);
+        out.println();
+    }
 
     @Override
-    public void txnBegin() { 
-        out.write("# Begin\n") ;
+    public void txnBegin() {
+        notHeader();
+        out.println("# Begin") ;
     }
 
     @Override
     public void txnCommit() {
-        out.write("# Commit\n") ;
+        notHeader();
+        out.println("# Commit") ;
     }
 
     @Override
     public void txnAbort() {
-        out.write("# Abort\n") ;
+        notHeader();
+        out.println("# Abort") ;
     }
 }

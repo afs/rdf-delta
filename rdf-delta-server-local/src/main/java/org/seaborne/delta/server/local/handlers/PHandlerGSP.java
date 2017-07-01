@@ -51,6 +51,7 @@ public class PHandlerGSP implements PatchHandler {
         IndentedLineBuffer x = new IndentedLineBuffer() ;
         RDFChanges scData = new RDFChangesWriteUpdate(x) ;
         patch.play(scData);
+        x.flush();
         String reqStr = x.asString() ;
         updateEndpoints.forEach((ep)->{
             try { HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ; }

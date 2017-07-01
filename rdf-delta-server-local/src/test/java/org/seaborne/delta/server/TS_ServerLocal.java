@@ -26,6 +26,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
     TestFileStore.class
+    , TestPatchStoreFile.class
     , TestLocalServerBuildConfig.class
     , TestLocalServer.class
     , TestLocalServerCreateDelete.class
