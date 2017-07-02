@@ -1,18 +1,13 @@
 # RDF Delta
 
 RDF Delta is a system for recording and publishing changes to RDF
-Datasets. Theer are three parts:
+Datasets. There are three parts:
 
-<div style="left-margin: 100px">
-
-_RDF Patch_ -  a format for recording changes to an RDF Dataset
-
-_RDF Patch Logs_ - organise patches in to a log of changes 
+* _RDF Patch_ -  a format for recording changes to an RDF Dataset
+* _RDF Patch Logs_ - organise patches in to a log of changes 
 to an RDF Dataset with HTTP access. 
-
-_RDF Patch Logs Server_ - a server for RDF Patch Logs to support
+* _RDF Patch Logs Server_ - a server for RDF Patch Logs to support
 replicated datasets.
-</div>
 
 RDF Patch Logs can be used for:
 
