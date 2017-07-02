@@ -21,7 +21,7 @@ specific resources within the dataset.
 See "[Delta](delta.md)" for a overview of the Delta system for
 distributing changes to RDF datasets. 
 
-Documentation
+## Documentation
 
 * "[Delta](delta.md)" for a overview of the Delta system
 * "[Introduction to RDF Patch](rdf-patch-intro.md)"
@@ -29,8 +29,8 @@ Documentation
 * "[Delta Procotol](delta-protocol.md)" for details of protocol of a delta server.
 * "[Delta API](delta-api.md)" for the application API (java).
 
-Code
+##Code
 
-https://github.com/afs/rdf-delta
+[https://github.com/afs/rdf-delta](https://github.com/afs/rdf-delta)
 
-[![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg.png)](https://travis-ci.org/afs/rdf-delta)
+[![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg)](https://travis-ci.org/afs/rdf-delta)
