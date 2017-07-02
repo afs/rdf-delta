@@ -31,6 +31,7 @@ import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonNumber;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.riot.WebContent;
+import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.* ;
 import org.seaborne.delta.link.DeltaLink;
@@ -87,15 +88,21 @@ public class S_Patch extends HttpOperationBase {
                 RDFPatchOps.write(System.out, patch);
             
             long version = action.dLink.append(ref, patch);
+            // Location of patch in "container/patch/id" form.
+            //String location = action.request.getRequestURI()+"/patch/"+ref.asPlainString();
+            String location = action.request.getRequestURI()+"?version="+version;
+          
             JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()
                 .startObject()
                 .pair(DeltaConst.F_VERSION, version)
+                .pair(DeltaConst.F_LOCATION, location)
                 .finishObject()
                 .build();
             OutputStream out = action.response.getOutputStream();
             action.response.setContentType(WebContent.contentTypeJSON);
             action.response.setStatus(HttpSC.OK_200);
+            action.response.setHeader(HttpNames.hLocation, location);
             JSON.write(out, rslt);
             out.flush();
         }

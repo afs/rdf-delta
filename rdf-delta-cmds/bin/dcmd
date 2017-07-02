@@ -63,7 +63,8 @@ else
 fi
 
 # Map CMD to class name
-DMCD_PKG="org.seaborne.delta.cmds"
+BASE_PKG="org.seaborne.delta"
+DCMD_PKG="${BASE_PKG}.cmds"
 
 # Alternative names.
 case $CMD in
@@ -83,19 +84,22 @@ case $CMD in
     "")
     ;;
     mklog | rmlog | list | addpatch | getpatch )
-	CMD_CLS="$DMCD_PKG"."$CMD"
+	CMD_CLS="$DCMD_PKG"."$CMD"
 	;;
     ls)
-        CMD_CLS="${DMCD_PKG}.list"
+        CMD_CLS="${DCMD_PKG}.list"
 	;;
     rdf2patch)
-	CMD_CLS="$DMCD_PKG"."$CMD"
+	CMD_CLS="$DCMD_PKG"."$CMD"
 	;;
-    patchserver)
-	CMD_CLS="org.seaborne.delta.server.http.CmdDeltaServer"
+    patchserver | server )
+	CMD_CLS="delta.server.DeltaServer"
 	;;
-    org.seaborne.delta.*)
+    org.seaborne.delta.* | delta.* )
 	CMD_CLS=$CMD
+	;;
+    tools.*)
+	CMD_CLS="${BASE_PKG}"."$CMD"
 	;;
     *)
 	echo "Unknown command $CMD" 2>&1

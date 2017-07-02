@@ -59,6 +59,7 @@ public class DeltaConst {
     public static final String F_SOURCES       = "sources";
     public static final String F_ID            = "id";
     public static final String F_VERSION       = "version";
+    public static final String F_LOCATION      = "location";
     public static final String F_MINVER        = "min_version";
     public static final String F_MAXVER        = "max_version";
     public static final String F_LATEST        = "latest";

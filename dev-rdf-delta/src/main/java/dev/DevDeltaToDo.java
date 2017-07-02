@@ -20,33 +20,17 @@ package dev;
 
 public class DevDeltaToDo {
 
-    //++++
-    // Check for any implementation then...
-    //    RDFChangesWriteUpdate [fixed] but not RDFChangesWriter
-    // Remove RDFChanges.start/finish.
-    //   (Or Patch.play to call start, finish?)
-    //++++
+    // ** Persistent client-side data
+    // ** Tests
+    //      client restart
+    //      server restart
+    // ** Docs
+    // ** 1m test.  Benchmark.  (50k, very large xfer! Compress?)
+    // ** Initial data testing
     
-    // PatchCache.
-    // TestPatchStore(file).
-    
-    // DeltaClient.nameToId : have the zone know the name->id mapping.
-    // Check resetDeltaClient in AbstractTestDeltaConnection
-    
-    // Ugly : AbstractTestDeltaConnection.change_read_new
-//    if ( ! dClient.getZone().exists(dsRef) )
-//        dClient.attach(dsRef, LocalStorageType.MEM);
-//    else
-//        dClient.connect(dsRef);
-
-    
-    // Deltaclient.nameToId - needs caching.
-    // zone.create -> zone.setUp, register.
-    
-    // Zone restart. -> "connect"
-    // Do we need DeltaClient.connect.managed?
-    
-    // Soem sort of "connectOrCreate" in DeltaClient.
+    // Patch assembler
+    // Patch receiver servlet for Fuseki.
+    // Patch seender for Fuseki.
     
     // PatchLog  concurrency.
     // PatchLog  Id for log separate from dsRef 
@@ -55,13 +39,8 @@ public class DevDeltaToDo {
     
     // HTTP interface / Control interface :: clearer split.
     
-    // DeltaConnection XXX's
-    
-    // Initial data in Dlink.createDataSources.
-    
     // PatchLogServer
 	//   Server lifecycle.
-	// 
     //      ping (RPC1), RPC, HTTP / POST / GET / Non-retriable POST.
     //   Retry policy.
     //   op - ping - ping - op 
@@ -78,29 +57,19 @@ public class DevDeltaToDo {
     // resync
     // append (gets patch head and fills that in)
 
-    // Quick poll : server epoch - avoid calc of list of datasources
-    // "ping" like (RPC1). Use ping.
-    
-    // ping to return timeofday.
-    
     // "Get all patches x to y."
     
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write
     
-    // Interface for patch send, receive, get all.
-    // PatchLog--
-        
     // Id.nil for "no previous".
     // Id for "any previous" (risky!)
-
-    // POST patch -> 201 Created + ** Location: **
-    
-    // DeltaConnection pooling.
-    // so try(DeltaConnection){} works well.
     
     // Migrate PatchLogServer; relationship to Zone?
     
+    // S_Patch, S_Fetch.
+    //   POST patch -> ** Location: **
+    //   "container/patch/{id}", "container/patch{version}"
     // URI design. RDF Patch REST 
     //   http://server:1066/{WebAppCxt}/{shortName}/
     //                                 /{shortName}/init = "version 0" but dataset vs patch.
@@ -119,10 +88,7 @@ public class DevDeltaToDo {
     
     // Streaming patches.
     // Currently not because of DeltaLink.sendPatch takes a patch as argument. 
-    
-    //PatchLog - conflates "index" and "version" - acceptable?
-    //          - revisit HistoryEntry - it keeps patches? LRU cache of patches.  
-    
+
     // ------------------------------------------------------------------------
     // Document, "Design" protocol
 

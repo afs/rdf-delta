@@ -86,6 +86,8 @@ public class S_Fetch extends HttpOperationBase {
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: version="+version);
         } else
+            // XXX Decode "container/patch/id"
+            // Coordinate with S_Patch "Location"
             throw new DeltaBadRequestException("No version, no patch id");
         OutputStream out = action.response.getOutputStream() ;
         //action.response.setCharacterEncoding(WebContent.charsetUTF8);

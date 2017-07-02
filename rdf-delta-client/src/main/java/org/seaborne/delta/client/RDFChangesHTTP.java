@@ -228,7 +228,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 LOG.info("== ==");
             }
         }
-        FmtLog.info(LOG, "Send patch (%d bytes)", bytes.length);
+        FmtLog.info(LOG, "Send patch (%,d bytes)", bytes.length);
         postRequest.setEntity(new ByteArrayEntity(bytes));
 
         try(CloseableHttpResponse r = httpClient.execute(postRequest) ) {

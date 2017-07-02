@@ -37,37 +37,5 @@ public class RunDeltaFuseki {
             .build()
             .start()
             .join();
-
-//        FusekiLogging.allowLoggingReset(false);
-//        String fusekiHome = "/home/afs/Jena/jena-fuseki2/jena-fuseki-core" ;
-//        String fusekiBase = "/home/afs/tmp/run" ;
-//        
-//        System.setProperty("FUSEKI_HOME", fusekiHome) ;
-//        System.setProperty("FUSEKI_BASE", fusekiBase) ;
-      //FusekiEnv.setEnvironment() ;
-//        FusekiCmd.main("--conf", "/home/afs/ASF/rdf-delta/delta-config.ttl") ;
-//        
-////        // Dev
-////        DatasetGraph dsg = DatasetGraphFactory.createTxnMem() ; 
-//
-//        JettyServerConfig jettyServerConfig = new JettyServerConfig() ;
-//        // Dev
-//        jettyServerConfig.port = 3030 ;
-//        jettyServerConfig.contextPath = "/" ;
-//        jettyServerConfig.jettyConfigFile = null ;
-//        jettyServerConfig.enableCompression = true ;
-//        jettyServerConfig.verboseLogging = false ;
-//        
-//        ServerInitialConfig config = new ServerInitialConfig() ;
-//        config.argTemplateFile  = null ;
-//        // Dev
-//        config.datasetPath = "/rdf" ;
-//        config.allowUpdate = false ;
-//        config.dsg = null ;
-//        config.fusekiCmdLineConfigFile = "/home/afs/ASF/rdf-delta/delta-config.ttl" ;         // Command line --conf.
-//        config.fusekiServerConfigFile = null ;          // Calculated config.ttl from run area (if not --conf)
-//        
-//        FusekiLogging.setLogging();
-//        FusekiCmd.runFuseki(config, jettyServerConfig); 
     }
 }

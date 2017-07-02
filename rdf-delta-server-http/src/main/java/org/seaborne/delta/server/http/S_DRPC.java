@@ -226,9 +226,9 @@ public class S_DRPC extends DeltaServlet {
         }
     }
 
-    // {} -> {}
+    // {} -> { "value" ; "...now..."}
     private JsonValue ping(DeltaAction action) {
-        return new JsonObject();
+        return S_Ping.ping();
     }
 
     // Header: { client: } -> { token: }   

@@ -29,7 +29,7 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 
-// Switch between two engines - the "fetch patch" code and the "send patch" code.  
+/*8 Servlet for both append and fetch patches. */  
 public class S_PatchLog extends HttpOperationBase {
     private final HttpOperationBase fetchServlet;
     private final HttpOperationBase appendServlet; 

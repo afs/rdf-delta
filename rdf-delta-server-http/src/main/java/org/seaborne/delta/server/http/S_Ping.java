@@ -19,15 +19,27 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
+import java.util.TimeZone ;
 
+import javax.servlet.ServletOutputStream ;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.io.IndentedWriter ;
+import org.apache.jena.atlas.json.JSON ;
+import org.apache.jena.atlas.json.JsonObject ;
+import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.lib.DateTimeUtils ;
+import org.apache.jena.riot.WebContent ;
+import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaConst ;
+import org.seaborne.delta.lib.JSONX ;
 import org.slf4j.Logger ;
 
+/** ping - respond with the date/time as a JSON object */
 public class S_Ping extends HttpServlet {
     static private Logger LOG = Delta.DELTA_LOG ;
     
@@ -35,13 +47,46 @@ public class S_Ping extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Ping:GET");
-        resp.setStatus(HttpSC.NO_CONTENT_204);
+        //LOG.info("Ping:GET");
+        ping(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LOG.info("Ping:POST");
-        resp.setStatus(HttpSC.NO_CONTENT_204);
+        //LOG.info("Ping:POST");
+        ping(req, resp);
+    }
+    
+    private static TimeZone timeZoneUTC = TimeZone.getTimeZone("UTC");
+    
+    public static void ping(HttpServletRequest req, HttpServletResponse resp) {
+        try { 
+            resp.setHeader(HttpNames.hCacheControl, "no-cache");
+            resp.setHeader(HttpNames.hContentType,  WebContent.contentTypeJSON);
+            resp.setStatus(HttpSC.OK_200);
+            JsonValue r = ping();
+            try(ServletOutputStream out = resp.getOutputStream(); IndentedWriter b = new IndentedWriter(out); ) {
+                b.setFlatMode(true);
+                JSON.write(b, r);
+                b.ensureStartOfLine();
+                b.flush();
+                out.write('\n');
+            }
+        } catch (IOException ex) {
+            LOG.warn("ping: IOException", ex);
+            try { 
+                resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error");
+            } catch (IOException ex2) {}
+        }
+    }
+    
+    public static JsonValue ping() {
+        String now = DateTimeUtils.nowAsXSDDateTimeString();
+        // For UTC
+        //String now = DateTimeUtils.calendarToXSDDateTimeString(new GregorianCalendar(timeZoneUTC));
+        JsonObject r = JSONX.buildObject(b->{
+            b.pair(DeltaConst.F_VALUE, now);
+        });
+        return r ;
     }
 }

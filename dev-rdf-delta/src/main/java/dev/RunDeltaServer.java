@@ -40,6 +40,6 @@ public class RunDeltaServer {
         FileOps.clearAll(base);
         if ( args.length == 0 )
             args = new String[] {"--base=DeltaServer"};
-        org.seaborne.delta.server.http.CmdDeltaServer.main(args);
+        delta.server.DeltaServer.main(args);
     }
 }

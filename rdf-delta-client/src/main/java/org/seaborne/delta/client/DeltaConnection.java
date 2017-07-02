@@ -20,7 +20,10 @@ package org.seaborne.delta.client;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference ;
+import static org.seaborne.delta.DeltaConst.*;
 
+import org.apache.jena.atlas.lib.Lib ;
+import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
@@ -42,8 +45,6 @@ import org.slf4j.LoggerFactory ;
  */ 
 public class DeltaConnection implements AutoCloseable {
     
-    // XXX Remove commented out.
-    
     private static Logger LOG = LoggerFactory.getLogger(DeltaConnection.class);//Delta.DELTA_LOG;
     
     // The version of the remote copy.
@@ -60,25 +61,6 @@ public class DeltaConnection implements AutoCloseable {
 
     private boolean valid = false;
  
-    // XXX DRY See playPatches.
-    private static void play(Id datasourceId, DatasetGraph dsg, DeltaLink dLink, int minVersion, int maxVersion) {
-        RDFChanges target = new RDFChangesApply(dsg);
-        Node patchLastIdNode = null;
-        for ( int i = minVersion ; i <= maxVersion ; i++ ) {
-            FmtLog.info(LOG, "Attach: patch=%d", i);
-            RDFPatch patch = dLink.fetch(datasourceId, i);
-            if ( patch == null ) { 
-                FmtLog.info(LOG, "Sync: patch=%d : not found", i);
-                continue;
-            }
-            RDFChanges c = target;
-            if ( false )
-                c = DeltaOps.print(c);
-            patch.apply(c);
-            patchLastIdNode = patch.getId();
-        }
-    }
-
     /** 
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
      * The {@code DatasetGraph} must be in-step with the zone.
@@ -91,14 +73,6 @@ public class DeltaConnection implements AutoCloseable {
         Objects.requireNonNull(dataState, "Null data state");
         if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
             throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
-//        DeltaConnection client = DeltaConnection.connect$(zone, dataState, datasourceId, dsg, dLink);
-//        return client;
-//    }
-//    
-//    /* Common code to create the local DeltaConnection and set it up. */
-//    private static DeltaConnection connect$(Zone zone,DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
-//        if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
-//            throw new DeltaException("State ds id: "+dataState.getDataSourceId()+" but app passed "+datasourceId);
         DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
         client.start();
         FmtLog.info(Delta.DELTA_LOG, "%s", client);
@@ -110,30 +84,32 @@ public class DeltaConnection implements AutoCloseable {
             link.register(clientId);
     }
     
-    private DeltaConnection(DataState dataState, DatasetGraph dsg, DeltaLink link) {
-        if ( dsg instanceof DatasetGraphChanges )
-            Log.warn(this.getClass(), "DatasetGraphChanges passed into DeltaClient");
+    private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link) {
+        Objects.requireNonNull(dataState, "DataState");
+        Objects.requireNonNull(link, "DeltaLink");
+        if ( basedsg instanceof DatasetGraphChanges )
+            Log.warn(this.getClass(), "DatasetGraphChanges passed into "+Lib.className(this));
         this.state = dataState;
-        this.base = dsg;
+        this.base = basedsg;
         this.datasourceId = dataState.getDataSourceId();
         this.dLink = link;
         this.valid = true;
         
-        if ( dsg != null  ) {
+        if ( basedsg != null  ) {
             // Where to put incoming changes. 
-            this.target = new RDFChangesApply(dsg);
+            this.target = new RDFChangesApply(basedsg);
             // Where to send outgoing changes.
-            // Make RDFChangesHTTP one shot.
-            // XXX Wrap in version updater 
             RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(dsg, monitor);
+            this.managed = new DatasetGraphChanges(basedsg, monitor);
         } else {
             this.target = null;
             this.managed = null;
         }
     }
     
+    // clone
     protected DeltaConnection(DeltaConnection other) {
+        Objects.nonNull(other);
         this.state = other.state;
         this.base = other.base;
         this.datasourceId = other.datasourceId;
@@ -142,9 +118,6 @@ public class DeltaConnection implements AutoCloseable {
         // Not shared with "other".
         if ( base != null  ) {
             this.target = new RDFChangesApply(base);
-            // Where to send outgoing changes.
-            // Make RDFChangesHTTP one shot.
-            // XXX Wrap in version updater 
             RDFChanges monitor = createRDFChanges(datasourceId);
             this.managed = new DatasetGraphChanges(base, monitor);
         } else {
@@ -182,8 +155,9 @@ public class DeltaConnection implements AutoCloseable {
 
                 RDFPatch patch = getRDFPatch();
                 FmtLog.info(LOG,  "Send patch: id=%s, prev=%s", patch.getId(), patch.getPrevious());
-                long newVersion = dLink.append(dsRef, patch);
-                setLocalState(newVersion, patch.getId());
+                //long newVersion = dLink.append(dsRef, patch);
+                //setLocalState(newVersion, patch.getId());
+                append(patch);
                 currentTransactionId = null;
                 reset();
             }
@@ -203,10 +177,21 @@ public class DeltaConnection implements AutoCloseable {
     
     /*package*/ void finish() { }
 
+    /** Send a patch to log server. */
+    public synchronized void append(RDFPatch patch) {
+        checkDeltaConnection();
+        // Autoallocated previous problem. 
+        long ver = dLink.append(datasourceId, patch);
+        long ver0 = state.version();
+        if ( ver0 >= ver )
+            FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver);
+        state.updateState(ver, Id.fromNode(patch.getId()));
+    }
+
     public void sync() {
         checkDeltaConnection();
-        long remoteVer = getRemoteVersionLatestOrDefault(DeltaConst.VERSION_UNSET);
-        if ( remoteVer == DeltaConst.VERSION_UNSET ) {
+        long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
+        if ( remoteVer == VERSION_UNSET ) {
             FmtLog.warn(LOG, "Sync: Failed to sync");
             return;
         }
@@ -214,11 +199,12 @@ public class DeltaConnection implements AutoCloseable {
         long localVer = getLocalVersion();
 
         FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
-        // XXX -1 ==> Initialize data.
+        // -1 ==> no entries, uninitialized.
         if ( localVer < 0 ) {
-            FmtLog.warn(LOG, "Sync: **** No initialization");
+            FmtLog.info(LOG, "Sync: No log entries");
             localVer = 0 ;
             setLocalState(0, (Node)null);
+            return;
         }
         
         if ( localVer > remoteVer ) 
@@ -230,6 +216,7 @@ public class DeltaConnection implements AutoCloseable {
         // bring up-to-date.
         
         playPatches(localVer+1, remoteVer) ;
+        //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
     }
 
     /** Get getRemoteVersionLatest with HTTP handling */
@@ -253,7 +240,7 @@ public class DeltaConnection implements AutoCloseable {
 
     /** Play all the patches from the named version to the latested */
     public void playFrom(int firstVersion) {
-        long remoteVer = getRemoteVersionLatestOrDefault(DeltaConst.VERSION_UNSET);
+        long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
         if ( remoteVer < 0 ) {
             FmtLog.warn(LOG, "Sync: Failed to sync");
             return;
@@ -263,28 +250,42 @@ public class DeltaConnection implements AutoCloseable {
     
     /** Play the patches (range is inclusive at both ends) */
     private void playPatches(long firstPatchVer, long lastPatchVer) {
+        Pair<Long, Node> p = play(datasourceId, target, dLink, firstPatchVer, lastPatchVer);
+        long patchLastVersion = p.car();
+        Node patchLastIdNode = p.cdr();
+        setLocalState(patchLastVersion, patchLastIdNode);
+    }
+    
+    private RDFPatch fetchPatch(long id) {
+        return dLink.fetch(datasourceId, id);
+    }
+
+    /** Play patches, return details of the the last successfully applied one */ 
+    private static Pair<Long, Node> play(Id datasourceId, RDFChanges target, DeltaLink dLink, long minVersion, long maxVersion) {
         // [Delta] replace with a one-shot "get all patches" operation.
-        FmtLog.info(LOG, "Patch range [%d, %d]", firstPatchVer, lastPatchVer);
-        //IntStream.rangeClosed(localVer+1, remoteVer).forEach((x)->{
+        FmtLog.info(LOG, "Patch range [%d, %d]", minVersion, maxVersion);
+        Node patchLastIdNode = null;
+        long patchLastVersion = VERSION_UNSET;
         
-        Node patchLastId = null;
-        
-        for ( long x = firstPatchVer ; x <= lastPatchVer ; x++) {
-            FmtLog.info(LOG, "Sync: patch=%d", x);
-            RDFPatch patch = fetchPatch(x);
+        for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
+            FmtLog.info(LOG, "Play: patch=%d", ver);
+            RDFPatch patch = dLink.fetch(datasourceId, ver);
             if ( patch == null ) { 
-                FmtLog.info(LOG, "Sync: patch=%d : not found", x);
+                FmtLog.info(LOG, "Play: patch=%d : not found", ver);
                 continue;
             }
             RDFChanges c = target;
             if ( false )
                 c = DeltaOps.print(c);
             patch.apply(c);
-            patchLastId = patch.getId();
+            patchLastIdNode = patch.getId();
+            patchLastVersion = ver;
         }
-        setLocalState(lastPatchVer, patchLastId);
+        return Pair.create(patchLastVersion, patchLastIdNode);
     }
 
+
+    
     @Override
     public void close() {
     }
@@ -343,13 +344,12 @@ public class DeltaConnection implements AutoCloseable {
         return logInfo.getLatestPatch();
     }
     
-    // XXX remove and only have PatchLogInfo. 
     /** Actively get the remote version */
     public long getRemoteVersionLatest() {
         checkDeltaConnection();
         PatchLogInfo info = getPatchLogInfo();
         if ( info == null )
-            return DeltaConst.VERSION_UNSET;
+            return VERSION_UNSET;
         return info.getMaxVersion();
     }
     
@@ -365,11 +365,10 @@ public class DeltaConnection implements AutoCloseable {
         return state.latestPatchId();
     }
 
-    // XXX remove and only have PatchLogInfo. 
     /** Actively get the remote latest patch id */
     public Id getRemotePatchId() {
         checkDeltaConnection();
-        return dLink.getPatchLogInfo(datasourceId).getLatestPatch();
+        return getPatchLogInfo().getLatestPatch();
     }
 
     /** Update the version of the local data store */ 
@@ -386,15 +385,9 @@ public class DeltaConnection implements AutoCloseable {
     private long getRemoteVersionCached() {
         //checkDeltaConnection();
         if ( remote.get() == null )
-            return DeltaConst.VERSION_UNSET; 
+            return VERSION_UNSET; 
         return (int)remote.get().getMaxVersion();
     }
-//    
-//    /** Update the version of the local belief of remote version */ 
-//    private void setRemoteVersionNumber(int version) {
-//        checkDeltaConnection();
-//        remoteVersion.set(version);
-//    }
 
     /** The "record changes" version */  
     public DatasetGraph getDatasetGraph() {
@@ -407,20 +400,6 @@ public class DeltaConnection implements AutoCloseable {
         return base;
     }
 
-    public synchronized void append(RDFPatch patch) {
-        checkDeltaConnection();
-        // Autoallocated previous problem. 
-        long ver = dLink.append(datasourceId, patch);
-        long ver0 = state.version();
-        if ( ver0 >= ver )
-            FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver);
-        state.updateState(ver, Id.fromNode(patch.getId()));
-    }
-
-    private RDFPatch fetchPatch(long id) {
-        return dLink.fetch(datasourceId, id);
-    }
-    
     @Override
     public String toString() {
         String str = String.format("DConn '%s' [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());

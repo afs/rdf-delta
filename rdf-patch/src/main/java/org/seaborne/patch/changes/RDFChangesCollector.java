@@ -36,13 +36,6 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
     private Map<String, Node> header = new LinkedHashMap<>() ;
     private List<ChangeItem> actions = new LinkedList<>() ;
     
-//    /** Play forwards */
-//    public void apply(RDFChanges target) {
-//        target.start();
-//        actions.forEach(a -> enact(a, target)) ;
-//        target.finish();
-//    }
-    
     public static class RDFPatchStored implements RDFPatch {
         private final PatchHeader header ; 
         private final List<ChangeItem> actions ;
