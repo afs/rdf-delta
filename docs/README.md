@@ -29,7 +29,7 @@ distributing changes to RDF datasets.
 * "[Delta Procotol](delta-protocol.md)" for details of protocol of a delta server.
 * "[Delta API](delta-api.md)" for the application API (java).
 
-##Code
+## Code
 
 [https://github.com/afs/rdf-delta](https://github.com/afs/rdf-delta)
 
