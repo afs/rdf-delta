@@ -76,7 +76,7 @@ A change is an add or delete of a quad or a prefix.
 #### Prefixes
 
 Prefixes do not apply to the data of the patch. They are
-chnages to the data the patch is applied to.
+changes to the data the patch is applied to.
 
 The prefix name is without the trailing colon. It can be given as a
 quoted or unquoted string.

@@ -1,4 +1,4 @@
-RDF Patch
+# RDF Patch
 
 See "[Delta](delta.md)" for a overview of the Delta system for
 distributing changes to RDF datasets. 

@@ -9,7 +9,7 @@ system ids typically used for blank nodes in step.
 
 See [use_cases.md](use_cases.md) (Work-in-progress).
 
-* Synchronizing chnages on dataset relicas 
+* Synchronizing changes on dataset relicas 
 * Publishing updates to a dataset
 * Keeping an incremental backup
 
@@ -86,7 +86,7 @@ A change is an add or delete of a quad or a prefix.
 #### Prefixes
 
 Prefixes do not apply to the data of the patch. They are
-chnages to the data the patch is applied to.
+changes to the data the patch is applied to.
 
 The prefix name is without the trailing colon. It can be given as a
 quoted or unquoted string.
