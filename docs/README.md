@@ -12,7 +12,7 @@ to an RDF Dataset with HTTP access.
 
 _RDF Patch Logs Server_ - a server for RDF Patch Logs to support
 replicated datasets.
-<div style="left-margin: 100px">
+</div>
 
 RDF Patch Logs can be used for:
 
