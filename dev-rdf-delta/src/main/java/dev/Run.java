@@ -71,6 +71,9 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
+        
+        
+        
         RDFPatch p = RDFPatchOps.emptyPatch();
         RDFPatchOps.write(System.out, p);
         
@@ -113,8 +116,6 @@ public class Run {
         //dc.connect(dsRef);
         
         // Create zone-managed dataset.
-        
-       
         
         //dc.attach(dsRef);
         

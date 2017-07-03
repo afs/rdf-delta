@@ -23,13 +23,12 @@ import java.io.InputStream ;
 
 import org.apache.jena.atlas.web.AcceptList ;
 import org.apache.jena.atlas.web.ContentType;
-import org.apache.jena.fuseki.servlets.ActionREST ;
 import org.apache.jena.fuseki.servlets.ActionSPARQL ;
 import org.apache.jena.fuseki.servlets.HttpAction ;
 import org.apache.jena.fuseki.servlets.ServletOps ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.patch.RDFPatch ;
+import org.apache.jena.web.HttpSC ;
 import org.seaborne.patch.RDFPatchOps ;
 
 public class FusekiPatch extends ActionSPARQL {
@@ -85,17 +84,17 @@ public class FusekiPatch extends ActionSPARQL {
         }
     }
     
-    public static final String contentTypePatchText1    =  "application/rdf-patch";
-    public static final String contentTypePatchText2    =  "text/rdf-patch";
+    public static final String contentTypePatchText     =  "application/rdf-patch";
+    public static final String contentTypePatchTextAlt  =  "text/rdf-patch";
     public static final String contentTypePatchBinary   =  "application/rdf-patch+thrift";
 
     // Preferred form.
-    public static final ContentType ctPatchText         =  ContentType.create(contentTypePatchText1);
+    public static final ContentType ctPatchText         =  ContentType.create(contentTypePatchText);
     public static final ContentType ctPatchBinary       =  ContentType.create(contentTypePatchBinary);
 
     
-    public static final AcceptList rsOfferPatch        = AcceptList.create(contentTypePatchText1,
-                                                                           contentTypePatchText2,
+    public static final AcceptList rsOfferPatch        = AcceptList.create(contentTypePatchText,
+                                                                           contentTypePatchTextAlt,
                                                                            contentTypePatchBinary);
     
     @Override
@@ -107,17 +106,24 @@ public class FusekiPatch extends ActionSPARQL {
             // it is less trouble to just force UTF-8.
             String charset = action.request.getCharacterEncoding() ;
 
-            ContentType mt = ( ctStr != null ) 
+            ContentType contentType = ( ctStr != null ) 
                 // Parse it.
                 ? ContentType.create(ctStr, charset)
                 // No header Content-type - assume patch-text.
                 : ctPatchText;
-
+            if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) ) 
+                ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr); 
+            if ( contentTypePatchBinary.equals(contentType) )
+                ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, contentTypePatchBinary+" not supported yet");
+            
             DatasetGraph dsg = action.getActiveDSG(); 
             action.beginWrite();
             try {
                 InputStream input = action.request.getInputStream();
-                RDFPatchOps.applyChange(dsg, input);
+                if ( contentTypePatchBinary.equals(contentType) )
+                    ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, contentTypePatchBinary+" not supported yet");
+                if ( contentTypePatchText.equals(contentType) )
+                    RDFPatchOps.applyChange(dsg, input);
                 action.commit();
             //} catch (Throwable th) {}
             } finally { action.endWrite(); }

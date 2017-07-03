@@ -19,7 +19,13 @@
 package dev;
 
 public class DevDeltaToDo {
-
+    // DeltaLinkHTTP.createRDFChanges - URL generation.
+    //  DeltaLib.makeURL --  
+//    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
+//        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
+//    }
+    // Nort daat source.
+    
     // ** Persistent client-side data
     // ** Tests
     //      client restart
