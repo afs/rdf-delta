@@ -145,7 +145,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         checkLink();
         checkRegistered();
         String s = DeltaLib.makeURL(remoteSend, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam());
-        return new RDFChangesHTTP(s);
+        return new RDFChangesHTTP(dsRef.toString(), s);
     }
 
     // Non-streaming - collect patch then replay to send it.  
@@ -175,19 +175,18 @@ public class DeltaLinkHTTP implements DeltaLink {
     @Override
     public RDFPatch fetch(Id dsRef, long version) {
         checkLink();
-        String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramVersion, version);
-        return fetchCommon(s, 1);
+        return fetchCommon(1, dsRef, DeltaConst.paramVersion, version);
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         checkLink();
-        String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), DeltaConst.paramPatch, patchId.asParam());
-        return fetchCommon(s, 1);
+        return fetchCommon(1, dsRef, DeltaConst.paramPatch, patchId.asParam());
     }
 
-    private RDFPatch fetchCommon(String s, int attempt) {
-        Delta.DELTA_HTTP_LOG.info("Fetch request: "+s);
+    private RDFPatch fetchCommon(int attempt, Id dsRef, String param, Object value) {
+        String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), param, value);
+        Delta.DELTA_HTTP_LOG.info("Fetch request: %s %s=%s", dsRef, param, value);
         try { 
             return retry(()->{
                 // [NET] Network point
@@ -209,7 +208,6 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public String initialState(Id dsRef) {
-        Delta.DELTA_HTTP_LOG.info("initialState request: "+dsRef);
         // Better URI design
         return DeltaLib.makeURL(remoteData, DeltaConst.paramDatasource, dsRef.asParam());
     }

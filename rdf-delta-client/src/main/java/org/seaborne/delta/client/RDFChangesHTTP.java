@@ -35,44 +35,49 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
+import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.DeltaOps;
+import org.seaborne.delta.Id ;
 import org.seaborne.delta.lib.IOX ;
-import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Collect the bytes of a change stream, then write to HTTP */ 
 public class RDFChangesHTTP extends RDFChangesWriter {
     
     // This should be tied to the DeltaLink and have that control text/binary.
     
-    private static final Logger LOG = LoggerFactory.getLogger(RDFChangesHTTP.class);
+    private static final Logger LOG = Delta.DELTA_HTTP_LOG;
     // XXX Caching? Auth?
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes ;
     private final String url;
+    private final String label ;
     // Used to coordinate with reading patches in.
     private final Object syncObject;
     private StatusLine statusLine       = null;
     private String response             = null;
-    private Node currentTransactionId   = null;
+    private Node patchId                = null;
     private boolean changeOccurred      = false;
     
-    public RDFChangesHTTP(String url) {
-        this(null, url);
+    public RDFChangesHTTP(String label, String url) {
+        this(label, null, url);
     }
     
-    public RDFChangesHTTP(Object syncObject, String url) {
-        this(syncObject, url, new ByteArrayOutputStream(100*1024));
+    public RDFChangesHTTP(String label, Object syncObject, String url) {
+        this(label, syncObject, url, new ByteArrayOutputStream(100*1024));
     }
 
-    private RDFChangesHTTP(Object syncObject, String url, ByteArrayOutputStream out) {
+    private RDFChangesHTTP(String label, Object syncObject, String url, ByteArrayOutputStream out) {
         super(DeltaOps.tokenWriter(out));
         // XXX When channels come in, this needs sorting out.
         this.syncObject = (syncObject!=null) ? syncObject : new Object(); 
         this.url = url;
+        if ( label == null )
+            label = url;
+        this.label = label;
         this.bytes = out;
         reset();
     }
@@ -81,7 +86,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     public void header(String field, Node value) {
         super.header(field, value);
         if ( field.equals(RDFPatch.ID) )
-            currentTransactionId = value;
+            patchId = value;
     }
     
     @Override
@@ -139,7 +144,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
 
     private void reset() {
-        currentTransactionId = null ;
+        patchId = null ;
         changeOccurred = false ;
         bytes.reset();
     }
@@ -148,15 +153,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         return bytes.toByteArray();
     }
     
-    // XXX Per channel.
-    
     public void send() {
         synchronized(syncObject) {
-//            if ( ! changed() ) {
-//                reset();
-//                LOG.info("Skip TX-TC no change");
-//                return;
-//            }
             send$();
         }
     }
@@ -207,14 +205,16 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 //    }
     
     private void send$() {
+        String idStr = Id.str(patchId);
         HttpPost postRequest = new HttpPost(url);
         byte[] bytes = collected();
 
-        FmtLog.info(LOG, "Send patch : %s", url);
+        FmtLog.info(LOG, "Send patch %s (%d bytes) -> %s", idStr, bytes.length, label);
         
-        String s = new String(bytes, StandardCharsets.UTF_8);
         if ( false ) {
             if ( LOG.isInfoEnabled() ) {
+                // Ouch.
+                String s = new String(bytes, StandardCharsets.UTF_8);
                 LOG.info("== Sending ...");
                 // Do NOT close!
                 IndentedWriter w = IndentedWriter.stdout;
@@ -228,7 +228,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 LOG.info("== ==");
             }
         }
-        FmtLog.info(LOG, "Send patch (%,d bytes)", bytes.length);
         postRequest.setEntity(new ByteArrayEntity(bytes));
 
         try(CloseableHttpResponse r = httpClient.execute(postRequest) ) {
@@ -238,7 +237,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
             if ( sc >= 200 && sc <= 299 )
                 return ;
             if ( sc >= 300 && sc <= 399 ) {
-                FmtLog.info(LOG, "Send patch : got HTTP %d", sc);
+                FmtLog.info(LOG, "Send patch %s HTTP %d", idStr, sc);
                 throw new DeltaHttpException(sc, "HTTP Redirect");
             }
             if ( sc >= 400 && sc <= 499 )

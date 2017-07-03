@@ -75,7 +75,6 @@ public class DeltaConnection implements AutoCloseable {
             throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
         DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
         client.start();
-        FmtLog.info(Delta.DELTA_LOG, "%s", client);
         return client;
     }
     
@@ -154,7 +153,7 @@ public class DeltaConnection implements AutoCloseable {
                 }
 
                 RDFPatch patch = getRDFPatch();
-                FmtLog.info(LOG,  "Send patch: id=%s, prev=%s", patch.getId(), patch.getPrevious());
+                //FmtLog.info(LOG,  "Send patch: id=%s, prev=%s", Id.str(patch.getId()), Id.str(patch.getPrevious()));
                 //long newVersion = dLink.append(dsRef, patch);
                 //setLocalState(newVersion, patch.getId());
                 append(patch);
@@ -198,23 +197,21 @@ public class DeltaConnection implements AutoCloseable {
 
         long localVer = getLocalVersion();
 
-        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
         // -1 ==> no entries, uninitialized.
         if ( localVer < 0 ) {
             FmtLog.info(LOG, "Sync: No log entries");
             localVer = 0 ;
-            setLocalState(0, (Node)null);
+            setLocalState(localVer, (Node)null);
             return;
         }
         
         if ( localVer > remoteVer ) 
             FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", getLocalVersion(), getRemoteVersionCached());
-        if ( localVer >= remoteVer ) {
-            //FmtLog.info(LOG, "Versions : [%d, %d]", localVer, remoteVer);
+        if ( localVer >= remoteVer )
             return;
-        }
         // bring up-to-date.
         
+        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
         playPatches(localVer+1, remoteVer) ;
         //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
     }
@@ -238,15 +235,15 @@ public class DeltaConnection implements AutoCloseable {
         }
     }
 
-    /** Play all the patches from the named version to the latested */
-    public void playFrom(int firstVersion) {
-        long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
-        if ( remoteVer < 0 ) {
-            FmtLog.warn(LOG, "Sync: Failed to sync");
-            return;
-        }
-        playPatches(firstVersion, remoteVer);
-    }
+//    /** Play all the patches from the named version to the latested */
+//    public void playFrom(int firstVersion) {
+//        long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
+//        if ( remoteVer < 0 ) {
+//            FmtLog.warn(LOG, "Sync: Failed to sync");
+//            return;
+//        }
+//        playPatches(firstVersion, remoteVer);
+//    }
     
     /** Play the patches (range is inclusive at both ends) */
     private void playPatches(long firstPatchVer, long lastPatchVer) {
@@ -263,15 +260,15 @@ public class DeltaConnection implements AutoCloseable {
     /** Play patches, return details of the the last successfully applied one */ 
     private static Pair<Long, Node> play(Id datasourceId, RDFChanges target, DeltaLink dLink, long minVersion, long maxVersion) {
         // [Delta] replace with a one-shot "get all patches" operation.
-        FmtLog.info(LOG, "Patch range [%d, %d]", minVersion, maxVersion);
+        //FmtLog.debug(LOG, "Patch range [%d, %d]", minVersion, maxVersion);
         Node patchLastIdNode = null;
         long patchLastVersion = VERSION_UNSET;
         
         for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
-            FmtLog.info(LOG, "Play: patch=%d", ver);
+            //FmtLog.debug(LOG, "Play: patch=%d", ver);
             RDFPatch patch = dLink.fetch(datasourceId, ver);
             if ( patch == null ) { 
-                FmtLog.info(LOG, "Play: patch=%d : not found", ver);
+                FmtLog.info(LOG, "Play: %s patch=%d : not found", datasourceId, ver);
                 continue;
             }
             RDFChanges c = target;
@@ -402,7 +399,7 @@ public class DeltaConnection implements AutoCloseable {
 
     @Override
     public String toString() {
-        String str = String.format("DConn '%s' [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());
+        String str = String.format("DConn %s [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());
         if ( ! valid )
             str = str + " : invalid";
         return str;
