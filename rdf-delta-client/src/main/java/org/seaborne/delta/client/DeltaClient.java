@@ -40,6 +40,8 @@ public class DeltaClient {
      * of the datasets being managed, and a {@link DeltaLink} connection to the patch log server.
      */
     public static DeltaClient create(Zone zone, DeltaLink dLink) {
+        Objects.requireNonNull(zone);
+        Objects.requireNonNull(dLink);
         return new DeltaClient(zone, dLink); 
     }
     

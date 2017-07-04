@@ -32,11 +32,11 @@ public class VocabDelta {
     // Types
     public static final Resource tDatasetDelta        = Vocab.type(NS, "DeltaDataset") ;
     
-    public static final Property pDeltaInit1         = Vocab.property(NS, "initialize") ;
-    public static final Property pDeltaInit2         = Vocab.property(NS, "initialise") ;
     public static final Property pDeltaChanges       = Vocab.property(NS, "changes") ;
-    public static final Property pDataset            = Vocab.property(NS, "dataset") ;
+    public static final Property pStorage            = Vocab.property(NS, "storage") ;
     public static final Property pPollForChanges     = Vocab.property(NS, "poll") ;
+    public static final Property pZone               = Vocab.property(NS, "zone") ;
+    public static final Property pPatchLog           = Vocab.property(NS, "patchlog") ;
 
     private static volatile boolean initialized = false ; 
     

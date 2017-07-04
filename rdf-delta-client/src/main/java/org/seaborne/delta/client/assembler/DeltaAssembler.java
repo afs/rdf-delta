@@ -19,20 +19,16 @@
 package org.seaborne.delta.client.assembler;
 
 import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty ;
-import static org.apache.jena.sparql.util.graph.GraphUtils.getResourceValue ;
-import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue ;
-import static org.apache.jena.sparql.util.graph.GraphUtils.multiValueString ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDataset ;
+import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue ;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaInit1 ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaInit2 ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pPollForChanges ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pPatchLog ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pStorage ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pZone ;
+import static org.seaborne.delta.DeltaConst.*;
 
-import java.io.IOException ;
 import java.io.InputStream ;
-import java.util.HashSet ;
+import java.util.Arrays ;
 import java.util.List ;
-import java.util.Set ;
 import java.util.concurrent.Executors ;
 import java.util.concurrent.ScheduledExecutorService ;
 import java.util.concurrent.TimeUnit ;
@@ -45,26 +41,19 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.Log ;
-import org.apache.jena.query.Dataset ;
 import org.apache.jena.query.DatasetFactory ;
-import org.apache.jena.rdf.model.RDFNode ;
 import org.apache.jena.rdf.model.Resource ;
-import org.apache.jena.rdf.model.Statement ;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.util.FmtUtils ;
-import org.apache.jena.sparql.util.NodeUtils ;
-import org.apache.jena.util.iterator.ExtendedIterator ;
+import org.apache.jena.sparql.util.Context ;
+import org.apache.jena.sparql.util.Symbol ;
+import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst ;
-import org.seaborne.delta.client.DeltaConnection ;
-import org.seaborne.delta.client.DeltaLib ;
-import org.seaborne.delta.client.DeltaLinkHTTP ;
-import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.Id ;
+import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesN ;
-import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -72,60 +61,96 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
     
     /* 
+     * Assembler:
+     * 
+     * <#dataset> rdf:type delta:DeltaDataset ;
+     *     delta:changes  "http://localhost:1066/" ;
+     *     delta:patchlog "ABC"
+     *     delta:zone "file path"
+     *     delta:storage "mem", "file", "tdb" zone info.
+     *   or
+     *      delta:dataset <#daatsetOther>
      */
     
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
-        List<String> xList = multiValueString(root, pDeltaChanges) ;
-        if ( xList.size() == 0 )
+        // delta:changes.
+        if ( ! exactlyOneProperty(root, pDeltaChanges) )
             throw new AssemblerException(root, "No destination for changes given") ;
-        // check for duplicates.
-        Set<String> xs = new HashSet<>(xList) ;
-        if ( xList.size() != xs.size() )
-            FmtLog.warn(log, "Duplicate destinations for changes") ;  
-        
+        String destURL = getAsStringValue(root, pDeltaChanges);
+        // Future - multiple outputs. 
+        List<String> xs = Arrays.asList(destURL);
+
+        // delta:zone.
+        if ( ! exactlyOneProperty(root, pDeltaChanges) )
+            throw new AssemblerException(root, "No location for state manangement (zone)") ;
+        String zoneLocation = getAsStringValue(root, pZone);
+
+        // Should be part of changes URL.
+        // delta:patchlog
+        if ( ! exactlyOneProperty(root, pPatchLog) )
+            throw new AssemblerException(root, "No patch log name") ;
+        String dsName = getAsStringValue(root, pPatchLog);
+
+        // delta:storage
+        if ( ! exactlyOneProperty(root, pDeltaChanges) )
+            throw new AssemblerException(root, "No location for state manangement (zone)") ;
+        String storageTypeStr = getAsStringValue(root, pStorage);
+        LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);
+        if ( storage == null )
+            throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
         RDFChanges streamChanges = null ;
+        
         for ( String dest : xs ) {
             FmtLog.info(log, "Destination: '%s'", dest) ;
             RDFChanges sc = DeltaLib.destination(dest+DeltaConst.EP_Append) ;
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         
-        if ( ! root.hasProperty(pDataset) )
-            throw new AssemblerException(root, "No dataset to be wrapped for delta processing") ;
-        if ( ! exactlyOneProperty(root, pDataset) )
-            throw new AssemblerException(root, "Multiple datasets referenced for one delta processing wrapper") ;
+       Zone zone = Zone.get();
+       zone.init(zoneLocation);
+       
+       // *****
+       DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
+       Id clientId = Id.create();
+       deltaLink.register(clientId);
+       
+       DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
+       Id dsRef =  setup(deltaClient, dsName, "delta:"+dsName, storage);
+       DeltaConnection deltaConnection = deltaClient.get(dsRef);
+       DatasetGraph dsg = deltaConnection.getDatasetGraph();
+       
+       // Put state into dsg Context.
         
-        Resource dsr = getResourceValue(root, pDataset) ;
-        // Check exists.
+//        // And someday tap into services to add a "sync before operation" step.
+//        if ( root.hasProperty(pPollForChanges) ) {
+//            if ( ! exactlyOneProperty(root, pPollForChanges) )
+//                throw new AssemblerException(root, "Multiple places to poll for chnages") ;
+//            String source = getStringValue(root, pPollForChanges) ;
+//            forkUpdateFetcher(source, dsgSub) ;
+//        }
         
-        DatasetGraph dsgSub = ((Dataset)Assembler.general.open(dsr)).asDatasetGraph() ;
+       Context cxt = dsg.getContext();
+       cxt.set(symDeltaClient, deltaClient);
+       cxt.set(symDeltaConnection, deltaConnection);
+       cxt.set(symDeltaZone, zone);
         
-        ExtendedIterator<Statement> sIter = root.listProperties(pDeltaInit1).andThen(root.listProperties(pDeltaInit2)) ;
-        while(sIter.hasNext()) {
-            RDFNode rn = sIter.next().getObject() ;
-            if ( ! NodeUtils.isSimpleString(rn.asNode()) )
-                throw new AssemblerException(root, "Not a string literal for initialization changes: "+FmtUtils.stringForNode(rn.asNode())) ;
-            String str = rn.asLiteral().getString() ;
-            FmtLog.info(Delta.DELTA_LOG, "Delta: initialize: %s",str) ;
-            try (InputStream in = openChangesSrc(str)) {
-                RDFPatchOps.applyChange(dsgSub, in);
-            } catch (IOException ex) { throw IOX.exception(ex); }
-        }
-        
-        // And someday tap into services to add a "sync before operation" step.
-        if ( root.hasProperty(pPollForChanges) ) {
-            if ( ! exactlyOneProperty(root, pPollForChanges) )
-                throw new AssemblerException(root, "Multiple places to poll for chnages") ;
-            String source = getStringValue(root, pPollForChanges) ;
-            forkUpdateFetcher(source, dsgSub) ;
-        }
-        
-        DatasetGraph dsg = new DatasetGraphChanges(dsgSub, streamChanges) ;
-        Dataset ds = DatasetFactory.wrap(dsg) ;
-        return ds ;
+       return DatasetFactory.wrap(dsg);
     }
 
+    static Id setup(DeltaClient dClient, String datasourceName, String baseURI, LocalStorageType storageType) {
+        DataSourceDescription dsd = dClient.getLink().getDataSourceDescriptionByURI(baseURI);
+        if ( dsd == null )
+            return dClient.newDataSource(datasourceName, baseURI, storageType);
+        Id dsRef = dsd.getId();
+        if ( dClient.getZone().exists(dsRef) )
+            // New locally, exists in server.
+            dClient.connect(dsRef);
+        else
+            dClient.attach(dsRef, storageType);    
+        return dsRef;
+    }
+    
     private InputStream openChangesSrc(String x) {
         // May change to cope with remote source
         return IO.openFile(x) ;

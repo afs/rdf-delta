@@ -20,6 +20,8 @@ package org.seaborne.delta;
 
 import java.util.regex.Pattern ;
 
+import org.apache.jena.sparql.util.Symbol ;
+
 public class DeltaConst {
     // Letters, numbers, "."  "_" and "-"
     // Can't start with a "-" or "."
@@ -89,6 +91,13 @@ public class DeltaConst {
     public static final String paramPatch      = "patch";
     public static final String paramDatasource = F_DATASOURCE;
     public static final String paramVersion    = "version";
+    
+    // Symbols used to store information, e.g. in a dataset context.
+    
+    public static final String symBase         = "delta:"; //"http://jena.apache.org/delta#"; 
+    public static final Symbol symDeltaClient  =  Symbol.create(symBase+"client");
+    public static final Symbol symDeltaConnection  =  Symbol.create(symBase+"connection");
+    public static final Symbol symDeltaZone    =  Symbol.create(symBase+"zone");
 
     // Registration
     public static final String paramRef        = "ref";

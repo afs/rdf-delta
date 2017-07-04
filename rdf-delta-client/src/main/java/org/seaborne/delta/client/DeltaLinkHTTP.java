@@ -174,17 +174,16 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public RDFPatch fetch(Id dsRef, long version) {
-        checkLink();
-        return fetchCommon(1, dsRef, DeltaConst.paramVersion, version);
+        return fetchCommon(dsRef, DeltaConst.paramVersion, version);
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
-        checkLink();
-        return fetchCommon(1, dsRef, DeltaConst.paramPatch, patchId.asParam());
+        return fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam());
     }
 
-    private RDFPatch fetchCommon(int attempt, Id dsRef, String param, Object value) {
+    private RDFPatch fetchCommon(Id dsRef, String param, Object value) {
+        checkLink();
         String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), param, value);
         Delta.DELTA_HTTP_LOG.info("Fetch request: %s %s=%s", dsRef, param, value);
         try { 
