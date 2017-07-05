@@ -21,31 +21,39 @@ package org.seaborne.delta;
 import static org.junit.Assert.assertEquals ;
 import static org.junit.Assert.assertNotNull ;
 
+import org.apache.jena.atlas.iterator.Iter ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
+import org.apache.jena.query.ReadWrite ;
+import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.Quad ;
+import org.apache.jena.sparql.sse.SSE ;
+import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
-import org.seaborne.delta.client.LocalStorageType ;
 import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.LocalStorageType ;
 import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink ;
 import org.seaborne.delta.link.RegToken ;
 
 public abstract class AbstractTestDeltaClient {
+    
+    static String DIR_ZONE = "target/Zone";
+    static protected Zone zone;
 
     @BeforeClass public static void setupZone() { 
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
-        String DIR = "target/Zone";
-        Location loc = Location.create(DIR);
-        FileOps.ensureDir(DIR);
-        Zone.get().init(loc);
+        Location loc = Location.create(DIR_ZONE);
+        FileOps.ensureDir(DIR_ZONE);
+        zone = Zone.create(DIR_ZONE);
     }
     
     @AfterClass public static void cleanOutZone() {
-        Zone.get().shutdown();
+        zone.shutdown();
     }
     
     protected abstract Setup.LinkSetup getSetup();
@@ -61,10 +69,8 @@ public abstract class AbstractTestDeltaClient {
         return getSetup().getLink() ;
     }    
     
-    protected Zone getZone() { return Zone.get(); }
-    
     protected DeltaClient createDeltaClient() {
-        return DeltaClient.create(getZone(), getLink());  
+        return DeltaClient.create(zone, getLink());  
     }
     
     @Test
@@ -82,7 +88,6 @@ public abstract class AbstractTestDeltaClient {
         assertEquals(0, dConn.getLocalVersion());
         assertEquals(0, dConn.getRemoteVersionLatest());
     }
-
 
     @Test
     public void create_datasource_1() {
@@ -110,7 +115,113 @@ public abstract class AbstractTestDeltaClient {
     }
     
     @Test
-    public void local_storage_1() {}
+    public void update_1() {
+        // Create on the Delta link then setup DeltaClient
+        DeltaLink dLink = getLink();
+        String DS_NAME = "123";
+        
+        Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource_update_1");
+        DeltaClient dClient = createDeltaClient();
+        dClient.attach(dsRef, LocalStorageType.MEM);
+        DeltaConnection dConn = dClient.get(DS_NAME);
+        assertNotNull(dConn);
+        assertEquals(0, dConn.getLocalVersion());
+        assertEquals(0, dConn.getRemoteVersionLatest());
+        
+        Quad quad = SSE.parseQuad("(_ :s :p :o)");
+        DatasetGraph dsg = dConn.getDatasetGraph();
+        long x0 = Iter.count(dsg.find());
+        assertEquals(0, x0);
+        dsg.add(quad);
+        
+        long x1 = Iter.count(dsg.find());
+        assertEquals(1, x1);
+        
+        long x2 = Iter.count(dConn.getStorage().find());
+        assertEquals(1, x1);
+
+    }
+    
+    @Test
+    public void update_2() {
+        // Create on the Delta link then setup DeltaClient
+        DeltaLink dLink = getLink();
+        String DS_NAME = "1234";
+        
+        Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource_update_2");
+        DeltaClient dClient = createDeltaClient();
+        dClient.attach(dsRef, LocalStorageType.MEM);
+        DeltaConnection dConn = dClient.get(DS_NAME);
+        assertNotNull(dConn);
+        assertEquals(0, dConn.getLocalVersion());
+        assertEquals(0, dConn.getRemoteVersionLatest());
+        
+        Quad quad = SSE.parseQuad("(_ :s :p :o)");
+        DatasetGraph dsg = dConn.getDatasetGraph();
+
+        long x0 = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()) );
+        assertEquals(0, x0);
+        
+        Txn.executeWrite(dsg, ()->dsg.add(quad));
+        long x1 = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()) );
+        assertEquals(1, x1);
+        
+        long x2 = Iter.count(dConn.getStorage().find());
+        assertEquals(1, x1);
+    }
+    
+    @Test
+    public void update_3() {
+        // Create on the Delta link then setup DeltaClient
+        DeltaLink dLink = getLink();
+        String DS_NAME = "12345";
+        
+        Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource_update_3");
+        DeltaClient dClient = createDeltaClient();
+        dClient.attach(dsRef, LocalStorageType.MEM);
+        DeltaConnection dConn = dClient.get(DS_NAME);
+        Quad quad = SSE.parseQuad("(_ :s :p :o)");
+        DatasetGraph dsg = dConn.getDatasetGraph();
+
+        long x0 = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()) );
+        assertEquals(0, x0);
+        
+        dsg.begin(ReadWrite.WRITE);
+        dsg.add(quad);
+        dsg.abort();
+        
+        long x1 = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()) );
+        assertEquals(0, x1);
+    }
+
+    
+    @Test
+    public void local_storage_1() {
+        String DS_NAME = "654321";
+        DeltaClient dClient = createDeltaClient();
+        Id dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME, LocalStorageType.TDB);
+        
+        Quad quad = SSE.parseQuad("(_ :s :p :o)");
+        
+        try(DeltaConnection dConn = dClient.get(dsRef)) {
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            Txn.executeWrite(dsg, ()->dsg.add(quad));
+        }
+        
+        // Reset Zone.
+        Location loc = zone.getLocation();
+        zone.shutdown();
+        zone = Zone.create(loc);
+        // Reset.
+        dClient = DeltaClient.create(zone, getLink());
+        dClient.connect(dsRef);
+        
+        try(DeltaConnection dConn = dClient.get(dsRef)) {
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            long x0 = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()) );
+            assertEquals(1, x0);
+        }
+    }
     
     //TODO
     //  test local storage

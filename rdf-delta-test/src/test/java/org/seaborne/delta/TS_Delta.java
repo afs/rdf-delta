@@ -27,13 +27,16 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses( {
     TestLocalLink.class
-    , TestLocalClient.class
     , TestLocalConnection.class
+    , TestLocalClient.class
     
     , TestRemoteLink.class
-    , TestRemoteClient.class
     , TestRemoteConnection.class
-//    , TestDeltaAssembler.class
+    , TestRemoteClient.class
+
+    // Includes assembler tests.
+    , TestDeltaFusekiGood.class
+    , TestDeltaFusekiBad.class
     
 })
 

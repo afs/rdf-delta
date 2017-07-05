@@ -20,7 +20,6 @@ package dev;
 
 import java.io.IOException;
 import java.net.BindException ;
-import java.util.List;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -33,9 +32,12 @@ import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.client.* ;
+import org.seaborne.delta.client.DeltaClient ;
+import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.DeltaLinkHTTP ;
+import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.DataPatchServer ;
+import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
 import org.seaborne.delta.server.local.LocalServer ;
 import org.seaborne.patch.RDFPatch ;
@@ -97,8 +99,7 @@ public class Run {
 
     public static void main$dc() throws IOException {
         FileOps.clearAll("Zone");
-        Zone.get().init("Zone");
-        Zone zone = Zone.get();
+        Zone zone = Zone.create("Zone");
         
         Quad quad1 = SSE.parseQuad("(:g :s :p 111)");
         Quad quad2 = SSE.parseQuad("(:g :s :p 222)");
@@ -142,7 +143,7 @@ public class Run {
         
         // --- Reset state.
         FileOps.clearAll("Zone");
-        Zone.get().init("Zone");
+        Zone zone = Zone.create("Zone");
         
         boolean httpServer = true;
         DeltaLink dLink = deltaLink(true);
@@ -165,7 +166,6 @@ public class Run {
         
         String datasourceName = "ABC";
         String datasourceURI = "http://example/ABC";
-        Zone zone = Zone.get();
 
         //Id datasourceId = dLink1.newDataSource(datasourceName, datasourceURI);
         //DataState dataState = zone.create(datasourceId, datasourceName, datasourceURI, StorageType.TDB);
@@ -236,45 +236,12 @@ public class Run {
     //        FileOps.clearAll("DeltaServer/ABC");
     //        FileOps.delete("DeltaServer/ABC");
         FileOps.clearAll(base);
-        DataPatchServer dps = DataPatchServer.server(port, base);
+        PatchLogServer dps = PatchLogServer.server(port, base);
         try { 
             dps.start();
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             System.exit(0);
-        }
-    }
-
-    public static void example() {
-            String URL = "http://localhost:"+PORT+"/";
-            Id clientId = Id.create();
-    
-            DeltaLink dLink = DeltaLinkHTTP.connect(URL);
-            dLink.register(clientId);
-    
-            // Find the dataset.
-            List<Id> datasources = dLink.listDatasets();
-            Id dsRef = datasources.get(0);
-            System.out.printf("dsRef = %s\n", dsRef);
-    
-            DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-            DeltaClient dClient = DeltaClient.create(Zone.get(), dLink);
-            dClient.attach(dsRef, LocalStorageType.MEM);
-            
-            try ( DeltaConnection dConn = dClient.get(dsRef) ) {
-            
-    //        // Work with this dataset:
-    //        DatasetGraph dsg = dConn.getDatasetGraph();
-    //        Txn.executeWrite(dsg, ()->
-    //            RDFDataMgr.read(dsg, "some_data.ttl")
-    //        );
-    //        dsg.begin(ReadWrite.WRITE);
-    //        try {
-    //            RDFDataMgr.read(dsg, "some_data.ttl");
-    //            dsg.commit();
-    //        } finally {
-    //            dsg.end();
-    //        }
         }
     }
 }

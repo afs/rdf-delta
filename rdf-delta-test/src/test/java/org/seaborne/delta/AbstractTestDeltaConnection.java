@@ -18,8 +18,9 @@
 
 package org.seaborne.delta;
 
-import static org.junit.Assert.* ;
+import static org.junit.Assert.assertEquals ;
 import static org.junit.Assert.assertFalse ;
+import static org.junit.Assert.assertNotNull ;
 import static org.junit.Assert.assertTrue ;
 
 import java.util.Set;
@@ -34,13 +35,12 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
-import org.apache.jena.tdb.base.file.Location;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.client.LocalStorageType ;
 import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.client.DeltaConnection ;
+import org.seaborne.delta.client.LocalStorageType ;
 import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -54,14 +54,13 @@ public abstract class AbstractTestDeltaConnection {
 
     @BeforeClass public static void setupZone() { 
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
-        Location loc = Location.create(DIR);
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
-        Zone.get().init(loc);
+        Zone.create(DIR);
     }
     
     @AfterClass public static void cleanOutZone() {
-        Zone.get().shutdown();
+        Zone.get(DIR).shutdown();
     }
     
     protected abstract Setup.LinkSetup getSetup();
@@ -77,7 +76,7 @@ public abstract class AbstractTestDeltaConnection {
         return getSetup().getLink() ;
     }    
     
-    protected Zone getZone() { return Zone.get(); }
+    protected Zone getZone() { return Zone.get(DIR); }
     
     protected DeltaClient createDeltaClient() {
         return DeltaClient.create(getZone(), getLink());  

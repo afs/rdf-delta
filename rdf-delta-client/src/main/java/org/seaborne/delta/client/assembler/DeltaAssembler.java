@@ -20,11 +20,13 @@ package org.seaborne.delta.client.assembler;
 
 import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty ;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue ;
+import static org.seaborne.delta.DeltaConst.symDeltaClient ;
+import static org.seaborne.delta.DeltaConst.symDeltaConnection ;
+import static org.seaborne.delta.DeltaConst.symDeltaZone ;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges ;
 import static org.seaborne.delta.client.assembler.VocabDelta.pPatchLog ;
 import static org.seaborne.delta.client.assembler.VocabDelta.pStorage ;
 import static org.seaborne.delta.client.assembler.VocabDelta.pZone ;
-import static org.seaborne.delta.DeltaConst.*;
 
 import java.io.InputStream ;
 import java.util.Arrays ;
@@ -45,7 +47,6 @@ import org.apache.jena.query.DatasetFactory ;
 import org.apache.jena.rdf.model.Resource ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.util.Context ;
-import org.apache.jena.sparql.util.Symbol ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst ;
@@ -107,8 +108,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         
-       Zone zone = Zone.get();
-       zone.init(zoneLocation);
+       Zone zone = Zone.create(zoneLocation);
        
        // *****
        DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
@@ -122,7 +122,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
        
        // Put state into dsg Context.
         
-//        // And someday tap into services to add a "sync before operation" step.
+        // And someday tap into services to add a "sync before operation" step.
 //        if ( root.hasProperty(pPollForChanges) ) {
 //            if ( ! exactlyOneProperty(root, pPollForChanges) )
 //                throw new AssemblerException(root, "Multiple places to poll for chnages") ;

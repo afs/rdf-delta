@@ -140,19 +140,17 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef);
         // Patch not known to be valid yet.
         // Patch not safe in th Patch Log yet.
-        FmtLog.info(LOG, "append: Dest=%s Patch=%s", source, str(rdfPatch.getId()));
-
-        PatchLog patchLog = source.getPatchLog() ;
-        
-        beforeWrite(patchLog, rdfPatch);
-        
-        long version = patchLog.append(rdfPatch);
-        
-        afterWrite(rdfPatch, version);
-
-        FmtLog.info(LOG, "append: Patch=%s[%d] ds=%s", str(rdfPatch.getId()), version, source);
-        
-        return version; 
+        try {
+            PatchLog patchLog = source.getPatchLog() ;
+            beforeWrite(patchLog, rdfPatch);
+            long version = patchLog.append(rdfPatch);
+            afterWrite(rdfPatch, version);
+            FmtLog.info(LOG, "append: Patch=%s[%d] ds=%s", str(rdfPatch.getId()), version, source);
+            return version; 
+        } catch (RuntimeException ex) {
+            FmtLog.info(LOG, "append: Failed: Dest=%s Patch=%s ; %s", source, str(rdfPatch.getId()), ex.getMessage());
+            throw ex;
+        }
     }
 
     /** Called before writing the patch to the {@link PatchLog}. 

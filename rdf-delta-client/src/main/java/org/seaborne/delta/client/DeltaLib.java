@@ -62,4 +62,8 @@ public class DeltaLib {
     public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
         return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
     }
+    
+    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2, String paramName3, Object paramValue3) {
+        return String.format("%s?%s=%s&%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2, paramName3, paramValue3);
+    }
 }

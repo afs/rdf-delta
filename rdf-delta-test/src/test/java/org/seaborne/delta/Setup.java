@@ -27,7 +27,7 @@ import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.DataPatchServer;
+import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.http.DeltaServlet;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
@@ -113,16 +113,16 @@ public class Setup {
          * (problems starting and stopping the background server
          * synchronous to the tests otherwise).   
          */
-        public static DataPatchServer startPatchServer() {
+        public static PatchLogServer startPatchServer() {
             // XXX [JVM-global registrations]
             DeltaServlet.clearAllRegistrations();
-            DataPatchServer dps = DataPatchServer.create(TEST_PORT, null) ;
+            PatchLogServer dps = PatchLogServer.create(TEST_PORT, null) ;
             try { dps.start(); }
             catch (BindException ex) { throw IOX.exception(ex); }
             return dps;
         }
         
-        public static void stopPatchServer(DataPatchServer dps) {
+        public static void stopPatchServer(PatchLogServer dps) {
             dps.stop();
             // Clear cached connections.
             resetDefaultHttpClient();
@@ -130,7 +130,7 @@ public class Setup {
         
         // Local server of the patch server.
         private LocalServer localServer = null;
-        private static DataPatchServer server = null;
+        private static PatchLogServer server = null;
         private DeltaLink dlink = null;
         
         @Override

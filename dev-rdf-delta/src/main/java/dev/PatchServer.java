@@ -22,13 +22,13 @@ import org.slf4j.LoggerFactory;
  * All interaction with the remote server MUST go through this class.
  */
 
-/*package*/ class PatchLogServer {
+/*package*/ class PatchServer {
     
-    static private final Logger LOG = LoggerFactory.getLogger(PatchLogServer.class) ;
+    static private final Logger LOG = LoggerFactory.getLogger(PatchServer.class) ;
     private final String serverURL;
     private final AtomicReference<DeltaLink> deltaLink = new AtomicReference<>(null);
 
-    /*package*/ PatchLogServer(String serverURL) {
+    /*package*/ PatchServer(String serverURL) {
         this.serverURL = Objects.requireNonNull(serverURL, "Server URL is null");
     }
     

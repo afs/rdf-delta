@@ -58,12 +58,12 @@ public class load {
         
         FileOps.ensureDir(DIR); 
         FileOps.clearDirectory(DIR);
-        Zone.get().init(Location.create(DIR));
+        Zone zone = Zone.create(Location.create(DIR));
         DeltaLink dLink = DeltaLinkHTTP.connect(URL);
         Id clientId = Id.create();
         dLink.register(clientId);
         
-        DeltaClient dClient = DeltaClient.create(Zone.get(), dLink);
+        DeltaClient dClient = DeltaClient.create(zone, dLink);
         Id dsRef = dClient.newDataSource(DS, "http://example/"+DS, LocalStorageType.TDB);
         
         

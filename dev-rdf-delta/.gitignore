@@ -1,6 +1,9 @@
 ## Dev workspace
-DeltaServer/**
+DeltaServer*/
 DConn*/**
 **/Patches/**
 Zone*/
 datafile
+D.ttl
+D?.ttl
+conf*.ttl

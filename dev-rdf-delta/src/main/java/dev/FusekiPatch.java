@@ -18,6 +18,8 @@
 
 package dev;
 
+import static java.lang.String.format ;
+
 import java.io.IOException ;
 import java.io.InputStream ;
 
@@ -91,16 +93,15 @@ public class FusekiPatch extends ActionSPARQL {
     // Preferred form.
     public static final ContentType ctPatchText         =  ContentType.create(contentTypePatchText);
     public static final ContentType ctPatchBinary       =  ContentType.create(contentTypePatchBinary);
-
     
-    public static final AcceptList rsOfferPatch        = AcceptList.create(contentTypePatchText,
-                                                                           contentTypePatchTextAlt,
-                                                                           contentTypePatchBinary);
+    public static final AcceptList rsOfferPatch         = AcceptList.create(contentTypePatchText,
+                                                                            contentTypePatchTextAlt,
+                                                                            contentTypePatchBinary);
     
     @Override
     protected void perform(HttpAction action) {
+        action.log.info(format("[%d] Patch", action.id));
         try {
-
             String ctStr = action.request.getContentType() ;
             // Must be UTF-8 or unset. But this is wrong so often,
             // it is less trouble to just force UTF-8.
@@ -113,16 +114,16 @@ public class FusekiPatch extends ActionSPARQL {
                 : ctPatchText;
             if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) ) 
                 ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr); 
-            if ( contentTypePatchBinary.equals(contentType) )
+            if ( ctPatchBinary.equals(contentType) )
                 ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, contentTypePatchBinary+" not supported yet");
             
             DatasetGraph dsg = action.getActiveDSG(); 
             action.beginWrite();
             try {
                 InputStream input = action.request.getInputStream();
-                if ( contentTypePatchBinary.equals(contentType) )
+                if ( ctPatchBinary.equals(contentType) )
                     ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, contentTypePatchBinary+" not supported yet");
-                if ( contentTypePatchText.equals(contentType) )
+                if ( ctPatchText.equals(contentType) )
                     RDFPatchOps.applyChange(dsg, input);
                 action.commit();
             //} catch (Throwable th) {}

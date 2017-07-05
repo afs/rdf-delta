@@ -35,7 +35,7 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.DataPatchServer ;
+import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
@@ -106,7 +106,7 @@ public class DeltaServer {
         int port = choosePort(cla, server);
         DeltaLink link = DeltaLinkLocal.connect(server);
 
-        DataPatchServer dps = DataPatchServer.create(port, link) ;
+        PatchLogServer dps = PatchLogServer.create(port, link) ;
         FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
         
         List<DataSourceDescription> descriptions = link.listDescriptions();

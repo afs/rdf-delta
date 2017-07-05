@@ -50,24 +50,48 @@ public class Zone {
     private static final Logger LOG = LoggerFactory.getLogger(Zone.class);
     private static final String DELETE_MARKER = "-deleted";
 
-    private static Zone singleton = new Zone();
-    
     // Zone state
-    private volatile boolean      INITIALIZED             = false ;
-    private Map<Id, DataState>    states                  = new ConcurrentHashMap<>() ;
-    private Map<Id, DatasetGraph> datasets                = new ConcurrentHashMap<>() ;
-    private Map<String, Id>       names                   = new ConcurrentHashMap<>() ;
-    private Path                  connectionStateArea     = null ;
-    private Location              connectionStateLocation = null ;
-    private Object                zoneLock                = new Object() ;
+    private volatile boolean           INITIALIZED   = false ;
+    private Map<Id, DataState>         states        = new ConcurrentHashMap<>();
+    private Map<Id, DatasetGraph>      datasets      = new ConcurrentHashMap<>();
+    private Map<String, Id>            names         = new ConcurrentHashMap<>();
+    private Path                       stateArea     = null;
+    private final Location             stateLocation;
+    private Object                     zoneLock      = new Object();
 
-    //XXX Current Restriction : one zone. 
-    private Zone() {}
-    
-    public static Zone get() {
-        return singleton;
+    private static Map<Location, Zone> zones         = new ConcurrentHashMap<>();
+
+    /** Create a zone; connect to an existign one if it exists in the JVM or on-disk */
+    public static Zone create(String area) {
+        return create(Location.create(area)); 
     }
     
+    /** Create a zone; connect to an existign one if it exists in the JVM or on-disk */
+    public static Zone create(Location area) {
+        synchronized(zones) {
+            if ( zones.containsKey(area) )
+                return zones.get(area);
+            Zone zone = new Zone(area);
+            zones.put(area, zone);
+            return zone;
+        }
+    }
+    
+    private Zone(Location area) {
+        this.stateLocation = area;
+        init();
+    }
+    
+    /** Return the zone for this area if it exists in the JVM. */
+    public static Zone get(String area) {
+        return get(Location.create(area));
+    }
+    
+    /** Return the zone for this area if it exists in the JVM. */
+    public static Zone get(Location area) {
+        return zones.getOrDefault(area, null);
+    }
+
     public void reset() {
         states.clear();
         datasets.clear();
@@ -80,11 +104,10 @@ public class Zone {
      */
     public void shutdown() {
         synchronized(zoneLock) {
-            if ( ! INITIALIZED )
-                return ;
             reset();
-            connectionStateArea = null;
+            stateArea = null;
             INITIALIZED = false;
+            zones.remove(stateLocation);
         }
     }
     
@@ -92,29 +115,24 @@ public class Zone {
         return new ArrayList<>(states.keySet());
     }
     
-    public void init(String area) {
-        init(Location.create(area));
-    }
-    
-    public void init(Location area) {
+    private void init() {
         if ( INITIALIZED ) {
-            checkInit(area);
+            checkInit(stateLocation);
             return;
         }
         synchronized(zoneLock) {
             if ( INITIALIZED ) {
-                checkInit(area);
+                checkInit(stateLocation);
                 return;
             }
             INITIALIZED = true;
-            connectionStateLocation = area;
-            if ( area == null || area.isMem() ) {
+            if ( stateLocation == null || stateLocation.isMem() ) {
                 // In-memory only.
-                connectionStateArea = null;
+                stateArea = null;
                 return ;
             }
-            connectionStateArea = IOX.asPath(area);
-            List<Path> x = scanForDataState(area);
+            stateArea = IOX.asPath(stateLocation);
+            List<Path> x = scanForDataState(stateLocation);
             x.forEach(p->LOG.info("Connection : "+p));
             x.forEach(p->{
                 DataState dataState = readDataState(p);
@@ -137,8 +155,8 @@ public class Zone {
     }
 
     private void checkInit(Location area) {
-        if ( ! Objects.equals(connectionStateLocation, area) )
-            throw new DeltaException("Attempt to reinitialize the Zone: "+connectionStateArea+" => "+area);
+        if ( ! Objects.equals(stateLocation, area) )
+            throw new DeltaException("Attempt to reinitialize the Zone: "+stateArea+" => "+area);
     }
 
     /** Is there an area aready? */
@@ -149,19 +167,19 @@ public class Zone {
 
     /** Initialize a new area. */
     public DataState create(Id dsRef, String name, String uri, LocalStorageType storage) {
-        Objects.requireNonNull(dsRef, "Data source reference");
-        Objects.requireNonNull(name, "Data source name");
+        Objects.requireNonNull(dsRef,   "Data source reference");
+        Objects.requireNonNull(name,    "Data source name");
         Objects.requireNonNull(storage, "Storage type");
         
         // Per data source area.
-        Path conn = connectionStateArea.resolve(name);
+        Path conn = stateArea.resolve(name);
         FileOps.ensureDir(conn.toString());
         
         // {zone}/{name}/state
-        Path statePath = conn.resolve(DataState.STATE_FILE);
+        //null for ephemeral?
+        Path statePath = storage.isEphemeral() ? null : conn.resolve(DataState.STATE_FILE);
         // {zone}/{name}/data
         Path dataPath = storage.isEphemeral() ? null : conn.resolve(DATA);
-        
         
         synchronized (zoneLock) {
             if ( ! INITIALIZED )
@@ -170,6 +188,7 @@ public class Zone {
                 throw new DeltaException("Already exists: data state for " + dsRef + " : name=" + name);
             if ( dataPath != null )
                 FileOps.ensureDir(dataPath.toString());
+            // statePath is null for ephemeral
             DataState dataState = new DataState(this, statePath, storage, dsRef, name, uri, 0, null);
             register(dataState);
             return dataState;
@@ -177,7 +196,7 @@ public class Zone {
     }
     
     private Path stateArea(DataState dataState) {
-        return connectionStateArea.resolve(dataState.getName());
+        return stateArea.resolve(dataState.getName());
     }
     
     private Path dataPath(DataState dataState) {
@@ -213,8 +232,8 @@ public class Zone {
             DataState dataState = get(dsRef);
             states.remove(dataState.getDataSourceId());
             datasets.remove(dataState.getDataSourceId());
-            if ( connectionStateArea != null ) {
-                Path path = connectionStateArea.resolve(dataState.getName());
+            if ( stateArea != null ) {
+                Path path = stateArea.resolve(dataState.getName());
                 if ( false ) {
                     // real delete.
                     FileOps.delete(path.toString());
@@ -251,10 +270,10 @@ public class Zone {
     }
     
     public Path statePath(DataState dataState) {
-        if ( connectionStateArea == null )
+        if ( stateArea == null )
             return null;
         dataState.getStatePath();
-        return connectionStateArea.resolve(dataState.getName());
+        return stateArea.resolve(dataState.getName());
     }
     
     public DataState get(Id datasourceId) {
@@ -280,6 +299,10 @@ public class Zone {
             return ;
         datasets.remove(dsRef);
         names.remove(dataState.getName());
+    }
+    
+    public Location getLocation() {
+        return stateLocation;
     }
 
     /** Put state file name into DataState then only have here */  
@@ -335,5 +358,10 @@ public class Zone {
         // Development - try to continue.
         return true;
         //return good;
+    }
+    
+    @Override 
+    public String toString() {
+        return "Zone["+stateLocation+", "+states.keySet()+"]";
     }
 }

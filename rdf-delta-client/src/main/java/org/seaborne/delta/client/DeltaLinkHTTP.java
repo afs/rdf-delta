@@ -28,6 +28,7 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
@@ -184,8 +185,15 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     private RDFPatch fetchCommon(Id dsRef, String param, Object value) {
         checkLink();
-        String s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), param, value);
-        Delta.DELTA_HTTP_LOG.info("Fetch request: %s %s=%s", dsRef, param, value);
+        
+        String s;
+        // If registered.
+        if ( regToken != null ) 
+            s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam(), param, value);
+        else
+            s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), param, value);
+        
+        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s", dsRef, param, value);
         try { 
             return retry(()->{
                 // [NET] Network point

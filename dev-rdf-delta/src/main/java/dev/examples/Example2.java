@@ -28,7 +28,7 @@ import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.DataPatchServer;
+import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 
@@ -42,13 +42,13 @@ public class Example2 {
         Location loc = Location.create("DeltaServer");
         LocalServer localServer = LocalServer.attach(loc);
         DeltaLink serverState = DeltaLinkLocal.connect(localServer);
-        DataPatchServer server = DataPatchServer.create(1066, serverState);
+        PatchLogServer server = PatchLogServer.create(1066, serverState);
         // --------
 
         // Connect to a server
         DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
         // One one zone supported currently.
-        Zone zone = Zone.get();
+        Zone zone = Zone.create("Zone");
         Id clientId = Id.create();
         
         // Create a new patch log.

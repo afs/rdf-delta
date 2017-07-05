@@ -77,17 +77,16 @@ public class FileStore {
     private final String        basename;
 
     public static FileStore attach(Location dirname, String basename) {
-        LOG.info("FileStore.attach");
         Objects.requireNonNull(dirname, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
-            throw new IllegalArgumentException("basename is equal to the reserved name '"+tmpBasename+"'") ;
+            throw new IllegalArgumentException("FileStore.attach: basename is equal to the reserved name '"+tmpBasename+"'") ;
         Path dirPath = IOX.asPath(dirname);
         Path k = key(dirPath, basename);
         if ( areas.containsKey(k) )
             return areas.get(k);
         if ( ! Files.exists(dirPath) || ! Files.isDirectory(dirPath) )
-            throw new IllegalArgumentException("Path '" + dirPath + "' does not name a directory");
+            throw new IllegalArgumentException("FileStore.attach: Path '" + dirPath + "' does not name a directory");
 
         // Delte any tmp files leaft lying around.
         

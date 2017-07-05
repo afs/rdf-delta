@@ -30,13 +30,13 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
 {
     private final RDFChanges changes ;
     protected final Node graphName ;
-    private PrefixMapping pm = null ;
+    private PrefixMapping prefixMapping = null ;
 
     public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
         super(graph) ;
         this.graphName = graphName ;
         this.changes = changes ;
-        this.pm = new PrefixMappingMonitorChanges(graph.getPrefixMapping(), graphName, changes) ;
+        this.prefixMapping = new PrefixMappingMonitorChanges(graph.getPrefixMapping(), graphName, changes) ;
     }
     
     @Override
@@ -72,7 +72,7 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
     
     @Override
     public PrefixMapping getPrefixMapping() {
-        return pm ;
+        return prefixMapping ;
     }
     
     static class PrefixMappingMonitorChanges extends PrefixMappingMonitor {

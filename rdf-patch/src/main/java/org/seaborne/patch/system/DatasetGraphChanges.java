@@ -19,6 +19,7 @@
 package org.seaborne.patch.system;
 
 import java.util.Iterator ;
+import java.util.function.Consumer ;
 
 import org.apache.jena.graph.Graph ;
 import org.apache.jena.graph.Node ;
@@ -32,7 +33,12 @@ import org.seaborne.patch.RDFChanges ;
  * Connect a {@link DatasetGraph} with {@link RDFChanges}. All operations on the
  * {@link DatasetGraph} that cause changes have the change sent to the
  * {@link RDFChanges}.
- * 
+ * <p>
+ * Optionally, a sync handler can be given that is called on {@code sync()} or {@code begin}.  
+ * This class is stateless so updating the wrapped dataset is possible via the sync handler.  
+ * <p>
+ * Synchrionization can also be performed externally on the wrapped dataset.  
+ * <p>
  * Use {@link DatasetGraphRealChanges} to get a dataset that logs only changes that have a
  * real effect - that makes the chnages log reversible (play delete for each add) to undo
  * a sequence of changes.
@@ -41,16 +47,30 @@ import org.seaborne.patch.RDFChanges ;
  * @see RDFChanges
  */
 public class DatasetGraphChanges extends DatasetGraphWrapper {
-    
     // Break up?
     // inherits DatasetGraphRealChanges < DatasetGraphAddDelete
     
+    protected final Runnable syncHandler;
+    protected final Consumer<ReadWrite> txnSyncHandler;
     protected final RDFChanges monitor ;
     protected ThreadLocal<ReadWrite> txnMode = ThreadLocal.withInitial(()->null) ;
+    private static Runnable identity = ()->{}; 
 
-    public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) { 
+    /** Create a {@code DatasetGraphChanges} which does not have any sync handlers */
+    public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) {
+        this(dsg, monitor, identity, (b)->{});
+    }
+    
+    /** Create a {@code DatasetGraphChanges} which calls potentially different sync handlers on {@link #sync} and {@link #begin} */
+    public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor, Runnable syncHandler, Consumer<ReadWrite> txnSyncHandler) {
         super(dsg) ; 
         this.monitor = monitor ;
+        this.syncHandler = syncHandler == null ? identity : syncHandler;
+        this.txnSyncHandler = txnSyncHandler == null ? (b)->{} : txnSyncHandler;
+    }
+    
+    @Override public void sync() {
+        syncHandler.run();
     }
     
     @Override
@@ -114,6 +134,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     
     @Override
     public void begin(ReadWrite readWrite) {
+        txnSyncHandler.accept(readWrite);
         super.begin(readWrite);
         if ( readWrite == ReadWrite.WRITE )
             monitor.txnBegin();

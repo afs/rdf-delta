@@ -41,10 +41,11 @@ import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 
 /**
- * A simple packaging of Jetty to provide an embeddable HTTP server that just
- * supports servlets for Delta.
+ * An HTTP-based server providing oatch logs and the admin functions.
+ * <p>
+ * Implemented as a packaging of Jetty with the necessary servlets for Delta.
  */
-public class DataPatchServer {
+public class PatchLogServer {
     
     private final boolean loopback = false;
     private final Server server;
@@ -53,20 +54,20 @@ public class DataPatchServer {
     private final AtomicReference<DeltaLink> engineRef;
     
     /** Packaged start up : one area, with config file.*/
-    public static DataPatchServer server(int port, String path) {
+    public static PatchLogServer server(int port, String path) {
         Location baseArea = Location.create(path);
         String configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         LocalServer server = LocalServer.create(baseArea, configFile);
         DeltaLink link = DeltaLinkLocal.connect(server);
-        return DataPatchServer.create(port, link) ;
+        return PatchLogServer.create(port, link) ;
     }
     
     /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */   
-    public static DataPatchServer create(int port, DeltaLink engine) {
-        return new DataPatchServer(port, engine);
+    public static PatchLogServer create(int port, DeltaLink engine) {
+        return new PatchLogServer(port, engine);
     }
 
-    private DataPatchServer(int port, DeltaLink engine) {
+    private PatchLogServer(int port, DeltaLink engine) {
         DPS.init();
         this.port = port;
         this.server = jettyServer(port, false);
@@ -75,13 +76,13 @@ public class DataPatchServer {
         
         ServletContextHandler handler = buildServletContext("/");
         
-        // Combined name.
+        // Combined name. "patch-log"
         addServlet(handler, "/"+DeltaConst.EP_PatchLog, new S_PatchLog(this.engineRef));
-        // Receive patches
+        // Receive patches. "patch"
         addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
-        // Return patches
+        // Return patches. "fetch"
         addServlet(handler, "/"+DeltaConst.EP_Fetch, new S_Fetch(this.engineRef));
-        // Initial data
+        // Initial data. "init-data"
         addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
 
 //        // Trailing name.

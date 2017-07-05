@@ -116,11 +116,6 @@ public class DataSource {
         return false;
     }
     
-    @Override
-    public String toString() {
-        return String.format("Source: %s %s [%s]", id, name, uri);
-    }
-
     public void release() {
         // Decision what to do with the state?
         //  1 - mark unavailable 
@@ -157,5 +152,11 @@ public class DataSource {
                 d.delete();
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[DataSource:%s %s]", name, id);
+        //return String.format("[DataSource: %s %s [%s]", name, id, uri);
     }
 }

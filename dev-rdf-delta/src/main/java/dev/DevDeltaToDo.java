@@ -19,13 +19,16 @@
 package dev;
 
 public class DevDeltaToDo {
-    // DeltaLinkHTTP.createRDFChanges - URL generation.
-    //  DeltaLib.makeURL --  
-//    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
-//        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
-//    }
-    // Nort daat source.
+    // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
+    // DeltaFuseki - sync on a timer.  
+    // version -> "get next" : hard for a range.
     
+    // Fuseki startup - if no patch log server start anyway.  "read-only" 
+    
+    // ja:dataset
+
+    // *** More tests AbstractTestDeltaClient
+
     // ** Persistent client-side data
     // ** Tests
     //      client restart
@@ -34,25 +37,39 @@ public class DevDeltaToDo {
     // ** 1m test.  Benchmark.  (50k, very large xfer! Compress?)
     // ** Initial data testing
     
-    // Patch assembler
-    // Patch receiver servlet for Fuseki.
-    // Patch seender for Fuseki.
+    // URL scheme.
+    // DeltaLinkHTTP.createRDFChanges - URL generation.
+    //  DeltaLib.makeURL --  
+//    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
+//        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
+//    }
+    
+    // S_Patch, S_Fetch.
+    //   POST patch -> ** Location: **
+    //   "container/patch/{id}", "container/patch{version}"
+    // URI design. RDF Patch REST 
+    //   http://server:1066/{WebAppCxt}/{shortName}/ => Info
+    //                                 /{shortName}/init = "version 0" but dataset vs patch.
+    //                                 /{shortName}/current = "version MaxInt"
+    //                                 /{shortName}/patch/{version}: all digits.
+    //                                 /{shortName}/patch/{id}: UUID string - has "-"
+    // Container: POST = append; GET = description in JSON.
+    //  Subunits are individual patches. 
+    // Then delta is admin/control.
     
     // PatchLog  concurrency.
     // PatchLog  Id for log separate from dsRef 
 
-    // Run - add a delete case.
-    
     // HTTP interface / Control interface :: clearer split.
     
-    // PatchLogServer
+    // PatchServer - client side tracking of the 
 	//   Server lifecycle.
     //      ping (RPC1), RPC, HTTP / POST / GET / Non-retriable POST.
     //   Retry policy.
     //   op - ping - ping - op 
 
     // Registration token on S_Fetch
-	// --autoregister
+	// --autoregister, --no-register
     
     // Protect read in S_Data.
     
@@ -71,21 +88,6 @@ public class DevDeltaToDo {
     // Id.nil for "no previous".
     // Id for "any previous" (risky!)
     
-    // Migrate PatchLogServer; relationship to Zone?
-    
-    // S_Patch, S_Fetch.
-    //   POST patch -> ** Location: **
-    //   "container/patch/{id}", "container/patch{version}"
-    // URI design. RDF Patch REST 
-    //   http://server:1066/{WebAppCxt}/{shortName}/
-    //                                 /{shortName}/init = "version 0" but dataset vs patch.
-    //                                 /{shortName}/current = "version MaxInt"
-    //                                 /{shortName}/patch/version
-    //                                 /{shortName}/patch/id
-    // Container: POST = append; GET = description in JSON.
-    //  Subunits are individual patches. 
-    // Then delta is admin/control.
-
     // Documentation
     //   Patch
     //   Protocol/delta

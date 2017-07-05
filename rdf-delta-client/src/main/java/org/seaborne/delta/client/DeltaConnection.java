@@ -18,9 +18,11 @@
 
 package org.seaborne.delta.client;
 
+import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
+
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference ;
-import static org.seaborne.delta.DeltaConst.*;
+import java.util.function.Consumer ;
 
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.lib.Pair ;
@@ -28,6 +30,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.graph.Node;
+import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
@@ -99,11 +102,22 @@ public class DeltaConnection implements AutoCloseable {
             this.target = new RDFChangesApply(basedsg);
             // Where to send outgoing changes.
             RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(basedsg, monitor);
+            this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer());
         } else {
             this.target = null;
             this.managed = null;
         }
+    }
+    
+    // If a read, try but carry on.
+    private Consumer<ReadWrite> syncer() {
+        return (rw)->{
+            try { this.sync() ; }
+            catch (RuntimeException ex) {
+                if ( rw == ReadWrite.WRITE )
+                    throw ex;
+            }
+        };
     }
     
     // clone
@@ -118,7 +132,7 @@ public class DeltaConnection implements AutoCloseable {
         if ( base != null  ) {
             this.target = new RDFChangesApply(base);
             RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(base, monitor);
+            this.managed = new DatasetGraphChanges(base, monitor, null, syncer());
         } else {
             this.target = null;
             this.managed = null;
@@ -187,6 +201,11 @@ public class DeltaConnection implements AutoCloseable {
         state.updateState(ver, Id.fromNode(patch.getId()));
     }
 
+    public boolean trySync() {
+        try { sync() ; return true ; }
+        catch (RuntimeException ex ) { return false ; }
+    }
+    
     public void sync() {
         checkDeltaConnection();
         long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
@@ -280,11 +299,10 @@ public class DeltaConnection implements AutoCloseable {
         }
         return Pair.create(patchLastVersion, patchLastIdNode);
     }
-
-
     
     @Override
     public void close() {
+        // Return to pool if pooled.
     }
     
     public boolean isValid() {

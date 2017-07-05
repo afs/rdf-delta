@@ -232,7 +232,8 @@ public class PatchLogFile implements PatchLog {
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());
 
-        FmtLog.info(LOG, "Append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
+        if ( LOG.isDebugEnabled() )
+            FmtLog.debug(LOG, "append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
 
         if ( ! Objects.equals(previousId, this.latestId) ) {
             String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
