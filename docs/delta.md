@@ -1,3 +1,10 @@
+---
+layout: doc
+title: Delta - Synchronizing RDF Dataset Changes
+nav_text: Publishing RDF Changes
+section: 1
+---
+
 # Delta : synchronized RDF Datasets
 
 Delta is a system to keep copies of RDF Datasets up to date.

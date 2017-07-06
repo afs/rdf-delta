@@ -52,6 +52,7 @@ Files/
 Zone/
 
 ## Development files
+ignore/
 *.dlt
 config.ttl
 D.trig

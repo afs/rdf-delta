@@ -1,0 +1,19 @@
+<div id="sidebar-wrapper">
+  <ul class="sidebar-nav">
+    
+    <li  class="sidebar-brand"><a href="/">RDF Delta</a></li>
+    
+    <!-- better ways to find the pages? -->
+    {% assign section_pages = site.html_pages | sort: 'section' %}
+    {% for p in section_pages %}
+    {% if p.section > 0 %}
+    <li>
+      <a href="{{ p.url }}" {% if p.url == page.url %}class="active"{% endif %}>
+        {{ p.nav_text }}
+      </a>
+    </li>
+    {% endif %}
+    {% endfor %}
+    
+  </ul>
+</div>

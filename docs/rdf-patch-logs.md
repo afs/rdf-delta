@@ -1,3 +1,9 @@
+---
+layout: doc
+title: RDF Patch Logs
+nav_text: RDF Change Logs
+section: 3
+---
 # RDF Patch Logs
 
 A patch log is a sequence of patches which 

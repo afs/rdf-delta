@@ -1,3 +1,8 @@
+---
+layout: doc
+title: RDF Delta - Publishing Changes for RDF Datasets
+---
+
 # RDF Delta
 
 RDF Delta is a system for recording and publishing changes to RDF
@@ -29,12 +34,10 @@ distributing changes to RDF datasets.
 
 ## Documentation
 
-* "[Delta](delta.md)" for a overview of the Delta system
-* "[RDF Patch](rdf-patch.md)" for the format for recording changes.
-* "[RDF Patch Logs](rdf-patch-logs.md)" for organising and accessing RDF Patches 
+* "[Delta](delta.html)" for a overview of the Delta system
+* "[RDF Patch](rdf-patch.html)" for the format for recording changes.
+* "[RDF Patch Logs](rdf-patch-logs.html)" for organising and accessing RDF Patches 
 
 ## Code
 
 [https://github.com/afs/rdf-delta](https://github.com/afs/rdf-delta)
-
-[![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg)](https://travis-ci.org/afs/rdf-delta)
