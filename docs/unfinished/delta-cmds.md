@@ -19,8 +19,7 @@ or
 
 `java -jar rdf-delta-server.jar`
 
-## Ruinning Command Line Admin Tools
-
+## Running Command Line Admin Tools
 
 The can be run with:
 
@@ -29,3 +28,4 @@ The can be run with:
 or
 
 `java -cp rdf-delta-server.jar org.seaborne.delta.cmds.<name>`
+grep 

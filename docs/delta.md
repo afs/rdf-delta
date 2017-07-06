@@ -7,25 +7,22 @@ an [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset)
 then provides a log of all changes to that dataset.
 
 The technology of RDF patch and the Patch log can also be used to
-publish changes to the dataset. 
+publish changes to the dataset.
 
 The code here provides a patch server, protocol and API for
-syncrhonizing datasets more aimed at syncrhonizing replicas of datasets
+synchronizing datasets more aimed at synchronizing replicas of datasets
 in webapp servers.
 
 ## RDF Patch
 
-This section is a brief outline of RDF Patch. 
+This section is a brief outline of RDF Patch.
 
 RDF Patch is a general purpose way to record changes to an [RDF
 Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
 It provides a way to handle blank nodes so that datasets can keep the
 system ids typically used for blank nodes in step.
 
-See also:
-
-* A longer "[Introduction to RDF Patch](rdf-patch-intro.md)"
-* "[RDF Patch Specification](rdf-patch.md)"
+For more details, see "[RDF Patch](rdf-patch.md)".
 
 This is an evolution of the original RDF Patch described in
 "[RDF Patch &ndash; Describing Changes to an RDF Dataset](https://afs.github.io/rdf-patch/)".
@@ -36,9 +33,9 @@ simplify the design by remove unnecessary features, add support for
 managing namespace prefixes and provide a header for the patch for
 necessary metadata.
 
-### Brief Example
+### Example
 
-This example ensures ceratin prefixes are in the dataset and adds some
+This example ensures certain prefixes are in the dataset and adds some
 basic triples for a new subclass of `<http://example/SUPER_CLASS>`.
 
 ```
@@ -69,7 +66,7 @@ copy of a dataset.  More metadata about a match would need to be added
 to the feed. but RDF Patch and the patch log can provide the building
 blocks for publishing changes to a dataset.
 
-Delta does not currently provide an RSS or Atom feed currently.
+Delta does not currently provide an RSS or Atom feed.
 
 ## Patch Log
 
@@ -91,7 +88,7 @@ from logging a change to the same dataset version at the same time.
 While quite a strict way to guaranttee the order, for systems of only a
 few machines, this simple mechanism is clearer, signals rejecting
 patches at the earliest possible moment and means that the log can be
-reconstructed just by reading the headers of patches. 
+reconstructed just by reading the headers of patches.
 
 This means the log of sequence of patches with no branches.  This is
 only one way to use RDF Patch.  In other scenarios, a tree of changes
@@ -176,8 +173,6 @@ JSON value that depends entirely on the operation called.
 | ISREGISTERED  | |
 | DEREGISTER    | |
 
-See the [protocol description](delta-protocol.md).
-
 ### Registration and Security
 
 ### API
@@ -202,7 +197,7 @@ try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null
     Txn.executeWrite(dsg, ()->{
         dsg.add(quad);
     });
-            
+
     int version2 = dConn.getRemoteVersionLatest();
     System.out.println("Version = "+version2);
 }

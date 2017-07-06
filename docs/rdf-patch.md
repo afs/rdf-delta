@@ -1,22 +1,21 @@
-# RDF Patch 
+# Introduction to RDF Patch 
 
-This page describes RDF Patch. 
-There is a [formal description is RDF Patch v2](rdf-patch.md).
+RDF Patch is a general purpose way to record changes to an [RDF
+Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
+It provides a way to handle blank nodes so that datasets can keep the
+system ids typically used for blank nodes in step.
+
+| Operation |                   |
+| --------- | ----------------- |
+| `H`                  | Header |
+| `TX`, `TC`, `TA`     | Transactions |
+| `PA`, `PD`           | Prefix add and delete |
+| `A`, `D`             | Add and Delete triples and quads   |
 
 ## Structure
 
 The text format for an RDF Patch is N-Triples-like: it is a series of lines, each line ends
 with a `.` (DOT).
-
-A line has an operartion code, then some number of items depending on 
-the operation.
-
-| Operation |                   |
-| --------- | ----------------- |
-| `H`                  | Header |
-| `TX`<br/>`TC`<br/>`TA`     | Change block: transactions    |
-| `PA`<br/>`PD`<br/>         | Change: Prefix add and delete |
-| `A`<br/>`D`                | Change: Add and delete triples and quads |
 
 The general structure is a header (possibly empty) and a sequence of
 blocks recording changes. Each change block is a transaction.
@@ -94,4 +93,17 @@ Changes to the RDF datasets
 
 ### Blank nodes
 
-@@
+Handling blank nodes.
+
+RDF Delta supports changes involving blank nodes. Triplestores uses some
+kind of internal system id to idenitify blanks. RDF Delta encourages
+using this to create a URI that can be trsnamitted and used to
+reconstruct the same internal system id.
+
+For further discussion, see the 
+section [3.5 Replacing Blank Nodes with IRIs](https://www.w3.org/TR/rdf11-concepts/#section-skolemization)
+in
+["RDF 1.1 Concepts and Abstract Syntax"](https://www.w3.org/TR/rdf11-concepts/)
+
+Apache Jena ARQ uses the form ``<_:...>`` for such URIs.  It's parsers
+systematically turn such URI back into blank nodes.
