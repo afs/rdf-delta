@@ -1,4 +1,5 @@
 #repository: https://github.com/afs/rdf-delta/docs
+baseurl: /rdf-delta
 encoding: utf-8
 exclude: [Gemfile, Gemfile.lock, AFS, Store, FONTS, page-types]
 #markdown: kramdown
