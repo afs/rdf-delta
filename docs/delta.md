@@ -43,8 +43,8 @@ This example ensures certain prefixes are in the dataset and adds some
 basic triples for a new subclass of `<http://example/SUPER_CLASS>`.
 
 ```
-H  id       <uuid:016f5292-2b49-11b2-80fe-6057182f557b> .
-H  previous <uuid:dd85b5f7-9965-42df-866c-d456bd1409de> .
+H  id   <uuid:016f5292-2b49-11b2-80fe-6057182f557b> .
+H  prev <uuid:dd85b5f7-9965-42df-866c-d456bd1409de> .
 TX .
 PA "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#" .
 PA "owl" "http://www.w3.org/2002/07/owl#" .
@@ -55,7 +55,7 @@ A  <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#label> "SubCl
 TC .
 ```
 
-`H` is a header, `TB` , `TC` the start and end of changes, `PA` meanas "Prefix Add",
+`H` is a header, `TX` , `TC` the start and end of changes, `PA` meanas "Prefix Add",
 and `A` is "data add".
 
 Applying this patch when it has alreayd been applied results in the same
@@ -76,12 +76,12 @@ Delta does not currently provide an RSS or Atom feed.
 
 The operations on a patch log are to be able to add a new patch to the
 end of the log, or to read any patch or subsequence of patches from the
-log. The log is maintained using the patch headers  `id` and `previous`.
+log. The log is maintained using the patch headers  `id` and `prev`.
 
 The `id` is a globally unique identifier for this patch; it can also be
 used to give a global version to the dataset that the patch creates.
 
-The `previous` header field indicates which previous state of the
+The `prev` header field indicates which previous state of the
 dataset this patch applies to.
 
 Delta enforces the rule that to append to the log, the patch must

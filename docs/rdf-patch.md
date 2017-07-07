@@ -34,7 +34,7 @@ make the same changes suitable for an
 
 ```
 H id <uuid:0686c69d-8f89-4496-acb5-744f0157a8db> .
-H previous <uuid:3ee0eca0-6d5f-4b4d-85db-f69ab1167eb1> .
+H prev <uuid:3ee0eca0-6d5f-4b4d-85db-f69ab1167eb1> .
 TX .
 PA "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#" .
 PA "owl" "http://www.w3.org/2002/07/owl#" .
@@ -70,7 +70,7 @@ The RDF patch has a header then a number of transactions.
 
 ```
 header
-TB
+TX
 Quad, triple or prefix changes
 TC or TA
 ```
