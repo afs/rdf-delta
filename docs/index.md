@@ -1,9 +1,7 @@
 ---
 layout: doc
-title: RDF Delta - Publishing Changes for RDF Datasets
+title: RDF Delta
 ---
-
-# RDF Delta
 
 RDF Delta is a system for recording and publishing changes to RDF
 Datasets. 
