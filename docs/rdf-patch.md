@@ -5,11 +5,12 @@ section: 2
 nav_text: RDF Patch
 ---
 
-This page describes RDF Patch. An RDF Patch is a set of changes to 
+This page describes RDF Patch. An RDF Patch is a set of changes to an
+[RDF dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
 
 Patches can be organised into [RDF Patch Logs](rdf-patch-logs.html) by
 using the metadata header to add an idenifier and to link to previous
-patches.  This is on top of the RDF Patch format.
+patches.  This is on top of the RDF Patch format described here.
 
 ## Example
 
@@ -17,7 +18,7 @@ This example ensures certain prefixes are in the dataset and adds some
 basic triples for a new subclass of `<http://example/SUPER_CLASS>`.
 
 ```
-TB .
+TX .
 PA "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#" .
 PA "owl" "http://www.w3.org/2002/07/owl#" .
 PA "rdfs" "http://www.w3.org/2000/01/rdf-schema#" .
@@ -34,7 +35,7 @@ make the same changes suitable for an
 ```
 H id <uuid:0686c69d-8f89-4496-acb5-744f0157a8db> .
 H previous <uuid:3ee0eca0-6d5f-4b4d-85db-f69ab1167eb1> .
-TB .
+TX .
 PA "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#" .
 PA "owl" "http://www.w3.org/2002/07/owl#" .
 PA "rdfs" "http://www.w3.org/2000/01/rdf-schema#" .
@@ -180,6 +181,13 @@ then a patch is applied to it.
 
 ## Preferred Style
 
-The prferred style is to write patch rows on a single line, single
+The preferred style is to write patch rows on a single line, single
 space between tokens on a row and a single space before the terminal
-`.`.  No comments should be included (comments start `#` and run to end of line).
+`.`.  No comments should be included (comments start `#` and run to end of
+line).
+
+Headers should places before the item they refer to; for information
+used by an RDF Patch Log, the metadat is about thwe whole patch and
+should be at the start of the file, before any `TX`.
+
+

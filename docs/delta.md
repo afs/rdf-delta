@@ -4,7 +4,7 @@ title: Delta - Synchronizing RDF Dataset
 nav_text: Publishing RDF Changes
 section: 1
 ---
-Delta is a system to keep copies of RDF Datasets up to date.
+Delta is a system to keep copies of an RDF Dataset up to date.
 
 Delta uses RDF Patch as a general purpose way to record changes to
 an [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset)
@@ -45,7 +45,7 @@ basic triples for a new subclass of `<http://example/SUPER_CLASS>`.
 ```
 H  id       <uuid:016f5292-2b49-11b2-80fe-6057182f557b> .
 H  previous <uuid:dd85b5f7-9965-42df-866c-d456bd1409de> .
-TB .
+TX .
 PA "rdf" "http://www.w3.org/1999/02/22-rdf-syntax-ns#" .
 PA "owl" "http://www.w3.org/2002/07/owl#" .
 PA "rdfs" "http://www.w3.org/2000/01/rdf-schema#" .
