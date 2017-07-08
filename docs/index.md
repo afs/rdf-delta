@@ -26,7 +26,7 @@ specific resources within the dataset.
 Delta provides a server for RDF Patch Logs to support replicated
 datasets.
 
-See "[Delta](delta.md)" for a overview of the Delta system for
+See "[Delta](delta.html)" for a overview of the Delta system for
 distributing changes to RDF datasets.
 
 ## Documentation

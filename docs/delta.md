@@ -36,7 +36,7 @@ simplify the design by remove unnecessary features, add support for
 managing namespace prefixes and provide a header for the patch for
 necessary metadata.
 
-For more details, see "[RDF Patch](rdf-patch.md)".
+For more details, see "[RDF Patch](rdf-patch.html)".
 
 ### Example RDF Patch Log Entry
 
@@ -182,7 +182,7 @@ JSON value that depends entirely on the operation called.
 
 ### API
 
-See the [API description](delta-api.md) for details.
+See the [API description](delta-api.html) for details.
 
 The API is connection-based. A client creates a "link" to Delta Patch
 Server and then "connection" when working with a specific dataset and
