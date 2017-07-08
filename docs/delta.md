@@ -38,7 +38,7 @@ necessary metadata.
 
 For more details, see "[RDF Patch](rdf-patch.md)".
 
-### Example RDF Patch Log Entry <a id="example-log-entry"></a>
+### Example RDF Patch Log Entry
 
 This example ensures certain prefixes are in the dataset and adds some
 basic triples for a new subclass of `<http://example/SUPER_CLASS>`.

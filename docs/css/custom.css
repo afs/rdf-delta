@@ -27,6 +27,9 @@ h3 { font-size: 18px ; font-weight: bold ; }
 
 code { font-family: "Inconsolata" ; color: black ; background-color: #F0F0F0 ; }
 pre { font-family: "Inconsolata" ; }
+
+pre code { white-space: pre; overflow: auto;}
+
 blockquote { font-size: 14px ; color: #888 ; font-style: italic ; }
 
 table tr td,th {
