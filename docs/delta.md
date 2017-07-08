@@ -4,9 +4,9 @@ title: Delta - Synchronizing RDF Dataset
 nav_text: Publishing RDF Changes
 section: 1
 ---
-Delta is a system to keep copies of an RDF Dataset up to date.
+Delta is a system for keeping copies of an RDF Dataset up to date.
 
-Delta uses RDF Patch as a general purpose way to record changes to
+It uses RDF Patch as a general purpose way to record changes to
 an [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset)
 then provides a log of all changes to that dataset.
 
@@ -19,25 +19,26 @@ in webapp servers.
 
 ## RDF Patch
 
-This section is a brief outline of RDF Patch.
-
-RDF Patch is a general purpose way to record changes to an [RDF
-Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
+RDF patch is a format for recording changes to an
+[RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
 It provides a way to handle blank nodes so that datasets can keep the
-system ids typically used for blank nodes in step.
+system ids typically used for blank nodes internally in step.
 
-For more details, see "[RDF Patch](rdf-patch.md)".
+Patches are organised into a [log](rdf-patch-logs.html) making a general purpose way
+to record changes and be able to fetch them later to apply to copies to being
+them up-to-date.
 
 This is an evolution of the original RDF Patch described in
 "[RDF Patch &ndash; Describing Changes to an RDF Dataset](https://afs.github.io/rdf-patch/)".
-
 This new version is changed in the light of experience of using the
-format. It is incompatible with the previous version.  The changes
+format. It is not compatible with the previous version.  The changes
 simplify the design by remove unnecessary features, add support for
 managing namespace prefixes and provide a header for the patch for
 necessary metadata.
 
-### Example
+For more details, see "[RDF Patch](rdf-patch.md)".
+
+### Example RDF Patch Log Entry <a id="example-log-entry"></a>
 
 This example ensures certain prefixes are in the dataset and adds some
 basic triples for a new subclass of `<http://example/SUPER_CLASS>`.
@@ -55,10 +56,10 @@ A  <http://example/SubClass> <http://www.w3.org/2000/01/rdf-schema#label> "SubCl
 TC .
 ```
 
-`H` is a header, `TX` , `TC` the start and end of changes, `PA` meanas "Prefix Add",
-and `A` is "data add".
+`H` is a header, `TX` , `TC` the start and end of changes, `PA` means "Prefix Add",
+and `A` means "data add".
 
-Applying this patch when it has alreayd been applied results in the same
+Applying this patch when it has already been applied results in the same
 dataset state. Applying patches in the order the patches were
 created is idempotent.
 
@@ -67,7 +68,7 @@ created is idempotent.
 The nature of a patch log means it is suitable to publish changes using
 RSS or Atom.  Systems across the web can then choose to update their
 copy of a dataset.  More metadata about a match would need to be added
-to the feed. but RDF Patch and the patch log can provide the building
+to the feed but RDF Patch and the patch log can provide the building
 blocks for publishing changes to a dataset.
 
 Delta does not currently provide an RSS or Atom feed.
@@ -85,11 +86,11 @@ The `prev` header field indicates which previous state of the
 dataset this patch applies to.
 
 Delta enforces the rule that to append to the log, the patch must
-include in the previous field the id of the patch that this new patch
-applies to.  If the wrong id is given, or it is missing, the attempt to
-append the patch is rejected. This stops two independent applications
+include in the previous field the id of the currneyl latest patch in the log.
+If the wrong id is given, or it is missing and the log is not empty,
+the attempt to append the patch is rejected. This stops two independent applications
 from logging a change to the same dataset version at the same time.
-While quite a strict way to guaranttee the order, for systems of only a
+While quite a strict way to guarantee the order, for systems of only a
 few machines, this simple mechanism is clearer, signals rejecting
 patches at the earliest possible moment and means that the log can be
 reconstructed just by reading the headers of patches.
@@ -123,7 +124,7 @@ Each dataset being managed has a short name similar in usage to a
 database name in SQL systems. This name is only identifying within the
 patch server.
 
-Datsets are grouped into "zones" to reflect the need to have development,
+Datasets are grouped into "zones" to reflect the need to have development,
 staging and deployment systems for the same data.
 
 ### Access
@@ -135,13 +136,13 @@ in some situations depending on the access control framework.
 
 In the example below the same URL "patch-log" is used.
 
-Patchs are sent to the server by POST:
+Patches are sent to the server by POST:
 
     POST http://host/.../NAME/patch-log
 
 and retrieved by
 
-    GET http://host/.../NAME/patch-log?id=...
+    GET http://host/.../NAME/patch/{id}...
 
 @@ Todo - range of patches
 
@@ -187,9 +188,13 @@ The API is connection-based. A client creates a "link" to Delta Patch
 Server and then "connection" when working with a specific dataset and
 its patch log.
 
+@@ DeltaClient.
+@@ When to sync
+
 ```
 // Connect to a server.
 DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
+DeltaClient dClient =
 
 // Connect to a patch log within that server by name.
 try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null, dLink) ) {
