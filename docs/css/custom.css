@@ -19,7 +19,9 @@ body { font-family: "Roboto", sans-serif ;
 }
 */
 
-a { color : #0000C0 ; }
+a         { color : #0000C0 ; }
+a:hover   { text-decoration: underline ; }
+a:visited { color : #000080 ; }
 
 h1 { font-size: 32px ; font-weight: bold ; }
 h2 { font-size: 24px ; font-weight: bold ; }
