@@ -16,7 +16,7 @@ These can be useful in their own right.
 
 RDF Patch Logs can be used for:
 
-* Replicated datasets - 2 or more copies of a single dataset for high
+* Synchronized copies of a dataset - 2 or more copies of a single dataset for high
 availability of the data.
 * Incremental backup of a dataset.
 * Recording changes
