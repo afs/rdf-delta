@@ -68,22 +68,25 @@ only contain letters, numbers, "."  "_" and "-".
 It is only unique within the server for the patch log.
 
 In addition, patch logs maintain a version number, an integer, so that it is
-possible to go from one patch to the next, later, patch.  Note that client of the patch log
-should not assume version numbers are consecutive, although this is desirable in an
+possible to go from one patch to the next, later, patch.  Note that client of the patch
+log should not assume version numbers are consecutive, although this is desirable in an
 implementation, and may occasionally have gaps where there is no patch for a given number.
 (a patch may have failed to be appended and the server allocates versions in a way that
 is not instantaneous with appending a patch).
 
 ## Naming
 
-@@ describe the HTTP URL naming for a patch log.  
-@@ To be defined.
+Logs have a short name, which is local to the server.
+This name is preserved as logs are moved from server to server,
+making moving data through the development cycle easier such as
+staging and deployment installations, easier.
+
 ```
 http://.../{shortName}/
           /{shortName}/init -- "version 0" but dataset vs patch.
-          /{shortName}/current --  "version MaxInt"
+          /{shortName}/current --  "highest version"
           /{shortName}/patch/{version} -- all digits.
-          /{shortName}/patch/{id} -- UUID string - has "-"
+          /{shortName}/patch/{id} -- A UUID string which has "-"
 ```
 
 ## HTTP Operations

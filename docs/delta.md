@@ -86,7 +86,7 @@ The `prev` header field indicates which previous state of the
 dataset this patch applies to.
 
 Delta enforces the rule that to append to the log, the patch must
-include in the previous field the id of the currneyl latest patch in the log.
+include in the previous field the id of the current latest patch in the log.
 If the wrong id is given, or it is missing and the log is not empty,
 the attempt to append the patch is rejected. This stops two independent applications
 from logging a change to the same dataset version at the same time.
@@ -102,17 +102,10 @@ should be applied; it may not be related to earlier patches and can be
 used separately.  Delta is not trying to support all possible uses of
 RDF Patch as a change record.
 
-Delta also gives a numeric version number to each patch.  This makes it
-easier to work with.  Version numbers are allocated when the patch
-server stgarts up.  They may change over time, for example, if a log is
-consolidated into a shorter one.
-
 ## Patch Server
 
-The Delta patch server (DPS) provides access to logs for a number of datasets,
-appending a patch and retriveing a sequence.
-
-@@ "Log Server"
+The Delta Patch Server (DPS) provides access to logs for a number of datasets,
+appending a patch and retrieving a sequence.
 
 With the initial state of the dataset and the log of patches, it is
 possible to create later versions of the dataset because a log is
@@ -124,12 +117,15 @@ Each dataset being managed has a short name similar in usage to a
 database name in SQL systems. This name is only identifying within the
 patch server.
 
-Datasets are grouped into "zones" to reflect the need to have development,
-staging and deployment systems for the same data.
+The log, any initial data for setup and the state is arranged into "data sources",
+each of which has a short name as well as a globally unique identifier.
+
+This design facilities the need to have patch log servers for development cycle such as
+"development", "staging" and "production".
 
 ### Access
 
-The patch log is managed by two URLs; one to POST request to append ot
+The patch log is managed by two URLs; one to POST a request to append to
 the log, one to fetch patches using GET.  They can be the same or
 different - having different URLs can make implementing security easier
 in some situations depending on the access control framework.
@@ -138,76 +134,10 @@ In the example below the same URL "patch-log" is used.
 
 Patches are sent to the server by POST:
 
-    POST http://host/.../NAME/patch-log
-
-and retrieved by
-
-    GET http://host/.../NAME/patch/{id}...
-
-@@ Todo - range of patches
-
-### Control
-
-In addition there are operations to find out about the patch log:
-These are provided as a simple JSON API to easy use from javascript
-applications.
-
-The request is a JSON document of the form:
-
 ```
-{
-   "op" : "..."
-   "token" : "..."
-   "arg" : { ... }
-}
+    POST http://host/.../{NAME}/
 ```
-
-`"op"` gives the operation name, `"arg"` is the operation specific
-arguments, and `"token"` the connection registration.  The result is a
-JSON value that depends entirely on the operation called.
-
-| Operation     | |
-| ------------- | ---- |
-| LIST_DS       | List datasets and logs |
-| DESCR_DS      | Describe a datasource |
-| DESCR_LOG     | Describe a log |
-| VERSION       | Latest version number of a log |
-| CREATE_DS     | Create a log for a dataset |
-| REMOVE_DS     | Remove a log for a dataset |
-| REGISTER      | Register client |
-| ISREGISTERED  | |
-| DEREGISTER    | |
-
-### Registration and Security
-
-### API
-
-See the [API description](delta-api.html) for details.
-
-The API is connection-based. A client creates a "link" to Delta Patch
-Server and then "connection" when working with a specific dataset and
-its patch log.
-
-@@ DeltaClient.
-@@ When to sync
-
+with a `Location:` in the response and retrieved by
 ```
-// Connect to a server.
-DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
-DeltaClient dClient =
-
-// Connect to a patch log within that server by name.
-try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null, dLink) ) {
-    int version1 = dConn.getRemoteVersionLatest();
-    System.out.println("Version = "+version1);
-
-    // Change the dataset
-    DatasetGraph dsg = dConn.getDatasetGraph();
-    Txn.executeWrite(dsg, ()->{
-        dsg.add(quad);
-    });
-
-    int version2 = dConn.getRemoteVersionLatest();
-    System.out.println("Version = "+version2);
-}
+    GET http://host/.../{NAME}/patch/{id}...
 ```
