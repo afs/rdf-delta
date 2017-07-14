@@ -20,6 +20,8 @@ package org.seaborne.delta;
 
 import java.util.regex.Pattern ;
 
+import org.apache.jena.atlas.web.AcceptList ;
+import org.apache.jena.atlas.web.ContentType ;
 import org.apache.jena.sparql.util.Symbol ;
 
 public class DeltaConst {
@@ -29,11 +31,13 @@ public class DeltaConst {
     public static final Pattern DataSourceRegex    = Pattern.compile(DataSourceRegexStr);
     
     // Endpoints.
-    public static final String EP_RPC          = "rpc";
-    public static final String EP_PatchLog     = "patch-log";
-    public static final String EP_Fetch        = "fetch";
-    public static final String EP_Append       = "patch";
+//    public static final String EP_PatchLog     = "patch-log";
+//    public static final String EP_Fetch        = "fetch";
+//    public static final String EP_Append       = "patch";
+    
     public static final String EP_InitData     = "init-data";
+    public static final String EP_Ping         = "$/ping";
+    public static final String EP_RPC          = "$/rpc";
 
     // RPC calls - operation names.
     public static final String OP_PING         = "ping";
@@ -84,7 +88,6 @@ public class DeltaConst {
     public static final String LOG_S3          = "s3";
 
     // HTTP query string.
-    public static final String paramZone       = "zone";
     public static final String paramClient     = F_CLIENT;
     public static final String paramReg        = F_TOKEN;
 
@@ -98,6 +101,19 @@ public class DeltaConst {
     public static final Symbol symDeltaClient  =  Symbol.create(symBase+"client");
     public static final Symbol symDeltaConnection  =  Symbol.create(symBase+"connection");
     public static final Symbol symDeltaZone    =  Symbol.create(symBase+"zone");
+
+    // Content type constants for RDF Patch. 
+    public static final String contentTypePatchText     = "application/rdf-patch";
+    public static final String contentTypePatchTextAlt  = "text/rdf-patch";
+    public static final String contentTypePatchBinary   = "application/rdf-patch+thrift";
+
+    // Preferred form.
+    public static final ContentType ctPatchText         = ContentType.create(contentTypePatchText);
+    public static final ContentType ctPatchBinary       = ContentType.create(contentTypePatchBinary);
+    
+    public static final AcceptList rsOfferPatch         = AcceptList.create(contentTypePatchText,
+                                                                            contentTypePatchTextAlt,
+                                                                            contentTypePatchBinary);
 
     // Registration
     public static final String paramRef        = "ref";

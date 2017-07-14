@@ -81,10 +81,10 @@ public abstract class PatchStore {
      * specifically found
      */
     public static PatchStore selectPatchStore(Id dsRef) {
-        // Look in existing bindings.
-        PatchStore patchStore = patchStores.get(dsRef);
-        if ( patchStore != null )
-            return patchStore;
+//        // Look in existing bindings.
+//        PatchStore patchStore = ??? ;
+//        if ( patchStore != null )
+//            return patchStore;
         return getPatchStore();
     }
     

@@ -78,7 +78,7 @@ public class S_Data extends HttpOperationBase {
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
         LOG.info("GET "+action.getURL());
-        Id dsRef = Id.fromString(action.httpArgs.dataset);
+        Id dsRef = Id.fromString(action.httpArgs.datasourceName);
         String filenameIRI = determineData(action, dsRef);
         ContentType ct = RDFLanguages.guessContentType(filenameIRI) ;
         String fn = IRILib.IRIToFilename(filenameIRI);

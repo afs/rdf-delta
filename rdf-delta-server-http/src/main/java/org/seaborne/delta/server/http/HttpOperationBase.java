@@ -23,7 +23,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.jena.web.HttpSC ;
+import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaNotRegisteredException ;
 
 /** Base class for operations working on HTTPrequest directly, unlike RPCs */ 
 public abstract class HttpOperationBase extends DeltaServlet {
@@ -32,15 +36,11 @@ public abstract class HttpOperationBase extends DeltaServlet {
         super(engine);
     }
     
-    protected Args getArgs(HttpServletRequest request) throws IOException {
-        return Args.args(request);
-    }
-    
     @Override
     final
-    protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Args args = getArgs(req);
-        return DeltaAction.create(req, resp, getLink(), args.regToken, getOpName(), args);
+    protected DeltaAction parseRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Args args = parseArgs(request);
+        return DeltaAction.create(request, response, getLink(), args.regToken, getOpName(), args);
     }
 
     @Override
@@ -50,7 +50,20 @@ public abstract class HttpOperationBase extends DeltaServlet {
         validateAction(action.httpArgs);
     }
 
+    protected Args parseArgs(HttpServletRequest request) {
+        // Default - parse on query string. 
+        return Args.argsParams(request);
+    }
+    
     protected abstract void checkRegistration(DeltaAction action);
+    
+    /** Helper implementation of checkRegistration when resgutration required. */
+    protected void checkRegistered(DeltaAction action) {
+        if ( action.regToken == null )
+            throw new DeltaHttpException(HttpSC.FORBIDDEN_403, "No registration token") ;
+        if ( !isRegistered(action.regToken) )
+            throw new DeltaNotRegisteredException("Not registered") ;
+    }
 
     protected abstract void validateAction(Args httpArgs);
     

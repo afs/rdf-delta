@@ -42,6 +42,11 @@ public class RegToken {
         return uuid;
     }
 
+    // For URL cretaion
+    public String asParam() {
+        return uuid.toString();
+    }
+    
     // Suitable for use in RPC.
     public String asString() {
         return "token:"+uuid;

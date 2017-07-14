@@ -101,7 +101,7 @@ public class PatchLogInfo {
         long maxVer = JSONX.getLong(obj, F_MAXVER, DeltaConst.VERSION_UNSET) ;
         String latestPatchStr = JSONX.getStrOrNull(obj, F_LATEST);
         Id latestPatch = null;
-        if ( latestPatchStr != null )
+        if ( latestPatchStr != null && !latestPatchStr.isEmpty() )
             latestPatch = Id.fromString(latestPatchStr);
         return new PatchLogInfo(Id.fromString(dsRefStr), name, minVer, maxVer, latestPatch); 
     }

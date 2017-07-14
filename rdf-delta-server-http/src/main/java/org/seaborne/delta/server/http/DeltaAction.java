@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.json.JsonObject;
+import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 
@@ -81,5 +82,9 @@ class DeltaAction {
         if ( queryString != null )
             sBuff.append('?').append(queryString);
         return sBuff.toString(); 
+    }
+    
+    public static void errorBadRequest(String msg) {
+        throw new DeltaBadRequestException(msg);
     }
 }

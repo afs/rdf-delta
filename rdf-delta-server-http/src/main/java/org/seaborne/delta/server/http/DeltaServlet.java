@@ -28,10 +28,14 @@ import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.fuseki.server.RequestLog ;
+import org.apache.jena.fuseki.servlets.ActionErrorException ;
 import org.apache.jena.fuseki.servlets.ServletOps ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.delta.* ;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException ;
+import org.seaborne.delta.DeltaHttpException ;
+import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
@@ -113,8 +117,11 @@ public abstract class DeltaServlet extends HttpServlet {
         } catch (DeltaHttpException ex) {
             // doCommon() should handle these.
             Delta.DELTA_LOG.error("HTTP exception: "+ex.getStatusCode()+ " -- "+ex.getMessage());
-            try { resp.sendError(ex.getStatusCode(), ex.getMessage()) ; }
-            catch (IOException ex2) {}
+            try { resp.sendError(ex.getStatusCode(), ex.getMessage()) ; } catch (IOException ex2) {}
+        } catch (ActionErrorException ex) {
+            // Should not happen - comes from ServletOps, not DeltaAction.
+            Delta.DELTA_LOG.error("HTTP exception: "+ex.getRC()+" -- "+ex.getMessage());
+            try { resp.sendError(ex.getRC(), ex.getMessage()) ; } catch (IOException ex2) {}
         } catch (Throwable ex) {
             ex.printStackTrace(System.err);
             Delta.DELTA_LOG.error(ex.getMessage(), ex);

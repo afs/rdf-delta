@@ -19,25 +19,18 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
-import java.io.InputStream ;
-import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonBuilder;
-import org.apache.jena.atlas.json.JsonNumber;
-import org.apache.jena.atlas.json.JsonValue;
-import org.apache.jena.riot.WebContent;
-import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.* ;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaBadRequestException ;
+import org.seaborne.delta.DeltaHttpException ;
+import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
 
 /** Receive an incoming patch. */
@@ -68,7 +61,7 @@ public class S_Patch extends HttpOperationBase {
 
     @Override
     protected void validateAction(Args httpArgs) {
-        if ( httpArgs.dataset == null )
+        if ( httpArgs.datasourceName == null )
             throw new DeltaBadRequestException("No data source id");
     }
     
@@ -79,37 +72,11 @@ public class S_Patch extends HttpOperationBase {
     
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
-        LOG.info("Patch");
-        Id ref = Id.fromString(action.httpArgs.dataset);
-        try (InputStream in = action.request.getInputStream()) {
-            RDFPatch patch = RDFPatchOps.read(in);
-            
-            if ( false )
-                RDFPatchOps.write(System.out, patch);
-            
-            long version = action.dLink.append(ref, patch);
-            // Location of patch in "container/patch/id" form.
-            //String location = action.request.getRequestURI()+"/patch/"+ref.asPlainString();
-            String location = action.request.getRequestURI()+"?version="+version;
-          
-            JsonValue x = JsonNumber.value(version);
-            JsonValue rslt = JsonBuilder.create()
-                .startObject()
-                .pair(DeltaConst.F_VERSION, version)
-                .pair(DeltaConst.F_LOCATION, location)
-                .finishObject()
-                .build();
-            OutputStream out = action.response.getOutputStream();
-            action.response.setContentType(WebContent.contentTypeJSON);
-            action.response.setStatus(HttpSC.OK_200);
-            action.response.setHeader(HttpNames.hLocation, location);
-            JSON.write(out, rslt);
-            out.flush();
-        }
+        LogOp.append(action);
     }
     
     private static Id getDataId(DeltaAction action) {
-        String datasetStr = action.httpArgs.dataset;
+        String datasetStr = action.httpArgs.datasourceName;
         if ( datasetStr != null )
             return Id.fromString(datasetStr) ;
        

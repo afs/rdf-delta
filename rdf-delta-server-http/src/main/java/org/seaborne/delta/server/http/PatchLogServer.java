@@ -76,23 +76,29 @@ public class PatchLogServer {
         
         ServletContextHandler handler = buildServletContext("/");
         
-        // Combined name. "patch-log"
-        addServlet(handler, "/"+DeltaConst.EP_PatchLog, new S_PatchLog(this.engineRef));
-        // Receive patches. "patch"
-        addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
-        // Return patches. "fetch"
-        addServlet(handler, "/"+DeltaConst.EP_Fetch, new S_Fetch(this.engineRef));
+        Servlet servlet = new S_Log(engineRef);
+        
+//        // Combined name. 
+//        addServlet(handler, "/"+DeltaConst.EP_PatchLog, new S_PatchLog(this.engineRef));
+//        // Receive patches. "patch"
+//        addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
+//        // Return patches. "fetch"
+//        addServlet(handler, "/"+DeltaConst.EP_Fetch, new S_Fetch(this.engineRef));
+
+//        addServlet(handler,  "/"+DeltaConst.EP_PatchLog, servlet);
+//        addServlet(handler,  "/"+DeltaConst.EP_Append, servlet);
+//        addServlet(handler,  "/"+DeltaConst.EP_Fetch, servlet);
+        
         // Initial data. "init-data"
         addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
 
-//        // Trailing name.
-//        addServlet("/"+DPConst.EP_Fetch+"/*", new S_Fetch(this.engineRef));
-
         // Other
-        addServlet(handler, "/rpc", new S_DRPC(this.engineRef));
-        addServlet(handler, "/restart", new S_Restart());
-        addServlet(handler, "/ping", new S_Ping()); //-- Also the "ping" DRPC.
+        addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engineRef));
+        //addServlet(handler, "/restart", new S_Restart());
+        addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
 
+        addServlet(handler, "/*", new S_Log(engineRef));
+        
         server.setHandler(handler);
     }
     

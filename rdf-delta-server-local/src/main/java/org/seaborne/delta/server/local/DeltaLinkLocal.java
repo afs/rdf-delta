@@ -172,11 +172,17 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         return source;
     }
 
-    /** Retrieve a patch by patchId. */ 
+    private DataSource getDataSourceOrNull(Id dsRef) {
+        return localServer.getDataSource(dsRef);
+    }
+
+    /** Retrieve a patch by patchId. */
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
         checkLink();
-        DataSource source = getDataSource(dsRef);
+        DataSource source = getDataSourceOrNull(dsRef);
+        if ( source == null )
+            return null;
         RDFPatch patch = source.getPatchLog().fetch(patchId) ;
         if ( patch == null )
             throw new DeltaNotFoundException("No such patch: "+patchId) ;
@@ -188,7 +194,9 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public RDFPatch fetch(Id dsRef, long version) {
         checkLink();
-        DataSource source = getDataSource(dsRef) ;
+        DataSource source = getDataSourceOrNull(dsRef);
+        if ( source == null )
+            return null;
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {
             if ( patch == null ) {

@@ -50,8 +50,17 @@ public final class Id {
     private static final String SCHEME = "id:";
     // private static final UUID nilUUID = new UUID(0, 0); 
     // All zeros : https://tools.ietf.org/html/rfc4122#page-9
-    private static final Id nilId = Id.fromUUID(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-
+    private static final String nilStr = "00000000-0000-0000-0000-000000000000";
+    private static final Id nilId = Id.fromUUID(UUID.fromString(nilStr));
+    
+    /** Length in chars of a UUID string, without any scheme info */ 
+    public static int xlenStrUUID() { return nilStr.length(); }
+    
+    /** Quick test of whether a string looks like an UUID or not */ 
+    public static boolean maybeUUID(String str) {
+        return str.length() == nilStr.length() && str.charAt(8)=='-';
+    }
+    
     public static Id nullId() { return nilId; }
         
     /** Create a fresh {@code Id}, based on a UUID. */ 
@@ -110,7 +119,8 @@ public final class Id {
             UUID uuid = UUID.fromString(str) ;
             return new Id(uuid) ; 
         } catch (IllegalArgumentException ex) {
-            return new Id(str) ;
+            throw new IllegalArgumentException("String for id does not match a UUID: '"+str+"'");
+            //return new Id(str) ;
         }
     }
 
