@@ -139,5 +139,5 @@ Patches are sent to the server by POST:
 ```
 with a `Location:` in the response and retrieved by
 ```
-    GET http://host/.../{NAME}/patch/{id}...
+    GET http://host/.../{NAME}/patch/{id}
 ```

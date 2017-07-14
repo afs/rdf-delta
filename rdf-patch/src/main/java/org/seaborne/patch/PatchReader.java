@@ -23,6 +23,7 @@ import java.io.InputStream ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
 import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.NodeFactory ;
 import org.apache.jena.riot.system.RiotLib ;
 import org.apache.jena.riot.tokens.Token ;
 import org.seaborne.riot.tio.TupleIO ;
@@ -167,13 +168,17 @@ public class PatchReader implements PatchProcessor {
         }
     }
 
+    private final static String bNodeLabelStart = "_:";
     private static Node tokenToNode(Token token) {
         if ( token.isIRI() )
+            // URI or <_:...>
             return RiotLib.createIRIorBNode(token.getImage()) ;
+        if ( token.isBNode() ) {
+            // Blank node as _:...
+            String label = token.getImage().substring(bNodeLabelStart.length());
+            return NodeFactory.createBlankNode(label);
+        }
         return token.asNode() ;
     }
-    
-
-
 }
 

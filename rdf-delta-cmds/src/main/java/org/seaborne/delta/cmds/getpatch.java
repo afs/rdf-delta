@@ -19,6 +19,7 @@
 package org.seaborne.delta.cmds;
 
 import jena.cmd.CmdException ;
+import org.seaborne.delta.DeltaNotFoundException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
@@ -57,11 +58,17 @@ public class getpatch extends DeltaCmd {
         
         Id dsRef =  getDescription().getId();
 
-        RDFPatch patch = dLink.fetch(dsRef, patchVersion);
-        if ( patch == null )
+        RDFPatch patch;
+        try {
+            patch = dLink.fetch(dsRef, patchVersion);
+            if ( patch == null )
+                throw new CmdException(getCommandName()+" : No such patch : "+patchVersion);
+            else
+                RDFPatchOps.write(System.out, patch);
+        } catch (DeltaNotFoundException ex) {
+            // Bad dsRef.
             throw new CmdException(getCommandName()+" : No such patch : "+patchVersion);
-        else
-            RDFPatchOps.write(System.out, patch);
+        }
     }
 
     @Override

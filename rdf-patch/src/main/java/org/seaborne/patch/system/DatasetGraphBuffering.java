@@ -67,10 +67,11 @@ public class DatasetGraphBuffering extends AbstractDatasetGraphAddDelete {
 
     @Override
     public Iterator<Quad> find(Node g, Node s, Node p, Node o) {
-        Iterator<Quad> iter1 = get().find(g, s, p, o) ;  
+        // Original, without deletes
+        Iterator<Quad> iter1 = Iter.filter(get().find(g, s, p, o), (q)->!deleteQuads.contains(q) ) ;
+        // plus adds (which do not contain deletes)
         Iterator<Quad> iter2 = addQuads.stream().filter(q->Match.match(q, g, s, p, o)).iterator() ;
-        // if not checking, distinct needed.
-        return Iter.concat(iter1,iter2) ;
+        return Iter.concat(iter1,iter2);
     }
     
 //    isEmpty()
