@@ -18,12 +18,8 @@
 
 package dev;
 
-import org.seaborne.patch.system.DatasetGraphChanges;
-
 public class DevDeltaToDo {
     // Document API
-    // 
-    // GraphChanges -- see rdf-patch
     
     // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
     
@@ -33,7 +29,7 @@ public class DevDeltaToDo {
     //   And/or operations by name.
     // Tests with version == -1.
     
-    //DatsetGraphBuggering
+    // DatsetGraphBuffering
     
     // ** Persistent client-side data
     // ** Docs
