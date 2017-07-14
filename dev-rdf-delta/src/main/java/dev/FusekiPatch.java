@@ -19,11 +19,11 @@
 package dev;
 
 import static java.lang.String.format ;
+import static org.seaborne.delta.DeltaConst.*;
 
 import java.io.IOException ;
 import java.io.InputStream ;
 
-import org.apache.jena.atlas.web.AcceptList ;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.servlets.ActionSPARQL ;
 import org.apache.jena.fuseki.servlets.HttpAction ;
@@ -85,18 +85,6 @@ public class FusekiPatch extends ActionSPARQL {
                 ServletOps.errorMethodNotAllowed(method+" : Patch must use POST or PATCH");
         }
     }
-    
-    public static final String contentTypePatchText     =  "application/rdf-patch";
-    public static final String contentTypePatchTextAlt  =  "text/rdf-patch";
-    public static final String contentTypePatchBinary   =  "application/rdf-patch+thrift";
-
-    // Preferred form.
-    public static final ContentType ctPatchText         =  ContentType.create(contentTypePatchText);
-    public static final ContentType ctPatchBinary       =  ContentType.create(contentTypePatchBinary);
-    
-    public static final AcceptList rsOfferPatch         = AcceptList.create(contentTypePatchText,
-                                                                            contentTypePatchTextAlt,
-                                                                            contentTypePatchBinary);
     
     @Override
     protected void perform(HttpAction action) {

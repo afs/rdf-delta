@@ -18,31 +18,32 @@
 
 package dev;
 
+import org.seaborne.patch.system.DatasetGraphChanges;
+
 public class DevDeltaToDo {
+    // Document API
+    // 
+    // GraphChanges -- see rdf-patch
+    
     // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
+    
     // DeltaFuseki - sync on a timer.  
-    // version -> "get next" : hard for a range.
-    
-    // Fuseki startup - if no patch log server start anyway.  "read-only" 
-    
-    // ja:dataset
 
-    // *** More tests AbstractTestDeltaClient
-
+    // DLink : name to id. function.
+    //   And/or operations by name.
+    // Tests with version == -1.
+    
+    //DatsetGraphBuggering
+    
     // ** Persistent client-side data
-    // ** Tests
-    //      client restart
-    //      server restart
     // ** Docs
-    // ** 1m test.  Benchmark.  (50k, very large xfer! Compress?)
+    //    review delta.md
+    //    Write up client stuff - sync'ing.
     // ** Initial data testing
     
     // URL scheme.
     // DeltaLinkHTTP.createRDFChanges - URL generation.
-    //  DeltaLib.makeURL --  
-//    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
-//        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
-//    }
+    //  DeltaLib.makeURL  
     
     // S_Patch, S_Fetch.
     //   POST patch -> ** Location: **
@@ -53,9 +54,8 @@ public class DevDeltaToDo {
     //                                 /{shortName}/current = "version MaxInt"
     //                                 /{shortName}/patch/{version}: all digits.
     //                                 /{shortName}/patch/{id}: UUID string - has "-"
-    // Container: POST = append; GET = description in JSON.
-    //  Subunits are individual patches. 
-    // Then delta is admin/control.
+    // Container: {shortName}/ POST = append, Location: /patches/..... ; GET = description in JSON.
+    //  Sub-units are individual patches. 
     
     // PatchLog  concurrency.
     // PatchLog  Id for log separate from dsRef 
