@@ -136,13 +136,17 @@ public class DataState {
     public Id getDataSourceId() {
         return datasource;
     }
+    
+//    public DataSourceDescription asDataSourceDescription() {
+//        return new DataSourceDescription(datasource, name, uri); 
+//    }
 
     /** Place on-disk where the state is stored. Use with care. */ 
     public Path getStatePath() {
         return state.getPath();
     }
 
-    public String getName() {
+    public String getDatasourceName() {
         return name ;
     }
 

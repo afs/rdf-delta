@@ -72,7 +72,7 @@ public class DeltaClient {
         Objects.requireNonNull(datasourceId);
         if (  zone.exists(datasourceId) ) {
             DataState dataState = zone.get(datasourceId);
-            throw new DeltaConfigException("Can't attach: data source already exists locally: "+dataState.getName());
+            throw new DeltaConfigException("Can't attach: data source already exists locally: "+dataState.getDatasourceName());
         }
         DeltaConnection dConn = get(datasourceId);
         if ( dConn != null )
@@ -81,7 +81,7 @@ public class DeltaClient {
         if ( dsd == null )
             throw new DeltaBadRequestException("Can't attach: no such link data source : "+datasourceId);
         DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), storageType);
-        dConn = DeltaConnection.connect(dataState, datasourceId, zone.getDataset(dataState), dLink);
+        dConn = DeltaConnection.connect(dataState, zone.getDataset(dataState), dLink);
         connections.put(datasourceId, dConn);
     }
 
@@ -112,13 +112,13 @@ public class DeltaClient {
             return;
         if ( zone.exists(datasourceId) ) {
             DataState dataState = zone.get(datasourceId);
-            throw new DeltaConfigException("Can't attach: data source already exists locally: "+dataState.getName());
+            throw new DeltaConfigException("Can't attach: data source already exists locally: "+dataState.getDatasourceName());
         }
         
         DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
         DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), LocalStorageType.EXTERNAL);
         
-        DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+        DeltaConnection dConn = DeltaConnection.connect(dataState, dsg, dLink);
         dConn.sync();
         connections.put(datasourceId, dConn);
     }
@@ -151,7 +151,7 @@ public class DeltaClient {
             throw new DeltaConfigException("Data source '"+datasourceId.toString()+"' not found for this DeltaClient");
         DataState dataState = zone.connect(datasourceId);
         DatasetGraph dsg = zone.getDataset(dataState);
-        DeltaConnection dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+        DeltaConnection dConn = DeltaConnection.connect(dataState, dsg, dLink);
         connections.put(datasourceId, dConn);
     }
     
@@ -181,7 +181,7 @@ public class DeltaClient {
         if ( dConn != null )
             return;
         DataState dataState = zone.get(datasourceId);
-        dConn = DeltaConnection.connect(dataState, datasourceId, dsg, dLink);
+        dConn = DeltaConnection.connect(dataState, dsg, dLink);
         connections.put(datasourceId, dConn);
     }
     

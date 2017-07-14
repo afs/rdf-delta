@@ -147,7 +147,7 @@ public class Zone {
         DatasetGraph dsg = localStorage(dataState.getStorageType(), dataPath(dataState));
         if ( dsg != null )
             datasets.put(dsRef, dsg);
-        names.put(dataState.getName(), dsRef);
+        names.put(dataState.getDatasourceName(), dsRef);
     }
     
     private boolean isInitialized() {
@@ -196,7 +196,7 @@ public class Zone {
     }
     
     private Path stateArea(DataState dataState) {
-        return stateArea.resolve(dataState.getName());
+        return stateArea.resolve(dataState.getDatasourceName());
     }
     
     private Path dataPath(DataState dataState) {
@@ -233,7 +233,7 @@ public class Zone {
             states.remove(dataState.getDataSourceId());
             datasets.remove(dataState.getDataSourceId());
             if ( stateArea != null ) {
-                Path path = stateArea.resolve(dataState.getName());
+                Path path = stateArea.resolve(dataState.getDatasourceName());
                 if ( false ) {
                     // real delete.
                     FileOps.delete(path.toString());
@@ -273,7 +273,7 @@ public class Zone {
         if ( stateArea == null )
             return null;
         dataState.getStatePath();
-        return stateArea.resolve(dataState.getName());
+        return stateArea.resolve(dataState.getDatasourceName());
     }
     
     public DataState get(Id datasourceId) {
@@ -298,7 +298,7 @@ public class Zone {
         if ( dataState == null )
             return ;
         datasets.remove(dsRef);
-        names.remove(dataState.getName());
+        names.remove(dataState.getDatasourceName());
     }
     
     public Location getLocation() {

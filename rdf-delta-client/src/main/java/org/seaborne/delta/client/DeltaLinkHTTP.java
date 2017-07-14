@@ -75,8 +75,8 @@ public class DeltaLinkHTTP implements DeltaLink {
         this.linkOpen = true;
 
         // One URL
-        this.remoteSend     = serverURL+DeltaConst.EP_PatchLog;
-        this.remoteReceive  = serverURL+DeltaConst.EP_PatchLog;
+        this.remoteSend     = serverURL+"{"+DeltaConst.paramDatasource+"}";
+        this.remoteReceive  = serverURL+"{"+DeltaConst.paramDatasource+"}";
         this.remoteData     = serverURL+DeltaConst.EP_InitData;
 //        // Separate URLs
 //        this.remoteSend = serverURL+DPConst.EP_Append;
@@ -140,13 +140,17 @@ public class DeltaLinkHTTP implements DeltaLink {
             }
         }
     }
-
+    
     public RDFChangesHTTP createRDFChanges(Id dsRef) {
         Objects.requireNonNull(dsRef);
         checkLink();
         checkRegistered();
-        String s = DeltaLib.makeURL(remoteSend, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam());
-        return new RDFChangesHTTP(dsRef.toString(), s);
+        //String s = DeltaLib.makeURL(remoteSend, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam());
+        String url = remoteSend;
+        url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
+        url = addToken(url);
+        
+        return new RDFChangesHTTP(dsRef.toString(), url);
     }
 
     // Non-streaming - collect patch then replay to send it.  
@@ -186,14 +190,12 @@ public class DeltaLinkHTTP implements DeltaLink {
     private RDFPatch fetchCommon(Id dsRef, String param, Object value) {
         checkLink();
         
-        String s;
-        // If registered.
-        if ( regToken != null ) 
-            s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam(), param, value);
-        else
-            s = DeltaLib.makeURL(remoteReceive, DeltaConst.paramDatasource, dsRef.asParam(), param, value);
-        
-        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s", dsRef, param, value);
+        String url = remoteReceive;
+        url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
+        url = appendURL(url, value.toString());
+        url = addToken(url);
+        final String s = url;
+        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, value, url);
         try { 
             return retry(()->{
                 // [NET] Network point
@@ -208,9 +210,27 @@ public class DeltaLinkHTTP implements DeltaLink {
         }
         catch ( HttpException ex) {
             if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )
-                return null;
+                return null ; //throw new DeltaNotFoundException(ex.getMessage());
             throw ex;
         }
+    }
+
+    private String addToken(String url) {
+        // If registered.
+        if ( regToken != null )
+            url = DeltaLib.makeURL(url, DeltaConst.paramReg, regToken.asString());
+        return url;
+    }
+
+    private static String appendURL(String url, String string) {
+        if ( url.endsWith("/") )
+            return url+string;
+        else
+            return url+"/"+string;
+    }
+
+    private static String createURL(String url, String param, String value) {
+        return url.replace("{"+param+"}", value);
     }
 
     @Override

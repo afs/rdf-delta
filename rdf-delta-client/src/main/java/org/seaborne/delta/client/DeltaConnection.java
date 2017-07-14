@@ -59,6 +59,7 @@ public class DeltaConnection implements AutoCloseable {
     private final DatasetGraphChanges managed;
     
     private final RDFChanges target;
+    private final String datasourceName ;
     private final Id datasourceId;
     private final DataState state;
 
@@ -70,12 +71,11 @@ public class DeltaConnection implements AutoCloseable {
      * {@code DeltaConnection} objects are normal obtained via {@link DeltaClient}.
      */
     
-    /*package*/ static DeltaConnection connect(DataState dataState, Id datasourceId, DatasetGraph dsg, DeltaLink dLink) {
-        Objects.requireNonNull(datasourceId, "Null data source Id");
-        Objects.requireNonNull(dLink, "Null link");
+    /*package*/ static DeltaConnection connect(DataState dataState, DatasetGraph dsg, DeltaLink dLink) {
         Objects.requireNonNull(dataState, "Null data state");
-        if ( ! Objects.equals(datasourceId, dataState.getDataSourceId()) )
-            throw new DeltaException("State ds "+dataState.getDataSourceId()+" but app passed "+datasourceId);
+        Objects.requireNonNull(dataState.getDataSourceId(), "Null data source Id");
+        Objects.requireNonNull(dataState.getDatasourceName(), "Null data source Id");
+        Objects.requireNonNull(dLink, "Null link");
         DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
         client.start();
         return client;
@@ -94,9 +94,9 @@ public class DeltaConnection implements AutoCloseable {
         this.state = dataState;
         this.base = basedsg;
         this.datasourceId = dataState.getDataSourceId();
+        this.datasourceName = dataState.getDatasourceName();
         this.dLink = link;
         this.valid = true;
-        
         if ( basedsg != null  ) {
             // Where to put incoming changes. 
             this.target = new RDFChangesApply(basedsg);
@@ -126,6 +126,7 @@ public class DeltaConnection implements AutoCloseable {
         this.state = other.state;
         this.base = other.base;
         this.datasourceId = other.datasourceId;
+        this.datasourceName = other.datasourceName;
         this.dLink = other.dLink;
         this.valid = other.valid;
         // Not shared with "other".
@@ -272,10 +273,6 @@ public class DeltaConnection implements AutoCloseable {
         setLocalState(patchLastVersion, patchLastIdNode);
     }
     
-    private RDFPatch fetchPatch(long id) {
-        return dLink.fetch(datasourceId, id);
-    }
-
     /** Play patches, return details of the the last successfully applied one */ 
     private static Pair<Long, Node> play(Id datasourceId, RDFChanges target, DeltaLink dLink, long minVersion, long maxVersion) {
         // [Delta] replace with a one-shot "get all patches" operation.
@@ -285,8 +282,15 @@ public class DeltaConnection implements AutoCloseable {
         
         for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
             //FmtLog.debug(LOG, "Play: patch=%d", ver);
-            RDFPatch patch = dLink.fetch(datasourceId, ver);
-            if ( patch == null ) { 
+            RDFPatch patch;
+            try { 
+                patch = dLink.fetch(datasourceId, ver);
+                if ( patch == null ) { 
+                    FmtLog.info(LOG, "Play: %s patch=%d : not found", datasourceId, ver);
+                    continue;
+                }
+            } catch (DeltaNotFoundException ex) {
+                // Which ever way it is signalled.  This way means "bad datasourceId"
                 FmtLog.info(LOG, "Play: %s patch=%d : not found", datasourceId, ver);
                 continue;
             }

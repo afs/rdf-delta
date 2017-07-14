@@ -54,7 +54,6 @@ public class DeltaLib {
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }
     
-
     public static String makeURL(String url, String paramName1, Object paramValue1) {
         return String.format("%s?%s=%s", url, paramName1, paramValue1);
     }

@@ -49,7 +49,6 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.util.Context ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink;
@@ -104,7 +103,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         
         for ( String dest : xs ) {
             FmtLog.info(log, "Destination: '%s'", dest) ;
-            RDFChanges sc = DeltaLib.destination(dest+DeltaConst.EP_Append) ;
+            RDFChanges sc = DeltaLib.destination(dest);
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         
@@ -112,6 +111,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
        
        // *****
        DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
+       // Touch server
        Id clientId = Id.create();
        deltaLink.register(clientId);
        
