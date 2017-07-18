@@ -19,10 +19,15 @@
 package dev;
 
 import static java.lang.String.format ;
-import static org.seaborne.delta.DeltaConst.*;
+import static org.seaborne.delta.DeltaConst.contentTypePatchBinary;
+import static org.seaborne.delta.DeltaConst.ctPatchBinary;
+import static org.seaborne.delta.DeltaConst.ctPatchText;
 
 import java.io.IOException ;
 import java.io.InputStream ;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.servlets.ActionSPARQL ;
@@ -35,7 +40,20 @@ import org.seaborne.patch.RDFPatchOps ;
 
 public class FusekiPatch extends ActionSPARQL {
     
-    // ActionREST
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) {
+        if ( "PATCH".equals(request.getMethod()) )
+            doCommon(request, response) ; 
+    }
+    
+    // Hard wire.
+    @Override
+    public void executeAction(HttpAction action) {
+        validate(action);
+        perform(action);
+    }
+    
+    // If based on ActionREST
 //    @Override
 //    protected void doOptions(HttpAction action) {
 //        setCommonHeadersForOptions(action.response) ;
@@ -53,6 +71,13 @@ public class FusekiPatch extends ActionSPARQL {
 //    protected void doPost(HttpAction action) {
 //        perform(action);
 //    }
+    
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    { 
+        System.out.println("doPost");
+        doCommon(request, response) ; }
+
 //
 //    @Override
 //    protected void doPut(HttpAction action) {

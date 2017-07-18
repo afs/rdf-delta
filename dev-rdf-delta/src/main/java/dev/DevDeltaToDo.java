@@ -20,7 +20,7 @@ package dev;
 
 public class DevDeltaToDo {
     // Document API
-    
+
     // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
     
     // DeltaFuseki - sync on a timer.  
@@ -41,18 +41,10 @@ public class DevDeltaToDo {
     // DeltaLinkHTTP.createRDFChanges - URL generation.
     //  DeltaLib.makeURL  
     
-    // S_Patch, S_Fetch.
+    // S_Patch, S_Fetch. Gone? Invert and send to S_Log?
     //   POST patch -> ** Location: **
     //   "container/patch/{id}", "container/patch{version}"
-    // URI design. RDF Patch REST 
-    //   http://server:1066/{WebAppCxt}/{shortName}/ => Info
-    //                                 /{shortName}/init = "version 0" but dataset vs patch.
-    //                                 /{shortName}/current = "version MaxInt"
-    //                                 /{shortName}/patch/{version}: all digits.
-    //                                 /{shortName}/patch/{id}: UUID string - has "-"
-    // Container: {shortName}/ POST = append, Location: /patches/..... ; GET = description in JSON.
-    //  Sub-units are individual patches. 
-    
+
     // PatchLog  concurrency.
     // PatchLog  Id for log separate from dsRef 
 

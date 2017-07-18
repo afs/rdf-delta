@@ -18,24 +18,75 @@
 
 package dev;
 
+import java.io.IOException;
+
+import javax.servlet.*;
+
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 public class RunDeltaFuseki {
     static { 
-        //LogCtl.setCmdLogging();
+        LogCtl.setCmdLogging();
         LogCtl.setJavaLogging();
     }
     
     static Logger LOG = LoggerFactory.getLogger("Main") ;
     
     public static void main(String[] args) throws Exception {
-        FusekiEmbeddedServer.create()
-            .parseConfigFile("/home/afs/ASF/rdf-delta/delta-config.ttl")
-            .build()
+        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
+            .setPort(3033)
+            .add("XYZ", DatasetGraphFactory.createTxnMem())
+            .build();
+        
+        ServletContextHandler context = (ServletContextHandler)(server.getJettyServer().getHandler());
+        // Wire in a filter!
+        server.getDataAccessPointRegistry().forEach((name, dap)->{
+            FilterHolder fh = new FilterHolder();
+            Filter patchFilter = new PatchFilter();
+            fh.setFilter(patchFilter);
+            if ( name.startsWith("/") )
+                name = name.substring(1);
+            String path = "/"+name+"/patch";
+            System.err.println("Add "+path);
+            // Too late
+            context.addFilter(fh, path, null);
+        }); 
+
+//        FilterHolder fh = new FilterHolder();
+//        Filter patchFilter = new PatchFilter();
+//        fh.setFilter(patchFilter);
+//        String path = "/XYZ/patch";
+//        context.addFilter(fh, path, null);
+//        //server.getJettyServer().setHandler(context);
+        
+        server
             .start()
             .join();
+    }
+    
+    static class PatchFilter implements Filter {
+
+        @Override
+        public void init(FilterConfig filterConfig) throws ServletException {}
+
+        @Override
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            FmtLog.info(LOG, "PatchFilter"); 
+            
+            new FusekiPatch()
+            .service(request, response);
+            return ;
+        }
+
+        @Override
+        public void destroy() {}
+        
     }
 }
