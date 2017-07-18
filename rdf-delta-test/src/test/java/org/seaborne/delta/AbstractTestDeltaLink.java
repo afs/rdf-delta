@@ -165,9 +165,9 @@ public abstract class AbstractTestDeltaLink {
 
     // Patch at the link level. 
     @Test
-    public void patch_add_1() {
+    public void patch_append_1() {
         DeltaLink dLink = getLinkRegistered();
-        Id dsRef = dLink.newDataSource("patch_add_1", "http://example/");
+        Id dsRef = dLink.newDataSource("patch_append_1", "http://example/");
         
         InputStream in = IO.openFile(FILES_DIR+"/patch1.rdfp");
         RDFPatch patch = RDFPatchOps.read(in);
@@ -195,41 +195,6 @@ public abstract class AbstractTestDeltaLink {
         assertTrue(equals(patch1, patch2));
     }
 
-    // Patch at the link level. Datasetname. 
-    // ???? @Test
-    public void patch_add_2() {
-        DeltaLink dLink = getLinkRegistered();
-        Id dsRef = dLink.newDataSource("patch_add_2", "http://example/");
-        
-        InputStream in = IO.openFile(FILES_DIR+"/patch1.rdfp");
-        RDFPatch patch = RDFPatchOps.read(in);
-        
-        
-        
-
-        long version = dLink.getCurrentVersion(dsRef); // 0
-        long version1 = dLink.append(dsRef, patch);    // Should be 1
-        assertNotEquals(version, version1);
-//
-//        long version2 = dLink.getCurrentVersion(dsRef);
-//        assertEquals(version1, version2);
-//        
-//        RDFPatch patch1 = dLink.fetch(dsRef, version1) ;
-//        assertNotNull(patch1);
-////        if ( ! equals(patch1, patch) ) {
-////            System.out.println("**** Patch (as read)");
-////            RDFPatchOps.write(System.out, patch);
-////            System.out.println("**** Patch (as fetched)");
-////            RDFPatchOps.write(System.out, patch);
-////            equals(patch1, patch);
-////        }
-//        
-//        assertTrue(equals(patch1, patch));
-//        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getId())) ;
-//        assertNotNull(patch2);
-//        assertTrue(equals(patch1, patch2));
-    }
-    
     @Test
     public void patch_add_error_1() {
         // Unregistered patch
@@ -245,7 +210,7 @@ public abstract class AbstractTestDeltaLink {
     
     @Test
     public void patch_add_add() {
-        // patch1 then patch2,checkign the versions advance as expected.
+        // patch1 then patch2, checking the versions advance as expected.
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_add_add", "http://example/");
 
@@ -291,15 +256,22 @@ public abstract class AbstractTestDeltaLink {
         assertNull(patch0);
         RDFPatch patch1 = dLink.fetch(dsRef, 1);
         assertNotNull(patch1);
+        RDFPatch patch2 = dLink.fetch(dsRef, -1);
+        assertNull(patch2);
     }
     
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_03() {
-        // No such source.
+     // Patches start at 1.
         DeltaLink dLink = getLinkRegistered();
-        Id dsRef = Id.create();
-        RDFPatch patch = dLink.fetch(dsRef, 99);
-        assertNull(patch);
+        Id dsRef = dLink.newDataSource("patch_404_2", "http://example/");
+        RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
+        long version1 = dLink.append(dsRef, patch);
+        
+        RDFPatch patch0 = dLink.fetch(dsRef, 0);
+        assertNull(patch0);
+        RDFPatch patch1 = dLink.fetch(dsRef, 1);
+        assertNotNull(patch1);
     }
 
     static int counter = 1 ;

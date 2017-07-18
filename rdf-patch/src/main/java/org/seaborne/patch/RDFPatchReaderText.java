@@ -19,6 +19,9 @@
 package org.seaborne.patch;
 
 import java.io.InputStream ;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.tuple.Tuple ;
@@ -29,41 +32,41 @@ import org.apache.jena.riot.tokens.Token ;
 import org.seaborne.riot.tio.TupleIO ;
 import org.seaborne.riot.tio.TupleReader ;
 
-// Needs reworking: for efficiency, for less features
-/** Must close the input stream */
-public class PatchReader implements PatchProcessor {
+/** PatchReader for text input */ 
+// Needs reworking: for efficiency
+public class RDFPatchReaderText implements PatchProcessor {
     private final TupleReader input ;
     
-    public PatchReader(TupleReader in) {
+    private RDFPatchReaderText(TupleReader in) {
         input = in ;
     }
     
-    public PatchReader(InputStream in) {
+    /** Create a patch reader. */
+    public RDFPatchReaderText(InputStream in) {
         input = TupleIO.createTupleReaderText(in) ; 
     }
+    
+    @Override
+    public void apply(RDFChanges processor) {
+        read(input, processor);
+    }
 
-    /** Execute transactions until the input ends or something goes wrong. */
-    @Override
-    public void apply(RDFChanges sink) {
-        try { 
-            PatchProcessor.super.apply(sink);
-        } finally { 
-            IO.close(input) ;
-        }
+    private void read(TupleReader input, RDFChanges processor) {
+        try {
+            while( input.hasNext() ) {
+                apply1(input, processor);
+            }
+        } finally { IO.close(input); }
     }
     
-    @Override
-    public boolean hasMore() {
-        return input.hasNext() ;
-    }
+    public static PatchProcessor create(InputStream input) { return new RDFPatchReaderText(input); }
+
+    // -- statics.
     
-    /** Execute one transaction.
+    /** Execute one tuple, skipping blanks and comments.
      *  Return true if there is the possiblity of more.
      */
-    @Override
-    public boolean apply1(RDFChanges sink) {
-        // Abort if no end of transaction
-        
+    private static boolean apply1(TupleReader input, RDFChanges sink) {
         boolean oneTransaction = true ;  
         
         int lineNumber = 0 ;
@@ -87,7 +90,7 @@ public class PatchReader implements PatchProcessor {
     }
     
     // Return true on end of transaction.
-    private boolean doOneLine(Tuple<Token> line, RDFChanges sink) {
+    private static boolean doOneLine(Tuple<Token> line, RDFChanges sink) {
         Token token1 = line.get(0) ;
         if ( ! token1.isWord() )
             throw new PatchException("["+token1.getLine()+"] Token1 is not a word "+token1) ;
@@ -97,14 +100,7 @@ public class PatchReader implements PatchProcessor {
 
         switch (code) {
             case "H": {
-                if ( line.len() != 3 )
-                    throw new PatchException("["+token1.getLine()+"] Header: length = "+line.len()) ;
-                Token token2 = line.get(1) ;
-                if ( ! token2.isWord() && ! token2.isString() )
-                    throw new PatchException("["+token1.getLine()+"] Header does not have a key that is a word: "+token2) ;
-                String field = line.get(1).getImage() ;
-                Node v = tokenToNode(line.get(2)) ;
-                sink.header(field, v);
+                readHeaderLine(line, (f,v)->sink.header(f, v));
                 return false ;
             }
             
@@ -132,7 +128,14 @@ public class PatchReader implements PatchProcessor {
                 if ( line.len() != 3 && line.len() != 4 )
                     throw new PatchException("["+token1.getLine()+"] Prefix add tuple error: length = "+line.len()) ;
                 String prefix = line.get(1).asString() ;
-                String uriStr = line.get(2).asString() ;
+                String uriStr;
+                Token t = line.get(2);
+                if ( t.isIRI() )
+                    uriStr = t.getImage();
+                else if ( t.isString() )
+                    uriStr = t.asString();
+                else
+                    throw new PatchException("["+token1.getLine()+"] Prefix error: URI slot is not a URI nor a string") ;
                 Node gn = line.len()==3 ? null : line.get(3).asNode() ;  
                 sink.addPrefix(gn, prefix, uriStr);
                 return false ;
@@ -179,6 +182,44 @@ public class PatchReader implements PatchProcessor {
             return NodeFactory.createBlankNode(label);
         }
         return token.asNode() ;
+    }
+    
+    /** Read patch header. */
+    public static PatchHeader readerHeader(InputStream in) {
+        TupleReader input = TupleIO.createTupleReaderText(in) ; 
+        return readerHeader(input);
+    }
+
+    /** Read the header */
+    private static PatchHeader readerHeader(TupleReader input) {
+        Map<String, Node> header = new LinkedHashMap<>();
+        int lineNumber = 0 ;
+        while(input.hasNext()) {
+            Tuple<Token> line = input.next() ;
+            lineNumber ++ ;
+            if ( line.isEmpty() )
+                throw new PatchException("["+lineNumber+"] empty line") ;
+            Token token1 = line.get(0) ;
+            if ( ! token1.isWord() )
+                throw new PatchException("["+token1.getLine()+"] Token1 is not a word "+token1) ;
+            String code = token1.getImage() ;
+            if ( ! code.equals("H") )
+                break;
+            readHeaderLine(line, (f,n)->header.put(f, n));
+        }
+        return new PatchHeader(header);
+    }
+
+    /** Known-to-be-header line */
+    private static void readHeaderLine(Tuple<Token> line, BiConsumer<String, Node> action) {
+        if ( line.len() != 3 )
+            throw new PatchException("["+line.get(0).getLine()+"] Header: length = "+line.len()) ;
+        Token token2 = line.get(1) ;
+        if ( ! token2.isWord() && ! token2.isString() )
+            throw new PatchException("["+line.get(0).getLine()+"] Header does not have a key that is a word: "+token2) ;
+        String field = token2.getImage() ;
+        Node v = tokenToNode(line.get(2)) ;
+        action.accept(field, v);
     }
 }
 

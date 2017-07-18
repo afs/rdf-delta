@@ -61,7 +61,6 @@ public class TestRDFChanges {
         byte[] output = out.toByteArray();
         return output ;
     }
-
     
     // test basic mechanism
     @Test public void changes_write_read_01() {

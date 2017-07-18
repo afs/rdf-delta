@@ -19,28 +19,5 @@
 package org.seaborne.patch;
 
 public interface PatchProcessor {
-
-    /** Process the whole patch - zero or more transactions.
-     * @apiNote
-     * Calls start-finish around the processing.
-     *  
-     * @param destination
-     */
-    public default void apply(RDFChanges destination) {
-        destination.start() ;
-        while(hasMore()) {
-            apply1(destination) ;
-        }
-        destination.finish() ;
-    }
-    
-    // Or just "apply"?
-    
-    public boolean hasMore() ;
-    
-    /** Execute one transaction.
-     *  Return true if there is the possiblity of more.
-     *  Does not wrap in start-finish.
-     */
-    public boolean apply1(RDFChanges destination) ;
+    public void apply(RDFChanges destination);
 }

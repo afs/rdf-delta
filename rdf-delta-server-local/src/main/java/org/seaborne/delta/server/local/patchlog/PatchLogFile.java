@@ -42,9 +42,9 @@ import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.PatchReaderHeader ;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.RDFPatchReaderText;
 import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
@@ -99,7 +99,7 @@ public class PatchLogFile implements PatchLog {
         for ( ; iter.hasNext() ; ) {
             long idx = iter.next();
             try ( InputStream in = fileStore.open(idx) ) {
-                PatchHeader patchHeader = PatchReaderHeader.readerHeader(in);
+                PatchHeader patchHeader = RDFPatchReaderText.readerHeader(in);
                 if ( patchHeader == null ) {
                     FmtLog.error(LOG, "Can't read header: idx=%d", idx);
                     continue;
@@ -384,7 +384,12 @@ public class PatchLogFile implements PatchLog {
         return fetch(fileStore, version); 
     }
     
-    private static RDFPatch fetch(FileStore fileStore, long version) {
+    private RDFPatch fetch(FileStore fileStore, long version) {
+        if ( version < getEarliestVersion() )
+            return null;
+        if ( version > getLatestVersion() )
+            return null;
+        
         try ( InputStream in = fileStore.open((int)version) ) {
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;

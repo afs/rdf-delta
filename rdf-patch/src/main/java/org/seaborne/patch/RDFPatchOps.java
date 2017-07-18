@@ -31,8 +31,6 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.patch.changes.*;
 import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.seaborne.riot.tio.TokenWriter ;
-import org.seaborne.riot.tio.TupleIO ;
-import org.seaborne.riot.tio.TupleReader ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
 
 public class RDFPatchOps {
@@ -84,7 +82,7 @@ public class RDFPatchOps {
         return new RDFPatchEmpty();
     }
 
-    /** Create a brief cummary of a patch.
+    /** Create a brief summary of a patch.
      * <p> 
      * This function plays the patch.
      * */
@@ -94,9 +92,23 @@ public class RDFPatchOps {
         return x.summary();
     }
     
+    /** Make sure a patch has been read from its input.
+     *  The returned {@link RDFPatch} is not connected
+     *  to an external resource like an {@link InputStream}.  
+     */
+    public static RDFPatch collect(RDFPatch patch) {
+        if ( patch instanceof RDFChangesCollector )
+            return patch;
+        RDFChangesCollector x = new RDFChangesCollector();
+        patch.apply(x);
+        return x.getRDFPatch();
+    }
+    
+
+    
     /** Read an {@link RDFPatch} from a file. */
     public static RDFPatch read(InputStream input) {
-        PatchReader pr = new PatchReader(input) ;
+        RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
         RDFChangesCollector c = new RDFChangesCollector() ;
         pr.apply(c);
         return c.getRDFPatch() ; 
@@ -111,7 +123,7 @@ public class RDFPatchOps {
 
     /** Read an {@link RDFPatch} header. */
     public static PatchHeader readHeader(InputStream input) {
-        return PatchReaderHeader.readerHeader(input); 
+        return RDFPatchReaderText.readerHeader(input); 
     }
 
     /** Apply changes from a {@link RDFPatch} to a {@link DatasetGraph} */ 
@@ -120,17 +132,11 @@ public class RDFPatchOps {
         patch.apply(changes);
     }
     
-    /** Apply changes from a {@link TupleReader} stream to a {@link DatasetGraph} */ 
-    public static void applyChange(DatasetGraph dsg, TupleReader tupleReader) {
-        PatchReader pr = new PatchReader(tupleReader) ;
-        RDFChanges changes = new RDFChangesApply(dsg) ;
-        pr.apply(changes);
-    }
-
     /** Apply changes from a text format input stream to a {@link DatasetGraph} */ 
     public static void applyChange(DatasetGraph dsg, InputStream input) {
-        TupleReader tr = TupleIO.createTupleReaderText(input);
-        applyChange(dsg, tr);
+        RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
+        RDFChanges changes = new RDFChangesApply(dsg) ;
+        pr.apply(changes);
     }
 
     /** Create a {@link DatasetGraph} that sends changes to a {@link RDFChanges} stream */ 

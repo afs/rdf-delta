@@ -38,7 +38,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotConnectedException ;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.delta.link.RegToken;
-import org.seaborne.patch.PatchReader ;
+import org.seaborne.patch.RDFPatchReaderText ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 
@@ -179,6 +179,8 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public RDFPatch fetch(Id dsRef, long version) {
+        if ( version < 0 )
+            return null;
         return fetchCommon(dsRef, DeltaConst.paramVersion, version);
     }
 
@@ -202,7 +204,7 @@ public class DeltaLinkHTTP implements DeltaLink {
                 InputStream in = HttpOp.execHttpGet(s) ;
                 if ( in == null )
                     return null ;
-                PatchReader pr = new PatchReader(in) ;
+                RDFPatchReaderText pr = new RDFPatchReaderText(in) ;
                 RDFChangesCollector collector = new RDFChangesCollector();
                 pr.apply(collector);
                 return collector.getRDFPatch();
