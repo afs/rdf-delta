@@ -18,9 +18,11 @@
 
 package org.seaborne.delta;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID ;
 
+import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -54,7 +56,7 @@ public final class Id {
     private static final Id nilId = Id.fromUUID(UUID.fromString(nilStr));
     
     /** Length in chars of a UUID string, without any scheme info */ 
-    public static int xlenStrUUID() { return nilStr.length(); }
+    public static int lenStrUUID() { return nilStr.length(); }
     
     /** Quick test of whether a string looks like an UUID or not */ 
     public static boolean maybeUUID(String str) {
@@ -68,6 +70,20 @@ public final class Id {
         return new Id(genUUID()) ;
     }
     
+    /** Create a {@code Id}, according to byte.
+     * @see #asBytes
+     */ 
+    public static Id fromBytes(byte[] bytes) {
+        if ( bytes.length == 2*Long.BYTES ) {
+            long mostSig = Bytes.getLong(bytes, 0);
+            long leastSig = Bytes.getLong(bytes, Long.BYTES);
+            UUID uuid = new UUID(mostSig, leastSig);
+            return fromUUID(uuid);
+        }
+        String str = new String(bytes, StandardCharsets.UTF_8);
+        return new Id(str);
+    }
+
     /** Convenience operation to make a displayable string from a Node, that has been used for an Id. */
     public static String str(Node node) {
         if ( node == null )
@@ -158,6 +174,21 @@ public final class Id {
         return string ;
     }
     
+    /** 
+     * Encode as bytes (network order, 16 byte number). 
+     * @see #fromBytes(byte[])
+     */ 
+    public byte[] asBytes() {
+        if ( uuid != null ) {
+            byte[] bytes = new byte[2*Long.BYTES];
+            // As a 16 byte number, network order - most significant byte in byte[0].
+            Bytes.setLong(uuid.getMostSignificantBits(), bytes, 0);
+            Bytes.setLong(uuid.getLeastSignificantBits(), bytes, Long.BYTES);
+            return bytes;
+        }
+        return string.getBytes(StandardCharsets.UTF_8);
+    }
+
     /** Without any adornment */ 
     public String asPlainString() {
         if ( uuid != null ) 

@@ -23,7 +23,8 @@ import org.junit.runners.Suite ;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestDatasetGraphWithAbort.class
+    TestId.class
+    , TestDatasetGraphWithAbort.class
     , TestPersistentState.class
 })
 

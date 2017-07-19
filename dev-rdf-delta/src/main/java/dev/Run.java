@@ -21,6 +21,7 @@ package dev;
 import java.io.IOException;
 import java.net.BindException ;
 
+import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -73,6 +74,18 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
+        
+        Id id1 = Id.create();
+        byte[] bytes = id1.asBytes();
+        Id id2 = Id.fromBytes(bytes);
+        System.out.println(id1);
+        System.out.println(id2);
+        System.out.println(id1.equals(id2));
+        
+        
+        System.exit(0);
+        
+        
         //JenaSystem.DEBUG_INIT = true ;
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();
