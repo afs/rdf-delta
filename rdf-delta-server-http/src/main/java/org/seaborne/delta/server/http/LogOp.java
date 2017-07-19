@@ -79,13 +79,14 @@ public class LogOp {
             // Looks like an Id
             try { 
                 UUID uuid = UUID.fromString(datasourceName);
-                return Id.fromUUID(uuid);
-            } catch (IllegalArgumentException ex) {}
+                Id id = Id.fromUUID(uuid);
+                DataSourceDescription dsd = action.dLink.getDataSourceDescription(id);
+                return dsd != null ? id : null; 
+            } catch (IllegalArgumentException ex) { /* Not a UUID: drop through to try-by-name */ }
         }
         // Not a UUID.
-        return action.dLink.listDescriptions().stream()
-            .filter(dsd->datasourceName.equals(dsd.getName()))
-            .map(DataSourceDescription::getId).findFirst().orElseGet(null);
+        DataSourceDescription dsd = action.dLink.getDataSourceDescriptionByName(datasourceName);
+        return dsd != null ? dsd.getId() : null;
     }
 
     public static void fetch(DeltaAction action) throws IOException {

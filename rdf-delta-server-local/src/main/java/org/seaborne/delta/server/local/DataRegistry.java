@@ -47,6 +47,7 @@ public class DataRegistry extends Registry<Id, DataSource> {
     private final String label ; 
     // Index DataSources by URI, only if the URI is not null. 
     private Map<String, DataSource> indexByURI = new ConcurrentHashMap<>();   
+    private Map<String, DataSource> indexByName = new ConcurrentHashMap<>();   
     
     public DataRegistry(String label) {
         this.label = label ;
@@ -58,6 +59,9 @@ public class DataRegistry extends Registry<Id, DataSource> {
         super.put(key, ds) ;
         if ( ds.getURI() != null )
             indexByURI.put(ds.getURI(), ds);
+        if ( ds.getName() != null )
+            indexByName.put(ds.getName(), ds);
+
     }
     
     @Override
@@ -65,8 +69,12 @@ public class DataRegistry extends Registry<Id, DataSource> {
         return super.get(key) ;
     }
 
-    public DataSource get(String uri) {
+    public DataSource getByURI(String uri) {
         return indexByURI.get(uri);
+    }
+
+    public DataSource getByName(String name) {
+        return indexByName.get(name);
     }
 
     @Override

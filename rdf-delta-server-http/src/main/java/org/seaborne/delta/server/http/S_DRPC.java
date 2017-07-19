@@ -51,13 +51,17 @@ import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.atlas.io.IndentedWriter;
-import org.apache.jena.atlas.json.* ;
+import org.apache.jena.atlas.json.JSON;
+import org.apache.jena.atlas.json.JsonException;
+import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.* ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.delta.link.RegToken;
@@ -269,23 +273,31 @@ public class S_DRPC extends DeltaServlet {
     }
 
     private JsonValue describeDataSource(DeltaAction action) {
-        String uri = getFieldAsString(action, F_URI, false);
-        String dataSourceId = getFieldAsString(action, F_DATASOURCE, false);
-        if ( uri == null && dataSourceId == null )
-            throw new DeltaBadRequestException(format("No field: '%s' nor '%s'", F_DATASOURCE, F_URI));
-        if ( uri != null && dataSourceId != null )
-            throw new DeltaBadRequestException(format("Only one of fields '%s' nor '%s' allowed", F_DATASOURCE, F_URI));
-        
-        DataSourceDescription dsd;
-        if ( dataSourceId != null ) {
-            Id dsRef = Id.fromString(dataSourceId);
-            dsd = action.dLink.getDataSourceDescription(dsRef);
-        } else {
-            dsd = action.dLink.getDataSourceDescriptionByURI(uri);
-        }
+        DataSourceDescription dsd = getDataSourceDescription(action);
         if ( dsd == null )
             return noResults;
         return dsd.asJson();
+    }
+    
+    // Decide the DataSourceDescription (which may be null).
+    private DataSourceDescription getDataSourceDescription(DeltaAction action) {
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE, false);
+        String name = getFieldAsString(action, F_NAME, false);
+        String uri = getFieldAsString(action, F_URI, false);
+        
+        int x = LibX.countNonNulls(dataSourceId, uri, name);
+        if ( x == 0 )
+            throw new DeltaBadRequestException(format("No field: '%s' nor '%s' nor '%s'", F_DATASOURCE, F_NAME, F_URI));
+        // Use the first defined.
+        if ( dataSourceId != null ) {
+            Id dsRef = Id.fromString(dataSourceId);
+            return action.dLink.getDataSourceDescription(dsRef);
+        }
+        if ( name != null )
+            return action.dLink.getDataSourceDescriptionByName(name);
+        if ( uri != null )
+            return action.dLink.getDataSourceDescriptionByURI(uri);
+        throw new InternalErrorException();
     }
     
     private JsonValue describePatchLog(DeltaAction action) {

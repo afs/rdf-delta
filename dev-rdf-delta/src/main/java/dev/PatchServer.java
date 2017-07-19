@@ -66,17 +66,6 @@ import org.slf4j.LoggerFactory;
         return action(dLink->dLink.listDescriptions());
     }
 
-    static class HttpNotConnectedException extends HttpException {
-
-        public HttpNotConnectedException(String message) {
-            // Must be n<0 to distinguish from HTTP response codes. 
-            super(-404, "Not Connected", message);
-        }
-        
-//        @Override
-//        public Throwable fillInStackTrace() { return this; }
-    }
-    
     /** Are we connected (maybe)? */
     /*package*/ void connectedEx() {
         if ( ! connected() )

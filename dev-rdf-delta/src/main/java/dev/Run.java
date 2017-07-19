@@ -73,16 +73,6 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
-        
-        
-        
-        RDFPatch p = RDFPatchOps.emptyPatch();
-        RDFPatchOps.write(System.out, p);
-        
-        
-        
-        System.exit(0);
-        
         //JenaSystem.DEBUG_INIT = true ;
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();
@@ -98,6 +88,12 @@ public class Run {
     }
 
     public static void main$dc() throws IOException {
+        DeltaLink dLink = deltaLink(true, false);
+        dLink.ping();
+        if ( true ) return ; 
+        
+        
+        
         FileOps.clearAll("Zone");
         Zone zone = Zone.create("Zone");
         
@@ -106,7 +102,6 @@ public class Run {
         Quad quad3 = SSE.parseQuad("(:g :s :p 333)");
         
         boolean httpServer = false;
-        DeltaLink dLink = deltaLink(true);
         
         DeltaClient dc = DeltaClient.create(zone, dLink);
         
@@ -134,7 +129,6 @@ public class Run {
             RDFPatchOps.write(System.out, patch);
             System.out.println("** fetch **");  
         }
-        
     }
 
         // Quick run-through of some operations as a durign delveop, pre-test quick check.  
@@ -146,7 +140,7 @@ public class Run {
         Zone zone = Zone.create("Zone");
         
         boolean httpServer = true;
-        DeltaLink dLink = deltaLink(true);
+        DeltaLink dLink = deltaLink(true, true);
         
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         
@@ -213,7 +207,7 @@ public class Run {
         System.exit(0);
     }
     
-    private static DeltaLink deltaLink(boolean httpServer) {
+    private static DeltaLink deltaLink(boolean httpServer, boolean register) {
         DeltaLink dLink;
         if ( httpServer ) {
             // Same process HTTP server.
@@ -226,8 +220,10 @@ public class Run {
             dLink = DeltaLinkLocal.connect(lServer);
         }
 
-        Id clientId = Id.create();
-        dLink.register(clientId);
+        if ( register ) {
+            Id clientId = Id.create();
+            dLink.register(clientId);
+        }
         return dLink;
     }
 

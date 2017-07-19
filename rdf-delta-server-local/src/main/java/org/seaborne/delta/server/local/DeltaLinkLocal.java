@@ -109,15 +109,24 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
         checkLink();
         DataSource source = localServer.getDataSource(dsRef);
-        if ( source == null )
-            return null;
-        return source.getDescription();
+        return description(source);
     }
 
     @Override
     public DataSourceDescription getDataSourceDescriptionByURI(String uri) {
         checkLink();
-        DataSource source = localServer.getDataSource(uri);
+        DataSource source = localServer.getDataSourceByURI(uri);
+        return description(source);
+    }
+
+    @Override
+    public DataSourceDescription getDataSourceDescriptionByName(String name) {
+        checkLink();
+        DataSource source = localServer.getDataSourceByName(name);
+        return description(source);
+    }
+    
+    private static DataSourceDescription description(DataSource source) {
         if ( source == null )
             return null;
         return source.getDescription();

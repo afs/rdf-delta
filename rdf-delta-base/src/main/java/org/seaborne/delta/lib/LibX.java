@@ -58,4 +58,34 @@ public class LibX {
         Path locationPath = IOX.asPath(location);
         return locationPath.resolve(pathStr).toAbsolutePath().toString();
     }
+
+    public static boolean exactNumNull(int N, Object... objs) {
+        return N == countNull(objs);
+    }
+    
+    public static int countNull(Object... objs) {
+        int x = 0;
+        for ( Object obj : objs ) {
+            if ( obj == null )
+                x++; 
+        }
+        return x ;
+    }
+    
+    public static int countNonNulls(Object ... objects) {
+        int x = 0;
+        for ( Object obj : objects ) {
+            if ( obj != null )
+                x++;
+        }
+        return x;
+    }
+    
+    public static boolean allNonNull(Object ... objects) {
+        return countNonNulls(objects) == objects.length;
+    }
+    
+    public static boolean exactlyOneSet(Object ... objects) {
+        return countNonNulls(objects) == 1;
+    }
 }

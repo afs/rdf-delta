@@ -21,13 +21,14 @@ package dev;
 public class DevDeltaToDo {
     // Document API
 
+    // RDF Patch protocol and 
+    
     // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
     
     // DeltaFuseki - sync on a timer.  
 
     // DLink : name to id. function.
     //   And/or operations by name.
-    // Tests with version == -1.
     
     // DatsetGraphBuffering
     
@@ -36,10 +37,6 @@ public class DevDeltaToDo {
     //    review delta.md
     //    Write up client stuff - sync'ing.
     // ** Initial data testing
-    
-    // URL scheme.
-    // DeltaLinkHTTP.createRDFChanges - URL generation.
-    //  DeltaLib.makeURL  
     
     // S_Patch, S_Fetch. Gone? Invert and send to S_Log?
     //   POST patch -> ** Location: **

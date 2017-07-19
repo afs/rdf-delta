@@ -320,20 +320,28 @@ public class LocalServer {
     }
     
     public DataSource getDataSource(Id dsRef) {
-        if ( disabledDatasources.contains(dsRef) )
-            return null;
-        return dataRegistry.get(dsRef);
+        DataSource ds = dataRegistry.get(dsRef);
+        return dataSource(ds);
     }
 
-    public DataSource getDataSource(String uri) {
-        DataSource ds = dataRegistry.get(uri);
+    public DataSource getDataSourceByName(String name) {
+        DataSource ds = dataRegistry.getByName(name);
+        return dataSource(ds);
+    }
+    
+    public DataSource getDataSourceByURI(String uri) {
+        DataSource ds = dataRegistry.getByURI(uri);
+        return dataSource(ds);
+    }
+
+    private DataSource dataSource(DataSource ds) {
         if ( ds == null )
             return null;
         if ( disabledDatasources.contains(ds.getId()) )
             return null;
         return ds;
     }
-
+    
     /** Get the LocalServerConfig use for this server */
     public LocalServerConfig getConfig() {
         return serverConfig;

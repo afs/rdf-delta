@@ -34,11 +34,8 @@ public class Binary {
         String F = "Patches/patch.rpb" ;
         FileOps.delete(F);
         RDFPatch patch = RDFPatchOps.fileToPatch("data.rdfp");
-
         RDFChangesWriterBinary.write(patch, F);
-
         RDFPatch patch1 = RDFPatchReaderBinary.read(IO.openFile(F));
-        
         RDFPatchOps.write(System.out, patch1);
         
         FileOps.delete(F);

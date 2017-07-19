@@ -49,15 +49,9 @@ public interface DeltaLink {
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;
     
-    //public default List<Id> listDatasets() { return listDescriptions().stream().map(dsd->dsd.getId()).collect(Collectors.toList()); }
-    
     /** Return an array of {@link DataSourceDescription}s of datasets */
     public List<DataSourceDescription> listDescriptions();
     
-    /** @deprecated Use {@link #listDescriptions()} */
-    @Deprecated
-    public default List<DataSourceDescription> allDescriptions() { return listDescriptions(); } 
-
     /** Return details of the patch log (or null if not registered) */
     public PatchLogInfo getPatchLogInfo(Id dsRef) ;
 
@@ -66,6 +60,9 @@ public interface DeltaLink {
 
     /** Return details of a dataset (or null if not registered) */
     public DataSourceDescription getDataSourceDescriptionByURI(String uri);
+
+    /** Return details of a dataset (or null if not registered) */
+    public DataSourceDescription getDataSourceDescriptionByName(String name);
 
     /** Send patch, return new version */
     public long append(Id dsRef, RDFPatch patch);

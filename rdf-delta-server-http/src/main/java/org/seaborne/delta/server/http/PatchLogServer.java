@@ -21,6 +21,7 @@ package org.seaborne.delta.server.http;
 import java.net.BindException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.servlet.Filter;
 import javax.servlet.Servlet;
 
 import org.apache.jena.riot.Lang ;
@@ -30,10 +31,11 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
@@ -89,15 +91,18 @@ public class PatchLogServer {
 //        addServlet(handler,  "/"+DeltaConst.EP_Append, servlet);
 //        addServlet(handler,  "/"+DeltaConst.EP_Fetch, servlet);
         
-        // Initial data. "init-data"
-        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
-
         // Other
         addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engineRef));
         //addServlet(handler, "/restart", new S_Restart());
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
 
+        // Initial data. "init-data"
+        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
+
+        // The RDF Patch protocol - append and fetch. 
         addServlet(handler, "/*", new S_Log(engineRef));
+        
+        //addFilter(handler, "/*", new S_PatchFilter(engineRef));
         
         server.setHandler(handler);
     }
@@ -161,6 +166,10 @@ public class PatchLogServer {
         holder.addServlet(new ServletHolder(servlet), path);
     }
     
+    private void addFilter(ServletContextHandler holder, String path, Filter filter) {
+        holder.addFilter(new FilterHolder(filter), path, null);
+    }
+
     public void start() throws BindException {
         try {
             server.start();
