@@ -109,13 +109,16 @@ public class DeltaConnection implements AutoCloseable {
         }
     }
     
-    // If a read, try but carry on.
+    // Sync if write.
     private Consumer<ReadWrite> syncer() {
         return (rw)->{
-            try { this.sync() ; }
-            catch (RuntimeException ex) {
-                if ( rw == ReadWrite.WRITE )
-                    throw ex;
+            switch(rw) {
+                case READ: 
+                    try { sync(); } catch (Exception ex) {}
+                    break;
+                case WRITE:
+                    this.sync();
+                    break;
             }
         };
     }
