@@ -21,9 +21,9 @@ package dev;
 import java.io.IOException;
 import java.net.BindException ;
 
-import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
@@ -31,6 +31,7 @@ import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.client.DeltaClient ;
@@ -74,24 +75,12 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
-        
-        Id id1 = Id.create();
-        byte[] bytes = id1.asBytes();
-        Id id2 = Id.fromBytes(bytes);
-        System.out.println(id1);
-        System.out.println(id2);
-        System.out.println(id1.equals(id2));
-        
-        
-        System.exit(0);
-        
-        
         //JenaSystem.DEBUG_INIT = true ;
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();
         try {
             //main$misc();
-            main$dc();
+            main$filter();
         } catch (Throwable ex) {
             System.out.println();
             System.out.flush();
@@ -100,13 +89,26 @@ public class Run {
         finally { System.exit(0); }
     }
 
-    public static void main$dc() throws IOException {
-        DeltaLink dLink = deltaLink(true, false);
+    public static void main$filter() throws IOException {
+        FileOps.delete("DeltaServer/ABC");
+        DeltaLink dLink = deltaLink(true, true);
         dLink.ping();
-        if ( true ) return ; 
+        Id dsRef = dLink.newDataSource("ABC", "http://example/ABC");
+
+        RDFPatch patch = RDFPatchOps.emptyPatch();
+        String x = RDFPatchOps.str(patch);
         
+        String tok = dLink.getRegToken().asParam();
         
+        HttpOp.execHttpPost("http://localhost:"+PORT+"/ABC?token="+tok, DeltaConst.contentTypePatchText, x);
         
+//        //RDFPatch patch = RDFPatchOps.emptyPatch();
+//        long version = dLink.append(dsRef, patch);
+        long version = 1;
+        RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getId()));
+    }
+    
+    public static void main$dc() throws IOException {
         FileOps.clearAll("Zone");
         Zone zone = Zone.create("Zone");
         
@@ -116,6 +118,7 @@ public class Run {
         
         boolean httpServer = false;
         
+        DeltaLink dLink = deltaLink(httpServer, true);
         DeltaClient dc = DeltaClient.create(zone, dLink);
         
         Id dsRef = dLink.newDataSource("ABC", "http://example/ABC");

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http;
+package org.seaborne.delta.server.http.old;
 
 import java.io.IOException ;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,6 +31,10 @@ import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
+import org.seaborne.delta.server.http.Args;
+import org.seaborne.delta.server.http.DeltaAction;
+import org.seaborne.delta.server.http.HttpOperationBase;
+import org.seaborne.delta.server.http.LogOp;
 import org.slf4j.Logger ;
 
 /** Receive an incoming patch. */

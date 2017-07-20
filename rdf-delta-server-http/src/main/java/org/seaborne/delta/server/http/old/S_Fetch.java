@@ -16,7 +16,7 @@ remoteData; * Licensed to the Apache Software Foundation (ASF) under one
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http;
+package org.seaborne.delta.server.http.old;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,6 +26,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.http.Args;
+import org.seaborne.delta.server.http.DeltaAction;
+import org.seaborne.delta.server.http.HttpOperationBase;
+import org.seaborne.delta.server.http.LogOp;
 
 /** Framework for fetching a patch over HTTP. */ 
 public class S_Fetch extends HttpOperationBase {

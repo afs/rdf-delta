@@ -139,6 +139,27 @@ public final class Id {
             //return new Id(str) ;
         }
     }
+    
+    /** Parse a UUID string, return a default if it does not parse correctly */
+    public static UUID parseUUID(String patchStr, UUID dft) {
+        try { 
+            return UUID.fromString(patchStr);
+        } catch (IllegalArgumentException ex) {
+            return dft;
+        }
+    }
+    
+    /**
+     * Create an Id from a UUID string, return a default if the UUID string
+     * does not parse correctly.
+     */
+    public static Id parseId(String patchStr, Id dft) {
+        try { 
+            return Id.fromUUID(UUID.fromString(patchStr));
+        } catch (IllegalArgumentException ex) {
+            return dft;
+        }
+    }
 
     // Version 1 are guessable.
     // Version 4 are not.

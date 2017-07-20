@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.jena.riot.web.HttpNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.http.old.S_Fetch;
+import org.seaborne.delta.server.http.old.S_Patch;
 import org.slf4j.Logger;
 
 /** Servlet for both append and fetch patches - the RDF Patch protocol.

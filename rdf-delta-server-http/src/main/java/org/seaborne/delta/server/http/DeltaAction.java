@@ -26,7 +26,7 @@ import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 
-class DeltaAction {
+public class DeltaAction {
     public final HttpServletRequest request;
     public final HttpServletResponse response;
     public final DeltaLink dLink;

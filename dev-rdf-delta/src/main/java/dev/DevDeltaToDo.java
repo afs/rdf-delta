@@ -21,7 +21,7 @@ package dev;
 public class DevDeltaToDo {
     // Document API
 
-    // RDF Patch protocol and 
+    // RDF Patch protocol and initial data.
     
     // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
     

@@ -21,6 +21,7 @@ package org.seaborne.patch;
 import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
+import java.io.StringWriter;
 import java.util.Collections;
 
 import org.apache.jena.atlas.io.IO ;
@@ -159,4 +160,14 @@ public class RDFPatchOps {
         patch.apply(c);
         tw.flush();
     }
+    
+    public static String str(RDFPatch patch) {
+        StringWriter sw = new StringWriter();
+        TokenWriter tw = new TokenWriterText(sw) ; 
+        RDFChanges c = new RDFChangesWriter(tw) ;
+        patch.apply(c);
+        tw.flush();
+        return sw.toString();
+    }
+
 }

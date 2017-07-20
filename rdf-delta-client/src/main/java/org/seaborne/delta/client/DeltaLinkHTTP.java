@@ -181,15 +181,15 @@ public class DeltaLinkHTTP implements DeltaLink {
     public RDFPatch fetch(Id dsRef, long version) {
         if ( version < 0 )
             return null;
-        return fetchCommon(dsRef, DeltaConst.paramVersion, version);
+        return fetchCommon(dsRef, DeltaConst.paramVersion, version, Long.toString(version));
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
-        return fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam());
+        return fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam(), patchId.toString());
     }
 
-    private RDFPatch fetchCommon(Id dsRef, String param, Object value) {
+    private RDFPatch fetchCommon(Id dsRef, String param, Object value, String valueLogStr) {
         checkLink();
         
         String url = remoteReceive;
@@ -197,7 +197,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         url = appendURL(url, value.toString());
         url = addToken(url);
         final String s = url;
-        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, value, url);
+        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, valueLogStr, url);
         try { 
             return retry(()->{
                 // [NET] Network point

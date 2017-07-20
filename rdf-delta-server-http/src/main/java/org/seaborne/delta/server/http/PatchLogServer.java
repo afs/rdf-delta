@@ -18,12 +18,18 @@
 
 package org.seaborne.delta.server.http;
 
+import java.io.IOException;
 import java.net.BindException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.tdb.base.file.Location;
 import org.eclipse.jetty.http.MimeTypes ;
@@ -31,9 +37,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.*;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
@@ -78,33 +82,41 @@ public class PatchLogServer {
         
         ServletContextHandler handler = buildServletContext("/");
         
-        Servlet servlet = new S_Log(engineRef);
+        HttpServlet servletRDFPatchLog = new S_Log(engineRef);
+        //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
         
-//        // Combined name. 
-//        addServlet(handler, "/"+DeltaConst.EP_PatchLog, new S_PatchLog(this.engineRef));
-//        // Receive patches. "patch"
-//        addServlet(handler, "/"+DeltaConst.EP_Append, new S_Patch(this.engineRef));
-//        // Return patches. "fetch"
-//        addServlet(handler, "/"+DeltaConst.EP_Fetch, new S_Fetch(this.engineRef));
-
-//        addServlet(handler,  "/"+DeltaConst.EP_PatchLog, servlet);
-//        addServlet(handler,  "/"+DeltaConst.EP_Append, servlet);
-//        addServlet(handler,  "/"+DeltaConst.EP_Fetch, servlet);
+        // Filter - this catches RDF Patch Log requests and initial data. 
+        addFilter(handler, "/*", new S_PatchFilter(engineRef, servletRDFPatchLog));
         
         // Other
         addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engineRef));
         //addServlet(handler, "/restart", new S_Restart());
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
 
-        // Initial data. "init-data"
+        // Initial data. "/init-data?datasource=..."
         addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
 
-        // The RDF Patch protocol - append and fetch. 
-        addServlet(handler, "/*", new S_Log(engineRef));
         
-        //addFilter(handler, "/*", new S_PatchFilter(engineRef));
+        // ---- A default servlet at the end of the chain.
+//        // -- Jetty default, including static content. 
+//        DefaultServlet servletContent = new DefaultServlet();
+//        ServletHolder servletHolder = new ServletHolder(servletContent);
+//        //servletHolder.setInitParameter("resourceBase", "somewhere");
+//        handler.addServlet(servletHolder, "/*");
         
+        // -- 404
+        HttpServlet servlet404 = new Servlet404();
+        addServlet(handler, "/*", servlet404);
+
+        // Wire up.
         server.setHandler(handler);
+    }
+    
+    static class Servlet404 extends HttpServlet {
+        @Override
+        protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            ServletOps.errorNotFound("Not found");
+        }
     }
     
     /** Build a ServletContextHandler. */

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http;
+package org.seaborne.delta.server.http.old;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,12 +27,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.http.Args;
+import org.seaborne.delta.server.http.DeltaAction;
+import org.seaborne.delta.server.http.HttpOperationBase;
 import org.slf4j.Logger;
 
 /*8 Servlet for both append and fetch patches. */  
 public class S_PatchLog extends HttpOperationBase {
-    private final HttpOperationBase fetchServlet;
-    private final HttpOperationBase appendServlet; 
+    private final S_Fetch fetchServlet;
+    private final S_Patch appendServlet; 
     
     public S_PatchLog(AtomicReference<DeltaLink> engine) {
         super(engine);

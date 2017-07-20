@@ -22,18 +22,27 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 
+/** Filter that catches requests for the form /{name} and /{id}
+ * where the {name} or {id} is registered with the DeltaLink and
+ * directs teh request to the given servlet. 
+ * Otherwise it passes the request down the filter chain.
+ */ 
 public class S_PatchFilter implements javax.servlet.Filter {
 
     private final AtomicReference<DeltaLink> dLink;
+    private final HttpServlet servlet;
 
-    public S_PatchFilter(AtomicReference<DeltaLink> engineRef) {
+    public S_PatchFilter(AtomicReference<DeltaLink> engineRef, HttpServlet servlet) {
         this.dLink = engineRef;
+        this.servlet = servlet;
     }
     
     @Override
@@ -42,28 +51,81 @@ public class S_PatchFilter implements javax.servlet.Filter {
             HttpServletRequest request = (HttpServletRequest)req ;
             HttpServletResponse response = (HttpServletResponse)resp ;
             
+            //request.getContextPath();
             String servletPath = request.getServletPath() ;
             String uri = request.getRequestURI() ;
-            int idx1 = 0;
-            if ( uri.startsWith(servletPath) )
-                idx1 = servletPath.length();
-            int idx2 = uri.indexOf('/', idx1);
-            String x;
-            if ( idx2 > idx1 )  
-                // Possible name.
-                x = uri.substring(idx1, idx2);
-            else
-                x = uri.substring(idx1);
-            System.err.println("Filter match: ?? "+x);
             
-            DataSourceDescription dsd = dLink.get().getDataSourceDescriptionByName(x);
-            if ( dsd != null ) {
-                System.err.println("Filter match:   "+x);
+            if ( uri.startsWith("/$") ) {
+                // Direct servlets.
+                chain.doFilter(request, response);
+                return;
             }
-            chain.doFilter(request, response);
+            if ( uri.equals(servletPath) ) {
+                // There was a match to a registered servlet.
+                chain.doFilter(request, response);
+                return;
+            }
+            
+            int idx1 = 1;
+            if ( servletPath.isEmpty() ) {
+                // Dispatched as "/*"
+                idx1 = 1 ;
+            } else if ( uri.startsWith(servletPath) ) {
+                if ( servletPath.endsWith("/") )
+                    idx1 = servletPath.length();
+                else
+                    idx1 = servletPath.length()+1;
+            }
+            int idx2 = uri.indexOf('/', idx1);
+            //System.err.printf("[%d, %d]\n", idx1, idx2);
+            // Possible name or id
+            String dsName;
+            String trailing;
+            if ( idx2 > idx1 ) {
+                dsName = uri.substring(idx1, idx2);
+                trailing = uri.substring(idx2+1); 
+            }
+            else {
+                try {
+                    dsName = uri.substring(idx1);
+                    trailing = null;
+                } catch (StringIndexOutOfBoundsException ex) {
+                    System.err.println("uri = "+uri);
+                    dsName = uri ;
+                    throw ex;
+                }
+            }
+
+            DataSourceDescription dsd = lookup(dsName);
+            
+            if ( dsd == null ) {
+                // No match - let server routing take care of it.
+                chain.doFilter(request, response);
+                return ;
+            }
+            
+//            System.err.println("uri      = "+uri);
+//            System.err.println("dsName   = "+dsName);
+//            System.err.println("trailing = "+trailing);
+            
+            // To the servlet for matches of "/{name}"
+            servlet.service(request, response);
+            //chain.doFilter(request, response);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    // Look by name then by id
+    private DataSourceDescription lookup(String x) {
+        DataSourceDescription dsd = dLink.get().getDataSourceDescriptionByName(x);
+        if ( dsd == null && Id.maybeUUID(x)) {
+            // No name match - looks like a UUID.
+            Id id = Id.parseId(x, null);
+            if ( id != null )
+                dsd = dLink.get().getDataSourceDescription(id);
+        }
+        return dsd;
     }
 
     @Override

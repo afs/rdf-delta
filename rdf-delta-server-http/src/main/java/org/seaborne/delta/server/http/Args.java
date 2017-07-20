@@ -88,7 +88,7 @@ public class Args {
      */
     public static Args pathArgs(HttpServletRequest request) {
         // Process, arguments for any operation.
-        // Firstly, do as query strign parameters to set defauls.
+        // Firstly, do as query string parameters to set defauls.
         String datasourceName = request.getParameter(DeltaConst.paramDatasource);
         String patchIdStr = request.getParameter(DeltaConst.paramPatch);
         String versionStr = request.getParameter(DeltaConst.paramVersion);
@@ -148,11 +148,12 @@ public class Args {
             if ( patchStr.isEmpty() )
                 errorBadRequest("Patch ref empty");
             if ( Id.maybeUUID(patchStr) ) {
-                UUID uuid = parseUUID(patchStr, null);
-                patchId = Id.fromUUID(uuid);
-            }
-            else
+                patchId = Id.parseId(patchStr, null);
+                if ( patchId == null )
+                    errorBadRequest("Can't parse id: "+versionStr);
+            } else {
                 version = parseVersion(patchStr, null);
+            }
         }
         return new Args(request, datasourceName, patchId, version, clientId, regToken);
     }
@@ -195,6 +196,9 @@ public class Args {
         String servletPath = request.getServletPath() ;
         String uri = request.getRequestURI() ;
         String x = uri ;
+        if ( uri.equals(servletPath) )
+            // Dispatch by servlet filter 
+            return x;
         if ( uri.startsWith(servletPath) )
             x = uri.substring(servletPath.length()) ;
         return x ;
@@ -210,7 +214,7 @@ public class Args {
 
     public Args(HttpServletRequest request, String datasourceName, Id patchId, Long verStr, Id clientId, RegToken regToken) {
         super();
-        this.url = ( request.getQueryString() == null ? request.getRequestURI() : request.getRequestURI()+"?"+request.getQueryString() );
+        this.url = ServerLib.url(request);
         this.method = request.getMethod().toUpperCase(Locale.ROOT);
         switch(this.method) {
             case HttpNames.METHOD_GET:
