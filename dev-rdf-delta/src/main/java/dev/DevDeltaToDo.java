@@ -20,40 +20,18 @@ package dev;
 
 public class DevDeltaToDo {
     // Document API
+    
+    // /{name}/data
 
     // RDF Patch protocol and initial data.
+    //   API? PatchLogHTTP
     
     // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
-    
+   
     // DeltaFuseki - sync on a timer.  
 
-    // DLink : name to id. function.
-    //   And/or operations by name.
-    
-    // DatsetGraphBuffering
-    
-    // ** Persistent client-side data
     // ** Docs
-    //    review delta.md
-    //    Write up client stuff - sync'ing.
-    // ** Initial data testing
-    
-    // S_Patch, S_Fetch. Gone? Invert and send to S_Log?
-    //   POST patch -> ** Location: **
-    //   "container/patch/{id}", "container/patch{version}"
 
-    // PatchLog  concurrency.
-    // PatchLog  Id for log separate from dsRef 
-
-    // HTTP interface / Control interface :: clearer split.
-    
-    // PatchServer - client side tracking of the 
-	//   Server lifecycle.
-    //      ping (RPC1), RPC, HTTP / POST / GET / Non-retriable POST.
-    //   Retry policy.
-    //   op - ping - ping - op 
-
-    // Registration token on S_Fetch
 	// --autoregister, --no-register
     
     // Protect read in S_Data.
@@ -70,20 +48,11 @@ public class DevDeltaToDo {
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write
     
-    // Id.nil for "no previous".
-    // Id for "any previous" (risky!)
-    
-    // Documentation
-    //   Patch
-    //   Protocol/delta
-    // Version -> long?
     // Eliminate use of Location and just use Path.
     
     // Streaming patches.
-    // Currently not because of DeltaLink.sendPatch takes a patch as argument. 
 
     // ------------------------------------------------------------------------
-    // Document, "Design" protocol
 
     // -- javacc tokenizer:
     //   prefix name in ^^xsd:foo. (what does TokenizerText do? SubToken)

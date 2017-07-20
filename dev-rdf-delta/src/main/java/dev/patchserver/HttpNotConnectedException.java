@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package dev;
+package dev.patchserver;
 
 import org.apache.jena.atlas.web.HttpException;
 

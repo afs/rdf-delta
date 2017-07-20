@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package dev;
+package dev.patchlog;
 
 import java.net.BindException;
 
@@ -56,7 +56,7 @@ public class LogRun {
         RegToken regToken = dLink.register(clientId);
         Id dsRef = dLink.newDataSource("ABC", "http://example/ABC");
         
-        LogHTTP log = new LogHTTP("http://localhost:"+D_PORT+"/", regToken);
+        PatchLogHTTP log = new PatchLogHTTP("http://localhost:"+D_PORT+"/", regToken);
         RDFPatch patch = RDFPatchOps.read("/home/afs/ASF/rdf-delta/rdf-delta-test/testing/test_dlink/patch1.rdfp");
         
         System.out.println("\nAppend\n");

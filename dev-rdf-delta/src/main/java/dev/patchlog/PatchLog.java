@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package dev;
+package dev.patchlog;
 
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.patch.RDFPatch ;
 
-public interface LogInterface {
+public interface PatchLog {
     
     /** Send patch, return new version */
     public long append(String dsName, RDFPatch patch);

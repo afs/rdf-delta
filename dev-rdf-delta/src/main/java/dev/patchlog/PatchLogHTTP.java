@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package dev;
+package dev.patchlog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,13 +46,13 @@ import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogHTTP implements LogInterface {
-    private static Logger LOG = LoggerFactory.getLogger(LogHTTP.class);
+public class PatchLogHTTP implements PatchLog {
+    private static Logger LOG = LoggerFactory.getLogger(PatchLogHTTP.class);
     private final String url;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private RegToken regToken;
 
-    public LogHTTP(String url, RegToken regToken) {
+    public PatchLogHTTP(String url, RegToken regToken) {
         if ( ! url.endsWith("/") )
             url = url + "/";
         this.url = url;

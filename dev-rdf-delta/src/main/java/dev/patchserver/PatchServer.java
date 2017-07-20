@@ -1,4 +1,4 @@
-package dev;
+package dev.patchserver;
 
 import java.io.IOException;
 import java.net.ConnectException;
