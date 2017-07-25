@@ -27,7 +27,7 @@ import java.net.BindException ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.Timer ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.fuseki.embedded.FusekiServer ;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.query.ResultSetFormatter ;
 import org.apache.jena.rdfconnection.RDFConnection ;
@@ -84,10 +84,10 @@ public class RunAll {
         PatchLogServer dps = server(D_PORT, "DeltaServerFuseki");
         String URL = "http://localhost:"+D_PORT+"/";       
         
-        FusekiEmbeddedServer server1 = FusekiEmbeddedServer.create()
+        FusekiServer server1 = FusekiServer.create()
             .setPort(F1_PORT).parseConfigFile(fuseki_conf1).build();
         // Fire up a second server.  Only starts if DPS running. -- FIXME
-        FusekiEmbeddedServer server2 = FusekiEmbeddedServer.create()
+        FusekiServer server2 = FusekiServer.create()
             .setPort(F2_PORT).parseConfigFile(fuseki_conf2).build();
 
         DatasetGraph dsg1 = server1.getDataAccessPointRegistry().get("/ds1").getDataService().getDataset();

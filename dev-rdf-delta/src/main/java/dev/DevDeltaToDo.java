@@ -19,7 +19,10 @@
 package dev;
 
 public class DevDeltaToDo {
+    
     // Document API
+    
+    // Background apply log + initial data => current starting point+version.
     
     // /{name}/data
 

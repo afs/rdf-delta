@@ -24,7 +24,7 @@ import javax.servlet.*;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.fuseki.embedded.FusekiServer ;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -40,7 +40,7 @@ public class RunDeltaFuseki {
     static Logger LOG = LoggerFactory.getLogger("Main") ;
     
     public static void main(String[] args) throws Exception {
-        FusekiEmbeddedServer server = FusekiEmbeddedServer.create()
+        FusekiServer server = FusekiServer.create()
             .setPort(3033)
             .add("XYZ", DatasetGraphFactory.createTxnMem())
             .build();
