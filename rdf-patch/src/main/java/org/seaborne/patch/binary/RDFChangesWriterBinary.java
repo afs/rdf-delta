@@ -172,56 +172,56 @@ public class RDFChangesWriterBinary implements RDFChanges {
         write();
     }
 
-    public static void toThrift(Node node, RDF_Term term) {
-                if ( node.isURI() ) {
-                    RDF_IRI iri = new RDF_IRI(node.getURI()) ;
-                    term.setIri(iri) ;
-                    return ;
-                }
-                
-                if ( node.isBlank() ) {
-                    RDF_BNode b = new RDF_BNode(node.getBlankNodeLabel()) ;
-                    term.setBnode(b) ;
-                    return ;
-                }
-                
-                if ( node.isURI() ) {
-                    RDF_IRI iri = new RDF_IRI(node.getURI()) ;
-                    term.setIri(iri) ;
-                    return ;
-                }
-                
-                if ( node.isLiteral() ) {
-                    String lex = node.getLiteralLexicalForm() ;
-                    String dt = node.getLiteralDatatypeURI() ;
-                    String lang = node.getLiteralLanguage() ;
-                    
-                    // General encoding.
-                    RDF_Literal literal = new RDF_Literal(lex) ;
-                    if ( JenaRuntime.isRDF11 ) {
-                        if ( node.getLiteralDatatype().equals(XSDDatatype.XSDstring) || 
-                             node.getLiteralDatatype().equals(RDFLangString.rdfLangString) )
-                            dt = null ;
-                    }
-                    
-                    if ( dt != null ) {
-                        literal.setDatatype(dt) ;
-                    }
-                    if ( lang != null && ! lang.isEmpty() )
-                        literal.setLangtag(lang) ;
-                    term.setLiteral(literal) ;
-                    return ;
-                }
-                
-                if ( node.isVariable() ) {
-                    RDF_VAR var = new RDF_VAR(node.getName()) ;
-                    term.setVariable(var) ;
-                    return ;
-                }
-    //            if ( Node.ANY.equals(node)) {
-    //                term.setAny(ANY) ;
-    //                return ;
-    //            }
-                throw new PatchException("Node converstion not supported: "+node) ;
+    /*package*/ static void toThrift(Node node, RDF_Term term) {
+        if ( node.isURI() ) {
+            RDF_IRI iri = new RDF_IRI(node.getURI()) ;
+            term.setIri(iri) ;
+            return ;
+        }
+
+        if ( node.isBlank() ) {
+            RDF_BNode b = new RDF_BNode(node.getBlankNodeLabel()) ;
+            term.setBnode(b) ;
+            return ;
+        }
+
+        if ( node.isURI() ) {
+            RDF_IRI iri = new RDF_IRI(node.getURI()) ;
+            term.setIri(iri) ;
+            return ;
+        }
+
+        if ( node.isLiteral() ) {
+            String lex = node.getLiteralLexicalForm() ;
+            String dt = node.getLiteralDatatypeURI() ;
+            String lang = node.getLiteralLanguage() ;
+
+            // General encoding.
+            RDF_Literal literal = new RDF_Literal(lex) ;
+            if ( JenaRuntime.isRDF11 ) {
+                if ( node.getLiteralDatatype().equals(XSDDatatype.XSDstring) || 
+                    node.getLiteralDatatype().equals(RDFLangString.rdfLangString) )
+                    dt = null ;
             }
+
+            if ( dt != null ) {
+                literal.setDatatype(dt) ;
+            }
+            if ( lang != null && ! lang.isEmpty() )
+                literal.setLangtag(lang) ;
+            term.setLiteral(literal) ;
+            return ;
+        }
+
+        if ( node.isVariable() ) {
+            RDF_VAR var = new RDF_VAR(node.getName()) ;
+            term.setVariable(var) ;
+            return ;
+        }
+//        if ( Node.ANY.equals(node)) {
+//            term.setAny(ANY) ;
+//            return ;
+//        }
+        throw new PatchException("Node converstion not supported: "+node) ;
+    }
 }
