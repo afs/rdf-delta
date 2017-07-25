@@ -25,8 +25,7 @@ import java.net.ServerSocket ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.fuseki.FusekiException ;
-//import static org.apache.jena.fuseki.FusekiLib.choosePort();
-import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.fuseki.embedded.FusekiServer;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.server.http.PatchLogServer ;
 
@@ -83,16 +82,16 @@ public class BaseDeltaFuseki {
         }
     }
 
-    protected static FusekiEmbeddedServer fuseki1() {
+    protected static FusekiServer fuseki1() {
         return fuseki(F1_PORT, fuseki_conf1);
     }
     
-    protected static FusekiEmbeddedServer fuseki2() {
+    protected static FusekiServer fuseki2() {
         return fuseki(F2_PORT, fuseki_conf2);
     }
     
-    protected static FusekiEmbeddedServer fuseki(int port, String config) {
-        return FusekiEmbeddedServer.create().setPort(port).parseConfigFile(config).build().start();
+    protected static FusekiServer fuseki(int port, String config) {
+        return FusekiServer.create().setPort(port).parseConfigFile(config).build().start();
     }
     
 }

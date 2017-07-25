@@ -25,7 +25,7 @@ import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.assembler.exceptions.AssemblerException ;
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.fuseki.embedded.FusekiServer ;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
 import org.apache.jena.rdfconnection.RDFConnectionFactory ;
@@ -67,7 +67,7 @@ public class TestDeltaFusekiBad extends BaseDeltaFuseki {
     @Test(expected=QueryExceptionHTTP.class)
     public void fuseki_stop() {
         PatchLogServer patchLogServer = patchLogServer();
-        FusekiEmbeddedServer server1 = fuseki1();
+        FusekiServer server1 = fuseki1();
         try { 
             server1.stop();
             RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
@@ -84,7 +84,7 @@ public class TestDeltaFusekiBad extends BaseDeltaFuseki {
         //PatchLogServer patchLogServer = patchLogServer();
         
         // AssemblerException -> HttpException -> NoHttpResponseException
-        FusekiEmbeddedServer server1 = fuseki1();
+        FusekiServer server1 = fuseki1();
         server1.stop();
 
         RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
@@ -95,7 +95,7 @@ public class TestDeltaFusekiBad extends BaseDeltaFuseki {
     @Test
     public void fuseki_stop_start() {
         PatchLogServer patchLogServer = patchLogServer();
-        FusekiEmbeddedServer server1 = fuseki1();
+        FusekiServer server1 = fuseki1();
         try { 
             server1.stop();
             
@@ -116,7 +116,7 @@ public class TestDeltaFusekiBad extends BaseDeltaFuseki {
     @Test
     public void patchserver_stop() {
         PatchLogServer patchLogServer = patchLogServer();
-        FusekiEmbeddedServer server1 = fuseki1();
+        FusekiServer server1 = fuseki1();
         try { 
             // Restart.
             patchLogServer.stop();

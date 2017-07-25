@@ -22,7 +22,7 @@ import org.apache.http.client.HttpClient ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.fuseki.embedded.FusekiEmbeddedServer ;
+import org.apache.jena.fuseki.embedded.FusekiServer ;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
 import org.apache.jena.rdfconnection.RDFConnectionFactory ;
@@ -37,8 +37,8 @@ import org.seaborne.delta.server.http.PatchLogServer ;
  */
 public class TestDeltaFusekiGood extends BaseDeltaFuseki {
     // May leak a few TIME_WAIT conenctions.
-    protected static FusekiEmbeddedServer server1;
-    protected static FusekiEmbeddedServer server2;
+    protected static FusekiServer server1;
+    protected static FusekiServer server2;
     protected static PatchLogServer  patchLogServer;
     protected static RDFConnection conn1; 
     protected static RDFConnection conn2;
