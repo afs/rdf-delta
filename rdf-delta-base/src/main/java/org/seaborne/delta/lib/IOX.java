@@ -39,7 +39,7 @@ public class IOX {
         void actionEx(X arg) throws IOException;
     }
 
-    /** Convert an {{@link IOException} into a {@link RuntimeIOException}.
+    /** Convert an {@link IOException} into a {@link RuntimeIOException}.
      * <p>
      * Idiom:
      * <pre>

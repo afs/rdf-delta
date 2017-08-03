@@ -20,12 +20,22 @@ package dev;
 
 public class DevDeltaToDo {
     
-    // Document API
     
+    // Z rows: the total number of rows. or trasnactions -> can notice truncation.
+    //    Checksum each txn?  Cheap checksum?
+    //        Add "Z <checksum>" to RDFPatch?
+    //          Simple # length in rows.
+    // Add "segmentEnd" to  RDFChanges.
+    //   Keep start-finish. (1) Reusable RDFChanges (2) trigger completed actions 
+    
+    // Tests for "non-rows" RDFPatch 
+    
+    // Document API
+    // /{name}/data --> Args
+
+    // ----
     // Background apply log + initial data => current starting point+version.
     
-    // /{name}/data
-
     // RDF Patch protocol and initial data.
     //   API? PatchLogHTTP
     

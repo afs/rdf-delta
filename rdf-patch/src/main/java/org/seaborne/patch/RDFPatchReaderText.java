@@ -31,6 +31,7 @@ import org.apache.jena.riot.system.RiotLib ;
 import org.apache.jena.riot.tokens.Token ;
 import org.seaborne.riot.tio.TupleIO ;
 import org.seaborne.riot.tio.TupleReader ;
+import static org.seaborne.patch.changes.PatchCodes.*;
 
 /** PatchReader for text input */ 
 // Needs reworking: for efficiency
@@ -99,12 +100,12 @@ public class RDFPatchReaderText implements PatchProcessor {
             throw new PatchException("["+token1.getLine()+"] Code too long: "+code) ;
 
         switch (code) {
-            case "H": {
+            case HEADER: {
                 readHeaderLine(line, (f,v)->sink.header(f, v));
                 return false ;
             }
             
-            case "A": {
+            case ADD_DATA: {
                 if ( line.len() != 4 && line.len() != 5 )
                     throw new PatchException("["+token1.getLine()+"] Quad add tuple error: length = "+line.len()) ;
                 Node s = tokenToNode(line.get(1)) ;
@@ -114,7 +115,7 @@ public class RDFPatchReaderText implements PatchProcessor {
                 sink.add(g, s, p, o);
                 return false ;
             }
-            case "D": {
+            case DEL_DATA: {
                 if ( line.len() != 4 && line.len() != 5 )
                     throw new PatchException("["+token1.getLine()+"] Quad delete tuple error: length = "+line.len()) ;
                 Node s = tokenToNode(line.get(1)) ;
@@ -124,7 +125,7 @@ public class RDFPatchReaderText implements PatchProcessor {
                 sink.delete(g, s, p, o);
                 return false ;
             }
-            case "PA": {
+            case ADD_PREFIX: {
                 if ( line.len() != 3 && line.len() != 4 )
                     throw new PatchException("["+token1.getLine()+"] Prefix add tuple error: length = "+line.len()) ;
                 String prefix = line.get(1).asString() ;
@@ -140,7 +141,7 @@ public class RDFPatchReaderText implements PatchProcessor {
                 sink.addPrefix(gn, prefix, uriStr);
                 return false ;
             }
-            case "PD": {
+            case DEL_PREFIX: {
                 if ( line.len() != 2 && line.len() != 3 )
                     throw new PatchException("["+token1.getLine()+"] Prefix delete tuple error: length = "+line.len()) ;
                 String prefix = line.get(1).asString() ;
@@ -148,23 +149,25 @@ public class RDFPatchReaderText implements PatchProcessor {
                 sink.deletePrefix(gn, prefix);
                 return false ;
             }
-            case "TX": 
+            case TXN_BEGIN: 
                 // Alternative name:
             case "TB": 
             {
                 sink.txnBegin();
                 return false ;
             }
-            case "TC": {
+            case TXN_COMMIT: {
                 // Possible return
                 sink.txnCommit();
                 return true ;
             }
-            case "TA": {
+            case TXN_ABORT: {
                 // Possible return
                 sink.txnAbort();
                 return true ;
             }
+            case PATCH_END:
+                return false;
             default:  {
                 throw new PatchException("["+token1.getLine()+"] Code '"+code+"' not recognized") ;
             }

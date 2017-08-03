@@ -18,16 +18,11 @@
 
 package org.seaborne.patch.changes;
 
-import static org.seaborne.patch.ChangeCode.ADD_PREFIX ;
-import static org.seaborne.patch.ChangeCode.ADD_DATA ;
-import static org.seaborne.patch.ChangeCode.DEL_PREFIX ;
-import static org.seaborne.patch.ChangeCode.DEL_DATA ;
-
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.patch.ChangeCode ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.riot.tio.TokenWriter ;
+import static org.seaborne.patch.changes.PatchCodes.*;
 
 /**
  * Write out a changes as a stream of syntax tokens.
@@ -41,8 +36,7 @@ public class RDFChangesWriter implements RDFChanges {
     }
     
     @Override
-    public void start() {
-    }
+    public void start() { }
     
     @Override
     public void finish() { }
@@ -69,9 +63,9 @@ public class RDFChangesWriter implements RDFChanges {
         output(ADD_DATA, g, s, p, o) ;
     }
     
-    private void output(ChangeCode change, Node g, Node s, Node p, Node o) {
+    private void output(String code, Node g, Node s, Node p, Node o) {
         tok.startTuple();
-        output(change) ;
+        outputWord(code) ;
         output(s) ;
         output(p) ;
         output(o) ;
@@ -85,8 +79,8 @@ public class RDFChangesWriter implements RDFChanges {
         tok.sendNode(g); 
     }
 
-    private void output(ChangeCode code) {
-        tok.sendWord(code.label);
+    private void outputWord(String code) {
+        tok.sendWord(code);
     }
 
     @Override
@@ -97,7 +91,7 @@ public class RDFChangesWriter implements RDFChanges {
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
         tok.startTuple();
-        output(ADD_PREFIX);
+        outputWord(ADD_PREFIX);
         tok.sendString(prefix);
         tok.sendString(uriStr) ;
         if ( gn != null )
@@ -109,7 +103,7 @@ public class RDFChangesWriter implements RDFChanges {
     @Override
     public void deletePrefix(Node gn, String prefix) {
         tok.startTuple();
-        output(DEL_PREFIX);
+        outputWord(DEL_PREFIX);
         tok.sendString(prefix);
         if ( gn != null )
             tok.sendNode(gn);
@@ -117,25 +111,25 @@ public class RDFChangesWriter implements RDFChanges {
         tok.flush();
     }
 
-    private void oneline(ChangeCode code) {
+    private void oneline(String code) {
         tok.startTuple();
-        tok.sendWord(code.label);
+        tok.sendWord(code);
         tok.endTuple();
         tok.flush() ;
     }
     
     @Override
     public void txnBegin() {
-        oneline(ChangeCode.TXN_BEGIN) ;
+        oneline(TXN_BEGIN) ;
     }
 
     @Override
     public void txnCommit() {
-        oneline(ChangeCode.TXN_COMMIT) ;
+        oneline(TXN_COMMIT) ;
     }
 
     @Override
     public void txnAbort() {
-        oneline(ChangeCode.TXN_ABORT) ;
+        oneline(TXN_ABORT) ;
     }
 }
