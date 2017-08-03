@@ -22,11 +22,12 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.*;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 
@@ -35,25 +36,38 @@ import org.seaborne.delta.link.DeltaLink;
  * directs teh request to the given servlet. 
  * Otherwise it passes the request down the filter chain.
  */ 
-public class S_PatchFilter implements javax.servlet.Filter {
-
+public class F_PatchFilter implements javax.servlet.Filter {
+    public interface Dispatch { void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException ; }
+    
     private final AtomicReference<DeltaLink> dLink;
-    private final HttpServlet servlet;
+    private final Dispatch servlet;
+    private final Dispatch rootPathServlet;
 
-    public S_PatchFilter(AtomicReference<DeltaLink> engineRef, HttpServlet servlet) {
+    public F_PatchFilter(AtomicReference<DeltaLink> engineRef, Dispatch servlet, Dispatch rootPathServlet) {
         this.dLink = engineRef;
         this.servlet = servlet;
+        this.rootPathServlet = rootPathServlet;
     }
     
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest request = null;
+        HttpServletResponse response = null;
         try {
-            HttpServletRequest request = (HttpServletRequest)req ;
-            HttpServletResponse response = (HttpServletResponse)resp ;
+            request = (HttpServletRequest)req ;
+            response = (HttpServletResponse)resp ;
             
             //request.getContextPath();
             String servletPath = request.getServletPath() ;
             String uri = request.getRequestURI() ;
+            
+            // Special case : this is otherwise the "default servlet" 
+            // because routing on "/" is special.
+            
+            if ( uri.isEmpty() || uri.equals("/") ) {
+                rootPathServlet.dispatch(request, response);
+                return;
+            }
             
             if ( uri.startsWith("/$") ) {
                 // Direct servlets.
@@ -109,9 +123,16 @@ public class S_PatchFilter implements javax.servlet.Filter {
 //            System.err.println("trailing = "+trailing);
             
             // To the servlet for matches of "/{name}"
-            servlet.service(request, response);
-            //chain.doFilter(request, response);
-        } catch (Exception ex) {
+            // Or a direct function call.
+            // function(dsd, dsName,trailing);
+            
+            servlet.dispatch(request, response);
+            
+        } catch (ActionErrorException ex) {
+            Delta.DELTA_LOG.error("HTTP exception: "+ex.getRC()+" -- "+ex.getMessage());
+            try { response.sendError(ex.getRC(), ex.getMessage()) ; } catch (IOException ex2) {}
+        }
+        catch (Exception ex) {
             ex.printStackTrace();
         }
     }

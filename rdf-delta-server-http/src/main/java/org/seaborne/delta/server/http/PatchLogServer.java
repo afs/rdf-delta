@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jena.fuseki.jetty.FusekiErrorHandler1;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.tdb.base.file.Location;
@@ -37,7 +38,9 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.servlet.*;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
@@ -83,16 +86,21 @@ public class PatchLogServer {
         ServletContextHandler handler = buildServletContext("/");
         
         HttpServlet servletRDFPatchLog = new S_Log(engineRef);
+        HttpServlet servletPing = new S_Ping();        
         //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
         
-        // Filter - this catches RDF Patch Log requests and initial data. 
-        addFilter(handler, "/*", new S_PatchFilter(engineRef, servletRDFPatchLog));
+        // Filter - this catches RDF Patch Log requests. 
+        addFilter(handler, "/*", new F_PatchFilter(engineRef,
+                                                   (req, resp)->servletRDFPatchLog.service(req, resp),
+                                                   (req, resp)->servletPing.service(req, resp)
+                                                   ));
         
         // Other
         addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engineRef));
         //addServlet(handler, "/restart", new S_Restart());
+        
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
-
+        
         // Initial data. "/init-data?datasource=..."
         addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
 
@@ -104,10 +112,11 @@ public class PatchLogServer {
 //        //servletHolder.setInitParameter("resourceBase", "somewhere");
 //        handler.addServlet(servletHolder, "/*");
         
-        // -- 404
+        // -- 404 catch all.
         HttpServlet servlet404 = new Servlet404();
         addServlet(handler, "/*", servlet404);
-
+        
+        handler.setErrorHandler(new FusekiErrorHandler1());
         // Wire up.
         server.setHandler(handler);
     }
@@ -116,6 +125,7 @@ public class PatchLogServer {
         @Override
         protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             ServletOps.errorNotFound("Not found");
+            //resp.sendError(HttpSC.NOT_FOUND_404, "Not found");
         }
     }
     
