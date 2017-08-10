@@ -134,11 +134,17 @@ public class Zone {
             stateArea = IOX.asPath(stateLocation);
             List<Path> x = scanForDataState(stateLocation);
             x.forEach(p->LOG.info("Connection : "+p));
-            x.forEach(p->{
-                DataState dataState = readDataState(p);
-                register(dataState);
-            });
+            x.forEach(p->fromOnDiskState(p));
         }
+    }
+    
+    /** Read from disk and register - adjust version for ephemeral */
+    private void fromOnDiskState(Path p) {
+        DataState dataState = readDataState(p);
+        if ( dataState.getStorageType().isEphemeral() )
+            // If ephemeral, force version to 0.
+            dataState.updateState(0, null);
+        register(dataState);
     }
     
     private void register(DataState dataState) {
@@ -176,8 +182,8 @@ public class Zone {
         FileOps.ensureDir(conn.toString());
         
         // {zone}/{name}/state
-        //null for ephemeral?
-        Path statePath = storage.isEphemeral() ? null : conn.resolve(DataState.STATE_FILE);
+        // Always write the datastate even if ephemeral.
+        Path statePath = conn.resolve(DataState.STATE_FILE);
         // {zone}/{name}/data
         Path dataPath = storage.isEphemeral() ? null : conn.resolve(DATA);
         

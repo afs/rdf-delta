@@ -212,10 +212,10 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         FmtLog.info(LOG, "Send patch %s (%d bytes) -> %s", idStr, bytes.length, label);
         
         if ( false ) {
-            if ( LOG.isInfoEnabled() ) {
+            if ( LOG.isDebugEnabled() ) {
                 // Ouch.
                 String s = new String(bytes, StandardCharsets.UTF_8);
-                LOG.info("== Sending ...");
+                LOG.debug("== Sending ...");
                 // Do NOT close!
                 IndentedWriter w = IndentedWriter.stdout;
                 String x = w.getLinePrefix();
@@ -225,7 +225,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 if ( ! s.endsWith("\n") )
                     w.println();
                 w.flush();
-                LOG.info("== ==");
+                LOG.debug("== ==");
             }
         }
         postRequest.setEntity(new ByteArrayEntity(bytes));

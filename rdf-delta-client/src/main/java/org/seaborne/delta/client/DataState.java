@@ -75,7 +75,7 @@ public class DataState {
         this.state = state;
         this.stateStr = state;
         setStateFromString(this, state.getString());
-        FmtLog.info(LOG, "%s : version = %s", datasource, version);
+        //FmtLog.info(LOG, "%s", this);
     }
     
     /** Create new, initialize state. */ 
@@ -164,12 +164,14 @@ public class DataState {
 
     
     private void writeState(DataState dataState) {
-        if ( dataState.state != null )
-            writeState(this.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.storage, dataState.version, dataState.patchId);
+        writeState(dataState.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.storage, dataState.version, dataState.patchId);
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  
     private static void writeState(RefString state, Id datasource, String name, String uri, LocalStorageType storage, long version, Id patchId) {
+        if ( state == null )
+            // Not persisted.
+            return ;
         String x = stateToString(datasource, name, uri, storage, version, patchId);
         if ( ! x.endsWith("\n") )
             x = x+"\n";

@@ -68,6 +68,14 @@ public class DeltaClient {
         return dsRef;
     }
     
+    /** Create a local zone entry and setup to track the existing remote datasource */
+    public Id attach(String name, LocalStorageType storageType) {
+        Id dsRef = nameToId(name);
+        attach(dsRef, storageType);
+        return dsRef;
+    }
+
+    /** Create a local zone entry and setup to track the existing remote datasource */
     public void attach(Id datasourceId, LocalStorageType storageType) {
         Objects.requireNonNull(datasourceId);
         if (  zone.exists(datasourceId) ) {
@@ -85,9 +93,23 @@ public class DeltaClient {
         connections.put(datasourceId, dConn);
     }
 
-    public Id attach(String name, LocalStorageType storageType) {
+    /**
+     * Attach to an existing {@code DataSource} with a fresh
+     * {@link DatasetGraph} as local state. The caller undertakes to only access
+     * the {@code DatasetGraph} through a {@link DeltaConnection} obtained from
+     * this {@code DeltaClient}.
+     * <p>
+     * This is a specialised operation - using a managed dataset (see
+     * {@link #attach(String, LocalStorageType)}) is preferred.
+     * <p>
+     * The {@code DatasetGraph} is assumed to empty and is brought up-to-date.
+     * See {@link DeltaConnection#connect} for connecting an existing local
+     * dataset. The client must be registered with the {@code DeltaLink}.
+     */
+    
+    public Id attachExternal(String name, DatasetGraph dsg) {
         Id dsRef = nameToId(name);
-        attach(dsRef, storageType);
+        attachExternal(dsRef, dsg);
         return dsRef;
     }
 
@@ -105,7 +127,7 @@ public class DeltaClient {
      * dataset. The client must be registered with the {@link DeltaLink}.
      */
     
-    public void attachExt(Id datasourceId, DatasetGraph dsg) {
+    public void attachExternal(Id datasourceId, DatasetGraph dsg) {
         Objects.requireNonNull(datasourceId);
         if ( get(datasourceId) != null )
             // XXX Idempotent. Is this a good idea?
@@ -121,26 +143,6 @@ public class DeltaClient {
         DeltaConnection dConn = DeltaConnection.connect(dataState, dsg, dLink);
         dConn.sync();
         connections.put(datasourceId, dConn);
-    }
-
-    /**
-     * Attach to an existing {@code DataSource} with a fresh
-     * {@link DatasetGraph} as local state. The caller undertakes to only access
-     * the {@code DatasetGraph} through a {@link DeltaConnection} obtained from
-     * this {@code DeltaClient}.
-     * <p>
-     * This is a specialised operation - using a managed dataset (see
-     * {@link #attach(String, LocalStorageType)}) is preferred.
-     * <p>
-     * The {@code DatasetGraph} is assumed to empty and is brought up-to-date.
-     * See {@link DeltaConnection#connect} for connecting an existing local
-     * dataset. The client must be registered with the {@code DeltaLink}.
-     */
-    
-    public Id attachExt(String name, DatasetGraph dsg) {
-        Id dsRef = nameToId(name);
-        attachExt(dsRef, dsg);
-        return dsRef;
     }
     
     /** 

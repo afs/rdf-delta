@@ -20,7 +20,6 @@ package dev;
 
 public class DevDeltaToDo {
     
-    
     // Z rows: the total number of rows. or trasnactions -> can notice truncation.
     //    Checksum each txn?  Cheap checksum?
     //        Add "Z <checksum>" to RDFPatch?

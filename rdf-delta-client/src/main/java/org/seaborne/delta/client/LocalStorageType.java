@@ -53,7 +53,7 @@ public enum LocalStorageType {
         //throw new DeltaException("No storage type constant for '"+string+"'"); 
     }
     
-    public boolean isEphemeral() { return false; }
+    public boolean isEphemeral() { return ephemeral; }
     public String typeName() { return typeName; }
 }
 

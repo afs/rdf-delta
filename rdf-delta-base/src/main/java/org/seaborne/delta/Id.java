@@ -237,11 +237,16 @@ public final class Id {
 
     @Override
     public String toString() {
+        return toSchemeString(SCHEME);
+    }
+
+    /** For labeling with the type of thing id'ed. eg  "ds:abcdef" */  
+    public String toSchemeString(String scheme) {
         if ( this == nilId  )
             return "id:nil";
         if ( uuid != null ) 
-            return SCHEME+shortUUIDstr(uuid);
-        return SCHEME+"\""+string+"\"" ;
+            return scheme+shortUUIDstr(uuid);
+        return scheme+"\""+string+"\"" ;
     }
 
     public static String shortUUIDstr(UUID uuid) {

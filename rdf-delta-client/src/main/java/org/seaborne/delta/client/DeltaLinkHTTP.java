@@ -150,7 +150,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
         url = addToken(url);
         
-        return new RDFChangesHTTP(dsRef.toString(), url);
+        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"), url);
     }
 
     // Non-streaming - collect patch then replay to send it.  
