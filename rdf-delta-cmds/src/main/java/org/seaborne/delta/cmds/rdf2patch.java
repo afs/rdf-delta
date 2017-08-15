@@ -49,7 +49,7 @@ public class rdf2patch extends CmdGeneral
         super.processModulesAndArgs();
     }
     
-    // System.in not fworkign yet.
+    // System.in not working yet.
     // Extend "riot"?
     
     @Override

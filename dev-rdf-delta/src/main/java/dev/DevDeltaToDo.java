@@ -32,6 +32,8 @@ public class DevDeltaToDo {
     // Document API
     // /{name}/data --> Args
 
+    // Be able to switch transaction processing off external control and/or merge in-patch transaction files. 
+    
     // ----
     // Background apply log + initial data => current starting point+version.
     

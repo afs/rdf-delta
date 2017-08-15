@@ -43,8 +43,9 @@ import org.seaborne.delta.lib.IOX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** A "Zone" is a collection of named data sources. It tracks their state {@link DataState}
- * across JVM restarts. It does not manage the RDF contents. 
+/**
+ * A "Zone" is a collection of named data sources. It tracks their state {@link DataState}
+ * across JVM restarts. It does not manage the RDF contents.
  */
 public class Zone {
     private static final Logger LOG = LoggerFactory.getLogger(Zone.class);
@@ -61,12 +62,12 @@ public class Zone {
 
     private static Map<Location, Zone> zones         = new ConcurrentHashMap<>();
 
-    /** Create a zone; connect to an existign one if it exists in the JVM or on-disk */
+    /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
     public static Zone create(String area) {
         return create(Location.create(area)); 
     }
     
-    /** Create a zone; connect to an existign one if it exists in the JVM or on-disk */
+    /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
     public static Zone create(Location area) {
         synchronized(zones) {
             if ( zones.containsKey(area) )
@@ -183,7 +184,7 @@ public class Zone {
         
         // {zone}/{name}/state
         // Always write the datastate even if ephemeral.
-        Path statePath = conn.resolve(DataState.STATE_FILE);
+        Path statePath = conn.resolve(DeltaConst.STATE_CLIENT);
         // {zone}/{name}/data
         Path dataPath = storage.isEphemeral() ? null : conn.resolve(DATA);
         
@@ -313,7 +314,7 @@ public class Zone {
 
     /** Put state file name into DataState then only have here */  
     private DataState readDataState(Path p) {
-        Path versionFile = p.resolve(DataState.STATE_FILE);
+        Path versionFile = p.resolve(DeltaConst.STATE_CLIENT);
         if ( ! Files.exists(versionFile) )
             throw new DeltaConfigException("No state file: "+versionFile);
 
@@ -356,7 +357,7 @@ public class Zone {
             //return false;
         }
         
-        Path pathState = path.resolve(DataState.STATE_FILE);
+        Path pathState = path.resolve(DeltaConst.STATE_CLIENT);
         if ( ! Files.exists(pathState) )  {
             FmtLog.warn(DataState.LOG,  "No state file: %s", path);
             good = false;

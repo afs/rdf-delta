@@ -89,7 +89,7 @@ case $CMD in
     ls)
         CMD_CLS="${DCMD_PKG}.list"
 	;;
-    rdf2patch)
+    rdf2patch | patch2rdf)
 	CMD_CLS="$DCMD_PKG"."$CMD"
 	;;
     patchserver | server )

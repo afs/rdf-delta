@@ -29,7 +29,6 @@ import java.nio.file.Path;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
@@ -42,7 +41,6 @@ public class DataState {
     // DataSourceDescription
     
     static Logger LOG = LoggerFactory.getLogger(DataState.class);
-    /*package*/ static String STATE_FILE = DeltaConst.STATE_CLIENT;
     
     private final Zone zone;
     private String name;
