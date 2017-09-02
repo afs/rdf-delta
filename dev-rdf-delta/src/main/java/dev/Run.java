@@ -75,6 +75,11 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
+        DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066");
+        dLink.ping();
+        //dLink.isRegistered();
+        System.out.println("DONE");
+        System.exit(1);
         //JenaSystem.DEBUG_INIT = true ;
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();

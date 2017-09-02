@@ -35,5 +35,5 @@ public class InitDeltaServerLocal implements DeltaSubsystemLifecycle {
 
     // Make this the last service init so DPS can do setup after all registrations. 
     @Override
-    public int level() { return 9999 ; }
+    public int level() { return 9000 ; }
 }

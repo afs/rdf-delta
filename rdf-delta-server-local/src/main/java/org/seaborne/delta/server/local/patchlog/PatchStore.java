@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap ;
 
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.Log ;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConfigException ;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
@@ -153,15 +154,16 @@ public abstract class PatchStore {
      * @param path : Path to the Logs/ directory. Contents are PatchStore-impl specific.
      * @return PatchLog
      */
-    protected abstract PatchLog create(Id dsRef, String dsName, Path path);
-   
+    protected abstract PatchLog create(DataSourceDescription dsd, Path path);
+
     /** Return a new {@link PatchLog}, which must not already exist. */ 
-    public PatchLog createLog(Id dsRef, String dsName, Path path) { 
+    public PatchLog createLog(DataSourceDescription dsd, Path path) {
         // Path to "Log/" area workspace
+        Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
         IOX.ensureDirectory(path);
-        PatchLog patchLog = create(dsRef, dsName, path);
+        PatchLog patchLog = create(dsd, path);
         logs.put(dsRef, patchLog);
         return patchLog;
     }

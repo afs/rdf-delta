@@ -166,7 +166,7 @@ public class Zone {
             throw new DeltaException("Attempt to reinitialize the Zone: "+stateArea+" => "+area);
     }
 
-    /** Is there an area aready? */
+    /** Is there an area already? */
     public boolean exists(Id dsRef) {
         // Reame as registered?
         return states.containsKey(dsRef);

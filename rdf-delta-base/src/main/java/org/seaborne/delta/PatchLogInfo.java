@@ -18,11 +18,9 @@
 
 package org.seaborne.delta;
 
-import static org.seaborne.delta.DeltaConst.F_ID ;
 import static org.seaborne.delta.DeltaConst.F_LATEST ;
 import static org.seaborne.delta.DeltaConst.F_MAXVER ;
 import static org.seaborne.delta.DeltaConst.F_MINVER ;
-import static org.seaborne.delta.DeltaConst.F_NAME ;
 
 import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonObject ;
@@ -36,24 +34,23 @@ import org.seaborne.delta.lib.JSONX ;
  * @see DataSourceDescription
  */
 public class PatchLogInfo {
-    private final Id dataSourceId ;
-    private final String dataSourceName ;
+    private final DataSourceDescription dsd;
     private final long minVersion ;
     private final long maxVersion ;
     private final Id latestPatch ;
     
-    public PatchLogInfo(Id dsRef, String name, long minVersion, long maxVersion, Id latestPatch) {
-        this.dataSourceId = dsRef ;
-        this.dataSourceName = name ;
+    public PatchLogInfo(DataSourceDescription dsd, long minVersion, long maxVersion, Id latestPatch) {
+        this.dsd = dsd;
         this.minVersion = minVersion ;
         this.maxVersion = maxVersion ;
         this.latestPatch = latestPatch ;
     }
-    
-    /*
+
+    /* This is a superset of DataSourceDescription
      * {
      *    id:
      *    name:
+     *    uri:
      *    minVersion:
      *    maxVersion:
      *    latestPatch:
@@ -61,31 +58,19 @@ public class PatchLogInfo {
      */
     
     public JsonObject asJson() {
-        return JSONX.buildObject(b->asJson(b));
+        return JSONX.buildObject(b->addJsonFields(b));
     }
     
-    /** Insert fields */ 
-    public void asJson(JsonBuilder b) {
-        b.key(F_ID).value(dataSourceId.asString());
-        b.key(F_NAME).value(dataSourceName);
-        b.key(F_MINVER).value(minVersion);
-        b.key(F_MAXVER).value(maxVersion);
-        if ( latestPatch != null )
-            b.key(F_LATEST).value(latestPatch.asString());
-        else
-            b.key(F_LATEST).value("");
-    }
-    
-    /** Insert as an Object nested-object) into the builder */ 
-    public void asJsonObject(JsonBuilder b) {
+    /** Insert as a nested-object into the builder */ 
+    public void addJsonObject(JsonBuilder b) {
         b.startObject();
-        asJsonFields(b);
+        addJsonFields(b);
         b.finishObject();
     }
-
-    public void asJsonFields(JsonBuilder b) {
-        b.key(F_ID).value(dataSourceId.asString());
-        b.key(F_NAME).value(dataSourceName);
+    
+    /** Add fileds to current JsonBuilder object */
+    public void addJsonFields(JsonBuilder b) {
+        dsd.addJsonFields(b);
         b.key(F_MINVER).value(minVersion);
         b.key(F_MAXVER).value(maxVersion);
         if ( latestPatch != null )
@@ -95,21 +80,20 @@ public class PatchLogInfo {
     }
     
     public static PatchLogInfo fromJson(JsonObject obj) {
-        String dsRefStr = JSONX.getStrOrNull(obj, F_ID) ;
-        String name = JSONX.getStrOrNull(obj, F_NAME) ;
+        DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
         long minVer = JSONX.getLong(obj, F_MINVER, DeltaConst.VERSION_UNSET) ;
         long maxVer = JSONX.getLong(obj, F_MAXVER, DeltaConst.VERSION_UNSET) ;
         String latestPatchStr = JSONX.getStrOrNull(obj, F_LATEST);
         Id latestPatch = null;
         if ( latestPatchStr != null && !latestPatchStr.isEmpty() )
             latestPatch = Id.fromString(latestPatchStr);
-        return new PatchLogInfo(Id.fromString(dsRefStr), name, minVer, maxVer, latestPatch); 
+        return new PatchLogInfo(dsd, minVer, maxVer, latestPatch); 
     }
     
     @Override
     public String toString() {
         return String.format("[%s, %s, [%s,%s] <%s>]",
-                             dataSourceId, dataSourceName, 
+                             getDataSourceId(), getDataSourceName(), 
                              verString(minVersion), verString(maxVersion),
                              (latestPatch==null)?"":latestPatch.toString());
     }
@@ -120,12 +104,21 @@ public class PatchLogInfo {
         return Long.toString(version);
     }
     
+    public DataSourceDescription getDataSourceDescr() {
+        return dsd;
+    }
+
+
     public Id getDataSourceId() {
-        return dataSourceId ;
+        return dsd.getId();
     }
 
     public String getDataSourceName() {
-        return dataSourceName ;
+        return dsd.getName();
+    }
+
+    public String getDataSourceURI() {
+        return dsd.getUri();
     }
 
     public long getMinVersion() {
@@ -142,44 +135,39 @@ public class PatchLogInfo {
 
     @Override
     public int hashCode() {
-        final int prime = 31 ;
-        int result = 1 ;
-        result = prime * result + ((dataSourceId == null) ? 0 : dataSourceId.hashCode()) ;
-        result = prime * result + ((dataSourceName == null) ? 0 : dataSourceName.hashCode()) ;
-        result = prime * result + ((latestPatch == null) ? 0 : latestPatch.hashCode()) ;
-        result = prime * result + (int)(maxVersion ^ (maxVersion >>> 32)) ;
-        result = prime * result + (int)(minVersion ^ (minVersion >>> 32)) ;
-        return result ;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((dsd == null) ? 0 : dsd.hashCode());
+        result = prime * result + ((latestPatch == null) ? 0 : latestPatch.hashCode());
+        result = prime * result + (int)(maxVersion ^ (maxVersion >>> 32));
+        result = prime * result + (int)(minVersion ^ (minVersion >>> 32));
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )
-            return true ;
+            return true;
         if ( obj == null )
-            return false ;
+            return false;
         if ( getClass() != obj.getClass() )
-            return false ;
-        PatchLogInfo other = (PatchLogInfo)obj ;
-        if ( dataSourceId == null ) {
-            if ( other.dataSourceId != null )
-                return false ;
-        } else if ( !dataSourceId.equals(other.dataSourceId) )
-            return false ;
-        if ( dataSourceName == null ) {
-            if ( other.dataSourceName != null )
-                return false ;
-        } else if ( !dataSourceName.equals(other.dataSourceName) )
-            return false ;
+            return false;
+        PatchLogInfo other = (PatchLogInfo)obj;
+        if ( dsd == null ) {
+            if ( other.dsd != null )
+                return false;
+        } else if ( !dsd.equals(other.dsd) )
+            return false;
         if ( latestPatch == null ) {
             if ( other.latestPatch != null )
-                return false ;
+                return false;
         } else if ( !latestPatch.equals(other.latestPatch) )
-            return false ;
+            return false;
         if ( maxVersion != other.maxVersion )
-            return false ;
+            return false;
         if ( minVersion != other.minVersion )
-            return false ;
-        return true ;
+            return false;
+        return true;
     }
+
 }

@@ -104,6 +104,12 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         checkLink();
         return toList(localServer.listDataSources().stream().map(ds->ds.getDescription()));
     }
+    
+    @Override
+    public List<PatchLogInfo> listPatchLogInfo() {
+        checkLink();
+        return localServer.listPatchLogInfo();
+    }
 
     @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {

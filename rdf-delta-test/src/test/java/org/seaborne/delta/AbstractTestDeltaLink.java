@@ -405,6 +405,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLink();
         assertEquals(0, dLink.listDatasets().size());
         assertEquals(0, dLink.listDescriptions().size());
+        assertEquals(0, dLink.listPatchLogInfo().size());
     }
 
     @Test
@@ -412,6 +413,7 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         assertEquals(0, dLink.listDatasets().size());
         assertEquals(0, dLink.listDescriptions().size());
+        assertEquals(0, dLink.listPatchLogInfo().size());
     }
 
     @Test
@@ -422,6 +424,7 @@ public abstract class AbstractTestDeltaLink {
         assertNotEquals(dsRef, Id.nullId());
         assertEquals(1, dLink.listDatasets().size());
         assertEquals(1, dLink.listDescriptions().size());
+        assertEquals(1, dLink.listPatchLogInfo().size());
     }
 
     @Test
@@ -434,18 +437,32 @@ public abstract class AbstractTestDeltaLink {
         boolean b = all.stream().anyMatch(dsd->dsd.getUri().equals("http://example/uri16"));
         assertTrue(b);
     }
+    
     @Test
     public void datasource_listLog_04() {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_listLog_04", "http://example/uri17");
-        List<Id> x = dLink.listDatasets();
+        List<PatchLogInfo> x = dLink.listPatchLogInfo();
         assertEquals(1, x.size());
-        assertTrue(x.contains(dsRef));
-        
-        PatchLogInfo logInfo = dLink.getPatchLogInfo(dsRef);
-        assertEquals(dsRef, logInfo.getDataSourceId());
+        PatchLogInfo logInfo1 = x.get(0);
+        assertNotNull(logInfo1.getDataSourceDescr());
+        PatchLogInfo logInfo2 = dLink.getPatchLogInfo(dsRef);
+        assertEquals(dsRef, logInfo1.getDataSourceId());
+        assertEquals(logInfo1, logInfo2);
     }
     
+    @Test
+    public void datasource_listLog_05() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef1 = dLink.newDataSource("datasource_listLog_05-1", "http://example/uri18a");
+        Id dsRef2 = dLink.newDataSource("datasource_listLog_05-2", "http://example/uri18b");
+        List<PatchLogInfo> x = dLink.listPatchLogInfo();
+        assertEquals(2, x.size());
+        PatchLogInfo logInfo1 = x.get(0);
+        PatchLogInfo logInfo2 = x.get(1);
+        assertNotEquals(logInfo1, logInfo2);
+    }
+
     @Test
     public void datasource_remove_01() {
         DeltaLink dLink = getLinkRegistered();

@@ -280,6 +280,11 @@ public class DeltaLinkHTTP implements DeltaLink {
         regToken = null;
     }
 
+    /**
+     * If this returns we did contact the server,
+     * otherwise we get an exception.
+     */
+    
     @Override
     public boolean isRegistered() {
         checkLink();
@@ -322,6 +327,16 @@ public class DeltaLinkHTTP implements DeltaLink {
         return x ;
     }
     
+    @Override
+    public List<PatchLogInfo> listPatchLogInfo() {
+        JsonObject obj = rpc(DeltaConst.OP_LIST_LOG_INFO, emptyObject);
+        JsonArray array = obj.get(DeltaConst.F_ARRAY).getAsArray();
+        List<PatchLogInfo> x = array.stream()
+            .map(jv->PatchLogInfo.fromJson(jv.getAsObject()))
+            .collect(Collectors.toList()) ;
+        return x ;
+    }
+
     @Override
     public Id newDataSource(String name, String uri) {
         Objects.requireNonNull(name);

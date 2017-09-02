@@ -49,12 +49,19 @@ public interface DeltaLink {
     /** Return an array of ids of datasets */
     public List<Id> listDatasets() ;
     
-    /** Return an array of {@link DataSourceDescription}s of datasets */
-    public List<DataSourceDescription> listDescriptions();
-    
+    /** Return details of all patch logs.
+     * <p> 
+     * This is the operation to use to poll a patch log server for detailed information
+     * about the current patch logs that exist and their current state. 
+     */
+    public List<PatchLogInfo> listPatchLogInfo();
+
     /** Return details of the patch log (or null if not registered) */
     public PatchLogInfo getPatchLogInfo(Id dsRef) ;
 
+    /** Return an array of {@link DataSourceDescription}s of datasets */
+    public List<DataSourceDescription> listDescriptions();
+    
     /** Return details of a dataset (or null if not registered) */
     public DataSourceDescription getDataSourceDescription(Id dsRef) ;
 

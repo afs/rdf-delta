@@ -18,9 +18,15 @@
 
 package org.seaborne.delta;
 
+import static org.seaborne.delta.DeltaConst.F_ID;
+import static org.seaborne.delta.DeltaConst.F_NAME;
+import static org.seaborne.delta.DeltaConst.F_URI;
+
+import java.util.Objects;
+
+import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.lib.JSONX;
-import static org.seaborne.delta.DeltaConst.*;
 
 /** The fixed information about a {@code DataSource}.
  * 
@@ -33,8 +39,8 @@ public class DataSourceDescription {
     
     public DataSourceDescription(Id id, String name, String uri) {
         super();
-        this.id = id;
-        this.name = name;
+        this.id = Objects.requireNonNull(id);
+        this.name = Objects.requireNonNull(name);
         this.uri = uri;
     }
     
@@ -47,14 +53,22 @@ public class DataSourceDescription {
      */
     
     public JsonObject asJson() {
-        return JSONX.buildObject(b->{
-            b.key(F_ID).value(id.asString());
-            b.key(F_NAME).value(name);
-            if ( uri != null )
-                b.key(F_URI).value(uri);
-        });
+        return JSONX.buildObject(b->addJsonFields(b));
     }
     
+    public void addJsonObject(JsonBuilder b) {
+        b.startObject();
+        addJsonFields(b);
+        b.finishObject();
+    }
+
+    public void addJsonFields(JsonBuilder b) {
+        b.key(F_ID).value(id.asString());
+        b.key(F_NAME).value(name);
+        if ( uri != null )
+            b.key(F_URI).value(uri);
+    }
+
     public static DataSourceDescription fromJson(JsonObject obj) {
         String idStr = obj.get(F_ID).getAsString().value();
         String name = obj.get(F_NAME).getAsString().value();

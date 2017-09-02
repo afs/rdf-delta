@@ -58,9 +58,9 @@ public class PatchLogFile implements PatchLog {
     // Centralized logger for regular lifecyle reporting.
     private static Logger  LOG     = LoggerFactory.getLogger(PatchLogFile.class);
 
-    //Id of the DataSource 
-    private final Id              dsRef;
-    private final String          name;
+    // Currently, id of the DataSource 
+    private final Id logId;
+    private final DataSourceDescription dsd;
     private final FileStore       fileStore;
 
     // Forward, backwards chain?
@@ -72,25 +72,20 @@ public class PatchLogFile implements PatchLog {
     private long latestVersion = VERSION_UNSET;
     
     /** Attached to an existing {@code PatchLog}. */
-    public static PatchLogFile attach(Id dsRef, String name, Location location) {
-        return new PatchLogFile(dsRef, name, location);
+    public static PatchLogFile attach(DataSourceDescription dsd, Location location) {
+        return new PatchLogFile(dsd, location);
     }
     
-//    /** Create a new {@code PatchLog}. */
-//    public static PatchLog create(Id dsRef, String name, Location location) {
-//        return new PatchLog(dsRef, name, location, null);
-//    }
-
-    private PatchLogFile(Id dsRef, String name, Location location) {
-        this.dsRef = dsRef;
-        this.name = name;
+    private PatchLogFile(DataSourceDescription dsd, Location location) {
+        this.dsd = dsd;
+        this.logId = dsd.getId();
         this.fileStore = FileStore.attach(location, "patch");
         initFromFileStore();
     }
     
     @Override
     public Id getLogId() {
-        return dsRef;
+        return logId;
     }
     
     private void initFromFileStore() {
@@ -179,7 +174,7 @@ public class PatchLogFile implements PatchLog {
     
     @Override
     public PatchLogInfo getDescription() {
-        return new PatchLogInfo(dsRef, name, getEarliestVersion(), getLatestVersion(), getLatestId());
+        return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
     }
 
     @Override
@@ -416,10 +411,10 @@ public class PatchLogFile implements PatchLog {
     
     @Override
     public String toString() {
-        return String.format("PatchLog [%s, ver=%d head=%s]", name, getLatestVersion(), getLatestId());
+        return String.format("PatchLog [%s, ver=%d head=%s]", dsd.getName(), getLatestVersion(), getLatestId());
     }
 
     public Id getDsRef() {
-        return dsRef ;
+        return dsd.getId() ;
     }
 }

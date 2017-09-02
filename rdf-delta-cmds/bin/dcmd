@@ -3,7 +3,7 @@
 ## Usage: dcmd <delta_main>
 ## Sets up the java enviroment to run a command from RDF Delta.
 
-CP=
+CP="${CP:-}"
 
 #JENA_CP="$(jena)"
 ## If Jena development, this needs to be different.

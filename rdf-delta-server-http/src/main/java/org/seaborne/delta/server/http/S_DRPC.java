@@ -29,13 +29,14 @@ import static org.seaborne.delta.DeltaConst.F_OP ;
 import static org.seaborne.delta.DeltaConst.F_TOKEN ;
 import static org.seaborne.delta.DeltaConst.F_URI ;
 import static org.seaborne.delta.DeltaConst.F_VALUE ;
-import static org.seaborne.delta.DeltaConst.OP_CREATE_DS ;
+import static org.seaborne.delta.DeltaConst.OP_CREATE_DS;
 import static org.seaborne.delta.DeltaConst.OP_DEREGISTER ;
 import static org.seaborne.delta.DeltaConst.OP_DESCR_DS ;
 import static org.seaborne.delta.DeltaConst.OP_DESCR_LOG ;
 import static org.seaborne.delta.DeltaConst.OP_ISREGISTERED ;
 import static org.seaborne.delta.DeltaConst.OP_LIST_DS ;
 import static org.seaborne.delta.DeltaConst.OP_LIST_DSD ;
+import static org.seaborne.delta.DeltaConst.OP_LIST_LOG_INFO;
 import static org.seaborne.delta.DeltaConst.OP_PING ;
 import static org.seaborne.delta.DeltaConst.OP_REGISTER ;
 import static org.seaborne.delta.DeltaConst.OP_REMOVE_DS ;
@@ -133,6 +134,7 @@ public class S_DRPC extends DeltaServlet {
             case OP_ISREGISTERED:
             case OP_LIST_DS:
             case OP_LIST_DSD:
+            case OP_LIST_LOG_INFO:
             case OP_DESCR_DS:
             case OP_DESCR_LOG:
                 break;
@@ -155,47 +157,66 @@ public class S_DRPC extends DeltaServlet {
             throw new DeltaNotRegisteredException("Not registered") ;
     }
 
+    
+    private String lastOpName = null;
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
         JsonValue rslt = null ;
         JsonObject arg = action.rpcArg;
-        switch(action.opName) {
-            case OP_PING:
-                rslt = ping(action);
-                break ;
-            case OP_REGISTER:
-                rslt = register(action);
-                break ;
-            case OP_DEREGISTER:
-                rslt = deregister(action);
-                break ;
-            case OP_ISREGISTERED:
-                rslt = isRegistered(action);
-                break ;
-            case OP_LIST_DS:
-                rslt = listDataSources(action);
-                break ;
-            case OP_DESCR_DS:
-                rslt = describeDataSource(action);
-                break ;
-            case OP_DESCR_LOG:
-                rslt = describePatchLog(action);
-                break ;
-            case OP_LIST_DSD:
-                rslt = describeAllDataSources(action);
-                break ;
-            case OP_CREATE_DS:
-                rslt = createDataSource(action);
-                break;
-            case OP_REMOVE_DS:
-                rslt = removeDataSource(action);
-                break;
-            default:
-                throw new InternalErrorException("Unknown operation: "+action.opName);
+        boolean infoLogThisRPC = true;
+        String recordOp = null;
+        try {
+            switch(action.opName) {
+                case OP_PING:
+                    rslt = ping(action);
+                    break ;
+                case OP_REGISTER:
+                    rslt = register(action);
+                    break ;
+                case OP_DEREGISTER:
+                    rslt = deregister(action);
+                    break ;
+                case OP_ISREGISTERED:
+                    rslt = isRegistered(action);
+                    break ;
+                case OP_LIST_DS:
+                    rslt = listDataSources(action);
+                    break ;
+                case OP_DESCR_DS:
+                    rslt = describeDataSource(action);
+                    break ;
+                case OP_DESCR_LOG:
+                    rslt = describePatchLog(action);
+                    break ;
+                case OP_LIST_LOG_INFO:
+                    // This operation is used to poll for chnages so you can get a lot of them. 
+                    // Suppress duplicates.
+                    infoLogThisRPC = ! OP_LIST_LOG_INFO.equals(lastOpName);
+                    rslt = listPatchLogInfo(action);
+                    break ;
+                case OP_LIST_DSD:
+                    rslt = describeAllDataSources(action);
+                    break ;
+                case OP_CREATE_DS:
+                    rslt = createDataSource(action);
+                    break;
+                case OP_REMOVE_DS:
+                    rslt = removeDataSource(action);
+                    break;
+                default:
+                    throw new InternalErrorException("Unknown operation: "+action.opName);
+            }
+            // 
+            recordOp = action.opName;
+        } 
+        catch (Exception ex) { recordOp = null; throw ex ; }
+        finally {
+            lastOpName = recordOp;
         }
-        
-        OutputStream out = action.response.getOutputStream() ;
-        FmtLog.info(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
+        if ( infoLogThisRPC )
+            FmtLog.info(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
+        else
+            FmtLog.debug(LOG, "%s %s => %s", action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
         sendJsonResponse(action.response, rslt);
     }
     
@@ -319,12 +340,22 @@ public class S_DRPC extends DeltaServlet {
         return logInfo.asJson();
     }
     
+    private JsonValue listPatchLogInfo(DeltaAction action) {
+        List<PatchLogInfo> info = action.dLink.listPatchLogInfo();
+        return JSONX.buildObject(b->{
+            b.key(F_ARRAY);
+            b.startArray();
+            info.forEach(x->x.addJsonObject(b));
+            b.finishArray();
+        });
+    }
+
     private JsonValue describeAllDataSources(DeltaAction action) {
         List<DataSourceDescription> x = action.dLink.listDescriptions();
         return JSONX.buildObject(b->{
             b.key(F_ARRAY);
             b.startArray();
-            x.forEach(dsd->b.value(dsd.asJson()));
+            x.forEach(dsd->dsd.addJsonObject(b));
             b.finishArray();
         });
     }

@@ -41,6 +41,7 @@ import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.changes.RDFChangesCancelOnNoChange;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
 
@@ -62,6 +63,24 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private Node patchId                = null;
     private boolean changeOccurred      = false;
     
+    /**
+     * An empty commit is not a no-op. It moves the head of the log to a new point,
+     * stopping changes whose parent is the previous state.
+     * <p>
+     * As a practical point, in some usages, it can be onerous to track whether a change
+     * really has been made, or whether a write transaction was started because a change
+     * might occur but nothing did.
+     * <p>
+     * This code is ideally placed can easily track that information.
+     * <p>
+     * @see RDFChangesCancelOnNoChange RDFChangesCancelOnNoChange -- An alternative approach.
+     */
+    public static void setSuppressEmptyCommits(boolean b) {
+        SuppressEmptyCommits = b;
+    }
+    private static boolean SuppressEmptyCommits = false ;
+    
+    
     public RDFChangesHTTP(String label, String url) {
         this(label, null, url);
     }
@@ -72,7 +91,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 
     private RDFChangesHTTP(String label, Object syncObject, String url, ByteArrayOutputStream out) {
         super(DeltaOps.tokenWriter(out));
-        // XXX When channels come in, this needs sorting out.
         this.syncObject = (syncObject!=null) ? syncObject : new Object(); 
         this.url = url;
         if ( label == null )
@@ -154,6 +172,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
     
     public void send() {
+        if ( SuppressEmptyCommits && ! changed() )
+            return ;
         synchronized(syncObject) {
             send$();
         }

@@ -33,14 +33,12 @@ import org.apache.jena.tdb.base.file.Location ;
 import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
-import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.client.DeltaConnection ;
-import org.seaborne.delta.client.LocalStorageType ;
-import org.seaborne.delta.client.Zone ;
+import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink ;
 import org.seaborne.delta.link.RegToken ;
 
 public abstract class AbstractTestDeltaClient {
+    // See also with AbstractTestDeltaConnection
     
     static String DIR_ZONE = "target/Zone";
     static protected Zone zone;
@@ -81,7 +79,7 @@ public abstract class AbstractTestDeltaClient {
         
         Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource");
         DeltaClient dClient = createDeltaClient();
-        dClient.attach(dsRef, LocalStorageType.EXTERNAL);
+        dClient.register(dsRef, LocalStorageType.EXTERNAL, TxnSyncPolicy.NONE);
         
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
@@ -94,16 +92,16 @@ public abstract class AbstractTestDeltaClient {
         // Create via DeltaClient
         String DS_NAME = "1234";
         DeltaClient dClient = createDeltaClient();
-        Id dsRef1 = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME, LocalStorageType.MEM);
+        Id dsRef1 = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
     }
 
     @Test(expected=DeltaBadRequestException.class)
     public void create_datasource_2() {
         String DS_NAME = "123456";
         DeltaClient dClient = createDeltaClient();
-        Id dsRef1 = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME, LocalStorageType.MEM);
+        Id dsRef1 = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
         // Error.
-        Id dsRef2 = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME, LocalStorageType.MEM);
+        Id dsRef2 = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
     }
     
     @Test(expected=DeltaBadRequestException.class)
@@ -111,7 +109,7 @@ public abstract class AbstractTestDeltaClient {
         DeltaLink dLink = getLink();
         Id dsRef = Id.create();
         DeltaClient dClient = createDeltaClient();
-        dClient.attach(dsRef, LocalStorageType.MEM);
+        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
     }
     
     @Test
@@ -122,7 +120,7 @@ public abstract class AbstractTestDeltaClient {
         
         Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource_update_1");
         DeltaClient dClient = createDeltaClient();
-        dClient.attach(dsRef, LocalStorageType.MEM);
+        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
         assertEquals(0, dConn.getLocalVersion());
@@ -150,7 +148,7 @@ public abstract class AbstractTestDeltaClient {
         
         Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource_update_2");
         DeltaClient dClient = createDeltaClient();
-        dClient.attach(dsRef, LocalStorageType.MEM);
+        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
         assertEquals(0, dConn.getLocalVersion());
@@ -178,7 +176,7 @@ public abstract class AbstractTestDeltaClient {
         
         Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource_update_3");
         DeltaClient dClient = createDeltaClient();
-        dClient.attach(dsRef, LocalStorageType.MEM);
+        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(DS_NAME);
         Quad quad = SSE.parseQuad("(_ :s :p :o)");
         DatasetGraph dsg = dConn.getDatasetGraph();
@@ -199,7 +197,8 @@ public abstract class AbstractTestDeltaClient {
     public void local_storage_1() {
         String DS_NAME = "654321";
         DeltaClient dClient = createDeltaClient();
-        Id dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME, LocalStorageType.TDB);
+        Id dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
+        dClient.register(dsRef, LocalStorageType.TDB, TxnSyncPolicy.NONE);
         
         Quad quad = SSE.parseQuad("(_ :s :p :o)");
         
@@ -214,7 +213,7 @@ public abstract class AbstractTestDeltaClient {
         zone = Zone.create(loc);
         // Reset.
         dClient = DeltaClient.create(zone, getLink());
-        dClient.connect(dsRef);
+        dClient.connect(dsRef, TxnSyncPolicy.NONE);
         
         try(DeltaConnection dConn = dClient.get(dsRef)) {
             DatasetGraph dsg = dConn.getDatasetGraph();

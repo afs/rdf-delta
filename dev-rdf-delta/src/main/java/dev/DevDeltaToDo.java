@@ -20,6 +20,11 @@ package dev;
 
 public class DevDeltaToDo {
     
+    //  DeltaClient.newRegisterDataSource
+    //  Default to SyncPolicy.NONE, make part of get() or DCOnn.getDatasetGraph( 
+    // Convencei operations for NONE   register, connect. 
+    
+    
     // Z rows: the total number of rows. or trasnactions -> can notice truncation.
     //    Checksum each txn?  Cheap checksum?
     //        Add "Z <checksum>" to RDFPatch?
@@ -47,6 +52,7 @@ public class DevDeltaToDo {
     // ** Docs
 
 	// --autoregister, --no-register
+    // RDFChangesHTTP.SuppressEmptyCommits.
     
     // Protect read in S_Data.
     

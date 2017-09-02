@@ -45,12 +45,13 @@ public class DeltaConst {
     public static final String OP_DEREGISTER   = "deregister";
     public static final String OP_ISREGISTERED = "isregistered";
     
-    public static final String OP_LIST_DS      = "list_datasource";
-    public static final String OP_LIST_DSD     = "list_descriptions";
-    public static final String OP_DESCR_DS     = "describe_datasource";
-    public static final String OP_DESCR_LOG    = "describe_log";
-    public static final String OP_CREATE_DS    = "create_datasource";
-    public static final String OP_REMOVE_DS    = "remove_datasource";
+    public static final String OP_LIST_DS              = "list_datasource";
+    public static final String OP_LIST_DSD             = "list_descriptions";
+    public static final String OP_DESCR_DS             = "describe_datasource";
+    public static final String OP_DESCR_LOG            = "describe_log";
+    public static final String OP_LIST_LOG_INFO        = "list_log_info";
+    public static final String OP_CREATE_DS            = "create_datasource";
+    public static final String OP_REMOVE_DS            = "remove_datasource";
 
     // JSON field names, in RPC and configuration files.
     public static final String F_OP            = "operation";

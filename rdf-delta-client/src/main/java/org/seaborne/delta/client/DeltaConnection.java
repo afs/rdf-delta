@@ -28,7 +28,6 @@ import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
-import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -64,21 +63,24 @@ public class DeltaConnection implements AutoCloseable {
     private final DataState state;
 
     private boolean valid = false;
- 
+    private final TxnSyncPolicy syncTxnBegin;
+    
     /** 
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
      * The {@code DatasetGraph} must be in-step with the zone.
      * {@code DeltaConnection} objects are normal obtained via {@link DeltaClient}.
      */
     
-    /*package*/ static DeltaConnection connect(DataState dataState, DatasetGraph dsg, DeltaLink dLink) {
+    /*package*/ static DeltaConnection create(DataState dataState, DatasetGraph dsg, DeltaLink dLink, TxnSyncPolicy syncTxnBegin) {
         Objects.requireNonNull(dataState, "Null data state");
+        Objects.requireNonNull(dLink, "DeltaLink is null");
+        Objects.requireNonNull(syncTxnBegin, "SyncPolicy is null");
         Objects.requireNonNull(dataState.getDataSourceId(), "Null data source Id");
-        Objects.requireNonNull(dataState.getDatasourceName(), "Null data source Id");
-        Objects.requireNonNull(dLink, "Null link");
-        DeltaConnection client = new DeltaConnection(dataState, dsg, dLink);
-        client.start();
-        return client;
+        Objects.requireNonNull(dataState.getDatasourceName(), "Null data source name");
+        
+        DeltaConnection dConn = new DeltaConnection(dataState, dsg, dLink, syncTxnBegin);
+        dConn.start();
+        return dConn;
     }
     
     private static void ensureRegistered(DeltaLink link, Id clientId) {
@@ -86,7 +88,7 @@ public class DeltaConnection implements AutoCloseable {
             link.register(clientId);
     }
     
-    private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link) {
+    private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link, TxnSyncPolicy syncTxnBegin) {
         Objects.requireNonNull(dataState, "DataState");
         Objects.requireNonNull(link, "DeltaLink");
         if ( basedsg instanceof DatasetGraphChanges )
@@ -97,20 +99,34 @@ public class DeltaConnection implements AutoCloseable {
         this.datasourceName = dataState.getDatasourceName();
         this.dLink = link;
         this.valid = true;
+        this.syncTxnBegin = syncTxnBegin;
         if ( basedsg != null  ) {
             // Where to put incoming changes. 
             this.target = new RDFChangesApply(basedsg);
             // Where to send outgoing changes.
             RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer());
+            this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
         } else {
             this.target = null;
             this.managed = null;
         }
     }
     
-    // Sync if write.
-    private Consumer<ReadWrite> syncer() {
+    
+    private Consumer<ReadWrite> syncer(TxnSyncPolicy syncTxnBegin) {
+        switch(syncTxnBegin) {
+            case NONE :     return (rw)->{} ; 
+            case TXN_RW :   return syncerTxnBeginRW();
+            case TXN_W :    return syncerTxnBeginW();
+            default :       throw new IllegalStateException();
+        }
+    }
+    
+    /** Sync on transaction begin.
+     * <p>
+     *  READ -> attempt to sync, WRITE -> not silently on errors. 
+     */
+    private Consumer<ReadWrite> syncerTxnBeginRW() { 
         return (rw)->{
             switch(rw) {
                 case READ: 
@@ -123,6 +139,19 @@ public class DeltaConnection implements AutoCloseable {
         };
     }
     
+    private Consumer<ReadWrite> syncerTxnBeginW() { 
+        return (rw)->{
+            switch(rw) {
+                case READ:// No action. 
+                    break;
+                case WRITE:
+                    this.sync();
+                    break;
+            }
+        };
+    }
+
+    
     // clone
     protected DeltaConnection(DeltaConnection other) {
         Objects.nonNull(other);
@@ -132,11 +161,12 @@ public class DeltaConnection implements AutoCloseable {
         this.datasourceName = other.datasourceName;
         this.dLink = other.dLink;
         this.valid = other.valid;
+        this.syncTxnBegin = other.syncTxnBegin;
         // Not shared with "other".
         if ( base != null  ) {
             this.target = new RDFChangesApply(base);
             RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(base, monitor, null, syncer());
+            this.managed = new DatasetGraphChanges(base, monitor, null, syncer(syncTxnBegin));
         } else {
             this.target = null;
             this.managed = null;
@@ -206,14 +236,47 @@ public class DeltaConnection implements AutoCloseable {
     }
 
     public boolean trySync() {
-        try { sync() ; return true ; }
-        catch (RuntimeException ex ) { return false ; }
+        return attempt(()->sync());
+    }
+    
+    public boolean trySync(PatchLogInfo logInfo) {
+        return attempt(()->sync(logInfo));
+    }
+
+    public void sync(PatchLogInfo logInfo) {
+        checkDeltaConnection();
+        syncToVersion(logInfo.getMaxVersion());
     }
     
     public void sync() {
         checkDeltaConnection();
-        long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
-        if ( remoteVer == VERSION_UNSET ) {
+        PatchLogInfo logInfo = getPatchLogInfo();
+        sync(logInfo);
+    }
+    
+    // Attempt an operation and return true/false as to whether it succeeded or not.
+    private boolean attempt(Runnable action) {
+        try { action.run(); return true ; }
+        catch (RuntimeException ex ) { return false ; }
+//      } catch (HttpException ex) {
+//      // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
+//      if ( ex.getCause() instanceof java.net.ConnectException ) {
+//          FmtLog.warn(LOG, "Failed to sync: "+ex.getMessage());
+//          return;
+//      }
+//      if ( ex.getStatusLine() != null ) {
+//          FmtLog.warn(LOG, "Failed: "+ex.getStatusLine());
+//          return;
+//      }
+//      FmtLog.warn(LOG, "Failed to get remote PatchLogInfo: "+ex.getMessage());
+//      throw ex;
+//  }
+    }
+    
+    /** Sync until some version */
+    private void syncToVersion(long version) {
+        //long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
+        if ( version == VERSION_UNSET ) {
             FmtLog.warn(LOG, "Sync: Failed to sync");
             return;
         }
@@ -228,46 +291,36 @@ public class DeltaConnection implements AutoCloseable {
             return;
         }
         
-        if ( localVer > remoteVer ) 
+        if ( localVer > version ) 
             FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", getLocalVersion(), getRemoteVersionCached());
-        if ( localVer >= remoteVer )
+        if ( localVer >= version )
             return;
         // bring up-to-date.
         
-        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, remoteVer);
-        playPatches(localVer+1, remoteVer) ;
+        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, version);
+        playPatches(localVer+1, version) ;
         //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
     }
 
-    /** Get getRemoteVersionLatest with HTTP handling */
-    private long getRemoteVersionLatestOrDefault(long dftValue) {
-        try {
-            return getRemoteVersionLatest();
-        } catch (HttpException ex) {
-            // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
-            if ( ex.getCause() instanceof java.net.ConnectException ) {
-                FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
-                return dftValue;
-            }
-            if ( ex.getStatusLine() != null ) {
-                FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
-                return dftValue;
-            }
-            FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
-            throw ex;
-        }
-    }
-
-//    /** Play all the patches from the named version to the latested */
-//    public void playFrom(int firstVersion) {
-//        long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
-//        if ( remoteVer < 0 ) {
-//            FmtLog.warn(LOG, "Sync: Failed to sync");
-//            return;
+//    /** Get getRemoteVersionLatest with HTTP handling */
+//    private long getRemoteVersionLatestOrDefault(long dftValue) {
+//        try {
+//            return getRemoteVersionLatest();
+//        } catch (HttpException ex) {
+//            // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
+//            if ( ex.getCause() instanceof java.net.ConnectException ) {
+//                FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
+//                return dftValue;
+//            }
+//            if ( ex.getStatusLine() != null ) {
+//                FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
+//                return dftValue;
+//            }
+//            FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
+//            throw ex;
 //        }
-//        playPatches(firstVersion, remoteVer);
 //    }
-    
+
     /** Play the patches (range is inclusive at both ends) */
     private void playPatches(long firstPatchVer, long lastPatchVer) {
         Pair<Long, Node> p = play(datasourceId, target, dLink, firstPatchVer, lastPatchVer);

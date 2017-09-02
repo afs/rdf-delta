@@ -44,15 +44,15 @@ import org.slf4j.LoggerFactory;
 public class DataSource {
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
 
-    private final Id       id;
-    private final String   uri;
+//    private final Id       id;
+//    private final String   uri;
+//    private final String   name;
+    private final DataSourceDescription dsDescription;
     private final Path     initialData;
     private final PatchLog patchLog;
 
     // Duplicates location if not in-memory.
     private final Path path;
-    // DataSource short name (final component of path). 
-    private final String name;
     
     /**
      * Attach to a datasource file area and return a {@link DataSource} object.
@@ -64,27 +64,27 @@ public class DataSource {
         IOX.ensureDirectory(patchesArea);
         Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         IOX.ensureFile(initialData);
-        PatchLog patchLog = patchStore.createLog(dsRef, dsName, patchesArea);
-        DataSource dataSource = new DataSource(dsRef, dsPath, initialData, dsName, uri, patchLog);
+        
+        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
+        PatchLog patchLog = patchStore.createLog(dsd, patchesArea);
+        DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
         return dataSource;
     }
 
-    private DataSource(Id id, Path location, Path initialData, String name, String uri, PatchLog patchLog) {
+    private DataSource(DataSourceDescription dsd, Path location, Path initialData, PatchLog patchLog) {
         super();
-        this.id = id;
+        this.dsDescription = dsd;
         this.path = location;
         this.initialData = initialData;  
-        this.name = name;
-        this.uri = uri;
         this.patchLog = patchLog;
     }
 
     public Id getId() {
-        return id;
+        return dsDescription.getId();
     }
 
     public String getURI() {
-        return uri;
+        return dsDescription.getUri();
     }
 
     public Location getLocation() {
@@ -101,7 +101,7 @@ public class DataSource {
     }
 
     public String getName() {
-        return name;
+        return dsDescription.getName();
     }
 
     public PatchLog getPatchLog() {
@@ -109,7 +109,7 @@ public class DataSource {
     }
 
     public DataSourceDescription getDescription() {
-        return new DataSourceDescription(id, name, uri); 
+        return dsDescription;
     }
     
     public boolean inMemory() {
@@ -156,7 +156,6 @@ public class DataSource {
 
     @Override
     public String toString() {
-        return String.format("[DataSource:%s %s]", name, id);
-        //return String.format("[DataSource: %s %s [%s]", name, id, uri);
+        return String.format("[DataSource:%s %s]", dsDescription.getName(), dsDescription.getId());
     }
 }

@@ -16,30 +16,16 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.client;
 
-import java.nio.file.Path ;
-
-import org.apache.jena.tdb.base.file.Location ;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.server.local.DPS ;
-
-//PatchStoreFileProvider
-public class PatchStoreFile extends PatchStore {
-
-    public static void registerPatchStoreFile() {
-        PatchStore ps = new PatchStoreFile();
-        PatchStore.register(ps);
-    }
-    
-    public PatchStoreFile() {
-        super(DPS.PatchStoreProviderFile) ;
-    }
-
-    @Override
-    protected PatchLogFile create(DataSourceDescription dsd, Path logPath) {
-        Location loc = Location.create(logPath.toString());
-        PatchLogFile patchLog = PatchLogFile.attach(dsd, loc);
-        return patchLog ;
-    }
-}
+/**
+ * When to synchronize with a patch log.
+ * {@link DeltaConnection} provide the option of syncing automagtically on transaction begin.
+ * The application call also call {@link DeltaConnection#sync} itself. 
+ * <ul>
+ * <li>{@code NONE} No automatical sync, all done by the application.
+ * <li>{@code TXN_RW} When a transaction starts (sync attempt for a READ transaction suppresses network errors). 
+ * <li>{@code TXN_RW} When a wite-transaction starts. 
+ * </ul>
+ */
+public enum TxnSyncPolicy { NONE, TXN_RW, TXN_W }

@@ -28,6 +28,7 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.server.local.patchlog.PatchLog;
@@ -66,8 +67,9 @@ public abstract class AbstractPatchStore {
         PatchStore patchStore = provider();
         Id dsRef = Id.create();
         String name = "patch-store-"+(++counter);
-        Path patchesArea = Paths.get(DIR, name); 
-        PatchLog patchLog = patchStore.createLog(dsRef, name, patchesArea);
+        Path patchesArea = Paths.get(DIR, name);
+        DataSourceDescription dsd = new DataSourceDescription(dsRef, name, null);
+        PatchLog patchLog = patchStore.createLog(dsd, patchesArea);
         return patchLog;
     }
     
@@ -126,12 +128,10 @@ public abstract class AbstractPatchStore {
         Path patchesArea = Paths.get(DIR, info.getDataSourceName()); 
 
         // Same FileStore, different PatchLog?
-        PatchLog patchLog1 = provider.createLog(id, name, patchesArea);
-        
-        // PatchLogFile/FileStore
+        DataSourceDescription dsd = new DataSourceDescription(id, name, null);
+        PatchLog patchLog1 = provider.createLog(dsd, patchesArea);
         
         PatchLogInfo info1 = patchLog1.getDescription();
-        // XXX BUG Does not recover patch id.
         assertEquals(info, info1);
     }
     // Get non-existent.

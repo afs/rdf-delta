@@ -21,7 +21,9 @@ package org.seaborne.patch.changes;
 import org.apache.jena.graph.Node ;
 import org.seaborne.patch.RDFChanges ;
 
-public abstract class RDFChangesBase implements RDFChanges {
+public class RDFChangesBase implements RDFChanges {
+    // Logically, this is an abstrct class.
+    // But to ensure every operation has a mention here, we do not add "abstract".
     @Override
     public void start() {}
 

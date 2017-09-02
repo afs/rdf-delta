@@ -357,6 +357,13 @@ public class LocalServer {
       return x;
     }
 
+    public List<PatchLogInfo> listPatchLogInfo() {
+        // Important enough to have it's own cut-through method. 
+        List<PatchLogInfo> x = new ArrayList<>();
+        dataRegistry.forEach((id, ds)-> x.add(ds.getPatchLog().getDescription()));
+        return x;
+      }
+
     public SourceDescriptor getDescriptor(Id dsRef) {
         DataSource dataSource = dataRegistry.get(dsRef);
         return descriptor(dataSource);

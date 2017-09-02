@@ -50,7 +50,7 @@ public class DeltaHttpException extends DeltaException {
     
     @Override
     public String toString() {
-        return getStatusCode()+" "+getMessage(); 
+        return getStatusCode()+" : "+getMessage(); 
     }
     
 //    @Override
