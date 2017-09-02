@@ -29,6 +29,8 @@ import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.*;
@@ -56,6 +58,7 @@ public class DeltaConnection implements AutoCloseable {
     private final AtomicReference<PatchLogInfo> remote = new AtomicReference<>(null);
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
+    private final Dataset managedDataset;
     
     private final RDFChanges target;
     private final String datasourceName ;
@@ -106,9 +109,11 @@ public class DeltaConnection implements AutoCloseable {
             // Where to send outgoing changes.
             RDFChanges monitor = createRDFChanges(datasourceId);
             this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
+            this.managedDataset = DatasetFactory.wrap(managed);
         } else {
             this.target = null;
             this.managed = null;
+            this.managedDataset = null;
         }
     }
     
@@ -152,26 +157,28 @@ public class DeltaConnection implements AutoCloseable {
     }
 
     
-    // clone
-    protected DeltaConnection(DeltaConnection other) {
-        Objects.nonNull(other);
-        this.state = other.state;
-        this.base = other.base;
-        this.datasourceId = other.datasourceId;
-        this.datasourceName = other.datasourceName;
-        this.dLink = other.dLink;
-        this.valid = other.valid;
-        this.syncTxnBegin = other.syncTxnBegin;
-        // Not shared with "other".
-        if ( base != null  ) {
-            this.target = new RDFChangesApply(base);
-            RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(base, monitor, null, syncer(syncTxnBegin));
-        } else {
-            this.target = null;
-            this.managed = null;
-        }
-    }
+//    // clone
+//    protected DeltaConnection(DeltaConnection other) {
+//        Objects.nonNull(other);
+//        this.state = other.state;
+//        this.base = other.base;
+//        this.datasourceId = other.datasourceId;
+//        this.datasourceName = other.datasourceName;
+//        this.dLink = other.dLink;
+//        this.valid = other.valid;
+//        this.syncTxnBegin = other.syncTxnBegin;
+//        // Not shared with "other".
+//        if ( base != null  ) {
+//            this.target = new RDFChangesApply(base);
+//            RDFChanges monitor = createRDFChanges(datasourceId);
+//            this.managed = new DatasetGraphChanges(base, monitor, null, syncer(syncTxnBegin));
+//            this.managedDataset = DatasetFactory.wrap(managed);
+//        } else {
+//            this.target = null;
+//            this.managed = null;
+//            this.managedDataset = null;
+//        }
+//    }
     
     private void checkDeltaConnection() {
         if ( ! valid )
@@ -468,6 +475,11 @@ public class DeltaConnection implements AutoCloseable {
     public DatasetGraph getDatasetGraph() {
         checkDeltaConnection();
         return managed;
+    }
+
+    /** The "record changes" version */  
+    public Dataset getDataset() {
+        return managedDataset;
     }
 
     /** The "without changes" storage */   
