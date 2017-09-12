@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse ;
@@ -54,7 +55,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     // XXX Caching? Auth?
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes ;
-    private final String url;
+    private final Runnable resetAction;
+    private final Supplier<String> urlSupplier;
     private final String label ;
     // Used to coordinate with reading patches in.
     private final Object syncObject;
@@ -81,20 +83,19 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private static boolean SuppressEmptyCommits = false ;
     
     
-    public RDFChangesHTTP(String label, String url) {
-        this(label, null, url);
+    public RDFChangesHTTP(String label, Supplier<String> urlSupplier, Runnable resetAction) {
+        this(label, null, urlSupplier, resetAction);
     }
     
-    public RDFChangesHTTP(String label, Object syncObject, String url) {
-        this(label, syncObject, url, new ByteArrayOutputStream(100*1024));
+    public RDFChangesHTTP(String label, Object syncObject, Supplier<String> urlSupplier, Runnable resetAction) {
+        this(label, syncObject, urlSupplier, resetAction, new ByteArrayOutputStream(100*1024));
     }
 
-    private RDFChangesHTTP(String label, Object syncObject, String url, ByteArrayOutputStream out) {
+    private RDFChangesHTTP(String label, Object syncObject, Supplier<String> urlSupplier, Runnable resetAction, ByteArrayOutputStream out) {
         super(DeltaOps.tokenWriter(out));
-        this.syncObject = (syncObject!=null) ? syncObject : new Object(); 
-        this.url = url;
-        if ( label == null )
-            label = url;
+        this.syncObject = (syncObject!=null) ? syncObject : new Object();
+        this.resetAction = resetAction;
+        this.urlSupplier = urlSupplier;
         this.label = label;
         this.bytes = out;
         reset();
@@ -186,7 +187,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     
 //    /** An {@link HttpEntity} that is "output only"; it writes a RDF Patch
 //     * to an {@code OutputStream}.  
-//     * It does not support {@link HttpEntity#getContent()} (currently!).  
+//     * It does not support {@link HttpEntity#getContent()}
 //     */
 //    static class HttpEntityRDFChanges extends AbstractHttpEntity {
 //        // Open the connection on begin()
@@ -226,7 +227,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     
     private void send$() {
         String idStr = Id.str(patchId);
-        HttpPost postRequest = new HttpPost(url);
         byte[] bytes = collected();
 
         FmtLog.info(LOG, "Send patch %s (%d bytes) -> %s", idStr, bytes.length, label);
@@ -248,24 +248,35 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 LOG.debug("== ==");
             }
         }
-        postRequest.setEntity(new ByteArrayEntity(bytes));
+        
+        int attempts = 0 ;
+        for(;;) {
+            
+            HttpPost postRequest = new HttpPost(urlSupplier.get());
+            postRequest.setEntity(new ByteArrayEntity(bytes));
 
-        try(CloseableHttpResponse r = httpClient.execute(postRequest) ) {
-            statusLine = r.getStatusLine();
-            response = readResponse(r);
-            int sc = r.getStatusLine().getStatusCode();
-            if ( sc >= 200 && sc <= 299 )
-                return ;
-            if ( sc >= 300 && sc <= 399 ) {
-                FmtLog.info(LOG, "Send patch %s HTTP %d", idStr, sc);
-                throw new DeltaHttpException(sc, "HTTP Redirect");
-            }
-            if ( sc >= 400 && sc <= 499 )
-                throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
-            if ( sc >= 500 )
-                throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
-        } catch (IOException e) { throw IOX.exception(e); }
-        reset(); 
+            try(CloseableHttpResponse r = httpClient.execute(postRequest) ) {
+                attempts++;
+                statusLine = r.getStatusLine();
+                response = readResponse(r);
+                int sc = r.getStatusLine().getStatusCode();
+                if ( sc >= 200 && sc <= 299 )
+                    return ;
+                if ( sc >= 300 && sc <= 399 ) {
+                    FmtLog.info(LOG, "Send patch %s HTTP %d", idStr, sc);
+                    throw new DeltaHttpException(sc, "HTTP Redirect");
+                }
+                if ( sc == 401 && attempts == 1 && resetAction != null ) {
+                    resetAction.run();
+                    continue;
+                }
+                if ( sc >= 400 && sc <= 499 )
+                    throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
+                if ( sc >= 500 )
+                    throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
+                break;
+            } catch (IOException e) { throw IOX.exception(e); }
+        }
     }
         
     private static String readResponse(HttpResponse resp) {

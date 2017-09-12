@@ -48,8 +48,8 @@ public class DeltaLib {
         }
         
         if ( dest.startsWith("http:") || dest.startsWith("https:") ) {
-            // triggered on each transaction.
-            return new RDFChangesHTTP(null, dest) ;
+            // Triggered on each transaction.
+            return new RDFChangesHTTP(dest, ()->dest, null) ;
         }
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }

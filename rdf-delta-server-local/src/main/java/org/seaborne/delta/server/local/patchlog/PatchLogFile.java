@@ -230,15 +230,15 @@ public class PatchLogFile implements PatchLog {
         if ( LOG.isDebugEnabled() )
             FmtLog.debug(LOG, "append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
 
+        validateNewPatch(patchId, previousId, this::badPatchEx);
+
         if ( ! Objects.equals(previousId, this.latestId) ) {
             String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
                                        previousId, this.latestId);
             // Does not point to right previous version.
             throw new DeltaBadPatchException(msg);
         }
-
-        validateNewPatch(patchId, previousId, this::badPatchEx);
-
+        
         // ** Commit point for a patch, 
         // specifically at the atomic "move file" in FileStore::writeNewFile.
         FileEntry entry = fileStore.writeNewFile(out -> {
@@ -263,7 +263,7 @@ public class PatchLogFile implements PatchLog {
     
     private void validateNewPatch(Id patchId, Id previousId, BadHandler action) {
         if ( patchId == null )
-            badPatchEx("No id");
+            action.bad("No id");
         if ( idToVersion.containsKey(patchId) )
             action.bad("Patch already exists: patch=%s", patchId);
         if ( headers.containsKey(patchId) ) 

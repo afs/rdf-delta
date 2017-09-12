@@ -43,16 +43,17 @@ DELTA_CP="$D"
 
 if [[ -e logging.properties ]]
 then
-    LOGGING_JUL=-Djava.util.logging.config.file=logging.properties
+    LOGGING=-Djava.util.logging.config.file=logging.properties
 fi
+# Overrides JUL.
 if [[ -e log4j.properties ]]
 then
-    LOGGING_LOG4J=-Dlog4j.configuration=file:log4j.properties
+    LOGGING=-Dlog4j.configuration=file:log4j.properties
 fi
 
 if [[ $# = 0 ]]
 then
-    echo "Commands: mk, rm, list, get" 1>&2
+    echo "Commands: mk, rm, list, get, add" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
     #echo "No class to run" 1>&2
@@ -114,4 +115,4 @@ esac
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
-java $JVM_ARGS $LOGGING_LOG4J $LOGGING_JUL -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"
+java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"

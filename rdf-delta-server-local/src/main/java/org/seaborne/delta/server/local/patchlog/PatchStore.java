@@ -51,17 +51,18 @@ public abstract class PatchStore {
     // The provider name is used in config files. 
     public static void register(PatchStore impl) {
         String providerName = impl.getProviderName();
-        FmtLog.info(LOG, "register patch store: %s", providerName);
+        FmtLog.info(LOG, "Register patch store: %s", providerName);
         if ( patchStores.containsKey(providerName) )
             Log.error(PatchStore.class, "Already registered: "+providerName);
         patchStores.put(providerName, impl);
     }
     
-    public static void setDefault(String provideName) {
-        PatchStore impl = patchStores.get(provideName);
+    public static void setDefault(String providerName) {
+        PatchStore impl = patchStores.get(providerName);
         if ( impl == null )
-            throw new DeltaConfigException("No provider for '"+provideName+"'");  
+            throw new DeltaConfigException("No provider for '"+providerName+"'");  
         dftPatchStore = impl;
+        FmtLog.info(LOG, "Set default patch store: %s", providerName);
     }
     
     public static String getDefault() {

@@ -54,6 +54,10 @@ public abstract class DeltaServlet extends HttpServlet {
     // These should be unique across the server.
     // XXX [JVM-global registrations]
     protected static final Map<RegToken, Id> registrations = new ConcurrentHashMap<>();
+    
+    /** Automatically register when a RegToken is seen that is not recorded as registered.*/
+    private static final boolean AutoRegistration = false;
+    
     public static void clearRegistration(RegToken regToken) { registrations.remove(regToken) ; }  
     public static void clearAllRegistrations()              { registrations.clear(); }
     
@@ -96,7 +100,25 @@ public abstract class DeltaServlet extends HttpServlet {
             return false;
         return registrations.containsKey(token);
     }
+    
+    protected boolean isRegisteredOrReset(RegToken token) {
+        if ( token == null )
+            return false;
+        boolean b = isRegistered(token);
+        if ( !b )
+            b = handleNotRegistered(token);
+        return b ;
+    }
 
+    protected boolean handleNotRegistered(RegToken token) {
+        if ( ! AutoRegistration )
+            return false ;
+        Id client = Id.nullId();
+        Delta.DELTA_LOG.info("Auto-registration: regtoken="+token);
+        register(client, token);
+        return true;
+    }
+    
     /**
      * {@code HttpServlet.service} : add PATCH, add protection for exceptions.
      * ({@link doCommon} should handle these).

@@ -38,8 +38,8 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotConnectedException ;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.delta.link.RegToken;
-import org.seaborne.patch.RDFPatchReaderText ;
 import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchReaderText ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 
 /** 
@@ -141,16 +141,22 @@ public class DeltaLinkHTTP implements DeltaLink {
         }
     }
     
-    public RDFChangesHTTP createRDFChanges(Id dsRef) {
+    private RDFChangesHTTP createRDFChanges(Id dsRef) {
         Objects.requireNonNull(dsRef);
         checkLink();
         checkRegistered();
-        //String s = DeltaLib.makeURL(remoteSend, DeltaConst.paramReg, regToken.asString(), DeltaConst.paramDatasource, dsRef.asParam());
-        String url = remoteSend;
-        url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
+        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"),
+                                  ()->calcChangesURL(dsRef),
+                                  ()->reregister());
+    }
+    
+    
+    
+    /** Calculate the patch log URL */ 
+    private String calcChangesURL(Id dsRef) {
+        String url = createURL(remoteSend, DeltaConst.paramDatasource, dsRef.asParam());
         url = addToken(url);
-        
-        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"), url);
+        return url;
     }
 
     // Non-streaming - collect patch then replay to send it.  

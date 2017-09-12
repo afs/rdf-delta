@@ -27,8 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.jena.riot.web.HttpNames ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.old.S_Fetch;
-import org.seaborne.delta.server.http.old.S_Patch;
 import org.slf4j.Logger;
 
 /** Servlet for both append and fetch patches - the RDF Patch protocol.
@@ -37,13 +35,9 @@ import org.slf4j.Logger;
  *    <tt>GET  /{name}/version</tt> -- get patch
  */
 public class S_Log extends HttpOperationBase {
-    private final HttpOperationBase fetchServlet;
-    private final HttpOperationBase appendServlet; 
     
     public S_Log(AtomicReference<DeltaLink> engine) {
         super(engine);
-        this.fetchServlet = new S_Fetch(engine);
-        this.appendServlet = new S_Patch(engine);
     }
 
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
@@ -92,6 +86,7 @@ public class S_Log extends HttpOperationBase {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doCommon(req, resp);
     }
+    
     @Override
     protected String getOpName() {
         return "patch-log";
