@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+## Usage: dcmd <delta_main>
+## Sets up the java enviroment to run a command from RDF Delta.
+
+# Location of the delta-server.jar, which also contains the commands.
+DELTA_HOME="${DELTA_HOME:-$PWD}"
+CP="$DELTA_HOME/delta-server.jar"
+
+if [[ -e logging.properties ]]
+then
+    LOGGING=-Djava.util.logging.config.file=logging.properties
+fi
+
+if [[ $# = 0 ]]
+then
+    echo "Commands: mk, rm, list, get, add" 1>&2
+    exit
+else
+    CMD="$1"
+    shift
+fi
+
+# Map CMD to class name
+BASE_PKG="org.seaborne.delta"
+DCMD_PKG="${BASE_PKG}.cmds"
+
+# Alternative names.
+case $CMD in
+    appendpatch|append|add)
+	CMD=addpatch ;;
+    mk)
+	CMD=mklog ;;
+    rm)
+	CMD=rmlog ;;
+    get)
+	CMD=getpatch ;;
+    *) ;;
+esac
+
+# Map to class name.
+case $CMD in
+    "")
+    ;;
+    mklog | rmlog | list | addpatch | getpatch )
+	CMD_CLS="$DCMD_PKG"."$CMD"
+	;;
+    ls)
+        CMD_CLS="${DCMD_PKG}.list"
+	;;
+    rdf2patch | patch2rdf)
+	CMD_CLS="$DCMD_PKG"."$CMD"
+	;;
+    patchserver | server )
+	CMD_CLS="delta.server.DeltaServer"
+	;;
+    org.seaborne.delta.* | delta.* )
+	CMD_CLS=$CMD
+	;;
+    tools.*)
+	CMD_CLS="${BASE_PKG}"."$CMD"
+	;;
+    *)
+	echo "Unknown command $CMD" 2>&1
+	exit 1
+    ;;
+
+esac
+
+java $JVM_ARGS $LOGGING -cp "$CP" "$CMD_CLS" "$@"

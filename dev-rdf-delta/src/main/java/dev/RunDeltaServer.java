@@ -39,7 +39,7 @@ public class RunDeltaServer {
         String base = "DeltaServer";
         FileOps.clearAll(base);
         if ( args.length == 0 )
-            args = new String[] {"--base=DeltaServer"};
+            args = new String[] {"--base=."};
         delta.server.DeltaServer.main(args);
     }
 }

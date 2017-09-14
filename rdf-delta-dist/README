@@ -1,0 +1,14 @@
+RDF Delta
+=========
+
+This is the the "Delta Server" that coordinates patches.
+
+http://github.com/afs/rdf-delta
+
+for status and documentation.
+
+To run the server:
+
+   java -jar delta-server.jar --base DIR
+
+where DIR is the directory for storing pacthes.

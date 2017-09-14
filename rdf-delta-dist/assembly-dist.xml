@@ -33,29 +33,28 @@
 
   <baseDirectory>${project.artifactId}-${project.version}</baseDirectory>
 
-  <!-- Split module into shader (makes the HTTP Delta server)
-       and distribution (makes the zip)
-  -->
-
-  <!-- Standalone JAR - ->
   <dependencySets>
+    <!-- Standalone JAR -->
     <dependencySet>
-      <outputDirectory></outputDirectory>
-      <useProjectArtifact>true</useProjectArtifact>
+      <useProjectArtifact>false</useProjectArtifact>
+      <includes>
+        <include>org.seaborne.rdf-delta:rdf-delta-system:jar</include>
+      </includes>
       <outputFileNameMapping>delta-server.jar</outputFileNameMapping>
     </dependencySet>
-  </dependencySets>
-  -->
 
+    <!-- WAR file - - >
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <includes>
+        <include>org.seaborne.rdf-delta:rdf-delta-war:war</include>
+      </includes>
+      <outputFileNameMapping>delta-server.war</outputFileNameMapping>
+      </dependencySet>
+    -->
+  </dependencySets>
 
   <files>
-     <file>
-       <!-- Copy in the server jar -->
-       <outputDirectory></outputDirectory>
-       <source>target/rdf-delta-server.jar</source>
-       <destName>rdf-delta-server.jar</destName>
-    </file>
-
     <file>
       <outputDirectory></outputDirectory>
       <source>dist/LICENSE</source>
@@ -66,18 +65,13 @@
       <source>dist/NOTICE</source>
       <destName>NOTICE</destName>
     </file>
-    <file>
-      <source>dist/README</source>
-      <destName>README</destName>
-      <outputDirectory></outputDirectory>
-    </file>
   </files>
 
   <fileSets>
     <fileSet>
       <outputDirectory></outputDirectory>
       <includes>
-        <include>templates/*</include>
+        <include>logging.properties</include>
         <include>README*</include>
         <include>DEPENDENCIES*</include>
       </includes>
