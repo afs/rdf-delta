@@ -71,11 +71,11 @@ public class LocalServer {
     /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
     static private void initSystem() {
         // Ensure the file-based PatchStore provider is available
-        if ( ! PatchStore.isRegistered(DPS.PatchStoreProviderFile) ) {
+        if ( ! PatchStore.isRegistered(DPS.PatchStoreFileProvider) ) {
             FmtLog.warn(LOG, "PatchStoreFile provider not registered");
             PatchStore ps = new PatchStoreFile();
-            if ( ! DPS.PatchStoreProviderFile.equals(ps.getProviderName())) {
-                FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreProviderFile, ps.getProviderName());
+            if ( ! DPS.PatchStoreFileProvider.equals(ps.getProviderName())) {
+                FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreFileProvider, ps.getProviderName());
                 throw new DeltaConfigException();
             }
             PatchStore.register(ps);
@@ -84,7 +84,7 @@ public class LocalServer {
         // Default the log provider to "file"
         if ( PatchStore.getDefault() == null ) {
             //FmtLog.warn(LOG, "PatchStore default not set.");
-            PatchStore.setDefault(DPS.PatchStoreProviderFile);
+            PatchStore.setDefault(DPS.PatchStoreFileProvider);
         }
     }
     

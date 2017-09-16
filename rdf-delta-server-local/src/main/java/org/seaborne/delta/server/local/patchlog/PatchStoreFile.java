@@ -33,7 +33,7 @@ public class PatchStoreFile extends PatchStore {
     }
     
     public PatchStoreFile() {
-        super(DPS.PatchStoreProviderFile) ;
+        super(DPS.PatchStoreFileProvider) ;
     }
 
     @Override

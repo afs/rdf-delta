@@ -71,6 +71,7 @@
     <fileSet>
       <outputDirectory></outputDirectory>
       <includes>
+        <include>dcmd</include>
         <include>logging.properties</include>
         <include>README*</include>
         <include>DEPENDENCIES*</include>

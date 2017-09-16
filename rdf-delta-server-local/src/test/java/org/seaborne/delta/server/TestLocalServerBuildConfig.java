@@ -58,7 +58,7 @@ public class TestLocalServerBuildConfig {
         // Blank start up.
         LocalServerConfig conf = LocalServerConfig.create()
             .setLocation("target/test_config02")
-            .setLogProvider(DPS.PatchStoreProviderFile)
+            .setLogProvider(DPS.PatchStoreFileProvider)
             .build();
         LocalServer.create(conf);
     }

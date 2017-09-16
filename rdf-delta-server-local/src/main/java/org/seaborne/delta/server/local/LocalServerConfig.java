@@ -114,22 +114,22 @@ public class LocalServerConfig {
             this.configFile = configFile;
 
             // -- log provider
-            String logProvider = JSONX.getStrOrNull(obj, F_LOG_TYPE);
-            if ( logProvider == null )
-                logProvider = DeltaConst.LOG_FILE;
-            // Map to the provider name.
-            switch (logProvider) {
+            String provider = JSONX.getStrOrNull(obj, F_LOG_TYPE);
+            if ( provider == null )
+                provider = DeltaConst.LOG_FILE;
+            // Map short/colloquial name to the proper provider name.
+            switch (provider) {
                 case DeltaConst.LOG_FILE: 
-                    logProvider = DPS.PatchStoreProviderFile;
+                    provider = DPS.PatchStoreFileProvider;
                     break;
-//                // Other
-//                case DeltaConst.LOG_SQL:
-//                    logProvider = DPS.????;
-//                    break;
+                case DeltaConst.LOG_SQL:
+                    provider = "PatchStoreSQLProvider";
+                    break;
 //                case DeltaConst.LOG_S3:
 //                    logProvider = DPS.????;
 //                    break;
             }
+            logProvider = provider;
             return this;  
         }
         
