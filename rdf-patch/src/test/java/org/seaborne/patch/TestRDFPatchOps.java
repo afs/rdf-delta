@@ -18,29 +18,9 @@
 
 package org.seaborne.patch;
 
-import org.apache.jena.graph.Node;
+import org.junit.Test;
 
-public interface RDFPatch {
-    // Long name - not preferred.
-    static final String PREVIOUS        = "previous" ;
+public class TestRDFPatchOps {
+    @Test public void patchop_01() {}
     
-    public PatchHeader header() ;
-    
-    public default Node getHeader(String field) { 
-        return header().get(field) ; 
-    }
-    
-    public default Node getId() { 
-        return header().get(RDFPatchConst.ID) ;
-    }
-
-    public default Node getPrevious() {
-        Node n = header().get(RDFPatchConst.PREV) ;
-        if ( n == null )
-            n = header().get(PREVIOUS) ;
-        return n;
-    }
-    
-    /** Act on the patch by sending it to a changes processor. */ 
-    public void apply(RDFChanges changes);
 }

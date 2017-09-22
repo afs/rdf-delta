@@ -58,6 +58,7 @@ public abstract class PatchStore {
     }
     
     public static void setDefault(String providerName) {
+        //***************
         PatchStore impl = patchStores.get(providerName);
         if ( impl == null )
             throw new DeltaConfigException("No provider for '"+providerName+"'");  

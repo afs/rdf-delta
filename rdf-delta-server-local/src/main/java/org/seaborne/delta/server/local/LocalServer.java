@@ -302,8 +302,7 @@ public class LocalServer {
     }
 
     private void init() {
-        // XXX PatchStore.setDefault -> assumes only one LocalServer
-        if ( serverConfig.logProvider != null )
+        if ( serverConfig.logProvider != null && PatchStore.getDefault() == null )
             PatchStore.setDefault(serverConfig.logProvider);  
     }
     

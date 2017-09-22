@@ -54,7 +54,7 @@ public class StreamPatch implements StreamRDF {
             // Header
             // Node n = NodeFactory.createURI(JenaUUID.getFactory().generate().asURI());
             Node n = NodeFactory.createURI("uuid:"+UUID.randomUUID().toString());
-            c.header(RDFPatch.ID, n);
+            c.header(RDFPatchConst.ID, n);
             c.txnBegin();
         }
     }

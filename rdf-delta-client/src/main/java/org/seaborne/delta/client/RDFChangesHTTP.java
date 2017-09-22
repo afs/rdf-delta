@@ -41,7 +41,7 @@ import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.DeltaOps;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.lib.IOX ;
-import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesCancelOnNoChange;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
@@ -104,7 +104,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     @Override
     public void header(String field, Node value) {
         super.header(field, value);
-        if ( field.equals(RDFPatch.ID) )
+        if ( field.equals(RDFPatchConst.ID) )
             patchId = value;
     }
     

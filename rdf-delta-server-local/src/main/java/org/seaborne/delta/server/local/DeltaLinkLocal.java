@@ -154,15 +154,20 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         checkRegistered();
         DataSource source = getDataSource(dsRef);
         // Patch not known to be valid yet.
-        // Patch not safe in th Patch Log yet.
+        // Patch not safe in the Patch Log yet.
+        PatchLog patchLog = source.getPatchLog() ;
         try {
-            PatchLog patchLog = source.getPatchLog() ;
-            beforeWrite(patchLog, rdfPatch);
+            beforeWrite(source, patchLog, rdfPatch);
+            //FmtLog.info(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()), source);
+            long t1 = System.currentTimeMillis();
+            
             long version = patchLog.append(rdfPatch);
-            afterWrite(rdfPatch, version);
-            FmtLog.info(LOG, "append: Patch=%s[%d] ds=%s", str(rdfPatch.getId()), version, source);
+            
+            long t2 = System.currentTimeMillis();
+            afterWrite(source, rdfPatch, version, (t2 - t1));
             return version; 
         } catch (RuntimeException ex) {
+            badWrite(source, patchLog, rdfPatch, ex);
             FmtLog.info(LOG, "append: Failed: Dest=%s Patch=%s ; %s", source, str(rdfPatch.getId()), ex.getMessage());
             throw ex;
         }
@@ -171,15 +176,21 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     /** Called before writing the patch to the {@link PatchLog}. 
      * There is no guaranttee that the patch is valid and will be commited to the PatchLog. 
      */
-    protected void beforeWrite(PatchLog patchLog, RDFPatch rdfPatch) {
-        //FmtLog.info(LOG, "Before write: patch=%s[%d] ds=%s ", str(rdfPatch.getId()), version, dsRef);
+    protected void beforeWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch) {
+        //FmtLog.info(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()), patchLog.getLogId().toString());
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */
-    protected void afterWrite(RDFPatch rdfPatch, long version) {
-        //FmtLog.info(LOG, "After write:  patch=%s [%d] ds=%s", str(rdfPatch.getId()), version, dsRef);
+    protected void afterWrite(DataSource source, RDFPatch rdfPatch, long version, long timeElapsed) {
+        //FmtLog.info(LOG, "append: finish: Patch=%s[ver=%d] ds=%s", str(rdfPatch.getId()), version, source);
+        FmtLog.info(LOG, "append (%.3fs): Patch=%s[ver=%d] ds=%s", (timeElapsed/1000.0), str(rdfPatch.getId()), version, source);
     }
 
+    /** Called after writing the patch to the {@link PatchLog}. */
+    protected void badWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch, RuntimeException ex) {
+        FmtLog.info(LOG, "Bad write: patch=%s ds=%s : msg=%s", str(rdfPatch.getId()), ex.getMessage());
+    }
+    
     private DataSource getDataSource(Id dsRef) {
         DataSource source = localServer.getDataSource(dsRef);
         if ( source == null )

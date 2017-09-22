@@ -20,7 +20,7 @@ package org.seaborne.patch.changes;
 
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.graph.Node;
-import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.system.Printer ;
 
 public class RDFChangesLogSummary extends RDFChangesCounter {
@@ -39,7 +39,7 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
     
     @Override
     public void header(String field, Node value) {
-        if ( Objects.equal(field, RDFPatch.ID) )
+        if ( Objects.equal(field, RDFPatchConst.ID) )
             node = value;
         super.header(field, value);
     }

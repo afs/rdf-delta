@@ -38,11 +38,11 @@ public class PatchHeader {
     }
     
     public Node getId() { 
-        return get(RDFPatch.ID) ;
+        return get(RDFPatchConst.ID) ;
     }
 
     public Node getPrevious() {
-        Node n = get(RDFPatch.PREV) ;
+        Node n = get(RDFPatchConst.PREV) ;
         if ( n == null )
             n = get(RDFPatch.PREVIOUS) ;
         return n;

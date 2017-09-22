@@ -23,10 +23,14 @@ import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.uuid.JenaUUID;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.patch.changes.*;
@@ -55,7 +59,7 @@ public class RDFPatchOps {
 
     private static class RDFPatchEmpty implements RDFPatch {
         private final Node id = NodeFactory.createURI(JenaUUID.generate().asURI());
-        private final PatchHeader header = new PatchHeader(Collections.singletonMap(RDFPatch.ID, id));
+        private final PatchHeader header = new PatchHeader(Collections.singletonMap(RDFPatchConst.ID, id));
         
         RDFPatchEmpty() {}
         
@@ -105,8 +109,36 @@ public class RDFPatchOps {
         return x.getRDFPatch();
     }
     
-
+    /** RDF data file to patch.
+     * The patch has no Id or Previous - see {@link #withHeader}.
+     */
+    public static RDFPatch rdf2patch(String rdfDataFile) {
+        RDFChangesCollector x = new RDFChangesCollector();
+        RDF2Patch dest  = new RDF2Patch(x);
+        dest.start();
+        RDFDataMgr.parse(dest, rdfDataFile);
+        dest.finish();
+        // Headers.
+        RDFPatch patch = x.getRDFPatch();
+        return patch;
+    }
     
+    /** Create a patch with the header and body as given in the arguments, ignoring any header in the body patch. */
+    public static RDFPatch withHeader(PatchHeader header, RDFPatch body) {
+        return new RDFPatchAltHeader(header, body);
+    }
+    
+    /** Match a patch header with the given id and prev. Prev may be null. */
+    public static PatchHeader makeHeader(Node id, Node prev) {
+        Objects.requireNonNull(id, "Head id node is null");
+        Map<String, Node> m = new HashMap<>();
+        m.put(RDFPatchConst.ID, id);
+        if ( prev != null )
+            m.put(RDFPatchConst.PREV, prev);
+        return new PatchHeader(m);
+    }
+    
+
     /** Read an {@link RDFPatch} from a file. */
     public static RDFPatch read(InputStream input) {
         RDFPatchReaderText pr = new RDFPatchReaderText(input) ;

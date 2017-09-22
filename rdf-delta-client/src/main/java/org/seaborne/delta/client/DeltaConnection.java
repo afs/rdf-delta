@@ -38,6 +38,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
@@ -194,17 +195,17 @@ public class DeltaConnection implements AutoCloseable {
                 super.txnBegin();
                 if ( currentTransactionId == null ) {
                     currentTransactionId = Id.create().asNode();
-                    super.header(RDFPatch.ID, currentTransactionId);
+                    super.header(RDFPatchConst.ID, currentTransactionId);
                 }
             }
 
             @Override
             public void txnCommit() {
                 super.txnCommit();
-                if ( super.header(RDFPatch.PREV) == null ) {
+                if ( super.header(RDFPatchConst.PREV) == null ) {
                     Id x = state.latestPatchId();
                     if ( x != null )
-                        super.header(RDFPatch.PREV, x.asNode());
+                        super.header(RDFPatchConst.PREV, x.asNode());
                 }
 
                 RDFPatch patch = getRDFPatch();
