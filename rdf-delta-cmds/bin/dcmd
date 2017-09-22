@@ -25,7 +25,7 @@ rdf-patch tio dev-rdf-delta
 rdf-delta-cmds
 EOM
 
-if true # if in development area ./
+if true # if in development area
 then
     for X in $MODULES
     do
@@ -37,7 +37,6 @@ else
     echo "Not implemented: classpath by artifacts" 2>&1
     exit 9
 fi
-
 
 DELTA_CP="$D"
 

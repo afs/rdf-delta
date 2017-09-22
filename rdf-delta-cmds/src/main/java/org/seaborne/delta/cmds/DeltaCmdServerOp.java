@@ -54,11 +54,11 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
     @Override
     protected void execCmd() {
         // check
-        super.getValues(argDataSourceURI).forEach(this::checkCmdName);
+        super.getValues(argLogName).forEach(this::checkCmdName);
         super.getValues(argDataSourceURI).forEach(this::checkCmdURI);
         super.getPositional().forEach(this::checkCmdName);
         // execute
-        super.getValues(argDataSourceURI).forEach(this::execCmdName);
+        super.getValues(argLogName).forEach(this::execCmdName);
         super.getValues(argDataSourceURI).forEach(this::execCmdURI);
         super.getPositional().forEach(this::execCmdName);
     }

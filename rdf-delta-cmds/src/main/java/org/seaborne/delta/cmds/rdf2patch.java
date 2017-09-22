@@ -20,6 +20,7 @@ package org.seaborne.delta.cmds;
 
 import java.io.InputStream ;
 
+import jena.cmd.CmdException;
 import jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.riot.RDFDataMgr ;
@@ -67,11 +68,9 @@ public class rdf2patch extends CmdGeneral
 
         dest.finish();
     }
-    
 
     private void execOne(InputStream input) {
-        
-        
+        throw new CmdException("Reeading from stdin not implemented");
     }
     
     @Override

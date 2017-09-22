@@ -29,6 +29,8 @@ public class DevDeltaToDo {
     
     // Tests for "non-rows" RDFPatch 
     
+    // Register the patch as a RDFLanguage.
+    
     // Document API
     // /{name}/data --> Args
 

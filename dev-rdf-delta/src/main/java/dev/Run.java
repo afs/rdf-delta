@@ -38,6 +38,7 @@ import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.client.DeltaConnection ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.client.Zone ;
+import org.seaborne.delta.cmds.dcmd;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
@@ -54,6 +55,8 @@ public class Run {
     // previous checking.
     // Remove (hide) DSG from DeltaConnection start-up : TDB or file only.
     // Connect by name.
+    
+    // "dcmd rm" does not work.
     
     // ** Need patch rejection
     // ** Start at id:nil (or id:datasource?)
@@ -75,6 +78,11 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
+        //dcmd.main("add" ,"--server=http://localhost:1066/", "--log=ABC", "/home/afs/tmp/D.ttl");
+        dcmd.main("rm" ,"--server=http://localhost:1066/", "--log=DEF");
+        System.exit(0);
+        
+        
         DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066");
         dLink.ping();
         //dLink.isRegistered();
