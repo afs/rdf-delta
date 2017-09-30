@@ -1,13 +1,17 @@
 <div id="sidebar-wrapper">
   <ul class="sidebar-nav">
     
-    <li  class="sidebar-brand"><a href="{{site.baseurl}}/">Delta</a></li>
-    
+    <li  class="sidebar-brand">
+    	 <a href="{{site.baseurl}}/" style="text-decoration: none"
+    	 >Delta</a>
+	 </li>
     {% assign section_pages = site.html_pages | sort: 'section' %}
     {% for p in section_pages %}
     {% if p.section > 0 %}
     <li>
-      <a href="{{ p.url | prepend:site.baseurl }}" {% if p.url == page.url %}class="active"{% endif %}>
+      <a href="{{ p.url | prepend:site.baseurl }}"
+      	 {% if p.url == page.url %}class="active"{% endif %}
+      >	 
         {{ p.nav_text }}
       </a>
     </li>
