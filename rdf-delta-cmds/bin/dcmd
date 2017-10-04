@@ -52,7 +52,7 @@ fi
 
 if [[ $# = 0 ]]
 then
-    echo "Commands: mk, rm, list, get, add" 1>&2
+    echo "Commands: mk, rm, list, get, add, parse" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
     #echo "No class to run" 1>&2
@@ -76,6 +76,8 @@ case $CMD in
 	CMD=rmlog ;;
     get)
 	CMD=getpatch ;;
+    parse|validate)
+	CMD=patchparse ;;
     *) ;;
 esac
 
@@ -89,7 +91,7 @@ case $CMD in
     ls)
         CMD_CLS="${DCMD_PKG}.list"
 	;;
-    rdf2patch | patch2rdf)
+    rdf2patch | patch2rdf | patchparse )
 	CMD_CLS="$DCMD_PKG"."$CMD"
 	;;
     patchserver | server )
