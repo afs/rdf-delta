@@ -21,6 +21,7 @@ package org.seaborne.delta;
 import static org.seaborne.delta.DeltaConst.F_LATEST ;
 import static org.seaborne.delta.DeltaConst.F_MAXVER ;
 import static org.seaborne.delta.DeltaConst.F_MINVER ;
+import static org.seaborne.delta.DeltaOps.*;
 
 import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonObject ;
@@ -98,12 +99,6 @@ public class PatchLogInfo {
                              (latestPatch==null)?"":latestPatch.toString());
     }
 
-    private static String verString(long version) {
-        if ( version == DeltaConst.VERSION_UNSET )
-            return "--";
-        return Long.toString(version);
-    }
-    
     public DataSourceDescription getDataSourceDescr() {
         return dsd;
     }

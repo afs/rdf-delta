@@ -18,6 +18,8 @@
 
 package delta.server;
 
+import static org.seaborne.delta.DeltaOps.verString;
+
 import java.net.BindException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,13 +32,14 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.slf4j.Logger;
@@ -109,11 +112,19 @@ public class DeltaServer {
         PatchLogServer dps = PatchLogServer.create(port, link) ;
         FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
         
-        List<DataSourceDescription> descriptions = link.listDescriptions();
-        if ( descriptions.isEmpty() )
-            FmtLog.info(LOG, "   No data sources");
-        else
-            descriptions.forEach(dsd->FmtLog.info(LOG, "   Data source : %s", dsd));
+        List<DataSource> sources = server.listDataSources();
+        
+        if ( sources.isEmpty() )
+            FmtLog.info(LOG, "  No data sources");
+        else {
+            //descriptions.forEach(dsd->FmtLog.info(LOG, "   Data source : %s", dsd));
+            // Print nicely.
+            sources.sort( (ds1, ds2)-> ds1.getName().compareTo(ds2.getName()) );
+            sources.forEach(ds->{
+                PatchLogInfo info = ds.getPatchLog().getDescription();
+                FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s]", info.getDataSourceDescr(), verString(info.getMinVersion()), verString(info.getMaxVersion()) );
+            });
+        }
 
         // And away we go.
         try { 
@@ -124,7 +135,7 @@ public class DeltaServer {
         }
         dps.join();
     }
-
+    
     private static int choosePort(CmdLineArgs cla, LocalServer server) {
         // The port choosen from this ordered list:
         //   Command line

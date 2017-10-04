@@ -55,13 +55,12 @@ public class DataRegistry extends Registry<Id, DataSource> {
     
     @Override
     public void put(Id key, DataSource ds) {
-        LOG.info("Register datasource: "+key );
+        if ( LOG.isDebugEnabled() ) LOG.debug("Register datasource: "+key );
         super.put(key, ds) ;
         if ( ds.getURI() != null )
             indexByURI.put(ds.getURI(), ds);
         if ( ds.getName() != null )
             indexByName.put(ds.getName(), ds);
-
     }
     
     @Override

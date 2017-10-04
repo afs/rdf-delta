@@ -102,7 +102,7 @@ public class FileStore {
         } else {
             min = indexes.get(0);
             max = indexes.get(indexes.size()-1);
-            FmtLog.info(LOG, "FileStore : index [%d,%d] %s", min, max, dirname);
+            if ( LOG.isDebugEnabled() ) FmtLog.debug(LOG, "FileStore : index [%d,%d] %s", min, max, dirname);
         }
         FileStore fs = new FileStore(dirPath, basename, indexes, min, max);
         areas.put(k, fs);

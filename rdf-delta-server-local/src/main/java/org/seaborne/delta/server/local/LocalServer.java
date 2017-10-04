@@ -170,7 +170,7 @@ public class LocalServer {
         List<Path> dataSources = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();
         
-        dataSources.forEach(p->LOG.info("Data source: "+p));
+        //dataSources.forEach(p->LOG.info("Data source: "+p));
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
         for ( Path p : dataSources ) {
@@ -181,7 +181,6 @@ public class LocalServer {
         }
         return attachServer(conf, dataRegistry);
     }
-    
     
     public static void release(LocalServer localServer) {
         Location key = localServer.serverConfig.location;
@@ -198,11 +197,12 @@ public class LocalServer {
      */
     private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Location serverRoot, DataRegistry dataRegistry) {
         Path dir = IOX.asPath(serverRoot);
+        
         try { 
-            List<Path> directory = ListUtils.toList( Files.list(dir).filter(p->Files.isDirectory(p)) );
-            directory.stream()
-                .filter(LocalServer::isFormattedDataSource)
-                .collect(Collectors.toList());
+            List<Path> directory = ListUtils.toList( Files.list(dir).filter(p->Files.isDirectory(p)).sorted() );
+//            directory.stream()
+//                .filter(LocalServer::isFormattedDataSource)
+//                .collect(Collectors.toList());
             List<Path> enabled = directory.stream()
                 .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());
@@ -265,13 +265,15 @@ public class LocalServer {
 //        PatchLog patchLog = patchStore.attachLog(id, uriStr, dataSourceArea);
 //        
 //        Path patchesArea = dataSourceArea.resolve(DeltaConst.LOG);
-//        // Everything in tis area is under the control of the PatachStore. 
+//        // Everything in this area is under the control of the PatchStore. 
 //        FileOps.ensureDir(patchesArea.toString());
         
-        FmtLog.info(LOG, "DataSource: id=%s, source=%s", id, dataSourceArea);
+        if ( LOG.isDebugEnabled() ) 
+            FmtLog.debug(LOG, "DataSource: id=%s, source=%s", id, dataSourceArea);
         DataSource dataSource = DataSource.connect(id, uriStr, dsName, dataSourceArea);
         dataRegistry.put(id, dataSource);
-        FmtLog.info(LOG, "DataSource: %s (%s)", dataSource, baseStr);
+        if ( LOG.isDebugEnabled() ) 
+            FmtLog.debug(LOG, "DataSource: %s (%s)", dataSource, baseStr);
         return dataSource ;
     }
     
