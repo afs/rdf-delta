@@ -38,7 +38,7 @@
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
       <includes>
-        <include>org.seaborne.rdf-delta:rdf-delta-system:jar</include>
+        <include>org.seaborne.rdf-delta:rdf-delta-server:jar</include>
       </includes>
       <outputFileNameMapping>delta-server.jar</outputFileNameMapping>
     </dependencySet>

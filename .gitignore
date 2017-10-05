@@ -45,6 +45,10 @@ gradle-app.setting
 .#*
 \#*
 
+# Log files
+*.log
+*.log.lck
+
 # Databases and Fuseki
 /run/
 DB*

@@ -35,7 +35,7 @@
   <dependencies>
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-delta-system</artifactId>
+      <artifactId>rdf-delta-server</artifactId>
       <version>0.0.0-SNAPSHOT</version>
     </dependency>
 
