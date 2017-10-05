@@ -270,18 +270,18 @@ public class PatchLogFile implements PatchLog {
             action.bad("Patch header already exists: patch=%s", patchId);
     }
     
-    private void validate(Id patchId, Id previousId, BadHandler action) {
-        if ( patchId == null )
-            badPatchEx("No id");
-
-        if ( ! idToVersion.containsKey(patchId) )
-            action.bad("Patch not found: patch=%s", patchId);
-        if ( ! headers.containsKey(patchId) ) 
-            action.bad("Patch header not found: patch=%s", patchId);
-        
-        PatchHeader header = headers.get(patchId);
-        validate(header, patchId, previousId, action);
-    }
+//    private void validate(Id patchId, Id previousId, BadHandler action) {
+//        if ( patchId == null )
+//            badPatchEx("No id");
+//
+//        if ( ! idToVersion.containsKey(patchId) )
+//            action.bad("Patch not found: patch=%s", patchId);
+//        if ( ! headers.containsKey(patchId) ) 
+//            action.bad("Patch header not found: patch=%s", patchId);
+//        
+//        PatchHeader header = headers.get(patchId);
+//        validate(header, patchId, previousId, action);
+//    }
         
     private void validate(PatchHeader header, Id patchId, Id previousId, BadHandler action) {
         // Non header

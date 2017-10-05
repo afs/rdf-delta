@@ -116,16 +116,18 @@ public class DeltaLinkHTTP implements DeltaLink {
     // Like Callable but no Exception.
     interface Action<T> { T action() ; }
 
-    private <T> T retry(Action<T> callable, Supplier<String> retryMsg, Supplier<String> failureMsg) {
+    /** Perform a retryable operation. Retry only happen if HttpException happens. */
+    private <T> T retry(Action<T> callable, Supplier<Boolean> retryable, Supplier<String> retryMsg, Supplier<String> failureMsg) {
         for ( int i = 1 ; ; i++ ) {
             try {
                 return callable.action();
             } catch (HttpException ex) {
                 if ( ex.getResponseCode() == HttpSC.UNAUTHORIZED_401 ) {
-                    if ( i < RETRIES_REGISTRATION ) {
+                    if ( retryable.get() && i < RETRIES_REGISTRATION ) {
                         if ( retryMsg != null  )
                             Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
                         reregister();
+                        // Retry.
                         continue;
                     }
                     if ( failureMsg != null )
@@ -138,6 +140,7 @@ public class DeltaLinkHTTP implements DeltaLink {
                     Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
                 throw ex;
             }
+            // Any tother exception - don't retry.
         }
     }
     
@@ -150,8 +153,6 @@ public class DeltaLinkHTTP implements DeltaLink {
                                   ()->reregister());
     }
     
-    
-    
     /** Calculate the patch log URL */ 
     private String calcChangesURL(Id dsRef) {
         String url = createURL(remoteSend, DeltaConst.paramDatasource, dsRef.asParam());
@@ -159,18 +160,22 @@ public class DeltaLinkHTTP implements DeltaLink {
         return url;
     }
 
-    // Non-streaming - collect patch then replay to send it.  
     @Override
     public long append(Id dsRef, RDFPatch patch) {
         checkLink();
-        String str = retry(()->{
-            RDFChangesHTTP remote = createRDFChanges(dsRef);
-            // [NET] Network point
-            // If not re-applyable, we need a copy.
-            patch.apply(remote);
-            return remote.getResponse();
-        }, ()->"Retry append patch.", ()->"Failed to append patch : "+dsRef);
         
+        long t1 = System.currentTimeMillis();
+        String str = retry(()->{
+                            RDFChangesHTTP remote = createRDFChanges(dsRef);
+                            // [NET] Network point
+                            // If not re-applyable, we need a copy.
+                            patch.apply(remote);
+                            return remote.getResponse();
+                        }, 
+                        ()->patch.repeatable(),
+                        ()->"Retry append patch.", ()->"Failed to append patch : "+dsRef);
+        long t2 = System.currentTimeMillis();
+        long elapsed_ms = (t2-t1);
         if ( str != null ) {
             try {
                 JsonObject obj = JSON.parse(str);
@@ -214,7 +219,7 @@ public class DeltaLinkHTTP implements DeltaLink {
                 RDFChangesCollector collector = new RDFChangesCollector();
                 pr.apply(collector);
                 return collector.getRDFPatch();
-            }, ()->"Retry fetch patch.", ()->"Failed to fetch patch.");
+            }, ()->true, ()->"Retry fetch patch.", ()->"Failed to fetch patch.");
         }
         catch ( HttpException ex) {
             if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )
@@ -429,6 +434,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         // [NET] Network point
         return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx),
+                     ()->true,
                      ()->"Retry rpc : "+opName,
                      ()->"Failed rpc : "+opName);
     }

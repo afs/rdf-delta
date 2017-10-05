@@ -19,32 +19,32 @@
 package org.seaborne.delta.server.local;
 
 import static org.apache.jena.atlas.lib.ListUtils.toList;
-import static org.seaborne.delta.Id.str ;
+import static org.seaborne.delta.Id.str;
 
-import java.nio.file.Files ;
-import java.nio.file.Path ;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
-import org.apache.jena.atlas.logging.FmtLog ;
-import org.seaborne.delta.* ;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
-import org.seaborne.delta.link.DeltaNotRegisteredException ;
-import org.seaborne.delta.server.local.patchlog.PatchLog ;
-import org.seaborne.patch.RDFPatch ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
+import org.seaborne.delta.link.DeltaNotRegisteredException;
+import org.seaborne.delta.server.local.patchlog.PatchLog;
+import org.seaborne.patch.RDFPatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** Implementation of {@link DeltaLink} backed by a {@link LocalServer}. */  
+/** Implementation of {@link DeltaLink} backed by a {@link LocalServer}. */
 public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
-    private static final int BUF_SIZE = 128*1024;
+    private static final int  BUF_SIZE = 128 * 1024;
 
-    private static Logger LOG = LoggerFactory.getLogger(DeltaLinkLocal.class) ;
-    
+    private static Logger     LOG      = LoggerFactory.getLogger(DeltaLinkLocal.class);
+
     private final LocalServer localServer;
-    private boolean linkOpen = false;
-    
+    private boolean           linkOpen = false;
+
     public static DeltaLink connect(LocalServer localServer) {
         return new DeltaLinkLocal(localServer);
     }
@@ -53,13 +53,13 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         this.localServer = localServer;
         this.linkOpen = true;
     }
-    
+
     @Override
     public Id newDataSource(String name, String baseURI) {
         checkLink();
         checkRegistered();
-        if ( ! DeltaOps.isValidName(name) )
-            throw new IllegalArgumentException("Invalid data source name: '"+name+"'"); 
+        if ( !DeltaOps.isValidName(name) )
+            throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
         return localServer.createDataSource(false, name, baseURI);
     }
 
@@ -75,14 +75,14 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     public LocalServer getLocalServer() {
         return localServer;
     }
-    
+
     private void checkLink() {
-        if ( ! linkOpen )
+        if ( !linkOpen )
             throw new DeltaNotConnectedException("Not connected");
     }
-    
+
     private void checkRegistered() {
-        if ( ! isRegistered() )
+        if ( !isRegistered() )
             throw new DeltaNotRegisteredException("Not registered");
     }
 
@@ -98,13 +98,13 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         checkLink();
         return localServer.listDataSourcesIds();
     }
-    
+
     @Override
     public List<DataSourceDescription> listDescriptions() {
         checkLink();
-        return toList(localServer.listDataSources().stream().map(ds->ds.getDescription()));
+        return toList(localServer.listDataSources().stream().map(ds -> ds.getDescription()));
     }
-    
+
     @Override
     public List<PatchLogInfo> listPatchLogInfo() {
         checkLink();
@@ -131,13 +131,13 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = localServer.getDataSourceByName(name);
         return description(source);
     }
-    
+
     private static DataSourceDescription description(DataSource source) {
         if ( source == null )
             return null;
         return source.getDescription();
     }
-    
+
     @Override
     public PatchLogInfo getPatchLogInfo(Id dsRef) {
         checkLink();
@@ -155,42 +155,49 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef);
         // Patch not known to be valid yet.
         // Patch not safe in the Patch Log yet.
-        PatchLog patchLog = source.getPatchLog() ;
+        PatchLog patchLog = source.getPatchLog();
         try {
             beforeWrite(source, patchLog, rdfPatch);
-            //FmtLog.info(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()), source);
+            // FmtLog.info(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()),
+            // source);
             long t1 = System.currentTimeMillis();
-            
+
             long version = patchLog.append(rdfPatch);
-            
+
             long t2 = System.currentTimeMillis();
             afterWrite(source, rdfPatch, version, (t2 - t1));
-            return version; 
-        } catch (RuntimeException ex) {
+            return version;
+        }
+        catch (RuntimeException ex) {
             badWrite(source, patchLog, rdfPatch, ex);
             FmtLog.info(LOG, "append: Failed: Dest=%s Patch=%s ; %s", source, str(rdfPatch.getId()), ex.getMessage());
+            // Stack trace logged higher up if relevant.
             throw ex;
         }
     }
 
-    /** Called before writing the patch to the {@link PatchLog}. 
-     * There is no guaranttee that the patch is valid and will be commited to the PatchLog. 
+    /**
+     * Called before writing the patch to the {@link PatchLog}. There is no guaranttee
+     * that the patch is valid and will be commited to the PatchLog.
      */
     protected void beforeWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch) {
-        //FmtLog.info(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()), patchLog.getLogId().toString());
+        // FmtLog.info(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()),
+        // patchLog.getLogId().toString());
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */
     protected void afterWrite(DataSource source, RDFPatch rdfPatch, long version, long timeElapsed) {
-        //FmtLog.info(LOG, "append: finish: Patch=%s[ver=%d] ds=%s", str(rdfPatch.getId()), version, source);
-        FmtLog.info(LOG, "append (%.3fs): Patch=%s[ver=%d] ds=%s", (timeElapsed/1000.0), str(rdfPatch.getId()), version, source);
+        // FmtLog.info(LOG, "append: finish: Patch=%s[ver=%d] ds=%s",
+        // str(rdfPatch.getId()), version, source);
+        //FmtLog.info(LOG, "append (%.3fs): Patch=%s[ver=%d] ds=%s", (timeElapsed / 1000.0), str(rdfPatch.getId()), version, source);
+        FmtLog.info(LOG, "append : Patch=%s[ver=%d] ds=%s", str(rdfPatch.getId()), version, source);
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */
     protected void badWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch, RuntimeException ex) {
         FmtLog.info(LOG, "Bad write: patch=%s ds=%s : msg=%s", str(rdfPatch.getId()), ex.getMessage());
     }
-    
+
     private DataSource getDataSource(Id dsRef) {
         DataSource source = localServer.getDataSource(dsRef);
         if ( source == null )
@@ -209,14 +216,14 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSourceOrNull(dsRef);
         if ( source == null )
             return null;
-        RDFPatch patch = source.getPatchLog().fetch(patchId) ;
+        RDFPatch patch = source.getPatchLog().fetch(patchId);
         if ( patch == null )
-            throw new DeltaNotFoundException("No such patch: "+patchId) ;
-        FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId) ;
-        return patch ;
+            throw new DeltaNotFoundException("No such patch: " + patchId);
+        FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId);
+        return patch;
     }
 
-    /** Retrieve a patch by version. */ 
+    /** Retrieve a patch by version. */
     @Override
     public RDFPatch fetch(Id dsRef, long version) {
         checkLink();
@@ -226,10 +233,10 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {
             if ( patch == null ) {
-                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Not found", source, version) ;
+                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Not found", source, version);
             } else {
                 Id id = Id.fromNode(patch.getId());
-                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id) ;
+                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id);
             }
         }
         return patch;
@@ -241,8 +248,8 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         Path p = dataSource.getInitialDataPath();
         if ( Files.isDirectory(p) ) {
             throw new DeltaException("TDB database not supported for initial data");
-        } else if ( ! Files.isRegularFile(p) ) {
-            throw new DeltaException("Not a file or directory: "+p);
+        } else if ( !Files.isRegularFile(p) ) {
+            throw new DeltaException("Not a file or directory: " + p);
         } else
             // File.
             return p.toUri().toString();

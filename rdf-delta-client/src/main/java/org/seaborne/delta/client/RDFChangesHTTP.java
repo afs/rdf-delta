@@ -36,10 +36,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaHttpException ;
-import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.Id ;
+import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesCancelOnNoChange;
@@ -226,6 +223,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 //    }
     
     private void send$() {
+        if ( patchId == null )
+            throw new DeltaBadPatchException("Patch does not have an ID");
         String idStr = Id.str(patchId);
         byte[] bytes = collected();
 

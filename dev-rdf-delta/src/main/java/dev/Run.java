@@ -51,30 +51,7 @@ public class Run {
         //LogCtl.setLog4j(); 
         LogCtl.setJavaLogging();
     }
-    
-    // previous checking.
-    // Remove (hide) DSG from DeltaConnection start-up : TDB or file only.
-    // Connect by name.
-    
-    // "dcmd rm" does not work.
-    
-    // ** Need patch rejection
-    // ** Start at id:nil (or id:datasource?)
-    
-    // TransPBlob not PersistentState : memory versions.
-    
-    // PatchCache
-    
-    // DataSource - better naming? Feed, RDFFeed?  DataFeed?
-    //  = (zone,) name, id, PatchLog, start point, + optionally data. 
-    
-    //PathX. 
-    
-    // Next?
-    
-    // Can DataSources be shared across zones? Not unless the name is the same.  Acceptable?
-    // DataSource Descriptior and LocalServer.SourceDescriptor are the same.
-    
+
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {

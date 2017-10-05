@@ -76,6 +76,11 @@ public class Patch implements RDFPatch {
         patch.apply(changes) ;
     }
 
+    @Override
+    public boolean repeatable() {
+        return patch.repeatable();
+    }
+
     public DataSource getDataSource() {
         return dataSource;
     }

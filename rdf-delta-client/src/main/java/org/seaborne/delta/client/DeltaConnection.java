@@ -64,6 +64,7 @@ public class DeltaConnection implements AutoCloseable {
     private final RDFChanges target;
     private final String datasourceName ;
     private final Id datasourceId;
+    // Note: the contents of DataState change- it is the current state and is updated. 
     private final DataState state;
 
     private boolean valid = false;
@@ -157,72 +158,53 @@ public class DeltaConnection implements AutoCloseable {
         };
     }
 
-    
-//    // clone
-//    protected DeltaConnection(DeltaConnection other) {
-//        Objects.nonNull(other);
-//        this.state = other.state;
-//        this.base = other.base;
-//        this.datasourceId = other.datasourceId;
-//        this.datasourceName = other.datasourceName;
-//        this.dLink = other.dLink;
-//        this.valid = other.valid;
-//        this.syncTxnBegin = other.syncTxnBegin;
-//        // Not shared with "other".
-//        if ( base != null  ) {
-//            this.target = new RDFChangesApply(base);
-//            RDFChanges monitor = createRDFChanges(datasourceId);
-//            this.managed = new DatasetGraphChanges(base, monitor, null, syncer(syncTxnBegin));
-//            this.managedDataset = DatasetFactory.wrap(managed);
-//        } else {
-//            this.target = null;
-//            this.managed = null;
-//            this.managedDataset = null;
-//        }
-//    }
-    
     private void checkDeltaConnection() {
         if ( ! valid )
             throw new DeltaConfigException("DeltaConnection not valid");
     }
     
+    private class RDFChangesDS extends RDFChangesCollector {
+        private Node currentTransactionId = null;
+        
+        @Override
+        public void txnBegin() {
+            super.txnBegin();
+            if ( currentTransactionId == null ) {
+                currentTransactionId = Id.create().asNode();
+                super.header(RDFPatchConst.ID, currentTransactionId);
+            }
+        }
+
+        @Override
+        public void txnCommit() {
+            super.txnCommit();
+            if ( currentTransactionId == null ) {
+                throw new DeltaException("No id in txnCommit - either txnBegin not called or txnCommit called twice");
+            }
+            if ( super.header(RDFPatchConst.PREV) == null ) {
+                Id x = state.latestPatchId();
+                if ( x != null )
+                    super.header(RDFPatchConst.PREV, x.asNode());
+            }
+
+            RDFPatch patch = getRDFPatch();
+            //FmtLog.info(LOG,  "Send patch: id=%s, prev=%s", Id.str(patch.getId()), Id.str(patch.getPrevious()));
+            //long newVersion = dLink.append(dsRef, patch);
+            //setLocalState(newVersion, patch.getId());
+            append(patch);
+            currentTransactionId = null;
+            reset();
+        }
+        
+        @Override
+        public void txnAbort() { reset() ; }
+//        @Override
+//        public void finish() { reset() ; } 
+
+    }
+    
     private RDFChanges createRDFChanges(Id dsRef) {
-        RDFChanges c = new RDFChangesCollector() {
-            private Node currentTransactionId = null;
-            
-            @Override
-            public void txnBegin() {
-                super.txnBegin();
-                if ( currentTransactionId == null ) {
-                    currentTransactionId = Id.create().asNode();
-                    super.header(RDFPatchConst.ID, currentTransactionId);
-                }
-            }
-
-            @Override
-            public void txnCommit() {
-                super.txnCommit();
-                if ( super.header(RDFPatchConst.PREV) == null ) {
-                    Id x = state.latestPatchId();
-                    if ( x != null )
-                        super.header(RDFPatchConst.PREV, x.asNode());
-                }
-
-                RDFPatch patch = getRDFPatch();
-                //FmtLog.info(LOG,  "Send patch: id=%s, prev=%s", Id.str(patch.getId()), Id.str(patch.getPrevious()));
-                //long newVersion = dLink.append(dsRef, patch);
-                //setLocalState(newVersion, patch.getId());
-                append(patch);
-                currentTransactionId = null;
-                reset();
-            }
-            
-            @Override
-            public void txnAbort() { reset() ; }
-//            @Override
-//            public void finish() { reset() ; } 
-        };
-        return c ;
+        return new RDFChangesDS();
     }
     
     /*package*/ void start() {
