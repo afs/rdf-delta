@@ -31,7 +31,7 @@ import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.items.* ;
 
 /** Capture a stream of changes, then play it to another {@link RDFChanges} */
-public class RDFChangesCollector implements RDFChanges /* For building*/ {
+public class RDFChangesCollector implements RDFChanges {
 
     private Map<String, Node> header = new LinkedHashMap<>() ;
     private List<ChangeItem> actions = new LinkedList<>() ;
@@ -54,6 +54,11 @@ public class RDFChangesCollector implements RDFChanges /* For building*/ {
         public void apply(RDFChanges changes) {
             header.apply(changes);
             actions.forEach(a -> enact(a, changes)) ;
+        }
+
+        @Override
+        public boolean repeatable() {
+            return true;
         }
 
         public List<ChangeItem> getActions() {

@@ -39,7 +39,7 @@ public class RDFPatchAltHeader implements RDFPatch {
     public PatchHeader header() {
         return header;
     }
-
+    
     @Override
     public void apply(RDFChanges changes) {
         // Ignore the header.
@@ -48,5 +48,10 @@ public class RDFPatchAltHeader implements RDFPatch {
         };
         header.apply(changes);
         body.apply(x);
+    }
+    
+    @Override
+    public boolean repeatable() {
+        return body.repeatable();
     }
 }

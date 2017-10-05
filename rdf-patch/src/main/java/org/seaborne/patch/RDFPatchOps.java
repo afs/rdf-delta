@@ -55,6 +55,9 @@ public class RDFPatchOps {
         }
         @Override
         public void apply(RDFChanges changes) {}
+        
+        @Override
+        public boolean repeatable() { return true; }
     }
 
     private static class RDFPatchEmpty implements RDFPatch {
@@ -72,6 +75,11 @@ public class RDFPatchOps {
             header.apply(changes);
             changes.txnBegin();
             changes.txnCommit();
+        }
+
+        @Override
+        public boolean repeatable() {
+            return true;
         }
     }
     

@@ -43,4 +43,6 @@ public interface RDFPatch {
     
     /** Act on the patch by sending it to a changes processor. */ 
     public void apply(RDFChanges changes);
+    
+    public boolean repeatable(); 
 }
