@@ -19,6 +19,7 @@
 package org.seaborne.delta.client;
 
 import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
+import static java.lang.String.format;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference ;
@@ -27,7 +28,6 @@ import java.util.function.Consumer ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -97,7 +97,7 @@ public class DeltaConnection implements AutoCloseable {
         Objects.requireNonNull(dataState, "DataState");
         Objects.requireNonNull(link, "DeltaLink");
         if ( basedsg instanceof DatasetGraphChanges )
-            Log.warn(this.getClass(), "DatasetGraphChanges passed into "+Lib.className(this));
+            FmtLog.warn(this.getClass(), "[%s] DatasetGraphChanges passed into %s", dataState.getDataSourceId() ,Lib.className(this));
         this.state = dataState;
         this.base = basedsg;
         this.datasourceId = dataState.getDataSourceId();
@@ -160,7 +160,7 @@ public class DeltaConnection implements AutoCloseable {
 
     private void checkDeltaConnection() {
         if ( ! valid )
-            throw new DeltaConfigException("DeltaConnection not valid");
+            throw new DeltaConfigException(format("[%s] DeltaConnection not valid", datasourceId));
     }
     
     private class RDFChangesDS extends RDFChangesCollector {
@@ -179,7 +179,7 @@ public class DeltaConnection implements AutoCloseable {
         public void txnCommit() {
             super.txnCommit();
             if ( currentTransactionId == null ) {
-                throw new DeltaException("No id in txnCommit - either txnBegin not called or txnCommit called twice");
+                throw new DeltaException(format("[%s] No id in txnCommit - either txnBegin not called or txnCommit called twice", datasourceId));
             }
             if ( super.header(RDFPatchConst.PREV) == null ) {
                 Id x = state.latestPatchId();
@@ -221,7 +221,7 @@ public class DeltaConnection implements AutoCloseable {
         long ver = dLink.append(datasourceId, patch);
         long ver0 = state.version();
         if ( ver0 >= ver )
-            FmtLog.warn(LOG, "Version did not advance: %d -> %d", ver0 , ver);
+            FmtLog.warn(LOG, "[%s] Version did not advance: %d -> %d", datasourceId.toString(), ver0 , ver);
         state.updateState(ver, Id.fromNode(patch.getId()));
     }
 
@@ -282,7 +282,7 @@ public class DeltaConnection implements AutoCloseable {
         }
         
         if ( localVer > version ) 
-            FmtLog.info(LOG, "Local version ahead of remote : [local=%d, remote=%d]", getLocalVersion(), getRemoteVersionCached());
+            FmtLog.info(LOG, "[%s] Local version ahead of remote : [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());
         if ( localVer >= version )
             return;
         // bring up-to-date.
@@ -383,7 +383,7 @@ public class DeltaConnection implements AutoCloseable {
         if ( info != null ) {
             if ( remote.get() != null ) {
                 if ( getRemoteVersionCached() > 0 && info.getMaxVersion() < getRemoteVersionCached() )
-                    FmtLog.warn(LOG, "Remote version behind local tracking of remote version: [%d, %d]", info.getMaxVersion(), getRemoteVersionCached());
+                    FmtLog.warn(LOG, "[%s] Remote version behind local tracking of remote version: [%d, %d]", datasourceId, info.getMaxVersion(), getRemoteVersionCached());
             }
             // Set the local copy whenever we get the remote latest.
             remote.set(info);

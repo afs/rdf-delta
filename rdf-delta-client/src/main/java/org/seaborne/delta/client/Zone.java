@@ -351,11 +351,12 @@ public class Zone {
     
         boolean good = true;
         Path dataArea = path.resolve(DeltaConst.DATA);
-        if ( ! Files.exists(dataArea) ) {
-            FmtLog.warn(DataState.LOG,  "No data area: %s", path);
-            good = false;
-            //return false;
-        }
+//        if ( ! Files.exists(dataArea) ) {
+//            // Should check its not a memory area.
+//            FmtLog.warn(DataState.LOG,  "No data area: %s", path);
+//            good = false;
+//            //return false;
+//        }
         
         Path pathState = path.resolve(DeltaConst.STATE_CLIENT);
         if ( ! Files.exists(pathState) )  {

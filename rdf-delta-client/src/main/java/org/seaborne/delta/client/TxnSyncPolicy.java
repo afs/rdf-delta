@@ -23,7 +23,7 @@ package org.seaborne.delta.client;
  * {@link DeltaConnection} provide the option of syncing automagtically on transaction begin.
  * The application call also call {@link DeltaConnection#sync} itself. 
  * <ul>
- * <li>{@code NONE} No automatical sync, all done by the application.
+ * <li>{@code NONE} No automatic sync, all done by the application.
  * <li>{@code TXN_RW} When a transaction starts (sync attempt for a READ transaction suppresses network errors). 
  * <li>{@code TXN_RW} When a wite-transaction starts. 
  * </ul>

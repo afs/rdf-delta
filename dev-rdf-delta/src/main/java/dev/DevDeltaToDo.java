@@ -20,6 +20,12 @@ package dev;
 
 public class DevDeltaToDo {
 
+    // RDFChangesCollector - add a Header Change and don't keep the map.
+    // RDFChangesCollector.RECORD_HEADER = true;
+    
+    // Logging : detech by presence of logging.properties etc.
+    // Need logging package?
+    
     // Z rows: the total number of rows. or trasnactions -> can notice truncation.
     //    Checksum each txn?  Cheap checksum?
     //        Add "Z <checksum>" to RDFPatch?

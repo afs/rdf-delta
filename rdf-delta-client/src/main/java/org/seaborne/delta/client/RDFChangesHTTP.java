@@ -131,10 +131,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 
     @Override
     public void txnBegin() {
-//        if ( currentTransactionId == null ) {
-//            currentTransactionId = Id.create().asNode();
-//            super.header(RDFPatch.ID, currentTransactionId);
-//        }
         changeOccurred = false ;
         super.txnBegin();
     }
@@ -142,7 +138,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     @Override
     public void txnCommit() {
         super.txnCommit();
-        send();
+        try { send(); } 
+        finally { reset(); } 
     }
 
     @Override
@@ -224,7 +221,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     
     private void send$() {
         if ( patchId == null )
-            throw new DeltaBadPatchException("Patch does not have an ID");
+            throw new DeltaBadPatchException("Patch does not have an Id");
         String idStr = Id.str(patchId);
         byte[] bytes = collected();
 
@@ -274,7 +271,9 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 if ( sc >= 500 )
                     throw new DeltaHttpException(sc, r.getStatusLine().getReasonPhrase());
                 break;
-            } catch (IOException e) { throw IOX.exception(e); }
+            }
+            catch (DeltaHttpException ex) { throw ex; }
+            catch (IOException e) { throw IOX.exception(e); }
         }
     }
         

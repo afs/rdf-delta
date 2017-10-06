@@ -116,4 +116,4 @@ esac
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
-echo java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"
+java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"

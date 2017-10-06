@@ -21,6 +21,7 @@ package dev;
 import java.io.IOException;
 import java.net.BindException ;
 
+import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.web.HttpOp;
@@ -30,14 +31,12 @@ import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
+import org.apache.log4j.DailyRollingFileAppender;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.client.DeltaConnection ;
-import org.seaborne.delta.client.DeltaLinkHTTP ;
-import org.seaborne.delta.client.Zone ;
+import org.seaborne.delta.client.*;
 import org.seaborne.delta.cmds.dcmd;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
@@ -55,16 +54,49 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
-        //dcmd.main("add" ,"--server=http://localhost:1066/", "--log=ABC", "/home/afs/tmp/D.ttl");
-        dcmd.main("rm" ,"--server=http://localhost:1066/", "--log=DEF");
-        System.exit(0);
+        boolean reset = false ;
+        boolean embedded = false ;
+        if ( reset ) {
+            if ( embedded )
+                FileOps.clearAll("DeltaServer");
+            FileOps.clearAll("Zone");
+        }
+        Zone zone = Zone.create("Zone");
         
+        DeltaLink dLink;
+        if ( ! embedded ) {
+            String URL = "http://localhost:"+PORT+"/";
+            dLink = DeltaLinkHTTP.connect(URL);
+            Id clientId = Id.create();
+            dLink.register(clientId);
+        } else {
+            dLink = deltaLink(true, reset, true);
+        }
         
-        DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066");
-        dLink.ping();
-        //dLink.isRegistered();
+        DeltaClient dc = DeltaClient.create(zone, dLink);
+        
+        String now = DateTimeUtils.nowAsString();
+        Quad q = SSE.parseQuad("(_ :s :p '"+now+"')");
+        if ( reset ) {
+            Id dsRef0 = dc.newDataSource("ABC", "http://ex/ABC", LocalStorageType.MEM, TxnSyncPolicy.NONE);
+        }
+        Id dsRef = dc.connect("ABC", TxnSyncPolicy.NONE);
+        
+        try(DeltaConnection dConn = dc.get(dsRef)) {
+            dConn.sync();
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            Txn.executeWrite(dsg,  ()->dsg.add(q));
+        }
         System.out.println("DONE");
-        System.exit(1);
+        System.exit(0);
+
+//        // Local setup.
+//        LocalServer server = LocalServer.attach(Location.create("DeltaServer"));
+//        DeltaLink dLink = DeltaLinkLocal.connect(server);
+//        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+//        DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
+        
+        
         //JenaSystem.DEBUG_INIT = true ;
         //DeltaSystem.DEBUG_INIT = true ;
         //DeltaSystem.init();
@@ -81,7 +113,7 @@ public class Run {
 
     public static void main$filter() throws IOException {
         FileOps.delete("DeltaServer/ABC");
-        DeltaLink dLink = deltaLink(true, true);
+        DeltaLink dLink = deltaLink(true, true, true);
         dLink.ping();
         Id dsRef = dLink.newDataSource("ABC", "http://example/ABC");
 
@@ -108,7 +140,7 @@ public class Run {
         
         boolean httpServer = false;
         
-        DeltaLink dLink = deltaLink(httpServer, true);
+        DeltaLink dLink = deltaLink(httpServer, true, true);
         DeltaClient dc = DeltaClient.create(zone, dLink);
         
         Id dsRef = dLink.newDataSource("ABC", "http://example/ABC");
@@ -146,7 +178,7 @@ public class Run {
         Zone zone = Zone.create("Zone");
         
         boolean httpServer = true;
-        DeltaLink dLink = deltaLink(true, true);
+        DeltaLink dLink = deltaLink(true, true, true);
         
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         
@@ -213,11 +245,11 @@ public class Run {
         System.exit(0);
     }
     
-    private static DeltaLink deltaLink(boolean httpServer, boolean register) {
+    private static DeltaLink deltaLink(boolean httpServer, boolean cleanStart, boolean register) {
         DeltaLink dLink;
         if ( httpServer ) {
             // Same process HTTP server.
-            server(PORT, "DeltaServer");
+            server(PORT, "DeltaServer", cleanStart);
             String URL = "http://localhost:"+PORT+"/";
             dLink = DeltaLinkHTTP.connect(URL);
         } else {
@@ -233,11 +265,9 @@ public class Run {
         return dLink;
     }
 
-    private static void server(int port, String base) {
-            // --- Reset state.
-    //        FileOps.clearAll("DeltaServer/ABC");
-    //        FileOps.delete("DeltaServer/ABC");
-        FileOps.clearAll(base);
+    private static void server(int port, String base, boolean cleanStart) {
+        if ( cleanStart )
+            FileOps.clearAll(base);
         PatchLogServer dps = PatchLogServer.server(port, base);
         try { 
             dps.start();

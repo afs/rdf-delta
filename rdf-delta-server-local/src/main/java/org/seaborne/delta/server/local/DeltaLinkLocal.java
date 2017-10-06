@@ -195,7 +195,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     /** Called after writing the patch to the {@link PatchLog}. */
     protected void badWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch, RuntimeException ex) {
-        FmtLog.info(LOG, "Bad write: patch=%s ds=%s : msg=%s", str(rdfPatch.getId()), ex.getMessage());
+        FmtLog.info(LOG, "Bad write: patch=%s ds=%s : msg=%s", str(rdfPatch.getId()), source, ex.getMessage());
     }
 
     private DataSource getDataSource(Id dsRef) {
