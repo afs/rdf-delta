@@ -71,7 +71,14 @@ public interface DeltaLink {
     /** Return details of a dataset (or null if not registered) */
     public DataSourceDescription getDataSourceDescriptionByName(String name);
 
-    /** Send patch, return new version */
+    /** Send patch, return new version. 
+     *  Return -1 for the patch didn't happen, and there is no change
+     *  to the log. 
+     *  <p>
+     *  For example, it wasn't tried remotely
+     *  because it was suppressed for some reason.
+     *  (e.g. empty commit suppression).
+     */
     public long append(Id dsRef, RDFPatch patch);
     
     /** Get the current version: if this is an HTTP connection, this causes network traffic. */

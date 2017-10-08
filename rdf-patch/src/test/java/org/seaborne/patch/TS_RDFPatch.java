@@ -23,8 +23,10 @@ import org.junit.runners.Suite ;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestRDFChanges.class,
-    TestRDFChangesDataset.class
+    TestRDFChanges.class
+    , TestRDFChangesDataset.class
+    , TestRDFChangesCancel.class
+    //, TestRDFPatchOps.class
 })
 
 public class TS_RDFPatch { }

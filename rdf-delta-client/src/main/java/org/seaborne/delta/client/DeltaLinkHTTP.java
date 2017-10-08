@@ -182,9 +182,12 @@ public class DeltaLinkHTTP implements DeltaLink {
                 int version = obj.get(DeltaConst.F_VERSION).getAsNumber().value().intValue();
                 return version;
             } catch (Exception ex) {
-                ex.printStackTrace();
+                FmtLog.warn(this.getClass(), "[%s] Error in response body : %s", dsRef, ex.getMessage());
             }
+        } else {
+            FmtLog.warn(this.getClass(), "[%s] No response body", dsRef);
         }
+        // No response body or syntax error.
         return -1;
     }
 

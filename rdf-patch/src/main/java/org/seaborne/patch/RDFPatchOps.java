@@ -185,7 +185,7 @@ public class RDFPatchOps {
         return new DatasetGraphChanges(dsgBase, changes) ;
     }
     
-    /** Create a {@link DatasetGraph} that writes changes to an{@link OutputStream} in text format.
+    /** Create a {@link DatasetGraph} that writes changes to an {@link OutputStream} in text format.
      *  The caller is responsible for closing the {@link OutputStream}.
      */ 
     public static DatasetGraph changesAsText(DatasetGraph dsgBase, OutputStream out) {

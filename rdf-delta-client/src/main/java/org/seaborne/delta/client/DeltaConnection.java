@@ -217,8 +217,10 @@ public class DeltaConnection implements AutoCloseable {
     /** Send a patch to log server. */
     public synchronized void append(RDFPatch patch) {
         checkDeltaConnection();
-        // Autoallocated previous problem. 
         long ver = dLink.append(datasourceId, patch);
+        if ( ver < 0 )
+            // Didn't happen.
+            return ;
         long ver0 = state.version();
         if ( ver0 >= ver )
             FmtLog.warn(LOG, "[%s] Version did not advance: %d -> %d", datasourceId.toString(), ver0 , ver);

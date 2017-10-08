@@ -58,6 +58,7 @@ public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper 
         actionDelete(g, s, p, o) ;
     }
     
+    //Is this needed?
     @Override
     public void addGraph(Node graphName, Graph graph) {  
         graph.find(null, null, null)
@@ -78,7 +79,8 @@ public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper 
     public void clear() 
     { deleteAny(Node.ANY, Node.ANY, Node.ANY, Node.ANY) ; }
     
-    // Ensure the graphs loop back here. 
+    // XXX Ensure the graphs loop back here.
+    // GraphChanges.
     
     @Override
     public Graph getDefaultGraph()

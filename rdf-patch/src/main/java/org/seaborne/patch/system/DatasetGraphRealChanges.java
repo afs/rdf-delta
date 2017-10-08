@@ -22,6 +22,8 @@ import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.patch.RDFChanges ;
 
+// UNFINISHED
+
 // ?? Prefixes.
 public class DatasetGraphRealChanges extends AbstractDatasetGraphAddDelete {
     /** With checking, the {@link RDFChanges} becomes reversible */ 

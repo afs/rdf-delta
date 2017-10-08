@@ -54,7 +54,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     protected final Consumer<ReadWrite> txnSyncHandler;
     protected final RDFChanges monitor ;
     protected ThreadLocal<ReadWrite> txnMode = ThreadLocal.withInitial(()->null) ;
-    private static Runnable identity = ()->{}; 
+    private static Runnable identity = ()->{};
 
     /** Create a {@code DatasetGraphChanges} which does not have any sync handlers */
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) {

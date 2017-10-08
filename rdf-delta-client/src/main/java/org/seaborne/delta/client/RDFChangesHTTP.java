@@ -39,7 +39,6 @@ import org.apache.jena.graph.Node;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatchConst;
-import org.seaborne.patch.changes.RDFChangesCancelOnNoChange;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
 
@@ -60,25 +59,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private StatusLine statusLine       = null;
     private String response             = null;
     private Node patchId                = null;
-    private boolean changeOccurred      = false;
-    
-    /**
-     * An empty commit is not a no-op. It moves the head of the log to a new point,
-     * stopping changes whose parent is the previous state.
-     * <p>
-     * As a practical point, in some usages, it can be onerous to track whether a change
-     * really has been made, or whether a write transaction was started because a change
-     * might occur but nothing did.
-     * <p>
-     * This code is ideally placed can easily track that information.
-     * <p>
-     * @see RDFChangesCancelOnNoChange RDFChangesCancelOnNoChange -- An alternative approach.
-     */
-    public static void setSuppressEmptyCommits(boolean b) {
-        SuppressEmptyCommits = b;
-    }
-    private static boolean SuppressEmptyCommits = false ;
-    
     
     public RDFChangesHTTP(String label, Supplier<String> urlSupplier, Runnable resetAction) {
         this(label, null, urlSupplier, resetAction);
@@ -105,33 +85,28 @@ public class RDFChangesHTTP extends RDFChangesWriter {
             patchId = value;
     }
     
-    @Override
-    public void add(Node g, Node s, Node p, Node o) {
-        markChanged();
-        super.add(g, s, p, o);
-    }
-
-    @Override
-    public void delete(Node g, Node s, Node p, Node o) {
-        markChanged();
-        super.delete(g, s, p, o);
-    }
-
-    @Override
-    public void addPrefix(Node gn, String prefix, String uriStr) {
-        markChanged();
-        super.addPrefix(gn, prefix, uriStr);
-    }
-
-    @Override
-    public void deletePrefix(Node gn, String prefix) {
-        markChanged();
-        super.deletePrefix(gn, prefix);
-    }
+//    @Override
+//    public void add(Node g, Node s, Node p, Node o) {
+//        super.add(g, s, p, o);
+//    }
+//
+//    @Override
+//    public void delete(Node g, Node s, Node p, Node o) {
+//        super.delete(g, s, p, o);
+//    }
+//
+//    @Override
+//    public void addPrefix(Node gn, String prefix, String uriStr) {
+//        super.addPrefix(gn, prefix, uriStr);
+//    }
+//
+//    @Override
+//    public void deletePrefix(Node gn, String prefix) {
+//        super.deletePrefix(gn, prefix);
+//    }
 
     @Override
     public void txnBegin() {
-        changeOccurred = false ;
         super.txnBegin();
     }
 
@@ -144,21 +119,13 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 
     @Override
     public void txnAbort() {
+        response = null;
         reset();
-        // Forget.
+        // Forget everything.
     }
     
-    private void markChanged() {
-        changeOccurred = true;
-    }
-
-    private boolean changed() {
-        return changeOccurred;
-    }
-
     private void reset() {
         patchId = null ;
-        changeOccurred = false ;
         bytes.reset();
     }
 
@@ -167,14 +134,14 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
     
     public void send() {
-        if ( SuppressEmptyCommits && ! changed() )
-            return ;
-        synchronized(syncObject) {
-            send$();
-        }
+        try { 
+            synchronized(syncObject) {
+                send$();
+            } 
+        } finally { reset(); }
     }
     
-    /** Get the protocol response - may be null */
+    /** Get the protocol response - may be null if the change was aborted.  */
     public String getResponse() {
         return response;
     }

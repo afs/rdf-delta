@@ -24,6 +24,7 @@ import java.net.BindException ;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
@@ -31,19 +32,21 @@ import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
-import org.apache.log4j.DailyRollingFileAppender;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.client.*;
-import org.seaborne.delta.cmds.dcmd;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
 import org.seaborne.delta.server.local.LocalServer ;
+import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
+import org.seaborne.patch.changes.RDFChangesNoOp;
+import org.seaborne.patch.system.DatasetGraphChanges;
+import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 
 public class Run {
     static { 
@@ -54,8 +57,38 @@ public class Run {
     static int PORT = 1068;
     
     public static void main(String... args) throws IOException {
-        boolean reset = false ;
-        boolean embedded = false ;
+        RDFChanges c0 = new RDFChangesNoOp();
+        RDFChanges c = new RDFChangesSuppressEmpty(c0) {
+            @Override
+            protected void txnNoChangeCommit() {
+                System.out.println("--txnNoChangeCommit");
+                //doCommit();
+            }
+
+            @Override
+            protected void txnChangeCommit() {
+                System.out.println("++txnChangeCommit");
+                //doCommit();
+            }
+        };
+
+        String now = DateTimeUtils.nowAsString();
+        Quad q = SSE.parseQuad("(_ :s :p '"+now+"')");
+        Triple t = SSE.parseTriple("(:t :p '"+now+"')");
+        
+        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
+        DatasetGraph dsg = new DatasetGraphChanges(dsg0, c);
+        
+        Txn.executeRead(dsg,   ()->{});
+        Txn.executeWrite(dsg,  ()->{dsg.add(q);});
+        Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().add(t);});
+        Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://examle/");});
+        Txn.executeWrite(dsg,  ()->{});
+    }
+    
+    public static void mainOLD(String... args) throws IOException {
+        boolean reset = true ;
+        boolean embedded = true ;
         if ( reset ) {
             if ( embedded )
                 FileOps.clearAll("DeltaServer");

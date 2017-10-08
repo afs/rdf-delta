@@ -28,6 +28,8 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.RDFChanges ;
 
+// UNFINISHED
+
 /** A {@link DatasetGraph} implementation that buffers adds/deletes and prefix changes
  * then plays them to another {@link DatasetGraph} or to a {@link RDFChanges}. 
  * <p>
