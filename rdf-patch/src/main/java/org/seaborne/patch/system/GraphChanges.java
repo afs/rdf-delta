@@ -115,38 +115,44 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
         @Override
         public PrefixMapping setNsPrefix(String prefix, String uri) {
             set(prefix, uri) ;
-            return get().setNsPrefix(prefix, uri) ;
+            get().setNsPrefix(prefix, uri) ;
+            return this;
         }
 
         @Override
         public PrefixMapping removeNsPrefix(String prefix) {
             remove(prefix); 
-            return get().removeNsPrefix(prefix) ;
+            get().removeNsPrefix(prefix) ;
+            return this;
         }
 
         @Override
         public PrefixMapping clearNsPrefixMap() {
             get().getNsPrefixMap().forEach((prefix,uri)->remove(prefix)) ;
-            return get().clearNsPrefixMap() ;
+            get().clearNsPrefixMap() ;
+            return this;
         }
 
         @Override
         public PrefixMapping setNsPrefixes(PrefixMapping other) {
             other.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
-            return get().setNsPrefixes(other) ;
+            get().setNsPrefixes(other) ;
+            return this;
         }
 
         @Override
         public PrefixMapping setNsPrefixes(Map<String, String> map) {
             map.forEach((p,u) -> set(p,u)) ;
-            return get().setNsPrefixes(map) ;
+            get().setNsPrefixes(map) ;
+            return this;
         }
 
         @Override
         public PrefixMapping withDefaultMappings(PrefixMapping map) {
             // fake
             map.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
-            return get().withDefaultMappings(map) ;
+            get().withDefaultMappings(map) ;
+            return this;
         }
 
         @Override
@@ -181,7 +187,8 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
 
         @Override
         public PrefixMapping lock() {
-            return get().lock() ;
+            get().lock() ;
+            return this;
         }
         
         @Override
