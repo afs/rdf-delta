@@ -42,6 +42,7 @@ import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
+import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory ;
 
@@ -204,7 +205,9 @@ public class DeltaConnection implements AutoCloseable {
     }
     
     private RDFChanges createRDFChanges(Id dsRef) {
-        return new RDFChangesDS();
+        RDFChanges changes = new RDFChangesDS();
+        //changes = new RDFChangesSuppressEmpty(changes);
+        return changes; 
     }
     
     /*package*/ void start() {

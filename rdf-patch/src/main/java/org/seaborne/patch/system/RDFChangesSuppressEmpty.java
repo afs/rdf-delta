@@ -48,13 +48,14 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
         changeHappened = true;
     }
     
-    
 //    @Override
 //    public void start() {}
 //
 //    @Override
 //    public void finish() {}
 
+    // Headers do not count as "changes".
+    // A patch must have certain headers for use with a patch log - an id, and a prev. 
 //    @Override
 //    public void header(String field, Node value) {}
 
@@ -104,7 +105,7 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
     }
     
     /**
-     * Called when commit called and there were no changes made (one ore more add/delete
+     * Called when commit called and there were no changes made (no calls to add/delete
      * operations of quads or prefixes). 
      * <p>
      * The default implementation is to call 

@@ -23,13 +23,16 @@ public class DevDeltaToDo {
     // Test RDFChangesCancelOnNoChange
     // RDFChanges.cancel :: TestRDFChangesMiscImpls
     
+    // Fuseki patch receiver service.
+    
     // RDFChangesCollector - add a Header Change and don't keep the map.
+    // Doesn't work - begin->create,addtxnBegin then header. 
     // RDFChangesCollector.RECORD_HEADER = true;
     
     // Logging : detech by presence of logging.properties etc.
     // Need logging package?
     
-    // Z rows: the total number of rows. or trasnactions -> can notice truncation.
+    // Z rows: the total number of rows. or transactions -> can notice truncation.
     //    Checksum each txn?  Cheap checksum?
     //        Add "Z <checksum>" to RDFPatch?
     //          Simple # length in rows.
