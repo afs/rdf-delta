@@ -18,8 +18,8 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
 import static java.lang.String.format;
+import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference ;
@@ -42,7 +42,6 @@ import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
-import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory ;
 
@@ -75,12 +74,13 @@ public class DeltaConnection implements AutoCloseable {
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
      * The {@code DatasetGraph} must be in-step with the zone.
      * {@code DeltaConnection} objects are normal obtained via {@link DeltaClient}.
+     * {@code TxnSyncPolicy} controls when the {@code DeltaConnection} synchronizes with the patch log.
      */
     
     /*package*/ static DeltaConnection create(DataState dataState, DatasetGraph dsg, DeltaLink dLink, TxnSyncPolicy syncTxnBegin) {
-        Objects.requireNonNull(dataState, "Null data state");
-        Objects.requireNonNull(dLink, "DeltaLink is null");
-        Objects.requireNonNull(syncTxnBegin, "SyncPolicy is null");
+        Objects.requireNonNull(dataState,           "Null data state");
+        Objects.requireNonNull(dLink,               "DeltaLink is null");
+        Objects.requireNonNull(syncTxnBegin,        "SyncPolicy is null");
         Objects.requireNonNull(dataState.getDataSourceId(), "Null data source Id");
         Objects.requireNonNull(dataState.getDatasourceName(), "Null data source name");
         
@@ -147,6 +147,10 @@ public class DeltaConnection implements AutoCloseable {
         };
     }
     
+    /** Sync on W transaction begin, not on R
+     * <p>
+     *  READ -> op, WRITE -> call {@code .sync()}. 
+     */
     private Consumer<ReadWrite> syncerTxnBeginW() { 
         return (rw)->{
             switch(rw) {
