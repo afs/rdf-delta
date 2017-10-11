@@ -61,7 +61,11 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         this(dsg, monitor, identity, (b)->{});
     }
     
-    /** Create a {@code DatasetGraphChanges} which calls potentially different sync handlers on {@link #sync} and {@link #begin} */
+    /** Create a {@code DatasetGraphChanges} which calls different patch log synchronization handlers on {@link #sync} and {@link #begin}.
+     *  {@code syncHandler} defaults (with null) to "no action".
+     *  
+     *  Transactional usage preferred. 
+     */
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor, Runnable syncHandler, Consumer<ReadWrite> txnSyncHandler) {
         super(dsg) ; 
         this.monitor = monitor ;
@@ -71,6 +75,8 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     
     @Override public void sync() {
         syncHandler.run();
+        if ( syncHandler != identity )
+            super.sync();
     }
     
     @Override
