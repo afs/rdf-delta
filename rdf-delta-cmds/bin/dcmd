@@ -52,7 +52,7 @@ fi
 
 if [[ $# = 0 ]]
 then
-    echo "Commands: mk, rm, list, get, add, parse" 1>&2
+    echo "Commands: mk, rm, list, get, add, parse, path" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
     #echo "No class to run" 1>&2
@@ -102,6 +102,10 @@ case $CMD in
 	;;
     tools.*)
 	CMD_CLS="${BASE_PKG}"."$CMD"
+	;;
+    path)
+	echo $DELTA_CP:${JENA_CP}
+	exit
 	;;
     *)
 	echo "Unknown command $CMD" 2>&1

@@ -73,6 +73,8 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         this.txnSyncHandler = txnSyncHandler == null ? (b)->{} : txnSyncHandler;
     }
     
+    public RDFChanges getMonitor() { return monitor; }
+    
     @Override public void sync() {
         syncHandler.run();
         if ( syncHandler != identity )

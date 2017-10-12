@@ -42,6 +42,7 @@ import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
+import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory ;
 
@@ -60,6 +61,11 @@ public class DeltaConnection implements AutoCloseable {
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
     private final Dataset managedDataset;
+
+    // Suppressed emopty commits versions
+    private final DatasetGraphChanges managedNoEmpty;
+    private final Dataset managedNoEmptyDataset;
+
     
     private final RDFChanges target;
     private final String datasourceName ;
@@ -113,10 +119,17 @@ public class DeltaConnection implements AutoCloseable {
             RDFChanges monitor = createRDFChanges(datasourceId);
             this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
             this.managedDataset = DatasetFactory.wrap(managed);
+            // ----
+            RDFChanges monitor0 = new RDFChangesSuppressEmpty(monitor);
+            this.managedNoEmpty = new DatasetGraphChanges(basedsg, monitor0, null, syncer(syncTxnBegin));
+            this.managedNoEmptyDataset = DatasetFactory.wrap(managedNoEmpty);
+            
         } else {
             this.target = null;
             this.managed = null;
             this.managedDataset = null;
+            this.managedNoEmpty = null;
+            this.managedNoEmptyDataset = null;
         }
     }
     
@@ -202,10 +215,7 @@ public class DeltaConnection implements AutoCloseable {
         }
         
         @Override
-        public void txnAbort() { reset() ; }
-//        @Override
-//        public void finish() { reset() ; } 
-
+        public void txnAbort() { currentTransactionId = null; reset() ; }
     }
     
     private RDFChanges createRDFChanges(Id dsRef) {
@@ -219,7 +229,7 @@ public class DeltaConnection implements AutoCloseable {
         sync();
     }
     
-    /*package*/ void finish() { }
+    /*package*/ void finish() { /*reset();*/ }
 
     /** Send a patch to log server. */
     public synchronized void append(RDFPatch patch) {
@@ -472,6 +482,21 @@ public class DeltaConnection implements AutoCloseable {
     /** The "record changes" version */  
     public Dataset getDataset() {
         return managedDataset;
+    }
+
+    /** The "record changes" version, suppresses empty commits on the RDFChanges.
+     * @see RDFChangesSuppressEmpty  
+     */
+    public DatasetGraph getDatasetGraphNoEmpty() {
+        checkDeltaConnection();
+        return managedNoEmpty;
+    }
+
+    /** The "record changes" version, suppresses empty commits on the RDFChanges.
+     * @see RDFChangesSuppressEmpty  
+     */
+    public Dataset getDatasetNoEmpty() {
+        return managedNoEmptyDataset;
     }
 
     /** The "without changes" storage */   

@@ -50,6 +50,12 @@ public class PatchReceiverService extends ActionREST {
     //?? extends ActionBase -> rename to ActionService 
     //?? ActionREST - ActionHTTP?  
     
+    // ----
+    
+    // dataService.addEndpoint(opName, epName) ;
+    // DataAccessPointRegistry registry = ???
+    // DataAccessPoint dap = new DataAccessPoint(name, dataService) ;
+    // registry.put(name, dap) ;
 
     @Override
     protected void validate(HttpAction action) {

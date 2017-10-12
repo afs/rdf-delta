@@ -18,8 +18,9 @@
 
 package org.seaborne.delta;
 
-import static org.junit.Assert.assertEquals ;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertFalse ;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull ;
 import static org.junit.Assert.assertTrue ;
 
@@ -163,6 +164,50 @@ public abstract class AbstractTestDeltaConnection {
             Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));
             Set<Quad> set2 = Txn.calculateRead(dsg2, ()->Iter.toSet(dsg2.find()));
             assertEquals(set1, set2);
+        }
+    }
+    
+    @Test
+    public void change_empty_commit_1() {
+        Quad q = SSE.parseQuad("(:g :s :p :o)") ;
+        String NAME = "change_empty_commit_1";
+        DeltaClient dClient = createRegister(NAME);
+        try(DeltaConnection dConn = dClient.get(NAME)) {
+            
+            Id patchId0 = dConn.getRemoteIdLatest();
+            assertNull(patchId0);
+            long ver0 = dConn.getRemoteVersionLatest();
+            
+            // The "no empty commits" dsg
+            DatasetGraph dsg = dConn.getDatasetGraphNoEmpty();
+            
+            Txn.executeWrite(dsg, ()->{});
+            Id patchId1 = dConn.getLatestPatchId();
+            long ver1 = dConn.getRemoteVersionLatest();
+            // No change at start of log.
+            assertEquals(patchId0, patchId1);
+            assertEquals(ver0, ver1);
+            
+            Txn.executeWrite(dsg, ()->dsg.add(q));
+            Id patchId2 = dConn.getLatestPatchId();
+            long ver2 = dConn.getRemoteVersionLatest();
+            assertNotEquals(patchId0, patchId2);
+            assertNotEquals(ver0, ver2);
+            
+            DatasetGraph dsgx = dConn.getDatasetGraph();
+            Txn.executeWrite(dsgx, ()->{});
+            Id patchId3 = dConn.getLatestPatchId();
+            long ver3 = dConn.getRemoteVersionLatest();
+            assertNotEquals(patchId2, patchId3);
+            assertNotEquals(ver2, ver3);
+            
+            // No change mid log.
+            Txn.executeWrite(dsg, ()->Iter.count(dsg.find()));
+            Id patchId4 = dConn.getLatestPatchId();
+            long ver4 = dConn.getRemoteVersionLatest();
+            assertEquals(patchId3, patchId4);
+            assertEquals(ver3, ver4);
+            
         }
     }
     

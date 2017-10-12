@@ -56,8 +56,10 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
 
     // Headers do not count as "changes".
     // A patch must have certain headers for use with a patch log - an id, and a prev. 
-//    @Override
-//    public void header(String field, Node value) {}
+    @Override
+    public void header(String field, Node value) {
+        super.header(field, value);
+    }
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
