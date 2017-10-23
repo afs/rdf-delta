@@ -46,7 +46,7 @@ import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PatchLogHTTP implements PatchLog {
+public class PatchLogHTTP implements PatchLogSimpler {
     private static Logger LOG = LoggerFactory.getLogger(PatchLogHTTP.class);
     private final String url;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
