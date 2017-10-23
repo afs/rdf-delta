@@ -82,4 +82,30 @@ public class TestRDFChangesCancel {
         assertEquals(0, s1.getCountTxnAbort());
     }
     
+    
+    @Test public void changeSuppressEmptyCommit_4() {
+        Quad q = SSE.parseQuad("(_ :s :p 'object')");
+        Triple t = SSE.parseTriple("(:t :p 'object')");
+        
+        Txn.executeRead(dsg,   ()->{});
+        testCounters(counter.summary(), 0, 0);
+        
+        Txn.executeWrite(dsg,  ()->{dsg.add(q);});
+        testCounters(counter.summary(), 1, 0);
+
+        Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().add(t);});
+        testCounters(counter.summary(), 2, 0);
+        
+        Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://example/");});
+        testCounters(counter.summary(), 2, 1);
+        
+        Txn.executeWrite(dsg,  ()->{});
+        testCounters(counter.summary(), 2, 1);
+    }
+    
+    private static void testCounters(PatchSummary s, long dataAddCount, long prefixAddCount) {
+        assertEquals("dataAddCount",   dataAddCount,   s.getCountAddData());
+        assertEquals("prefixAddCount", prefixAddCount, s.getCountAddPrefix());
+    }
+    
 }
