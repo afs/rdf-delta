@@ -28,30 +28,27 @@
 
   <name>RDF Delta :: Development</name>
 
+  <properties>
+    <ver.rdf-delta>0.2.0-SNAPSHOT</ver.rdf-delta>
+  </properties>
+
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.0.0-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
   </parent> 
-
   <dependencies>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-client</artifactId>
-      <version>0.0.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-delta-client</artifactId>
-      <version>0.0.0-SNAPSHOT</version>
+      <version>${ver.rdf-delta}</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-local</artifactId>
-      <version>0.0.0-SNAPSHOT</version>
+      <version>${ver.rdf-delta}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -63,7 +60,7 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-http</artifactId>
-      <version>0.0.0-SNAPSHOT</version>
+      <version>${ver.rdf-delta}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -75,7 +72,7 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-cmds</artifactId>
-      <version>0.0.0-SNAPSHOT</version>
+      <version>${ver.rdf-delta}</version>
     </dependency>
 
     <dependency>
