@@ -43,10 +43,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DataSource {
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
-
-//    private final Id       id;
-//    private final String   uri;
-//    private final String   name;
     private final DataSourceDescription dsDescription;
     private final Path     initialData;
     private final PatchLog patchLog;

@@ -60,6 +60,10 @@ public class DeltaConst {
     public static final String F_STORAGE       = "storage";
     public static final String F_CLIENT        = "client";
     public static final String F_TOKEN         = "token";
+    
+    // Used as an alternative to "name" - now consolidated on "name"
+    // May need to reuse field at sometime.
+    @Deprecated
     public static final String F_BASE          = "base";
     //public static final String F_PORT          = "port";
     

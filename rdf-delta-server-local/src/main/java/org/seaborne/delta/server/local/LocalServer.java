@@ -18,30 +18,32 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.seaborne.delta.DeltaConst.F_BASE;
-import static org.seaborne.delta.DeltaConst.F_ID;
-import static org.seaborne.delta.DeltaConst.F_URI;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.lib.ListUtils;
-import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.*;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
@@ -165,23 +167,23 @@ public class LocalServer {
             return server;
         }
         
+        // Choose default PatchStore.
+        
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
-        Pair<List<Path>, List<Path>> pair = scanDirectory(conf.location, dataRegistry);
-        List<Path> dataSources = pair.getLeft();
-        List<Path> disabledDataSources = pair.getRight();
-        
-        //dataSources.forEach(p->LOG.info("Data source: "+p));
-        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
-        
-        for ( Path p : dataSources ) {
-            // Extract name from disk name. 
-            String dsName = p.getFileName().toString();
-            DataSource ds = attachDataSource(dsName, p, dataRegistry);
-            dataRegistry.put(ds.getId(), ds);
-        }
+        fillDataRegistry(dataRegistry, conf);
         return attachServer(conf, dataRegistry);
     }
     
+    // Scan the location, looking for DataSources.
+    private static void fillDataRegistry(DataRegistry dataRegistry, LocalServerConfig config) {
+        PatchStore.registered().stream().forEach(ps-> {
+            List<DataSource> x = ps.listPersistent(config);
+            x.forEach(ds->dataRegistry.put(ds.getId(), ds));
+            FmtLog.info(LOG, "PatchStore: %s", ps.getProviderName());   
+            FmtLog.info(LOG, "PatchStore:    %s", ps.listDataSources());
+        });
+    }
+
     public static void release(LocalServer localServer) {
         Location key = localServer.serverConfig.location;
         if ( key != null ) {
@@ -191,92 +193,6 @@ public class LocalServer {
         PatchStore.clearPatchLogs();
     }
 
-    /** 
-     * Scan a directory for datasource areas.
-     * These must have a file called source.cfg.
-     */
-    private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Location serverRoot, DataRegistry dataRegistry) {
-        Path dir = IOX.asPath(serverRoot);
-        
-        try { 
-            List<Path> directory = ListUtils.toList( Files.list(dir).filter(p->Files.isDirectory(p)).sorted() );
-//            directory.stream()
-//                .filter(LocalServer::isFormattedDataSource)
-//                .collect(Collectors.toList());
-            List<Path> enabled = directory.stream()
-                .filter(path -> isEnabled(path))
-                .collect(Collectors.toList());
-            List<Path> disabled = directory.stream()
-                .filter(path -> !isEnabled(path))
-                .collect(Collectors.toList());
-            return Pair.create(enabled, disabled);
-        }
-        catch (IOException ex) {
-            LOG.error("Exception while reading "+dir);
-            throw IOX.exception(ex);
-        }
-    }
-
-    /** Test for a valid data source - does not check "disabled" */
-    private static boolean isFormattedDataSource(Path path) {
-        if ( ! isMinimalDataSource(path) )
-            return false;
-        // Additional requirements
-        Path patchesArea = path.resolve(DeltaConst.LOG);
-        if ( ! Files.exists(patchesArea) )
-            return false;
-        // If we keep a state file....
-//        Path pathVersion = path.resolve(DPConst.STATE_FILE);
-//        if ( ! Files.exists(pathVersion) )
-//            return false;
-        return true ;
-    }
-    
-    /** Basic tests - not valid DataSource area but the skeleton of one.
-     * Checks it is a directory and has a configuration files.
-     */
-    private static boolean isMinimalDataSource(Path path) {
-        if ( ! Files.isDirectory(path) ) 
-            return false ;
-        Path cfg = path.resolve(DeltaConst.DS_CONFIG);
-        if ( ! Files.exists(cfg) )
-            return false ;
-        if ( ! Files.isRegularFile(cfg) ) 
-            LOG.warn("Data source configuration file name exists but is not a file: "+cfg);
-        if ( ! Files.isReadable(cfg) )
-            LOG.warn("Data source configuration file exists but is not readable: "+cfg);
-        return true ;
-    }
-
-    private static boolean isEnabled(Path path) {
-        Path disabled = path.resolve(DeltaConst.DISABLED);
-        return ! Files.exists(disabled);
-    }
-
-    private static DataSource attachDataSource(String dsName, Path dataSourceArea, DataRegistry dataRegistry) {
-        JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DeltaConst.DS_CONFIG).toString());
-        SourceDescriptor dss = fromJsonObject(sourceObj);
-
-        Id id = dss.id;
-        String baseStr = dss.base;
-        String uriStr = dss.uri; 
-            
-//        PatchStore patchStore = PatchStore.selectPatchStore(id);
-//        PatchLog patchLog = patchStore.attachLog(id, uriStr, dataSourceArea);
-//        
-//        Path patchesArea = dataSourceArea.resolve(DeltaConst.LOG);
-//        // Everything in this area is under the control of the PatchStore. 
-//        FileOps.ensureDir(patchesArea.toString());
-        
-        if ( LOG.isDebugEnabled() ) 
-            FmtLog.debug(LOG, "DataSource: id=%s, source=%s", id, dataSourceArea);
-        DataSource dataSource = DataSource.connect(id, uriStr, dsName, dataSourceArea);
-        dataRegistry.put(id, dataSource);
-        if ( LOG.isDebugEnabled() ) 
-            FmtLog.debug(LOG, "DataSource: %s (%s)", dataSource, baseStr);
-        return dataSource ;
-    }
-    
     private static LocalServer attachServer(LocalServerConfig config, DataRegistry dataRegistry) {
         Location loc = config.location;
         if ( ! loc.isMemUnique() ) {
@@ -365,40 +281,23 @@ public class LocalServer {
         return x;
       }
 
-    public SourceDescriptor getDescriptor(Id dsRef) {
+    public DataSourceDescription getDescriptor(Id dsRef) {
         DataSource dataSource = dataRegistry.get(dsRef);
         return descriptor(dataSource);
     }
     
-    private SourceDescriptor descriptor(DataSource dataSource) {
-        SourceDescriptor descr = new SourceDescriptor
+    private DataSourceDescription descriptor(DataSource dataSource) {
+        DataSourceDescription descr = new DataSourceDescription
             (dataSource.getId(),
              dataSource.getURI(),
              dataSource.getName());
         return descr;
     }
     
-    // Isn't this DataSourceDescription?
-    static class SourceDescriptor {
-        final String uri;
-        final Id id;
-        final String base;
-        public SourceDescriptor(Id id, String uri, String base) {
-            super();
-            this.id = id;
-            this.uri = uri;
-            this.base = base;
-        }
-    }
-    
     private static Location dataSourceArea(Location serverRoot, String name) {
         return serverRoot.getSubLocation(name);
     }
     
-//    /*package*/ static Location patchArea(Location dataSourceArea) {
-//        return dataSourceArea.getSubLocation(DeltaConst.LOG);
-//    }
-
 //    /** Inital data : a file is some RDF format (the file extension determines the syntax)
 //     *  or a directory, which is a TDB database.
 //     *  null means no initial data.
@@ -424,9 +323,9 @@ public class LocalServer {
             //        if ( sourceArea.exists() )
             //            throw new DeltaException("Area already exists");
 
-            if ( isMinimalDataSource(sourcePath) )
+            if ( Cfg.isMinimalDataSource(LOG, sourcePath) )
                 throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
-            if ( ! isEnabled(sourcePath) )
+            if ( ! Cfg.isEnabled(sourcePath) )
                 throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
 
             String patchesDirName = sourceArea.getPath(DeltaConst.LOG);
@@ -440,11 +339,11 @@ public class LocalServer {
             //Location db = sourceArea.getSubLocation(DPConst.DATA);
 
             Id dsRef = Id.create();
-            SourceDescriptor descr = new SourceDescriptor(dsRef, baseURI, name);
+            DataSourceDescription descr = new DataSourceDescription(dsRef, baseURI, name);
 
             // Create source.cfg.
             if ( ! inMemory ) {
-                JsonObject obj = toJsonObj(descr);
+                JsonObject obj = descr.asJson();
                 LOG.info(JSON.toStringFlat(obj));
                 try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
                     JSON.write(out, obj);
@@ -473,30 +372,31 @@ public class LocalServer {
         }
     }
 
-    /** JsonObject -> SourceDescriptor */
-    private static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
-        String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
-        SourceDescriptor descr = new SourceDescriptor
-            (Id.fromString(idStr), 
-             JSONX.getStrOrNull(sourceObj, F_URI),
-             JSONX.getStrOrNull(sourceObj, F_BASE));
-        return descr;
-    }
-    
-    /** SourceDescriptor -> JsonObject */
-    private static JsonObject toJsonObj(SourceDescriptor descr) {
-        return
-            JSONX.buildObject(builder->{
-                set(builder, F_ID, descr.id.asPlainString());
-                set(builder, F_URI, descr.uri);
-                set(builder, F_BASE, descr.base);
-            });
-    }
-
-    private static void set(JsonBuilder builder, String field, String value) {
-        if ( value != null )
-            builder.key(field).value(value);
-    }
-
+//    /** JsonObject -> SourceDescriptor */
+//    // XXX SCOPE? --> SourceDescriptor
+//    public static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
+//        String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
+//        SourceDescriptor descr = new SourceDescriptor
+//            (Id.fromString(idStr), 
+//             JSONX.getStrOrNull(sourceObj, F_URI),
+//             JSONX.getStrOrNull(sourceObj, F_BASE));
+//        return descr;
+//    }
+//    
+//    /** SourceDescriptor -> JsonObject */
+//    private static JsonObject toJsonObj(SourceDescriptor descr) {
+//        return
+//            JSONX.buildObject(builder->{
+//                set(builder, F_ID, descr.id.asPlainString());
+//                set(builder, F_URI, descr.uri);
+//                set(builder, F_BASE, descr.base);
+//            });
+//    }
+//
+//    private static void set(JsonBuilder builder, String field, String value) {
+//        if ( value != null )
+//            builder.key(field).value(value);
+//    }
+//
     public void resetEngine(DeltaLink link) {}
 }

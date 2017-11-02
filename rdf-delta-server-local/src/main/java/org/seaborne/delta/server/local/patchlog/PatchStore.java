@@ -19,7 +19,10 @@
 package org.seaborne.delta.server.local.patchlog;
 
 import java.nio.file.Path ;
+import java.util.Collection;
 import java.util.HashMap ;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map ;
 import java.util.concurrent.ConcurrentHashMap ;
 
@@ -30,10 +33,24 @@ import org.seaborne.delta.DeltaConfigException ;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.lib.IOX ;
+import org.seaborne.delta.server.local.DataSource;
+import org.seaborne.delta.server.local.LocalServerConfig;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
+/** A {@code PatchStore} is manager for a number of {@link PatchLog}s.
+ * It is resonsible for initialization, restoring PatchLogs on external storage
+ * (file etc.)
+ * <p>
+ * There is normally one {@codePatchStore} for each patch storage technology.
+ * <p>
+ * See {@link #register(PatchStore)} and {@link #setDefault(String)}
+ */
 public abstract class PatchStore {
+    
+    
+    // XXX PatchLogMgr a better name?
+    
     // Needs revisiting to redesign.
     // XXX shared default setting assumes only one LocalServer
     
@@ -43,6 +60,10 @@ public abstract class PatchStore {
     // Providers wire themselves in during server startup.
     // Providers should not be be removed if there are any in use. 
     static Map<String, PatchStore> patchStores = new HashMap<>();
+    
+    public static Collection<PatchStore> registered() {
+        return new HashSet<>(patchStores.values());
+    }
 
     public static boolean isRegistered(String providerName) {
         return patchStores.containsKey(providerName);
@@ -103,7 +124,6 @@ public abstract class PatchStore {
     public static PatchStore getPatchStoreByProvider(String providerName) {
         return patchStores.get(providerName);
     }
-    
 
     /** Return the {@link PatchLog}, which must already exist. */ 
     public static PatchLog getLog(Id dsRef) { 
@@ -146,6 +166,9 @@ public abstract class PatchStore {
         return providerName;
     }
 
+    /** Find all the {@link DataSource} on external persistent storage. */
+    public abstract List<DataSource> listPersistent(LocalServerConfig config);
+    
     /**
      * Return a new {@link PatchLog}. Checking that there is no registered
      * {@link PatchLog} for this {@code dsRef} has already been done.
@@ -168,4 +191,6 @@ public abstract class PatchStore {
         logs.put(dsRef, patchLog);
         return patchLog;
     }
+    
+    public abstract List<DataSourceDescription> listDataSources();
 }

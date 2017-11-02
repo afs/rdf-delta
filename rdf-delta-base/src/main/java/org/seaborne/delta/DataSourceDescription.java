@@ -20,12 +20,14 @@ package org.seaborne.delta;
 
 import static org.seaborne.delta.DeltaConst.F_ID;
 import static org.seaborne.delta.DeltaConst.F_NAME;
+import static org.seaborne.delta.DeltaConst.F_BASE;
 import static org.seaborne.delta.DeltaConst.F_URI;
 
 import java.util.Objects;
 
 import org.apache.jena.atlas.json.JsonBuilder;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.lib.JSONX;
 
 /** The fixed information about a {@code DataSource}.
@@ -68,13 +70,51 @@ public class DataSourceDescription {
         if ( uri != null )
             b.key(F_URI).value(uri);
     }
+    
+//  /** JsonObject -> SourceDescriptor */
+//  // XXX SCOPE? --> SourceDescriptor
+//  public static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
+//      String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
+//      SourceDescriptor descr = new SourceDescriptor
+//          (Id.fromString(idStr), 
+//           JSONX.getStrOrNull(sourceObj, F_URI),
+//           JSONX.getStrOrNull(sourceObj, F_BASE));
+//      return descr;
+//  }
+//  
+//  /** SourceDescriptor -> JsonObject */
+//  private static JsonObject toJsonObj(SourceDescriptor descr) {
+//      return
+//          JSONX.buildObject(builder->{
+//              set(builder, F_ID, descr.id.asPlainString());
+//              set(builder, F_URI, descr.uri);
+//              set(builder, F_BASE, descr.base);
+//          });
+//  }
+//
+//  private static void set(JsonBuilder builder, String field, String value) {
+//      if ( value != null )
+//          builder.key(field).value(value);
+//  }
+//
 
     public static DataSourceDescription fromJson(JsonObject obj) {
-        String idStr = obj.get(F_ID).getAsString().value();
-        String name = obj.get(F_NAME).getAsString().value();
-        String uri = null;
-        if ( obj.hasKey(F_URI) )
-            uri = obj.get(F_URI).getAsString().value();
+        String idStr = JSONX.getStrOrNull(obj, F_ID);
+        if ( idStr == null )
+            throw new DeltaException("Missing \"id:\" in DataSourceDescription JSON");
+        
+        String name = JSONX.getStrOrNull(obj, F_NAME);
+        if ( name == null ) {
+            @SuppressWarnings("deprecation")
+            String n = JSONX.getStrOrNull(obj, F_BASE); 
+            // Compatibility.
+            Log.warn(DataSourceDescription.class, "Deprecated: Use of field name \"base\" - change to \"name\"");
+            name = n;
+        }
+        if ( name == null )
+            throw new DeltaException("Missing \"name:\" in DataSourceDescription JSON");
+        
+        String uri = JSONX.getStrOrNull(obj, F_URI);
         return new DataSourceDescription(Id.fromString(idStr), name, uri);
     }
     

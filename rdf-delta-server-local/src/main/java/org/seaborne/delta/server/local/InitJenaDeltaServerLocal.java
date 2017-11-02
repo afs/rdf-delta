@@ -42,5 +42,5 @@ public class InitJenaDeltaServerLocal implements JenaSubsystemLifecycle {
     public void stop() {}
 
     @Override
-    public int level() { return 10; }
+    public int level() { return 100; }
 }

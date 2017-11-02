@@ -44,7 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A {@code FileStore} is a collection of files where the file names have a common pattern.
+ * A {@code FileStore} is a collection of files where the file names have a common pattern
+ * and the fiels are stored in the same location. 
  * <p>
  * The set of files is from a basename, with new files being "BASE-0001", "BASE-0002",
  * etc.
@@ -54,7 +55,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * The basename "tmp" is reserved.
  * <p>
- * Once written,file are not changed. 
+ * Once written, files are not changed. 
  */
 public class FileStore {
     private static Logger       LOG = LoggerFactory.getLogger(FileStore.class);
@@ -107,6 +108,20 @@ public class FileStore {
         FileStore fs = new FileStore(dirPath, basename, indexes, min, max);
         areas.put(k, fs);
         return fs;
+    }
+    
+    public static Object all() {
+        return null;
+//        List<Object> x = areas.values().stream()
+//            .map((fs) -> {
+//              fs.  
+//                
+//            })
+//            .collect(Collectors.toList());
+//        
+//        
+//        
+//        return x;
     }
     
     private static Path key(Path path, String basename) {
