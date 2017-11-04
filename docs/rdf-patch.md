@@ -9,7 +9,7 @@ This page describes RDF Patch. An RDF Patch is a set of changes to an
 [RDF dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset).
 
 Patches can be organised into [RDF Patch Logs](rdf-patch-logs.html) by
-using the metadata header to add an idenifier and to link to previous
+using the metadata header to add an identifier and to link to previous
 patches.  This is on top of the RDF Patch format described here.
 
 ## Example
@@ -50,7 +50,7 @@ TC .
 The text format for an RDF Patch is N-Triples-like: it is a series of
 rows, each row ends with a `.` (DOT).  The tokens on a row are keywords,
 URIs, blank nodes, writen with their label (see below) or RDF Literals,
-in N-triples syntax.  A keyword is a and follows the same rules as
+in N-triples syntax.  A keyword follows the same rules as
 Turtle prefix declarations without a tariling `:`.
 
 A line has an operation code, then some number of items depending on 
@@ -88,7 +88,7 @@ The header provides for basic information about patch. It is a series of
 (key, value) pairs.
 
 It is better to put complex metadata in a separate file and link to it
-from the header but certain information, is best kept with the patch. An example
+from the header, but certain information is best kept with the patch. An example
 used by Delta is to keep the identifer of the global version id of the dataset
 so that patches are applied in the right order.
 
@@ -166,7 +166,7 @@ identifier" for blank nodes so that change can refer to an existing
 blank node in the data.
 
 These can be written as `_:label` or `<_:label>` (the latter provides a
-wider set of permissible charcaters in the label). Note that `_` is
+wider set of permissible characters in the label). Note that `_` is
 illegal as a IRI scheme to highlight the fact this is not, stricitly, an
 IRI.
 
@@ -186,8 +186,8 @@ space between tokens on a row and a single space before the terminal
 `.`.  No comments should be included (comments start `#` and run to end of
 line).
 
-Headers should places before the item they refer to; for information
-used by an RDF Patch Log, the metadat is about thwe whole patch and
+Headers should be placed before the item they refer to; for information
+used by an RDF Patch Log, the metadata is about the whole patch and
 should be at the start of the file, before any `TX`.
 
 
