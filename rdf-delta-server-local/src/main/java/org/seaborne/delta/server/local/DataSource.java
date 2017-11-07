@@ -33,6 +33,7 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.delta.server.local.patchlog.PatchLog ;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class DataSource {
      * The diretory {@code dsPath} must exist.
      */
     public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
-        PatchStore patchStore = PatchStore.selectPatchStore(dsRef);
+        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsRef);
         Path patchesArea = dsPath.resolve(DeltaConst.LOG);
         IOX.ensureDirectory(patchesArea);
         Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);

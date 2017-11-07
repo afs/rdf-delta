@@ -36,7 +36,7 @@ import org.seaborne.delta.server.local.patchlog.PatchStore;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
-public abstract class AbstractPatchStore {
+public abstract class AbstractTestPatchStore {
     //new PatchStoreFile
     private static String DIR = "target/PatchStore"; 
     private static Path patchesArea;

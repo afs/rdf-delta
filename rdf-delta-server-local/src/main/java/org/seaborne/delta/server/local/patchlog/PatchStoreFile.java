@@ -38,11 +38,11 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 public class PatchStoreFile extends PatchStore {
 
     // We manage ...
-    private static Set<DataSourceDescription> sources = ConcurrentHashMap.newKeySet(); 
+    private Set<DataSourceDescription> sources = ConcurrentHashMap.newKeySet(); 
     
     public static void registerPatchStoreFile() {
         PatchStore ps = new PatchStoreFile();
-        PatchStore.register(ps);
+        PatchStoreMgr.register(ps);
     }
     
     public PatchStoreFile() {

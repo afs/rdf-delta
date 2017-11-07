@@ -71,33 +71,6 @@ public class DataSourceDescription {
             b.key(F_URI).value(uri);
     }
     
-//  /** JsonObject -> SourceDescriptor */
-//  // XXX SCOPE? --> SourceDescriptor
-//  public static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
-//      String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
-//      SourceDescriptor descr = new SourceDescriptor
-//          (Id.fromString(idStr), 
-//           JSONX.getStrOrNull(sourceObj, F_URI),
-//           JSONX.getStrOrNull(sourceObj, F_BASE));
-//      return descr;
-//  }
-//  
-//  /** SourceDescriptor -> JsonObject */
-//  private static JsonObject toJsonObj(SourceDescriptor descr) {
-//      return
-//          JSONX.buildObject(builder->{
-//              set(builder, F_ID, descr.id.asPlainString());
-//              set(builder, F_URI, descr.uri);
-//              set(builder, F_BASE, descr.base);
-//          });
-//  }
-//
-//  private static void set(JsonBuilder builder, String field, String value) {
-//      if ( value != null )
-//          builder.key(field).value(value);
-//  }
-//
-
     public static DataSourceDescription fromJson(JsonObject obj) {
         String idStr = JSONX.getStrOrNull(obj, F_ID);
         if ( idStr == null )
@@ -123,8 +96,6 @@ public class DataSourceDescription {
         return String.format("[%s, %s, <%s>]", id, name, uri);
     }
     
-    // Useable as a key into a Map.
-
     @Override
     public int hashCode() {
         final int prime = 31;

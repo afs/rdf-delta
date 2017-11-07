@@ -35,7 +35,7 @@ public class Example1 {
         System.out.println();
         
         // Correctly fails if exists
-        Id newId = server.createDataSource(false, "XYZ", "http://example/xyz");
+        Id newId = server.createDataSource("XYZ", "http://example/xyz");
         DataSource dSrc = server.getDataRegistry().get(newId);
         
         List<DataSource> x = server.listDataSources();

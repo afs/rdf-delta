@@ -20,11 +20,18 @@ package dev;
 
 import java.io.IOException;
 import java.net.BindException ;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
@@ -32,21 +39,30 @@ import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.client.*;
+import org.seaborne.delta.client.DeltaClient;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.client.LocalStorageType;
+import org.seaborne.delta.client.TxnSyncPolicy;
+import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
 import org.seaborne.delta.server.local.LocalServer ;
-import org.seaborne.patch.RDFChanges;
+import org.seaborne.delta.server.local.patchlog.PatchLog;
+import org.seaborne.delta.server.local.patchlog.PatchStore;
+import org.seaborne.delta.server.local.patchlog.PatchStoreFile;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMem;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
-import org.seaborne.patch.changes.RDFChangesNoOp;
-import org.seaborne.patch.system.DatasetGraphChanges;
-import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 
 public class Run {
     static { 
@@ -56,34 +72,84 @@ public class Run {
 
     static int PORT = 1068;
     
+    public static void deleteAll(Path start) {
+        try { 
+            Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+                {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException
+                {
+                    if (e == null) {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    } else {
+                        throw e;
+                    }
+                }
+            });
+        }
+        catch (IOException ex) { throw IOX.exception(ex) ; }
+    }
+    
     public static void main(String... args) throws IOException {
-        RDFChanges c0 = new RDFChangesNoOp();
-        RDFChanges c = new RDFChangesSuppressEmpty(c0) {
-            @Override
-            protected void txnNoChangeCommit() {
-                System.out.println("--txnNoChangeCommit");
-                //doCommit();
-            }
+        {
+            String DIR = "DeltaServer";
+            FileOps.ensureDir(DIR);
+            
+            PatchLogServer patchServer = server(1066, DIR, true);
+            System.out.println("-- --");
+            PatchStore ps = new PatchStoreMem("mem");
+            PatchStoreMgr.register(ps);
+            PatchStoreMgr.setDftPatchStoreName("mem");
+            patchServer.join();
+            
+//            PatchStore ps = new PatchStoreMem("mem");
+//            DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/");
+//            ps.createLog(dsd, Paths.get(DIR));
+//            ps.listDataSources();
+//            ps.listPersistent(null);
+//            System.out.println(ps.listDataSources());
+//            System.out.println(ps.listPersistent(null));
 
-            @Override
-            protected void txnChangeCommit() {
-                System.out.println("++txnChangeCommit");
-                //doCommit();
-            }
-        };
+            System.out.println("DONE");
+            System.exit(0);
+        }
+        
+        delta.server.DeltaServer.main("--port=1064", "--base=DeltaServer");
+        System.out.println("DONE");
+        System.exit(0);
+        
+        PatchStoreFile.registerPatchStoreFile();
+        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
 
-        String now = DateTimeUtils.nowAsString();
-        Quad q = SSE.parseQuad("(_ :s :p '"+now+"')");
-        Triple t = SSE.parseTriple("(:t :p '"+now+"')");
+        Path path = Paths.get("STORE");
+        deleteAll(path);
         
-        DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
-        DatasetGraph dsg = new DatasetGraphChanges(dsg0, c);
+        Id dsRef = Id.create();
+        String dsName = "ABC";
+        String uri = "http://ex/ABC";
+        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
         
-        Txn.executeRead(dsg,   ()->{});
-        Txn.executeWrite(dsg,  ()->{dsg.add(q);});
-        Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().add(t);});
-        Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://examle/");});
-        Txn.executeWrite(dsg,  ()->{});
+        PatchStore patchStore = PatchStoreMgr.getDftPatchStore();
+
+        List<DataSourceDescription> list = patchStore.listDataSources();
+        //listDataSource
+        //LocalServer.initSystem calls new PatchStoreFile() 
+        
+        
+        
+        PatchLog plog = patchStore.createLog(dsd, path);
+        PatchLogInfo ploginfo = plog.getDescription();
+        plog.append(RDFPatchOps.emptyPatch());
+        Log.info(Run.class, plog.getDescription().toString());
+        
+        System.out.println("DONE");
+        System.exit(0);
     }
     
     public static void mainOLD(String... args) throws IOException {
@@ -211,7 +277,7 @@ public class Run {
         Zone zone = Zone.create("Zone");
         
         boolean httpServer = true;
-        DeltaLink dLink = deltaLink(true, true, true);
+        DeltaLink dLink = deltaLink(httpServer, true, true);
         
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         
@@ -298,15 +364,21 @@ public class Run {
         return dLink;
     }
 
-    private static void server(int port, String base, boolean cleanStart) {
+    private static PatchLogServer server(int port, String base, boolean cleanStart) {
         if ( cleanStart )
             FileOps.clearAll(base);
-        PatchLogServer dps = PatchLogServer.server(port, base);
+        Location baseArea = Location.create(base);
+        String configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
+        LocalServer server = LocalServer.create(baseArea, configFile);
+        DeltaLink link = DeltaLinkLocal.connect(server);
+        PatchLogServer dps = PatchLogServer.create(port, link);
         try { 
             dps.start();
+            return dps;
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             System.exit(0);
+            return null;
         }
     }
 }

@@ -27,8 +27,9 @@ import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.patch.PatchHeader ;
 import org.seaborne.patch.RDFPatch;
 
-/** A sequence of patches for an {@link DataSource}.
- * All patches have a fixed id. In addition, a patch log
+/** A {@code PatchLog} is the sequence of {@link RDFPatch}es for one {@link DataSource}.
+ * <p>
+ * All patches have a fixed {@link Id}. In addition, a patch log
  * gives each patch a version number (sequence number).
  * <p><i>Version numbers</i>
  * <p>   

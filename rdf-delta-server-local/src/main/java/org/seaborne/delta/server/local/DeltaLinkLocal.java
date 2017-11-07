@@ -60,7 +60,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         checkRegistered();
         if ( !DeltaOps.isValidName(name) )
             throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
-        return localServer.createDataSource(false, name, baseURI);
+        return localServer.createDataSource(name, baseURI);
     }
 
     @Override

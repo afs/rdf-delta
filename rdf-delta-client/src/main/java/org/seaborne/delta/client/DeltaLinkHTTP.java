@@ -356,7 +356,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         Objects.requireNonNull(name);
         
         if ( ! DeltaOps.isValidName(name) )
-            throw new IllegalArgumentException("Invalid data soirce name: '"+name+"'"); 
+            throw new IllegalArgumentException("Invalid data source name: '"+name+"'"); 
         
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DeltaConst.F_NAME).value(name);

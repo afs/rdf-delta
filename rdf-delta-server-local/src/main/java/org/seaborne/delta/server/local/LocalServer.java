@@ -45,24 +45,31 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.LibX;
-import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMem;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** A local server.
- *  <p>
- *  This provides for several {@link DataSource} areas (one per managed patch set - i.e. one per dataset).
- *  {@code LocalServer} is responsible for server wide configuration and for the 
- *  {@link DataSource} lifecycle of create and delete.  
- *    
- * @see DeltaLinkLocal 
- * @see DataSource 
+/**
+ * A local server.
+ * <p>
+ * This provides for several {@link DataSource} areas (one per managed patch set - i.e.
+ * one per dataset). {@code LocalServer} is responsible for server wide configuration and
+ * for the {@link DataSource} lifecycle of create and delete.
+ * 
+ * @see DeltaLinkLocal
+ * @see DataSource
  *
  */
 public class LocalServer {
+    // XXX LocalServer
+    //   Initialization
+    //   PatchStoreRegistry and display to PatchStore
+    //   createDataSource$
+    
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
     static { 
@@ -73,20 +80,25 @@ public class LocalServer {
     /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
     static private void initSystem() {
         // Ensure the file-based PatchStore provider is available
-        if ( ! PatchStore.isRegistered(DPS.PatchStoreFileProvider) ) {
+        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreFileProvider) ) {
             FmtLog.warn(LOG, "PatchStoreFile provider not registered");
             PatchStore ps = new PatchStoreFile();
             if ( ! DPS.PatchStoreFileProvider.equals(ps.getProviderName())) {
                 FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreFileProvider, ps.getProviderName());
                 throw new DeltaConfigException();
             }
-            PatchStore.register(ps);
+            PatchStoreMgr.register(ps);
+        }
+        
+        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreMemProvider) ) {
+            PatchStore psMem = new PatchStoreMem(DPS.PatchStoreMemProvider);
+            PatchStoreMgr.register(psMem);
         }
         
         // Default the log provider to "file"
-        if ( PatchStore.getDefault() == null ) {
+        if ( PatchStoreMgr.getDftPatchStore() == null ) {
             //FmtLog.warn(LOG, "PatchStore default not set.");
-            PatchStore.setDefault(DPS.PatchStoreFileProvider);
+            PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
         }
     }
     
@@ -176,7 +188,7 @@ public class LocalServer {
     
     // Scan the location, looking for DataSources.
     private static void fillDataRegistry(DataRegistry dataRegistry, LocalServerConfig config) {
-        PatchStore.registered().stream().forEach(ps-> {
+        PatchStoreMgr.registered().stream().forEach(ps-> {
             List<DataSource> x = ps.listPersistent(config);
             x.forEach(ds->dataRegistry.put(ds.getId(), ds));
             FmtLog.info(LOG, "PatchStore: %s", ps.getProviderName());   
@@ -191,8 +203,14 @@ public class LocalServer {
             localServer.shutdown$();
         }
         PatchStore.clearPatchLogs();
+        //PatchStoreMgr.reset();
     }
 
+    /** For testing */
+    public static void releaseAll() {
+        servers.forEach((location, server)->server.shutdown());
+    }
+    
     private static LocalServer attachServer(LocalServerConfig config, DataRegistry dataRegistry) {
         Location loc = config.location;
         if ( ! loc.isMemUnique() ) {
@@ -220,8 +238,8 @@ public class LocalServer {
     }
 
     private void init() {
-        if ( serverConfig.logProvider != null && PatchStore.getDefault() == null )
-            PatchStore.setDefault(serverConfig.logProvider);  
+        if ( serverConfig.logProvider != null && PatchStoreMgr.getDftPatchStore() == null )
+            PatchStoreMgr.setDftPatchStoreName(serverConfig.logProvider);  
     }
     
     public void shutdown() {
@@ -308,55 +326,72 @@ public class LocalServer {
 //        return Paths.get(dataSourceArea.getPath("data.ttl"));
 //    }
 
-    // static DataSource.createDataSource.
-    
-    /** Create a new data source.
+    /** 
+     * Create a new data source.
      * This can not be one that has been removed (i.e disabled) whose files must be cleaned up manually.
      */
-    public Id createDataSource(boolean inMemory, String name, String baseURI/*, details*/) {
-        synchronized(lock) { 
-            Location sourceArea = dataSourceArea(serverRoot, name);
-            Path sourcePath = IOX.asPath(sourceArea);
+    public Id createDataSource(String name, String baseURI) {
+        PatchStore patchStore = PatchStoreMgr.getDftPatchStore();
+        return createDataSource(patchStore, name, baseURI);
+    }
+    
+    /** Create a new data source in the specified {@link PatchStore}. */ 
+    public Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
+        if ( dataRegistry.containsName(name) )
+            throw new DeltaBadRequestException("DataSource with name '"+name+"' already exists");
+        Id dsRef = Id.create();
+        DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
+        return createDataSource$(patchStore, dsd);
+    }
+    
+    public void removeDataSource(Id dsRef) {
+        // Choose PatchStore then dispatch
+        // id -> DataSource -> provider 
+        //PatchStore patchStore = null;
+        //patchStore.remove(dsRef);
+        removeDataSource$(dsRef);
+    }
+    
+    private Id createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
+        synchronized(lock) {
+            Path sourcePath = null;
+            if ( ! patchStore.isEphemeral() ) {
+                Location sourceArea = dataSourceArea(serverRoot, dsd.getName());
+                sourcePath = IOX.asPath(sourceArea);
 
-            // Checking.
-            // The area can exist, but it must not be formatted for a DataSource 
-            //        if ( sourceArea.exists() )
-            //            throw new DeltaException("Area already exists");
+                // Checking.
+                // The area can exist, but it must not be formatted for a DataSource 
+                //        if ( sourceArea.exists() )
+                //            throw new DeltaException("Area already exists");
 
-            if ( Cfg.isMinimalDataSource(LOG, sourcePath) )
-                throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
-            if ( ! Cfg.isEnabled(sourcePath) )
-                throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
+                if ( Cfg.isMinimalDataSource(LOG, sourcePath) )
+                    throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
+                if ( ! Cfg.isEnabled(sourcePath) )
+                    throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
 
-            String patchesDirName = sourceArea.getPath(DeltaConst.LOG);
-            if ( FileOps.exists(patchesDirName) )
-                throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
+                String patchesDirName = sourceArea.getPath(DeltaConst.LOG);
+                if ( FileOps.exists(patchesDirName) )
+                    throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
 
-            String dataDirName = sourceArea.getPath(DeltaConst.DATA);
-            if ( FileOps.exists(dataDirName) )
-                throw new DeltaBadRequestException("DataSource area has a likely looking database already");
+                String dataDirName = sourceArea.getPath(DeltaConst.DATA);
+                if ( FileOps.exists(dataDirName) )
+                    throw new DeltaBadRequestException("DataSource area has a likely looking database already");
 
-            //Location db = sourceArea.getSubLocation(DPConst.DATA);
-
-            Id dsRef = Id.create();
-            DataSourceDescription descr = new DataSourceDescription(dsRef, baseURI, name);
-
-            // Create source.cfg.
-            if ( ! inMemory ) {
-                JsonObject obj = descr.asJson();
+                // Create source.cfg.
+                JsonObject obj = dsd.asJson();
                 LOG.info(JSON.toStringFlat(obj));
                 try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
                     JSON.write(out, obj);
                 } catch (IOException ex)  { throw IOX.exception(ex); }
             }
-            DataSource newDataSource = DataSource.connect(dsRef, baseURI, name, sourcePath);
-            // Atomic.
-            dataRegistry.put(dsRef, newDataSource);
-            return dsRef ;
+            // XXX Pass in dsd
+            DataSource newDataSource = DataSource.connect(dsd.getId(), dsd.getUri(), dsd.getName(), sourcePath);
+            dataRegistry.put(dsd.getId(), newDataSource);
+            return dsd.getId() ;
         }
     }
     
-    public void removeDataSource(Id dsRef) {
+    private void removeDataSource$(Id dsRef) {
         DataSource datasource1 = getDataSource(dsRef);
         if ( datasource1 == null )
             return;
@@ -371,32 +406,4 @@ public class LocalServer {
             datasource.release();
         }
     }
-
-//    /** JsonObject -> SourceDescriptor */
-//    // XXX SCOPE? --> SourceDescriptor
-//    public static SourceDescriptor fromJsonObject(JsonObject sourceObj) {
-//        String idStr = JSONX.getStrOrNull(sourceObj, F_ID);
-//        SourceDescriptor descr = new SourceDescriptor
-//            (Id.fromString(idStr), 
-//             JSONX.getStrOrNull(sourceObj, F_URI),
-//             JSONX.getStrOrNull(sourceObj, F_BASE));
-//        return descr;
-//    }
-//    
-//    /** SourceDescriptor -> JsonObject */
-//    private static JsonObject toJsonObj(SourceDescriptor descr) {
-//        return
-//            JSONX.buildObject(builder->{
-//                set(builder, F_ID, descr.id.asPlainString());
-//                set(builder, F_URI, descr.uri);
-//                set(builder, F_BASE, descr.base);
-//            });
-//    }
-//
-//    private static void set(JsonBuilder builder, String field, String value) {
-//        if ( value != null )
-//            builder.key(field).value(value);
-//    }
-//
-    public void resetEngine(DeltaLink link) {}
 }

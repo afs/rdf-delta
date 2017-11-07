@@ -19,6 +19,10 @@
 package dev;
 
 public class DevDeltaToDo {
+    // PatchStoreMgr.selectPatchStore - need to map dsId to PatchStore or PatchLog. 
+    
+    
+    // F_BASE vs F_NAME
 
     // Test RDFChangesCancelOnNoChange
     // RDFChanges.cancel :: TestRDFChangesMiscImpls

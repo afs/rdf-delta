@@ -547,7 +547,7 @@ public abstract class AbstractTestDeltaLink {
         assertNull(dsd);
 
         // Need to remove from disk for this to pass.
-        // Markign "disabled" in-place will fail. 
+        // Marking "disabled" in-place will fail. 
         
         Id dsRef2 = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
         assertNotEquals(dsRef,  dsRef2);

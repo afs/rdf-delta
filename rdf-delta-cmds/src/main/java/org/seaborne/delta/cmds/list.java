@@ -57,7 +57,7 @@ public class list extends DeltaCmd {
             if ( logInfo != null ) {
                 System.out.print(
                                  String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getMinVersion(), logInfo.getMaxVersion(), 
-                                               (logInfo.getLatestPatch()==null)?"--":logInfo.getLatestPatch().toString()));
+                                               (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()));
             }
             else
                 System.out.println(dsd);

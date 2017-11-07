@@ -21,7 +21,7 @@ package org.seaborne.delta.server;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 
-public class TestPatchStoreFile extends AbstractPatchStore {
+public class TestPatchStoreFile extends AbstractTestPatchStore {
     @Override
     protected PatchStore createProvider() {
         return new PatchStoreFile();

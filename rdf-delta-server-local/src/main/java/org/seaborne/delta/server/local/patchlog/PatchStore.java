@@ -19,17 +19,12 @@
 package org.seaborne.delta.server.local.patchlog;
 
 import java.nio.file.Path ;
-import java.util.Collection;
-import java.util.HashMap ;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map ;
 import java.util.concurrent.ConcurrentHashMap ;
 
 import org.apache.jena.atlas.logging.FmtLog ;
-import org.apache.jena.atlas.logging.Log ;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaConfigException ;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.lib.IOX ;
@@ -38,92 +33,24 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
-/** A {@code PatchStore} is manager for a number of {@link PatchLog}s.
- * It is resonsible for initialization, restoring PatchLogs on external storage
- * (file etc.)
+/**
+ * A {@code PatchStore} is manager for a number of {@link PatchLog}s. One {@link PatchLog}
+ * is the log for one data source; a {@code PatchStore} is a collection of such logs and
+ * it is responsible for initialization, restoring {@code PatchLog}s on external storage
+ * (files etc.)
  * <p>
- * There is normally one {@codePatchStore} for each patch storage technology.
- * <p>
- * See {@link #register(PatchStore)} and {@link #setDefault(String)}
+ * There is normally one {@code PatchStore} for each patch storage technology but this is
+ * not a requirement.
  */
 public abstract class PatchStore {
-    
-    
-    // XXX PatchLogMgr a better name?
-    
-    // Needs revisiting to redesign.
-    // XXX shared default setting assumes only one LocalServer
-    
     protected static Logger LOG = LoggerFactory.getLogger(PatchStore.class); 
-    
-    // -------- PatchStore.Provider
-    // Providers wire themselves in during server startup.
-    // Providers should not be be removed if there are any in use. 
-    static Map<String, PatchStore> patchStores = new HashMap<>();
-    
-    public static Collection<PatchStore> registered() {
-        return new HashSet<>(patchStores.values());
-    }
-
-    public static boolean isRegistered(String providerName) {
-        return patchStores.containsKey(providerName);
-    }
-    
-    // The provider name is used in config files. 
-    public static void register(PatchStore impl) {
-        String providerName = impl.getProviderName();
-        FmtLog.info(LOG, "Register patch store: %s", providerName);
-        if ( patchStores.containsKey(providerName) )
-            Log.error(PatchStore.class, "Already registered: "+providerName);
-        patchStores.put(providerName, impl);
-    }
-    
-    public static void setDefault(String providerName) {
-        PatchStore impl = patchStores.get(providerName);
-        if ( impl == null )
-            throw new DeltaConfigException("No provider for '"+providerName+"'");  
-        dftPatchStore = impl;
-        FmtLog.info(LOG, "Set default patch store: %s", providerName);
-    }
-    
-    public static String getDefault() {
-        if ( dftPatchStore == null )
-            return null;
-        return dftPatchStore.getProviderName();
-    }
     
     // ---- PatchStore.Provider
 
     // -------- Global
     // XXX Split out PatchStore.Provider management.
+    // DataRegistry?
     private static Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
-    private static PatchStore dftPatchStore;
-
-    /**
-     * Get the {@link PatchStore}. Return the current global default if not
-     * specifically found
-     */
-    public static PatchStore selectPatchStore(Id dsRef) {
-//        // Look in existing bindings.
-//        PatchStore patchStore = ??? ;
-//        if ( patchStore != null )
-//            return patchStore;
-        return getPatchStore();
-    }
-    
-    /**
-     * Get the current default {@code PatchStore}, e.g. for creating new {@link PatchLog}s.
-     */
-    public static PatchStore getPatchStore() {
-        return dftPatchStore ;
-    }
-    
-    /**
-     * Get the PatchStore by provider name.
-     */
-    public static PatchStore getPatchStoreByProvider(String providerName) {
-        return patchStores.get(providerName);
-    }
 
     /** Return the {@link PatchLog}, which must already exist. */ 
     public static PatchLog getLog(Id dsRef) { 
@@ -165,10 +92,20 @@ public abstract class PatchStore {
     public String getProviderName() { 
         return providerName;
     }
-
-    /** Find all the {@link DataSource} on external persistent storage. */
+    
+    /** Does the PAtchStore have state across restarts? */ 
+    public boolean isEphemeral() {
+        return false;
+    }
+    
+    /** All the {@link DataSource} on external persistent storage. */
     public abstract List<DataSource> listPersistent(LocalServerConfig config);
     
+    /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
+    // Somewhat related to the DataRegistry.
+    // Could scan than looking for this PatchStore.
+    public abstract List<DataSourceDescription> listDataSources();
+
     /**
      * Return a new {@link PatchLog}. Checking that there is no registered
      * {@link PatchLog} for this {@code dsRef} has already been done.
@@ -191,6 +128,4 @@ public abstract class PatchStore {
         logs.put(dsRef, patchLog);
         return patchLog;
     }
-    
-    public abstract List<DataSourceDescription> listDataSources();
 }

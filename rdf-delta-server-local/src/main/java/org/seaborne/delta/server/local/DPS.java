@@ -28,6 +28,7 @@ public class DPS {
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
     
     public static String PatchStoreFileProvider = "PatchStoreFileProvider";
+    public static String PatchStoreMemProvider = "PatchStoreMemProvider";
     
     private static volatile boolean initialized = false ;
     

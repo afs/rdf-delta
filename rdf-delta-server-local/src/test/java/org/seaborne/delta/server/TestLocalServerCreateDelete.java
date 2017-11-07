@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.tdb.base.file.Location;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.seaborne.delta.DeltaException;
@@ -56,6 +57,7 @@ public class TestLocalServerCreateDelete {
         PatchStore.clearPatchLogs();
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
+        LocalServer.releaseAll();
         // copy in setup.
         try { FileUtils.copyDirectory(new File(TestLocalServer.SERVER_DIR), new File(DIR)); }
         catch (IOException ex) { throw IOX.exception(ex); }
@@ -63,6 +65,10 @@ public class TestLocalServerCreateDelete {
     
     @Before public void beforeTest() {
         initialize();
+    }
+    
+    @AfterClass public static void afterClass() {
+        LocalServer.releaseAll();
     }
     
     @Test public void local_server_create_01() {
@@ -80,7 +86,7 @@ public class TestLocalServerCreateDelete {
     @Test public void datasource_create_01() {
         Location loc = Location.create(DIR);
         LocalServer server = LocalServer.attach(loc);
-        Id newId = server.createDataSource(false, "XYZ", "http://example/xyz");
+        Id newId = server.createDataSource("XYZ", "http://example/xyz");
         assertNotNull(newId);
     }
     
@@ -89,9 +95,9 @@ public class TestLocalServerCreateDelete {
         Location loc = Location.create(DIR);
         LocalServer server = LocalServer.attach(loc);
         
-        Id newId1 = server.createDataSource(false, "XYZ", "http://example/xyz");
+        Id newId1 = server.createDataSource("XYZ", "http://example/xyz");
         try {
-            Id newId2 = server.createDataSource(false, "XYZ", "http://example/xyz");
+            Id newId2 = server.createDataSource("XYZ", "http://example/xyz");
             fail("Expected createDataSource to fail");
         } catch (DeltaException ex) {}
     }
@@ -99,13 +105,17 @@ public class TestLocalServerCreateDelete {
     // Create does not overwrite persistent state.
     @Test public void local_server_create_03() {
         Location loc = Location.create(DIR);
+        // Finds previous.
         LocalServer server1 = LocalServer.attach(loc);
-        Id newId1 = server1.createDataSource(false, "XYZ", "http://example/xyz");
+        Id newId1 = server1.createDataSource("XYZ", "http://example/xyz");
+        
+        // Need to reset static in ??? PatchStore
+        // XXX PatchStore.reset
         LocalServer.release(server1);
 
         LocalServer server2 = LocalServer.attach(loc);
         try {
-            Id newId2 = server2.createDataSource(false, "XYZ", "http://example/xyz");
+            Id newId2 = server2.createDataSource("XYZ", "http://example/xyz");
             fail("Expected createDataSource to fail");
         } catch (DeltaException ex) {}
     }
@@ -114,7 +124,7 @@ public class TestLocalServerCreateDelete {
     @Test public void local_server_restart_01() {
         Location loc = Location.create(DIR);
         LocalServer server1 = LocalServer.attach(loc);
-        Id newId1 = server1.createDataSource(false, "XYZ", "http://example/xyz");
+        Id newId1 = server1.createDataSource("XYZ", "http://example/xyz");
         LocalServer.release(server1);
         
         LocalServer server2 = LocalServer.attach(loc);

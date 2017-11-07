@@ -64,16 +64,38 @@ public class DataRegistry extends Registry<Id, DataSource> {
     }
     
     @Override
+    public void remove(Id key) {
+        DataSource ds = get(key);
+        if ( ds == null )
+            return; 
+        super.remove(key);
+        indexByName.remove(ds.getName());
+        indexByURI.remove(ds.getURI());
+    }
+    
+    @Override
     public DataSource get(Id key) {
         return super.get(key) ;
+    }
+
+    public boolean contains(Id key) {
+        return super.isRegistered(key) ;
     }
 
     public DataSource getByURI(String uri) {
         return indexByURI.get(uri);
     }
 
+    public boolean containsURI(String uri) {
+        return indexByURI.containsKey(uri);
+    }
+
     public DataSource getByName(String name) {
         return indexByName.get(name);
+    }
+
+    public boolean containsName(String name) {
+        return indexByName.containsKey(name);
     }
 
     @Override

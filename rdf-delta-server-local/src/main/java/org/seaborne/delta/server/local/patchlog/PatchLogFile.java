@@ -174,6 +174,7 @@ public class PatchLogFile implements PatchLog {
     
     @Override
     public PatchLogInfo getDescription() {
+        // AbstractPatchLog
         return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
     }
 
