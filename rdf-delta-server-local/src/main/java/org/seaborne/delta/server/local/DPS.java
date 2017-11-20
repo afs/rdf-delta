@@ -46,5 +46,6 @@ public class DPS {
     // Things to do once.
     private static void initOnce() {
         PatchStoreFile.registerPatchStoreFile();
+        //PatchStoreMem.registerPatchStoreMem();
     }
 }

@@ -36,7 +36,7 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
 import org.slf4j.Logger;
 
-/** Vafrious configuration utilities */ 
+/** Various configuration utilities */ 
 public class Cfg {
 
     /** 

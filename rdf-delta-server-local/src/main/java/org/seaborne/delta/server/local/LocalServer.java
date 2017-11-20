@@ -47,7 +47,6 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMem;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
@@ -90,10 +89,10 @@ public class LocalServer {
             PatchStoreMgr.register(ps);
         }
         
-        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreMemProvider) ) {
-            PatchStore psMem = new PatchStoreMem(DPS.PatchStoreMemProvider);
-            PatchStoreMgr.register(psMem);
-        }
+//        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreMemProvider) ) {
+//            PatchStore psMem = new PatchStoreMem(DPS.PatchStoreMemProvider);
+//            PatchStoreMgr.register(psMem);
+//        }
         
         // Default the log provider to "file"
         if ( PatchStoreMgr.getDftPatchStore() == null ) {
@@ -191,8 +190,10 @@ public class LocalServer {
         PatchStoreMgr.registered().stream().forEach(ps-> {
             List<DataSource> x = ps.listPersistent(config);
             x.forEach(ds->dataRegistry.put(ds.getId(), ds));
-            FmtLog.info(LOG, "PatchStore: %s", ps.getProviderName());   
-            FmtLog.info(LOG, "PatchStore:    %s", ps.listDataSources());
+            List<DataSourceDescription> z = ps.listDataSources();
+            FmtLog.info(LOG, "PatchStore: %s -- %d %s", ps.getProviderName(), z.size(), ((z.size()!=1)?"logs":"log") );
+            if ( ! z.isEmpty() )
+                FmtLog.info(LOG, "PatchStore:    %s", z);
         });
     }
 

@@ -18,13 +18,14 @@
 
 package org.seaborne.delta ;
 
-import static org.junit.Assert.fail ;
+import static org.junit.Assert.* ;
 
 import org.apache.http.client.HttpClient ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.assembler.exceptions.AssemblerException ;
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.embedded.FusekiServer ;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
@@ -35,15 +36,12 @@ import org.junit.* ;
 import org.seaborne.delta.server.http.PatchLogServer ;
 
 /**
- * Tests for Fuseki with Delta integration when things are going well.
+ * Tests for Fuseki with Delta integration when things are not going well.
  * 
  * @see TestDeltaFusekiBad
  */
 public class TestDeltaFusekiBad extends BaseDeltaFuseki {
 
-    private static RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
-    private static RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
-    
     private static HttpClient dftStdHttpClient;
     
     @Before
@@ -109,17 +107,27 @@ public class TestDeltaFusekiBad extends BaseDeltaFuseki {
         } finally {
             server1.stop();
             patchLogServer.stop();
-            
         }
     }
     
     @Test
-    public void patchserver_stop() {
+    public void patchserver_stop_start() {
         PatchLogServer patchLogServer = patchLogServer();
         FusekiServer server1 = fuseki1();
         try { 
             // Restart.
             patchLogServer.stop();
+            
+            // Should fail
+            try {
+                RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
+                conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
+                Assert.fail("Should not be able to update at the moment");
+            } catch (HttpException ex) {
+                // 503 Service Unavailable
+                assertEquals(503, ex.getResponseCode());
+            }
+            
             patchLogServer = patchLogServer(); 
 
             RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;

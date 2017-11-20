@@ -26,11 +26,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServerConfig;
 
 public class PatchStoreMem extends PatchStore {
-
+    
+    public static void registerPatchStoreMem() {
+        PatchStore ps = new PatchStoreMem(DPS.PatchStoreMemProvider);
+        PatchStoreMgr.register(ps);
+    }
+    
     private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
     
     public PatchStoreMem(String providerName) {

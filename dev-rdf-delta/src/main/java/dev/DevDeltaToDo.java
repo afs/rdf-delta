@@ -19,6 +19,10 @@
 package dev;
 
 public class DevDeltaToDo {
+    // Fuseki - sync on begin(R,W)
+    // SPARQL_update.execute#234: action.beginWrite() -> exception -> 503 / Service not available.
+    
+    
     // PatchStoreMgr.selectPatchStore - need to map dsId to PatchStore or PatchLog. 
     
     
