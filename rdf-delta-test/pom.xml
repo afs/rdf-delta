@@ -24,7 +24,7 @@
   <artifactId>rdf-delta-test</artifactId>
   <packaging>jar</packaging>
 
-  <name>RDF Delta :: Tests</name>
+  <name>RDF Delta :: Integration Tests</name>
 
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>

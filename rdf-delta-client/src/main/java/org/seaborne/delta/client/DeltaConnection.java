@@ -28,11 +28,13 @@ import java.util.function.Consumer ;
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
@@ -258,9 +260,15 @@ public class DeltaConnection implements AutoCloseable {
     }
     
     public void sync() {
-        checkDeltaConnection();
-        PatchLogInfo logInfo = getPatchLogInfo();
-        sync(logInfo);
+        try { 
+            checkDeltaConnection();
+            PatchLogInfo logInfo = getPatchLogInfo();
+            sync(logInfo);
+        } catch (HttpException ex) {
+            if ( ex.getResponseCode() == -1 )
+                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+            throw ex;
+        }
     }
     
     // Attempt an operation and return true/false as to whether it succeeded or not.
