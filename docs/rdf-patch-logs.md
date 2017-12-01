@@ -62,7 +62,7 @@ If there is no `prev` header row, the log must be empty when the patch is append
 
 ## Organising logs
 
-A log has a short name, which is must start with a letter, number or "_" and
+A log has a short name, which must start with a letter, number or "_" and
 only contain letters, numbers, "."  "_" and "-".
 
 It is only unique within the server for the patch log.
