@@ -145,15 +145,20 @@ public class Zone {
         if ( dataState.getStorageType().isEphemeral() )
             // If ephemeral, force version to 0.
             dataState.updateState(0, null);
-        register(dataState);
+        try {
+            register(dataState);
+        } catch (Exception ex) {
+            LOG.error("Problem registering and restoring from path "+p, ex);
+            // And (try to) continue.
+        }
     }
     
     private void register(DataState dataState) {
         Id dsRef = dataState.getDataSourceId();
-        states.put(dsRef, dataState);
         DatasetGraph dsg = localStorage(dataState.getStorageType(), dataPath(dataState));
         if ( dsg != null )
             datasets.put(dsRef, dsg);
+        states.put(dsRef, dataState);
         names.put(dataState.getDatasourceName(), dsRef);
     }
     
@@ -241,9 +246,9 @@ public class Zone {
             datasets.remove(dataState.getDataSourceId());
             if ( stateArea != null ) {
                 Path path = stateArea.resolve(dataState.getDatasourceName());
-                if ( false ) {
+                if ( true ) {
                     // real delete.
-                    FileOps.delete(path.toString());
+                    FileOps.clearAll(path.toFile());
                 } else {
                     // Move aside.
                     Path path2 = IOX.uniqueDerivedPath(path, (x)->x+DELETE_MARKER);
@@ -270,10 +275,10 @@ public class Zone {
     }
 
     // Agrees with IOX.uniqueDerivedPath for DELETE_MARKER
-    private static Pattern DELETED = Pattern.compile(DELETE_MARKER+"-\\d+"); 
+    private static Pattern DELETED = Pattern.compile(DELETE_MARKER+"-\\d+$"); 
     private static boolean isDeleted(Path path) {
         String fn = path.getFileName().toString();
-        return DELETED.matcher(fn).matches();
+        return DELETED.matcher(fn).find();
     }
     
     public Path statePath(DataState dataState) {
