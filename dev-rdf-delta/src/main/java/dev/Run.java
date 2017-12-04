@@ -32,6 +32,8 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.TransactionHandler;
 import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
@@ -39,6 +41,7 @@ import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
+import org.apache.jena.tdb2.DatabaseMgr;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
@@ -96,7 +99,15 @@ public class Run {
         catch (IOException ex) { throw IOX.exception(ex) ; }
     }
     
-    public static void main(String... args) throws IOException {
+    public static void main(String... args) {
+        DatasetGraph dsg = DatabaseMgr.createDatasetGraph();
+        Graph g = dsg.getDefaultGraph();
+        TransactionHandler h = g.getTransactionHandler();
+        h.transactionsSupported();
+        System.out.println(h.transactionsSupported());
+    }
+    
+    public static void mainMem(String... args) throws IOException {
         {
             String DIR = "DeltaServer";
             FileOps.ensureDir(DIR);

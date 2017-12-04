@@ -16,11 +16,29 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package org.seaborne.patch.system;
 
-import org.junit.Test;
+import org.apache.jena.graph.Node;
+import org.apache.jena.shared.PrefixMapping;
+import org.seaborne.patch.RDFChanges;
 
-public class TestRDFPatchOps {
-    @Test public void patchop_01() {}
+class PrefixMappingChanges extends PrefixMappingMonitor {
+    private final RDFChanges changes ;
+    protected final Node graphName ;
     
+    public PrefixMappingChanges(PrefixMapping pmap, Node graphName, RDFChanges changes) {
+        super(pmap) ;
+        this.graphName = graphName ;
+        this.changes = changes ;
+    }
+    
+    @Override
+    protected void set(String prefix, String uri) {
+        changes.addPrefix(graphName, prefix, uri);
+    }
+
+    @Override
+    protected void remove(String prefix) {
+        changes.deletePrefix(graphName, prefix);
+    } 
 }

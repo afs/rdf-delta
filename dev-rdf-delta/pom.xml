@@ -76,6 +76,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.seaborne.rdf-delta</groupId>
+      <artifactId>rdf-delta-fuseki</artifactId>
+      <version>${ver.rdf-delta}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-embedded</artifactId>
 <!--

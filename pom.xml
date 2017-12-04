@@ -80,7 +80,13 @@
         <version>${ver.jena}</version>
         <type>pom</type>
       </dependency>
-      
+
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-fuseki-embedded</artifactId>
+        <version>${ver.jena}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-cmds</artifactId>
@@ -98,26 +104,6 @@
         <artifactId>jena-base</artifactId>
         <version>${ver.jena}</version>
         <classifier>tests</classifier>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-arq</artifactId>
-        <version>${ver.jena}</version>
-        <classifier>tests</classifier> 
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-tdb</artifactId>
-        <version>${ver.jena}</version>
-        <classifier>tests</classifier> 
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-fuseki-embedded</artifactId>
-        <version>${ver.jena}</version>
       </dependency>
 
       <dependency>

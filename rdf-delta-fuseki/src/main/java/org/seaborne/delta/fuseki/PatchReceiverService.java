@@ -16,89 +16,87 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http.receiver;
+package org.seaborne.delta.fuseki;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.jena.fuseki.server.CounterName;
 import org.apache.jena.fuseki.servlets.ActionREST;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.RiotException;
+import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.patch.RDFPatchOps;
 
-/** Receive a patch and apply it to a datasets */
+/** A Fuseki service to receive and apply a patch. */
 public class PatchReceiverService extends ActionREST {
+    static CounterName counterPatchesGood = CounterName.register("","");
+    static CounterName counterPatchesBad = CounterName.register("","");
     
-    // ServletBase -> ValidatorBase (etc), ValidatorBasJson 
-    //   ActionBase
-    //      ActionCtl -> ...
-    //      ActionTasks
+    // It's an ActionRest because it accepts POST/PATCH with a content body.  
     
-    //      ActionSPARQL <- dataset mapping.
-    //        ActionREST
-    //          REST_Quads
-    //          SPARQL_GSP
-    //            SPARQL_GSP_R
-    //            SPARQL_GSP_RW
+    public PatchReceiverService() {
+        // Counters: the standard ActionREST counters per operation are enough.
+    }
     
-    //      ActionSPARQL : SPARQL_UberServlet
-    
-    
-    // Naming of Action* not ideal.  No longer "SPARQL", more "Service on Dataset"
-    //?? extends ActionBase -> rename to ActionService 
-    //?? ActionREST - ActionHTTP?  
-    
-    // ----
-    
-    // dataService.addEndpoint(opName, epName) ;
-    // DataAccessPointRegistry registry = ???
-    // DataAccessPoint dap = new DataAccessPoint(name, dataService) ;
-    // registry.put(name, dap) ;
-
     @Override
     protected void validate(HttpAction action) {
-        //action.exec(()->{});
+        
+        // Do everything in {@link operation} 
+        //action.getEndpoint().getCounters();
+        //String ct = action.getRequest().getContentType();
+    }
+    
+    private void operation(HttpAction action) {    
         action.beginWrite();
         try { 
             applyRDFPatch(action) ;
             action.commit();
-            //incCounter(action.getEndpoint().getCounters(), HTTPpatch) ;
         } catch (Exception ex) {
-            //incCounter(action.getEndpoint().getCounters(), PatchErrors) ;
             action.abort();
             throw ex;
         } finally { action.endWrite(); }
     }
-    
+
     private void applyRDFPatch(HttpAction action) {
         try {
+            String ct = action.getRequest().getContentType();
+            // If triples or quads, maybe POST. 
+            
             InputStream input = action.request.getInputStream();
             DatasetGraph dsg = action.getDataset();
             RDFPatchOps.applyChange(dsg, input);
         }
-        catch (RiotException e) {
-            ServletOps.errorBadRequest("RDF Patch parse error: "+e.getMessage());
+        catch (RiotException ex) {
+            ServletOps.errorBadRequest("RDF Patch parse error: "+ex.getMessage());
         }
-        catch (IOException e) {
-            ServletOps.errorBadRequest(METHOD_DELETE);
+        catch (IOException ex) {
+            ServletOps.errorBadRequest("IOException: "+ex.getMessage());
         }
     }
 
     @Override
+    protected void doPost(HttpAction action) {
+        operation(action);
+    }
+
+    @Override
+    protected void doPatch(HttpAction action) {
+        operation(action);
+    }
+
+    @Override
     protected void doOptions(HttpAction action) {
-        ServletOps.errorMethodNotAllowed("OPTIONS") ;
+        setCommonHeadersForOptions(action.response) ;
+        action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST,PATCH");
+        action.response.setHeader(HttpNames.hContentLengh, "0") ;
     }
 
     @Override
     protected void doHead(HttpAction action) {
         ServletOps.errorMethodNotAllowed("HEAD") ;
-    }
-
-    @Override
-    protected void doPost(HttpAction action) {
-        ServletOps.errorMethodNotAllowed("POST") ;
     }
 
     @Override
@@ -109,11 +107,6 @@ public class PatchReceiverService extends ActionREST {
     @Override
     protected void doDelete(HttpAction action) {
         ServletOps.errorMethodNotAllowed("DELETE") ;
-    }
-
-    @Override
-    protected void doPatch(HttpAction action) {
-        ServletOps.errorMethodNotAllowed("PATCH") ;
     }
 
     @Override

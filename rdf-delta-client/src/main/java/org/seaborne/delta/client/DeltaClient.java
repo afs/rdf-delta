@@ -104,9 +104,11 @@ public class DeltaClient {
     private final DeltaLink dLink ;
     // For now, non-counting.
     private Map<Id, DeltaConnection> connections = new ConcurrentHashMap<>();
+    
     private void removeCache(Id id) {
         connections.remove(id);
     }
+    
     private void putCache(Id id, DeltaConnection dConn) {
         if ( dConn == null )
             connections.remove(id);
@@ -143,7 +145,7 @@ public class DeltaClient {
     /** Create a new data source, setup with local storage, and connect. 
      * This is a convenience operation equivalent to:
      * <pre>
-     *  Id dsRef = dLink.newDataSource(name, uri);
+     *   Id dsRef = dLink.newDataSource(name, uri);
      *   register(dsRef, storageType, syncPolicy);
      *   return dsRef;
      * </pre>

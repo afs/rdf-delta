@@ -40,7 +40,7 @@ import org.seaborne.patch.RDFChanges ;
  * Synchrionization can also be performed externally on the wrapped dataset.  
  * <p>
  * Use {@link DatasetGraphRealChanges} to get a dataset that logs only changes that have a
- * real effect - that makes the chnages log reversible (play delete for each add) to undo
+ * real effect - that makes the changes log reversible (play delete for each add) to undo
  * a sequence of changes.
  * 
  * @see DatasetGraphRealChanges

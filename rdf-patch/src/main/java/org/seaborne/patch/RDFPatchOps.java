@@ -28,12 +28,18 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.uuid.JenaUUID;
 import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.patch.changes.*;
+import org.seaborne.patch.changes.PatchSummary;
+import org.seaborne.patch.changes.RDFChangesApply;
+import org.seaborne.patch.changes.RDFChangesApplyGraph;
+import org.seaborne.patch.changes.RDFChangesCollector;
+import org.seaborne.patch.changes.RDFChangesCounter;
+import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.seaborne.riot.tio.TokenWriter ;
 import org.seaborne.riot.tio.impl.TokenWriterText ;
@@ -167,7 +173,7 @@ public class RDFPatchOps {
         return RDFPatchReaderText.readerHeader(input); 
     }
 
-    /** Apply changes from a {@link RDFPatch} to a {@link DatasetGraph} */ 
+    /** Apply changes from a {@link RDFPatch} to a {@link DatasetGraph} */
     public static void applyChange(DatasetGraph dsg, RDFPatch patch) {
         RDFChanges changes = new RDFChangesApply(dsg) ;
         patch.apply(changes);
@@ -180,6 +186,19 @@ public class RDFPatchOps {
         pr.apply(changes);
     }
 
+    /** Apply changes from a {@link RDFPatch} to a {@link Graph} */
+    public static void applyChange(Graph graph, RDFPatch patch) {
+        RDFChanges changes = new RDFChangesApplyGraph(graph) ;
+        patch.apply(changes);
+    }
+    
+    /** Apply changes from a text format input stream to a {@link Graph} */ 
+    public static void applyChange(Graph graph, InputStream input) {
+        RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
+        RDFChanges changes = new RDFChangesApplyGraph(graph) ;
+        pr.apply(changes);
+    }
+    
     /** Create a {@link DatasetGraph} that sends changes to a {@link RDFChanges} stream */ 
     public static DatasetGraph changes(DatasetGraph dsgBase, RDFChanges changes) {
         return new DatasetGraphChanges(dsgBase, changes) ;

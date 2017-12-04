@@ -27,7 +27,6 @@ import org.apache.jena.sparql.core.DatasetGraphWrapper ;
 import org.apache.jena.sparql.core.GraphView ;
 import org.apache.jena.sparql.core.Quad ;
 
-// Prefixes.
 /** Reduce all changes to calls to {@link #actionAdd} and {@link #actionDelete} */ 
 public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper {
 

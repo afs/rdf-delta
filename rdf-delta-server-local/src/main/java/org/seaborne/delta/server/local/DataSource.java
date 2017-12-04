@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DataSource {
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
+    private static final String DELETE_MARKER = "-deleted";
     private final DataSourceDescription dsDescription;
     private final Path     initialData;
     private final PatchLog patchLog;
@@ -130,7 +131,7 @@ public class DataSource {
             }
             if ( true ) {
                 // Move to "NAME-deleted-N"
-                Path dest = IOX.uniqueDerivedPath(getPath(), (x)->x+"-deleted");
+                Path dest = IOX.uniqueDerivedPath(getPath(), (x)->x+DELETE_MARKER);
                 try { Files.move(getPath(), dest, StandardCopyOption.ATOMIC_MOVE); }
                 catch (IOException e) { throw IOX.exception(e); }
             }

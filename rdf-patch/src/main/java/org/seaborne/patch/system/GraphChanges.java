@@ -18,25 +18,57 @@
 
 package org.seaborne.patch.system;
 
-import java.util.Map ;
-
-import org.apache.jena.graph.* ;
-import org.apache.jena.shared.PrefixMapping ;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.TransactionHandler;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.TransactionHandlerBase;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChanges;
 
-// Needed? Or graphView over a dataset?
+/**
+ * Connect a {@link Graph} with {@link RDFChanges}. All operations on the {@link Graph}
+ * that cause changes have the change sent to the {@link RDFChanges}.
+ * <p>
+ * The graph name is settable and
+ * <p>
+ * Use {@link GraphRealChanges} to get a graph that logs only changes that have a real
+ * effect - that makes the changes log reversible (play delete for each add) to undo a
+ * sequence of changes.
+ * <p>
+ * If the graph is a graph from a dataset and the same graph name is to be used, then
+ * instead of this class, get a graph from {@link DatasetGraphChanges}. Using this class
+ * does not preseve the graph name, it uses the name explciit set in the constructor.
+ * 
+ * @see DatasetGraphChanges
+ * @see RDFChanges
+ */
 public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ // Or WrappedGraph
 {
-    private final RDFChanges changes ;
-    protected final Node graphName ;
-    private PrefixMapping prefixMapping = null ;
+    private final RDFChanges changes;
+    protected final Node graphName;
+    private final PrefixMapping prefixMapping;
+    private final TransactionHandler transactionHandler;
 
+    /** 
+     * Send changes to a graph to a {@link RDFChanges} with null for the graph name. 
+     */
+    public GraphChanges(Graph graph, RDFChanges changes) {
+        this(graph, null, changes);
+    }
+    
+    /**
+     * Send changes to a graph to a {@link RDFChanges} with the specified graph name.
+     * The graph name may be null for "no name".
+     */
     public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
-        super(graph) ;
-        this.graphName = graphName ;
-        this.changes = changes ;
-        this.prefixMapping = new PrefixMappingMonitorChanges(graph.getPrefixMapping(), graphName, changes) ;
+        super(graph);
+        this.graphName = graphName;
+        this.changes = changes;
+        this.prefixMapping = new PrefixMappingChanges(graph.getPrefixMapping(), graphName, changes);
+        this.transactionHandler = new TransactionHandlerMonitor(graph.getTransactionHandler(), changes);
     }
     
     @Override
@@ -56,154 +88,62 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
     
     @Override
     public void clear() {
-        remove(Node.ANY, Node.ANY, Node.ANY) ;
+        remove(Node.ANY, Node.ANY, Node.ANY);
     }
 
     @Override
     public void remove(Node s, Node p, Node o) {
         // Convert to calls to delete. 
-        GraphUtil.remove(this, s, p, o) ;
+        GraphUtil.remove(this, s, p, o);
     }
+    
     
     @Override
     public TransactionHandler getTransactionHandler() {
-        return super.getTransactionHandler() ;
+        return transactionHandler;
+    }
+    
+    static class TransactionHandlerMonitor extends TransactionHandlerBase {
+
+        private final TransactionHandler handler;
+        private final RDFChanges changes;
+
+        public TransactionHandlerMonitor(TransactionHandler handler, RDFChanges changes) {
+            this.handler = handler;
+            this.changes = changes;
+        }
+        
+        @Override
+        public boolean transactionsSupported() {
+            return handler.transactionsSupported();
+        }
+
+        @Override
+        public void begin() {
+            changes.txnBegin();
+            handler.begin();
+        }
+
+        @Override
+        public void commit() {
+            // Must be in this order - log the commit, then do it.
+            // Recovery from the log wil replay the changes do the log is more important
+            // than the graph as the source of truth.
+            handler.commit();
+            changes.txnCommit();
+        }
+
+        @Override
+        public void abort() {
+            // Must be in this order - record the abort then do it
+            // (a crash between will cause an abort).
+            changes.txnAbort();
+            handler.abort();
+        }
     }
     
     @Override
     public PrefixMapping getPrefixMapping() {
-        return prefixMapping ;
-    }
-    
-    static class PrefixMappingMonitorChanges extends PrefixMappingMonitor {
-        private final RDFChanges changes ;
-        protected final Node graphName ;
-        
-        public PrefixMappingMonitorChanges(PrefixMapping pmap, Node graphName, RDFChanges changes) {
-            super(pmap) ;
-            this.graphName = graphName ;
-            this.changes = changes ;
-        }
-        
-        @Override
-        protected void set(String prefix, String uri) {
-            changes.addPrefix(graphName, prefix, uri);
-        }
-
-        @Override
-        protected void remove(String prefix) {
-            changes.deletePrefix(graphName, prefix);
-        } 
-    }
-    
-    // Almost PrefixMappingWrapper but it decomposes all change operations to set/remove
-    static class PrefixMappingMonitor implements PrefixMapping {
-        
-        private final PrefixMapping pmap ;
-
-        public PrefixMappingMonitor(PrefixMapping pmap) { this.pmap = pmap ; }
-
-        protected PrefixMapping get() { return pmap ; }
-        
-        // Event triggers.
-        protected void set(String prefix, String uri) { }
-
-        //protected String get(String prefix) { }
-
-        protected void remove(String prefix) { }
-        
-        @Override
-        public PrefixMapping setNsPrefix(String prefix, String uri) {
-            set(prefix, uri) ;
-            get().setNsPrefix(prefix, uri) ;
-            return this;
-        }
-
-        @Override
-        public PrefixMapping removeNsPrefix(String prefix) {
-            remove(prefix); 
-            get().removeNsPrefix(prefix) ;
-            return this;
-        }
-
-        @Override
-        public PrefixMapping clearNsPrefixMap() {
-            get().getNsPrefixMap().forEach((prefix,uri)->remove(prefix)) ;
-            get().clearNsPrefixMap() ;
-            return this;
-        }
-
-        @Override
-        public PrefixMapping setNsPrefixes(PrefixMapping other) {
-            other.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
-            get().setNsPrefixes(other) ;
-            return this;
-        }
-
-        @Override
-        public PrefixMapping setNsPrefixes(Map<String, String> map) {
-            map.forEach((p,u) -> set(p,u)) ;
-            get().setNsPrefixes(map) ;
-            return this;
-        }
-
-        @Override
-        public PrefixMapping withDefaultMappings(PrefixMapping map) {
-            // fake
-            map.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
-            get().withDefaultMappings(map) ;
-            return this;
-        }
-
-        @Override
-        public String getNsPrefixURI(String prefix) {
-            return get().getNsPrefixURI(prefix) ;
-        }
-
-        @Override
-        public String getNsURIPrefix(String uri) {
-            return get().getNsURIPrefix(uri) ;
-        }
-
-        @Override
-        public Map<String, String> getNsPrefixMap() {
-            return get().getNsPrefixMap() ;
-        }
-
-        @Override
-        public String expandPrefix(String prefixed) {
-            return get().expandPrefix(prefixed) ;
-        }
-
-        @Override
-        public String shortForm(String uri) {
-            return get().shortForm(uri) ;
-        }
-
-        @Override
-        public String qnameFor(String uri) {
-            return get().qnameFor(uri) ;
-        }
-
-        @Override
-        public PrefixMapping lock() {
-            get().lock() ;
-            return this;
-        }
-        
-        @Override
-        public boolean hasNoMappings() {
-            return get().hasNoMappings() ;
-        }
-
-        @Override
-        public int numPrefixes() {
-            return get().numPrefixes();
-        }
-
-        @Override
-        public boolean samePrefixMappingAs(PrefixMapping other) {
-            return get().samePrefixMappingAs(other) ;
-        }
+        return prefixMapping;
     }
 }

@@ -18,16 +18,15 @@
 
 package dev;
 
-import java.io.IOException;
-
-import javax.servlet.*;
-
-import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.embedded.FusekiServer ;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.web.HttpOp;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -40,53 +39,40 @@ public class RunDeltaFuseki {
     static Logger LOG = LoggerFactory.getLogger("Main") ;
     
     public static void main(String[] args) throws Exception {
-        FusekiServer server = FusekiServer.create()
-            .setPort(3033)
-            .add("XYZ", DatasetGraphFactory.createTxnMem())
-            .build();
-        
-        ServletContextHandler context = (ServletContextHandler)(server.getJettyServer().getHandler());
-        // Wire in a filter!
-        server.getDataAccessPointRegistry().forEach((name, dap)->{
-            FilterHolder fh = new FilterHolder();
-            Filter patchFilter = new PatchFilter();
-            fh.setFilter(patchFilter);
-            if ( name.startsWith("/") )
-                name = name.substring(1);
-            String path = "/"+name+"/patch";
-            System.err.println("Add "+path);
-            // Too late
-            context.addFilter(fh, path, null);
-        }); 
+        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
+//      Operation patchOp = Operation.register("Patch"); 
+//      ActionService handler = new PatchReceiverService();
+//      String EP = "patch";
+//      String DATASET = "/ds";
+//      
+      FusekiServer server = 
+          FusekiServer.create()
+              .setPort(2022)
+//              .registerOperation(patchOp, handler)
+//              .add("ds", dsg, true)
+//              .addOperation(DATASET, EP, patchOp)
+              .build();
 
-//        FilterHolder fh = new FilterHolder();
-//        Filter patchFilter = new PatchFilter();
-//        fh.setFilter(patchFilter);
-//        String path = "/XYZ/patch";
-//        context.addFilter(fh, path, null);
-//        //server.getJettyServer().setHandler(context);
-        
-        server
-            .start()
-            .join();
-    }
-    
-    static class PatchFilter implements Filter {
-
-        @Override
-        public void init(FilterConfig filterConfig) throws ServletException {}
-
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            FmtLog.info(LOG, "PatchFilter"); 
-            
-            new FusekiPatch()
-            .service(request, response);
-            return ;
-        }
-
-        @Override
-        public void destroy() {}
-        
-    }
+      try { 
+          server.start();
+//          System.out.println();
+//          try(RDFConnection rconn = RDFConnectionFactory.connect("http://localhost:2022/ds")) {
+//              try(QueryExecution qExec = rconn.query("SELECT ?x {}")) {
+//                  //ResultSet rs = qExec.execSelect();
+//                  QueryExecUtils.executeQuery(qExec);
+//              }
+//          }
+          
+          BasicHttpEntity entity = new BasicHttpEntity();
+          entity.setContent(IO.openFile("data1.rdfp"));
+          HttpOp.execHttpPost("http://localhost:2022/ds2/patch", entity);
+         
+          RDFDataMgr.write(System.out, dsg, Lang.TRIG);
+          
+          
+      } finally {
+          System.out.println();
+          server.stop();
+      }
+  }
 }
