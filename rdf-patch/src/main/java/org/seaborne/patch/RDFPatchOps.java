@@ -21,6 +21,7 @@ package org.seaborne.patch;
 import java.io.IOException ;
 import java.io.InputStream ;
 import java.io.OutputStream ;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import org.seaborne.patch.changes.RDFChangesApply;
 import org.seaborne.patch.changes.RDFChangesApplyGraph;
 import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.changes.RDFChangesCounter;
+import org.seaborne.patch.changes.RDFChangesLog;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.system.DatasetGraphChanges ;
 import org.seaborne.riot.tio.TokenWriter ;
@@ -203,6 +205,29 @@ public class RDFPatchOps {
     public static DatasetGraph changes(DatasetGraph dsgBase, RDFChanges changes) {
         return new DatasetGraphChanges(dsgBase, changes) ;
     }
+    
+    private static void printer(PrintStream out, String fmt, Object... args) {
+        out.printf(fmt, args);
+        if ( ! fmt.endsWith("\n") )
+            out.println();
+    }
+    
+    /** An {@link RDFChanges} that prints debug information to {@code System.out}.
+     * Output is for debugging - it is not legal text patch syntax.
+     */ 
+    public static RDFChanges changesPrinter() { return new RDFChangesLog((fmt, args)->printer(System.out, fmt, args)); }
+    
+    /** An {@link RDFChanges} that prints RDFPatch syntax to {@code System.out}. */
+    public static RDFChanges changesOut() {
+        TokenWriter tokenWriter = new TokenWriterText(System.out);
+        RDFChanges changes = new RDFChangesWriter(tokenWriter) ;
+        return changes;
+    }
+    
+//    /** Create a {@link Graph} that sends changes to a {@link RDFChanges} stream */ 
+//    public static Graph changes(Graph graphBase, RDFChanges changes) {
+//        return new GraphChanges(graphBase, changes) ;
+//    }
     
     /** Create a {@link DatasetGraph} that writes changes to an {@link OutputStream} in text format.
      *  The caller is responsible for closing the {@link OutputStream}.

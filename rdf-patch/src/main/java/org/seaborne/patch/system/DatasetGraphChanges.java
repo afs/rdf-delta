@@ -54,11 +54,12 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     protected final Consumer<ReadWrite> txnSyncHandler;
     protected final RDFChanges monitor ;
     protected ThreadLocal<ReadWrite> txnMode = ThreadLocal.withInitial(()->null) ;
-    private static Runnable identity = ()->{};
+    private static Runnable identityRunnable = ()->{};
+    private static <X> Consumer<X> identityConsumer() { return (x)->{}; }
 
     /** Create a {@code DatasetGraphChanges} which does not have any sync handlers */
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor) {
-        this(dsg, monitor, identity, (b)->{});
+        this(dsg, monitor, identityRunnable, identityConsumer());
     }
     
     /** Create a {@code DatasetGraphChanges} which calls different patch log synchronization handlers on {@link #sync} and {@link #begin}.
@@ -69,15 +70,15 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor, Runnable syncHandler, Consumer<ReadWrite> txnSyncHandler) {
         super(dsg) ; 
         this.monitor = monitor ;
-        this.syncHandler = syncHandler == null ? identity : syncHandler;
-        this.txnSyncHandler = txnSyncHandler == null ? (b)->{} : txnSyncHandler;
+        this.syncHandler = syncHandler == null ? identityRunnable : syncHandler;
+        this.txnSyncHandler = txnSyncHandler == null ? identityConsumer() : txnSyncHandler;
     }
     
     public RDFChanges getMonitor() { return monitor; }
     
     @Override public void sync() {
         syncHandler.run();
-        if ( syncHandler != identity )
+        if ( syncHandler != identityRunnable )
             super.sync();
     }
     

@@ -124,10 +124,7 @@ public class TestDeltaFusekiBad extends BaseDeltaFuseki {
                 conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
                 Assert.fail("Should not be able to update at the moment");
             } catch (HttpException ex) {
-                // Requires Jena 3.6.0 
-                // 503 Service Unavailable
-                // assertEquals(503, ex.getResponseCode());
-                assertEquals(500, ex.getResponseCode());
+                assertEquals(503, ex.getResponseCode());
             }
             
             patchLogServer = patchLogServer(); 

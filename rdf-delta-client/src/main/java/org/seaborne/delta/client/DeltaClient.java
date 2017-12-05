@@ -225,6 +225,16 @@ public class DeltaClient {
         putCache(datasourceId, dConn);
     }
     
+    public void connectExt(Id datasourceId, DatasetGraph dsg, TxnSyncPolicy syncPolicy) {
+        Objects.requireNonNull(datasourceId);
+        DeltaConnection dConn = get(datasourceId);
+        if ( dConn != null )
+            return;
+        DataState dataState = zone.get(datasourceId);
+        dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
+        putCache(datasourceId, dConn);
+    }
+
     /** 
      * Connect to an existing {@code DataSource} with existing local state.
      */
@@ -279,16 +289,28 @@ public class DeltaClient {
         setupExternal(dsd, dsg);
     }
     
+    /** Supply a dataset for matching to an attached external data source */  
+    public void externalStorage(Id datasourceId, DatasetGraph dsg) {
+        if ( ! zone.exists(datasourceId) )
+            throw new DeltaConfigException("Can't add external storage: data source not attached to this zone: "+datasourceId);
+        DataState dataState = zone.get(datasourceId);
+        if ( ! LocalStorageType.EXTERNAL.equals(dataState.getStorageType()) ) {
+            throw new DeltaConfigException("Can't add external storage: data source is not 'external': "+datasourceId);
+        }
+        zone.externalStorage(datasourceId, dsg);
+    }
+    
     private void setupExternal(DataSourceDescription dsd, DatasetGraph dsg) {
-        //DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
         Id datasourceId = dsd.getId();
         if ( zone.exists(datasourceId) ) {
             DataState dataState = zone.get(datasourceId);
             throw new DeltaConfigException("Can't attach: data source already exists locally: "+dataState.getDatasourceName());
         }
         DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), LocalStorageType.EXTERNAL);
+        externalStorage(datasourceId, dsg);
     }
     
+
     /** Get the {@link Id} for a given short name for the {@link DeltaLink} for this pool. 
      * Rerturns null if there is no attached local statement management.
      */ 

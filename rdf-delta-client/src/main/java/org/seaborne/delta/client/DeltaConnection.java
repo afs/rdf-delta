@@ -105,6 +105,7 @@ public class DeltaConnection implements AutoCloseable {
     private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link, TxnSyncPolicy syncTxnBegin) {
         Objects.requireNonNull(dataState, "DataState");
         Objects.requireNonNull(link, "DeltaLink");
+        Objects.requireNonNull(basedsg, "base DatasetGraph");
         if ( basedsg instanceof DatasetGraphChanges )
             FmtLog.warn(this.getClass(), "[%s] DatasetGraphChanges passed into %s", dataState.getDataSourceId() ,Lib.className(this));
         this.state = dataState;
@@ -114,27 +115,17 @@ public class DeltaConnection implements AutoCloseable {
         this.dLink = link;
         this.valid = true;
         this.syncTxnBegin = syncTxnBegin;
-        if ( basedsg != null  ) {
-            // Where to put incoming changes. 
-            this.target = new RDFChangesApply(basedsg);
-            // Where to send outgoing changes.
-            RDFChanges monitor = createRDFChanges(datasourceId);
-            this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
-            this.managedDataset = DatasetFactory.wrap(managed);
-            // ----
-            RDFChanges monitor0 = new RDFChangesSuppressEmpty(monitor);
-            this.managedNoEmpty = new DatasetGraphChanges(basedsg, monitor0, null, syncer(syncTxnBegin));
-            this.managedNoEmptyDataset = DatasetFactory.wrap(managedNoEmpty);
-            
-        } else {
-            this.target = null;
-            this.managed = null;
-            this.managedDataset = null;
-            this.managedNoEmpty = null;
-            this.managedNoEmptyDataset = null;
-        }
+        // Where to put incoming changes. 
+        this.target = new RDFChangesApply(basedsg);
+        // Where to send outgoing changes.
+        RDFChanges monitor = createRDFChanges(datasourceId);
+        this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
+        this.managedDataset = DatasetFactory.wrap(managed);
+        // ----
+        RDFChanges monitor1 = new RDFChangesSuppressEmpty(monitor);
+        this.managedNoEmpty = new DatasetGraphChanges(basedsg, monitor1, null, syncer(syncTxnBegin));
+        this.managedNoEmptyDataset = DatasetFactory.wrap(managedNoEmpty);
     }
-    
     
     private Consumer<ReadWrite> syncer(TxnSyncPolicy syncTxnBegin) {
         switch(syncTxnBegin) {

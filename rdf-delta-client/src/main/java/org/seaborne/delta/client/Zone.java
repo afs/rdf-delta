@@ -54,7 +54,10 @@ public class Zone {
     // Zone state
     private volatile boolean           INITIALIZED   = false ;
     private Map<Id, DataState>         states        = new ConcurrentHashMap<>();
+    // For datasets create within the zone.
     private Map<Id, DatasetGraph>      datasets      = new ConcurrentHashMap<>();
+    // For external datasets
+    private Map<Id, DatasetGraph>      external      = new ConcurrentHashMap<>();
     private Map<String, Id>            names         = new ConcurrentHashMap<>();
     private Path                       stateArea     = null;
     private final Location             stateLocation;
@@ -96,6 +99,7 @@ public class Zone {
     public void reset() {
         states.clear();
         datasets.clear();
+        external.clear();
         names.clear();
     }
     
@@ -112,6 +116,7 @@ public class Zone {
         }
     }
     
+    /** Ids of connections active in this zone */ 
     public List<Id> localConnections() {
         return new ArrayList<>(states.keySet());
     }
@@ -177,6 +182,14 @@ public class Zone {
         return states.containsKey(dsRef);
     }
 
+//    /** Initialize a new area. */
+//    public DataState create(Id dsRef, String name, String uri, DatasetGraph dataset) {
+//        Objects.requireNonNull(dsRef,   "Data source reference");
+//        Objects.requireNonNull(name,    "Data source name");
+//        Objects.requireNonNull(dataset, "Database");
+//        return null;
+//    }
+    
     /** Initialize a new area. */
     public DataState create(Id dsRef, String name, String uri, LocalStorageType storage) {
         Objects.requireNonNull(dsRef,   "Data source reference");
@@ -221,7 +234,10 @@ public class Zone {
      * Return null if the dataset is externally managed.  
      */
     public DatasetGraph getDataset(DataState dataState) {
-        return datasets.get(dataState.getDataSourceId()); 
+        DatasetGraph dsg = datasets.get(dataState.getDataSourceId());
+        if ( dsg != null )
+            return dsg;
+        return external.get(dataState.getDataSourceId());
     }
     
     /** Create a dataset appropriate to the storage type.
@@ -239,11 +255,32 @@ public class Zone {
         }
     }
     
+    /** Supply a dataset for matching to an attached external data source */  
+    public void externalStorage(Id datasourceId, DatasetGraph dsg) {
+        if ( datasets.containsKey(datasourceId) )
+            throw new DeltaConfigException("Data source already regsitered as zone-managed: "+datasourceId);
+        if ( external.containsKey(datasourceId) ) {
+            DatasetGraph dsg1 = external.get(datasourceId);
+            if ( dsg1 == dsg ) {
+                LOG.warn("Data source already setup as external; same dataset: "+datasourceId);
+                return;
+            } else {
+                LOG.warn("Data source already setup as external; replacing dataset: "+datasourceId);
+            }
+        }
+        external.put(datasourceId, dsg);
+    }
+    
+    /** Delete a {@code DataState}. Do not use the {@code DataState} again. 
+     * This operation makes the state on disk inacessible on reboot.
+     * (It may delete the old contents.) 
+     */ 
     public void delete(Id dsRef) {
         synchronized (zoneLock) {
             DataState dataState = get(dsRef);
             states.remove(dataState.getDataSourceId());
             datasets.remove(dataState.getDataSourceId());
+            external.remove(dataState.getDataSourceId());
             if ( stateArea != null ) {
                 Path path = stateArea.resolve(dataState.getDatasourceName());
                 if ( true ) {
@@ -259,6 +296,23 @@ public class Zone {
         }
     }
     
+    // "release" removes from the active zone but leaves untouched on disk.
+    
+    /** Release a {@code DataState}. Do not use the {@code DataState} again. */ 
+    public void release(DataState dataState) {
+        release(dataState.getDataSourceId());
+    }
+
+    /** Release by {@Id DataState}. Do not use the associated {@code DataState} again. */ 
+    public void release(Id dsRef) {
+        DataState dataState = states.remove(dsRef);
+        if ( dataState == null )
+            return ;
+        datasets.remove(dsRef);
+        external.remove(dsRef);
+        names.remove(dataState.getDatasourceName());
+    }
+
     /** Refresh the {@link DataState} of a datasource */  
     public void refresh(Id datasourceId) {
         DataState ds = connect(datasourceId);
@@ -298,20 +352,6 @@ public class Zone {
     
 
     // "release" removes from the active zone but leaves untouched on disk.
-    
-    /** Release a {@code DataState}. Do not use the {@code DataState} again. */ 
-    public void release(DataState dataState) {
-        release(dataState.getDataSourceId());
-    }
-    
-    /** Release by {@Id DataState}. Do not use the associated {@code DataState} again. */ 
-    public void release(Id dsRef) {
-        DataState dataState = states.remove(dsRef);
-        if ( dataState == null )
-            return ;
-        datasets.remove(dsRef);
-        names.remove(dataState.getDatasourceName());
-    }
     
     public Location getLocation() {
         return stateLocation;

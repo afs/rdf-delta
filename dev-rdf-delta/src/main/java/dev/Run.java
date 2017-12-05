@@ -23,17 +23,12 @@ import java.net.BindException ;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.TransactionHandler;
 import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
@@ -41,8 +36,6 @@ import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
-import org.apache.jena.tdb2.DatabaseMgr;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
@@ -56,12 +49,9 @@ import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
-import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
 import org.seaborne.delta.server.local.LocalServer ;
-import org.seaborne.delta.server.local.patchlog.PatchLog;
 import org.seaborne.delta.server.local.patchlog.PatchStore;
-import org.seaborne.delta.server.local.patchlog.PatchStoreFile;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMem;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.seaborne.patch.RDFPatch ;
@@ -74,6 +64,32 @@ public class Run {
     }
 
     static int PORT = 1068;
+    
+    public static void main(String... args) {
+    }
+    
+    public static void mainMem(String... args) throws IOException {
+            String DIR = "DeltaServer";
+            FileOps.ensureDir(DIR);
+            
+            PatchLogServer patchServer = server(1066, DIR, true);
+            System.out.println("-- --");
+            PatchStore ps = new PatchStoreMem("mem");
+            PatchStoreMgr.register(ps);
+            PatchStoreMgr.setDftPatchStoreName("mem");
+            patchServer.join();
+            
+//            PatchStore ps = new PatchStoreMem("mem");
+//            DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/");
+//            ps.createLog(dsd, Paths.get(DIR));
+//            ps.listDataSources();
+//            ps.listPersistent(null);
+//            System.out.println(ps.listDataSources());
+//            System.out.println(ps.listPersistent(null));
+
+            System.out.println("DONE");
+            System.exit(0);
+    }
     
     public static void deleteAll(Path start) {
         try { 
@@ -98,71 +114,7 @@ public class Run {
         }
         catch (IOException ex) { throw IOX.exception(ex) ; }
     }
-    
-    public static void main(String... args) {
-        DatasetGraph dsg = DatabaseMgr.createDatasetGraph();
-        Graph g = dsg.getDefaultGraph();
-        TransactionHandler h = g.getTransactionHandler();
-        h.transactionsSupported();
-        System.out.println(h.transactionsSupported());
-    }
-    
-    public static void mainMem(String... args) throws IOException {
-        {
-            String DIR = "DeltaServer";
-            FileOps.ensureDir(DIR);
-            
-            PatchLogServer patchServer = server(1066, DIR, true);
-            System.out.println("-- --");
-            PatchStore ps = new PatchStoreMem("mem");
-            PatchStoreMgr.register(ps);
-            PatchStoreMgr.setDftPatchStoreName("mem");
-            patchServer.join();
-            
-//            PatchStore ps = new PatchStoreMem("mem");
-//            DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/");
-//            ps.createLog(dsd, Paths.get(DIR));
-//            ps.listDataSources();
-//            ps.listPersistent(null);
-//            System.out.println(ps.listDataSources());
-//            System.out.println(ps.listPersistent(null));
 
-            System.out.println("DONE");
-            System.exit(0);
-        }
-        
-        delta.server.DeltaServer.main("--port=1064", "--base=DeltaServer");
-        System.out.println("DONE");
-        System.exit(0);
-        
-        PatchStoreFile.registerPatchStoreFile();
-        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
-
-        Path path = Paths.get("STORE");
-        deleteAll(path);
-        
-        Id dsRef = Id.create();
-        String dsName = "ABC";
-        String uri = "http://ex/ABC";
-        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
-        
-        PatchStore patchStore = PatchStoreMgr.getDftPatchStore();
-
-        List<DataSourceDescription> list = patchStore.listDataSources();
-        //listDataSource
-        //LocalServer.initSystem calls new PatchStoreFile() 
-        
-        
-        
-        PatchLog plog = patchStore.createLog(dsd, path);
-        PatchLogInfo ploginfo = plog.getDescription();
-        plog.append(RDFPatchOps.emptyPatch());
-        Log.info(Run.class, plog.getDescription().toString());
-        
-        System.out.println("DONE");
-        System.exit(0);
-    }
-    
     public static void mainOLD(String... args) throws IOException {
         boolean reset = true ;
         boolean embedded = true ;
@@ -212,7 +164,7 @@ public class Run {
         //DeltaSystem.init();
         try {
             //main$misc();
-            main$filter();
+            mainPostPatch();
         } catch (Throwable ex) {
             System.out.println();
             System.out.flush();
@@ -221,7 +173,7 @@ public class Run {
         finally { System.exit(0); }
     }
 
-    public static void main$filter() throws IOException {
+    public static void mainPostPatch() throws IOException {
         FileOps.delete("DeltaServer/ABC");
         DeltaLink dLink = deltaLink(true, true, true);
         dLink.ping();
@@ -279,7 +231,7 @@ public class Run {
         }
     }
 
-        // Quick run-through of some operations as a durign delveop, pre-test quick check.  
+        // Quick run-through of some operations as a during develop, pre-test quick check.  
     public static void main$misc() throws IOException {
         // Do a delete.
         

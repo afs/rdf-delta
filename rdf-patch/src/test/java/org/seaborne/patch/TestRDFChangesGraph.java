@@ -44,7 +44,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.apache.jena.sparql.graph.GraphWrapper;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
 import org.seaborne.patch.changes.RDFChangesWriter;
@@ -52,34 +51,27 @@ import org.seaborne.patch.system.GraphChanges;
 import org.seaborne.riot.tio.TokenWriter;
 import org.seaborne.riot.tio.impl.TokenWriterText;
 
-// FIXME
-// When Jena 3.6. is available, upgrade and remove 
-
 public class TestRDFChangesGraph {
-    // ---- FIXME XXX Need a transactional graph! Jena 3.6.0
-    // Fakery needed! (until graph transactions in Jena are fully integrated)
+
     private static Graph txnGraph() {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         Graph g = dsg.getDefaultGraph();
-        g = new GraphWrapper(g) {
-            @Override public TransactionHandler getTransactionHandler() { return new TransactionHandlerView(dsg); }
-        };
+        // Jena 3.5.0 and earlier.
+//        g = new GraphWrapper(g) {
+//            @Override public TransactionHandler getTransactionHandler() { return new TransactionHandlerViewX(dsg); }
+//        };
         return g;
     }
     private static Graph txnGraph(String graphName) {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         Node gn = NodeFactory.createURI(graphName);
         Graph g = dsg.getGraph(gn);
-        g = new GraphWrapper(g) {
-            @Override public TransactionHandler getTransactionHandler() { return new TransactionHandlerView(dsg); }
-        };
+        // Jena 3.5.0 and earlier.
+//      g = new GraphWrapper(g) {
+//          @Override public TransactionHandler getTransactionHandler() { return new TransactionHandlerView(dsg); }
+//      };
         return g;
     }
-    // ---- FIXME
-
-//    Graph graphBase = txnGraph(DatasetGraphFactory.createTxnMem());
-//    // Graph with changes.
-//    Graph graph = changesAsText(graphBase, bout);
     
     private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)");
     private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)");
@@ -229,11 +221,12 @@ public class TestRDFChangesGraph {
         check(g2, triple1);
     }
         
-    static class TransactionHandlerView extends TransactionHandlerBase 
+    // Remove at Jena 3.6.0 (this is a copy).
+    static class TransactionHandlerViewX extends TransactionHandlerBase 
     {
         private final DatasetGraph dsg;
 
-        public TransactionHandlerView(DatasetGraph dsg) {
+        public TransactionHandlerViewX(DatasetGraph dsg) {
             this.dsg = dsg;
         }
 
