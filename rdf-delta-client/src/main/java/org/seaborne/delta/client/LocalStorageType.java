@@ -24,6 +24,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.tdb2.DatabaseMgr;
+import org.seaborne.delta.lib.DatasetGraphEmpty;
 
 /**
  * Type of data persistence for a {@link Zone} managed dataset.
@@ -31,17 +32,17 @@ import org.apache.jena.tdb2.DatabaseMgr;
  * It has no state across JVM instances.  
  */
 
-public enum LocalStorageType { 
+public enum LocalStorageType {
     /** TDB storage */
-    TDB(false, "TDB", ()->TDBFactory.createDatasetGraph()), 
-    TDB2(false, "TDB2", ()->DatabaseMgr.createDatasetGraph()), 
+    TDB(false, "TDB", TDBFactory::createDatasetGraph), 
+    TDB2(false, "TDB2", DatabaseMgr::createDatasetGraph), 
     //FILE(false, "file"),
     /** In-memory and ephemeral */
-    MEM(true, "mem", ()->DatasetGraphFactory.createTxnMem()),
+    MEM(true, "mem", DatasetGraphFactory::createTxnMem),
     /** External storage (not zone managed). */
     EXTERNAL(true, "external", ()->null),
     /** No persistent tracking, just within this JVM */
-    NONE(true, "none", ()->null)
+    NONE(true, "none", DatasetGraphEmpty::new);
     ;
     private final boolean ephemeral ;
     private String typeName ;

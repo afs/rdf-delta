@@ -34,6 +34,9 @@ import org.junit.runners.Suite.SuiteClasses;
     , TestRemoteConnection.class
     , TestRemoteClient.class
 
+    , TestZone.class
+    , TestRestart.class
+    
     // Includes assembler tests.
     , TestDeltaFusekiGood.class
     , TestDeltaFusekiBad.class

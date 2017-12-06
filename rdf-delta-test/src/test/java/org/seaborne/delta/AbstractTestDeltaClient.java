@@ -79,7 +79,9 @@ public abstract class AbstractTestDeltaClient {
         
         Id dsRef = dLink.newDataSource(DS_NAME, "http://example/datasource");
         DeltaClient dClient = createDeltaClient();
-        dClient.register(dsRef, LocalStorageType.EXTERNAL, TxnSyncPolicy.NONE);
+        
+        //dClient.register(dsRef, LocalStorageType.EXTERNAL, TxnSyncPolicy.NONE);
+        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
         
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
