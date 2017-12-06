@@ -40,11 +40,11 @@ public class RunDeltaFuseki {
     
     public static void main(String[] args) throws Exception {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-//      Operation patchOp = Operation.register("Patch"); 
-//      ActionService handler = new PatchReceiverService();
-//      String EP = "patch";
-//      String DATASET = "/ds";
-//      
+//        Operation patchOp = Operation.register("Patch"); 
+//        ActionService handler = new PatchReceiverService();
+//        String EP = "patch";
+//        String DATASET = "/ds";
+
       FusekiServer server = 
           FusekiServer.create()
               .setPort(2022)

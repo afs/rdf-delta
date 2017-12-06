@@ -32,8 +32,8 @@ import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 /**
- * {@code DeltaClient} is the application interface to managed local state (help in
- * the @link Zone} and connection over a {@link DeltaLink} to the patch log server (local
+ * {@code DeltaClient} is the application interface to managed local state (held in
+ * the {@link Zone}) and connection over a {@link DeltaLink} to the patch log server (local
  * or remote).
  * <p>
  * Lifecycle of a data source involves:
@@ -49,9 +49,9 @@ import org.slf4j.LoggerFactory ;
  * source - this is created in each client, every time the application runs in
  * {@link #connect(Id, TxnSyncPolicy) connect}. This sets the {@link TxnSyncPolicy} for the
  * connection.
- * <p>The full lifecycle is
+ * <p>The full lifecycle from creating the data source is:
  * <pre>
- *     DeltaClient dClient = ...
+ *     DeltaClient dClient = DeltaClient.create(zone, deltaLink);
  *     Id dsRef = dClient.newDataSource(NAME, URI);
  *     dClient.attach(dsRef, LocalStorageType.TDB);
  *     dClient.connect(dsRef, TxnSyncPolicy.TXN_RW);
@@ -65,8 +65,9 @@ import org.slf4j.LoggerFactory ;
  *         });
  *     }
  * </pre>
- * To restart:
- * <pre>    
+ * and each time a JVM restarts it needs to connect each data source:
+ * <pre>
+ *     DeltaClient dClient = DeltaClient.create(zone, deltaLink);
  *     dClient.connect(dsRef, TxnSyncPolicy.TXN_RW);
  *     ...
  * </pre>
@@ -202,7 +203,11 @@ public class DeltaClient {
     }
 
     /** Create a local zone entry and setup to track the existing remote datasource.
-     * 
+     *  This operation is equivalent to:
+     *  <pre>
+     *    attach(datasourceId, storageType);
+     *    connect(datasourceId, syncPolicy);
+     *  </pre> 
      * @param datasourceId
      * @param storageType
      * @param syncPolicy
@@ -333,6 +338,15 @@ public class DeltaClient {
         putCache(datasourceId, dConn);
     }
     
+    /** Test whether a data source Id is available locally, that is, there is data state in the zone. */  
+    public boolean existsLocal(Id datasourceId) {
+        return zone.exists(datasourceId);
+    }
+    
+    /** Test whether a data source Id is available remotely, that is, there is log in the server. */  
+    public boolean existsRemote(Id datasourceId) {
+        return dLink.getDataSourceDescription(datasourceId) != null;
+    }
     /**
      * Get a {@link DeltaConnection}. 
      * It is not automatically up-to-date - that depends on the {@link TxnSyncPolicy}

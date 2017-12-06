@@ -93,7 +93,7 @@ public abstract class PatchStore {
         return providerName;
     }
     
-    /** Does the PAtchStore have state across restarts? */ 
+    /** Does the PatchStore have state across restarts? */ 
     public boolean isEphemeral() {
         return false;
     }

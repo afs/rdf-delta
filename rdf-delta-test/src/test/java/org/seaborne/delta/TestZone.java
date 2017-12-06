@@ -56,7 +56,6 @@ public class TestZone {
     @Before public void before() {
         FileOps.ensureDir(DIR_ZONE);
         FileOps.clearAll(DIR_ZONE);
-        zone = Zone.create(DIR_ZONE);
 
         LocalServer lserver = DeltaTestLib.createEmptyTestServer();
         deltaLink = DeltaLinkLocal.connect(lserver);
@@ -125,23 +124,4 @@ public class TestZone {
         PatchLogInfo info = deltaLink.getPatchLogInfo(dsRef);
         assertEquals(1, info.getMaxVersion());
     }
-
-    @Test public void zone_graph_external_1() {
-        // TODO
-        assertTrue(zone.localConnections().isEmpty());
-        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
-        String NAME = "ABC"; 
-        Id dsRef = createExternal(NAME, dsgBase);
-        assertFalse(zone.localConnections().isEmpty());
-        Quad quad = SSE.parseQuad("(_ :s :p :o)");
-        try(DeltaConnection dConn = deltaClient.get(dsRef)) {
-            DatasetGraph dsg  = dConn.getDatasetGraph();
-            Txn.executeWrite(dsg, ()->dsg.add(quad)); 
-        }
-        // read log.
-        PatchLogInfo info = deltaLink.getPatchLogInfo(dsRef);
-        assertEquals(1, info.getMaxVersion());
-    }
-
-
 }

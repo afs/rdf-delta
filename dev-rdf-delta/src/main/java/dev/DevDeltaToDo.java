@@ -19,12 +19,33 @@
 package dev;
 
 public class DevDeltaToDo {
-    // Zone - register external
+    // Tests for: 
+    //  external data sources
+    // Merge registration of internal and extenal dsgs.
     
+    // documentation and examples of API (check web site)
+    // DeltaClient:
+    //    new data source.
+    //    existing remote, new local.
+    //    existing remote, existing local.
+    //    existing local, deleted remote.
+    
+    // Remote test
+    //   DataSourceDescription dsd = dClient.getLink().getDataSourceDescriptionByURI(baseURI);
+    // Local test
+    //   dClient.getZone().exists(dsRef)
+
+    // ----
+    // ** DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
+    
+    // ** Fuseki
+    //  Patch service - after Jena 3.6.0
     // Fuseki - sync on begin(R,W)
-    // SPARQL_update.execute#234: action.beginWrite() -> exception -> 503 / Service not available.
     
+    // ** "Get all patches x to y."
+
     // PatchStoreMgr.selectPatchStore - need to map dsId to PatchStore or PatchLog. 
+    
     
     // F_BASE vs F_NAME
 
@@ -34,7 +55,7 @@ public class DevDeltaToDo {
     // Fuseki patch receiver service.
     
     // RDFChangesCollector - add a Header Change and don't keep the map.
-    // Doesn't work - begin->create,addtxnBegin then header. 
+    // Doesn't work - begin->create,add,txnBegin then header. 
     // RDFChangesCollector.RECORD_HEADER = true;
     
     // Logging : detech by presence of logging.properties etc.
@@ -54,15 +75,12 @@ public class DevDeltaToDo {
     // Document API
     // /{name}/data --> Args
 
-    // Be able to switch transaction processing off external control and/or merge in-patch transaction files. 
-    
     // ----
     // Background apply log + initial data => current starting point+version.
     
     // RDF Patch protocol and initial data.
     //   API? PatchLogHTTP
     
-    // DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
    
     // DeltaFuseki - sync on a timer.  
 
@@ -80,7 +98,6 @@ public class DevDeltaToDo {
     // resync
     // append (gets patch head and fills that in)
 
-    // "Get all patches x to y."
     
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write

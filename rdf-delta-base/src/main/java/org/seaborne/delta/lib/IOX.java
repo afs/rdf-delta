@@ -22,6 +22,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.util.function.Function ;
 
@@ -131,6 +132,34 @@ public class IOX {
         try {
             Files.write(pathname, value, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
         } catch (IOException ex) { throw IOX.exception(ex); }
+    }
+
+    /** Delete everything from a {@code Path} start point, including the path itself.
+     * Works on files or directories.
+     * Walks down the tree and deletes directories on the way backup.
+     */  
+    public static void deleteAll(Path start) {
+        try { 
+            Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+                {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException
+                {
+                    if (e == null) {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    } else {
+                        throw e;
+                    }
+                }
+            });
+        }
+        catch (IOException ex) { throw IOX.exception(ex) ; }
     }
 
     /**

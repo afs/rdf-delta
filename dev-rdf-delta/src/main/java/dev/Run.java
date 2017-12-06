@@ -20,11 +20,6 @@ package dev;
 
 import java.io.IOException;
 import java.net.BindException ;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
@@ -46,7 +41,6 @@ import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.LocalStorageType;
 import org.seaborne.delta.client.TxnSyncPolicy;
 import org.seaborne.delta.client.Zone;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
@@ -91,30 +85,6 @@ public class Run {
             System.exit(0);
     }
     
-    public static void deleteAll(Path start) {
-        try { 
-            Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-                {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException
-                {
-                    if (e == null) {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    } else {
-                        throw e;
-                    }
-                }
-            });
-        }
-        catch (IOException ex) { throw IOX.exception(ex) ; }
-    }
-
     public static void mainOLD(String... args) throws IOException {
         boolean reset = true ;
         boolean embedded = true ;

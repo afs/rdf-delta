@@ -284,8 +284,8 @@ public class Zone {
             if ( stateArea != null ) {
                 Path path = stateArea.resolve(dataState.getDatasourceName());
                 if ( true ) {
-                    // real delete.
-                    FileOps.clearAll(path.toFile());
+                    // Really delete.
+                    IOX.deleteAll(path);
                 } else {
                     // Move aside.
                     Path path2 = IOX.uniqueDerivedPath(path, (x)->x+DELETE_MARKER);
@@ -375,7 +375,7 @@ public class Zone {
      */
     private static List<Path> scanForDataState(Location workarea) {
         Path dir = IOX.asPath(workarea);
-        try { 
+        try {
             List<Path> datasources = Files.list(dir)
                 .filter(p->Files.isDirectory(p))
                 // Not deleted and moved aside.
