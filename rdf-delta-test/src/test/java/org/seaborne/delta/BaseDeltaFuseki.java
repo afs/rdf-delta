@@ -41,7 +41,7 @@ public class BaseDeltaFuseki {
     }
     
     protected static int F1_PORT  =    choosePort();
-    protected static int F2_PORT  =    3030;
+    protected static int F2_PORT  =    choosePort();
     // Needs to be fixed - it's in the Fuseki config files.
     protected static int D_PORT   =    1068;
     
