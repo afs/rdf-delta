@@ -54,7 +54,7 @@ public class TestLocalServerCreateDelete {
     private static String DIR = "target/testing/delta";
 
     private static void initialize() {
-        PatchStore.clearPatchLogs();
+        PatchStore.clearLogIdCache();
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
         LocalServer.releaseAll();

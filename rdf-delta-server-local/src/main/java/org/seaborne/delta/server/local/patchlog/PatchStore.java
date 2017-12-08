@@ -75,7 +75,8 @@ public abstract class PatchStore {
         patchLog.release();
     }
     
-    public static void clearPatchLogs() {
+    /** Clear the internal mapping from Log (by Id) to its PatchLog. Used for testing. */
+    public static void clearLogIdCache() {
         logs.clear() ;
     }
     

@@ -115,14 +115,11 @@ public abstract class AbstractTestPatchStore {
         
         patchLog.append(patch);
         PatchLogInfo info = patchLog.getDescription();
-        
-        
-        PatchStore.clearPatchLogs();
-        // Reset FileStore.
-        
-        //PatchLog patchLog1 = provider().createLog(info.getDataSourceId(), info.getDataSourceName(), patchesArea);
-        
         Id id = info.getDataSourceId();
+        
+        // Reset internal.
+        PatchStore.clearLogIdCache();
+        
         String name = info.getDataSourceName();
         PatchStore provider = provider();
         Path patchesArea = Paths.get(DIR, info.getDataSourceName()); 

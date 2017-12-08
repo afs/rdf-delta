@@ -74,7 +74,7 @@ public class TestRestart {
     private static void ensureClearRemote() {   
         ensureClear(ServerArea.getDirectoryPath());
         FileStore.resetTracked();
-        PatchStore.clearPatchLogs();
+        PatchStore.clearLogIdCache();
     }
     
     private static void ensureClear(String area) {
@@ -138,7 +138,7 @@ public class TestRestart {
         if ( localServer != null )
             localServer.shutdown();
         FileStore.resetTracked();
-        PatchStore.clearPatchLogs();
+        PatchStore.clearLogIdCache();
         zone = null;
         localServer = null;
         deltaClient = null;

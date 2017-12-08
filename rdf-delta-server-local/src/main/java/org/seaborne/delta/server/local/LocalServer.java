@@ -203,7 +203,7 @@ public class LocalServer {
             servers.remove(key);
             localServer.shutdown$();
         }
-        PatchStore.clearPatchLogs();
+        PatchStore.clearLogIdCache();
         //PatchStoreMgr.reset();
     }
 
