@@ -18,19 +18,30 @@
 
 package org.seaborne.patch.system;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.shared.PrefixMapping;
 import org.seaborne.patch.RDFChanges;
 
-class PrefixMappingChanges extends PrefixMappingMonitor {
+/** 
+ * A monitor that sends change operations to an {@link RDFChanges}.
+ */
+public class PrefixMappingChanges extends PrefixMappingMonitor {
     private final RDFChanges changes ;
     protected final Node graphName ;
+    private Graph graph;
     
-    public PrefixMappingChanges(PrefixMapping pmap, Node graphName, RDFChanges changes) {
-        super(pmap) ;
+    public PrefixMappingChanges(Graph graph, Node graphName, RDFChanges changes) {
+        super(null) ;
+        this.graph = graph;
         this.graphName = graphName ;
         this.changes = changes ;
     }
+    
+    // Delay getting prefix mapping until now.
+    // e.g. Graph internals may change across transaction boundaries.
+    @Override
+    protected PrefixMapping get() { return graph.getPrefixMapping() ; }
     
     @Override
     protected void set(String prefix, String uri) {

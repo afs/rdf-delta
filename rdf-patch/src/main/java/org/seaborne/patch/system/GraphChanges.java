@@ -23,7 +23,6 @@ import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.TransactionHandler;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.impl.TransactionHandlerBase;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
 import org.seaborne.patch.RDFChanges;
@@ -67,7 +66,7 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
         super(graph);
         this.graphName = graphName;
         this.changes = changes;
-        this.prefixMapping = new PrefixMappingChanges(graph.getPrefixMapping(), graphName, changes);
+        this.prefixMapping = new PrefixMappingChanges(graph, graphName, changes);
         this.transactionHandler = new TransactionHandlerMonitor(graph.getTransactionHandler(), changes);
     }
     
@@ -92,6 +91,11 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
     }
 
     @Override
+    public PrefixMapping getPrefixMapping() {
+        return prefixMapping;
+    }
+
+    @Override
     public void remove(Node s, Node p, Node o) {
         // Convert to calls to delete. 
         GraphUtil.remove(this, s, p, o);
@@ -101,49 +105,5 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
     @Override
     public TransactionHandler getTransactionHandler() {
         return transactionHandler;
-    }
-    
-    static class TransactionHandlerMonitor extends TransactionHandlerBase {
-
-        private final TransactionHandler handler;
-        private final RDFChanges changes;
-
-        public TransactionHandlerMonitor(TransactionHandler handler, RDFChanges changes) {
-            this.handler = handler;
-            this.changes = changes;
-        }
-        
-        @Override
-        public boolean transactionsSupported() {
-            return handler.transactionsSupported();
-        }
-
-        @Override
-        public void begin() {
-            changes.txnBegin();
-            handler.begin();
-        }
-
-        @Override
-        public void commit() {
-            // Must be in this order - log the commit, then do it.
-            // Recovery from the log wil replay the changes do the log is more important
-            // than the graph as the source of truth.
-            handler.commit();
-            changes.txnCommit();
-        }
-
-        @Override
-        public void abort() {
-            // Must be in this order - record the abort then do it
-            // (a crash between will cause an abort).
-            changes.txnAbort();
-            handler.abort();
-        }
-    }
-    
-    @Override
-    public PrefixMapping getPrefixMapping() {
-        return prefixMapping;
     }
 }
