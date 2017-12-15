@@ -69,7 +69,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
      *     delta:zone "file path"
      *     delta:storage "mem", "file", "tdb" zone info.
      *   or
-     *      delta:dataset <#daatsetOther>
+     *      delta:dataset <#datasetOther>
      */
     
     @Override

@@ -183,9 +183,15 @@ public class DeltaConnection implements AutoCloseable {
             throw new DeltaConfigException(format("[%s] DeltaConnection not valid", datasourceId));
     }
     
+    /**
+     * An {@link RDFChanges} that adds "id", and "prev" as necessary.
+     */
     private class RDFChangesDS extends RDFChangesCollector {
         private Node currentTransactionId = null;
         
+        RDFChangesDS() {}
+        
+        // Auto-add an id.
         @Override
         public void txnBegin() {
             super.txnBegin();
@@ -195,6 +201,7 @@ public class DeltaConnection implements AutoCloseable {
             }
         }
 
+        // Auto-add previous id.
         @Override
         public void txnCommit() {
             super.txnCommit();
@@ -217,7 +224,11 @@ public class DeltaConnection implements AutoCloseable {
         }
         
         @Override
-        public void txnAbort() { currentTransactionId = null; reset() ; }
+        public void txnAbort() {
+            super.txnAbort();
+            currentTransactionId = null;
+            reset();
+        }
     }
     
     private RDFChanges createRDFChanges(Id dsRef) {

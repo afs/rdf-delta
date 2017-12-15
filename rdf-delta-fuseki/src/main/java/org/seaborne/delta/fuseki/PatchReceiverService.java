@@ -30,12 +30,18 @@ import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.patch.RDFPatchOps;
 
+// Re: Blank Nodes Out
+// Currently XML results only.
+//   Global.
+//   Needs sorting.
+// LabelToNodeMap -> LabelToNode.create() :: default policy. createMap. 
+
 /** A Fuseki service to receive and apply a patch. */
 public class PatchReceiverService extends ActionREST {
     static CounterName counterPatchesGood = CounterName.register("","");
     static CounterName counterPatchesBad = CounterName.register("","");
     
-    // It's an ActionRest because it accepts POST/PATCH with a content body.  
+    // It's an ActionREST because it accepts POST/PATCH with a content body.  
     
     public PatchReceiverService() {
         // Counters: the standard ActionREST counters per operation are enough.
@@ -43,7 +49,6 @@ public class PatchReceiverService extends ActionREST {
     
     @Override
     protected void validate(HttpAction action) {
-        
         // Do everything in {@link operation} 
         //action.getEndpoint().getCounters();
         //String ct = action.getRequest().getContentType();

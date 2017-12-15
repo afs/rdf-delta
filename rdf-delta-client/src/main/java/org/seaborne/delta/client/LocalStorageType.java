@@ -18,14 +18,6 @@
 
 package org.seaborne.delta.client;
 
-import java.util.function.Supplier;
-
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.apache.jena.tdb.TDBFactory;
-import org.apache.jena.tdb2.DatabaseMgr;
-import org.seaborne.delta.lib.DatasetGraphEmpty;
-
 /**
  * Type of data persistence for a {@link Zone} managed dataset.
  * If a {@code DataSource} is "ephemeral" it disappears when the JVM ends.
@@ -34,20 +26,20 @@ import org.seaborne.delta.lib.DatasetGraphEmpty;
 
 public enum LocalStorageType {
     /** TDB storage */
-    TDB(false, "TDB", TDBFactory::createDatasetGraph), 
-    TDB2(false, "TDB2", DatabaseMgr::createDatasetGraph), 
+    TDB(false, "TDB"), 
+    TDB2(false, "TDB2"), 
     //FILE(false, "file"),
     /** In-memory and ephemeral */
-    MEM(true, "mem", DatasetGraphFactory::createTxnMem),
+    MEM(true, "mem"),
     /** External storage (not zone managed). */
-    EXTERNAL(true, "external", ()->null),
-    /** No persistent tracking, just within this JVM */
-    NONE(true, "none", DatasetGraphEmpty::new);
+    EXTERNAL(true, "external"),
+    /** No persistence tracking, just within this JVM */
+    NONE(true, "none");
     ;
     private final boolean ephemeral ;
     private String typeName ;
     
-    private LocalStorageType(boolean ephemeral, String typeName, Supplier<DatasetGraph> storage) {
+    private LocalStorageType(boolean ephemeral, String typeName) {
         this.ephemeral = ephemeral;
         this.typeName = typeName;
     }

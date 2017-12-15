@@ -24,12 +24,14 @@ import java.net.BindException ;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
+import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
@@ -41,6 +43,7 @@ import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.LocalStorageType;
 import org.seaborne.delta.client.TxnSyncPolicy;
 import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.lib.DatasetGraphOneX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
@@ -59,20 +62,65 @@ public class Run {
 
     static int PORT = 1068;
     
+    /*
+     public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
+        super(graph);
+        this.graphName = graphName;
+        this.changes = changes;
+        this.prefixMapping = new PrefixMappingChanges(graph.getPrefixMapping(), graphName, changes);
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^
+        this.transactionHandler = new TransactionHandlerMonitor(graph.getTransactionHandler(), changes);
+    }
+
+     */
+    
     public static void main(String... args) {
+//        FileOps.ensureDir("DB");
+//        FileOps.clearAll("DB");
+        DatasetGraph dsg = TDBFactory.createDatasetGraph();
+        Txn.executeWrite(dsg,  ()->{});
+        DatasetGraph dsg1 = new DatasetGraphOneX(dsg.getDefaultGraph());
+        DatasetGraph dsg2 = RDFPatchOps.changesAsText(dsg1, System.out);
+        
+        Txn.executeWrite(dsg1,  ()->{});
+        Txn.executeWrite(dsg2,  ()->{});
+        
+        // OK Graph g = Txn.calculateWrite(dsg1, dsg1::getDefaultGraph);
+        // NOT OK. 
+        Graph g = Txn.calculateWrite(dsg2, dsg2::getDefaultGraph);
+        //TransactionHandler th = g.getTransactionHandler();
+        // GraphChanges
+        System.out.println("**** TH 1");
+        Txn.executeWrite(dsg2, 
+        //th.execute(
+                   ()-> {
+            g.getPrefixMapping()
+            //dsg2.getDefaultGraph().getPrefixMapping()
+            .setNsPrefix("ex",  "http://example/");
+            
+        });
+        
+//        System.out.println("**** TH 2");
+//        th.execute(()-> {
+//            g
+//            .getPrefixMapping()
+//            .setNsPrefix("ex2",  "http://example/2/");
+//            
+//        });
+        System.out.println("DONE");
     }
     
     public static void mainMem(String... args) throws IOException {
-            String DIR = "DeltaServer";
-            FileOps.ensureDir(DIR);
-            
-            PatchLogServer patchServer = server(1066, DIR, true);
-            System.out.println("-- --");
-            PatchStore ps = new PatchStoreMem("mem");
-            PatchStoreMgr.register(ps);
-            PatchStoreMgr.setDftPatchStoreName("mem");
-            patchServer.join();
-            
+        String DIR = "DeltaServer";
+        FileOps.ensureDir(DIR);
+
+        PatchLogServer patchServer = server(1066, DIR, true);
+        System.out.println("-- --");
+        PatchStore ps = new PatchStoreMem("mem");
+        PatchStoreMgr.register(ps);
+        PatchStoreMgr.setDftPatchStoreName("mem");
+        patchServer.join();
+
 //            PatchStore ps = new PatchStoreMem("mem");
 //            DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/");
 //            ps.createLog(dsd, Paths.get(DIR));
@@ -81,8 +129,8 @@ public class Run {
 //            System.out.println(ps.listDataSources());
 //            System.out.println(ps.listPersistent(null));
 
-            System.out.println("DONE");
-            System.exit(0);
+        System.out.println("DONE");
+        System.exit(0);
     }
     
     public static void mainOLD(String... args) throws IOException {
