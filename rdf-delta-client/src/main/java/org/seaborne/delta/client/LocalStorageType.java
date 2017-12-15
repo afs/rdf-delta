@@ -32,7 +32,7 @@ public enum LocalStorageType {
     /** In-memory and ephemeral */
     MEM(true, "mem"),
     /** External storage (not zone managed). */
-    EXTERNAL(true, "external"),
+    EXTERNAL(false, "external"),
     /** No persistence tracking, just within this JVM */
     NONE(true, "none");
     ;
