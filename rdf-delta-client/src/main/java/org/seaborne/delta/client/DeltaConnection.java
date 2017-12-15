@@ -35,7 +35,13 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.delta.*;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.DeltaNotFoundException;
+import org.seaborne.delta.DeltaOps;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
@@ -46,14 +52,13 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory ;
 
 /** Provides an interface to a specific dataset over the general {@link DeltaLink} API. 
  * This is the client API, c.f. JDBC connection
  */ 
 public class DeltaConnection implements AutoCloseable {
     
-    private static Logger LOG = LoggerFactory.getLogger(DeltaConnection.class);//Delta.DELTA_LOG;
+    private static Logger LOG = Delta.DELTA_CLIENT;
     
     // The version of the remote copy.
     private final DeltaLink dLink ;

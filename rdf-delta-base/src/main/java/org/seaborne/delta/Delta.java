@@ -27,6 +27,7 @@ public class Delta {
     public static String namespace = "http://jena.apache.org/rdf-delta/" ;
     private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
+    // Operations log - not development debugging.
     private static String LoggerNameBase = "Delta";
     
     public final static Logger getDeltaLogger(String subName) {
@@ -36,10 +37,16 @@ public class Delta {
             return LoggerFactory.getLogger(LoggerNameBase+"."+subName) ;
     }
     
-    public final static Logger DELTA_LOG        = getDeltaLogger("") ;
+    public final static Logger DELTA_LOG        = getDeltaLogger("Delta") ;
+    // Client operations
+    public final static Logger DELTA_CLIENT     = getDeltaLogger("Delta") ;
+    // Unused?
     public final static Logger DELTA_PATCH      = getDeltaLogger("Patch") ;
+    // HTTP actions.
     public final static Logger DELTA_HTTP_LOG   = getDeltaLogger("HTTP") ;
+    // RPC actions
     public final static Logger DELTA_RPC_LOG    = getDeltaLogger("RPC") ;
+    // Configuration.
     public final static Logger DELTA_CONFIG_LOG = getDeltaLogger("Config") ;
 
     static { JenaSystem.init(); } 
