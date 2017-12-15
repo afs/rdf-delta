@@ -18,6 +18,7 @@
 
 package org.seaborne.delta;
 
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.system.JenaSystem ;
 import org.seaborne.delta.sys.InitDelta ;
 import org.slf4j.Logger ;
@@ -35,6 +36,18 @@ public class Delta {
             return LoggerFactory.getLogger(LoggerNameBase) ;
         else
             return LoggerFactory.getLogger(LoggerNameBase+"."+subName) ;
+    }
+    
+    // For dynamically change logging (during development)
+    
+    /** Switch logging on from this point */
+    public final static void enableDeltaLogging() {
+        LogCtl.setInfo(LoggerNameBase); 
+    }
+    
+    /** Switch logging off */
+    public final static void disableDeltaLogging() {
+        LogCtl.disable(LoggerNameBase);
     }
     
     public final static Logger DELTA_LOG        = getDeltaLogger("Delta") ;
