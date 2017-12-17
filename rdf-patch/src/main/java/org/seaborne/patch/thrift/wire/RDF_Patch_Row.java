@@ -51,7 +51,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
     PREFIX_DEL((short)5, "prefixDel"),
     /**
      * 
-     * @see Txn
+     * @see Transaction
      */
     TXN((short)6, "txn");
 
@@ -133,7 +133,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
     tmpMap.put(_Fields.PREFIX_DEL, new org.apache.thrift.meta_data.FieldMetaData("prefixDel", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Patch_Prefix_Del.class)));
     tmpMap.put(_Fields.TXN, new org.apache.thrift.meta_data.FieldMetaData("txn", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, Txn.class)));
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, Transaction.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_Patch_Row.class, metaDataMap);
   }
@@ -183,7 +183,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
     return x;
   }
 
-  public static RDF_Patch_Row txn(Txn value) {
+  public static RDF_Patch_Row txn(Transaction value) {
     RDF_Patch_Row x = new RDF_Patch_Row();
     x.setTxn(value);
     return x;
@@ -219,10 +219,10 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
         }
         throw new ClassCastException("Was expecting value of type Patch_Prefix_Del for field 'prefixDel', but got " + value.getClass().getSimpleName());
       case TXN:
-        if (value instanceof Txn) {
+        if (value instanceof Transaction) {
           break;
         }
-        throw new ClassCastException("Was expecting value of type Txn for field 'txn', but got " + value.getClass().getSimpleName());
+        throw new ClassCastException("Was expecting value of type Transaction for field 'txn', but got " + value.getClass().getSimpleName());
       default:
         throw new IllegalArgumentException("Unknown field id " + setField);
     }
@@ -285,8 +285,8 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
           }
         case TXN:
           if (field.type == TXN_FIELD_DESC.type) {
-            Txn txn;
-            txn = Txn.findByValue(iprot.readI32());
+            Transaction txn;
+            txn = Transaction.findByValue(iprot.readI32());
             return txn;
           } else {
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
@@ -325,7 +325,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
         prefixDel.write(oprot);
         return;
       case TXN:
-        Txn txn = (Txn)value_;
+        Transaction txn = (Transaction)value_;
         oprot.writeI32(txn.getValue());
         return;
       default:
@@ -364,8 +364,8 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
           prefixDel.read(iprot);
           return prefixDel;
         case TXN:
-          Txn txn;
-          txn = Txn.findByValue(iprot.readI32());
+          Transaction txn;
+          txn = Transaction.findByValue(iprot.readI32());
           return txn;
         default:
           throw new IllegalStateException("setField wasn't null, but didn't match any of the case statements!");
@@ -399,7 +399,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
         prefixDel.write(oprot);
         return;
       case TXN:
-        Txn txn = (Txn)value_;
+        Transaction txn = (Transaction)value_;
         oprot.writeI32(txn.getValue());
         return;
       default:
@@ -514,11 +514,11 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
 
   /**
    * 
-   * @see Txn
+   * @see Transaction
    */
-  public Txn getTxn() {
+  public Transaction getTxn() {
     if (getSetField() == _Fields.TXN) {
-      return (Txn)getFieldValue();
+      return (Transaction)getFieldValue();
     } else {
       throw new RuntimeException("Cannot get field 'txn' because union is currently set to " + getFieldDesc(getSetField()).name);
     }
@@ -526,9 +526,9 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
 
   /**
    * 
-   * @see Txn
+   * @see Transaction
    */
-  public void setTxn(Txn value) {
+  public void setTxn(Transaction value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.TXN;
     value_ = value;

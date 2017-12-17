@@ -139,7 +139,7 @@ union RDF_Term {
 //      Z
 // }
 
-enum Txn { TX, TC, TA , Segment }
+enum Transaction { TX, TC, TA , Segment }
 
 struct Patch_Prefix_Add {
 1: optional RDF_Term graphNode;
@@ -177,7 +177,7 @@ union RDF_Patch_Row {
 3: Patch_Data_Del     dataDel;
 4: Patch_Prefix_Add   prefixAdd;
 5: Patch_Prefix_Del   prefixDel;
-6: Txn                txn;
+6: Transaction                txn;
 }
 
 // Local Variables:

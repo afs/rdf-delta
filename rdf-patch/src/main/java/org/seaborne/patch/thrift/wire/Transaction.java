@@ -12,7 +12,7 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 @SuppressWarnings("all")
-public enum Txn implements org.apache.thrift.TEnum {
+public enum Transaction implements org.apache.thrift.TEnum {
   TX(0),
   TC(1),
   TA(2),
@@ -20,7 +20,7 @@ public enum Txn implements org.apache.thrift.TEnum {
 
   private final int value;
 
-  private Txn(int value) {
+  private Transaction(int value) {
     this.value = value;
   }
 
@@ -35,7 +35,7 @@ public enum Txn implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static Txn findByValue(int value) { 
+  public static Transaction findByValue(int value) { 
     switch (value) {
       case 0:
         return TX;
