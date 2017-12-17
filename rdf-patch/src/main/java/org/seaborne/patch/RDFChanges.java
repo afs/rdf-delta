@@ -69,4 +69,16 @@ public interface RDFChanges {
     
     /** Indicator that a transaction aborts */
     public void txnAbort() ;
+    
+    /** Segment marker.
+     * <p>
+     * A segment of a number of transactions; the grouping rationale is not defined by RDF Patch.
+     * <p>
+     * It might be used to indicate a logical collection of change transactions in a long stream of transactions.       
+     * <p>
+     * There is no guarantee it will be used.
+     * <p>Segments must be contained complete transactions. Segments must not span start-finish pairs. 
+     */
+    public void segment() ;
+
 }

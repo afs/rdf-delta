@@ -19,9 +19,9 @@
 package dev;
 
 public class DevDeltaToDo {
-    // Tests for: 
-    //  external data sources
-    // Merge registration of internal and extenal dsgs.
+    // Merge registration of internal and external dsgs.
+    
+    // Z Segments.
     
     // documentation and examples of API (check web site)
     // DeltaClient:

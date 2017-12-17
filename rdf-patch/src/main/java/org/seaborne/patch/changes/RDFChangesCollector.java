@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.jena.atlas.lib.Lib ;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node ;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFChanges ;
@@ -137,45 +138,49 @@ public class RDFChangesCollector implements RDFChanges {
         enact(a, target) ;
     }
     
-    private static void enact(ChangeItem a, RDFChanges target) {
-        if ( a instanceof HeaderItem ) {
-            HeaderItem h = (HeaderItem)a;
+    private static void enact(ChangeItem item, RDFChanges target) {
+        if ( item instanceof HeaderItem ) {
+            HeaderItem h = (HeaderItem)item;
             target.header(h.field, h.value);
             return;
         }
-        if ( a instanceof AddQuad ) {
-            AddQuad a2 = (AddQuad)a ;
+        if ( item instanceof AddQuad ) {
+            AddQuad a2 = (AddQuad)item ;
             target.add(a2.g, a2.s, a2.p, a2.o) ;
             return ;
         }
-        if ( a instanceof DeleteQuad ) {
-            DeleteQuad a2 = (DeleteQuad)a ;
+        if ( item instanceof DeleteQuad ) {
+            DeleteQuad a2 = (DeleteQuad)item ;
             target.delete(a2.g, a2.s, a2.p, a2.o) ;
             return ;
         }
-        if ( a instanceof AddPrefix ) {
-            AddPrefix a2 = (AddPrefix)a ;
+        if ( item instanceof AddPrefix ) {
+            AddPrefix a2 = (AddPrefix)item ;
             target.addPrefix(a2.gn, a2.prefix, a2.uriStr); 
             return ;
         }
-        if ( a instanceof DeletePrefix ) {
-            DeletePrefix a2 = (DeletePrefix)a ;
+        if ( item instanceof DeletePrefix ) {
+            DeletePrefix a2 = (DeletePrefix)item ;
             target.deletePrefix(a2.gn, a2.prefix); 
             return ;
         }
-        if ( a instanceof TxnBegin ) {
+        if ( item instanceof TxnBegin ) {
             target.txnBegin() ;
             return ;
         }
-        if ( a instanceof TxnCommit ) {
+        if ( item instanceof TxnCommit ) {
             target.txnCommit();
             return ;
         }
-        if ( a instanceof TxnAbort ) {
+        if ( item instanceof TxnAbort ) {
             target.txnAbort();
             return ;
         }
-        System.err.println("Unrecognized action: "+Lib.className(a)+" : "+a) ;
+        if ( item instanceof Segment ) {
+            target.segment();
+            return ;
+        }
+        FmtLog.warn(RDFChangesCollector.class,  "Unrecognized action: %s : %s", Lib.className(item), item) ;
     }
     
     public RDFChangesCollector() { }
@@ -189,6 +194,11 @@ public class RDFChangesCollector implements RDFChanges {
 
     @Override
     public void finish() {}
+
+    @Override
+    public void segment() {
+        actions.add(new Segment());
+    }
 
     public void reset() {
         header.clear();

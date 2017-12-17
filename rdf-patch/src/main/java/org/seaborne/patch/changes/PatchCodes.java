@@ -39,7 +39,7 @@ public class PatchCodes {
     public static final String TXN_COMMIT = "TC";
     public static final String TXN_ABORT  = "TA";
 
-    public static final String PATCH_END  = "Z";
+    public static final String SEGMENT    = "Z";
 
     /** Test whether the string is a known patch code */
     public static boolean isValid(String str) {
@@ -48,7 +48,7 @@ public class PatchCodes {
             case ADD_DATA: case DEL_DATA:
             case ADD_PREFIX: case DEL_PREFIX:
             case TXN_BEGIN: case TXN_COMMIT: case TXN_ABORT:
-            case PATCH_END:
+            case SEGMENT:
                 return true;
             default:
                 return false;

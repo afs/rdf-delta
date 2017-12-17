@@ -62,4 +62,9 @@ public class RDFChangesWrapper implements RDFChanges {
     public void txnAbort() {
         get().txnAbort();
     }
+
+    @Override
+    public void segment() {
+        get().segment();
+    }
 }

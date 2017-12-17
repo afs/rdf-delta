@@ -29,9 +29,22 @@ import org.apache.jena.riot.thrift.TRDF;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
-import org.seaborne.patch.*;
+import org.seaborne.patch.PatchException;
+import org.seaborne.patch.PatchHeader;
+import org.seaborne.patch.PatchProcessor;
+import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.thrift.wire.*;
+import org.seaborne.patch.thrift.wire.Patch_Data_Add;
+import org.seaborne.patch.thrift.wire.Patch_Data_Del;
+import org.seaborne.patch.thrift.wire.Patch_Header;
+import org.seaborne.patch.thrift.wire.Patch_Prefix_Add;
+import org.seaborne.patch.thrift.wire.Patch_Prefix_Del;
+import org.seaborne.patch.thrift.wire.RDF_Literal;
+import org.seaborne.patch.thrift.wire.RDF_Patch_Row;
+import org.seaborne.patch.thrift.wire.RDF_Term;
+import org.seaborne.patch.thrift.wire.Txn;
 
 /**
  * Read a binary patch.
@@ -189,6 +202,7 @@ public class RDFPatchReaderBinary implements PatchProcessor {
                 case TX : changes.txnBegin(); break;
                 case TC : changes.txnCommit(); break;
                 case TA : changes.txnAbort(); break;
+                case Segment : changes.segment(); break;
             }
             return;
         }

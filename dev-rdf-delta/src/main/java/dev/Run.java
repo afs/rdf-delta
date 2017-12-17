@@ -75,6 +75,9 @@ public class Run {
      */
     
     public static void main(String... args) {
+        org.seaborne.delta.cmds.patchparse.main("/home/afs/tmp/X.rdfp");
+        System.exit(0);
+        
 //        FileOps.ensureDir("DB");
 //        FileOps.clearAll("DB");
         DatasetGraph dsg = TDBFactory.createDatasetGraph();

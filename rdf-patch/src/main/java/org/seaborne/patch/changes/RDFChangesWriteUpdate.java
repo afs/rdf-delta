@@ -161,4 +161,10 @@ public class RDFChangesWriteUpdate implements RDFChanges {
         notHeader();
         out.println("# Abort") ;
     }
+
+    @Override
+    public void segment() {
+        notHeader();
+        out.println("# Segment") ;
+    }
 }

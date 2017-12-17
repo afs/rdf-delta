@@ -66,15 +66,15 @@ public class RDFChangesN implements RDFChanges
     }
     
     @Override
+    public void finish() {
+        changes.forEach(RDFChanges::finish) ;
+    }
+
+    @Override
     public void header(String field, Node value) {
         changes.forEach(c->c.header(field, value)) ;
     }
 
-    @Override
-    public void finish() {
-        changes.forEach(RDFChanges::finish) ;
-    }
-    
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         changes.forEach(sc->sc.add(g,s,p,o)) ;
@@ -108,5 +108,10 @@ public class RDFChangesN implements RDFChanges
     @Override
     public void txnAbort() {
         changes.forEach(RDFChanges::txnAbort);
+    }
+
+    @Override
+    public void segment() {
+        changes.forEach(RDFChanges::segment);
     }
 }

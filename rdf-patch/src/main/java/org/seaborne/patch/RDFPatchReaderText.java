@@ -166,7 +166,8 @@ public class RDFPatchReaderText implements PatchProcessor {
                 sink.txnAbort();
                 return true ;
             }
-            case PATCH_END:
+            case SEGMENT:
+                sink.segment();
                 return false;
             default:  {
                 throw new PatchException("["+token1.getLine()+"] Code '"+code+"' not recognized") ;

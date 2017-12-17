@@ -15,7 +15,8 @@ import org.apache.thrift.TEnum;
 public enum Txn implements org.apache.thrift.TEnum {
   TX(0),
   TC(1),
-  TA(2);
+  TA(2),
+  Segment(3);
 
   private final int value;
 
@@ -42,6 +43,8 @@ public enum Txn implements org.apache.thrift.TEnum {
         return TC;
       case 2:
         return TA;
+      case 3:
+        return Segment;
       default:
         return null;
     }

@@ -31,17 +31,24 @@ public class RDFChangesCounter implements RDFChanges {
         summary.reset();
     }
 
-
     public PatchSummary summary() {
         return summary.clone();
     }
 
+    @Override
+    public void start() {
+        summary.countStart++;
+    }
     
     @Override
-    public void start() {}
-    
+    public void finish() {
+        summary.countFinish++;
+    }
+
     @Override
-    public void finish() {}
+    public void segment() {
+        summary.countSegment++;
+    }
 
     @Override
     public void header(String field, Node value) {

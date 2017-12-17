@@ -135,10 +135,11 @@ union RDF_Term {
 //      PD,
 //      TX,
 //      TC,
-//      TA
+//      TA,
+//      Z
 // }
 
-enum Txn { TX, TC, TA }
+enum Txn { TX, TC, TA , Segment }
 
 struct Patch_Prefix_Add {
 1: optional RDF_Term graphNode;

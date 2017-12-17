@@ -132,4 +132,9 @@ public class RDFChangesWriter implements RDFChanges {
     public void txnAbort() {
         oneline(TXN_ABORT) ;
     }
+
+    @Override
+    public void segment() {
+        oneline(SEGMENT);
+    }
 }

@@ -19,6 +19,8 @@
 package org.seaborne.patch.changes;
 
 public class PatchSummary {
+    public long countStart        = 0;
+    public long countFinish       = 0;
     public long countHeader       = 0;
     public long countAddData      = 0;
     public long countDeleteData   = 0;
@@ -27,10 +29,13 @@ public class PatchSummary {
     public long countTxnBegin     = 0;
     public long countTxnCommit    = 0;
     public long countTxnAbort     = 0;
+    public long countSegment      = 0;
 
     public PatchSummary() {}
     
     public void reset() {
+        countStart        = 0;
+        countFinish       = 0;
         countHeader       = 0;
         countAddData      = 0;
         countDeleteData   = 0;
@@ -39,11 +44,14 @@ public class PatchSummary {
         countTxnBegin     = 0;
         countTxnCommit    = 0;
         countTxnAbort     = 0;
+        countSegment      = 0;
     }
 
     @Override
     public PatchSummary clone() {
         PatchSummary other = new PatchSummary();
+        other.countStart        = this.countStart;
+        other.countFinish       = this.countFinish;
         other.countHeader       = this.countHeader;
         other.countAddData      = this.countAddData;
         other.countDeleteData   = this.countDeleteData;
@@ -52,9 +60,22 @@ public class PatchSummary {
         other.countTxnBegin     = this.countTxnBegin;
         other.countTxnCommit    = this.countTxnCommit;
         other.countTxnAbort     = this.countTxnAbort;
+        other.countSegment      = this.countSegment;
         return other;
     }
     
+    public long getCountStart() {
+        return countStart;
+    }
+
+    public long getCountFinish() {
+        return countFinish;
+    }
+
+    public long getDepth() {
+        return countStart - countFinish;
+    }
+
     public long getCountHeader() {
         return countHeader;
     }
@@ -86,7 +107,9 @@ public class PatchSummary {
     public long getCountTxnAbort() {
         return countTxnAbort;
     }
-    
-    
+
+    public long getCountSegment() {
+        return countSegment;
+    }
 }
 

@@ -45,6 +45,9 @@ public class RDFChangesApplyGraph implements RDFChanges {
     public void finish() {}
 
     @Override
+    public void segment() {}
+
+    @Override
     public void header(String field, Node value) {}
 
     @Override

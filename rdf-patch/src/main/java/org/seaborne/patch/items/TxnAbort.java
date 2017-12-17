@@ -22,7 +22,7 @@ public class TxnAbort extends ChangeItem {
 
     @Override
     public int hashCode() {
-        return 15;
+        return 16;
     }
 
     @Override

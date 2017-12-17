@@ -172,6 +172,12 @@ public class RDFChangesWriterBinary implements RDFChanges {
         write();
     }
 
+    @Override
+    public void segment() {
+        row.setTxn(Txn.Segment);
+        write();
+    }
+
     /*package*/ static void toThrift(Node node, RDF_Term term) {
         if ( node.isURI() ) {
             RDF_IRI iri = new RDF_IRI(node.getURI()) ;

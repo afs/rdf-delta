@@ -32,10 +32,20 @@ public class RDFChangesLog implements RDFChanges {
     }
 
     @Override
-    public void start() {}
-    @Override
-    public void finish() {}
+    public void start() {
+        print("Start");
+    }
     
+    @Override
+    public void finish() {
+        print("Finish");
+    }
+    
+    @Override
+    public void segment() {
+        print("Z");
+    }
+
     @Override
     public void header(String field, Node value) {
         print("H   %s %s", field, str(value)) ;

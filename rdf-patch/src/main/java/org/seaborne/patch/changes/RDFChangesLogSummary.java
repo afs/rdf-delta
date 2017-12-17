@@ -26,7 +26,6 @@ import org.seaborne.patch.system.Printer ;
 public class RDFChangesLogSummary extends RDFChangesCounter {
     final private Printer printer;
     private Node node = null;
-    private int depth = 0;
 
 //    public RDFChangesLogSummary() { this(RDFChangesLog::printer) ; }
     
@@ -34,9 +33,6 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
         this.printer = printer ;
     }
 
-    @Override
-    public void start() { depth++ ; }
-    
     @Override
     public void header(String field, Node value) {
         if ( Objects.equal(field, RDFPatchConst.ID) )
@@ -49,8 +45,7 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
     
     @Override
     public void finish() {
-        depth-- ;
-        if ( depth != 0 )
+        if ( summary.getDepth() != 0 )
             return; 
         
         String s = "unset";

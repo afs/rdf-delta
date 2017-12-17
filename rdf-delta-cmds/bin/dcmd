@@ -50,13 +50,15 @@ then
     LOGGING=-Dlog4j.configuration=file:log4j.properties
 fi
 
-if [[ $# = 0 ]]
-then
-    echo "Commands: mk, rm, list, get, add, parse, path" 1>&2
+function usage() {
+    echo "Commands: mk, rm, list, get, add, parse, path, r2p, " 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
-    #echo "No class to run" 1>&2
-    #exit 1
+}
+
+if [[ $# = 0 ]]
+then
+    usage
 else
     CMD="$1"
     shift
@@ -68,6 +70,9 @@ DCMD_PKG="${BASE_PKG}.cmds"
 
 # Alternative names.
 case $CMD in
+    help)
+	usage
+	;;
     appendpatch|append|add)
 	CMD=addpatch ;;
     mk)

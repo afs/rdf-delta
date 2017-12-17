@@ -27,6 +27,7 @@ import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.system.JenaSystem;
 import org.seaborne.delta.Id;
+import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.PatchSummary;
@@ -74,12 +75,15 @@ public class patchparse extends CmdGeneral
     }
 
     private void execOne(String source, InputStream input) {
-        System.err.println("Source = "+source);
+        //System.err.println("Source = "+source);
         RDFPatch patch = RDFPatchOps.read(input);
-        if ( patch.getId() == null ) {
-            System.err.printf("No patch source=%s\n", source);
-            return ;
-        }
+//        if ( patch.getId() == null )
+//            System.err.printf("No patch source=%s\n", source);
+        
+        //RDFChanges changes = RDFPatchOps.changesPrinter();
+        RDFChanges changes = RDFPatchOps.changesOut();
+        patch.apply(changes);
+        
         if ( isVerbose() ) {
             System.err.printf("# Patch id=%s", Id.str(patch.getId()));
             if ( patch.getPrevious() != null )
@@ -89,7 +93,7 @@ public class patchparse extends CmdGeneral
         RDFChangesCounter counter = new RDFChangesCounter();
         patch.apply(counter);
         PatchSummary summary = counter.summary();
-        if ( summary.countTxnCommit != 1 )
+        if ( summary.countTxnCommit == 0 && summary.countTxnAbort == 0 )
             System.err.printf("# No commit source=%s, id=%s\n", source, Id.str(patch.getId()));
     }
     
