@@ -21,8 +21,6 @@ package dev;
 public class DevDeltaToDo {
     // Merge registration of internal and external dsgs.
     
-    // Z Segments.
-    
     // documentation and examples of API (check web site)
     // DeltaClient:
     //    new data source.
@@ -39,38 +37,21 @@ public class DevDeltaToDo {
     // ** DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
     
     // ** Fuseki
-    //  Patch service - after Jena 3.6.0
     // Fuseki - sync on begin(R,W)
     
     // ** "Get all patches x to y."
 
     // PatchStoreMgr.selectPatchStore - need to map dsId to PatchStore or PatchLog. 
     
-    
     // F_BASE vs F_NAME
 
     // Test RDFChangesCancelOnNoChange
     // RDFChanges.cancel :: TestRDFChangesMiscImpls
     
-    // Fuseki patch receiver service.
-    
-    // RDFChangesCollector - add a Header Change and don't keep the map.
-    // Doesn't work - begin->create,add,txnBegin then header. 
-    // RDFChangesCollector.RECORD_HEADER = true;
-    
     // Logging : detech by presence of logging.properties etc.
     // Need logging package?
     
-    // Z rows: the total number of rows. or transactions -> can notice truncation.
-    //    Checksum each txn?  Cheap checksum?
-    //        Add "Z <checksum>" to RDFPatch?
-    //          Simple # length in rows.
-    // Add "segmentEnd" to  RDFChanges.
-    //   Keep start-finish. (1) Reusable RDFChanges (2) trigger completed actions 
-    
     // Tests for "non-rows" RDFPatch 
-    
-    // Register the patch as a RDFLanguage.
     
     // Document API
     // /{name}/data --> Args
@@ -81,7 +62,6 @@ public class DevDeltaToDo {
     // RDF Patch protocol and initial data.
     //   API? PatchLogHTTP
     
-   
     // DeltaFuseki - sync on a timer.  
 
     // ** Docs
@@ -90,14 +70,6 @@ public class DevDeltaToDo {
     // RDFChangesHTTP.SuppressEmptyCommits.
     
     // Protect read in S_Data.
-    
-    // Cmds 
-    // rm --server URL x1 x2 x3 ...
-    // mk --server URL x1 x2 x3 ...
-    // list -server=
-    // resync
-    // append (gets patch head and fills that in)
-
     
     // DeltaLinkHTTP ToDo about network handling
     // How does writing to disk work? Unify with collect->write

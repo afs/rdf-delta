@@ -62,20 +62,9 @@ public class Run {
 
     static int PORT = 1068;
     
-    /*
-     public GraphChanges(Graph graph, Node graphName, RDFChanges changes) {
-        super(graph);
-        this.graphName = graphName;
-        this.changes = changes;
-        this.prefixMapping = new PrefixMappingChanges(graph.getPrefixMapping(), graphName, changes);
-                                                      ^^^^^^^^^^^^^^^^^^^^^^^^
-        this.transactionHandler = new TransactionHandlerMonitor(graph.getTransactionHandler(), changes);
-    }
-
-     */
-    
     public static void main(String... args) {
-        org.seaborne.delta.cmds.patchparse.main("/home/afs/tmp/X.rdfp");
+        //org.seaborne.delta.cmds.patchparse.main("/home/afs/tmp/X.rdfp");
+        org.seaborne.delta.cmds.rdf2patch.main("/home/afs/tmp/D.ttl");
         System.exit(0);
         
 //        FileOps.ensureDir("DB");
@@ -87,30 +76,6 @@ public class Run {
         
         Txn.executeWrite(dsg1,  ()->{});
         Txn.executeWrite(dsg2,  ()->{});
-        
-        // OK Graph g = Txn.calculateWrite(dsg1, dsg1::getDefaultGraph);
-        // NOT OK. 
-        Graph g = Txn.calculateWrite(dsg2, dsg2::getDefaultGraph);
-        //TransactionHandler th = g.getTransactionHandler();
-        // GraphChanges
-        System.out.println("**** TH 1");
-        Txn.executeWrite(dsg2, 
-        //th.execute(
-                   ()-> {
-            g.getPrefixMapping()
-            //dsg2.getDefaultGraph().getPrefixMapping()
-            .setNsPrefix("ex",  "http://example/");
-            
-        });
-        
-//        System.out.println("**** TH 2");
-//        th.execute(()-> {
-//            g
-//            .getPrefixMapping()
-//            .setNsPrefix("ex2",  "http://example/2/");
-//            
-//        });
-        System.out.println("DONE");
     }
     
     public static void mainMem(String... args) throws IOException {
