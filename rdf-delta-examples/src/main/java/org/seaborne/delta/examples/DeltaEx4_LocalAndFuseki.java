@@ -19,6 +19,5 @@
 package org.seaborne.delta.examples;
 
 /** Local */
-public class DeltaExample1 {
-
+public class DeltaEx4_LocalAndFuseki {
 }

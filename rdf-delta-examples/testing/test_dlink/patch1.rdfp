@@ -1,0 +1,4 @@
+H id <uuid:15724832-96c5-11e6-9d7f-131fb3e5c030> .
+TX .
+A <http://example/s> <http://example/p> <http://example/o1> <http://example/g> .
+TC .

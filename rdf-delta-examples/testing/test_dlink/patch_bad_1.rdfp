@@ -1,0 +1,4 @@
+# No "H id"
+TX .
+A <http://example/s> <http://example/p> <http://example/o1> <http://example/g> .
+TC .
