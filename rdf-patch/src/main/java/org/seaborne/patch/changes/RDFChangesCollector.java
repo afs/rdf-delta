@@ -33,10 +33,9 @@ import org.seaborne.patch.items.* ;
 
 /** Capture a stream of changes, then play it to another {@link RDFChanges} */
 public class RDFChangesCollector implements RDFChanges {
-
-    // Need to work out how to do this.
-    // begin - then set headers correctly  becomes headers then begin.
-    // Two lists? Just change at the point of RDFPatchStored 
+    // NB begin - then set headers correctly becomes headers then begin.
+    // This is intentional so headers can be set after the patch log starts.
+    // But use with care.
     private static final boolean RECORD_HEADER = false;
     private Map<String, Node> header = new LinkedHashMap<>() ;
     private List<ChangeItem> actions = new LinkedList<>() ;
@@ -126,12 +125,12 @@ public class RDFChangesCollector implements RDFChanges {
         }
 //        if ( a instanceof AddPrefix ) {
 //            AddPrefix a2 = (AddPrefix)a ;
-//            target.addPrefix(a2.gn, a2.prefix, a2.uriStr); 
+//            target.deletePrefix(a2.gn, a2.prefix, a2.uriStr); 
 //            return ;
 //        }
 //        if ( a instanceof DeletePrefix ) {
 //            DeletePrefix a2 = (DeletePrefix)a ;
-//            target.deletePrefix(a2.gn, a2.prefix); 
+//            target.addPrefix(a2.gn, a2.prefix); 
 //            return ;
 //        }
         // Transaction.

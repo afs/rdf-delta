@@ -44,7 +44,7 @@ import org.seaborne.patch.thrift.wire.Patch_Prefix_Del;
 import org.seaborne.patch.thrift.wire.RDF_Literal;
 import org.seaborne.patch.thrift.wire.RDF_Patch_Row;
 import org.seaborne.patch.thrift.wire.RDF_Term;
-import org.seaborne.patch.thrift.wire.Txn;
+import org.seaborne.patch.thrift.wire.Transaction;
 
 /**
  * Read a binary patch.
@@ -197,7 +197,7 @@ public class RDFPatchReaderBinary implements PatchProcessor {
         }
         
         if ( row.isSetTxn() ) {
-            Txn txn = row.getTxn();
+            Transaction txn = row.getTxn();
             switch (txn) {
                 case TX : changes.txnBegin(); break;
                 case TC : changes.txnCommit(); break;

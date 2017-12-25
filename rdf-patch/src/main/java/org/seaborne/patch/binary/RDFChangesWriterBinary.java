@@ -156,25 +156,25 @@ public class RDFChangesWriterBinary implements RDFChanges {
 
     @Override
     public void txnBegin() {
-        row.setTxn(Txn.TX);
+        row.setTxn(Transaction.TX);
         write();
     }
 
     @Override
     public void txnCommit() {
-        row.setTxn(Txn.TC);
+        row.setTxn(Transaction.TC);
         write();
     }
 
     @Override
     public void txnAbort() {
-        row.setTxn(Txn.TA);
+        row.setTxn(Transaction.TA);
         write();
     }
 
     @Override
     public void segment() {
-        row.setTxn(Txn.Segment);
+        row.setTxn(Transaction.Segment);
         write();
     }
 
