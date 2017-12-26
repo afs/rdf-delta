@@ -45,7 +45,7 @@ import org.junit.Test;
 public class TestRDFChangesDataset  {
     DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
-    DatasetGraph dsg = RDFPatchOps.changesAsText(dsgBase, bout);
+    DatasetGraph dsg = RDFPatchOps.textWriter(dsgBase, bout);
 
     @Before public void beforeTest() {}
     @After public void afterTest() {}    

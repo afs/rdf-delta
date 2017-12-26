@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.examples;
 
-/** Local */
-public class DeltaEx4_LocalAndFuseki {
+public class DeltaExFuseki2_HighAvailability {
+    public static void main(String ...args) {
+    }
+
 }

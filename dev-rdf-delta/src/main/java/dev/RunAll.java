@@ -84,32 +84,31 @@ public class RunAll {
         PatchLogServer dps = server(D_PORT, "DeltaServerFuseki");
         String URL = "http://localhost:"+D_PORT+"/";       
         
-        FusekiServer server1 = FusekiServer.create()
-            .setPort(F1_PORT).parseConfigFile(fuseki_conf1).build();
-        // Fire up a second server.  Only starts if DPS running. -- FIXME
-        FusekiServer server2 = FusekiServer.create()
-            .setPort(F2_PORT).parseConfigFile(fuseki_conf2).build();
-
-        DatasetGraph dsg1 = server1.getDataAccessPointRegistry().get("/ds1").getDataService().getDataset();
-        DatasetGraph dsg2 = server2.getDataAccessPointRegistry().get("/ds2").getDataService().getDataset();
+        FusekiServer server1 = FusekiServer.create().setPort(F1_PORT).parseConfigFile(fuseki_conf1).build();
         server1.start();
+        // Fire up a second server.  Only starts if DPS running. -- FIXME
+        FusekiServer server2 = FusekiServer.create().setPort(F2_PORT).parseConfigFile(fuseki_conf2).build();
         server2.start();
-        
-        Zone zone1 = (Zone)dsg1.getContext().get(symDeltaZone);
-        Zone zone2 = (Zone)dsg2.getContext().get(symDeltaZone);
-        
+
         String PREFIX = "PREFIX : <http://example/>\n";
+
+        //RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+"/ds1") ;
+        //RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+"/ds2") ;
         
         // Update to fuseki.
         try (RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+"/ds1") ) {
             conn1.update(PREFIX+"INSERT DATA { :s :p 1804 }");
         }
         
+        try (RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+"/ds2") ) {
+            try ( QueryExecution qExec = conn2.query("SELECT * { ?s ?p ?o }") ) { 
+                ResultSetFormatter.out(qExec.execSelect());
+            }
+        }
         
-        RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+"/ds1") ;
-        //RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+"/ds2") ;
         
-        if ( true ) {
+        if ( false ) {
+            RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+"/ds1") ;
             //dps.stop();
             RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+"/ds2");
             // server2.
@@ -139,25 +138,30 @@ public class RunAll {
         //dps.stop();
 
         if ( false ) {
-            // Update dataset.
-            DeltaClient dClient = (DeltaClient)dsg1.getContext().get(symDeltaClient);
-            DeltaConnection dConn = (DeltaConnection)dsg1.getContext().get(symDeltaConnection);
-            Zone zone = (Zone)dsg1.getContext().get(symDeltaZone);
-            
-            PatchLogInfo info1 = dConn.getPatchLogInfo();
-            status(dConn);
-            
-            Txn.executeWrite(dsg1, ()->RDFDataMgr.read(dsg1, "D1.ttl"));
-            //Txn.executeRead(dsg, ()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
-    
-            PatchLogInfo info2 = dConn.getPatchLogInfo();
-            status(dConn);
-            // Connect Fuseki2.
+          DatasetGraph dsg1 = server1.getDataAccessPointRegistry().get("/ds1").getDataService().getDataset();
+          DatasetGraph dsg2 = server2.getDataAccessPointRegistry().get("/ds2").getDataService().getDataset();
+          
+          server1.start();
+          server2.start();
+          
+          Zone zone1 = (Zone)dsg1.getContext().get(symDeltaZone);
+          Zone zone2 = (Zone)dsg2.getContext().get(symDeltaZone);
+
+          // Update dataset.
+          DeltaClient dClient = (DeltaClient)dsg1.getContext().get(symDeltaClient);
+          DeltaConnection dConn = (DeltaConnection)dsg1.getContext().get(symDeltaConnection);
+          Zone zone = (Zone)dsg1.getContext().get(symDeltaZone);
+
+          PatchLogInfo info1 = dConn.getPatchLogInfo();
+          status(dConn);
+
+          Txn.executeWrite(dsg1, ()->RDFDataMgr.read(dsg1, "D1.ttl"));
+          //Txn.executeRead(dsg, ()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
+
+          PatchLogInfo info2 = dConn.getPatchLogInfo();
+          status(dConn);
+          // Connect Fuseki2.
         }
-        
-        
-        
-        
         System.out.println("DONE");
     }
 

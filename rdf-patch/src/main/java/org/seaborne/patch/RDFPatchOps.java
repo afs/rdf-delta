@@ -217,9 +217,9 @@ public class RDFPatchOps {
      */ 
     public static RDFChanges changesPrinter() { return new RDFChangesLog((fmt, args)->printer(System.out, fmt, args)); }
     
-    /** An {@link RDFChanges} that prints RDFPatch syntax to {@code System.out}. */
-    public static RDFChanges changesOut() {
-        TokenWriter tokenWriter = new TokenWriterText(System.out);
+    /** An {@link RDFChanges} that prints RDFPatch syntax to an {@code OutputStream} in text format. */
+    public static RDFChanges textWriter(OutputStream output) {
+        TokenWriter tokenWriter = new TokenWriterText(output);
         RDFChanges changes = new RDFChangesWriter(tokenWriter) ;
         return changes;
     }
@@ -232,9 +232,8 @@ public class RDFPatchOps {
     /** Create a {@link DatasetGraph} that writes changes to an {@link OutputStream} in text format.
      *  The caller is responsible for closing the {@link OutputStream}.
      */ 
-    public static DatasetGraph changesAsText(DatasetGraph dsgBase, OutputStream out) {
-        TokenWriter tokenWriter = new TokenWriterText(out) ;
-        RDFChanges changeLog = new RDFChangesWriter(tokenWriter) ;
+    public static DatasetGraph textWriter(DatasetGraph dsgBase, OutputStream out) {
+        RDFChanges changeLog = textWriter(out);
         return changes(dsgBase, changeLog) ;
     }
     

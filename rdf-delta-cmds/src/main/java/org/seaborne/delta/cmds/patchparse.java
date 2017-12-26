@@ -81,8 +81,9 @@ public class patchparse extends CmdGeneral
 //            System.err.printf("No patch source=%s\n", source);
         
         //RDFChanges changes = RDFPatchOps.changesPrinter();
-        RDFChanges changes = RDFPatchOps.changesOut();
+        RDFChanges changes = RDFPatchOps.textWriter(System.out);
         patch.apply(changes);
+        System.out.flush();
         
         if ( isVerbose() ) {
             System.err.printf("# Patch id=%s", Id.str(patch.getId()));

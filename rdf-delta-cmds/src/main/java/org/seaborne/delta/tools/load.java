@@ -58,7 +58,7 @@ public class load {
         
         FileOps.ensureDir(DIR); 
         FileOps.clearDirectory(DIR);
-        Zone zone = Zone.create(Location.create(DIR));
+        Zone zone = Zone.connect(Location.create(DIR));
         DeltaLink dLink = DeltaLinkHTTP.connect(URL);
         Id clientId = Id.create();
         dLink.register(clientId);

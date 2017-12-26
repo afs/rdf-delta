@@ -56,7 +56,7 @@ public abstract class AbstractTestDeltaConnection {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
-        Zone.create(DIR);
+        Zone.connect(DIR);
     }
     
     @AfterClass public static void cleanOutZone() {

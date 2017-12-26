@@ -19,7 +19,39 @@
 package dev;
 
 public class DevDeltaToDo {
+    // Examples:
+    // Need to build up HA Fuseki. 
+    /*
+    DeltaExFuseki1_LogChanges.java [DONE]
+    
+    LocalDataset -> direct to Fuseki.
+    LocalDataset -> to patch log server to Fuseki.
+    
+    DeltaExFuseki2_ChangesLocalDataset ???
+    DeltaExFuseki2_ChangesLocalDataset ???
+    
+    
+    DeltaExFuseki3_PatchOperation.java [DONE]
+
+    DeltaExFuseki4_HighAvailability.java ???
+
+    DeltaExLocal1_DatasetWithPatchLog.java [DONE]
+    DeltaExLocal2_DatasetCollectPatch.java [DONE]
+    
+    DeltaExLocal3_PatchLogServer.
+        Zone etc.
+    
+    */
+    // Check site
+    //   Use cases.
+    //   Check issue #
+    // Announce.
+
+    
     // Merge registration of internal and external dsgs.
+    // Assembler - where?
+    // All tested!
+    // Destination "file:" or local patch store?
     
     // documentation and examples of API (check web site)
     // DeltaClient:

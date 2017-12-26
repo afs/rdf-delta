@@ -47,6 +47,7 @@ public enum LocalStorageType {
     public static LocalStorageType fromString(String string) {
         if ( string == null ) return null;
         if ( string.equalsIgnoreCase(TDB.typeName())) return TDB;
+        if ( string.equalsIgnoreCase(TDB2.typeName())) return TDB2;
         if ( string.equalsIgnoreCase(MEM.typeName())) return MEM;
         if ( string.equalsIgnoreCase(EXTERNAL.typeName())) return EXTERNAL;
         if ( string.equalsIgnoreCase(NONE.typeName())) return NONE;

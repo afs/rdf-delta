@@ -47,7 +47,7 @@ public abstract class AbstractTestDeltaClient {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
         Location loc = Location.create(DIR_ZONE);
         FileOps.ensureDir(DIR_ZONE);
-        zone = Zone.create(DIR_ZONE);
+        zone = Zone.connect(DIR_ZONE);
     }
     
     @AfterClass public static void cleanOutZone() {
@@ -212,7 +212,7 @@ public abstract class AbstractTestDeltaClient {
         // Reset Zone.
         Location loc = zone.getLocation();
         zone.shutdown();
-        zone = Zone.create(loc);
+        zone = Zone.connect(loc);
         // Reset.
         dClient = DeltaClient.create(zone, getLink());
         dClient.connect(dsRef, TxnSyncPolicy.NONE);

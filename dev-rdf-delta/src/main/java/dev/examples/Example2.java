@@ -48,7 +48,7 @@ public class Example2 {
         // Connect to a server
         DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
         // One one zone supported currently.
-        Zone zone = Zone.create("Zone");
+        Zone zone = Zone.connect("Zone");
         Id clientId = Id.create();
         
         // Create a new patch log.

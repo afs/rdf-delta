@@ -1,0 +1,6 @@
+prefix ex: <http://example.org/>
+
+ex:s ex:p ex:o .
+
+_:b ex:p 1.
+_:b ex:p 2.

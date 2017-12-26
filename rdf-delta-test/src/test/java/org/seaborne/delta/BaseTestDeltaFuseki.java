@@ -35,7 +35,7 @@ import org.seaborne.delta.server.http.PatchLogServer ;
  * @see TestDeltaFusekiGood
  * @see TestDeltaFusekiBad
  */
-public class BaseDeltaFuseki {
+public class BaseTestDeltaFuseki {
     @BeforeClass public static void setForTesting() { 
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }

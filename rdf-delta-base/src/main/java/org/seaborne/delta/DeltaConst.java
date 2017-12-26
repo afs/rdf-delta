@@ -102,10 +102,10 @@ public class DeltaConst {
     
     // Symbols used to store information, e.g. in a dataset context.
     
-    public static final String symBase         = "delta:"; //"http://jena.apache.org/delta#"; 
-    public static final Symbol symDeltaClient  =  Symbol.create(symBase+"client");
-    public static final Symbol symDeltaConnection  =  Symbol.create(symBase+"connection");
-    public static final Symbol symDeltaZone    =  Symbol.create(symBase+"zone");
+    public static final String symBase              = "delta:"; //"http://jena.apache.org/delta#"; 
+    public static final Symbol symDeltaClient       =  Symbol.create(symBase+"client");
+    public static final Symbol symDeltaConnection   =  Symbol.create(symBase+"connection");
+    public static final Symbol symDeltaZone         =  Symbol.create(symBase+"zone");
 
     // Content type constants for RDF Patch. 
     public static final String contentTypePatchText     = "application/rdf-patch";

@@ -60,7 +60,7 @@ public class TestZone {
         LocalServer lserver = DeltaTestLib.createEmptyTestServer();
         deltaLink = DeltaLinkLocal.connect(lserver);
         deltaLink.register(Id.create());
-        zone = Zone.create(DIR_ZONE);
+        zone = Zone.connect(DIR_ZONE);
         deltaClient = DeltaClient.create(zone, deltaLink);
     }
 

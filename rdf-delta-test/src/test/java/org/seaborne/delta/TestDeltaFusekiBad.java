@@ -40,7 +40,7 @@ import org.seaborne.delta.server.http.PatchLogServer ;
  * 
  * @see TestDeltaFusekiBad
  */
-public class TestDeltaFusekiBad extends BaseDeltaFuseki {
+public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 
     private static HttpClient dftStdHttpClient;
     

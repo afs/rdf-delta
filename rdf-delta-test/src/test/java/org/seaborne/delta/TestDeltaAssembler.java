@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.examples;
+package org.seaborne.delta;
 
-/** Local */
-public class DeltaEx5_FusekiHA {
-    // 2 Fuseki w/ poll 
+public class TestDeltaAssembler {
+
 }

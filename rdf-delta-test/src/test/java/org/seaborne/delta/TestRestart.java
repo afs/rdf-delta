@@ -127,7 +127,7 @@ public class TestRestart {
         localServer = LocalServer.attach(ServerArea);
         deltaLink = DeltaLinkLocal.connect(localServer);
         deltaLink.register(Id.create());
-        zone = Zone.create(DIR_ZONE);
+        zone = Zone.connect(DIR_ZONE);
         deltaClient = DeltaClient.create(zone, deltaLink);
     }
 

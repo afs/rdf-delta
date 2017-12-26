@@ -35,7 +35,7 @@ import org.seaborne.delta.server.http.PatchLogServer ;
  * 
  * @see TestDeltaFusekiBad
  */
-public class TestDeltaFusekiGood extends BaseDeltaFuseki {
+public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     // May leak a few TIME_WAIT conenctions.
     protected static FusekiServer server1;
     protected static FusekiServer server2;

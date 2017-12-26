@@ -24,9 +24,9 @@ import static org.seaborne.delta.DeltaConst.symDeltaClient ;
 import static org.seaborne.delta.DeltaConst.symDeltaConnection ;
 import static org.seaborne.delta.DeltaConst.symDeltaZone ;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pPatchLog ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pStorage ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pZone ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaPatchLog ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage ;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone ;
 
 import java.io.InputStream ;
 import java.util.Arrays ;
@@ -62,67 +62,79 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     
     /* 
      * Assembler:
+     * Type 1 : changes sender.
+     * 
+     * Type 2: Managed (inc version).
+     * 
      * 
      * <#dataset> rdf:type delta:DeltaDataset ;
      *     delta:changes  "http://localhost:1066/" ;
      *     delta:patchlog "ABC"
      *     delta:zone "file path"
-     *     delta:storage "mem", "file", "tdb" zone info.
-     *   or
-     *      delta:dataset <#datasetOther>
+     *
+     *  and
+     *     delta:storage "mem", "file", "tdb" zone info. 
+     *     TDB(false, "TDB"), TDB2(false, "TDB2"), FILE(false, "file"), MEM(true, "mem"), EXTERNAL(false, "external"), NONE(true, "none");
+     *     
+     *     (not implemented)
+     *  or
+     *     delta:dataset <#datasetOther>, for external.
      */
-    
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
         // delta:changes.
         if ( ! exactlyOneProperty(root, pDeltaChanges) )
             throw new AssemblerException(root, "No destination for changes given") ;
         String destURL = getAsStringValue(root, pDeltaChanges);
-        // Future - multiple outputs. 
+        // Future - multiple outputs.
         List<String> xs = Arrays.asList(destURL);
 
         // delta:zone.
-        if ( ! exactlyOneProperty(root, pDeltaChanges) )
+        if ( ! exactlyOneProperty(root, pDeltaZone) )
             throw new AssemblerException(root, "No location for state manangement (zone)") ;
-        String zoneLocation = getAsStringValue(root, pZone);
+        String zoneLocation = getAsStringValue(root, pDeltaZone);
 
-        // Should be part of changes URL.
+        // Name of the patch log.
         // delta:patchlog
-        if ( ! exactlyOneProperty(root, pPatchLog) )
+        if ( ! exactlyOneProperty(root, pDeltaPatchLog) )
             throw new AssemblerException(root, "No patch log name") ;
-        String dsName = getAsStringValue(root, pPatchLog);
+        String dsName = getAsStringValue(root, pDeltaPatchLog);
 
         // delta:storage
         if ( ! exactlyOneProperty(root, pDeltaChanges) )
             throw new AssemblerException(root, "No location for state manangement (zone)") ;
-        String storageTypeStr = getAsStringValue(root, pStorage);
+        String storageTypeStr = getAsStringValue(root, pDeltaStorage);
         LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);
         if ( storage == null )
             throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
-        RDFChanges streamChanges = null ;
         
+        // Build the RDFChanges: URLs to send each patch log entry. 
+        RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
             FmtLog.info(log, "Destination: '%s'", dest) ;
             RDFChanges sc = DeltaLib.destination(dest);
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
         
-       Zone zone = Zone.create(zoneLocation);
-       
-       // *****
-       DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
-       // Touch server
-       Id clientId = Id.create();
-       deltaLink.register(clientId);
-       
-       DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
-       Id dsRef =  setup(deltaClient, dsName, "delta:"+dsName, storage);
-       DeltaConnection deltaConnection = deltaClient.get(dsRef);
-       DatasetGraph dsg = deltaConnection.getDatasetGraph();
-       
-       // Put state into dsg Context.
-        
+        // Link to log server.
+        DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
+        // Touch server
+        Id clientId = Id.create();
+        deltaLink.register(clientId);
+
+        // Create.connect the local copy.
+        Zone zone = Zone.connect(zoneLocation);
+
+        // Local client.
+        DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
+        Id dsRef =  setup(deltaClient, dsName, "delta:"+dsName, storage);
+        DeltaConnection deltaConnection = deltaClient.get(dsRef);
+        DatasetGraph dsg = deltaConnection.getDatasetGraph();
+
+        // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation. 
         // And someday tap into services to add a "sync before operation" step.
+
+        //  Poll for changes as well.
 //        if ( root.hasProperty(pPollForChanges) ) {
 //            if ( ! exactlyOneProperty(root, pPollForChanges) )
 //                throw new AssemblerException(root, "Multiple places to poll for chnages") ;
@@ -130,6 +142,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 //            forkUpdateFetcher(source, dsgSub) ;
 //        }
         
+       // Put state into dsg Context "for the record".
        Context cxt = dsg.getContext();
        cxt.set(symDeltaClient, deltaClient);
        cxt.set(symDeltaConnection, deltaConnection);
@@ -160,7 +173,8 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         return IO.openFile(x) ;
     }
 
-    private static void forkUpdateFetcher(String source, DatasetGraph dsg) {
+    // Poll for changes.
+    private static void UNUSED_CURRENTLY_forkUpdateFetcher(String source, DatasetGraph dsg) {
         if ( true ) {
             Log.warn(DeltaAssembler.class, "forkUpdateFetcher not set up");
             if ( true ) return;

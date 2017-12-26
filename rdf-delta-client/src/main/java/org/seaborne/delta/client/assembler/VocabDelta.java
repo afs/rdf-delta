@@ -29,14 +29,23 @@ public class VocabDelta {
     
     public static String getURI() { return NS ; } 
 
-    // Types
+    // Type
     public static final Resource tDatasetDelta        = Vocab.type(NS, "DeltaDataset") ;
     
-    public static final Property pDeltaChanges       = Vocab.property(NS, "changes") ;
-    public static final Property pStorage            = Vocab.property(NS, "storage") ;
-    public static final Property pPollForChanges     = Vocab.property(NS, "poll") ;
-    public static final Property pZone               = Vocab.property(NS, "zone") ;
-    public static final Property pPatchLog           = Vocab.property(NS, "patchlog") ;
+    // URL of patch log server
+    public static final Property pDeltaChanges          = Vocab.property(NS, "changes") ;
+    
+    // Storage type("mem", tdb", "tdb2", "external").
+    public static final Property pDeltaStorage            = Vocab.property(NS, "storage") ;
+    
+    // Whether and how often to poll for changes. 
+    //public static final Property pPollForChanges     = Vocab.property(NS, "poll") ;
+    
+    // Zone location for local copy.
+    public static final Property pDeltaZone               = Vocab.property(NS, "zone") ;
+    
+    // Name of the patch log. 
+    public static final Property pDeltaPatchLog           = Vocab.property(NS, "patchlog") ;
 
     private static volatile boolean initialized = false ; 
     

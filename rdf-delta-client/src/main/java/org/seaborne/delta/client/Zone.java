@@ -65,13 +65,21 @@ public class Zone {
 
     private static Map<Location, Zone> zones         = new ConcurrentHashMap<>();
 
-    /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
+    /** Create a zone; connect to an existing one if it exists in the JVM or on-disk
+     * @deprecated Use {@link #connect(String)}
+     */
+    @Deprecated
     public static Zone create(String area) {
-        return create(Location.create(area)); 
+        return connect(Location.create(area)); 
+    }
+
+    /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
+    public static Zone connect(String area) {
+        return connect(Location.create(area)); 
     }
     
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
-    public static Zone create(Location area) {
+    public static Zone connect(Location area) {
         synchronized(zones) {
             if ( zones.containsKey(area) )
                 return zones.get(area);
