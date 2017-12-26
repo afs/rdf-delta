@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: Delta - Synchronizing RDF Dataset
+title: Delta - Synchronizing RDF Datasets
 nav_text: Publishing RDF Changes
 section: 1
 ---
