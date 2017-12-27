@@ -55,6 +55,7 @@
     <module>rdf-delta-server-http</module>
     <module>rdf-delta-cmds</module>
     <module>rdf-delta-test</module>
+    <module>rdf-delta-examples</module>
     
     <!-- rdf-delta-libs ?? -->
 

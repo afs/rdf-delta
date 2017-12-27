@@ -317,7 +317,7 @@ public class DeltaClient {
     
 
     /** Get the {@link Id} for a given short name for the {@link DeltaLink} for this pool. 
-     * Rerturns null if there is no attached local statement management.
+     * Returns null if there is no attached local statement management.
      */ 
     public Id nameToId(String name) {
         return zone.getIdForName(name);

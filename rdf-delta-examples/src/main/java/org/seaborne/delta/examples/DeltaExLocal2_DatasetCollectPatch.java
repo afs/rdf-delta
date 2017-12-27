@@ -34,9 +34,6 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 /** Set up a dataset, collect the  changes as they happen. */
 public class DeltaExLocal2_DatasetCollectPatch {
     public static void main(String ...args) {
-
-        // Working - work at the (dataset)graph SPI level.
-
         // -- Base dataset 
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
 

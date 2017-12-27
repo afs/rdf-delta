@@ -38,10 +38,15 @@ import org.seaborne.delta.fuseki.DeltaFuseki;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
 
-public class DeltaExFuseki3_PatchOperation {
+public class DeltaExFuseki2_PatchOperation {
     static { LogCtl.setJavaLogging(); }
     
     public static void main(String ...args) {
+        try { main2(args) ; }
+        finally { System.exit(0); }
+    }
+        
+    public static void main2(String ...args) {
         int PORT = 2020 ;
         // In-memory dataset
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();

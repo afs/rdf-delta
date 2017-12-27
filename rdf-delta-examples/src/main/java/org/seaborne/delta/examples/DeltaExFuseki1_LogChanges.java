@@ -28,10 +28,18 @@ import org.apache.jena.update.UpdateRequest;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
 
+/**
+ * Example of a Fuseki server, with a dataset that writes out changes as they happen.
+ */
 public class DeltaExFuseki1_LogChanges {
     static { LogCtl.setJavaLogging(); }
     
     public static void main(String ...args) {
+        try { main2(args) ; }
+        finally { System.exit(0); }
+    }
+        
+    public static void main2(String ...args) {
         int PORT = 2020;
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
         RDFChanges changeLog = RDFPatchOps.textWriter(System.out);

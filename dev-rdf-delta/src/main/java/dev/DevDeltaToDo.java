@@ -22,24 +22,14 @@ public class DevDeltaToDo {
     // Examples:
     // Need to build up HA Fuseki. 
     /*
-    DeltaExFuseki1_LogChanges.java [DONE]
-    
-    LocalDataset -> direct to Fuseki.
-    LocalDataset -> to patch log server to Fuseki.
-    
-    DeltaExFuseki2_ChangesLocalDataset ???
-    DeltaExFuseki2_ChangesLocalDataset ???
-    
-    
-    DeltaExFuseki3_PatchOperation.java [DONE]
 
-    DeltaExFuseki4_HighAvailability.java ???
+DeltaEx_FusekiHighAvailability.java [????]
 
-    DeltaExLocal1_DatasetWithPatchLog.java [DONE]
-    DeltaExLocal2_DatasetCollectPatch.java [DONE]
-    
-    DeltaExLocal3_PatchLogServer.
-        Zone etc.
+DeltaEx_TwoDatasetsPatchLogServer.java [????]
+
+DeltaEx_LocalDatasetDirectToFuseki.java
+
+    Zone etc.
     
     */
     // Check site

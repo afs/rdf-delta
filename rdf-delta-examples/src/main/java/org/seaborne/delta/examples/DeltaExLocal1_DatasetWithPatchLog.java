@@ -32,9 +32,6 @@ import org.seaborne.patch.RDFPatchOps;
 /** Set up a dataset and write out a log of changes as they happen. */
 public class DeltaExLocal1_DatasetWithPatchLog {
     public static void main(String ...args) {
-
-        // Working - work at the (dataset)graph SPI level.
-
         // -- Base dataset 
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
 
