@@ -53,6 +53,7 @@
     <module>rdf-delta-client</module>
     <module>rdf-delta-server-local</module>
     <module>rdf-delta-server-http</module>
+    <module>rdf-delta-fuseki</module>
     <module>rdf-delta-cmds</module>
     <module>rdf-delta-test</module>
     <module>rdf-delta-examples</module>
