@@ -29,8 +29,15 @@ import org.apache.jena.system.Txn;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
 
-/** Set up a dataset and write out a log of changes as they happen. */
-public class DeltaExLocal1_DatasetWithPatchLog {
+/**
+ * Set up a dataset and write out a log of changes as they happen.
+ * <p>
+ * This shows a live stream of changes.
+ * <p>
+ * See {@link DeltaEx2_DatasetCollectPatch} for a similar example but
+ * collecting the patch before writing it.
+ */
+public class DeltaEx1_DatasetWithPatchLog {
     public static void main(String ...args) {
         // -- Base dataset 
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();

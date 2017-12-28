@@ -41,10 +41,10 @@ import org.seaborne.delta.server.http.PatchLogServer;
 /**
  * This example shows changes to one dataset being sent to a patch log server
  * and synchronized with another dataset. For convenience of this example, the
- * datasets and the the patch log server is in the same JVM but nothign is
+ * datasets and the the patch log server is in the same JVM but nothing is
  * shared and all interaction is over HTTP.
  */
-public class DeltaEx_TwoDatasetsPatchLogServer {
+public class DeltaEx7_TwoDatasetsPatchLogServer {
     static { LogCtl.setJavaLogging(); }
     
     final static int PLOG_PORT = 1066;

@@ -22,21 +22,31 @@ public class DevDeltaToDo {
     // Examples:
     // Need to build up HA Fuseki. 
     /*
-
-DeltaEx_FusekiHighAvailability.java [????]
-
-DeltaEx_TwoDatasetsPatchLogServer.java [????]
-
-DeltaEx_LocalDatasetDirectToFuseki.java
-
-    Zone etc.
-    
+     * Examples:
+     * 
+    DeltaEx_FusekiHighAvailability.java
+    DeltaEx_LocalDatasetToPatchLogServer.java
+    DeltaEx_TwoDatasetsPatchLogServer.java
+    DeltaExFuseki1_LogChanges.java
+    DeltaExFuseki2_PatchOperation.java
+    DeltaExLocal1_DatasetWithPatchLog.java
+    DeltaExLocal2_DatasetCollectPatch.java
     */
+    
+    // Add delta to SPARQL Update.
+    
+    // Missing local dataset direct to PatchFuseki.
+    
     // Check site
-    //   Use cases.
+    /* Use cases.
+     * 
+     *   Record changes for later processing, as an incremental backup, 
+     *   Publish changes so others can keep their copy up to date, or choose which updates to apply. 
+     *   Keep copies of a dataset in step.
+     *   High Availability for SPARQL servers - transmit changes due to an update to all servers. 
+     */
     //   Check issue #
     // Announce.
-
     
     // Merge registration of internal and external dsgs.
     // Assembler - where?

@@ -31,7 +31,7 @@ import org.seaborne.patch.RDFPatchOps;
 /**
  * Example of a Fuseki server, with a dataset that writes out changes as they happen.
  */
-public class DeltaExFuseki1_LogChanges {
+public class DeltaEx3_FusekiLogChanges {
     static { LogCtl.setJavaLogging(); }
     
     public static void main(String ...args) {

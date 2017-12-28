@@ -25,6 +25,8 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.embedded.FusekiServer;
+import org.apache.jena.fuseki.server.Operation ;
+import org.apache.jena.fuseki.servlets.ActionService ;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryFactory;
@@ -35,10 +37,19 @@ import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.seaborne.delta.fuseki.DeltaFuseki;
+import org.seaborne.delta.fuseki.PatchApplyService ;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
 
-public class DeltaExFuseki2_PatchOperation {
+/**
+ * Create Fuseki server with a "patch" service,inaddition to the usual "sparql",
+ * "update" etc services.
+ * <p>
+ * A patch file {@code POST}ed, or {@code PATCH}ed, to the url
+ * {@code http://host:port/dataset/patch} wil be applied as a single
+ * transaction.
+ */
+public class DeltaEx5_FusekiPatchOperation {
     static { LogCtl.setJavaLogging(); }
     
     public static void main(String ...args) {
@@ -59,6 +70,20 @@ public class DeltaExFuseki2_PatchOperation {
                 .add("/ds", dsg)
                 .addOperation("/ds", "patch", DeltaFuseki.patchOp)
                 .build();
+        
+        // Long hand version of the same:
+        if ( false ) {
+            Operation patchOp = Operation.register("Patch", "Patch Service"); 
+            String patchContentType = "application/rdf-patch";
+            ActionService handler = new PatchApplyService();
+            FusekiServer serverAlt =  FusekiServer.create()
+                .registerOperation(patchOp, patchContentType, handler)
+                .setPort(PORT)
+                .add("/ds", dsg)
+                .addOperation("/ds", "patch", DeltaFuseki.patchOp)
+                .build();
+        }
+        
         server.start();
         
         String patch = StrUtils.strjoinNL

@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong ;
 import java.util.function.Supplier;
 
 import org.apache.http.HttpEntity;
@@ -36,7 +37,10 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.*;
+import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaHttpException ;
+import org.seaborne.delta.DeltaOps ;
+import org.seaborne.delta.Id ;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesWriter;
@@ -60,10 +64,22 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private String response             = null;
     private Node patchId                = null;
     
+    /** Send changes to a specific URL */
+    public RDFChangesHTTP(String urlstr) {
+        this(urlstr, null, ()->urlstr, null);
+    }
+    
+    /** Send changes to a specific URL */
+    public RDFChangesHTTP(String label, String urlstr) {
+        this(label, null, ()->urlstr, null);
+    }
+
+    /** Send changes to a supplied URL, with an action a specific action on any 401  */
     public RDFChangesHTTP(String label, Supplier<String> urlSupplier, Runnable resetAction) {
         this(label, null, urlSupplier, resetAction);
     }
     
+    /** Send changes to a supplied URL, with an action a specific action on any 401 and sync'ed on a specific object  */
     public RDFChangesHTTP(String label, Object syncObject, Supplier<String> urlSupplier, Runnable resetAction) {
         this(label, syncObject, urlSupplier, resetAction, new ByteArrayOutputStream(100*1024));
     }
@@ -186,12 +202,18 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 //        }
 //    }
     
+    private static AtomicLong counter = new AtomicLong(0);
+    
     private void send$() {
-        if ( patchId == null )
-            throw new DeltaBadPatchException("Patch does not have an Id");
-        String idStr = Id.str(patchId);
+        long number = counter.incrementAndGet();
+        
         byte[] bytes = collected();
-
+        String idStr;
+        
+        if ( patchId != null )
+            idStr = Id.str(patchId);
+        else
+            idStr = Long.toString(number);
         FmtLog.info(LOG, "Send patch %s (%d bytes) -> %s", idStr, bytes.length, label);
         
         if ( false ) {
