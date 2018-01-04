@@ -16,16 +16,8 @@
  * limitations under the License.
  */
 
-package txnx;
+package org.seaborne.patch.system;
 
-/** Transactional value of in-memory bytes */
-public class TransMemBytes extends TransactionalBlob<byte[]>{
+public interface TxnSyncHandler {
 
-    public TransMemBytes() { super(null) ; }
-    
-    @Override
-    protected byte[] snapshot(byte[] bytes) {
-        //return L.copy(bytes) ;
-        return bytes ;
-    }
 }

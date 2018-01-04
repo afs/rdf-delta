@@ -78,7 +78,7 @@ public class PatchApplyService extends ActionREST {
     }
     
     protected void operation(HttpAction action) {
-        action.log.info(format("[%d] Patch", action.id));
+        action.log.info(format("[%d] RDF Patch", action.id));
         action.beginWrite();
         // Add patch handler to suppress TX-TC in the patch but allow TA. 
         try { 

@@ -24,6 +24,7 @@ import java.net.BindException ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphOne ;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.tdb.base.file.Location ;
@@ -31,7 +32,6 @@ import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.lib.DatasetGraphOneX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.DeltaLinkLocal ;
@@ -58,7 +58,7 @@ public class Run {
 //        FileOps.clearAll("DB");
         DatasetGraph dsg = TDBFactory.createDatasetGraph();
         Txn.executeWrite(dsg,  ()->{});
-        DatasetGraph dsg1 = new DatasetGraphOneX(dsg.getDefaultGraph());
+        DatasetGraph dsg1 = new DatasetGraphOne(dsg.getDefaultGraph());
         DatasetGraph dsg2 = RDFPatchOps.textWriter(dsg1, System.out);
         
         Txn.executeWrite(dsg1,  ()->{});

@@ -19,25 +19,19 @@
 package dev;
 
 public class DevDeltaToDo {
-    // Examples:
-    // Need to build up HA Fuseki. 
-    /*
-     * Examples:
+    // TxnSyncHandler and better DatasetGraphChanges for sync. 
+    
+    /* Examples: [DONE] */
+    /* Document:
      * 
-    DeltaEx_FusekiHighAvailability.java
-    DeltaEx_LocalDatasetToPatchLogServer.java
-    DeltaEx_TwoDatasetsPatchLogServer.java
-    DeltaExFuseki1_LogChanges.java
-    DeltaExFuseki2_PatchOperation.java
-    DeltaExLocal1_DatasetWithPatchLog.java
-    DeltaExLocal2_DatasetCollectPatch.java
-    */
-    
-    // Add delta to SPARQL Update.
-    
-    // Missing local dataset direct to PatchFuseki.
-    
-    // Check site
+    Delta - home page.
+       Use cases.
+    Publishing RDF Changes - Synchronizing RDF Datasets
+    RDF Patch - Defined the patch format.
+    RDF Change Logs - defines the log protocol
+        API, DeltaConenction.
+        Different RDFChanges.
+     */
     /* Use cases.
      * 
      *   Record changes for later processing, as an incremental backup, 
@@ -45,6 +39,11 @@ public class DevDeltaToDo {
      *   Keep copies of a dataset in step.
      *   High Availability for SPARQL servers - transmit changes due to an update to all servers. 
      */
+    
+    // Add delta to SPARQL Update.
+    // ** RDFChangesWriteUpdate
+    
+    // Check site
     //   Check issue #
     // Announce.
     
@@ -53,23 +52,9 @@ public class DevDeltaToDo {
     // All tested!
     // Destination "file:" or local patch store?
     
-    // documentation and examples of API (check web site)
-    // DeltaClient:
-    //    new data source.
-    //    existing remote, new local.
-    //    existing remote, existing local.
-    //    existing local, deleted remote.
-    
-    // Remote test
-    //   DataSourceDescription dsd = dClient.getLink().getDataSourceDescriptionByURI(baseURI);
-    // Local test
-    //   dClient.getZone().exists(dsRef)
-
     // ----
-    // ** DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op).
-    
-    // ** Fuseki
-    // Fuseki - sync on begin(R,W)
+    // ** DatasetGraphChanges masks TDB ... DatasetGraph.exec(Op) ??
+    // No - its a DSG wrapper -> is unwrapped.  
     
     // ** "Get all patches x to y."
 
@@ -80,7 +65,7 @@ public class DevDeltaToDo {
     // Test RDFChangesCancelOnNoChange
     // RDFChanges.cancel :: TestRDFChangesMiscImpls
     
-    // Logging : detech by presence of logging.properties etc.
+    // Logging : detect by presence of logging.properties etc.
     // Need logging package?
     
     // Tests for "non-rows" RDFPatch 
@@ -92,11 +77,10 @@ public class DevDeltaToDo {
     // Background apply log + initial data => current starting point+version.
     
     // RDF Patch protocol and initial data.
-    //   API? PatchLogHTTP
+    //   API? PatchLogHTTP : HTTP interface to a PAtychLog, not via DeltaLinkHTTP.
+    //   Extract from DeltaLinkHTTP.
     
     // DeltaFuseki - sync on a timer.  
-
-    // ** Docs
 
 	// --autoregister, --no-register
     // RDFChangesHTTP.SuppressEmptyCommits.
@@ -109,6 +93,7 @@ public class DevDeltaToDo {
     // Eliminate use of Location and just use Path.
     
     // Streaming patches.
+    // Binary patches.
 
     // ------------------------------------------------------------------------
 

@@ -56,7 +56,7 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     private boolean adding = false ;
     private boolean deleting = false ;
     
-    // Later : blocks for INSERT , DELETE. 
+    // Later : blocks for INSERT DATA, DELETE DATA and blocks for GRAPH 
     
     @Override
     public void add(Node g, Node s, Node p, Node o) {
@@ -107,7 +107,7 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     }
 
     static NodeFormatter formatter = new NodeFormatterNT() {
-        // Write a URI.
+        // Write as a URI.
         @Override
         public void formatBNode(AWriter w, String label) {
             w.print("<_:");
