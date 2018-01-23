@@ -188,7 +188,7 @@ public class LocalServer {
     // Scan the location, looking for DataSources.
     private static void fillDataRegistry(DataRegistry dataRegistry, LocalServerConfig config) {
         PatchStoreMgr.registered().stream().forEach(ps-> {
-            List<DataSource> x = ps.listPersistent(config);
+            List<DataSource> x = ps.initFromPersistent(config);
             x.forEach(ds->dataRegistry.put(ds.getId(), ds));
             List<DataSourceDescription> z = ps.listDataSources();
             FmtLog.info(LOG, "PatchStore: %s -- %d %s", ps.getProviderName(), z.size(), ((z.size()!=1)?"logs":"log") );

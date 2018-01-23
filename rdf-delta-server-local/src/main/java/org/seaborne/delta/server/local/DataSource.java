@@ -54,7 +54,7 @@ public class DataSource {
     
     /**
      * Attach to a datasource file area and return a {@link DataSource} object.
-     * The diretory {@code dsPath} must exist.
+     * The directory {@code dsPath} must exist.
      */
     public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
         PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsRef);

@@ -44,7 +44,7 @@ public class PatchStoreMem extends PatchStore {
     }
 
     @Override
-    public List<DataSource> listPersistent(LocalServerConfig config) {
+    public List<DataSource> initFromPersistent(LocalServerConfig config) {
         return Collections.emptyList();
     }
 

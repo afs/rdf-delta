@@ -63,7 +63,7 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    public List<DataSource> listPersistent(LocalServerConfig config) {
+    public List<DataSource> initFromPersistent(LocalServerConfig config) {
         Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.location);
         List<Path> dataSourcePaths = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();

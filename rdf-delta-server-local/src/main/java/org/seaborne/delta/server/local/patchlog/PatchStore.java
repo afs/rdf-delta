@@ -100,7 +100,7 @@ public abstract class PatchStore {
     }
     
     /** All the {@link DataSource} on external persistent storage. */
-    public abstract List<DataSource> listPersistent(LocalServerConfig config);
+    public abstract List<DataSource> initFromPersistent(LocalServerConfig config);
     
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
     // Somewhat related to the DataRegistry.
