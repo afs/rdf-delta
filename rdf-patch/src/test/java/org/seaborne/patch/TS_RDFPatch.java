@@ -25,7 +25,8 @@ import org.junit.runners.Suite ;
 @Suite.SuiteClasses( {
     TestRDFChanges.class
     , TestRDFChangesDataset.class
-    , TestRDFChangesGraph.class
+    // **** 0.3.0
+    //, TestRDFChangesGraph.class
     , TestRDFChangesCancel.class
 })
 

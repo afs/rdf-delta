@@ -18,33 +18,8 @@
 
 package org.seaborne.delta.fuseki;
 
-import org.apache.jena.fuseki.embedded.FusekiServer;
-import org.apache.jena.fuseki.server.Operation;
-import org.apache.jena.fuseki.servlets.ActionService;
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatchOps;
-
 /** Library of operations. */
 public class DeltaFuseki {
-    public static FusekiServer fuseki(int port, String config) {
-        
-        return FusekiServer.create().setPort(port).parseConfigFile(config).build().start();
-    }
-
-    /** Build a Fuseki server whose dataset is a changes dataset wrapping the base */  
-    public static FusekiServer deltaFuseki(int port, String name, DatasetGraph dsgBase, RDFChanges changes) {
-        DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changes);
-        return FusekiServer.create().setPort(port).add(name, dsg).build();
-    }
-    
-    public static Operation patchOp = Operation.register("Patch", "Patch Service"); 
-    public static String patchContentType = "application/rdf-patch";
-    
-    /** Create a {@code FusekiServer.Builder} with a patch operation. */
-    public static FusekiServer.Builder fusekiWithPatch() {
-        ActionService handler = new PatchApplyService();
-        return FusekiServer.create().registerOperation(patchOp, patchContentType, handler);
-    }
-    
+    // **** 0.3.0
 }
+

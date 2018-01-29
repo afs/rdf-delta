@@ -26,7 +26,6 @@ import org.apache.jena.graph.Graph ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.graph.Triple ;
 import org.apache.jena.query.ReadWrite ;
-import org.apache.jena.query.TxnType ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphTriplesQuads ;
 import org.apache.jena.sparql.core.GraphView ;
@@ -77,16 +76,17 @@ public class DatasetGraphBuffering1 extends DatasetGraphTriplesQuads {
         return false ;
     }
 
-    @Override
-    public void begin(TxnType type) {}
+//    @Override
+//    public void begin(TxnType type) {}
+//
 
     @Override
     public void begin(ReadWrite readWrite) {}
 
-    @Override
-    public boolean promote() {
-        return false ;
-    }
+//    @Override
+//    public boolean promote() {
+//        return false ;
+//    }
 
     @Override
     public void commit() {}
@@ -94,15 +94,15 @@ public class DatasetGraphBuffering1 extends DatasetGraphTriplesQuads {
     @Override
     public void abort() {}
 
-    @Override
-    public ReadWrite transactionMode() {
-        return null ;
-    }
-
-    @Override
-    public TxnType transactionType() {
-        return null ;
-    }
+//    @Override
+//    public ReadWrite transactionMode() {
+//        return null ;
+//    }
+//
+//    @Override
+//    public TxnType transactionType() {
+//        return null ;
+//    }
 
     @Override
     public boolean isInTransaction() {
