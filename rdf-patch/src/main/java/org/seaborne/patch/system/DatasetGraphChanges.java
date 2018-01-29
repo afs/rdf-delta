@@ -24,10 +24,12 @@ import java.util.function.Consumer ;
 import org.apache.jena.graph.Graph ;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.query.ReadWrite ;
+import org.apache.jena.query.TxnType ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphWrapper ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.RDFChanges ;
+
 
 /**
  * Connect a {@link DatasetGraph} with {@link RDFChanges}. All operations on the
@@ -52,8 +54,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     
     protected final Runnable syncHandler;
     protected final Consumer<ReadWrite> txnSyncHandler;
-    protected final RDFChanges monitor ;
-    protected ThreadLocal<ReadWrite> txnMode = ThreadLocal.withInitial(()->null) ;
+    protected final RDFChanges monitor;
     private static Runnable identityRunnable = ()->{};
     private static <X> Consumer<X> identityConsumer() { return (x)->{}; }
 
@@ -137,34 +138,104 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         }
     }
     
-    private boolean isWriteTxn() {
-        return txnMode.get() == ReadWrite.WRITE ; 
+    private boolean isWriteMode() {
+        return super.transactionMode() == ReadWrite.WRITE ; 
+    }
+
+
+    // In case an implementation has one "begin" calling another.
+    // XXX Per thread?  Or a general lock?
+    // But monitor is single-threaded for writers anyway.
+    private ThreadLocal<Boolean> insideBegin = ThreadLocal.withInitial(()->false);
+
+    @Override
+    public void begin() {
+        if ( insideBegin.get() ) {
+            super.begin(); 
+            return;
+        }
+        insideBegin.set(true);
+        try {
+            // For the sync, we have to assume it will write.
+            // Any potential write causes a write-sync to be done in "begin".
+            txnSyncHandler.accept(ReadWrite.WRITE);
+            if ( transactionMode() == ReadWrite.WRITE )
+                monitor.txnBegin();
+        } finally {
+            insideBegin.set(false);
+        }
     }
     
     @Override
+    public void begin(TxnType txnType) {
+        if ( insideBegin.get() ) {
+            super.begin(txnType); 
+            return ;
+        }
+            
+        insideBegin.set(true);
+        try {
+            // For the sync, we have to assume it will write.
+            ReadWrite readWrite = ( txnType == TxnType.READ) ? ReadWrite.READ : ReadWrite.WRITE; 
+            txnSyncHandler.accept(readWrite);
+            super.begin(txnType);
+            if ( transactionMode() == ReadWrite.WRITE )
+                monitor.txnBegin();
+        } finally {
+            insideBegin.set(false);
+        }
+    }
+
+    @Override
     public void begin(ReadWrite readWrite) {
-        txnSyncHandler.accept(readWrite);
-        super.begin(readWrite);
-        if ( readWrite == ReadWrite.WRITE )
-            monitor.txnBegin();
-        txnMode.set(readWrite) ;
+        if ( insideBegin.get() ) {
+            super.begin(readWrite); 
+            return ;
+        }
+        insideBegin.set(true);
+        try {
+            txnSyncHandler.accept(readWrite);
+            super.begin(readWrite);
+            if ( transactionMode() == ReadWrite.WRITE )
+                monitor.txnBegin();
+        } finally {
+            insideBegin.set(false);
+        } 
+    }
+    
+    @Override
+    public boolean promote() {
+        // Any potential write causes a write-sync to be done in "begin".
+        // Here we are inside the transaction so calling the sync handler is not possible (nested transaction risk). 
+        if ( super.transactionMode() == ReadWrite.READ ) {
+            boolean b = super.promote();
+            if ( super.transactionMode() == ReadWrite.WRITE ) {
+                // Promotion.
+                // READ_PROMOTE would not reveal any new triples.
+                if ( transactionType() == TxnType.READ_COMMITTED_PROMOTE )
+                    txnSyncHandler.accept(ReadWrite.WRITE);
+                // We have gone ReadWrite.READ -> ReadWrite.WRITE
+                monitor.txnBegin();
+            }
+            return b;
+        }
+        //Already WRITE.
+        return super.promote();
     }
 
     @Override
     public void commit() {
         // Assume commit will work - signal first.
-        if ( isWriteTxn() )
+        if ( isWriteMode() )
             monitor.txnCommit();
-        txnMode.set(null) ;
         super.commit();
     }
     
     @Override
     public void abort() {
         // Assume abort will work - signal first.
-        if ( isWriteTxn() )
+        if ( isWriteMode() )
             monitor.txnAbort();
-        txnMode.set(null) ;
         super.abort();
     }
 

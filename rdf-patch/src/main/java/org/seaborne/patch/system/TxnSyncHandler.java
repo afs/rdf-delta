@@ -18,11 +18,10 @@
 
 package org.seaborne.patch.system;
 
-//import org.apache.jena.query.TxnType ;
-
+import org.apache.jena.query.TxnType ;
 public interface TxnSyncHandler {
-//    void onBegin(TxnType txnType);
-//    void onPromote();
+    void onBegin(TxnType txnType);
+    void onPromote();
 //    void onCommit();
 //    void onAbort();
 }

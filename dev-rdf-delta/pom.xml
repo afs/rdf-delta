@@ -29,13 +29,13 @@
   <name>RDF Delta :: Development</name>
 
   <properties>
-    <ver.rdf-delta>0.2.0</ver.rdf-delta>
+    <ver.rdf-delta>0.3.0-SNAPSHOT</ver.rdf-delta>
   </properties>
 
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0-SNAPSHOT</version>
   </parent> 
   <dependencies>
 

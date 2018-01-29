@@ -22,6 +22,8 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.embedded.FusekiServer ;
+import org.apache.jena.fuseki.server.Operation ;
+import org.apache.jena.fuseki.servlets.ActionService ;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
@@ -29,6 +31,7 @@ import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.util.QueryExecUtils;
+import org.seaborne.delta.fuseki.PatchApplyService ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -44,19 +47,17 @@ public class RunDeltaFuseki {
         String MIMETYPE = "application/rdf-patch";
 
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
-        // **** 0.3.0
-//        Operation patchOp = Operation.register("Patch", "Patch Service"); 
-//        ActionService handler = new PatchApplyService();
+        Operation patchOp = Operation.register("Patch", "Patch Service"); 
+        ActionService handler = new PatchApplyService();
         String EP = "patch";
         String DATASET = "ds";
 
         FusekiServer server = 
             FusekiServer.create()
             .setPort(2022)
-            // **** 0.3.0
-//            .registerOperation(patchOp, MIMETYPE, handler)
-//            .add(DATASET, dsg)
-//            .addOperation(DATASET, EP, patchOp)
+            .registerOperation(patchOp, MIMETYPE, handler)
+            .add(DATASET, dsg)
+            .addOperation(DATASET, EP, patchOp)
             .build();
 
         try { 
