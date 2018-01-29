@@ -212,8 +212,9 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             if ( super.transactionMode() == ReadWrite.WRITE ) {
                 // Promotion.
                 // READ_PROMOTE would not reveal any new triples.
-                if ( transactionType() == TxnType.READ_COMMITTED_PROMOTE )
-                    txnSyncHandler.accept(ReadWrite.WRITE);
+                // Nested transaction. See above.
+//                if ( transactionType() == TxnType.READ_COMMITTED_PROMOTE )
+//                    txnSyncHandler.accept(ReadWrite.WRITE);
                 // We have gone ReadWrite.READ -> ReadWrite.WRITE
                 monitor.txnBegin();
             }
