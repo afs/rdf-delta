@@ -43,13 +43,17 @@ public class PatchStoreMem extends PatchStore {
         super(providerName);
     }
 
+    public PatchStoreMem() {
+        this(DPS.PatchStoreMemProvider);
+    }
+
     @Override
     public List<DataSource> initFromPersistent(LocalServerConfig config) {
         return Collections.emptyList();
     }
 
     @Override
-    protected PatchLog create(DataSourceDescription dsd, Path path) {
+    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
         PatchLog plog =  new PatchLogMem(dsd);
         logs.put(dsd, plog);
         return plog;

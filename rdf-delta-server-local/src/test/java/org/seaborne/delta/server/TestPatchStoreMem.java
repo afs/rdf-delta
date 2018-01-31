@@ -18,26 +18,31 @@
 
 package org.seaborne.delta.server;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.AfterClass ;
+import org.junit.BeforeClass ;
+import org.junit.Test ;
+import org.seaborne.delta.server.local.DPS ;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMem ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr ;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestFileStore.class
-    // No and breaks
-    , TestPatchStoreFile.class
-    , TestPatchStoreMem.class
-    , TestLocalServerBuildConfig.class
-    , TestLocalServer.class
-    , TestLocalServerCreateDelete.class
-})
-
-public class TS_ServerLocal {
+public class TestPatchStoreMem extends AbstractTestPatchStore {
+    
     @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        DPS.resetSystem();
+        PatchStoreMgr.register(new PatchStoreMem());
+        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
     }
+    
+    @AfterClass public static void afterClass() {
+        DPS.resetSystem();
+    }
+
+    @Override
+    protected PatchStore createProvider() {
+        return new PatchStoreMem();
+    }
+    
+    @Override
+    @Test public void recovery1() {}
 }
-
-

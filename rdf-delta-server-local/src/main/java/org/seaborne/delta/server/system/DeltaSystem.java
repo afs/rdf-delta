@@ -35,7 +35,6 @@ public class DeltaSystem {
     
     public static void init() {
         JenaSystem.init();
-        // Jiggery-pokery because generics are by erasure. 
         new Initializer<DeltaSubsystemLifecycle>(classAtRuntime, new DeltaInitLevel0(), DEBUG_INIT, NAME).init();
     }
     

@@ -43,7 +43,7 @@ public class TestLocalServerBuildConfig {
             .parse(TESTING+"delta.cfg")
             .build();
         Location x = Location.create(TESTING);
-        assertEquals(x, conf.location);
+        assertEquals(x, conf.getLocation());
     }
 
     @Test public void local_server_config_01() {

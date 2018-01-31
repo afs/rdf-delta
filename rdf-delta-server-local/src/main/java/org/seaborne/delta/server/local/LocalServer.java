@@ -77,7 +77,7 @@ public class LocalServer {
     }
     
     /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
-    static private void initSystem() {
+    static /*package*/ void initSystem() {
         // Ensure the file-based PatchStore provider is available
         if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreFileProvider) ) {
             FmtLog.warn(LOG, "PatchStoreFile provider not registered");
@@ -94,7 +94,8 @@ public class LocalServer {
 //            PatchStoreMgr.register(psMem);
 //        }
         
-        // Default the log provider to "file"
+        // Before anything else, set the default the log provider to "file"
+        // This is reset by a delta.cfg setting.
         if ( PatchStoreMgr.getDftPatchStore() == null ) {
             //FmtLog.warn(LOG, "PatchStore default not set.");
             PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
@@ -169,10 +170,10 @@ public class LocalServer {
      */
     public static LocalServer create(LocalServerConfig conf) {
         Objects.requireNonNull(conf, "Null for configuation");
-        if ( conf.location == null )
+        if ( conf.getLocation() == null )
             throw new DeltaConfigException("No location");
-        if ( servers.containsKey(conf.location) ) {
-            LocalServer server = servers.get(conf.location);
+        if ( servers.containsKey(conf.getLocation()) ) {
+            LocalServer server = servers.get(conf.getLocation());
             if ( ! conf.equals(server.getConfig()) )
                 throw new DeltaConfigException("Attempt to have two servers, with different configurations for the same file area"); 
             return server;
@@ -198,7 +199,7 @@ public class LocalServer {
     }
 
     public static void release(LocalServer localServer) {
-        Location key = localServer.serverConfig.location;
+        Location key = localServer.serverConfig.getLocation();
         if ( key != null ) {
             servers.remove(key);
             localServer.shutdown$();
@@ -213,7 +214,7 @@ public class LocalServer {
     }
     
     private static LocalServer attachServer(LocalServerConfig config, DataRegistry dataRegistry) {
-        Location loc = config.location;
+        Location loc = config.getLocation();
         if ( ! loc.isMemUnique() ) {
             if ( servers.containsKey(loc) ) {
                 LocalServer lServer = servers.get(loc);
@@ -228,19 +229,19 @@ public class LocalServer {
         LocalServer lServer = new LocalServer(config, dataRegistry);
         if ( ! loc.isMemUnique() ) 
             servers.put(loc, lServer);
-        lServer.init();
+        lServer.initThisServer();
         return lServer ;
     }
 
     private LocalServer(LocalServerConfig config, DataRegistry dataRegistry) {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
-        this.serverRoot = config.location;
+        this.serverRoot = config.getLocation();
     }
 
-    private void init() {
-        if ( serverConfig.logProvider != null && PatchStoreMgr.getDftPatchStore() == null )
-            PatchStoreMgr.setDftPatchStoreName(serverConfig.logProvider);  
+    private void initThisServer() {
+        if ( serverConfig.getLogProvider() != null && PatchStoreMgr.getDftPatchStore() == null )
+            PatchStoreMgr.setDftPatchStoreName(serverConfig.getLogProvider());  
     }
     
     public void shutdown() {
@@ -360,6 +361,9 @@ public class LocalServer {
                 Location sourceArea = dataSourceArea(serverRoot, dsd.getName());
                 sourcePath = IOX.asPath(sourceArea);
 
+                if ( PatchStore.logExists(dsd.getId()) )
+                    throw new DeltaBadRequestException("DataSource area already exists and is active at: "+sourceArea);
+                
                 // Checking.
                 // The area can exist, but it must not be formatted for a DataSource 
                 //        if ( sourceArea.exists() )
@@ -369,10 +373,6 @@ public class LocalServer {
                     throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
                 if ( ! Cfg.isEnabled(sourcePath) )
                     throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
-
-                String patchesDirName = sourceArea.getPath(DeltaConst.LOG);
-                if ( FileOps.exists(patchesDirName) )
-                    throw new DeltaBadRequestException("DataSource area does not have a configuration but does have a patches area.");
 
                 String dataDirName = sourceArea.getPath(DeltaConst.DATA);
                 if ( FileOps.exists(dataDirName) )
@@ -386,7 +386,7 @@ public class LocalServer {
                 } catch (IOException ex)  { throw IOX.exception(ex); }
             }
             // XXX Pass in dsd
-            DataSource newDataSource = DataSource.connect(dsd.getId(), dsd.getUri(), dsd.getName(), sourcePath);
+            DataSource newDataSource = DataSource.create(dsd.getId(), dsd.getUri(), dsd.getName(), sourcePath);
             dataRegistry.put(dsd.getId(), newDataSource);
             return dsd.getId() ;
         }

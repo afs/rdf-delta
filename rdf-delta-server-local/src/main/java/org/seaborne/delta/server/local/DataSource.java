@@ -55,19 +55,33 @@ public class DataSource {
     /**
      * Attach to a datasource file area and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
+     * The {@code DataSource} area is not formatted by the provider. 
      */
     public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
         PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsRef);
-        Path patchesArea = dsPath.resolve(DeltaConst.LOG);
-        IOX.ensureDirectory(patchesArea);
-        Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
-        IOX.ensureFile(initialData);
-        
         DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
-        PatchLog patchLog = patchStore.createLog(dsd, patchesArea);
+        PatchLog patchLog = patchStore.connectLog(dsd, dsPath);
+        // XXX Should initial data in general or by-provider?
+        Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
         return dataSource;
     }
+
+    /**
+     * Attach to a datasource file area and return a {@link DataSource} object.
+     * The directory {@code dsPath} must exist.
+     */
+    public static DataSource create(Id dsRef, String uri, String dsName, Path dsPath) {
+        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsRef);
+        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
+        PatchLog patchLog = patchStore.createLog(dsd, dsPath);
+        // XXX
+        Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
+        IOX.ensureFile(initialData);
+        DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
+        return dataSource;
+    }
+        
 
     private DataSource(DataSourceDescription dsd, Path location, Path initialData, PatchLog patchLog) {
         super();

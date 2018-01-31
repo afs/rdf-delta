@@ -46,6 +46,7 @@ public abstract class AbstractTestPatchStore {
     @BeforeClass public static void setup() {
         FileOps.clearAll(DIR);
         FileOps.ensureDir(DIR);
+        PatchStore.clearLogIdCache();
     }
     
     @Before public void setupTest() {
@@ -75,6 +76,10 @@ public abstract class AbstractTestPatchStore {
     
     @Test public void ps1() {
         PatchLog patchLog = patchLog();
+        
+        boolean b = patchLog.isEmpty();
+        long x = patchLog.getEarliestVersion();
+        
         assertTrue(patchLog.isEmpty());
     }
     
@@ -89,7 +94,8 @@ public abstract class AbstractTestPatchStore {
     @Test public void ps3() {
         PatchLog patchLog = patchLog();
         RDFPatch patch = RDFPatchOps.emptyPatch();
-        patchLog.append(patch);
+        long v = patchLog.append(patch);
+        assertEquals(1, v);
         
         RDFPatch patch1 = patchLog.fetch(1);
         assertNotNull(patch1);
@@ -106,8 +112,8 @@ public abstract class AbstractTestPatchStore {
         assertNull(patch2);
     }
     
-    // Recovery
-    @Test public void ps10() {
+    // Recovery (does not apply to PatchStoreMem)
+    @Test public void recovery1() {
         PatchLog patchLog = patchLog();
         RDFPatch patch = RDFPatchOps.emptyPatch();
         
@@ -126,7 +132,7 @@ public abstract class AbstractTestPatchStore {
 
         // Same FileStore, different PatchLog?
         DataSourceDescription dsd = new DataSourceDescription(id, name, null);
-        PatchLog patchLog1 = provider.createLog(dsd, patchesArea);
+        PatchLog patchLog1 = provider.connectLog(dsd, patchesArea);
         
         PatchLogInfo info1 = patchLog1.getDescription();
         assertEquals(info, info1);

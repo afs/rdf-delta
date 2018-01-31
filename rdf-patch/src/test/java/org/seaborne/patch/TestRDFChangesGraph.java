@@ -37,8 +37,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.TransactionHandler;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.impl.TransactionHandlerBase;
-import org.apache.jena.query.ReadWrite;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
@@ -193,7 +191,6 @@ public class TestRDFChangesGraph {
     
     @Test public void record_add_abort_2() {
         setup();
-
         TransactionHandler h = graph.getTransactionHandler();
         h.begin();
         graph.add(triple1);
@@ -219,43 +216,5 @@ public class TestRDFChangesGraph {
         txn(graph, ()->graph.add(triple1));
         Graph g2 = replay();
         check(g2, triple1);
-    }
-        
-    // Remove at Jena 3.6.0 (this is a copy).
-    static class TransactionHandlerViewX extends TransactionHandlerBase 
-    {
-        private final DatasetGraph dsg;
-
-        public TransactionHandlerViewX(DatasetGraph dsg) {
-            this.dsg = dsg;
-        }
-
-        protected DatasetGraph getDSG() { return dsg; }    
-
-        @Override
-        public void abort() {
-            getDSG().abort();
-            getDSG().end();
-        }
-
-        @Override
-        public void begin() {
-            if ( false /* dsg.supportPromotion */)
-                getDSG().begin(ReadWrite.READ);
-            else
-                getDSG().begin(ReadWrite.WRITE);
-        }
-
-        @Override
-        public void commit() {
-            getDSG().commit();
-            getDSG().end();
-        }
-
-        @Override
-        public boolean transactionsSupported() {
-            // Abort required.
-            return getDSG().supportsTransactionAbort();
-        }
     }
 }

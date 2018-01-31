@@ -27,7 +27,6 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
-import org.seaborne.delta.lib.IOX ;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.slf4j.Logger ;
@@ -57,7 +56,7 @@ public abstract class PatchStore {
         return logs.get(dsRef);
     }
     
-    protected static boolean logExists(Id dsRef) {
+    public static boolean logExists(Id dsRef) {
         return logs.containsKey(dsRef);
     }
     
@@ -113,19 +112,31 @@ public abstract class PatchStore {
      * 
      * @param dsRef
      * @param dsName
-     * @param path : Path to the Logs/ directory. Contents are PatchStore-impl specific.
+     * @param dsPath : Path to the DataSource area. PatchStore-impl can create local files.
      * @return PatchLog
      */
-    protected abstract PatchLog create(DataSourceDescription dsd, Path path);
+    protected abstract PatchLog create(DataSourceDescription dsd, Path dsPath);
 
+    /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
+    public PatchLog connectLog(DataSourceDescription dsd, Path dsPath) {
+        PatchLog pLog = getLog(dsd.getId());
+        if ( pLog == null )
+            pLog = create$(dsd, dsPath);
+        return pLog;
+    }
+    
     /** Return a new {@link PatchLog}, which must not already exist. */ 
-    public PatchLog createLog(DataSourceDescription dsd, Path path) {
-        // Path to "Log/" area workspace
+    public PatchLog createLog(DataSourceDescription dsd, Path dsPath) {
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
-        IOX.ensureDirectory(path);
-        PatchLog patchLog = create(dsd, path);
+        return create$(dsd, dsPath);
+    }
+    
+    // Create always. No PatchStore level checking.
+    private PatchLog create$(DataSourceDescription dsd, Path dsPath) {
+        Id dsRef = dsd.getId();
+        PatchLog patchLog = create(dsd, dsPath);
         logs.put(dsRef, patchLog);
         return patchLog;
     }

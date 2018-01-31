@@ -58,15 +58,24 @@ public class PatchStoreMgr {
         return patchStores.containsKey(providerName);
     }
     
-    // The provider name is used in config files. 
+    /** Add a PatchStore : it is registered by its provider name */ 
     public static void register(PatchStore impl) {
         String providerName = impl.getProviderName();
         FmtLog.info(LOG, "Register patch store: %s", providerName);
         if ( patchStores.containsKey(providerName) )
-            Log.error(PatchStore.class, "Already registered: "+providerName);
+            LOG.error("Already registered: "+providerName);
         patchStores.put(providerName, impl);
     }
     
+    /** Unregister by provider name */ 
+    public static void unregister(String providerName) {
+        FmtLog.info(LOG, "Unregister patch store: %s", providerName);
+        if ( patchStores.containsKey(providerName) )
+            Log.warn(PatchStore.class, "Not registered: "+providerName);
+        patchStores.remove(providerName);
+    }
+
+    /** Set the default choice of PatchStore */
     public static void setDftPatchStoreName(String providerName) {
         PatchStore impl = patchStores.get(providerName);
         if ( impl == null )
@@ -103,6 +112,6 @@ public class PatchStoreMgr {
     
     public static void reset() {
         patchStores.clear();
-        //dftPatchStore = null;
+        dftPatchStore = null;
     }
 }

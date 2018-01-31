@@ -89,6 +89,7 @@ public class DeltaConst {
     
     // Short names of log providers. Lowercase.
     public static final String LOG_FILE        = "file";
+    public static final String LOG_MEM         = "mem";
     public static final String LOG_SQL         = "sql";
     public static final String LOG_S3          = "s3";
 

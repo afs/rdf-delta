@@ -33,14 +33,10 @@ import org.seaborne.patch.RDFPatch;
 /** Simple, lightweight implementation of {@link PatchLog}. */ 
 public class PatchLogMem extends AbstractPatchLog implements PatchLog {
 
+    // Versions start at 1 :: Version x is at slot (x-1).
     private List<RDFPatch> patchesList = Collections.synchronizedList(new LinkedList<>());
     private Map<Id, RDFPatch> patchesMap = new ConcurrentHashMap<>(); 
 
-//    /** Attached to an existing {@code PatchLog}. */
-//    public static PatchLog attach(DataSourceDescription dsd) {
-//        return new PatchLogMem(dsd);
-//    }
-//    
     @Override
     protected synchronized RDFPatch earliestPatch() {
         return patchesList.isEmpty() ? null : patchesList.get(0);
@@ -53,12 +49,12 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
     
     @Override
     protected synchronized long earliestVersion() {
-        return patchesList.isEmpty() ? DeltaConst.VERSION_INIT : 0; 
+        return patchesList.isEmpty() ? DeltaConst.VERSION_UNSET : DeltaConst.VERSION_FIRST; 
     }
 
     @Override
     protected synchronized long latestVersion() {
-        return patchesList.isEmpty() ? DeltaConst.VERSION_INIT : patchesList.size()-1;
+        return patchesList.isEmpty() ? DeltaConst.VERSION_UNSET : patchesList.size();
     }
     
     public PatchLogMem(DataSourceDescription dsd) {
@@ -74,9 +70,8 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
     public synchronized long append(RDFPatch patch) {
         Id id = Id.fromNode(patch.getId());
         patchesMap.put(id, patch);
-        long x = patchesList.size();
         patchesList.add(patch);
-        return x;
+        return patchesList.size();
     }
 
     @Override
@@ -85,14 +80,20 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
     }
 
     private boolean validVersion(long version) {
-        return version >=0 && version < patchesList.size();
+        // Versions run from VERSION_INIT (no versions) to patchesList.size()
+        return version > DeltaConst.VERSION_INIT && version <= patchesList.size();
     }
     
+    private int slot(long version) {
+        return (int)version-1;
+    }
+    
+
     @Override
     public RDFPatch fetch(long version) {
         if ( ! validVersion(version) )
             return null;
-        return patchesList.get((int)version);
+        return patchesList.get(slot(version));
     }
 
     @Override
@@ -112,14 +113,15 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
             return null;
         if ( ! validVersion(finish) )
             return null;
-        return patchesList.subList((int)start, ((int)finish)+1).stream();
+        // Version x at slot (x-1)
+        return patchesList.subList(slot(start), slot(finish+1)).stream();
     }
 
     @Override
     public Id find(long version) {
         if ( ! validVersion(version) )
             return null;
-        return Id.fromNode(patchesList.get((int)version).getId()); 
+        return Id.fromNode(patchesList.get(slot(version)).getId()); 
     }
 
     @Override
@@ -130,7 +132,8 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
         int x = patchesList.indexOf(patch);
         if ( x < 0 )
             return DeltaConst.VERSION_UNSET;
-        return x;
+        // Slot to version.
+        return x+1;
     }
 
     @Override

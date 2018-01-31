@@ -41,14 +41,14 @@ import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {
-    /** Location of server area for Datasources */ 
-    public final Location location;
+    /** Location of server area for DataSources */ 
+    private final Location location;
     
     /** Name of the default PatchStore provider */ 
-    public final String logProvider;
+    private final String logProvider;
     
     /** File name of the config file (if any - may be null) */
-    public final String configFile;
+    private final String configFile;
     
     private LocalServerConfig(Location location, String logProvider, String configFile) {
         this.location = location;
@@ -56,6 +56,21 @@ public class LocalServerConfig {
         this.configFile = configFile;
     }
     
+    /** Location of server area for DataSources */ 
+    public Location getLocation() {
+        return location ;
+    }
+
+    /** Name of the default PatchStore provider */ 
+    public String getLogProvider() {
+        return logProvider ;
+    }
+
+    /** File name of the config file (if any - may be null) */
+    public String getConfigFile() {
+        return configFile ;
+    }
+
     public static Builder create() { return new Builder(); }
     
     /** Configuration builder.
@@ -121,6 +136,9 @@ public class LocalServerConfig {
             switch (provider) {
                 case DeltaConst.LOG_FILE: 
                     provider = DPS.PatchStoreFileProvider;
+                    break;
+                case DeltaConst.LOG_MEM: 
+                    provider = DPS.PatchStoreMemProvider;
                     break;
                 case DeltaConst.LOG_SQL:
                     provider = "PatchStoreSQLProvider";

@@ -22,6 +22,7 @@ import org.apache.jena.graph.TransactionHandler;
 import org.apache.jena.graph.impl.TransactionHandlerBase;
 import org.seaborne.patch.RDFChanges;
 
+/** A graph {@link TransactionHandler} that provides monitoring callbacks. */
 class TransactionHandlerMonitor extends TransactionHandlerBase {
 
     private final TransactionHandler handler;

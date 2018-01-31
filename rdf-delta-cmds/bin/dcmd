@@ -81,6 +81,8 @@ case $CMD in
 	CMD=rmlog ;;
     get)
 	CMD=getpatch ;;
+    r2p)
+	CMD=rdf2patch ;;
     parse|validate)
 	CMD=patchparse ;;
     *) ;;

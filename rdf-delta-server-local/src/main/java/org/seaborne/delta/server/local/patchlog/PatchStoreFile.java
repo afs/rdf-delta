@@ -29,6 +29,8 @@ import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaConst ;
+import org.seaborne.delta.lib.IOX ;
 import org.seaborne.delta.server.local.Cfg;
 import org.seaborne.delta.server.local.DPS ;
 import org.seaborne.delta.server.local.DataSource;
@@ -50,7 +52,9 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    protected PatchLogFile create(DataSourceDescription dsd, Path logPath) {
+    protected PatchLogFile create(DataSourceDescription dsd, Path dsPath) {
+        Path logPath = dsPath.resolve(DeltaConst.LOG);
+        IOX.ensureDirectory(logPath);
         Location loc = Location.create(logPath.toString());
         PatchLogFile patchLog = PatchLogFile.attach(dsd, loc);
         sources.add(dsd); 
@@ -64,7 +68,7 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.location);
+        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
         List<Path> dataSourcePaths = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();
 

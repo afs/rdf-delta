@@ -19,7 +19,10 @@
 package org.seaborne.delta.server.local;
 
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMem ;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr ;
 import org.slf4j.Logger ;
 
 public class DPS {
@@ -42,10 +45,27 @@ public class DPS {
             initOnce() ;
         }
     }
+
+    /**
+     * For testing. This code knows where all the global state is and reset the
+     * system to the default after init() called.
+     */
+    public static void resetSystem() {
+        // Clear
+        // First - because this may initial the system (tests called in isolation).
+        LocalServer.releaseAll();
+        PatchStoreMgr.reset();
+        PatchStore.clearLogIdCache();
+        // Init.
+        DPS.initOnce();
+        // This would be called after initialization, when LocalServer is first touched.
+        LocalServer.initSystem();
+    }
     
     // Things to do once.
     private static void initOnce() {
         PatchStoreFile.registerPatchStoreFile();
-        //PatchStoreMem.registerPatchStoreMem();
+        PatchStoreMem.registerPatchStoreMem();
+//        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
     }
 }
