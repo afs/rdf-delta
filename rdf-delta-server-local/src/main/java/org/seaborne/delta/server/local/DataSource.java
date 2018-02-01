@@ -55,13 +55,23 @@ public class DataSource {
     /**
      * Attach to a datasource file area and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
+     * The {@code DataSource} area is not formatted by the provider.
+     * @deprecated To be removed. 
+     */
+    @Deprecated
+    public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
+        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
+        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsd.getId());
+        return connect(dsd, patchStore, dsPath) ;
+    }
+        
+    /**
+     * Attach to a datasource file area and return a {@link DataSource} object.
+     * The directory {@code dsPath} must exist.
      * The {@code DataSource} area is not formatted by the provider. 
      */
-    public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
-        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsRef);
-        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
+    public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore, Path dsPath) {
         PatchLog patchLog = patchStore.connectLog(dsd, dsPath);
-        // XXX Should initial data in general or by-provider?
         Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
         return dataSource;
@@ -81,7 +91,6 @@ public class DataSource {
         DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
         return dataSource;
     }
-        
 
     private DataSource(DataSourceDescription dsd, Path location, Path initialData, PatchLog patchLog) {
         super();

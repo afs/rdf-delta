@@ -19,13 +19,15 @@
 package org.seaborne.delta.server.local.patchlog;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.jena.atlas.json.JsonObject ;
+import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -34,6 +36,7 @@ public class PatchStoreMem extends PatchStore {
     
     public static void registerPatchStoreMem() {
         PatchStore ps = new PatchStoreMem(DPS.PatchStoreMemProvider);
+        PatchStoreMgr.registerShortName(DeltaConst.LOG_MEM, ps.getProviderName());
         PatchStoreMgr.register(ps);
     }
     
@@ -48,8 +51,10 @@ public class PatchStoreMem extends PatchStore {
     }
 
     @Override
-    public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        return Collections.emptyList();
+    public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
+        DataSourceDescription dsd = ds.getDescription();
+        PatchLog plog =  new PatchLogMem(dsd);
+        logs.put(ds.getDescription(), plog);
     }
 
     @Override
@@ -62,5 +67,17 @@ public class PatchStoreMem extends PatchStore {
     @Override
     public List<DataSourceDescription> listDataSources() {
         return Lists.newArrayList(logs.keySet());
+    }
+
+    @Override
+    public List<DataSource> initFromPersistent(LocalServerConfig config) {
+        // Scan for areas on disk?
+        throw new NotImplemented();
+    }
+
+    @Override
+    public boolean callInitFromPersistent(LocalServerConfig config) {
+        // Rely on LocalServer scan for retained, but state loosing, patchstores.  
+        return false ;
     }
 }

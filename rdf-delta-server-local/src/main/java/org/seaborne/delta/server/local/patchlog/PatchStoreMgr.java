@@ -25,6 +25,8 @@ import java.util.Map;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.ext.com.google.common.collect.BiMap ;
+import org.apache.jena.ext.com.google.common.collect.HashBiMap ;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.Id;
 import org.slf4j.Logger;
@@ -49,6 +51,27 @@ public class PatchStoreMgr {
     // Default PatchStore.
     private static PatchStore dftPatchStore;
 
+    // ---- Short name / long name.
+    private static BiMap<String, String> shortName2LongName = HashBiMap.create();
+    
+    public static void registerShortName(String shortName, String providerName) {
+        shortName2LongName.put(shortName, providerName);
+    }
+
+    /** Short name to full provider name.
+     *  Null short name maps to the default provider.
+     *  A return of null means "don't know".
+     */
+    public static String shortName2LongName(String shortName) {
+        if ( shortName == null )
+            return getDftPatchStoreName();
+        return shortName2LongName.get(shortName);
+    }
+    
+    public static String longName2ShortName(String providerName) {
+        return shortName2LongName.inverse().get(providerName);
+    }
+    // ----
     
     public static Collection<PatchStore> registered() {
         return new HashSet<>(patchStores.values());
@@ -61,6 +84,8 @@ public class PatchStoreMgr {
     /** Add a PatchStore : it is registered by its provider name */ 
     public static void register(PatchStore impl) {
         String providerName = impl.getProviderName();
+        if ( longName2ShortName(providerName) == null )
+            LOG.warn("No short name for: "+providerName);
         FmtLog.info(LOG, "Register patch store: %s", providerName);
         if ( patchStores.containsKey(providerName) )
             LOG.error("Already registered: "+providerName);
@@ -110,7 +135,17 @@ public class PatchStoreMgr {
         return dftPatchStore ;
     }
     
+    /**
+     * Get the current default {@code PatchStore} provider name.
+     */
+    public static String getDftPatchStoreName() {
+        if ( dftPatchStore == null )
+            return null;
+        return dftPatchStore.getProviderName(); 
+    }
+
     public static void reset() {
+        shortName2LongName.clear();
         patchStores.clear();
         dftPatchStore = null;
     }

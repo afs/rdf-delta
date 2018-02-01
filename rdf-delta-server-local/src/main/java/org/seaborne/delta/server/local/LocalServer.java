@@ -18,11 +18,15 @@
 
 package org.seaborne.delta.server.local;
 
+import static org.seaborne.delta.DeltaConst.F_LOG_TYPE ;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection ;
+import java.util.Collections ;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +34,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors ;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.lib.CollectionUtils ;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.lib.ListUtils ;
+import org.apache.jena.atlas.lib.Pair ;
+import org.apache.jena.atlas.lib.SetUtils ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DataSourceDescription;
@@ -44,6 +53,7 @@ import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.lib.JSONX ;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
@@ -179,25 +189,101 @@ public class LocalServer {
             return server;
         }
         
+        LOG.info("Base: "+conf.getLocation());
         // Choose default PatchStore.
+        
+        conf.getLogProvider();
         
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
         fillDataRegistry(dataRegistry, conf);
         return attachServer(conf, dataRegistry);
     }
     
-    // Scan the location, looking for DataSources.
+    // Static states:
+    // PatchStoreMgr : short name -> provider
+    // PatchStoreMgr : provider impls
+    // FileStore: path -> FileStore.
+    
+    
+    /** Fill a {@link DataRegistry} by:
+     * <ul>
+     * <li>for any PatchStore that provides the function, call {@code initFromPersistent}
+     * <li>scan the server area for directories and deal with {@code log_type}.
+     * </ul>
+     */
     private static void fillDataRegistry(DataRegistry dataRegistry, LocalServerConfig config) {
-        PatchStoreMgr.registered().stream().forEach(ps-> {
-            List<DataSource> x = ps.initFromPersistent(config);
-            x.forEach(ds->dataRegistry.put(ds.getId(), ds));
-            List<DataSourceDescription> z = ps.listDataSources();
-            FmtLog.info(LOG, "PatchStore: %s -- %d %s", ps.getProviderName(), z.size(), ((z.size()!=1)?"logs":"log") );
-            if ( ! z.isEmpty() )
-                FmtLog.info(LOG, "PatchStore:    %s", z);
-        });
+        Location location = config.getLocation();
+
+        // PatchStore's that store their state themselves somehow.
+        List<DataSource> dataSourcesExternal = ListUtils.toList
+            (PatchStoreMgr.registered().stream().flatMap(ps->{
+                if ( ! ps.callInitFromPersistent(config) )
+                    return null;
+                return ps.initFromPersistent(config).stream();
+            }));
+        
+        // PatchStore's that rely on the scan of local directories and checking the "log_type" field.        
+        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
+        List<Path> dataSourcePaths = pair.getLeft();
+        List<Path> disabledDataSources = pair.getRight();
+        //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
+        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
+        
+        List<DataSource> dataSources = ListUtils.toList
+            (dataSourcePaths.stream().map(p->{
+                // Extract name from disk name. 
+                String dsName = p.getFileName().toString();
+                // read config file.
+                //DataSource ds = Cfg.makeDataSource(p);
+                
+                JsonObject sourceObj = JSON.read(p.resolve(DeltaConst.DS_CONFIG).toString());
+                // Patch Store provider short name.
+                
+                String logType = JSONX.getStrOrNull(sourceObj, F_LOG_TYPE);
+                String providerName = PatchStoreMgr.shortName2LongName(logType);
+                
+                DataSourceDescription dsd = DataSourceDescription.fromJson(sourceObj);
+                if ( ! Objects.equals(dsName, dsd.getName()) )
+                    throw new DeltaConfigException("Names do not match: directory="+dsName+", dsd="+dsd);
+                
+                if ( providerName == null )
+                    throw new DeltaConfigException("No provider name and no default provider: "+dsd);
+                
+                PatchStore ps = PatchStoreMgr.getPatchStoreByProvider(providerName);
+                DataSource ds = DataSource.connect(dsd, ps, p);
+                //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
+
+                ps.addDataSource(ds, sourceObj, p);
+                if ( LOG.isDebugEnabled() ) 
+                    FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
+                if ( LOG.isDebugEnabled() ) 
+                    FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
+                return ds;
+            }));
+
+        // Check we found any DataSource only via one route of the other.
+        {
+            Set<Id> set1 = ids(dataSourcesExternal);
+            Set<Id> set2 = ids(dataSources);
+            Set<Id> setBoth = SetUtils.intersection(set1, set2);
+            if ( ! setBoth.isEmpty() ) {
+                // Foudn the same DataSource two ways.
+                String msg = "Duplicate DataSources: "+setBoth;
+                LOG.warn(msg);
+                throw new DeltaConfigException(msg);
+            }
+        }
+        dataSourcesExternal.forEach(ds->dataRegistry.put(ds.getId(), ds));
+        dataSources.forEach(ds->dataRegistry.put(ds.getId(), ds));
+
+        
     }
 
+    private static Set<Id> ids(Collection<DataSource> sources) {
+        return sources.stream().map(DataSource::getId).collect(Collectors.toSet());
+    }
+    
+    /** Finish using this {@code LocalServer} */
     public static void release(LocalServer localServer) {
         Location key = localServer.serverConfig.getLocation();
         if ( key != null ) {

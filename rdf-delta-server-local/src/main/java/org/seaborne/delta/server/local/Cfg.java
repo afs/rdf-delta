@@ -24,15 +24,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
 import org.slf4j.Logger;
 
@@ -103,20 +99,4 @@ public class Cfg {
 //          return false;
         return true ;
     }
-    
-    /**
-     * Create a {@link DataSource} by reading the "source.cfg" file"
-     * @param dataSourceArea The directory where the DataSources details are stored.
-     * @return DataSource
-     */
-    public static DataSource makeDataSource(Path dataSourceArea) {
-        JsonObject sourceObj = JSON.read(dataSourceArea.resolve(DeltaConst.DS_CONFIG).toString());
-        DataSourceDescription dsd = DataSourceDescription.fromJson(sourceObj);
-        Id id = dsd.getId();
-        String baseStr = dsd.getName();
-        String uriStr = dsd.getUri(); 
-        DataSource dataSource = DataSource.connect(id, uriStr, baseStr, dataSourceArea);
-        return dataSource ;
-    }
-
 }

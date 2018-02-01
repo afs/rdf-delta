@@ -24,14 +24,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.lib.ListUtils;
-import org.apache.jena.atlas.lib.Pair;
-import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.atlas.json.JsonObject ;
+import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.lib.IOX ;
-import org.seaborne.delta.server.local.Cfg;
 import org.seaborne.delta.server.local.DPS ;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -44,6 +42,7 @@ public class PatchStoreFile extends PatchStore {
     
     public static void registerPatchStoreFile() {
         PatchStore ps = new PatchStoreFile();
+        PatchStoreMgr.registerShortName(DeltaConst.LOG_FILE, ps.getProviderName());
         PatchStoreMgr.register(ps);
     }
     
@@ -67,28 +66,82 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
-        List<Path> dataSourcePaths = pair.getLeft();
-        List<Path> disabledDataSources = pair.getRight();
-
-        //dataSources.forEach(p->LOG.info("Data source: "+p));
-        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
-
-        List<DataSource> dataSources = ListUtils.toList
-            (dataSourcePaths.stream().map(p->{
-                // Extract name from disk name. 
-                String dsName = p.getFileName().toString();
-                DataSource ds = Cfg.makeDataSource(p);
-                
-                if ( LOG.isDebugEnabled() ) 
-                    FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
-                if ( LOG.isDebugEnabled() ) 
-                    FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
-                
-                sources.add(ds.getDescription());
-                return ds;
-            })); 
-        return dataSources;
+    public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
+        sources.add(ds.getDescription());
     }
+
+    @Override
+    public List<DataSource> initFromPersistent(LocalServerConfig config) {
+        boolean deftToHere = DPS.PatchStoreFileProvider.equals(config.getLogProvider());
+        throw new NotImplemented();
+    }
+    
+    @Override
+    public boolean callInitFromPersistent(LocalServerConfig config) {
+        // Rely on LocalServer scan for retained, but state loosing, patchstores.  
+        return false ;
+    }
+    
+//    @Override
+//    public List<DataSource> initFromPersistent(LocalServerConfig config) {
+//        config.getLogProvider();
+//        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
+//        List<Path> dataSourcePaths = pair.getLeft();
+//        List<Path> disabledDataSources = pair.getRight();
+//
+//        //dataSourcesPaths.forEach(p->LOG.info("Data source: "+p));
+//        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
+//        
+//        List<DataSource> dataSources = ListUtils.toList
+//          (dataSourcePaths.stream().map(p->{
+//              // Extract name from disk name. 
+//              String dsName = p.getFileName().toString();
+//                             
+//              // Config file.
+//              // Check provider.
+//              // Make DataSource
+//              
+//              // Break up. DRY with LocalServer.
+//              DataSource ds = null ; //Cfg.makeDataSource(p);
+//              
+//              if ( LOG.isDebugEnabled() ) 
+//                  FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
+//              if ( LOG.isDebugEnabled() ) 
+//                  FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
+//              
+//              sources.add(ds.getDescription());
+//              return ds;
+//          })); 
+//      return dataSources;
+//    }
+    
+    
+
+    
+    // Add checking for log_type.
+//    @Override
+//    public List<DataSource> initFromPersistent(LocalServerConfig config) {
+//        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
+//        List<Path> dataSourcePaths = pair.getLeft();
+//        List<Path> disabledDataSources = pair.getRight();
+//
+//        //dataSourcesPaths.forEach(p->LOG.info("Data source: "+p));
+//        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
+//
+//        List<DataSource> dataSources = ListUtils.toList
+//            (dataSourcePaths.stream().map(p->{
+//                // Extract name from disk name. 
+//                String dsName = p.getFileName().toString();
+//                DataSource ds = Cfg.makeDataSource(p);
+//                
+//                if ( LOG.isDebugEnabled() ) 
+//                    FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
+//                if ( LOG.isDebugEnabled() ) 
+//                    FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
+//                
+//                sources.add(ds.getDescription());
+//                return ds;
+//            })); 
+//        return dataSources;
+//    }
 }

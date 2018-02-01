@@ -76,7 +76,7 @@ public class getpatch extends DeltaCmd {
         if ( !contains(argLogName) && ! contains(argDataSourceURI) ) 
             throw new CmdException("Required: one of --"+argLogName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
         if ( getPositional().isEmpty() ) {
-            throw new CmdException(getCommandName()+" : No patch id"); 
+            throw new CmdException(getCommandName()+" : No patch version"); 
         }
     }
 }

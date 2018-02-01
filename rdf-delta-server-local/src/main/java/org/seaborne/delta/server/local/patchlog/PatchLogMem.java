@@ -49,12 +49,12 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
     
     @Override
     protected synchronized long earliestVersion() {
-        return patchesList.isEmpty() ? DeltaConst.VERSION_UNSET : DeltaConst.VERSION_FIRST; 
+        return patchesList.isEmpty() ? DeltaConst.VERSION_INIT : DeltaConst.VERSION_FIRST; 
     }
 
     @Override
     protected synchronized long latestVersion() {
-        return patchesList.isEmpty() ? DeltaConst.VERSION_UNSET : patchesList.size();
+        return patchesList.isEmpty() ? DeltaConst.VERSION_INIT : patchesList.size();
     }
     
     public PatchLogMem(DataSourceDescription dsd) {
@@ -80,7 +80,8 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
     }
 
     private boolean validVersion(long version) {
-        // Versions run from VERSION_INIT (no versions) to patchesList.size()
+        // Versions run from VERSION_INIT (initialized, no versions) to patchesList.size()
+        // so a valid number is > VERSION_INIT.
         return version > DeltaConst.VERSION_INIT && version <= patchesList.size();
     }
     

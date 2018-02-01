@@ -45,7 +45,6 @@ public class DeltaOps {
         return Long.toString(version);
     }
     
-    
 //    public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
 //        RDFChangesHTTP changes = LibPatchSender.create1(url) ;
 //        DatasetGraph dsg1 = new DatasetGraphChangesVersion(dsg, changes);

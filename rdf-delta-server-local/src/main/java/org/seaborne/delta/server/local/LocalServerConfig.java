@@ -38,6 +38,7 @@ import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr ;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {
@@ -129,25 +130,12 @@ public class LocalServerConfig {
             this.configFile = configFile;
 
             // -- log provider
-            String provider = JSONX.getStrOrNull(obj, F_LOG_TYPE);
-            if ( provider == null )
-                provider = DeltaConst.LOG_FILE;
-            // Map short/colloquial name to the proper provider name.
-            switch (provider) {
-                case DeltaConst.LOG_FILE: 
-                    provider = DPS.PatchStoreFileProvider;
-                    break;
-                case DeltaConst.LOG_MEM: 
-                    provider = DPS.PatchStoreMemProvider;
-                    break;
-                case DeltaConst.LOG_SQL:
-                    provider = "PatchStoreSQLProvider";
-                    break;
-//                case DeltaConst.LOG_S3:
-//                    logProvider = DPS.????;
-//                    break;
-            }
-            logProvider = provider;
+            String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
+            String providerName = PatchStoreMgr.shortName2LongName(logTypeName);
+            
+            if ( providerName == null )
+                providerName = DeltaConst.LOG_FILE;
+            logProvider = providerName;
             return this;  
         }
         

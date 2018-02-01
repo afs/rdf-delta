@@ -24,7 +24,7 @@
   <artifactId>rdf-delta-server</artifactId>
   <packaging>jar</packaging>
 
-  <name>RDF Delta :: Server Jar</name>
+  <name>RDF Delta :: Delta server combined jar</name>
 
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>

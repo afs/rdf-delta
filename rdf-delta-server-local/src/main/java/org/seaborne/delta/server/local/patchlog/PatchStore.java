@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map ;
 import java.util.concurrent.ConcurrentHashMap ;
 
+import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaException ;
@@ -98,9 +99,27 @@ public abstract class PatchStore {
         return false;
     }
     
-    /** All the {@link DataSource} on external persistent storage. */
+    /**
+     * Boot style for this {@code PatchStore} provider.
+     * Either it can provide the complete details to the server with {@link #initFromPersistent}
+     * or the {@code LocalServer} will scan for DataSource directories.
+     * <p>
+     * If this call returns false, {@link #initFromPersistent} is not called.
+     */
+    public abstract boolean callInitFromPersistent(LocalServerConfig config);
+    
+    /** 
+     * Scan for DataSources.
+     * Only DataSources that are compatible with the Patchstore provider called
+     * should be included in the returned list.  
+     */
     public abstract List<DataSource> initFromPersistent(LocalServerConfig config);
     
+    /** Add a {@link DataSource} to be managed with this {@code PatchStore}.
+     * The Path is the path to the DataSource area.
+     */
+    public abstract void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea);
+
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
     // Somewhat related to the DataRegistry.
     // Could scan than looking for this PatchStore.

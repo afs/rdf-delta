@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A {@code FileStore} is a collection of files where the file names have a common pattern
- * and the fiels are stored in the same location. 
+ * and the files are stored in the same location. 
  * <p>
  * The set of files is from a basename, with new files being "BASE-0001", "BASE-0002",
  * etc.
