@@ -142,7 +142,6 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         return super.transactionMode() == ReadWrite.WRITE ; 
     }
 
-
     // In case an implementation has one "begin" calling another.
     // XXX Per thread?  Or a general lock?
     // But monitor is single-threaded for writers anyway.

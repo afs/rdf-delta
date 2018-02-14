@@ -364,7 +364,7 @@ public class DeltaClient {
         DeltaConnection dConn = getCache(dsRef);
         if ( dConn == null )
             return null; // throw ?
-        dConn.sync();
+        dConn.trySyncIfAuto();
         return dConn;
     }
     

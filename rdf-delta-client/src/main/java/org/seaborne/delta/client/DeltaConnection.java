@@ -81,7 +81,7 @@ public class DeltaConnection implements AutoCloseable {
     private final DataState state;
 
     private boolean valid = false;
-    private final SyncPolicy syncTxnBegin;
+    private final SyncPolicy syncPolicy;
     
     /** 
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
@@ -94,8 +94,8 @@ public class DeltaConnection implements AutoCloseable {
         Objects.requireNonNull(dataState,           "Null data state");
         Objects.requireNonNull(dLink,               "DeltaLink is null");
         Objects.requireNonNull(syncTxnBegin,        "SyncPolicy is null");
-        Objects.requireNonNull(dataState.getDataSourceId(), "Null data source Id");
-        Objects.requireNonNull(dataState.getDatasourceName(), "Null data source name");
+        Objects.requireNonNull(dataState.getDataSourceId(),     "Null data source Id");
+        Objects.requireNonNull(dataState.getDatasourceName(),   "Null data source name");
         
         DeltaConnection dConn = new DeltaConnection(dataState, dsg, dLink, syncTxnBegin);
         dConn.start();
@@ -119,7 +119,7 @@ public class DeltaConnection implements AutoCloseable {
         this.datasourceName = dataState.getDatasourceName();
         this.dLink = link;
         this.valid = true;
-        this.syncTxnBegin = syncTxnBegin;
+        this.syncPolicy = syncTxnBegin;
         if ( basedsg == null ) {
             this.target = null;
             this.managed = null;
@@ -244,8 +244,7 @@ public class DeltaConnection implements AutoCloseable {
     
     /*package*/ void start() {
         checkDeltaConnection();
-        if ( syncTxnBegin != SyncPolicy.NONE ) 
-            trySync();
+        trySyncIfAuto();
     }
     
     /*package*/ void finish() { /*reset();*/ }
@@ -274,6 +273,12 @@ public class DeltaConnection implements AutoCloseable {
     public void sync(PatchLogInfo logInfo) {
         checkDeltaConnection();
         syncToVersion(logInfo.getMaxVersion());
+    }
+    
+    /** Sync if the policy is not NONE, the manual mode. */
+    public void trySyncIfAuto() {
+        if ( syncPolicy != SyncPolicy.NONE )
+            trySync();
     }
     
     public void sync() {

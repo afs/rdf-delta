@@ -38,7 +38,7 @@ public class DeltaFuseki {
         return FusekiServer.create().setPort(port).add(name, dsg).build();
     }
 
-    public static Operation patchOp = Operation.register("Patch", "Patch Service"); 
+    public static Operation patchOp = Operation.register("Patch", "Patch Service");
     public static String patchContentType = "application/rdf-patch";
 
     /** Create a {@code FusekiServer.Builder} with a patch operation. */

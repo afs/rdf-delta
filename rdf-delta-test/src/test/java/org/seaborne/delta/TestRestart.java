@@ -269,6 +269,7 @@ public class TestRestart {
         
         deltaClient.attach(dsRef, LocalStorageType.MEM);
         deltaClient.connect(dsRef, SyncPolicy.NONE);
+        deltaClient.get(dsRef).sync();
         test(dsRef, deltaClient, 1);
     }
     
