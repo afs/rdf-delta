@@ -56,7 +56,7 @@ public class Example2 {
         
         // Put it under client management. 
         DeltaClient dClient = DeltaClient.create(zone, dLink);
-        Id dsRef = dClient.register("TEST", LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        Id dsRef = dClient.register("TEST", LocalStorageType.MEM, SyncPolicy.TXN_RW);
         
         // and now connect to it
         try ( DeltaConnection dConn = dClient.get(dsRef) ) {

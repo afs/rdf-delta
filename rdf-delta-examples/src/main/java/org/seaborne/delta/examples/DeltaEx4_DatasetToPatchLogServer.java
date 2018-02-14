@@ -30,7 +30,7 @@ import org.seaborne.delta.client.DeltaClient ;
 import org.seaborne.delta.client.DeltaConnection ;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.client.LocalStorageType ;
-import org.seaborne.delta.client.TxnSyncPolicy ;
+import org.seaborne.delta.client.SyncPolicy ;
 import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink ;
 import org.seaborne.delta.server.http.PatchLogServer;
@@ -86,7 +86,7 @@ public class DeltaEx4_DatasetToPatchLogServer {
         Id dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
         
         // Create/attach the reference to a locally create TDB database.
-        dClient.register(dsRef, LocalStorageType.TDB, TxnSyncPolicy.TXN_RW);
+        dClient.register(dsRef, LocalStorageType.TDB, SyncPolicy.TXN_RW);
 
         // "register" is these two steps:
         // dClient.attach(dsRef, LocalStorageType.TDB); 

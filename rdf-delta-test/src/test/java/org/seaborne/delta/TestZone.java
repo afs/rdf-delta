@@ -36,7 +36,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.TxnSyncPolicy;
+import org.seaborne.delta.client.SyncPolicy;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -67,7 +67,7 @@ public class TestZone {
     private Id createExternal(String name, DatasetGraph dsgBase) {
         Id dsRef = deltaClient.newDataSource(name, "http://example/"+name);
         deltaClient.attachExternal(dsRef, dsgBase);
-        deltaClient.connect(dsRef, TxnSyncPolicy.NONE);
+        deltaClient.connect(dsRef, SyncPolicy.NONE);
         return dsRef;
     }
     

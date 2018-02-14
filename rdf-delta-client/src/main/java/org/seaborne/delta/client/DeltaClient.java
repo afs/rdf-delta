@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory ;
  * <p>
  * A managed connection (a {@link DeltaConnection}) is used for operations on the data
  * source - this is created in each client, every time the application runs in
- * {@link #connect(Id, TxnSyncPolicy) connect}. This sets the {@link TxnSyncPolicy} for the
+ * {@link #connect(Id, SyncPolicy) connect}. This sets the {@link SyncPolicy} for the
  * connection.
  * <p>The full lifecycle from creating the data source is:
  * <pre>
@@ -82,9 +82,9 @@ import org.slf4j.LoggerFactory ;
  * <p>
  * Convenience combined operations are provided:
  * <ul>
- * <li> {@link #newDataSource(String, String, LocalStorageType, TxnSyncPolicy)}: create-attach-connect
- * <li> {@link #register(Id, LocalStorageType, TxnSyncPolicy)}: attach(Id)-connect
- * <li> {@link #register(String, LocalStorageType, TxnSyncPolicy)}: attach(Name)-connect
+ * <li> {@link #newDataSource(String, String, LocalStorageType, SyncPolicy)}: create-attach-connect
+ * <li> {@link #register(Id, LocalStorageType, SyncPolicy)}: attach(Id)-connect
+ * <li> {@link #register(String, LocalStorageType, SyncPolicy)}: attach(Name)-connect
  * </ul>
  * {@link #removeDataSource} ensures local state clean-up is done.
  */
@@ -126,8 +126,8 @@ public class DeltaClient {
 //    private void putCache(Id id, DeltaConnection dConn) { }
 //    private DeltaConnection getCache(Id id) { return null; }
 
-    private static TxnSyncPolicy applyDefault(TxnSyncPolicy syncPolicy) {
-        return syncPolicy == null ? TxnSyncPolicy.NONE : syncPolicy;
+    private static SyncPolicy applyDefault(SyncPolicy syncPolicy) {
+        return syncPolicy == null ? SyncPolicy.NONE : syncPolicy;
     }
     
     private DeltaClient(Zone zone, DeltaLink dLink) {
@@ -137,7 +137,7 @@ public class DeltaClient {
     
     /** Create a new data source.
      * This operation does not register the new {@code DataSource} to this {@code DeltaClient};
-     * call {@link #register(Id, LocalStorageType, TxnSyncPolicy)}.
+     * call {@link #register(Id, LocalStorageType, SyncPolicy)}.
      */
     public Id newDataSource(String name, String uri) {
         return dLink.newDataSource(name, uri);
@@ -154,7 +154,7 @@ public class DeltaClient {
      * The choice of {@code syncPolicy} applies only to this registration.
      * When restarting call {@link #connect} to 
      */
-    public Id newDataSource(String name, String uri, LocalStorageType storageType, TxnSyncPolicy syncPolicy) {
+    public Id newDataSource(String name, String uri, LocalStorageType storageType, SyncPolicy syncPolicy) {
         Id dsRef = dLink.newDataSource(name, uri);
         attach(dsRef, storageType);
         connect(dsRef, syncPolicy);
@@ -189,13 +189,13 @@ public class DeltaClient {
     }
 
     /** Create a local zone entry and setup to track the existing remote datasource.
-     *  This is a combination of {@link #attach(String, LocalStorageType)} and {@link #connect(Id, TxnSyncPolicy)}.
+     *  This is a combination of {@link #attach(String, LocalStorageType)} and {@link #connect(Id, SyncPolicy)}.
      * @param name
      * @param storageType
      * @param syncPolicy
      * @return Id
      */
-    public Id register(String name, LocalStorageType storageType, TxnSyncPolicy syncPolicy) {
+    public Id register(String name, LocalStorageType storageType, SyncPolicy syncPolicy) {
         attach(name, storageType);
         Id dsRef = nameToId(name);
         connect(dsRef, syncPolicy);
@@ -212,7 +212,7 @@ public class DeltaClient {
      * @param storageType
      * @param syncPolicy
      */
-    public void register(Id datasourceId, LocalStorageType storageType, TxnSyncPolicy syncPolicy) {
+    public void register(Id datasourceId, LocalStorageType storageType, SyncPolicy syncPolicy) {
         attach(datasourceId, storageType);
         connect(datasourceId, syncPolicy);
     }
@@ -220,7 +220,7 @@ public class DeltaClient {
     /** 
      * Connect to an existing {@code DataSource} with existing local state.
      */
-    public void connect(Id datasourceId, TxnSyncPolicy syncPolicy) {
+    public void connect(Id datasourceId, SyncPolicy syncPolicy) {
         syncPolicy = applyDefault(syncPolicy);
         if ( ! zone.exists(datasourceId) )
             throw new DeltaConfigException("Data source '"+datasourceId.toString()+"' not found for this DeltaClient");
@@ -230,7 +230,7 @@ public class DeltaClient {
         putCache(datasourceId, dConn);
     }
     
-    public void connectExt(Id datasourceId, DatasetGraph dsg, TxnSyncPolicy syncPolicy) {
+    public void connectExt(Id datasourceId, DatasetGraph dsg, SyncPolicy syncPolicy) {
         Objects.requireNonNull(datasourceId);
         DeltaConnection dConn = get(datasourceId);
         if ( dConn != null )
@@ -243,7 +243,7 @@ public class DeltaClient {
     /** 
      * Connect to an existing {@code DataSource} with existing local state.
      */
-    public Id connect(String name, TxnSyncPolicy syncPolicy) {
+    public Id connect(String name, SyncPolicy syncPolicy) {
         Id dsRef = nameToId(name);
         connect(dsRef, syncPolicy);
         return dsRef;
@@ -261,7 +261,7 @@ public class DeltaClient {
      * The {@code DatasetGraph} is assumed to empty and is brought up-to-date.
      * The client must be registered with the {@code DeltaLink}.
      * <p>
-     * {@link #connect(Id, TxnSyncPolicy)} must be called later to use the dataset.
+     * {@link #connect(Id, SyncPolicy)} must be called later to use the dataset.
      */
     
     public Id attachExternal(String name, DatasetGraph dsg) {
@@ -282,9 +282,9 @@ public class DeltaClient {
      * The client must be registered with the {@link DeltaLink}.
      * <p>
      * This is a specialised operation - using a managed dataset (see
-     * {@link #register(Id, LocalStorageType, TxnSyncPolicy)}) is preferred.
+     * {@link #register(Id, LocalStorageType, SyncPolicy)}) is preferred.
      * <p>
-     * {@link #connect(Id, TxnSyncPolicy)} must be called later to use the dataset.
+     * {@link #connect(Id, SyncPolicy)} must be called later to use the dataset.
      */
     public void attachExternal(Id datasourceId, DatasetGraph dsg) {
         Objects.requireNonNull(datasourceId);
@@ -328,7 +328,7 @@ public class DeltaClient {
 //            .orElse(null);
     }
     
-    public void connect(Id datasourceId, DatasetGraph dsg, TxnSyncPolicy syncPolicy) {
+    public void connect(Id datasourceId, DatasetGraph dsg, SyncPolicy syncPolicy) {
         Objects.requireNonNull(datasourceId);
         DeltaConnection dConn = get(datasourceId);
         if ( dConn != null )
@@ -349,7 +349,7 @@ public class DeltaClient {
     }
     /**
      * Get a {@link DeltaConnection}. 
-     * It is not automatically up-to-date - that depends on the {@link TxnSyncPolicy}
+     * It is not automatically up-to-date - that depends on the {@link SyncPolicy}
      * set when the DataSource was registered with this client.
      * Either it is done on transaction boundaries, or the application can call
      * {@link DeltaConnection#sync()}. The caller must close this object -
@@ -370,7 +370,7 @@ public class DeltaClient {
     
     /**
      * Get a {@link DeltaConnection}. 
-     * It is not automatically up-to-date - that depends on the {@link TxnSyncPolicy}
+     * It is not automatically up-to-date - that depends on the {@link SyncPolicy}
      * set when the DataSource was registered with this client.
      * Either it is done on transaction boundaries, or the application can call
      * {@link DeltaConnection#sync()}. The caller must close this object -

@@ -127,7 +127,9 @@ public final class Id {
     
     public static Id fromString(String str) {
         switch(str) {
-            case "id:nil": return nullId(); 
+            case nilStr:
+            case "id:nil":
+                return nullId();
         }
         if ( str.startsWith(SCHEME) )
             str = str.substring(SCHEME.length());

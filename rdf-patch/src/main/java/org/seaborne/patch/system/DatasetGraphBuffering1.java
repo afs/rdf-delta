@@ -84,7 +84,7 @@ public class DatasetGraphBuffering1 extends DatasetGraphTriplesQuads {
     public void begin(ReadWrite readWrite) {}
 
     @Override
-    public boolean promote() {
+    public boolean promote(Promote mode) {
         return false ;
     }
 

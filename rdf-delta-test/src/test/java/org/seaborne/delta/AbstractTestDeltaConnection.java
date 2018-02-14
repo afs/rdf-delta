@@ -85,7 +85,7 @@ public abstract class AbstractTestDeltaConnection {
     protected DeltaClient createRegister(String name) {
         DeltaClient dClient = DeltaClient.create(getZone(), getLink());
         Id dsRef = dClient.newDataSource(name, "http://example/"+name);
-        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
+        dClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.NONE);
         return dClient;
     }
     
@@ -100,7 +100,7 @@ public abstract class AbstractTestDeltaConnection {
 
         // This attaches it as well.
         Id dsRef = dClient.newDataSource(DS_NAME, DS_URI);
-        dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
+        dClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(dsRef);
         assertNotNull(dConn.getDatasetGraph());
         assertEquals(0, dConn.getLocalVersion());
@@ -255,9 +255,9 @@ public abstract class AbstractTestDeltaConnection {
         DeltaClient dClient = createDeltaClient();
         Id dsRef = dClient.nameToId(name);
         if ( ! dClient.getZone().exists(dsRef) )
-            dClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.NONE);
+            dClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.NONE);
         else
-            dClient.connect(dsRef, TxnSyncPolicy.NONE);
+            dClient.connect(dsRef, SyncPolicy.NONE);
         return dClient;
     }
 

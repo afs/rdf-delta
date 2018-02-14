@@ -65,7 +65,7 @@ public class load {
         
         DeltaClient dClient = DeltaClient.create(zone, dLink);
         Id dsRef = dClient.newDataSource(DS, "http://example/"+DS);
-        dClient.register(dsRef, LocalStorageType.TDB, TxnSyncPolicy.TXN_RW);
+        dClient.register(dsRef, LocalStorageType.TDB, SyncPolicy.TXN_RW);
         
         long count = -99;
         Timer timer = new Timer();

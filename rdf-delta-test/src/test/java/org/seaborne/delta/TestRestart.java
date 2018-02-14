@@ -36,7 +36,7 @@ import org.junit.Test;
 import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.LocalStorageType;
-import org.seaborne.delta.client.TxnSyncPolicy;
+import org.seaborne.delta.client.SyncPolicy;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
@@ -148,7 +148,7 @@ public class TestRestart {
     private Id createExternal(String name, DatasetGraph dsgBase) {
         Id dsRef = deltaClient.newDataSource(name, "http://example/"+name);
         deltaClient.attachExternal(dsRef, dsgBase);
-        deltaClient.connect(dsRef, TxnSyncPolicy.NONE);
+        deltaClient.connect(dsRef, SyncPolicy.NONE);
         return dsRef;
     }
 
@@ -192,7 +192,7 @@ public class TestRestart {
         assertNull(deltaClient.get(dsRef));
         
         // Connected!
-        deltaClient.connect(dsRef, TxnSyncPolicy.TXN_RW);
+        deltaClient.connect(dsRef, SyncPolicy.TXN_RW);
         assertNotNull(deltaClient.get(dsRef));
 
         test(dsRef, deltaClient, 0);
@@ -206,7 +206,7 @@ public class TestRestart {
         String NAME = "lifecycle_02";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
         // Use "register"
-        deltaClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
         assertNotNull(deltaClient.get(dsRef));
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);
@@ -217,7 +217,7 @@ public class TestRestart {
         setupEmpty();
         String NAME = "lifecycle_03";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
-        deltaClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
         assertNotNull(deltaClient.get(dsRef));
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);
@@ -232,7 +232,7 @@ public class TestRestart {
         setupEmpty();
         String NAME = "restart_01";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
-        deltaClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
         
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);
@@ -241,7 +241,7 @@ public class TestRestart {
         setup();
         
         assertTrue(deltaClient.existsLocal(dsRef));
-        deltaClient.connect(dsRef, TxnSyncPolicy.TXN_RW);
+        deltaClient.connect(dsRef, SyncPolicy.TXN_RW);
         
         test(dsRef, deltaClient, 1);
     }
@@ -250,7 +250,7 @@ public class TestRestart {
         setupEmpty();
         String NAME = "restart_02";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
-        deltaClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
         update(dsRef, deltaClient);
 
         shutdown();
@@ -268,7 +268,7 @@ public class TestRestart {
         assertEquals(1, info.getMaxVersion());
         
         deltaClient.attach(dsRef, LocalStorageType.MEM);
-        deltaClient.connect(dsRef, TxnSyncPolicy.NONE);
+        deltaClient.connect(dsRef, SyncPolicy.NONE);
         test(dsRef, deltaClient, 1);
     }
     
@@ -277,7 +277,7 @@ public class TestRestart {
         setupEmpty();
         String NAME = "restart_03";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
-        deltaClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
         update(dsRef, deltaClient);
 
         shutdown();
@@ -309,7 +309,7 @@ public class TestRestart {
         setupEmpty();
         String NAME = "restart_04";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
-        deltaClient.register(dsRef, LocalStorageType.MEM, TxnSyncPolicy.TXN_RW);
+        deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
         assertNotNull(deltaClient.get(dsRef));
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);

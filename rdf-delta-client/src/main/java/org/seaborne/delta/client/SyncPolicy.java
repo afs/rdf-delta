@@ -28,4 +28,4 @@ package org.seaborne.delta.client;
  * <li>{@code TXN_RW} When a wite-transaction starts. 
  * </ul>
  */
-public enum TxnSyncPolicy { NONE, TXN_RW, TXN_W }
+public enum SyncPolicy { NONE, TXN_RW, TXN_W }

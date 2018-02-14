@@ -153,7 +153,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
     static Id setup(DeltaClient dClient, String datasourceName, String baseURI, LocalStorageType storageType) {
         DataSourceDescription dsd = dClient.getLink().getDataSourceDescriptionByURI(baseURI);
-        TxnSyncPolicy syncPolicy = TxnSyncPolicy.TXN_RW;
+        SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
         if ( dsd == null ) {
             Id dsRef = dClient.newDataSource(datasourceName, baseURI);
             dClient.register(dsRef, storageType, syncPolicy);
