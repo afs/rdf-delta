@@ -81,7 +81,7 @@ public class DeltaConnection implements AutoCloseable {
     private final DataState state;
 
     private boolean valid = false;
-    private final TxnSyncPolicy syncTxnBegin;
+    private final SyncPolicy syncTxnBegin;
     
     /** 
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
@@ -90,7 +90,7 @@ public class DeltaConnection implements AutoCloseable {
      * {@code TxnSyncPolicy} controls when the {@code DeltaConnection} synchronizes with the patch log.
      */
     
-    /*package*/ static DeltaConnection create(DataState dataState, DatasetGraph dsg, DeltaLink dLink, TxnSyncPolicy syncTxnBegin) {
+    /*package*/ static DeltaConnection create(DataState dataState, DatasetGraph dsg, DeltaLink dLink, SyncPolicy syncTxnBegin) {
         Objects.requireNonNull(dataState,           "Null data state");
         Objects.requireNonNull(dLink,               "DeltaLink is null");
         Objects.requireNonNull(syncTxnBegin,        "SyncPolicy is null");
@@ -107,7 +107,7 @@ public class DeltaConnection implements AutoCloseable {
             link.register(clientId);
     }
     
-    private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link, TxnSyncPolicy syncTxnBegin) {
+    private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link, SyncPolicy syncTxnBegin) {
         Objects.requireNonNull(dataState, "DataState");
         Objects.requireNonNull(link, "DeltaLink");
         //Objects.requireNonNull(basedsg, "base DatasetGraph");
@@ -141,7 +141,7 @@ public class DeltaConnection implements AutoCloseable {
         this.managedNoEmptyDataset = DatasetFactory.wrap(managedNoEmpty);
     }
     
-    private Consumer<ReadWrite> syncer(TxnSyncPolicy syncTxnBegin) {
+    private Consumer<ReadWrite> syncer(SyncPolicy syncTxnBegin) {
         switch(syncTxnBegin) {
             case NONE :     return (rw)->{} ; 
             case TXN_RW :   return syncerTxnBeginRW();
@@ -244,7 +244,8 @@ public class DeltaConnection implements AutoCloseable {
     
     /*package*/ void start() {
         checkDeltaConnection();
-        sync();
+        if ( syncTxnBegin != SyncPolicy.NONE ) 
+            trySync();
     }
     
     /*package*/ void finish() { /*reset();*/ }
