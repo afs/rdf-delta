@@ -24,8 +24,8 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.riot.tio.TokenWriter ;
-import org.seaborne.riot.tio.impl.TokenWriterText ;
+import org.seaborne.patch.text.TokenWriter ;
+import org.seaborne.patch.text.TokenWriterText ;
 
 public class DeltaLib {
     

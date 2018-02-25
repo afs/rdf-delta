@@ -43,8 +43,9 @@ import org.seaborne.patch.changes.RDFChangesCounter;
 import org.seaborne.patch.changes.RDFChangesLog;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.system.DatasetGraphChanges ;
-import org.seaborne.riot.tio.TokenWriter ;
-import org.seaborne.riot.tio.impl.TokenWriterText ;
+import org.seaborne.patch.text.RDFPatchReaderText ;
+import org.seaborne.patch.text.TokenWriter ;
+import org.seaborne.patch.text.TokenWriterText ;
 
 public class RDFPatchOps {
     public static String namespace = "http://jena.apache.org/rdf-patch/" ;

@@ -24,7 +24,7 @@ import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
 import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.riot.tio.TokenWriter ;
+import org.seaborne.patch.text.TokenWriter ;
 
 /** Write a patch to an {@code OutputStream}. */
 public class PHandlerOutput implements PatchHandler {

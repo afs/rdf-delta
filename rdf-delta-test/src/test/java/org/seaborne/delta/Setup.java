@@ -34,7 +34,7 @@ import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
 
 public class Setup {
-    interface LinkSetup {
+    public interface LinkSetup {
 //        public void beforeSuite();
 //        public void afterSuite();
         public void beforeClass();

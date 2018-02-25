@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio.impl ;
+package org.seaborne.patch.text ;
 
 import java.io.IOException ;
 import java.io.OutputStream ;
@@ -34,7 +34,6 @@ import org.apache.jena.riot.system.PrefixMapFactory ;
 import org.apache.jena.riot.tokens.Token ;
 import org.apache.jena.riot.tokens.TokenizerText ;
 import org.apache.jena.sparql.util.FmtUtils ;
-import org.seaborne.riot.tio.TokenWriter ;
 
 public class TokenWriterText implements TokenWriter {
     // Whether to space out the tuples a bit for readability.

@@ -18,11 +18,19 @@
 
 package org.seaborne.patch.changes;
 
+import static org.seaborne.patch.changes.PatchCodes.ADD_DATA ;
+import static org.seaborne.patch.changes.PatchCodes.ADD_PREFIX ;
+import static org.seaborne.patch.changes.PatchCodes.DEL_DATA ;
+import static org.seaborne.patch.changes.PatchCodes.DEL_PREFIX ;
+import static org.seaborne.patch.changes.PatchCodes.SEGMENT ;
+import static org.seaborne.patch.changes.PatchCodes.TXN_ABORT ;
+import static org.seaborne.patch.changes.PatchCodes.TXN_BEGIN ;
+import static org.seaborne.patch.changes.PatchCodes.TXN_COMMIT ;
+
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.riot.tio.TokenWriter ;
-import static org.seaborne.patch.changes.PatchCodes.*;
+import org.seaborne.patch.text.TokenWriter ;
 
 /**
  * Write out a changes as a stream of syntax tokens.

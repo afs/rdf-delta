@@ -39,8 +39,8 @@ import org.seaborne.delta.link.DeltaNotConnectedException ;
 import org.seaborne.delta.link.DeltaNotRegisteredException ;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchReaderText ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
+import org.seaborne.patch.text.RDFPatchReaderText ;
 
 /** 
  * Implementation of {@link DeltaLink} that encodes operations

@@ -24,8 +24,8 @@ import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesLog ;
 import org.seaborne.patch.changes.RDFChangesN ;
 import org.seaborne.patch.system.Printer ;
-import org.seaborne.riot.tio.TokenWriter ;
-import org.seaborne.riot.tio.impl.TokenWriterText ;
+import org.seaborne.patch.text.TokenWriter ;
+import org.seaborne.patch.text.TokenWriterText ;
 import org.slf4j.Logger ;
 
 public class DeltaOps {

@@ -46,8 +46,8 @@ import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.system.GraphChanges;
-import org.seaborne.riot.tio.TokenWriter;
-import org.seaborne.riot.tio.impl.TokenWriterText;
+import org.seaborne.patch.text.TokenWriter ;
+import org.seaborne.patch.text.TokenWriterText ;
 
 public class TestRDFChangesGraph {
 

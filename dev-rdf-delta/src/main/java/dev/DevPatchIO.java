@@ -16,17 +16,23 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio;
+package dev;
 
-import org.junit.runner.RunWith ;
-import org.junit.runners.Suite ;
-import org.seaborne.riot.tio.tokens.TS_Tokenizer2;
+import org.apache.jena.atlas.io.IO;
+import org.seaborne.patch.PatchHeader ;
+import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.text.RDFPatchReaderText ;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TS_Tokenizer2.class,
-    TestTokenText.class
-})
-
-public class TS_TIO {}
-
+public class DevPatchIO {
+    public static void main(String[] args) {
+        String F = "data.rdfp" ;
+        RDFChanges changes = RDFPatchOps.changesPrinter();
+        new RDFPatchReaderText(IO.openFile(F)).apply(changes); 
+        System.out.println("----");
+        PatchHeader header = RDFPatchReaderText.readerHeader(IO.openFile(F));
+        System.out.println(header);
+        System.out.println("DONE");
+        System.exit(0);
+    }
+}

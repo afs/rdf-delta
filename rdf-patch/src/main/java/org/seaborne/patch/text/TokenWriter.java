@@ -16,34 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.riot.tio ;
+package org.seaborne.patch.text;
 
-import java.util.Iterator ;
-import java.util.stream.Stream ;
-
-import org.apache.jena.atlas.iterator.Iter ;
-import org.apache.jena.atlas.lib.Closeable ;
-import org.apache.jena.atlas.lib.tuple.Tuple ;
+import org.apache.jena.graph.Node ;
 import org.apache.jena.riot.tokens.Token ;
 
-/** Deliver {@code Tuple<Token>} */
-public interface TupleReader extends Iterator<Tuple<Token>>, Iterable<Tuple<Token>>, Closeable {
-    // Not AutoClosable because this typically wraps a stream provided by the caller. 
-    // XXX Convert to stream only?
-    public default Stream<Tuple<Token>> stream() {
-        return Iter.asStream(this) ;
-    }
+public interface TokenWriter {
+    public void sendToken(Token token) ;
     
-    @Override
-    public default void remove() {
-        throw new UnsupportedOperationException() ;
-    }
+    // Fast-track common cases
+    public void sendNode(Node node) ;
+    public void sendString(String string) ;
+    public void sendWord(String word) ;
+    public void sendControl(char character) ;
+    public void sendNumber(long number) ;
 
-    @Override
-    public default Iterator<Tuple<Token>> iterator() {
-        return this ;
-    }
-
-    @Override
-    public default void close() {}
+    public void startTuple() ;
+    public void endTuple() ;
+    
+    public void flush() ;
+    public void close() ;
+    
 }
+

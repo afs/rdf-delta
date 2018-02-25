@@ -47,7 +47,6 @@
   </properties>
   
   <modules>
-    <module>tio</module>
     <module>rdf-patch</module>
     <module>rdf-delta-base</module>
     <module>rdf-delta-client</module>

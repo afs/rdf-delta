@@ -37,9 +37,9 @@ import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatchReaderText;
 import org.seaborne.patch.changes.RDFChangesApply;
 import org.seaborne.patch.changes.RDFChangesWrapper;
+import org.seaborne.patch.text.RDFPatchReaderText ;
 
 /** A Fuseki service to receive and apply a patch. */
 public class PatchApplyService extends ActionREST {

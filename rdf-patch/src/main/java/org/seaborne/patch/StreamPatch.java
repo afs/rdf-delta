@@ -27,8 +27,8 @@ import org.apache.jena.graph.Triple ;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.riot.tio.TokenWriter ;
-import org.seaborne.riot.tio.impl.TokenWriterText ;
+import org.seaborne.patch.text.TokenWriter ;
+import org.seaborne.patch.text.TokenWriterText ;
 
 /** Convert a {@link StreamRDF} to a {@code RDF Patch}.
  *  {@link StreamRDF#start} and {@link StreamRDF#finish}
