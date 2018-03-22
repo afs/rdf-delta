@@ -1,3 +1,10 @@
+---
+layout: doc
+title: RDF Delta Use Cases
+nav_text:  RDF Delta Use Cases
+section: 4
+---
+
 # Use Cases for RDF Delta
 
 Distributing changes to a dataset has two aspects: the format used to
@@ -57,41 +64,20 @@ Given these two operations,
 One important use case provides by RDF Delta is for high availability of
 servers.
 
-High availability (HA), also called Fault Tolerance, one or more triple stores 
+High availability (HA), also called Fault Tolerance, is for providing a
+service in a way that is resistent to being taken offline by some of the servers
+used to provide the service going offline. Server may go offlien because
+they crash, or through palnned needs such as maintenance. 
 
-RDF Delta provides the patch log protocol.
+One way to achieve this is for there to be multiple servers behind a
+load balancer so that clients see a single, unchanging contact point,
+but the machines used behind that can be changed.
 
-It also provides one impleemnation 
+RDF Delta provides this for triple stores, and there is a implement for
+Apache Jena Fuseki.
 
-Other implementations are possible to suit the 
-
-
-
-
-
-
-## With Logging
-
-## Ways to Distribute
-
-## With Logging nd distrbution
-
----------------------------------------
-
-* Publishing changes
-* In-sync replicas (high availability)
-* Incremental backup
-
-Two parts: 
-1. It is a log-per-dataset.
-1. The log has adds and deletes.
-
-## Publishing changes
-
-## In-sync replicas (high availability)
-
-## Incremental backup
-
-## Analyse changes
-??
-
+The [patch log format](rdf-patch-logs.html) records the changes as a log
+and these change logs are copied to the other servers so that each
+triple store applies exactly the same chnages, in exactly the same order
+to create identical database copies (this includes blank node
+identifiers used within the databases).

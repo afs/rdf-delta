@@ -1,7 +1,7 @@
 ---
 layout: doc
 title: RDF Patch Logs
-nav_text: RDF Change Logs
+nav_text: RDF Patch Logs
 section: 3
 ---
 

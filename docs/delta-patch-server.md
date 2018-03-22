@@ -1,10 +1,8 @@
-
-
 ---
 layout: doc
 title: Delta Patch Server
 #nav_text: Delta Patch Server
-#section: 4
+#section: 5
 ---
 @@
 

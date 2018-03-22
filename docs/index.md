@@ -1,9 +1,9 @@
 ---
 layout: doc
-title: Delta - Replicating RDF Datasets
+title: RDF Delta - Replicating RDF Datasets
 ---
 
-Delta is a system for recording and publishing changes to RDF
+RDF Delta is a system for recording and publishing changes to RDF
 Datasets.
 
 It is built on top of the idea of change logs:
