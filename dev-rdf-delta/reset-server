@@ -1,8 +1,0 @@
-#!/bin/bash
-
-BASE="$HOME/ASF/rdf-delta/dev-rdf-delta"
-
-cd "$BASE"
-rm -rf DeltaServer/*
-cp delta.cfg DeltaServer
-

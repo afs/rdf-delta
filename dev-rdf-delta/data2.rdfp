@@ -1,5 +1,0 @@
-H id <uuid:0577ce6c-99f8-11e6-8a94-43918cb86532> .
-H parent <uuid:f5fdbad2-99f7-11e6-b769-bbc6688fff6c> .
-TB .
-A <http://example/s> <http://example/p> "two" <http://example/g> .
-TC.
