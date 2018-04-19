@@ -1,13 +1,8 @@
+### Java ###
 *.class
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-hs_err_pid*
-
-# Package Files #
 *.jar
 *.war
-*.ear
+hs_err_pid*
 
 ### Maven ###
 target/
@@ -30,31 +25,16 @@ gradle-app.setting
 # Cache of project
 .gradletasknamecache
 
-
-# Eclipse
+### Eclipse ###
 .classpath
 .project
 .settings
 .recommenders
 .metadata
 
-# Backups
+### Backups ###
 *.bak
 *.backup
 *~
 .#*
 \#*
-
-# Log files
-*.log
-*.log.lck
-
-# Databases and Fuseki
-/run/
-DB*
-Files/
-Zone/
-
-## Development files
-ignore/
-local/
