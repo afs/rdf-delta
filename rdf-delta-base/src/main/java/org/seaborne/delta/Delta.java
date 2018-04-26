@@ -25,6 +25,8 @@ import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 public class Delta {
+    static { JenaSystem.init(); } 
+    
     public static String namespace = "http://jena.apache.org/rdf-delta/" ;
     private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
@@ -62,8 +64,6 @@ public class Delta {
     // Configuration.
     public final static Logger DELTA_CONFIG_LOG = getDeltaLogger("Config") ;
 
-    static { JenaSystem.init(); } 
-    
     /** This is automatically called by the Jena subsystem startup cycle.
      * See {@link InitDelta} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      * (not the {@code DeltaSystem} initialization) 
@@ -76,7 +76,7 @@ public class Delta {
         synchronized(initLock) {
             initialized = true ;
             //DELTA_LOG.info("Initialize");
-            // -- Nothing here at the moment -- 
+            // -- Nothing here at the moment --
         }
     }
 }

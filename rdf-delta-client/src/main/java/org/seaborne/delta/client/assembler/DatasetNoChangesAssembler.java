@@ -16,26 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.client;
+package org.seaborne.delta.client.assembler;
 
-import org.apache.jena.system.JenaSubsystemLifecycle;
-import org.apache.jena.system.JenaSystem;
-import org.seaborne.delta.client.assembler.VocabDelta;
-import org.seaborne.delta.sys.InitDelta;
+public class DatasetNoChangesAssembler {
 
-public class InitDeltaClient implements JenaSubsystemLifecycle {
-    public static final int level = InitDelta.level+1;
-    
-    @Override
-    public void start() {
-        JenaSystem.logLifecycle("InitDeltaClient - start");
-        VocabDelta.init();
-        JenaSystem.logLifecycle("InitDeltaClient - finish");
-    }
-
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return level; }
 }

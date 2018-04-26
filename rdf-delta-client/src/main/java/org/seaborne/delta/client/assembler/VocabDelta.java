@@ -22,31 +22,57 @@ import org.apache.jena.rdf.model.Property ;
 import org.apache.jena.rdf.model.Resource ;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils ;
 import org.apache.jena.tdb.assembler.Vocab ;
-import org.seaborne.delta.Delta ;
 
 public class VocabDelta {
-    private static final String NS = Delta.namespace ;
+    // Initaization - care needed:
+    // Needed else:
+    //    VocabDelta
+    //      touches Jena
+    //      causes JenaSystem.init
+    //    but we are now class initializing so 
+    //  VocabDelta.init sees nulls in AssemblerUtils.registerDataset
+    // Solution:
+    //   Put AssemblerUtils.registerDataset in a static initializer separate from init()
+
+    
+    // Delta.namespace causes circular initialization.
+    private static final String NS = "http://jena.apache.org/rdf-delta#";
     
     public static String getURI() { return NS ; } 
 
+    // Add feature to another (sub) dataset. 
+    public static final Property pDeltaDataset          = Vocab.property(getURI(), "dataset") ;
+
+    //---- Sync'ed dataset.
+    // DeltaAssembler
+    
     // Type
-    public static final Resource tDatasetDelta        = Vocab.type(NS, "DeltaDataset") ;
+    public static final Resource tDatasetDelta          = Vocab.type(getURI(), "DeltaDataset") ;
     
     // URL of patch log server
-    public static final Property pDeltaChanges          = Vocab.property(NS, "changes") ;
+    public static final Property pDeltaChanges          = Vocab.property(getURI(), "changes") ;
     
     // Storage type("mem", tdb", "tdb2", "external").
-    public static final Property pDeltaStorage            = Vocab.property(NS, "storage") ;
+    public static final Property pDeltaStorage          = Vocab.property(getURI(), "storage") ;
     
     // Whether and how often to poll for changes. 
-    //public static final Property pPollForChanges     = Vocab.property(NS, "poll") ;
+    //public static final Property pPollForChanges        = Vocab.property(NS, "poll") ;
     
     // Zone location for local copy.
-    public static final Property pDeltaZone               = Vocab.property(NS, "zone") ;
+    public static final Property pDeltaZone             = Vocab.property(getURI(), "zone") ;
     
     // Name of the patch log. 
-    public static final Property pDeltaPatchLog           = Vocab.property(NS, "patchlog") ;
+    public static final Property pDeltaPatchLog         = Vocab.property(getURI(), "patchlog") ;
+    
+    //---- Logged dataset.
+    // DeltaAssemblerLogger
 
+    // Type
+    public static final Resource tLoggedDataset         = Vocab.type(getURI(), "LoggedDataset") ;
+
+    /** Name of a file to append change logs to. */
+    public static final Property pDeltaLogFile          = Vocab.property(getURI(), "log") ;
+    
     private static volatile boolean initialized = false ; 
     
     static { init() ; }
@@ -55,6 +81,13 @@ public class VocabDelta {
         if ( initialized )
             return;
         initialized = true;
+        // Not AssemblerUtils.registerDataset here -- tDatasetDelta, tLoggedDataset may be null.
+        // pDeltaDataset (first) triggers jena initialization, which calls into VocalDelta.init
+        // while pDeltaDataset still null.
+    }
+    
+    static {
         AssemblerUtils.registerDataset(tDatasetDelta, new DeltaAssembler());
+        AssemblerUtils.registerDataset(tLoggedDataset, new DeltaLoggerAssembler());
     }
 }

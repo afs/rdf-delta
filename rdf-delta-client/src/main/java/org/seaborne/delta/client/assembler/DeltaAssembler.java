@@ -57,6 +57,7 @@ import org.seaborne.patch.changes.RDFChangesN ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
+/** Assembler for a locally managed dataset with changes set to a remote log */ 
 public class DeltaAssembler extends AssemblerBase implements Assembler {
     static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
     
@@ -101,7 +102,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         String dsName = getAsStringValue(root, pDeltaPatchLog);
 
         // delta:storage
-        if ( ! exactlyOneProperty(root, pDeltaChanges) )
+        if ( ! exactlyOneProperty(root, pDeltaStorage) )
             throw new AssemblerException(root, "No location for state manangement (zone)") ;
         String storageTypeStr = getAsStringValue(root, pDeltaStorage);
         LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);

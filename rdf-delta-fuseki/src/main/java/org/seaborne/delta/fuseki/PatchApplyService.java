@@ -28,6 +28,7 @@ import java.io.InputStream;
 
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.server.CounterName;
+import org.apache.jena.fuseki.servlets.ActionErrorException ;
 import org.apache.jena.fuseki.servlets.ActionREST;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
@@ -43,8 +44,9 @@ import org.seaborne.patch.text.RDFPatchReaderText ;
 
 /** A Fuseki service to receive and apply a patch. */
 public class PatchApplyService extends ActionREST {
-    static CounterName counterPatchesGood = CounterName.register("","");
-    static CounterName counterPatchesBad = CounterName.register("","");
+    static CounterName counterPatches = CounterName.register("RDFpatch","rdf-patch.requests");
+    static CounterName counterPatchesGood = CounterName.register("RDFpatch","rdf-patch.good");
+    static CounterName counterPatchesBad = CounterName.register("RDFpatchBad","rdf-patch.bad");
     
     // It's an ActionREST because it accepts POST/PATCH with a content body.  
     
@@ -78,6 +80,17 @@ public class PatchApplyService extends ActionREST {
     }
     
     protected void operation(HttpAction action) {
+        incCounter(action.getEndpoint(), counterPatches);
+        try {
+            operation$(action);
+            incCounter(action.getEndpoint(), counterPatchesGood) ;
+        } catch ( ActionErrorException ex ) {
+            incCounter(action.getEndpoint(), counterPatchesBad) ;
+            throw ex ;
+        }
+    }
+    
+    private void operation$(HttpAction action) {
         action.log.info(format("[%d] RDF Patch", action.id));
         action.beginWrite();
         // Add patch handler to suppress TX-TC in the patch but allow TA. 
