@@ -28,7 +28,6 @@ public class Delta {
     static { JenaSystem.init(); } 
     
     public static String namespace = "http://jena.apache.org/rdf-delta/" ;
-    private static Object initLock = new Object() ;
     private static volatile boolean initialized = false ;
     // Operations log - not development debugging.
     private static String LoggerNameBase = "Delta";
@@ -68,15 +67,6 @@ public class Delta {
      * See {@link InitDelta} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      * (not the {@code DeltaSystem} initialization) 
      */
-    public static void init( ) { init$(); }
+    public static void init( ) { }
     
-    private static void init$() {
-        if ( initialized )
-            return ;
-        synchronized(initLock) {
-            initialized = true ;
-            //DELTA_LOG.info("Initialize");
-            // -- Nothing here at the moment --
-        }
-    }
 }
