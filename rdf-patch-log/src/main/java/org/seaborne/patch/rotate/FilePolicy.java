@@ -16,21 +16,30 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.system;
+package org.seaborne.patch.rotate;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-
-public class InitPatch implements JenaSubsystemLifecycle { 
-    public static int level = 60;
-
-    @Override
-    public void start() {
-        PatchSystem.init();
-    }
-
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return level ; }
+/** File naming strategies.*/
+public enum FilePolicy {
+    /**
+     * Date based - "filename-yyyy-mm-dd", with nightly rollover.
+     */
+    DATE,
+    /**
+     * Timestamp with explicit roll over by calling {@link OutputStreamMgr#rotate()}. 
+     * The file format is "filename-yyyy-mm-dd_hh-mm-ss".
+     */
+    TIMESTAMP,
+    /**
+     * Files are filename-0001, filename-0002, .. and "rotate" means next index.
+     */
+    INDEX,
+    /**
+     * Always write to a file with the base filename. On rotate, the files are shifted up
+     * as filename.001, filename.002, ... and the base filename used for a new file.
+     */
+    SHIFT,
+    /**
+     * Use a fixed file
+     */
+    FIXED
 }

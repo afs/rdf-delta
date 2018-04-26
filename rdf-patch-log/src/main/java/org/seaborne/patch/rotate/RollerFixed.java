@@ -16,21 +16,34 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.system;
+package org.seaborne.patch.rotate;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-public class InitPatch implements JenaSubsystemLifecycle { 
-    public static int level = 60;
+/** {@link Roller} that is a fixed file. */
+class RollerFixed implements Roller {
+    private final Path directory;
+    private final String baseFilename;
+    private String filename = null; 
+    
 
-    @Override
-    public void start() {
-        PatchSystem.init();
+    RollerFixed(String directoryName, String baseFilename) {
+        this.directory = Paths.get(directoryName);
+        this.baseFilename = baseFilename;
+        this.filename = directory.resolve(baseFilename).toString();
     }
 
     @Override
-    public void stop() {}
+    public boolean hasExpired() {
+        return false;
+    }
 
     @Override
-    public int level() { return level ; }
+    public void forceRollover() {}
+
+    @Override
+    public String nextFilename() {
+        return filename;
+    }
 }

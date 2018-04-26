@@ -48,6 +48,7 @@
   
   <modules>
     <module>rdf-patch</module>
+    <module>rdf-patch-log</module>
     <module>rdf-delta-base</module>
     <module>rdf-delta-client</module>
     <module>rdf-delta-server-local</module>

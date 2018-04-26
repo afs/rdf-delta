@@ -16,21 +16,13 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.system;
+package org.seaborne.patch.rotate;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-
-public class InitPatch implements JenaSubsystemLifecycle { 
-    public static int level = 60;
-
-    @Override
-    public void start() {
-        PatchSystem.init();
-    }
-
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return level ; }
+/** Interface to a policy for rotating files.
+ * @see OutputStreamMgr
+ */
+interface Roller {
+    boolean hasExpired();
+    void forceRollover();
+    String nextFilename();
 }
