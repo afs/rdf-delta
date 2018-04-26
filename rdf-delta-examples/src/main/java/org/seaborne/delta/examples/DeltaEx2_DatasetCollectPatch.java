@@ -31,7 +31,7 @@ import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
 
-/** Set up a dataset, collect the  changes as they happen, then write the changes.
+/** Set up a dataset, collect the changes as they happen, then write the changes.
  * <p>
  * See {@link DeltaEx1_DatasetWithPatchLog} for a similar example but
  * emitting the change log as changes occur in the transaction.
