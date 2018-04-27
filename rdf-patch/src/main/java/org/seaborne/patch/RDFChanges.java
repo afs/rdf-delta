@@ -61,7 +61,7 @@ public interface RDFChanges {
      */
     public void deletePrefix(Node gn, String prefix) ;
     
-    /** Indicator that a transaction begins */
+    /** Indicator that a transaction begins, or becomes a write transaction. */
     public void txnBegin() ;
     
     /** Indicator that a transaction commits */

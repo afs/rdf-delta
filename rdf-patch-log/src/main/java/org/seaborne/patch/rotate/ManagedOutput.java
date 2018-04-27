@@ -18,22 +18,14 @@
 
 package org.seaborne.patch.rotate;
 
-import java.io.Closeable;
-import java.io.FilterOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 
-/** An {@link OutputStream} that returns to a pool when closed */  
-class OutputStreamPooled extends FilterOutputStream implements Closeable {
-    private final OutputStreamMgr mgr;
-    
-    OutputStreamPooled(OutputStreamMgr mgr, OutputStream output) {
-        super(output);
-        this.mgr = mgr;
-   }
-    
-    @Override
-    public void close() throws IOException {
-        mgr.finishOutput();
-    }
+/** Interface to managed output streams */
+public interface ManagedOutput {
+    /** Get an OutputStream; use with try-resources or similar usage pattern.
+     * Closing the OutputStream reurns it to the manager.
+     */
+    public OutputStream output();
+    public OutputStream currentOutput();
+    public void rotate();
 }

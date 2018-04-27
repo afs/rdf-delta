@@ -19,7 +19,6 @@
 package org.seaborne.patch.rotate;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
@@ -41,8 +40,8 @@ class RollerShifter implements Roller {
     private static final Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
 
     
-    RollerShifter(String directoryName, String baseFilename, String format) {
-        this.directory = Paths.get(directoryName);
+    RollerShifter(Path directory, String baseFilename, String format) {
+        this.directory = directory;
         this.baseFilename = baseFilename;
         this.filename = directory.resolve(baseFilename).toString();
     }

@@ -18,6 +18,8 @@
 
 package org.seaborne.patch.rotate;
 
+import java.util.Objects;
+
 /** File naming strategies.*/
 public enum FilePolicy {
     /**
@@ -25,7 +27,7 @@ public enum FilePolicy {
      */
     DATE,
     /**
-     * Timestamp with explicit roll over by calling {@link OutputStreamMgr#rotate()}. 
+     * Timestamp with explicit roll over by calling {@link ManagedOutput#rotate()}. 
      * The file format is "filename-yyyy-mm-dd_hh-mm-ss".
      */
     TIMESTAMP,
@@ -42,4 +44,17 @@ public enum FilePolicy {
      * Use a fixed file
      */
     FIXED
+    ;
+    
+    public static FilePolicy policy(String name) {
+        Objects.requireNonNull(name);
+        if ( name.equalsIgnoreCase("date") ) return DATE;
+        if ( name.equalsIgnoreCase("timestamp") ) return TIMESTAMP;
+        if ( name.equalsIgnoreCase("index") ) return INDEX;
+        if ( name.equalsIgnoreCase("rotate") ) return SHIFT;
+        if ( name.equalsIgnoreCase("shift") ) return SHIFT;
+        if ( name.equalsIgnoreCase("fixed") ) return FIXED;
+        if ( name.equalsIgnoreCase("none") ) return FIXED;
+        throw new FileRotateException("Unknown policy name: "+name); 
+    }
 }

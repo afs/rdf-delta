@@ -16,24 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.system;
+package org.seaborne.patch.rotate;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.apache.jena.system.JenaSystem;
+import java.io.Closeable;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.function.Consumer;
 
-public class InitPatch implements JenaSubsystemLifecycle { 
-    public static int level = 60;
+/** An {@link OutputStream} that returns to a pool when closed */  
+class OutputStreamManaged extends FilterOutputStream implements Closeable {
+    
+    private Consumer<OutputStream> onClose;
 
+    OutputStreamManaged(OutputStream output, Consumer<OutputStream> onClose) {
+        super(output);
+        this.onClose = onClose;
+   }
+    
     @Override
-    public void start() {
-        JenaSystem.logLifecycle("RDFPatch.init - start") ;
-        PatchSystem.init();
-        JenaSystem.logLifecycle("RDFPatch.init - finish") ;
+    public void close() throws IOException {
+        onClose.accept(super.out);
     }
-
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return level ; }
 }

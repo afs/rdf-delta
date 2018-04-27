@@ -20,86 +20,98 @@ package org.seaborne.patch.rotate;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Semaphore;
 
+import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OutputStreamMgr {
-    private static Logger LOG = LoggerFactory.getLogger(OutputStreamMgr.class); 
+/** File-based {@link ManagedOutput} with various {@link FilePolicy} for file rotation. */ 
+class OutputManagedFile implements ManagedOutput {
+    private static Logger LOG = LoggerFactory.getLogger(OutputManagedFile.class); 
     
     // The file area 
     private final Path directory;
     private final String filebase;
     // Current active file
-    private String currentFilename = null; 
+    private String currentFilename = null;
     
     // One writer at a time.
-    private Semaphore sema = new Semaphore(1);
+    private final Semaphore sema = new Semaphore(1);
     // The output
     private FileOutputStream fileOutput = null;
     // Buffered output stream used by the caller.
     private OutputStream output = null;
+    private OutputStreamManaged currentOutput = null;
     
     static DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     // File Policy
     private final Roller roller; 
-
     
     // Number of writes this process-lifetime.
     private long counter = 0;
 
-    public OutputStreamMgr(String directoryName, String baseFilename, FilePolicy strategy) {
-        this.directory = Paths.get(directoryName);
+    /* package*/ OutputManagedFile(Path directory, String baseFilename, FilePolicy strategy) {
+        this.directory = directory;
         this.filebase = baseFilename;
-        //this.roller = new RollerDate(directoryName, baseFilename);
-        //this.roller = new RollerCounter(directoryName, baseFilename);
-        this.roller = roller(directoryName, baseFilename, strategy);
+        this.roller = roller(directory, baseFilename, strategy);
     }
-    
-    private static Roller roller(String directoryName, String baseFilename, FilePolicy strategy) {
+
+    private static Roller roller(Path directory, String baseFilename, FilePolicy strategy) {
         switch ( strategy ) {
-            case DATE :         return new RollerDate(directoryName, baseFilename);
-            case INDEX :        return new RollerCounter(directoryName, baseFilename, "%04d");
-            case SHIFT :        return new RollerShifter(directoryName, baseFilename, "%03d");
-            case TIMESTAMP :    return new RollerTimestamp(directoryName, baseFilename);
-            case FIXED :         return new RollerFixed(directoryName, baseFilename);
+            case DATE :         return new RollerDate(directory, baseFilename);
+            case INDEX :        return new RollerCounter(directory, baseFilename, "%04d");
+            case SHIFT :        return new RollerShifter(directory, baseFilename, "%03d");
+            case TIMESTAMP :    return new RollerTimestamp(directory, baseFilename);
+            case FIXED :        return new RollerFixed(directory, baseFilename);
         }
         return null;
     }
     
+    @Override
+    public OutputStream currentOutput() {
+        return currentOutput;
+    }
+
+    @Override
     public OutputStream output() {
         try {
             sema.acquire();
         }
         catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeIOException(e);
         }
+        roller.startSection();
         advanceIfNecessary();
-        return new OutputStreamPooled(this, output);
+        currentOutput = new OutputStreamManaged(output, (x)->finish());
+        return currentOutput;
     }
     
     /** Force a rotation of the output file. */
+    @Override
     public void rotate() {
         roller.forceRollover();
     }
 
-    /*package*/ void finishOutput() {
+    private void finish() {
+        roller.finishSection();
         try {
+            currentOutput = null;
             // Flush the BufferedOutputStream to the FileOutputStream
             output.flush();
             // fsync the FileOutputStream to storage
             fileOutput.getFD().sync();
+            // output still valid.
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-        sema.release();
+        if ( sema.availablePermits() == 0 )
+            sema.release();
     }
 
     private boolean hasActiveFile() { 
@@ -133,6 +145,7 @@ public class OutputStreamMgr {
         output = null;
         fileOutput = null;
         currentFilename = null;
+        currentOutput = null;
     }
 
     private void nextFile() {

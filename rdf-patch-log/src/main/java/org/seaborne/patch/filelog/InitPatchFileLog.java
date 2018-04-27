@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.system;
+package org.seaborne.patch.filelog;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
+import org.apache.jena.system.JenaSubsystemLifecycle;
 import org.apache.jena.system.JenaSystem;
+import org.seaborne.patch.system.InitPatch;
 
-public class InitPatch implements JenaSubsystemLifecycle { 
-    public static int level = 60;
+public class InitPatchFileLog implements JenaSubsystemLifecycle {
+
+    public static int level = InitPatch.level+2;
 
     @Override
     public void start() {
-        JenaSystem.logLifecycle("RDFPatch.init - start") ;
-        PatchSystem.init();
-        JenaSystem.logLifecycle("RDFPatch.init - finish") ;
+        JenaSystem.logLifecycle("PatchFileLog.init - start") ;
+        VocabPatch.init();
+        JenaSystem.logLifecycle("PatchFileLog.init - finish") ;
     }
 
     @Override
@@ -36,4 +38,5 @@ public class InitPatch implements JenaSubsystemLifecycle {
 
     @Override
     public int level() { return level ; }
+
 }

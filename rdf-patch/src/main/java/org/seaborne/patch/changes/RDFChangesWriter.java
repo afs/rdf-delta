@@ -37,7 +37,7 @@ import org.seaborne.patch.text.TokenWriter ;
  * The provided {@link TokenWriter} determines the concrete syntax - binary or text. 
  */
 public class RDFChangesWriter implements RDFChanges {
-    private final TokenWriter tok ;
+    protected TokenWriter tok ;
 
     public RDFChangesWriter(TokenWriter out) {
         this.tok = out ;

@@ -20,7 +20,6 @@ package org.seaborne.patch.rotate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -54,8 +53,8 @@ class RollerDate implements Roller {
         return LocalDate.parse(filename.modifier, fmtDate);
     }
     
-    RollerDate(String directoryName, String baseFilename) {
-        this.directory = Paths.get(directoryName);
+    RollerDate(Path directory, String baseFilename) {
+        this.directory = directory;
         this.baseFilename = baseFilename;
         init(directory,baseFilename);
     }

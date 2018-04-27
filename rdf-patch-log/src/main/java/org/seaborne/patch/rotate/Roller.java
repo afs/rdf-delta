@@ -18,11 +18,26 @@
 
 package org.seaborne.patch.rotate;
 
-/** Interface to a policy for rotating files.
- * @see OutputStreamMgr
+/**
+ * Interface to a policy for rotating files. Writing to files is in "sections" - a section
+ * always goes into a singel file; multiple sections may go into one file or several.
+ * Rollover only happens between sections.
+ * 
+ * @see OutputMgr
  */
 interface Roller {
-    boolean hasExpired();
-    void forceRollover();
-    String nextFilename();
+    // XXX Remove default.
+    /** About to start output section */
+    default public void startSection() {}
+    /** Finished output section */
+    default public void finishSection() {}
+    
+    /** Policy says that any previous the setup is no longer valid for a new section. */  
+    public boolean hasExpired();
+    
+    /** Force a rollover **/
+    public void forceRollover();
+    
+    /** Generate the next filename */ 
+    public String nextFilename();
 }

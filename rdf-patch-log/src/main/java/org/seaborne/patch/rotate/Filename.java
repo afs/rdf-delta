@@ -57,7 +57,7 @@ public class Filename {
     @Override
     public String toString() {
         if ( isBasename() )
-            return "["+directory+":"+basename+"]";
+            return directory+"|"+basename;
         return directory+"|"+basename+"|"+separator+"|"+modifier;
     }
     

@@ -68,7 +68,7 @@ public class FileMgr {
     /** Find files matching a pattern
      * 
      * @param directory Path
-     * @param namebase base name of interest 
+     * @param namebase base namosme of interest 
      * @param pattern Regex to extarct the part of the filename for a {@link Filename}  
      * @return Unsorted List<Filename> of matches.
      */
@@ -196,7 +196,7 @@ public class FileMgr {
 
     /** Create a file name using the base and the numeric modifier, converted to a number using the format */
     /*package*/ static String basename(String base, long idx, String sep, String modFormat) {
-        return String.format("%s%s%s"+modFormat, base, sep, idx);
+        return String.format("%s%s"+modFormat, base, sep, idx);
      }
 
 }

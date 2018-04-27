@@ -19,7 +19,6 @@
 package org.seaborne.patch.rotate;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /** {@link Roller} that is a fixed file. */
 class RollerFixed implements Roller {
@@ -28,8 +27,8 @@ class RollerFixed implements Roller {
     private String filename = null; 
     
 
-    RollerFixed(String directoryName, String baseFilename) {
-        this.directory = Paths.get(directoryName);
+    RollerFixed(Path directory, String baseFilename) {
+        this.directory = directory;
         this.baseFilename = baseFilename;
         this.filename = directory.resolve(baseFilename).toString();
     }

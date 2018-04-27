@@ -19,7 +19,6 @@
 package org.seaborne.patch.rotate;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -52,8 +51,8 @@ class RollerCounter implements Roller {
     private Long currentId = null;
     private boolean valid = false;
     
-    RollerCounter(String directoryName, String baseFilename, String indexFormat) {
-        this.directory = Paths.get(directoryName);
+    RollerCounter(Path directory, String baseFilename, String indexFormat) {
+        this.directory = directory;
         this.baseFilename = baseFilename;
         this.indexFormat = indexFormat;
         init(directory,baseFilename);
@@ -67,6 +66,16 @@ class RollerCounter implements Roller {
         }
         else
             currentId = 0L ;
+    }
+    
+    @Override
+    public void startSection() {}
+
+
+    @Override
+    public void finishSection() {
+        // Each section is in its own files
+        //valid = false;
     }
     
     @Override
