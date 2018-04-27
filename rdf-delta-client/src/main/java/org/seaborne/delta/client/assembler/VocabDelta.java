@@ -21,6 +21,7 @@ package org.seaborne.delta.client.assembler;
 import org.apache.jena.rdf.model.Property ;
 import org.apache.jena.rdf.model.Resource ;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils ;
+import org.apache.jena.sparql.core.assembler.DatasetAssemblerVocab;
 import org.apache.jena.tdb.assembler.Vocab ;
 
 public class VocabDelta {
@@ -40,8 +41,9 @@ public class VocabDelta {
     
     public static String getURI() { return NS ; } 
 
-    // Add feature to another (sub) dataset. 
-    public static final Property pDeltaDataset          = Vocab.property(getURI(), "dataset") ;
+    // Add feature to another (sub) dataset.
+    // Thsi is ja:dataset.
+    public static final Property pDeltaDataset          = Vocab.property(DatasetAssemblerVocab.getURI(), "dataset") ;
 
     //---- Sync'ed dataset.
     // DeltaAssembler
@@ -64,15 +66,6 @@ public class VocabDelta {
     // Name of the patch log. 
     public static final Property pDeltaPatchLog         = Vocab.property(getURI(), "patchlog") ;
     
-    //---- Logged dataset.
-    // DeltaAssemblerLogger
-
-    // Type
-    public static final Resource tLoggedDataset         = Vocab.type(getURI(), "LoggedDataset") ;
-
-    /** Name of a file to append change logs to. */
-    public static final Property pDeltaLogFile          = Vocab.property(getURI(), "log") ;
-    
     private static volatile boolean initialized = false ; 
     
     static { init() ; }
@@ -88,6 +81,5 @@ public class VocabDelta {
     
     static {
         AssemblerUtils.registerDataset(tDatasetDelta, new DeltaAssembler());
-        AssemblerUtils.registerDataset(tLoggedDataset, new DeltaLoggerAssembler());
     }
 }

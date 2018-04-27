@@ -19,18 +19,15 @@
 package org.seaborne.delta.sys;
 
 import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.apache.jena.system.JenaSystem;
 import org.seaborne.delta.Delta ;
 import org.seaborne.patch.system.InitPatch ;
 
 public class InitDelta implements JenaSubsystemLifecycle {
-    public static final int level = InitPatch.level+1;
+    public static final int level = InitPatch.level+10;
 
     @Override
     public void start() {
-        JenaSystem.logLifecycle("Delta.init - start") ;
         Delta.init() ;
-        JenaSystem.logLifecycle("Delta.init - finish") ;
     }
 
     @Override
