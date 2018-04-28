@@ -21,24 +21,26 @@ package org.seaborne.delta.cmds;
 import java.io.InputStream ;
 
 import org.apache.jena.atlas.logging.LogCtl ;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.system.JenaSystem;
-import org.seaborne.delta.Id;
+import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.PatchSummary;
-import org.seaborne.patch.changes.RDFChangesCounter;
+import org.seaborne.patch.changes.RDFChangesBase;
 
-/** Parse patches as validation */
-public class patchparse extends CmdPatch
+/** Converted  patch into reified triples (extended reification - adds "rdf:graph" to get quads) */
+/*public*/ class patchreif extends CmdPatch
 {
     static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
     
     public static void main(String... args) {
-        new patchparse(args).mainRun();
+        new patchreif(args).mainRun();
     }
 
-    public patchparse(String[] argv) {
+    public patchreif(String[] argv) {
         super(argv) ;
     }
     
@@ -47,28 +49,29 @@ public class patchparse extends CmdPatch
         return "patchparse";
     }
 
+    // Whether to directly write or accumulate in a graph.
+    private Graph graph = GraphFactory.createDefaultGraph(); 
+    
+    @Override
+    protected void execStart() { }
+    
+    @Override
+    protected void execFinish() {}
+    
     @Override
     protected void execOne(String source, InputStream input) {
-        //System.err.println("Source = "+source);
         RDFPatch patch = RDFPatchOps.read(input);
-//        if ( patch.getId() == null )
-//            System.err.printf("No patch source=%s\n", source);
         
-        //RDFChanges changes = RDFPatchOps.changesPrinter();
-        RDFChanges changes = RDFPatchOps.textWriter(System.out);
-        patch.apply(changes);
-        System.out.flush();
+        PatchHeader header = patch.header();
         
-        if ( isVerbose() ) {
-            System.err.printf("# Patch id=%s", Id.str(patch.getId()));
-            if ( patch.getPrevious() != null )
-                System.err.printf(" prev=%s", Id.str(patch.getPrevious()));
-            System.err.println();
-        }
-        RDFChangesCounter counter = new RDFChangesCounter();
-        patch.apply(counter);
-        PatchSummary summary = counter.summary();
-        if ( summary.countTxnCommit == 0 && summary.countTxnAbort == 0 )
-            System.err.printf("# No commit source=%s, id=%s\n", source, Id.str(patch.getId()));
+        RDFChanges c = new RDFChangesBase() {
+            @Override
+            public void add(Node g, Node s, Node p, Node o) {}
+
+            @Override
+            public void delete(Node g, Node s, Node p, Node o) { }
+        };
+        
+        patch.apply(c);
     }
 }
