@@ -16,14 +16,29 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog;
 
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import org.seaborne.patch.filelog.rotate.ManagedOutput;
+import org.seaborne.patch.filelog.rotate.OutputFixed;
+import org.seaborne.patch.filelog.rotate.OutputManagedFile;
+
+/** Create a managed output steram handler for a file. */
 public class OutputMgr {
+
+    /** Create a {@link ManagedOutput managed output stream} handler for a file.
+     * The {@link FilePolicy} determines how the file is rotated which 
+     * may be automatic (such as by {@link FilePolicy#DATE})
+     * or by external control ({@link ManagedOutput#rotate()})
+     * @param directoryName
+     * @param baseFilename
+     * @param strategy
+     * @return ManagedOutput
+     */
     public static ManagedOutput create(String directoryName, String baseFilename, FilePolicy strategy) {
         Objects.requireNonNull(directoryName);
         Objects.requireNonNull(baseFilename);
@@ -31,6 +46,15 @@ public class OutputMgr {
         return new OutputManagedFile(Paths.get(directoryName), baseFilename, strategy); 
     }
     
+    /** Create a {@link ManagedOutput managed output stream} handler for a file.
+     * The {@link FilePolicy} determines how the file is rotated which 
+     * may be automatic (such as by {@link FilePolicy#DATE})
+     * or by external control ({@link ManagedOutput#rotate()})
+     * @param directory
+     * @param baseFilename
+     * @param strategy
+     * @return ManagedOutput
+     */
     public static ManagedOutput create(Path directory, String baseFilename, FilePolicy strategy) {
         Objects.requireNonNull(directory);
         Objects.requireNonNull(baseFilename);
@@ -38,6 +62,14 @@ public class OutputMgr {
         return new OutputManagedFile(directory, baseFilename, strategy);
     }
     
+    /** Create a {@link ManagedOutput managed output stream} handler for a file.
+     * The {@link FilePolicy} determines how the file is rotated which 
+     * may be automatic (such as by {@link FilePolicy#DATE})
+     * or by external control ({@link ManagedOutput#rotate()})
+     * @param pathName
+     * @param strategy
+     * @return ManagedOutput
+     */
     public static ManagedOutput create(String pathName, FilePolicy strategy) {
         Objects.requireNonNull(pathName);
         Objects.requireNonNull(strategy);
@@ -45,6 +77,12 @@ public class OutputMgr {
         return new OutputManagedFile(p.getParent(), p.getFileName().toString(), strategy);
     }
     
+    /** Create a managed output stream handler for fixed {@link OutputStream}.
+     * The {@code OutputStream} is fixed; there is no rotation policy.
+     * This is an adapter from {@code OutputStream} to {@code ManagedOutput}.  
+     * @param outputStream
+     * @return ManagedOutput
+     */
     public static ManagedOutput create(OutputStream outputStream) {
         return new OutputFixed(outputStream); 
     }

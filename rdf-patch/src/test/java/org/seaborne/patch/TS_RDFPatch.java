@@ -18,8 +18,11 @@
 
 package org.seaborne.patch;
 
+import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.runner.RunWith ;
 import org.junit.runners.Suite ;
+import org.seaborne.patch.filelog.TestAssemblerFileLog;
+import org.seaborne.patch.filelog.TestRotate;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
@@ -27,6 +30,10 @@ import org.junit.runners.Suite ;
     , TestRDFChangesDataset.class
     , TestRDFChangesGraph.class
     , TestRDFChangesCancel.class
+    , TestRotate.class
+    , TestAssemblerFileLog.class
 })
 
-public class TS_RDFPatch { }
+public class TS_RDFPatch { 
+    static { LogCtl.setJavaLogging(); }
+}

@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.patch.changes.RDFChangesWriter;
-import org.seaborne.patch.rotate.ManagedOutput;
+import org.seaborne.patch.filelog.rotate.ManagedOutput;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 

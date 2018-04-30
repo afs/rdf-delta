@@ -16,26 +16,12 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
-import java.io.Closeable;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.function.Consumer;
-
-/** An {@link OutputStream} that returns to a pool when closed */  
-class OutputStreamManaged extends FilterOutputStream implements Closeable {
-    
-    private Consumer<OutputStream> onClose;
-
-    OutputStreamManaged(OutputStream output, Consumer<OutputStream> onClose) {
-        super(output);
-        this.onClose = onClose;
-   }
-    
-    @Override
-    public void close() throws IOException {
-        onClose.accept(super.out);
-    }
+public class FileRotateException extends RuntimeException
+{
+    public FileRotateException()                          { super() ; }
+    public FileRotateException(String msg)                { super(msg) ; }
+    public FileRotateException(Throwable th)              { super(th) ; }
+    public FileRotateException(String msg, Throwable th)  { super(msg, th) ; }
 }

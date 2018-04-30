@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,7 +44,7 @@ class RollerTimestamp implements Roller {
     private String lastAllocatedFilename = null; 
     
     /** Match a datetime-appended filename, with non-capturing optional fractional seconds. */
-    private static final Pattern regexDateTime = Pattern.compile("(.*)(-)(\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}(?:\\.\\d+)?)");
+    private static final Pattern patternFilenameDateTime = Pattern.compile("(.*)(-)(\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}(?:\\.\\d+)?)");
     private static final String DATETIME_SEP = "-";
     private static final DateTimeFormatter fmtDateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     private static final Comparator<Filename> cmpDateTime = (x,y)->{
@@ -67,7 +67,7 @@ class RollerTimestamp implements Roller {
     
     private void init(Path directory, String baseFilename) {
         LocalDateTime current = LocalDateTime.now();
-        List<Filename> filenames = FileMgr.scan(directory, baseFilename, regexDateTime);
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDateTime);
         if ( ! filenames.isEmpty() ) {
             LocalDateTime dtLast = filenameToDateTime(Collections.max(filenames, cmpDateTime));
             LocalDateTime dtFirst = filenameToDateTime(Collections.min(filenames, cmpDateTime));
@@ -86,6 +86,11 @@ class RollerTimestamp implements Roller {
     }
     
     @Override
+    public Path directory() {
+        return directory;
+    }
+
+    @Override
     public void startSection() {}
 
     @Override
@@ -98,7 +103,7 @@ class RollerTimestamp implements Roller {
     }
     
     @Override
-    public void forceRollover() {
+    public void rotate() {
         valid = false;
     }
     
@@ -122,5 +127,10 @@ class RollerTimestamp implements Roller {
                 throw new FileRotateException("Failed to find a new, fresh filename: "+timestamp);        
             Lib.sleep(1000);
         }
+    }
+
+    @Override
+    public Filename toFilename(String filename) {
+        return FileMgr.fromPath(directory, filename, patternFilenameDateTime);
     }
 }

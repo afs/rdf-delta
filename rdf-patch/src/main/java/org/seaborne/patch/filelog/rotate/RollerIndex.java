@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * index in sequence is the next filename. See {@link RollerShifter} for shifting all the
  * file names up and having a fixed current filename.
  */
-class RollerCounter implements Roller {
+class RollerIndex implements Roller {
     // Explicit rollover.
     
     private final Path directory;
@@ -51,13 +51,13 @@ class RollerCounter implements Roller {
     private Long currentId = null;
     private boolean valid = false;
     
-    RollerCounter(Path directory, String baseFilename, String indexFormat) {
+    RollerIndex(Path directory, String baseFilename, String indexFormat) {
         this.directory = directory;
         this.baseFilename = baseFilename;
         this.indexFormat = indexFormat;
         init(directory,baseFilename);
     }
-
+    
     private void init(Path directory, String baseFilename) {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilename);
         if ( ! filenames.isEmpty() ) {
@@ -69,6 +69,11 @@ class RollerCounter implements Roller {
     }
     
     @Override
+    public Path directory() {
+        return directory;
+    }
+
+    @Override
     public void startSection() {}
 
     @Override
@@ -78,7 +83,7 @@ class RollerCounter implements Roller {
     }
     
     @Override
-    public void forceRollover() {
+    public void rotate() {
         valid = false;
     }
     
@@ -91,12 +96,16 @@ class RollerCounter implements Roller {
         return currentId+1;
     }
     
-    
     @Override
     public String nextFilename() {
         valid = true;
         long idx = nextIndex();
         String fn = FileMgr.freshFilename(directory, baseFilename, (int)idx, INC_SEP, fmtModifer);
         return fn; 
+    }
+    
+    @Override
+    public Filename toFilename(String filename) {
+        return FileMgr.fromPath(directory, filename, patternFilename);
     }
 }

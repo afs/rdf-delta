@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
-public class FileRotateException extends RuntimeException
-{
-    public FileRotateException()                          { super() ; }
-    public FileRotateException(String msg)                { super(msg) ; }
-    public FileRotateException(Throwable th)              { super(th) ; }
-    public FileRotateException(String msg, Throwable th)  { super(msg, th) ; }
+public enum CompressionPolicy {
+    /** No compression.*/
+    NONE,
+    /** Compressed output stream */
+    OUTPUT,
+    /** Compress when finished writing */  
+    ROTATE
 }

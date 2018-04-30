@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -26,17 +26,18 @@ import java.util.concurrent.Semaphore;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.patch.filelog.FilePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** File-based {@link ManagedOutput} with various {@link FilePolicy} for file rotation. */ 
-class OutputManagedFile implements ManagedOutput {
+public class OutputManagedFile implements ManagedOutput {
     private static Logger LOG = LoggerFactory.getLogger(OutputManagedFile.class); 
     
     // The file area 
     private final Path directory;
     private final String filebase;
-    // Current active file
+    // Current active file, full path name.
     private String currentFilename = null;
     
     // One writer at a time.
@@ -55,7 +56,7 @@ class OutputManagedFile implements ManagedOutput {
     // Number of writes this process-lifetime.
     private long counter = 0;
 
-    /* package*/ OutputManagedFile(Path directory, String baseFilename, FilePolicy strategy) {
+    /* package*/ public OutputManagedFile(Path directory, String baseFilename, FilePolicy strategy) {
         this.directory = directory;
         this.filebase = baseFilename;
         this.roller = roller(directory, baseFilename, strategy);
@@ -64,7 +65,7 @@ class OutputManagedFile implements ManagedOutput {
     private static Roller roller(Path directory, String baseFilename, FilePolicy strategy) {
         switch ( strategy ) {
             case DATE :         return new RollerDate(directory, baseFilename);
-            case INDEX :        return new RollerCounter(directory, baseFilename, "%04d");
+            case INDEX :        return new RollerIndex(directory, baseFilename, "%04d");
             case SHIFT :        return new RollerShifter(directory, baseFilename, "%03d");
             case TIMESTAMP :    return new RollerTimestamp(directory, baseFilename);
             case FIXED :        return new RollerFixed(directory, baseFilename);
@@ -72,11 +73,24 @@ class OutputManagedFile implements ManagedOutput {
         return null;
     }
     
+    /** Get rotation engine */
+    @Override
+    public Roller roller() {
+        return roller;
+    }
+
+    
     @Override
     public OutputStream currentOutput() {
         return currentOutput;
     }
 
+
+    @Override
+    public String currentFilename() {
+        return currentFilename;
+    }
+    
     @Override
     public OutputStream output() {
         try {
@@ -94,7 +108,8 @@ class OutputManagedFile implements ManagedOutput {
     /** Force a rotation of the output file. */
     @Override
     public void rotate() {
-        roller.forceRollover();
+        finish();
+        roller.rotate();
     }
 
     private void finish() {
@@ -142,19 +157,21 @@ class OutputManagedFile implements ManagedOutput {
             return;
         flushOutput();
         IO.close(output);
+        //[gz] Compress currentFilename.
         output = null;
         fileOutput = null;
-        currentFilename = null;
+        // keep: currentFilename
         currentOutput = null;
     }
 
     private void nextFile() {
         try {
             currentFilename = roller.nextFilename();
-            FmtLog.info(LOG, "Setup: %s", currentFilename);
+            FmtLog.debug(LOG, "Setup: %s", currentFilename);
             // Must be a FileOutputStream so that getFD().sync is available.
             fileOutput = new FileOutputStream(currentFilename, true);
             output = new BufferedOutputStream(fileOutput);
+            //[gz]
         } catch (FileNotFoundException ex) {
             IO.exception(ex);
             return;

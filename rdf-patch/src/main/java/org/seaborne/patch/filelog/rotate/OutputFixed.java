@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,6 +34,17 @@ public class OutputFixed implements ManagedOutput {
     
     public OutputFixed(OutputStream output) {
         this.outputStream = output;
+    }
+    
+    /** Get rotation engine */
+    @Override
+    public Roller roller() {
+        return null;
+    }
+    
+    @Override
+    public String currentFilename() {
+        return null;
     }
     
     @Override

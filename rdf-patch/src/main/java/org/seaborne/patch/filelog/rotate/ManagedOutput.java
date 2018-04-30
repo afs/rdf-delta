@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.io.OutputStream;
+
+import org.seaborne.patch.filelog.FilePolicy;
+import org.seaborne.patch.filelog.OutputMgr;
 
 /** Interface to managed output streams.
  * 
@@ -30,8 +33,16 @@ public interface ManagedOutput {
      *  Closing the OutputStream returns it to the manager.
      */
     public OutputStream output();
+    
+    /** Current output stream, or null if theer hasn't been one yet */  
     public OutputStream currentOutput();
     
+    /** The most recent output file name, or null if there hasn't been one yet */
+    public String currentFilename();
+
     /** Request file rotation */ 
     public void rotate();
+    
+    /** Get rotation engine */
+    public Roller roller();
 }

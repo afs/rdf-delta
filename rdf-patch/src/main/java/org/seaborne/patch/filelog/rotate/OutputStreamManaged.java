@@ -16,39 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
-import java.nio.file.Path;
+import java.io.Closeable;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.function.Consumer;
 
-/** {@link Roller} that is a fixed file. */
-class RollerFixed implements Roller {
-    private final Path directory;
-    private final String baseFilename;
-    private String filename = null; 
+/** An {@link OutputStream} that returns to a pool when closed */  
+class OutputStreamManaged extends FilterOutputStream implements Closeable {
     
+    private Consumer<OutputStream> onClose;
 
-    RollerFixed(Path directory, String baseFilename) {
-        this.directory = directory;
-        this.baseFilename = baseFilename;
-        this.filename = directory.resolve(baseFilename).toString();
-    }
-
+    OutputStreamManaged(OutputStream output, Consumer<OutputStream> onClose) {
+        super(output);
+        this.onClose = onClose;
+   }
+    
     @Override
-    public void startSection() {}
-
-    @Override
-    public void finishSection() {}
-
-    @Override
-    public boolean hasExpired() {
-        return false;
-    }
-
-    @Override
-    public void forceRollover() {}
-
-    @Override
-    public String nextFilename() {
-        return filename;
+    public void close() throws IOException {
+        onClose.accept(super.out);
     }
 }

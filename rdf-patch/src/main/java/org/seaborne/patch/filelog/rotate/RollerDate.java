@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +40,7 @@ class RollerDate implements Roller {
     private LocalDate current = LocalDate.now();
     
     /** Match a date-appended filename */ 
-    private static final Pattern regexDate = Pattern.compile("(.*)(-)(\\d{4}-\\d{2}-\\d{2})");
+    private static final Pattern patternFilenameDate = Pattern.compile("(.*)(-)(\\d{4}-\\d{2}-\\d{2})");
     private static final String DATE_SEP = "-";
     private static final DateTimeFormatter fmtDate = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final Comparator<Filename> cmpDate = (x,y)->{
@@ -60,7 +60,7 @@ class RollerDate implements Roller {
     }
     
     private void init(Path directory, String baseFilename) {
-        List<Filename> filenames = FileMgr.scan(directory, baseFilename, regexDate);
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDate);
         if ( ! filenames.isEmpty() ) {
             LocalDate dateLast = filenameToDate(Collections.max(filenames, cmpDate));
             LocalDate dateFirst = filenameToDate(Collections.min(filenames, cmpDate));
@@ -79,6 +79,11 @@ class RollerDate implements Roller {
     }
     
     @Override
+    public Path directory() {
+        return directory;
+    }
+
+    @Override
     public void startSection() {}
 
     @Override
@@ -90,7 +95,7 @@ class RollerDate implements Roller {
     }
     
     @Override
-    public void forceRollover() {
+    public void rotate() {
         // No-op.
     }
     
@@ -102,6 +107,11 @@ class RollerDate implements Roller {
         Path path = directory.resolve(fn);
         if ( Files.exists(path) )
             FmtLog.warn(LOG, "Using existing file: "+fn); 
-        return fn.toString();
+        return path.toString();
+    }
+
+    @Override
+    public Filename toFilename(String filename) {
+        return FileMgr.fromPath(directory, filename, patternFilenameDate);
     }
 }

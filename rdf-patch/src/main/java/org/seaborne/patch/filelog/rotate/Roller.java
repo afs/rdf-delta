@@ -16,7 +16,11 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
+
+import java.nio.file.Path;
+
+import org.seaborne.patch.filelog.OutputMgr;
 
 /**
  * Interface to a policy for rotating files. Writing to files is in "sections" - a section
@@ -30,6 +34,9 @@ package org.seaborne.patch.rotate;
  */
 interface Roller {
 
+    /** Directory under management. */
+    public Path directory(); 
+    
     /** Starting an output section. */
     public void startSection();
 
@@ -39,9 +46,12 @@ interface Roller {
     /** Policy says that any previous the setup is no longer valid for a new section. */  
     public boolean hasExpired();
     
-    /** Force a rollover **/
-    public void forceRollover();
+    /** Move files on (if appropriate) **/
+    public void rotate();
     
-    /** Generate the next filename */ 
+    /** Generate the next filename; incldues any directory name to the file. */ 
     public String nextFilename();
+    
+    /** Create a {@link Filename} if and only if it matches the pattern managed by this policy. */
+    public Filename toFilename(String filename);
 }

@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog;
 
 import java.util.Objects;
+
+import org.seaborne.patch.filelog.rotate.FileRotateException;
+import org.seaborne.patch.filelog.rotate.ManagedOutput;
 
 /** File naming strategies.*/
 public enum FilePolicy {
@@ -27,7 +30,7 @@ public enum FilePolicy {
      */
     DATE,
     /**
-     * Timestamp with explicit roll over by calling {@link ManagedOutput#rotate()}. 
+     * Timestamp with explicit roll over by calling {@link ManagedOutput#rotate()} 
      * The file format is "filename-yyyy-mm-dd_hh-mm-ss".
      */
     TIMESTAMP,

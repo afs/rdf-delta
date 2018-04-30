@@ -16,57 +16,49 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.regex.Pattern;
 
-/** Roller where the files are "base" , "base.001", "base.002", ...
- * the current output file is always "base" and the files are 
- * shifted up on a rotate.    
- */
-class RollerShifter implements Roller {
-    private boolean valid = false;
+/** {@link Roller} that is a fixed file. */
+class RollerFixed implements Roller {
     private final Path directory;
     private final String baseFilename;
-    private final String filename;
+    private String filename = null; 
     
-    /** Match an incremental file (does not match the base file name). **/
-    private static Pattern patternIncremental = FileMgr.patternIncremental;
-    private static final String INC_SEP = FileMgr.INC_SEP;
 
-    private static final String numFmt = "%d";
-    private static final Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
-
-    
-    RollerShifter(Path directory, String baseFilename, String format) {
+    RollerFixed(Path directory, String baseFilename) {
         this.directory = directory;
         this.baseFilename = baseFilename;
         this.filename = directory.resolve(baseFilename).toString();
     }
-    
+
+    @Override
+    public Path directory() {
+        return directory;
+    }
+
     @Override
     public void startSection() {}
 
     @Override
     public void finishSection() {}
-    
-    @Override
-    public void forceRollover() {
-        valid = false;
-    }
-    
+
     @Override
     public boolean hasExpired() {
-        return !valid;
-    }
-    
-    @Override
-    public String nextFilename() {
-        valid = true;
-        FileMgr.shiftFiles(directory, baseFilename, 1, "%03d");
-        return filename; 
+        return false;
     }
 
+    @Override
+    public void rotate() {}
+
+    @Override
+    public String nextFilename() {
+        return filename;
+    }
+
+    @Override
+    public Filename toFilename(String filename) {
+        return null;
+    }
 }

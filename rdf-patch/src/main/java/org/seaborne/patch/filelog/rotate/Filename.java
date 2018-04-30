@@ -16,18 +16,21 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Path;
 
 import org.apache.jena.atlas.logging.FmtLog;
 
-class Filename {
+/** Filename: (directory, basename, separator, modifier, compression) */
+public class Filename {
     public final Path directory;
     public final String basename;
     public final String separator;
     public final String modifier;
-    public Filename(Path directory, String basename, String separator, String modifier) {
+    public final String compression;
+    
+    public Filename(Path directory, String basename, String separator, String modifier, String compression) {
         this.directory = directory;
         this.basename = basename;
         
@@ -39,6 +42,7 @@ class Filename {
         
         this.separator = separator;
         this.modifier = modifier;
+        this.compression = compression;
     }
     
     public boolean isBasename() {
@@ -46,6 +50,10 @@ class Filename {
         return modifier==null || separator==null;
     }
     
+    public boolean isCompressed() {
+        return compression==null;
+    }
+
     /** As a filename, without directory. */
     public String asFilenameString() {
         if ( isBasename() )
@@ -56,9 +64,12 @@ class Filename {
     // display version.
     @Override
     public String toString() {
-        if ( isBasename() )
-            return directory+"|"+basename;
-        return directory+"|"+basename+"|"+separator+"|"+modifier;
+        String fn = directory+"|"+basename;
+        if ( ! isBasename() )
+            fn = fn + "|"+separator+"|"+modifier;
+        if ( isCompressed() )
+            fn = fn + "|"+compression;
+        return fn;
     }
     
     private static int countNonNulls(Object ... objects) {

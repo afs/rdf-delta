@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.rotate;
+package org.seaborne.patch.filelog.rotate;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -35,8 +35,7 @@ import org.seaborne.patch.PatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*public*/
-class FileMgr {
+public class FileMgr {
     static Logger LOG = LoggerFactory.getLogger(FileMgr.class);
     
     private static final int IDX_TRIES = 1000;
@@ -48,6 +47,7 @@ class FileMgr {
     /** Find a unique file name, assumes that it will not take too many probes.
      * Conceptually, ".0" is the base filename.
      * This function does not create the file.
+     * Returns the full file name, directory included.
      *  
      * @param directory Directory to look in
      * @param filename  Base file name, without index modifer 
@@ -60,17 +60,23 @@ class FileMgr {
             String fn = ( idx == 0 ) ? filename : basename(filename, idx, sep, format);
             Path p = directory.resolve(fn);
             if ( ! Files.exists(p) )
-                return fn;
+                return p.toString();
         }
         FmtLog.warn(LOG, "Failed to find a unique file extension name for "+filename);
         return null;
     }
 
-    /** Find files matching a pattern
+    /** Find files matching a pattern.
+     * The pattern has groups:
+     * <ul>
+     * <li>1 : the base filename.
+     * <li>2 : the separator
+     * <li>3 : the policy modifier. 
+     * </ul>
      * 
      * @param directory Path
-     * @param namebase base namosme of interest 
-     * @param pattern Regex to extarct the part of the filename for a {@link Filename}  
+     * @param namebase base name of interest 
+     * @param pattern Regex to extract the part of the filename for a {@link Filename}  
      * @return Unsorted List<Filename> of matches.
      */
     public static <X> List<Filename> scan(Path directory, String namebase, Pattern pattern) {
@@ -94,9 +100,28 @@ class FileMgr {
         return indexes;
     } 
     
+    /**
+     * Find files matching a pattern and also include the base filename. 
+     */
+    public static List<Filename> scanIncludeBase(Path directory, String filename, Pattern pattern) {
+        List<Filename> filenames = scan(directory, filename, pattern);
+        if ( Files.exists(directory.resolve(filename)) ) {
+            Filename fn = new Filename(directory, filename, null, null, null);
+            filenames.add(fn);
+        }
+        //[gz]
+        return filenames ;
+    }
+
     /** Create a {@link FileName} */ 
-    private static Filename fromPath(Path directory, Path path, Pattern pattern) {
-        String fn = path.getFileName().toString();
+    private static Filename fromPath(Path directory, Path filepath, Pattern pattern) {
+            filepath = directory.resolve(filepath).getFileName();
+            directory = directory.resolve(filepath).getParent();
+            return fromPath(directory, filepath.getFileName().toString(), pattern);
+    }
+    
+    /** Create a {@link Filename} */ 
+    /*package*/ public static Filename fromPath(Path directory, String fn, Pattern pattern) {
         Matcher matcher = pattern.matcher(fn);
         if ( ! matcher.matches() )
             return null;
@@ -108,7 +133,11 @@ class FileMgr {
         String basename = matcher.group(1);
         String separator = matcher.group(2);
         String modifier = matcher.group(3);
-        return new Filename(directory, basename, separator, modifier);
+        String compression = null;
+        if ( matcher.groupCount() >= 4 )
+            compression = matcher.group(4);
+        
+        return new Filename(directory, basename, separator, modifier, compression);
     }
 
     /** Shift files with a ".NNN" up by one, and move the base file to "filename.1".  
@@ -120,8 +149,12 @@ class FileMgr {
         shiftFiles(directory, filename, 1, "%d");
     }
 
+//    /** Additional pattern for compression */
+//    /*package*/ static Pattern COMPRESSED = Pattern.compile("\\.gz");
+    
     /** Match an incremental file (does not match the base file name). **/
     /*package*/ static Pattern patternIncremental = Pattern.compile("(.*)(\\.)(\\d+)");
+    
     /*package*/ static final String INC_SEP = ".";
     /*package*/ static Comparator<Filename> cmpNumericModifier = (x,y)->{
         long vx = indexFromFilename(x);
@@ -135,6 +168,14 @@ class FileMgr {
         return Long.parseLong(filename.modifier);
     }
 
+    /**
+     * Look for matching files of the "incremental" pattern: "filename.nnn". This
+     * includes the filename itself, if it exists.
+     */
+    public static List<Filename> scanForIncrement(Path directory, String filename) {
+        return scanIncludeBase(directory, filename, patternIncremental);
+    }
+    
     /**
      * @param directory
      * @param filename
@@ -177,18 +218,7 @@ class FileMgr {
         }
     }
     
-    /**
-     * Look for matching files of the "indcremental" pattern: "filename.nnn". This
-     * includes the filename itself, if it exists, conceptually "filename.000".
-     */
-    public static List<Filename> scanForIncrement(Path directory, String filename) {
-        List<Filename> filenames = scan(directory, filename, patternIncremental);
-        if ( Files.exists(directory.resolve(filename)) ) {
-            Filename fn = new Filename(directory, filename, null, null);
-            filenames.add(fn);
-        }
-        return filenames ;
-    }
+    
     
 //    /** Create a file name using the base and the numeric modifier.*/
 //    private static String basename(String base, long idx) {

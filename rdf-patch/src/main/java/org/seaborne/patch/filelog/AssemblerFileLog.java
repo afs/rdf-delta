@@ -38,9 +38,7 @@ import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesN;
-import org.seaborne.patch.rotate.FilePolicy;
-import org.seaborne.patch.rotate.ManagedOutput;
-import org.seaborne.patch.rotate.OutputMgr;
+import org.seaborne.patch.filelog.rotate.ManagedOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +79,8 @@ public class AssemblerFileLog extends AssemblerBase {
         
         for ( String x : destLogs ) {
             FmtLog.info(LOG, "Log file: '%s'", x);
-            x = IRILib.IRIToFilename(x);
+            if ( x.startsWith("file:") )
+                x = IRILib.IRIToFilename(x);
             FmtLog.info(LOG, "Log file: '%s'", x);
             
             ManagedOutput output = OutputMgr.create(x, policy);
