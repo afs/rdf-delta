@@ -20,12 +20,18 @@ package org.seaborne.patch.rotate;
 
 import java.io.OutputStream;
 
-/** Interface to managed output streams */
+/** Interface to managed output streams.
+ * 
+ * @see OutputMgr
+ * @see FilePolicy
+ */
 public interface ManagedOutput {
     /** Get an OutputStream; use with try-resources or similar usage pattern.
-     * Closing the OutputStream reurns it to the manager.
+     *  Closing the OutputStream returns it to the manager.
      */
     public OutputStream output();
     public OutputStream currentOutput();
+    
+    /** Request file rotation */ 
     public void rotate();
 }

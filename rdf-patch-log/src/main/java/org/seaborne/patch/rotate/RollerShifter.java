@@ -47,6 +47,12 @@ class RollerShifter implements Roller {
     }
     
     @Override
+    public void startSection() {}
+
+    @Override
+    public void finishSection() {}
+    
+    @Override
     public void forceRollover() {
         valid = false;
     }

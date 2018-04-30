@@ -34,6 +34,12 @@ class RollerFixed implements Roller {
     }
 
     @Override
+    public void startSection() {}
+
+    @Override
+    public void finishSection() {}
+
+    @Override
     public boolean hasExpired() {
         return false;
     }

@@ -71,10 +71,9 @@ class RollerCounter implements Roller {
     @Override
     public void startSection() {}
 
-
     @Override
     public void finishSection() {
-        // Each section is in its own files
+        // Each section is in its own file
         //valid = false;
     }
     

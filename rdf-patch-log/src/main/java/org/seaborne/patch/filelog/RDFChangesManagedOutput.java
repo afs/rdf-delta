@@ -27,14 +27,14 @@ import org.seaborne.patch.rotate.ManagedOutput;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 
+/** Log changes to a {@link ManagedOutput}. 
+ * {@link ManagedOutput} sections 
+ * */ 
 public class RDFChangesManagedOutput extends RDFChangesWriter {
     
     private final ManagedOutput managedOutput;
     private OutputStream currentStream = null;
 
-//    TokenWriter tokenWriter = new TokenWriterText(output);
-//    RDFChanges changes = new RDFChangesWriter(tokenWriter) ;
-    
     public RDFChangesManagedOutput(ManagedOutput output) {
         super(null);
         this.managedOutput = output;

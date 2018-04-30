@@ -86,6 +86,12 @@ class RollerTimestamp implements Roller {
     }
     
     @Override
+    public void startSection() {}
+
+    @Override
+    public void finishSection() {}
+
+    @Override
     public boolean hasExpired() {
         // Manual rollover only.
         return ! valid;

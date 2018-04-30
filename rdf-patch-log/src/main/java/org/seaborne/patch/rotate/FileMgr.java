@@ -35,7 +35,8 @@ import org.seaborne.patch.PatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileMgr {
+/*public*/
+class FileMgr {
     static Logger LOG = LoggerFactory.getLogger(FileMgr.class);
     
     private static final int IDX_TRIES = 1000;

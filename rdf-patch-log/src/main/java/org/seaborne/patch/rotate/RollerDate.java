@@ -79,6 +79,12 @@ class RollerDate implements Roller {
     }
     
     @Override
+    public void startSection() {}
+
+    @Override
+    public void finishSection() {}
+
+    @Override
     public boolean hasExpired() {
         return ( LocalDate.now().isAfter(current) ) ;
     }

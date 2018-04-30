@@ -22,7 +22,7 @@ import java.nio.file.Path;
 
 import org.apache.jena.atlas.logging.FmtLog;
 
-public class Filename {
+class Filename {
     public final Path directory;
     public final String basename;
     public final String separator;
