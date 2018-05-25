@@ -1,0 +1,6 @@
+H ID <uuid:930115ca-6005-11e8-bfaa-abcb17f206f4> .
+TB .
+PA "" "http://example/" .
+A <http://example/s> <http://example/p> 1816 .
+A <http://example/s> <http://example/q> <_:c097fcf795d4cc69b728a7b0f4cce050> .
+TC .

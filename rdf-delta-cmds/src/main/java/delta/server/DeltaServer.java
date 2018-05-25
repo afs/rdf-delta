@@ -55,6 +55,7 @@ public class DeltaServer {
     
     private static Logger LOG = DPS.LOG; 
 
+    private static ArgDecl argHelp = new ArgDecl(false, "help", "h");
     private static ArgDecl argPort = new ArgDecl(true, "port");
     private static ArgDecl argBase = new ArgDecl(true, "base");
     private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
@@ -63,10 +64,16 @@ public class DeltaServer {
         // ---- Command Line
         CmdLineArgs cla = new CmdLineArgs(args);
         
+        cla.add(argHelp);
         cla.add(argPort);
         cla.add(argBase);
         cla.add(argConf);
         cla.process();
+        
+        if ( cla.contains(argHelp) ) {
+            System.err.println("Usage: server [--port=NNNN] [--base=DIR]");
+            System.exit(0);
+        }
         
         String configFile = null;
         if ( cla.contains(argConf) )

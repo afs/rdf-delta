@@ -86,7 +86,7 @@ public class PatchLogServer {
         ServletContextHandler handler = buildServletContext("/");
         
         HttpServlet servletRDFPatchLog = new S_Log(engineRef);
-        HttpServlet servletPing = new S_Ping();        
+        HttpServlet servletPing = new S_Ping();
         //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
         
         // Filter - this catches RDF Patch Log requests. 

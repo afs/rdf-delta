@@ -60,7 +60,7 @@ public class FileEntry {
         this.tmpfile = tmpfile;
     }
     
-    /** Atomiclly write the file */
+    /** Atomically write the file */
     public void write(IOConsumer<OutputStream> action) {
         if ( haveWritten )
             throw new RuntimeIOException("FileEntry has already been written: "+datafile);

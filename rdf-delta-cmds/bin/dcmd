@@ -51,7 +51,7 @@ then
 fi
 
 function usage() {
-    echo "Commands: mk, rm, list, get, add, parse, path, r2p, " 1>&2
+    echo "Commands: server, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
 }
@@ -70,7 +70,7 @@ DCMD_PKG="${BASE_PKG}.cmds"
 
 # Alternative names.
 case $CMD in
-    help)
+     help|-h|--help)
 	usage
 	;;
     appendpatch|append|add)
@@ -83,6 +83,8 @@ case $CMD in
 	CMD=getpatch ;;
     r2p)
 	CMD=rdf2patch ;;
+    p2r)
+	CMD=patch2rdf ;;
     parse|validate)
 	CMD=patchparse ;;
     *) ;;

@@ -61,7 +61,9 @@
 
     <!-- Buid the server jar -->
     <module>rdf-delta-server</module>
-
+    <!-- Buid the delta+client jar -->
+    <module>rdf-delta-fuseki-server</module>
+    
     <!-- Distribution file -->
     <module>rdf-delta-dist</module>
   </modules>
@@ -90,6 +92,12 @@
 
       <dependency>
         <groupId>org.apache.jena</groupId>
+        <artifactId>jena-fuseki-basic</artifactId>
+        <version>${ver.jena}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.jena</groupId>
         <artifactId>jena-cmds</artifactId>
         <version>${ver.jena}</version>
         <exclusions>
@@ -113,24 +121,30 @@
         <version>4.12</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${ver.slf4j}</version>
+      </dependency>
+
       <!-- Either this ... -->
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-jdk14</artifactId>
-        <version>1.7.21</version>
+        <version>${ver.slf4j}</version>
       </dependency>
       
       <!-- or the next two ... -->
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-log4j12</artifactId>
-        <version>1.7.21</version>
+        <version>${ver.slf4j}</version>
       </dependency>
       
       <dependency>
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
-        <version>1.2.17</version>
+        <version>${ver.log4j}</version>
       </dependency> 
       
     </dependencies>
@@ -152,7 +166,7 @@
 
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
 
   </dependencies>  
@@ -160,10 +174,18 @@
   <build>
     <pluginManagement>
       <plugins>
+        <!--
+         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        -->
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.7.0</version>
           <configuration>
             <encoding>UTF-8</encoding>
             <debug>true</debug>
@@ -183,7 +205,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19.1</version> 
+          <version>2.21.0</version> 
           <configuration>
             <includes>
               <include>**/TS_*.java</include>

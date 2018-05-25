@@ -89,8 +89,12 @@ public class FileStore {
         if ( ! Files.exists(dirPath) || ! Files.isDirectory(dirPath) )
             throw new IllegalArgumentException("FileStore.attach: Path '" + dirPath + "' does not name a directory");
 
-        // Delte any tmp files leaft lying around.
-        
+        // Delete any tmp files left lying around.
+        List<String> tmpFiles = scanForTmpFiles(dirPath);
+        if ( ! tmpFiles.isEmpty() ) {
+            
+        }
+                
         // Find existing files.
         List<Long> indexes = scanForIndex(dirPath, basename);
         long min;
@@ -109,21 +113,7 @@ public class FileStore {
         areas.put(k, fs);
         return fs;
     }
-    
-    public static Object all() {
-        return null;
-//        List<Object> x = areas.values().stream()
-//            .map((fs) -> {
-//              fs.  
-//                
-//            })
-//            .collect(Collectors.toList());
-//        
-//        
-//        
-//        return x;
-    }
-    
+
     private static Path key(Path path, String basename) {
         Path p = path.resolve(basename);
         return p.normalize().toAbsolutePath();
@@ -305,6 +295,20 @@ public class FileStore {
     private static Path filename(Path dir, String basename, long idx) {
         String fn = basename(basename, idx);
         return dir.resolve(fn);
+    }
+
+    private static List<String> scanForTmpFiles(Path directory) {
+        List<String> tmpFiles = new ArrayList<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*."+tmpBasename)) {
+            for ( Path f : stream ) {
+                if ( Files.isRegularFile(f) )
+                    tmpFiles.add(f.toAbsolutePath().toString());
+            }
+        } catch (IOException ex) {
+            FmtLog.warn(LOG, "Can't inspect directory: %s", directory);
+            throw new PatchException(ex);
+        }
+        return tmpFiles;
     }
 
     /** Find the indexes of files in this FileStore. Return sorted, low to high. */

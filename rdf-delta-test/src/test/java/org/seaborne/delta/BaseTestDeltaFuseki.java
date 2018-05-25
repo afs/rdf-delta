@@ -77,7 +77,6 @@ public class BaseTestDeltaFuseki {
             return dps; 
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
-            System.exit(0);
             return null;
         }
     }

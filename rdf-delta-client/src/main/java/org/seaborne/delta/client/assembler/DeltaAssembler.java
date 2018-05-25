@@ -112,7 +112,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         // Build the RDFChanges: URLs to send each patch log entry. 
         RDFChanges streamChanges = null ;
         for ( String dest : xs ) {
-            FmtLog.info(log, "Destination: '%s'", dest) ;
+            FmtLog.info(log, "Destination: %s", dest) ;
             RDFChanges sc = DeltaLib.destination(dest);
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }

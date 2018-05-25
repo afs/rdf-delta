@@ -34,22 +34,20 @@ import org.apache.jena.riot.RDFDataMgr ;
 import org.seaborne.delta.server.http.PatchLogServer ;
 
 /**
- * Create two Fuseki servers, each with a dataset. These dataset are kept in
- * step as updated happen (at either server) because they share a patch log run
- * by a backend server.
+ * Create two Fuseki servers, each with a dataset. These dataset are kept in step as
+ * updates happen at either server because they share a patch log run by a backend server.
+ * <p> 
+ * Combined with a load balancer in front of the two (or more) Fuseki servers, this gives
+ * high availability of the dataset, robust against loss of some of the Fuseki servers.
+ * Such loss maybe panned (e.g server adminstration) or unplanned (e.g. server crash).
  * <p>
- * Combined with a load balancer in front of the two (or more) Fuseki servers,
- * this gives high availability of the dataset, robust against loss of some of
- * the Fuseki servers. Such loss maybe panned (e.g server adminstration) or
- * unplanned (e.g. server crash).
+ * When a new server is addedd, it automatically catches up with the current state of the
+ * dataset.
  * <p>
- * When a new server is addedd, it automatically catches up with the current
- * state of the dataset.
- * <p>
- * For convenience of this example, the datasets and the the patch log server
- * are in the same JVM; no state is shared and all interaction is over HTTP.
- * This is not a realsitic deploment; each server, Puseki and patch log server,
- * should be running on separate machines.
+ * For convenience of this example, the datasets and the the patch log server are in the
+ * same JVM; no state is shared and all interaction is over HTTP. This is not a realistic
+ * deploment; each Fuseki server and patch log server should be running on separate
+ * machines.
  */
 
 public class DeltaEx_FusekiHighAvailability {

@@ -1,20 +1,32 @@
 #!/usr/bin/env bash
 
-## Usage: dcmd <delta_main>
 ## Sets up the java enviroment to run a command from RDF Delta.
 
 # Location of the delta-server.jar, which also contains the commands.
 DELTA_HOME="${DELTA_HOME:-$PWD}"
-CP="$DELTA_HOME/delta-server.jar"
-
+CP=''
+if [[ -e "$DELTA_HOME/delta-patch-server.jar" ]] ; then
+    CP="$DELTA_HOME/delta-patch-server.jar"
+elif [[ -e "$DELTA_HOME/delta-server.jar" ]] ; then
+    CP="$DELTA_HOME/delta-server.jar" 
+else
+    echo "Can't find the jar containing the RDF Delta cmds (delta-patch-server.jar)" 1>&2
+    exit 1
+fi
 if [[ -e logging.properties ]]
 then
     LOGGING=-Djava.util.logging.config.file=logging.properties
 fi
 
+function usage() {
+    echo "Commands: server, mk, rm, list, get, add, parse, path, r2p, " 1>&2
+    ##echo "Class path: $DELTA_CP:${JENA_CP}"
+    exit
+}
+
 if [[ $# = 0 ]]
 then
-    echo "Commands: mk, rm, list, get, add" 1>&2
+    usage
     exit
 else
     CMD="$1"
@@ -27,6 +39,9 @@ DCMD_PKG="${BASE_PKG}.cmds"
 
 # Alternative names.
 case $CMD in
+    help|-h|--help)
+	usage
+	;;
     appendpatch|append|add)
 	CMD=addpatch ;;
     mk)
@@ -35,6 +50,12 @@ case $CMD in
 	CMD=rmlog ;;
     get)
 	CMD=getpatch ;;
+    r2p)
+	CMD=rdf2patch ;;
+    p2r)
+	CMD=patch2rdf ;;
+     parse|validate)
+	CMD=patchparse ;;
     *) ;;
 esac
 

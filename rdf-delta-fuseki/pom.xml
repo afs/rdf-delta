@@ -36,27 +36,13 @@
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-delta-server-local</artifactId> 
+      <artifactId>rdf-delta-client</artifactId> 
       <version>0.4.0-SNAPSHOT</version>
     </dependency>
 
-    <!-- The HTTP Server needs Jetty. The easy way to do that is ... -->
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-embedded</artifactId>
-    </dependency>
-
-    <!-- For easy of development -->
-     <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-fuseki-basic</artifactId>
-      <version>${ver.jena}</version>
-    </dependency>
-
-    <!-- LOGGING : Require a logging implementation -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
     </dependency>
 
   </dependencies>

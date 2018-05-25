@@ -40,9 +40,9 @@ import org.seaborne.patch.RDFPatchOps ;
 /**
  * This example shows changes to a dataset being sent to a patch log server. For
  * convenience of this example, the patch log server is in the same JVM as the
- * dataset; it shares nothing with the local dataset. In a real world
- * deployment, the patch log server would be on another machine. All interaction
- * is over HTTP.
+ * dataset; it shares nothing with the local dataset. 
+ * In a real world deployment, the patch log server would be on another machine. 
+ * All interaction is over HTTP.
  */
 public class DeltaEx4_DatasetToPatchLogServer {
     static { LogCtl.setJavaLogging(); }

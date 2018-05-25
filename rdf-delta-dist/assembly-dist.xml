@@ -18,7 +18,7 @@
 
 <!-- 
   The distribution.
-  Assumes jar made and onejar has been assembled.
+  Assumes jar made and onejars for the patch log server and for combined Fuseki have been made.
 -->
 
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
@@ -31,16 +31,25 @@
     <format>zip</format>
   </formats>
 
-  <baseDirectory>${project.artifactId}-${project.version}</baseDirectory>
+  <baseDirectory>rdf-delta-${project.version}</baseDirectory>
 
   <dependencySets>
-    <!-- Standalone JAR -->
+    <!-- Standalone Patch server jar JAR -->
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
       <includes>
         <include>org.seaborne.rdf-delta:rdf-delta-server:jar</include>
       </includes>
       <outputFileNameMapping>delta-server.jar</outputFileNameMapping>
+    </dependencySet>
+
+    <!-- Fuseki server with delta client -->
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <includes>
+        <include>org.seaborne.rdf-delta:rdf-delta-fuseki-server:jar</include>
+      </includes>
+      <outputFileNameMapping>delta-fuseki.jar</outputFileNameMapping>
     </dependencySet>
 
     <!-- WAR file - - >
@@ -70,12 +79,14 @@
   <fileSets>
     <fileSet>
       <outputDirectory></outputDirectory>
+      <directory>Files</directory>
+    </fileSet>
+    <fileSet>
+      <outputDirectory></outputDirectory>
       <includes>
-        <include>dcmd</include>
-        <include>logging.properties</include>
         <include>README*</include>
-        <include>DEPENDENCIES*</include>
       </includes>
     </fileSet>
   </fileSets>
+  
 </assembly>
