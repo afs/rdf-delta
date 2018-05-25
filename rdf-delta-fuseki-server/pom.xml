@@ -22,7 +22,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>rdf-delta-fuseki-server</artifactId>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <name>RDF Delta :: Delta + Fuseki</name>
 
@@ -73,29 +73,6 @@
   <build>
     <plugins>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <configuration>
-              <skipIfEmpty>true</skipIfEmpty>
-            </configuration>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      
       <!-- Shaded uber jar -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
