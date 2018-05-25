@@ -80,7 +80,7 @@ public class Args {
      * but also the same information using query string parameters:
      * <ul>
      * <li>Append patch: {@code POST} to <tt>/{srvName}?datasource={name}</tt>
-     * <li>Get patch:    {@code GET} from <tt>/{srvName}?datasource={name}&id={id}</tt> or <tt>/{srcName}?datasource={name}&version={version}</tt>.  
+     * <li>Get patch:    {@code GET} from <tt>/{srvName}?datasource={name}&amp;id={id}</tt> or <tt>/{srcName}?datasource={name}&amp;version={version}</tt>.  
      * </ul>
      * where <tt>{srvName}</tt> is the service name.
      * <p>

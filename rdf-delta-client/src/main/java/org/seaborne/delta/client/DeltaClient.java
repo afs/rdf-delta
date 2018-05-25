@@ -57,10 +57,10 @@ import org.slf4j.LoggerFactory ;
  *     dClient.connect(dsRef, TxnSyncPolicy.TXN_RW);
  *     for(DeltaConnection dConn = dClient.get(dsRef) ) {
  *         Dataset ds = dConn.getDataset();
- *         Txn.executeWrite(ds, ()->{
+ *         Txn.executeWrite(ds, ()-&gt;{
  *             .. transaction ..
  *         });
- *         Txn.executeRead(ds, ()->{
+ *         Txn.executeRead(ds, ()-&gt;{
  *             .. transaction ..
  *         });
  *     }
