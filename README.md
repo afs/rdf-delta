@@ -1,3 +1,4 @@
+# RDF Delta
 
 RDF Delta provides a system for recording and publishing changes to RDF
 Datasets. It is built around idea of change logs:
@@ -18,6 +19,42 @@ specific resources within the dataset.
 RDF Delta provides a system for keeping copies of an RDF Dataset
 up-to-date using the RDF Patch Log as a journal of changes to be applied.
 
+## Documentation
+
 Website: https://afs.github.io/rdf-delta
+
+##= High Availablity  Apache Jena Fuseki
+
+https://afs.github.io/rdf-delta/ha-fuseki.html
+
+## Software
+
+Artifacts: http://central.maven.org/maven2/org/seaborne/rdf-delta
+
+RDF Delta distribution (patch log server and Apache Jena Fuseki with
+replicated dataset support)
+
+http://central.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
+
+### RDF Patch:
+
+```
+    <dependency>
+      <groupId>org.seaborne.rdf-delta</groupId>
+      <artifactId>rdf-patch</artifactId>
+      <version>X.Y.Z</version>
+    </dependency>
+```
+
+### RDF Delta client library:
+```
+    <dependency>
+      <groupId>org.seaborne.rdf-delta</groupId>
+      <artifactId>rdf-delta-client</artifactId>
+      <version>X.Y.Z</version>
+    </dependency>
+```
+
+## Status
 
 [![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg)](https://travis-ci.org/afs/rdf-delta)
