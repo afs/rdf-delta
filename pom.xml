@@ -28,10 +28,10 @@
   <version>0.4.0-SNAPSHOT</version>
 
   <name>RDF Delta</name>
-	<url>https://afs.github.io/rdf-delta/</url>
+  <url>https://afs.github.io/rdf-delta/</url>
 
   <description>
-    RDF Delta. Change logs for RDF datasets and dataset replciation.
+    RDF Delta -- Change logs for RDF datasets; Dataset replication.
   </description>
 
   <licenses>
@@ -41,6 +41,31 @@
     </license>
   </licenses>
   
+  <issueManagement>
+    <url>https://github.com/afs/rdf-delta/issues</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:https://github.com:afs/rdf-delta.git</connection>
+    <developerConnection>scm:git:git@github.com:afs/rdf-delta.git</developerConnection>
+    <url>https://github.com/afs/rdf-delta.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>Andy Seaborne</name>
+      <url>https://github.com/afs</url>
+      <timezone>Europe/London</timezone>
+    </developer>
+  </developers>
+  
+  <contributors>
+    <contributor>
+      <url>https://github.com/afs/rdf-delta/graphs/contributors</url>
+    </contributor>
+  </contributors>
+
   <properties>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
@@ -61,23 +86,11 @@
     <module>rdf-delta-test</module>
     <module>rdf-delta-examples</module>
 
-    <!-- rdf-delta-libs ?? -->
-
-    <!-- Buid the server jar -->
     <module>rdf-delta-server</module>
-    <!-- Buid the delta+client jar -->
     <module>rdf-delta-fuseki-server</module>
-    
-    <!-- Distribution file -->
+
     <module>rdf-delta-dist</module>
   </modules>
-
-  <scm>
-    <connection>scm:git:https://github.com:afs/rdf-delta.git</connection>
-    <developerConnection>scm:git:git@github.com:afs/rdf-delta.git</developerConnection>
-    <url>https://github.com:afs/rdf-delta.git</url>
-    <tag>HEAD</tag>
-  </scm>
 
   <!-- for mvn versions:display-plugin-updates,
        but generate a warning otherwise.
@@ -380,7 +393,6 @@
   </distributionManagement>
   
   <repositories>
-    <!-- Sonatype snapshot repository -->
     <repository>
       <id>sonatype.public</id>
       <name>Sonatype Snapshots Repository</name>
@@ -394,7 +406,8 @@
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
     </repository>
-    <!-- Only needed for Jena snapshots -->
+
+    <!-- Only needed for Jena snapshots - - >
     <repository>
       <id>apache.snapshots</id>
       <name>Apache Snapshot Repository</name>
@@ -406,6 +419,8 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    -->
+
   </repositories>
 
 </project>
