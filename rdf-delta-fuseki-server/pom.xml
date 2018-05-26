@@ -16,9 +16,7 @@
    limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>rdf-delta-fuseki-server</artifactId>
@@ -29,7 +27,7 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.0</version>
   </parent> 
 
   <dependencies>
@@ -37,13 +35,13 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-fuseki</artifactId>
-      <version>0.4.0-SNAPSHOT</version>
+      <version>0.4.0</version>
     </dependency> 
  
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-client</artifactId>
-      <version>0.4.0-SNAPSHOT</version>
+      <version>0.4.0</version>
     </dependency> 
 
     <dependency>
