@@ -22,14 +22,14 @@ These are available in a single package from:
 
 [central.maven.org::rdf-delta-dist](http://central.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist/)
 
-Download the latse version and unpack the zip file: there will be a
+Download the latest version and unpack the zip file: there will be a
 directory `rdf-delta-VER`.
 
 # Demonstration
 
 For demonstration/experimentation purposes, this "getting started" guide
 runs all the servers on the local machine.  In a production enviroment,
-the different servers should be run on separate machines each on
+the different servers should be run on separate machines, each on
 separate hardware.
 
 ## Run the servers
@@ -37,7 +37,7 @@ separate hardware.
 It is convenient to run each of these comands on different windows: each
 server has logging to the console to show what is happening.
 
-Run the patch log server which keeps persisetnt logs on-disk:
+Run the patch log server which keeps persistent logs on-disk:
 
 ```
  java -jar rdf-delta-server.jar --base DeltaSever
@@ -50,7 +50,7 @@ Run one Fuseki server:
 ```
 
 `config-1.ttl` is a Fuseki configuration file with an in-memory dataset
-that logs changes to an patch server running at `http://localhost:1066/`.
+that logs changes to a patch server running at `http://localhost:1066/`.
 
 The SPARQL endpoint is `http://localhost:3030/ds1`.
 
@@ -101,7 +101,7 @@ Query the Fuseki server again:
     --------------------------------------------------
 ```
 
-To show master-master replicated Fuseki server, start a second one on a
+To show replicated Fuseki server, start a second one on a
 different port:
 
 ```
@@ -149,7 +149,6 @@ to get
 ```
 
 # <a name="fuseki-config"></a>The Fuseki Configuration file
-
 
 This is the file Fuseki configuration file use above, with additonal
 comments.
