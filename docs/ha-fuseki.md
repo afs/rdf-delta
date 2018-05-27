@@ -20,7 +20,7 @@ Server.
 
 These are available in a single package from:
 
-[central.maven.org::rdf-delta-dist](http://central.maven.org/maven2/org/seaborne/org/seaborne/rdf-delta/rdf-delta-dist/)
+[central.maven.org::rdf-delta-dist](http://central.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist/)
 
 Download the latse version and unpack the zip file: there will be a
 directory `rdf-delta-VER`.
