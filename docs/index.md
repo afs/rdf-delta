@@ -35,6 +35,10 @@ distributing changes to RDF datasets.
 * "[RDF Patch](rdf-patch.html)" for the format for recording changes.
 * "[RDF Patch Logs](rdf-patch-logs.html)" for organising and accessing RDF Patches
 
+## Examples
+
+* [High Available Fuseki](ha_fuseki.html)
+
 ## Code
 
 [https://github.com/afs/rdf-delta](https://github.com/afs/rdf-delta)

@@ -108,13 +108,13 @@ different port:
   java -jar delta-fuseki.jar -port 3535 --conf config-2.ttl
 ```
 
-To help further distriniguish the server for this demo, the dataset is
-called `ds2`. It woudl normally be the same name if the two servers are
-behidn a load balancer.
+To help further distiniguish the server for this demo, the dataset is
+called `ds2`. It would normally be the same name if the two servers are
+behind a load balancer.
 
 The second  SPARQL endpoint is `http://localhost:3535/ds2`.
 
-Query that server and it should already the same data:
+Query the server and it should already have the same data:
 
 ```
   s-query --service http://localhost:3535/ds2 --output=text 'SELECT * { ?s ?p ?o }'
