@@ -2,8 +2,7 @@ language: java
 sudo: false
 script: mvn verify
 jdk:
-  - oraclejdk8
-##  - openjdk8
+  - openjdk8
 
 ## env:
 ##   global:
