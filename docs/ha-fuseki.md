@@ -40,7 +40,7 @@ server has logging to the console to show what is happening.
 Run the patch log server which keeps persistent logs on-disk:
 
 ```
- java -jar rdf-delta-server.jar --base DeltaSever
+ java -jar delta-server.jar --base DeltaSever
 ```
 
 Run one Fuseki server:
