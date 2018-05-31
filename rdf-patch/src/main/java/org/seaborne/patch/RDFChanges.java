@@ -64,7 +64,9 @@ public interface RDFChanges {
     /** Indicator that a transaction begins, or becomes a write transaction. */
     public void txnBegin() ;
     
-    /** Indicator that a transaction commits */
+    /** Indicator that a transaction commits.
+     *  If this throws an exception, the transaction will be aborted locally and not commit after all. 
+     */
     public void txnCommit() ;
     
     /** Indicator that a transaction aborts */

@@ -37,10 +37,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaHttpException ;
-import org.seaborne.delta.DeltaOps ;
-import org.seaborne.delta.Id ;
+import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesWriter;
@@ -128,9 +125,12 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 
     @Override
     public void txnCommit() {
+        // This adds the "TC"
         super.txnCommit();
-        try { send(); } 
-        finally { reset(); } 
+        // This will throw an exception if the patch isn't current.
+        // send does reset().
+        // The exception passes up and DatasetGraphCjanges turns the commit into an abort.  
+        send();
     }
 
     @Override
@@ -150,11 +150,10 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     }
     
     public void send() {
-        try { 
-            synchronized(syncObject) {
-                send$();
-            } 
-        } finally { reset(); }
+        synchronized(syncObject) {
+            try { send$(); }
+            finally { reset(); }
+        }
     }
     
     /** Get the protocol response - may be null if the change was aborted.  */
@@ -236,7 +235,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         
         int attempts = 0 ;
         for(;;) {
-            
             HttpPost postRequest = new HttpPost(urlSupplier.get());
             postRequest.setEntity(new ByteArrayEntity(bytes));
 
@@ -250,6 +248,12 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 if ( sc >= 300 && sc <= 399 ) {
                     FmtLog.info(LOG, "Send patch %s HTTP %d", idStr, sc);
                     throw new DeltaHttpException(sc, "HTTP Redirect");
+                }
+                if ( sc == 400 ) {
+                    // Bad request.
+                    // This includes being out of sync with the patch log due to a concurrent update.
+                    FmtLog.warn(LOG, "Patch %s : HTTP bad request: %s", idStr, r.getStatusLine().getReasonPhrase());
+                    throw new DeltaBadRequestException(r.getStatusLine().getReasonPhrase());
                 }
                 if ( sc == 401 && attempts == 1 && resetAction != null ) {
                     resetAction.run();

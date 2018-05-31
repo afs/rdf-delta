@@ -49,12 +49,12 @@ public class DeltaSystem {
         private Logger log = Delta.DELTA_LOG; 
         @Override
         public void start() {
-            log.debug("Delta initialization");
+            log.debug("Delta initialization (level 0)");
         }
 
         @Override
         public void stop() {
-            log.debug("Delta shutdown");
+            log.debug("Delta shutdown (level 0)");
         }
 
         @Override

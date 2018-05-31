@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong ;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DeltaConst ;
@@ -91,9 +92,7 @@ public class FileStore {
 
         // Delete any tmp files left lying around.
         List<String> tmpFiles = scanForTmpFiles(dirPath);
-        if ( ! tmpFiles.isEmpty() ) {
-            
-        }
+        tmpFiles.forEach(FileOps::delete);
                 
         // Find existing files.
         List<Long> indexes = scanForIndex(dirPath, basename);
@@ -107,7 +106,7 @@ public class FileStore {
         } else {
             min = indexes.get(0);
             max = indexes.get(indexes.size()-1);
-            if ( LOG.isDebugEnabled() ) FmtLog.debug(LOG, "FileStore : index [%d,%d] %s", min, max, dirname);
+            FmtLog.debug(LOG, "FileStore : index [%d,%d] %s", min, max, dirname);
         }
         FileStore fs = new FileStore(dirPath, basename, indexes, min, max);
         areas.put(k, fs);

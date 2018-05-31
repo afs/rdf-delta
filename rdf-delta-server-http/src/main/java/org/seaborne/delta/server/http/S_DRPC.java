@@ -19,27 +19,7 @@
 package org.seaborne.delta.server.http;
 
 import static java.lang.String.format;
-import static org.seaborne.delta.DeltaConst.F_ARG ;
-import static org.seaborne.delta.DeltaConst.F_ARRAY ;
-import static org.seaborne.delta.DeltaConst.F_CLIENT ;
-import static org.seaborne.delta.DeltaConst.F_DATASOURCE ;
-import static org.seaborne.delta.DeltaConst.F_ID ;
-import static org.seaborne.delta.DeltaConst.F_NAME ;
-import static org.seaborne.delta.DeltaConst.F_OP ;
-import static org.seaborne.delta.DeltaConst.F_TOKEN ;
-import static org.seaborne.delta.DeltaConst.F_URI ;
-import static org.seaborne.delta.DeltaConst.F_VALUE ;
-import static org.seaborne.delta.DeltaConst.OP_CREATE_DS;
-import static org.seaborne.delta.DeltaConst.OP_DEREGISTER ;
-import static org.seaborne.delta.DeltaConst.OP_DESCR_DS ;
-import static org.seaborne.delta.DeltaConst.OP_DESCR_LOG ;
-import static org.seaborne.delta.DeltaConst.OP_ISREGISTERED ;
-import static org.seaborne.delta.DeltaConst.OP_LIST_DS ;
-import static org.seaborne.delta.DeltaConst.OP_LIST_DSD ;
-import static org.seaborne.delta.DeltaConst.OP_LIST_LOG_INFO;
-import static org.seaborne.delta.DeltaConst.OP_PING ;
-import static org.seaborne.delta.DeltaConst.OP_REGISTER ;
-import static org.seaborne.delta.DeltaConst.OP_REMOVE_DS ;
+import static org.seaborne.delta.DeltaConst.* ;
 
 import java.io.IOException ;
 import java.io.InputStream ;
@@ -107,6 +87,7 @@ public class S_DRPC extends DeltaServlet {
         try {
             // Header: "op", "client", "token"?
             String op = getFieldAsString(input, F_OP);
+            String opid = getFieldAsString(input, F_OP_ID);
             JsonObject arg = getFieldAsObject(input, F_ARG);
     
             if ( op == null )
@@ -116,7 +97,7 @@ public class S_DRPC extends DeltaServlet {
             RegToken regToken = null;
             if ( input.hasKey(F_TOKEN) )
                 regToken = new RegToken(getFieldAsString(input,  F_TOKEN));
-            return DeltaAction.create(req, resp, getLink(), regToken, op, arg, input);
+            return DeltaAction.create(req, resp, getLink(), regToken, op, opid, arg, input);
         } catch (JsonException ex) {
             throw new DeltaBadRequestException("Bad JSON in request: "+ex.getMessage()+ " : "+JSON.toStringFlat(input));
         } 

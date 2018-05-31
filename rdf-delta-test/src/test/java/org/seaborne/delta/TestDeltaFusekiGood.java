@@ -29,6 +29,7 @@ import org.apache.jena.rdfconnection.RDFConnectionFactory ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.junit.* ;
 import org.seaborne.delta.server.http.PatchLogServer ;
+import static org.seaborne.delta.BaseTestDeltaFuseki.Start.*;
 
 /**
  * Tests for Fuseki with Delta integration when things are going well.
@@ -36,7 +37,7 @@ import org.seaborne.delta.server.http.PatchLogServer ;
  * @see TestDeltaFusekiBad
  */
 public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
-    // May leak a few TIME_WAIT conenctions.
+    // May leak a few TIME_WAIT connections.
     protected static FusekiServer server1;
     protected static FusekiServer server2;
     protected static PatchLogServer  patchLogServer;
@@ -47,24 +48,34 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     
     @BeforeClass
     public static void beforeClass() {
+        try {
+        
         dftStdHttpClient = HttpOp.getDefaultHttpClient();
         
         HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
         
-        patchLogServer = patchLogServer();
-        server1 = fuseki1();
-        server2 = fuseki2();
+        patchLogServer = patchLogServer(CLEAN);
+        
+        // This needs testing.
+        server1 = fuseki1(CLEAN);
+        server2 = fuseki2(CLEAN); // Can not create!
         
         URL_DPS = "http://localhost:"+D_PORT+"/";
         
         conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
         conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
+        
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
     }
     
     @AfterClass
     public static void afterClass() {
-        server1.stop();
-        server2.stop();
+        if ( server1 != null )
+            server1.stop();
+        if ( server2 != null )
+            server2.stop();
         patchLogServer.stop();
         IO.close( ((CloseableHttpClient)HttpOp.getDefaultHttpClient()) );
         HttpOp.setDefaultHttpClient(dftStdHttpClient);
@@ -73,12 +84,15 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     @Before public void before() {}
     @After  public void after()  {}
 
-    @Test public void basic_1() {
+    @Test 
+    //@Ignore
+    public void basic_1() {
         conn1.query("ASK{}");
         conn2.query("ASK{}");
     }
     
-    @Test public void update_1() {
+    @Test
+    public void update_1() {
         // Do an update on one server ...
         conn1.update(PREFIX+"INSERT DATA { :s :p 'update_1' }");
         // And see it on the other server ...
@@ -87,7 +101,8 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
         }
     }
     
-    @Test public void update_2() {
+    @Test
+    public void update_2() {
         // Do an update on one server ...
         conn1.update(PREFIX+"INSERT DATA { :s :p 'update_2_A' }");
         // And on the other server ...

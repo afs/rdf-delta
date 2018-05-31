@@ -19,11 +19,12 @@
 package org.seaborne.delta.client;
 
 import static org.seaborne.delta.DeltaConst.F_ARG;
-import static org.seaborne.delta.DeltaConst.F_OP;
+import static org.seaborne.delta.DeltaConst.*;
 import static org.seaborne.delta.DeltaConst.F_TOKEN;
 
 import java.io.IOException ;
 import java.util.Objects ;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
@@ -45,15 +46,16 @@ import org.slf4j.Logger ;
 
 public class DRPC {
     static private Logger LOG = Delta.DELTA_RPC_LOG ; 
+    static AtomicLong counter = new AtomicLong(0);
     
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, String opName, RegToken token, JsonValue arg) {
         JsonObject a = JSONX.buildObject((b)->{
             if ( token != null )
                 b.key(F_TOKEN).value(token.asString());
-            b.key(F_OP).value(opName);
-            b.key(F_ARG).value(arg);
-            
+            b.pair(F_OP, opName);
+            b.pair(F_OP_ID, Long.toString(counter.incrementAndGet()));
+            b.pair(F_ARG, arg);
             }) ;
         return rpc(url, a) ;
     }

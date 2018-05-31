@@ -60,6 +60,8 @@ public class DeltaConst {
     public static final String F_STORAGE       = "storage";
     public static final String F_CLIENT        = "client";
     public static final String F_TOKEN         = "token";
+    // For tracking.
+    public static final String F_OP_ID         = "opid";
     
     // Used as an alternative to "name" - now consolidated on "name"
     // May need to reuse field at sometime.

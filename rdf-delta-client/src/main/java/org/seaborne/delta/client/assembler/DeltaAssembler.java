@@ -18,44 +18,47 @@
 
 package org.seaborne.delta.client.assembler;
 
-import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty ;
-import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue ;
-import static org.seaborne.delta.DeltaConst.symDeltaClient ;
-import static org.seaborne.delta.DeltaConst.symDeltaConnection ;
-import static org.seaborne.delta.DeltaConst.symDeltaZone ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaPatchLog ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage ;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone ;
+import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty;
+import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
+import static org.seaborne.delta.DeltaConst.symDeltaClient;
+import static org.seaborne.delta.DeltaConst.symDeltaConnection;
+import static org.seaborne.delta.DeltaConst.symDeltaZone;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaPatchLog;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage;
+import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone;
 
-import java.io.InputStream ;
-import java.util.Arrays ;
-import java.util.List ;
-import java.util.concurrent.Executors ;
-import java.util.concurrent.ScheduledExecutorService ;
-import java.util.concurrent.TimeUnit ;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.jena.assembler.Assembler ;
-import org.apache.jena.assembler.Mode ;
-import org.apache.jena.assembler.assemblers.AssemblerBase ;
-import org.apache.jena.assembler.exceptions.AssemblerException ;
-import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.lib.NotImplemented ;
-import org.apache.jena.atlas.logging.FmtLog ;
-import org.apache.jena.atlas.logging.Log ;
-import org.apache.jena.query.DatasetFactory ;
-import org.apache.jena.rdf.model.Resource ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.util.Context ;
-import org.seaborne.delta.DataSourceDescription ;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.client.* ;
+import org.apache.jena.assembler.Assembler;
+import org.apache.jena.assembler.Mode;
+import org.apache.jena.assembler.assemblers.AssemblerBase;
+import org.apache.jena.assembler.exceptions.AssemblerException;
+import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.atlas.web.HttpException;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.util.Context;
+import org.apache.jena.tdb.base.file.Location;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.changes.RDFChangesN ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
+import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.changes.RDFChangesN;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Assembler for a locally managed dataset with changes set to a remote log */ 
 public class DeltaAssembler extends AssemblerBase implements Assembler {
@@ -93,12 +96,14 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         // delta:zone.
         if ( ! exactlyOneProperty(root, pDeltaZone) )
             throw new AssemblerException(root, "No location for state manangement (zone)") ;
-        String zoneLocation = getAsStringValue(root, pDeltaZone);
+        String zoneLocationStr = getAsStringValue(root, pDeltaZone);
+        Location zoneLocation = Location.create(zoneLocationStr);
 
         // Name of the patch log.
         // delta:patchlog
         if ( ! exactlyOneProperty(root, pDeltaPatchLog) )
             throw new AssemblerException(root, "No patch log name") ;
+        // XXX
         String dsName = getAsStringValue(root, pDeltaPatchLog);
 
         // delta:storage
@@ -116,33 +121,70 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             RDFChanges sc = DeltaLib.destination(dest);
             streamChanges = RDFChangesN.multi(streamChanges, sc) ;
         }
+        Dataset dataset = setupDataset(root, dsName, zoneLocation, storage, destURL);
         
+        //  Poll for changes as well.
+//      if ( root.hasProperty(pPollForChanges) ) {
+//          if ( ! exactlyOneProperty(root, pPollForChanges) )
+//              throw new AssemblerException(root, "Multiple places to poll for chnages") ;
+//          String source = getStringValue(root, pPollForChanges) ;
+//          forkUpdateFetcher(source, dsgSub) ;
+//      }
+        
+        return dataset;
+    }
+    
+    static Dataset setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, String destURL) {
         // Link to log server.
         DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
-        // Touch server
-        Id clientId = Id.create();
-        deltaLink.register(clientId);
-
-        // Create.connect the local copy.
         Zone zone = Zone.connect(zoneLocation);
-
-        // Local client.
         DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
-        Id dsRef =  setup(deltaClient, dsName, "delta:"+dsName, storage);
-        DeltaConnection deltaConnection = deltaClient.get(dsRef);
+        SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
+        // Use this as effectively a "ping" of the patch log server.
+        registerMaybe(deltaLink);
+
+        Id dsRef = zone.getIdForName(dsName);
+        
+        if ( dsRef == null ) {
+            //DEV System.err.println("Does not exist locally");
+            // new locally - need to wait for the server
+            try { 
+                DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
+                if ( dsd == null )
+                    dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName); // CRASH
+                else
+                    dsRef = dsd.getId();  
+                //Id dsRef0 = deltaClient.connect(dsName, syncPolicy);
+                // dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName); // CRASH
+                deltaClient.register(dsRef, storage, syncPolicy);
+            } catch (HttpException ex) {
+                throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage());
+            }
+        } else {
+            //DEV System.err.println("Exists locally");
+            // Exists locally.
+            try {
+                DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
+                if ( dsd == null )
+                    throw new AssemblerException(root, "Local dataset has no patch log: "+dsName);
+                if ( ! dsd.getId().equals(dsRef) )
+                    throw new AssemblerException(root, "Local dataset does not match remote patch log: "+dsName);
+            } catch (HttpException ex) {
+                // Ignore
+            }
+            deltaClient.connect(dsRef, syncPolicy);
+        }
+//        // OLD Local client.
+//        Id dsRef = setup(deltaClient, dsName, "delta:"+dsName, storage);
+        
+        DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
         DatasetGraph dsg = deltaConnection.getDatasetGraph();
+        if ( dsg == null )
+            System.err.println("NPE");
 
         // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation. 
         // And someday tap into services to add a "sync before operation" step.
 
-        //  Poll for changes as well.
-//        if ( root.hasProperty(pPollForChanges) ) {
-//            if ( ! exactlyOneProperty(root, pPollForChanges) )
-//                throw new AssemblerException(root, "Multiple places to poll for chnages") ;
-//            String source = getStringValue(root, pPollForChanges) ;
-//            forkUpdateFetcher(source, dsgSub) ;
-//        }
-        
        // Put state into dsg Context "for the record".
        Context cxt = dsg.getContext();
        cxt.set(symDeltaClient, deltaClient);
@@ -151,22 +193,17 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         
        return DatasetFactory.wrap(dsg);
     }
-
-    static Id setup(DeltaClient dClient, String datasourceName, String baseURI, LocalStorageType storageType) {
-        DataSourceDescription dsd = dClient.getLink().getDataSourceDescriptionByURI(baseURI);
-        SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
-        if ( dsd == null ) {
-            Id dsRef = dClient.newDataSource(datasourceName, baseURI);
-            dClient.register(dsRef, storageType, syncPolicy);
-            return dsRef;
+    
+    static void registerMaybe(DeltaLink deltaLink) {
+        try { 
+            deltaLink.ping();
+            Id clientId = Id.create();
+            deltaLink.register(clientId);
+        } catch (HttpException ex) {
+            // rc < 0 : failed to connect - ignore.
+            if ( ex.getResponseCode() > 0 )
+                throw ex;
         }
-        Id dsRef = dsd.getId();
-        if ( dClient.getZone().exists(dsRef) )
-            // New locally, exists in server.
-            dClient.connect(dsRef, syncPolicy);
-        else
-            dClient.register(dsRef, storageType, syncPolicy);    
-        return dsRef;
     }
     
     private InputStream openChangesSrc(String x) {

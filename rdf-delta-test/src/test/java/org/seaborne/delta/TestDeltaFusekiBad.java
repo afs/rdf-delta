@@ -34,6 +34,7 @@ import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.sparql.engine.http.QueryExceptionHTTP ;
 import org.junit.* ;
 import org.seaborne.delta.server.http.PatchLogServer ;
+import static org.seaborne.delta.BaseTestDeltaFuseki.Start.*;
 
 /**
  * Tests for Fuseki with Delta integration when things are not going well.
@@ -64,8 +65,8 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 
     @Test(expected=QueryExceptionHTTP.class)
     public void fuseki_stop() {
-        PatchLogServer patchLogServer = patchLogServer();
-        FusekiServer server1 = fuseki1();
+        PatchLogServer patchLogServer = patchLogServer(CLEAN);
+        FusekiServer server1 = fuseki1(CLEAN);
         try { 
             server1.stop();
             RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
@@ -82,12 +83,10 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
         //PatchLogServer patchLogServer = patchLogServer();
         
         // AssemblerException -> HttpException -> NoHttpResponseException
-        FusekiServer server1 = fuseki1();
+        
+        // Assembler exception only if the dataset does not exis in the Zone.  
+        FusekiServer server1 = fuseki1(CLEAN);
         server1.stop();
-
-        RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
-        QueryExecution qExec = conn1.query("ASK{}");
-        qExec.execAsk();
     }
 
     @Test
@@ -101,7 +100,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
             QueryExecution qExec = conn1.query("ASK{}");
             try { qExec.execAsk(); fail(); } catch(QueryExceptionHTTP ex) {} 
             // Restart, same port.
-            server1 = fuseki1();
+            server1 = fuseki1(Start.RESTART);
             QueryExecution qExec1 = conn1.query("ASK{}");
             qExec1.execAsk();
         } finally {
@@ -119,21 +118,25 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
             patchLogServer = null;
             
             // Should fail
-            try {
-                RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
+            try (RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ) {
                 conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
                 Assert.fail("Should not be able to update at the moment");
             } catch (HttpException ex) {
                 assertEquals(503, ex.getResponseCode());
+                // Expected - ignore.
                 //assertTrue(ex.getResponseCode()>= 500);
             }
             
-            patchLogServer = patchLogServer(); 
+            patchLogServer = patchLogServer(Start.RESTART); 
 
-            RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
-            QueryExecution qExec = conn1.query("ASK{}");
-            // 500 due to offline patchLogServer.
-            qExec.execAsk();
+            try (RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1)) {
+                conn1.query("ASK{}").execAsk();
+            }
+            
+            // Should be able to update.
+            try (RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ) {
+                conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
+            }
         } finally {
             server1.stop();
             if ( patchLogServer != null )

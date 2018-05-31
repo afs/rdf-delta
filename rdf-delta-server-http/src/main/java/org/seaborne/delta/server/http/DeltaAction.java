@@ -49,21 +49,21 @@ public class DeltaAction {
     /** HTTP action */
     public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
                                      DeltaLink deltaLink, RegToken regToken,
-                                     String opName, Args args) {
-        return new DeltaAction(request, response, deltaLink, regToken, null, null, null, args);
+                                     String opName, String opId, Args args) {
+        return new DeltaAction(request, response, deltaLink, regToken, opName, opId, null, null, args);
     }
         
     /** DRPC action */
     public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
                                      DeltaLink deltaLink, RegToken regToken,
-                                     String opName, JsonObject arg, JsonObject requestObject) {
-        return new DeltaAction(request, response, deltaLink, regToken, opName, arg, requestObject, null);
+                                     String opName, String opId, JsonObject arg, JsonObject requestObject) {
+        return new DeltaAction(request, response, deltaLink, regToken, opName, opId, arg, requestObject, null);
     }
     
     /** DRPC action */
     private DeltaAction(HttpServletRequest request, HttpServletResponse response, 
                         DeltaLink deltaLink, RegToken regToken, 
-                        String opName, JsonObject arg, JsonObject requestObject, 
+                        String opName, String opId, JsonObject arg, JsonObject requestObject, 
                         Args args) {
         this.request = request;
         this.response = response;

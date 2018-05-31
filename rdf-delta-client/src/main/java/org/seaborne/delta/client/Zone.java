@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption ;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects ;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern ;
 import java.util.stream.Collectors;
@@ -99,6 +96,12 @@ public class Zone {
         return get(Location.create(area));
     }
     
+    /** Return the locations of all zones. */
+    public static Collection<String> zones() {
+        return zones.keySet().stream().map(Location::getDirectoryPath).collect(Collectors.toSet());
+    }
+    
+
     /** Return the zone for this area if it exists in the JVM. */
     public static Zone get(Location area) {
         return zones.getOrDefault(area, null);

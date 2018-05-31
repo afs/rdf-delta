@@ -25,12 +25,12 @@ public class DeltaInitLevel1 implements DeltaSubsystemLifecycle {
     private Logger log = Delta.DELTA_LOG; 
     @Override
     public void start() {
-        log.debug("Delta initialization");
+        log.debug("Delta initialization (level 1)");
     }
 
     @Override
     public void stop() {
-        log.debug("Delta shutdown");
+        log.debug("Delta shutdown (level 1)");
     }
 
     @Override

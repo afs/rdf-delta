@@ -161,7 +161,10 @@ public class DeltaClient {
         return dsRef;
     }
     
-    /** Setup local state management. */
+    /** Setup local state management. 
+     * <p>
+     * This operation contacts the patch log server.
+     */
     public void attach(String name, LocalStorageType storageType) {
         Objects.requireNonNull(name);
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(name);
@@ -170,7 +173,10 @@ public class DeltaClient {
         setupState$(dsd, storageType);
     }
     
-    /** Setup local state management. */
+    /** Setup local state management.
+     * <p>
+     * This operation contacts the patch log server.
+     */
     public void attach(Id datasourceId, LocalStorageType storageType) {
         Objects.requireNonNull(datasourceId);
         DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
@@ -189,7 +195,11 @@ public class DeltaClient {
     }
 
     /** Create a local zone entry and setup to track the existing remote datasource.
+     *  <p> 
      *  This is a combination of {@link #attach(String, LocalStorageType)} and {@link #connect(Id, SyncPolicy)}.
+     *  <p>
+     *  This operation contacts the patch log server (see {@link #attach}).
+     *
      * @param name
      * @param storageType
      * @param syncPolicy
@@ -207,7 +217,9 @@ public class DeltaClient {
      *  <pre>
      *    attach(datasourceId, storageType);
      *    connect(datasourceId, syncPolicy);
-     *  </pre> 
+     *  </pre>
+     *  <p>
+     *  This operation contacts the patch log server (see {@link #attach}).
      * @param datasourceId
      * @param storageType
      * @param syncPolicy
@@ -217,8 +229,13 @@ public class DeltaClient {
         connect(datasourceId, syncPolicy);
     }
 
+    // "connect" vs "connect and sync".
+    
     /** 
      * Connect to an existing {@code DataSource} with existing local state.
+     * This operation does not fail if it can not contact the patch log server.
+     * @param datasourceId
+     * @param syncPolicy
      */
     public void connect(Id datasourceId, SyncPolicy syncPolicy) {
         syncPolicy = applyDefault(syncPolicy);
@@ -226,22 +243,35 @@ public class DeltaClient {
             throw new DeltaConfigException("Data source '"+datasourceId.toString()+"' not found for this DeltaClient");
         DataState dataState = zone.connect(datasourceId);
         DatasetGraph dsg = zone.getDataset(dataState);
+        if ( dsg == null ) {
+            System.err.println("DSG IS null");
+        }
         DeltaConnection dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
         putCache(datasourceId, dConn);
     }
     
-    public void connectExt(Id datasourceId, DatasetGraph dsg, SyncPolicy syncPolicy) {
+    /** 
+     * Connect to an existing {@code DataSource} with provided {@link DatasetGraph} as local state.
+     * This operation does not fail if it can not contact the patch log server.
+     * @param datasourceId
+     * @param dataset
+     * @param syncPolicy
+     */
+    public void connectExt(Id datasourceId, DatasetGraph dataset, SyncPolicy syncPolicy) {
         Objects.requireNonNull(datasourceId);
         DeltaConnection dConn = get(datasourceId);
         if ( dConn != null )
             return;
         DataState dataState = zone.get(datasourceId);
-        dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
+        dConn = DeltaConnection.create(dataState, dataset, dLink, syncPolicy);
         putCache(datasourceId, dConn);
     }
 
     /** 
      * Connect to an existing {@code DataSource} with existing local state.
+     * This operation does not fail if it can not contact the patch log server.
+     * @param name
+     * @param syncPolicy
      */
     public Id connect(String name, SyncPolicy syncPolicy) {
         Id dsRef = nameToId(name);
@@ -347,6 +377,7 @@ public class DeltaClient {
     public boolean existsRemote(Id datasourceId) {
         return dLink.getDataSourceDescription(datasourceId) != null;
     }
+    
     /**
      * Get a {@link DeltaConnection}. 
      * It is not automatically up-to-date - that depends on the {@link SyncPolicy}
@@ -368,6 +399,17 @@ public class DeltaClient {
         return dConn;
     }
     
+    /**
+     * Get the {@link DeltaConnection} but only return from the local cache and do not try
+     * to contact the patch log server and do not sync according to policy.
+     * @param dsRef
+     * @return DeltaConnection or null
+     */
+    public DeltaConnection getLocal(Id dsRef) {
+        DeltaConnection dConn = getCache(dsRef);
+        return dConn;
+    }
+
     /**
      * Get a {@link DeltaConnection}. 
      * It is not automatically up-to-date - that depends on the {@link SyncPolicy}

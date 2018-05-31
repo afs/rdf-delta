@@ -18,7 +18,7 @@
 
 package org.seaborne.delta;
 
-/** Exception to throw when a request is wrong in some way : 4xx */ 
+/** Exception to throw when a request is wrong in some way : 400 */ 
 public class DeltaBadRequestException extends DeltaHttpException {
     public DeltaBadRequestException(String msg)
     { super(400, msg) ; }

@@ -63,7 +63,8 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         this(dsg, monitor, identityRunnable, identityConsumer());
     }
     
-    /** Create a {@code DatasetGraphChanges} which calls different patch log synchronization handlers on {@link #sync} and {@link #begin}.
+    /** Create a {@code DatasetGraphChanges} which calls different patch log synchronization
+     *  handlers on {@link #sync} and {@link #begin}.
      *  {@code syncHandler} defaults (with null) to "no action".
      *  
      *  Transactional usage preferred. 
@@ -203,14 +204,15 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     }
     
     @Override
-    public boolean promote() {
+    public boolean promote(Promote type) {
         // Any potential write causes a write-sync to be done in "begin".
         // Here we are inside the transaction so calling the sync handler is not possible (nested transaction risk). 
         if ( super.transactionMode() == ReadWrite.READ ) {
-            boolean b = super.promote();
+            boolean b = super.promote(type);
             if ( super.transactionMode() == ReadWrite.WRITE ) {
-                // Promotion.
+                // Promotion happened.
                 // READ_PROMOTE would not reveal any new triples.
+                // READ_COMMITTED_PROMOTE : can't atomically do local and remote "begin(write)" 
                 // Nested transaction. See above.
 //                if ( transactionType() == TxnType.READ_COMMITTED_PROMOTE )
 //                    txnSyncHandler.accept(ReadWrite.WRITE);
@@ -220,14 +222,22 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             return b;
         }
         //Already WRITE.
-        return super.promote();
+        return super.promote(type);
     }
 
     @Override
     public void commit() {
-        // Assume commit will work - signal first.
-        if ( isWriteMode() )
-            monitor.txnCommit();
+        // Assume local commit will work - so signal first.
+        // If the monitor.txnCommit fails, the commit should not happen
+        if ( isWriteMode() ) {
+            try {
+                monitor.txnCommit();
+            } catch (Exception ex) {
+                //Don't signal.  monitor.txnAbort() is a client-causd abort.
+                super.abort();
+                return; 
+            }
+        }
         super.commit();
     }
     

@@ -27,7 +27,9 @@ import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.fuseki.FusekiException ;
 import org.apache.jena.fuseki.embedded.FusekiServer;
 import org.junit.BeforeClass ;
+import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.local.DPS;
 
 /**
  * Base for tests for Fuseki with Delta integration
@@ -64,13 +66,24 @@ public class BaseTestDeltaFuseki {
     }
     
     protected static PatchLogServer patchLogServer() {
-        return patchLogServer(D_PORT, deltaServerBase);
+        return patchLogServer(Start.CLEAN);
+    }
+
+    protected static PatchLogServer patchLogServer(Start state) {
+        return patchLogServer(state, D_PORT, deltaServerBase);
     }
     
-    protected static PatchLogServer patchLogServer(int port, String base) {
-        // --- Reset state.
-        FileOps.ensureDir(base);
-        FileOps.clearAll(base);
+    protected static PatchLogServer patchLogServer(Start state, int port, String base) {
+        switch (state) {
+            case CLEAN : {
+                DPS.resetSystem();
+                FileOps.ensureDir(base);
+                FileOps.clearAll(base);
+                break;
+            }
+            case RESTART :
+                break;
+        }
         PatchLogServer dps = PatchLogServer.server(port, base);
         try { 
             dps.start();
@@ -81,15 +94,34 @@ public class BaseTestDeltaFuseki {
         }
     }
 
+    protected enum Start { CLEAN, RESTART };
+    
     protected static FusekiServer fuseki1() {
-        return fuseki(F1_PORT, fuseki_conf1);
+        return fuseki1(Start.CLEAN);
     }
     
     protected static FusekiServer fuseki2() {
-        return fuseki(F2_PORT, fuseki_conf2);
+        return fuseki2(Start.CLEAN);
+    }
+
+    protected static FusekiServer fuseki1(Start state) {
+        return fuseki(state, F1_PORT, fuseki_conf1, "target/Zone1");
     }
     
-    protected static FusekiServer fuseki(int port, String config) {
+    protected static FusekiServer fuseki2(Start state) {
+        return fuseki(state, F2_PORT, fuseki_conf2, "target/Zone2");
+    }
+    
+    private static FusekiServer fuseki(Start state, int port, String config, String zone) {
+        switch (state) {
+            case CLEAN : {
+                Zone.connect(zone).reset();
+                FileOps.clearDirectory(zone);
+                break;
+            }
+            case RESTART :
+                break;
+        }
         return FusekiServer.create().setPort(port).parseConfigFile(config).build().start();
     }
     

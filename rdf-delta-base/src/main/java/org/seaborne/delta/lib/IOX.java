@@ -134,6 +134,10 @@ public class IOX {
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
+    public static void deleteAll(String start) {
+        deleteAll(Paths.get(start));
+    }
+    
     /** Delete everything from a {@code Path} start point, including the path itself.
      * Works on files or directories.
      * Walks down the tree and deletes directories on the way backup.

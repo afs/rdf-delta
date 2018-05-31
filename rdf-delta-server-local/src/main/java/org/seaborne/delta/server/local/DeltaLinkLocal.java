@@ -190,7 +190,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         // FmtLog.info(LOG, "append: finish: Patch=%s[ver=%d] ds=%s",
         // str(rdfPatch.getId()), version, source);
         //FmtLog.info(LOG, "append (%.3fs): Patch=%s[ver=%d] ds=%s", (timeElapsed / 1000.0), str(rdfPatch.getId()), version, source);
-        FmtLog.info(LOG, "append : Patch=%s[ver=%d] ds=%s", str(rdfPatch.getId()), version, source);
+        FmtLog.info(LOG, "append : Patch=%s(>%s)[ver=%d] ds=%s", str(rdfPatch.getId()), str(rdfPatch.getPrevious()), version, source);
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */

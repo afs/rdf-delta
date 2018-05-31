@@ -35,13 +35,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.delta.Delta;
-import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.DeltaNotFoundException;
-import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
@@ -63,7 +57,8 @@ public class DeltaConnection implements AutoCloseable {
     // The version of the remote copy.
     private final DeltaLink dLink ;
 
-    // Last seen PatchLogInfo
+    // Last seen PatchLogInfo in getPatchLogInfo()
+    // null when not started
     private final AtomicReference<PatchLogInfo> remote = new AtomicReference<>(null);
     private final DatasetGraph base;
     private final DatasetGraphChanges managed;
@@ -223,9 +218,16 @@ public class DeltaConnection implements AutoCloseable {
             //FmtLog.info(LOG,  "Send patch: id=%s, prev=%s", Id.str(patch.getId()), Id.str(patch.getPrevious()));
             //long newVersion = dLink.append(dsRef, patch);
             //setLocalState(newVersion, patch.getId());
-            append(patch);
-            currentTransactionId = null;
-            reset();
+            
+            try { 
+                append(patch);
+            } catch(DeltaBadRequestException ex) {
+                FmtLog.warn(LOG, "Failed to commit: %s", ex.getMessage());
+                throw ex;
+            } finally { 
+                currentTransactionId = null;
+                reset();
+            }
         }
         
         @Override
@@ -262,10 +264,12 @@ public class DeltaConnection implements AutoCloseable {
         state.updateState(ver, Id.fromNode(patch.getId()));
     }
 
+    /** Try to sync ; return true if succeeded, else false */ 
     public boolean trySync() {
         return attempt(()->sync());
     }
     
+    /** Try to sync by {@link PatchLogInfo} ; return true if succeeded, else false */ 
     public boolean trySync(PatchLogInfo logInfo) {
         return attempt(()->sync(logInfo));
     }
@@ -275,10 +279,22 @@ public class DeltaConnection implements AutoCloseable {
         syncToVersion(logInfo.getMaxVersion());
     }
     
-    /** Sync if the policy is not NONE, the manual mode. */
-    public void trySyncIfAuto() {
-        if ( syncPolicy != SyncPolicy.NONE )
-            trySync();
+    /** Sync if the policy is not NONE, the manual mode.
+     * Return true is a sync succeeded, else false.
+     * Return false if the SyncPolicy is NONE.
+     */
+    public boolean trySyncIfAuto() {
+        if ( syncPolicy == SyncPolicy.NONE )
+            return false;
+        return trySync();
+    }
+    
+    /** 
+     * No-op end-to-end operation. This operation succeeds or throws an exception.
+     * This operation makes one attempt only to perform the ping.
+     */
+    public void ping() {
+        dLink.ping();
     }
     
     public void sync() {
@@ -431,8 +447,11 @@ public class DeltaConnection implements AutoCloseable {
         PatchLogInfo info = dLink.getPatchLogInfo(datasourceId);
         if ( info != null ) {
             if ( remote.get() != null ) {
-                if ( getRemoteVersionCached() > 0 && info.getMaxVersion() < getRemoteVersionCached() )
-                    FmtLog.warn(LOG, "[%s] Remote version behind local tracking of remote version: [%d, %d]", datasourceId, info.getMaxVersion(), getRemoteVersionCached());
+                if ( getRemoteVersionCached() > 0 && info.getMaxVersion() < getRemoteVersionCached() ) {
+                    String dsName = dLink.getDataSourceName(datasourceId);
+                    FmtLog.warn(LOG, "[ds:%s %s] Remote version behind local tracking of remote version: [%d, %d]", 
+                                     datasourceId, dsName, info.getMaxVersion(), getRemoteVersionCached());
+                }
             }
             // Set the local copy whenever we get the remote latest.
             remote.set(info);

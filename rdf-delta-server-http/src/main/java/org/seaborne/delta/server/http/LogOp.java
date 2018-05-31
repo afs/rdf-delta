@@ -28,6 +28,8 @@ import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonNumber ;
 import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.graph.Node;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
@@ -41,14 +43,16 @@ public class LogOp {
     
     /** Execute an append, assuming the action has been verified that it is an appened operation */ 
     public static void append(DeltaAction action) throws IOException {
-        LOG.info("Patch:append");
         Id dsRef = idForDatasource(action);
         if ( dsRef == null )
             throw new DeltaNotFoundException("No such datasource: '"+action.httpArgs.datasourceName+"'");
         
+        Node patchId = null;
+        
+        //FmtLog.info(LOG, "Patch:append ds:%s", dsRef); 
         try (InputStream in = action.request.getInputStream()) {
             RDFPatch patch = RDFPatchOps.read(in);
-
+            patchId = patch.getId();
             if ( false )
                 RDFPatchOps.write(System.out, patch);
 
@@ -64,13 +68,24 @@ public class LogOp {
                 .pair(DeltaConst.F_LOCATION, location)
                 .finishObject()
                 .build();
+            
+            FmtLog.info(LOG, "Patch:append ds:%s patch:%s => ver=%s", dsRef.toString(), Id.str(patchId), version);
+            
             OutputStream out = action.response.getOutputStream();
             action.response.setContentType(WebContent.contentTypeJSON);
             action.response.setStatus(HttpSC.OK_200);
             action.response.setHeader(HttpNames.hLocation, location);
+            
             JSON.write(out, rslt);
             out.flush();
+        } catch (DeltaBadPatchException ex) {
+            FmtLog.warn(LOG, ex, "Patch:append ds:%s patch:%s => %s", dsRef.toString(), Id.str(patchId), ex.getMessage());
+            throw ex;
+        } catch (Exception ex) {
+            FmtLog.error(LOG, ex, "Patch:append ds:%s patch:%s => %s", dsRef.toString(), Id.str(patchId), ex.getMessage());
+            throw ex;
         }
+
     }
     
     private static Id idForDatasource(DeltaAction action) {

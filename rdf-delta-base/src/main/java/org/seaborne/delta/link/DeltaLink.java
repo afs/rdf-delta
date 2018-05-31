@@ -56,20 +56,56 @@ public interface DeltaLink {
      */
     public List<PatchLogInfo> listPatchLogInfo();
 
-    /** Return details of the patch log (or null if not registered) */
+    /** Return details of the patch log, or null if not registered. */
     public PatchLogInfo getPatchLogInfo(Id dsRef) ;
 
     /** Return an array of {@link DataSourceDescription}s of datasets */
     public List<DataSourceDescription> listDescriptions();
     
-    /** Return details of a dataset (or null if not registered) */
+    /** Return details of a patch log, or null if not registered. */
     public DataSourceDescription getDataSourceDescription(Id dsRef) ;
+    
+    /** 
+     * Test whether patch log exists or not. 
+     * Calling {@link #getDataSourceDescription} to get details,or null, is better than
+     * calling {@code exists} if the description is needed.
+     */ 
+    public default boolean exists(Id dsRef) {
+        return getDataSourceDescription(dsRef) != null;
+    }
 
-    /** Return details of a dataset (or null if not registered) */
+    /** Return the name of a dataset, or "<null>" if not registered. */
+    public default String getDataSourceName(Id dsRef) {
+        DataSourceDescription dsd = getDataSourceDescription(dsRef);
+        if ( dsd == null )
+            return "<null>";
+        return dsd.getName();
+    }
+
+    /** Return details of a dataset, or null if not registered. */
     public DataSourceDescription getDataSourceDescriptionByURI(String uri);
 
-    /** Return details of a dataset (or null if not registered) */
+    /** 
+     * Test whether patch log exists or not. 
+     * Calling {@link #getDataSourceDescriptionByURI} to get details,or null, is better than
+     * calling {@code existsByURI} if the description is needed.
+     */ 
+    public default boolean existsByURI(String uri) {
+        return getDataSourceDescriptionByURI(uri) != null;
+    }
+
+
+    /** Return details of a dataset, or null if not registered. */
     public DataSourceDescription getDataSourceDescriptionByName(String name);
+    
+    /** 
+     * Test whether patch log exists or not. 
+     * Calling {@link #getDataSourceDescriptionByName} to get details,or null, is better than
+     * calling {@code existsByName} if the description is needed.
+     */ 
+    public default boolean existsByName(String name) {
+        return getDataSourceDescriptionByName(name) != null;
+    }
 
     /** Send patch, return new version. 
      *  Return -1 for the patch didn't happen, and there is no change

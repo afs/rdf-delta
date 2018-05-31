@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.client;
 
+import static java.lang.String.format;
+
 import java.io.InputStream ;
 import java.util.List;
 import java.util.Objects;
@@ -124,23 +126,27 @@ public class DeltaLinkHTTP implements DeltaLink {
             } catch (HttpException ex) {
                 if ( ex.getResponseCode() == HttpSC.UNAUTHORIZED_401 ) {
                     if ( retryable.get() && i < RETRIES_REGISTRATION ) {
-                        if ( retryMsg != null  )
-                            Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
+                        // Reregister
                         reregister();
-                        // Retry.
                         continue;
                     }
+                    if ( retryMsg != null  )
+                        Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
+                    else
+                        Delta.DELTA_HTTP_LOG.warn("Failed to register");
+                    // Failed to register.
                     if ( failureMsg != null )
                         throw new DeltaNotRegisteredException(failureMsg.get());
                     else
                         throw new DeltaNotRegisteredException(ex.getMessage());
                 }
+                // Other HTTP problems.
                 if ( failureMsg != null )
                     // Other...
                     Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
                 throw ex;
             }
-            // Any tother exception - don't retry.
+            // Any other exception - don't retry.
         }
     }
     
@@ -438,8 +444,9 @@ public class DeltaLinkHTTP implements DeltaLink {
         // [NET] Network point
         return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx),
                      ()->true,
-                     ()->"Retry rpc : "+opName,
-                     ()->"Failed rpc : "+opName);
+                     ()->format("Retry : %s",opName),
+                     ()->format("Failed : %s %s",opName,JSON.toStringFlat(argx))
+                     );
     }
     
     // Perform an RPC, once - no retries, no logging.

@@ -161,18 +161,22 @@ public class PatchLogFile implements PatchLog {
 
     private void validateLatest() {
         if ( CHECKING ) {
-            long x = fileStore.getCurrentIndex();
-            // latestVersion = -1 (UNSET) and getCurrentIndex==0 (INIT) is OK
-            if ( latestVersion == VERSION_UNSET ) {
-                if ( x != VERSION_INIT )
-                    FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
-            } else if ( x > VERSION_INIT ) {
-                // Legal versions start 1.
-                if ( latestVersion != x )
-                    FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
-            }
-            else if ( latestVersion > VERSION_INIT ) {
-                FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
+            synchronized(this) {
+                long ver = latestVersion;
+                long x = fileStore.getCurrentIndex();
+                // latestVersion = -1 (UNSET) and getCurrentIndex==0 (INIT) is OK
+                if ( ver == VERSION_UNSET ) {
+                    if ( x != VERSION_INIT )
+                        FmtLog.error(LOG, "Out of sync(1): latestVersion=%s, fileStore=%s", ver, x);
+                } else if ( x > VERSION_INIT ) {
+                    // Legal versions start 1.
+                    if ( ver != x )
+                        // Sync needed for this to be valid.
+                        FmtLog.error(LOG, "Out of sync(2): latestVersion=%s, fileStore=%s", ver, x);
+                }
+                else if ( ver > VERSION_INIT ) {
+                    FmtLog.error(LOG, "Out of sync(3): latestVersion=%s, fileStore=%s", ver, x);
+                }
             }
         }
     }
@@ -269,7 +273,7 @@ public class PatchLogFile implements PatchLog {
     
     private void validateNewPatch(Id patchId, Id previousId, BadHandler action) {
         if ( patchId == null )
-            action.bad("No id");
+            action.bad("Patch: No id");
         if ( idToVersion.containsKey(patchId) )
             action.bad("Patch already exists: patch=%s", patchId);
         if ( headers.containsKey(patchId) ) 
@@ -314,13 +318,17 @@ public class PatchLogFile implements PatchLog {
     }
     
     private void badPatchEx(String fmt, Object...args) {
-        badPatchError(fmt, args);
+        badPatchWarning(fmt, args);
         String msg = String.format(fmt, args);
         throw new DeltaBadPatchException(msg);
     }
     
     private void badPatchError(String fmt, Object...args) {
         FmtLog.error(LOG, String.format(fmt, args)); 
+    }
+
+    private void badPatchWarning(String fmt, Object...args) {
+        FmtLog.warn(LOG, String.format(fmt, args)); 
     }
 
     private void validateVersionNotInUse(long version) {
