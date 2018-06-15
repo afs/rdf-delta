@@ -37,7 +37,7 @@ distributing changes to RDF datasets.
 
 ## Examples
 
-* [High Available Fuseki](ha_fuseki.html)
+* [High Available Fuseki](ha-fuseki.html)
 
 ## Code
 
