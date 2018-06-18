@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+## Replace 
+
 ## Usage: dcmd <delta_main>
 ## Sets up the java enviroment to run a command from RDF Delta.
 
@@ -51,7 +53,7 @@ then
 fi
 
 function usage() {
-    echo "Commands: server, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
+    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
 }
@@ -68,6 +70,7 @@ fi
 BASE_PKG="org.seaborne.delta"
 DCMD_PKG="${BASE_PKG}.cmds"
 
+## @@ To java.
 # Alternative names.
 case $CMD in
      help|-h|--help)
@@ -107,6 +110,7 @@ case $CMD in
 	CMD_CLS="delta.server.DeltaServer"
 	;;
     org.seaborne.delta.* | delta.* )
+	## @@ Develpoment feature
 	CMD_CLS=$CMD
 	;;
     tools.*)
@@ -129,4 +133,8 @@ esac
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
-java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"
+## exec org.seaborne.delta.cmds.dcmd
+exec java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"
+
+## Becomes:
+#exec java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}"  org.seaborne.delta.cmds.dcmd "$@"

@@ -34,19 +34,43 @@ public class dcmd {
         String cmd = args[0];
         String[] argsSub = Arrays.copyOfRange(args, 1, args.length);
         String cmdExec = cmd;
+
+        // Help
+        switch (cmdExec) {
+            case "help" :
+            case "-h" :
+            case "-help" :
+            case "--help" :
+                System.err.println("Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r");
+                System.exit(0);
+        }
+
         
+        // Map to full name.
         switch (cmdExec) {
             case "appendpatch" :
             case "append" :
             case "add" :
                 cmdExec = "addpatch";
                 break;
-            case "mk": cmdExec = "mklog" ; break; 
-            case "rm": cmdExec = "rmlog" ; break; 
-            case "get": cmdExec = "getpatch"; break;
-            case "server": cmdExec = "patchserver"; break;
+            case "mk" :
+                cmdExec = "mklog";
+                break;
+            case "ls" :
+                cmdExec = "list";
+                break;
+            case "rm" :
+                cmdExec = "rmlog";
+                break;
+            case "get" :
+                cmdExec = "getpatch";
+                break;
+            case "server" :
+                cmdExec = "patchserver";
+                break;
         }
        
+        // Execuet sub-command
         switch (cmdExec) {
             case "mklog":       mklog.main(argsSub); break;
             case "rmlog":       rmlog.main(argsSub); break;
