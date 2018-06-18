@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Known {@link PatchStore}s. A {@link PatchStore} manages a number of {@link PatchLog}s.
  * <p>
- * There is a default {@link PatchStore} where new patch logs are created uinless
+ * There is a default {@link PatchStore} where new patch logs are created unless
  * otherwise specificed.
  */
 public class PatchStoreMgr {
@@ -110,6 +110,7 @@ public class PatchStoreMgr {
     }
     
     /**
+     * 
      * Get the {@link PatchStore}. Return the current global default if not
      * specifically found
      */
@@ -122,14 +123,14 @@ public class PatchStoreMgr {
     }
     
     /**
-     * Get the PatchStore by provider name.
+     * Get the {@link PatchStore} by provider name.
      */
     public static PatchStore getPatchStoreByProvider(String providerName) {
         return patchStores.get(providerName);
     }
 
     /**
-     * Get the current default {@code PatchStore}, e.g. for creating new {@link PatchLog}s.
+     * Get the current default {@link PatchStore}, e.g. for creating new {@link PatchLog}s.
      */
     public static PatchStore getDftPatchStore() {
         return dftPatchStore ;

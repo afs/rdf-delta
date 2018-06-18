@@ -39,7 +39,7 @@ public class getpatch extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        return getCommandName()+"--server URL --dsrc NAME id";
+        return getCommandName()+" --server URL --dsrc NAME id";
     }
     
     @Override

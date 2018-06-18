@@ -18,40 +18,18 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.seaborne.delta.DeltaConst.F_LOG_TYPE ;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection ;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors ;
 
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.ListUtils ;
 import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.lib.SetUtils ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.lib.JSONX ;
+import org.seaborne.delta.*;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
@@ -81,6 +59,7 @@ public class LocalServer {
     
     /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
     static /*package*/ void initSystem() {
+        //Class initializer
         // Ensure the file-based PatchStore provider is available
         if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreFileProvider) ) {
             FmtLog.warn(LOG, "PatchStoreFile provider not registered");
@@ -117,7 +96,7 @@ public class LocalServer {
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
     // Cache of known disabled data sources. (Not set at startup - disabled
-    // data sources are skiped completely so no assumption if a valid format
+    // data sources are skipped completely so no assumption if a valid format
     // area is made and just the "disabled" file is needed).
     private Set<Id> disabledDatasources = new HashSet<>();
     private Object lock = new Object();
@@ -199,37 +178,7 @@ public class LocalServer {
         //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
-        List<DataSource> dataSources = ListUtils.toList
-            (dataSourcePaths.stream().map(p->{
-                // Extract name from disk name. 
-                String dsName = p.getFileName().toString();
-                // read config file.
-                //DataSource ds = Cfg.makeDataSource(p);
-                
-                JsonObject sourceObj = JSON.read(p.resolve(DeltaConst.DS_CONFIG).toString());
-                // Patch Store provider short name.
-                
-                String logType = JSONX.getStrOrNull(sourceObj, F_LOG_TYPE);
-                String providerName = PatchStoreMgr.shortName2LongName(logType);
-                
-                DataSourceDescription dsd = DataSourceDescription.fromJson(sourceObj);
-                if ( ! Objects.equals(dsName, dsd.getName()) )
-                    throw new DeltaConfigException("Names do not match: directory="+dsName+", dsd="+dsd);
-                
-                if ( providerName == null )
-                    throw new DeltaConfigException("No provider name and no default provider: "+dsd);
-                
-                PatchStore ps = PatchStoreMgr.getPatchStoreByProvider(providerName);
-                DataSource ds = DataSource.connect(dsd, ps, p);
-                //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
-
-                ps.addDataSource(ds, sourceObj, p);
-                if ( LOG.isDebugEnabled() ) 
-                    FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
-                if ( LOG.isDebugEnabled() ) 
-                    FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
-                return ds;
-            }));
+        List<DataSource> dataSources = Cfg.scanForDataSources(location, LOG);
 
         // Check we found any DataSource only via one route or the other.
         {
@@ -367,10 +316,6 @@ public class LocalServer {
         return descr;
     }
     
-    private static Location dataSourceArea(Location serverRoot, String name) {
-        return serverRoot.getSubLocation(name);
-    }
-    
     /**
      * Create a new data source in the default {@link PatchStore}. This can not
      * be one that has been removed (i.e disabled) whose files must be cleaned
@@ -383,7 +328,7 @@ public class LocalServer {
     
     /**
      * Create a new data source in the specified {@link PatchStore}. This can
-     * not be one that has been removed (i.e disabled) whose files must be
+     * not be one that has been removed (i.e. disabled) whose files must be
      * cleaned up manually.
      */
     public Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
@@ -391,59 +336,30 @@ public class LocalServer {
             throw new DeltaBadRequestException("DataSource with name '"+name+"' already exists");
         Id dsRef = Id.create();
         DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
-        return createDataSource$(patchStore, dsd);
+        DataSource dataSource = createDataSource$(patchStore, dsd);
+        return dataSource.getId(); 
     }
     
-    /**
-     * Mark as disabled.
-     */
+    /** Remove from active use.*/
     public void removeDataSource(Id dsRef) {
-        // Choose PatchStore then dispatch
-        // id -> DataSource -> provider 
-        //PatchStore patchStore = null;
-        //patchStore.remove(dsRef);
         removeDataSource$(dsRef);
     }
     
-    private Id createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
+    // Depends on the on-disk stub for a PatchLog. 
+    private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(lock) {
             Path sourcePath = null;
-            if ( ! patchStore.isEphemeral() ) {
-                Location sourceArea = dataSourceArea(serverRoot, dsd.getName());
-                sourcePath = IOX.asPath(sourceArea);
-
-                if ( PatchStore.logExists(dsd.getId()) )
-                    throw new DeltaBadRequestException("DataSource area already exists and is active at: "+sourceArea);
-                
-                // Checking.
-                // The area can exist, but it must not be formatted for a DataSource 
-                //        if ( sourceArea.exists() )
-                //            throw new DeltaException("Area already exists");
-
-                if ( Cfg.isMinimalDataSource(LOG, sourcePath) )
-                    throw new DeltaBadRequestException("DataSource area already exists at: "+sourceArea);
-                if ( ! Cfg.isEnabled(sourcePath) )
-                    throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
-
-                String dataDirName = sourceArea.getPath(DeltaConst.DATA);
-                if ( FileOps.exists(dataDirName) )
-                    throw new DeltaBadRequestException("DataSource area has a likely looking database already");
-
-                // Create source.cfg.
-                JsonObject obj = dsd.asJson();
-                LOG.info(JSON.toStringFlat(obj));
-                try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
-                    JSON.write(out, obj);
-                } catch (IOException ex)  { throw IOX.exception(ex); }
-            }
-            // XXX Pass in dsd
-            DataSource newDataSource = DataSource.create(dsd.getId(), dsd.getUri(), dsd.getName(), sourcePath);
+            if ( ! patchStore.isEphemeral() )
+                sourcePath = Cfg.setupDataSourceByFile(serverRoot, dsd);
+            // patchStore.createDataSource(dsd);
+            // [FILE] **** ASSUMES THERE IS A DISK AREA
+            DataSource newDataSource = DataSource.create(dsd, sourcePath);
             dataRegistry.put(dsd.getId(), newDataSource);
-            return dsd.getId() ;
+            return newDataSource;
         }
     }
     
-    private void removeDataSource$(Id dsRef) {
+   private void removeDataSource$(Id dsRef) {
         DataSource datasource1 = getDataSource(dsRef);
         if ( datasource1 == null )
             return;
@@ -452,6 +368,9 @@ public class LocalServer {
             DataSource datasource = getDataSource(dsRef);
             if ( datasource == null )
                 return;
+//            PatchStore patchStore = datasource.getPatchStore();
+//            patchStore.disable(dsRef);
+            // [FILE] **** ASSUMES THERE IS A DISK AREA
             // Make inaccessible to getDataSource (for create and remove). 
             dataRegistry.remove(dsRef);
             disabledDatasources.add(dsRef);

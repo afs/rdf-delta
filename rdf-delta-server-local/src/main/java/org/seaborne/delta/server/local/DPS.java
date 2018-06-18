@@ -18,7 +18,11 @@
 
 package org.seaborne.delta.server.local;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.seaborne.delta.Delta ;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.local.patchlog.*;
 import org.slf4j.Logger ;
 
@@ -60,8 +64,19 @@ public class DPS {
     
     // Things to do once.
     private static void initOnce() {
-        PatchStoreFile.registerPatchStoreFile();
-        PatchStoreMem.registerPatchStoreMem();
+        // Find PatchStoreProviders.
+        // Not active yet.
+        List<PatchStoreProvider> providers = new ArrayList<>();
+        
+        // Hard code the discovery for now.
+        providers.add(PatchStoreFile::new);
+        providers.add(PatchStoreMem::new);
+        
+        providers.forEach(psp->{
+            PatchStore pStore = psp.create();
+            PatchStoreMgr.registerShortName(DeltaConst.LOG_FILE, pStore.getProviderName());
+            PatchStoreMgr.register(pStore);
+        });
 //        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
     }
 }

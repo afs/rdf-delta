@@ -57,8 +57,8 @@ public class PatchLogMem extends AbstractPatchLog implements PatchLog {
         return patchesList.isEmpty() ? DeltaConst.VERSION_INIT : patchesList.size();
     }
     
-    public PatchLogMem(DataSourceDescription dsd) {
-        super(dsd);
+    public PatchLogMem(DataSourceDescription dsd, PatchStore patchStore) {
+        super(dsd, patchStore);
     }
 
     @Override

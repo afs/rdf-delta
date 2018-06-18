@@ -40,11 +40,11 @@ public class PatchStoreFile extends PatchStore {
     // We manage ...
     private Set<DataSourceDescription> sources = ConcurrentHashMap.newKeySet(); 
     
-    public static void registerPatchStoreFile() {
-        PatchStore ps = new PatchStoreFile();
-        PatchStoreMgr.registerShortName(DeltaConst.LOG_FILE, ps.getProviderName());
-        PatchStoreMgr.register(ps);
-    }
+//    public static void registerPatchStoreFile() {
+//        PatchStore ps = new PatchStoreFile();
+//        PatchStoreMgr.registerShortName(DeltaConst.LOG_FILE, ps.getProviderName());
+//        PatchStoreMgr.register(ps);
+//    }
     
     public PatchStoreFile() {
         super(DPS.PatchStoreFileProvider) ;
@@ -55,7 +55,7 @@ public class PatchStoreFile extends PatchStore {
         Path logPath = dsPath.resolve(DeltaConst.LOG);
         IOX.ensureDirectory(logPath);
         Location loc = Location.create(logPath.toString());
-        PatchLogFile patchLog = PatchLogFile.attach(dsd, loc);
+        PatchLogFile patchLog = PatchLogFile.attach(dsd, this, loc);
         sources.add(dsd); 
         return patchLog ;
     }
@@ -72,7 +72,7 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        boolean deftToHere = DPS.PatchStoreFileProvider.equals(config.getLogProvider());
+        boolean dftToHere = DPS.PatchStoreFileProvider.equals(config.getLogProvider());
         throw new NotImplemented();
     }
     

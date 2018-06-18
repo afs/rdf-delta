@@ -27,6 +27,7 @@ import org.seaborne.delta.server.system.DeltaSystem ;
  */
 public class InitJenaDeltaServerLocal implements JenaSubsystemLifecycle {
     // Not used - kept for the information.
+    // InitDelatServerLocal is called from the Delta server initialization sequence.
     @Override
     public void start() {
         boolean original = DeltaSystem.DEBUG_INIT;

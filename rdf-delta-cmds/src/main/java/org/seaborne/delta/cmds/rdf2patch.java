@@ -70,7 +70,7 @@ public class rdf2patch extends CmdGeneral
     }
 
     private void execOne(InputStream input) {
-        throw new CmdException("Reeading from stdin not implemented");
+        throw new CmdException("Reading from stdin not implemented");
     }
     
     @Override

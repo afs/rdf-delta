@@ -55,11 +55,16 @@ public interface PatchLog {
     public long getLatestVersion();
 
     /**
-     * Return a description of the {@code IPatchLog}. This is the state at a
+     * Return a description of the {@code PatchLog}. This is the state at a
      * point in time and does not track subsequent changes to the patch log. In
      * other words, it is not "live".
      */
     public PatchLogInfo getDescription();
+    
+    /**
+     * Return the {@link PatchStore} responsible for this {@code PatchLog}.  
+     */
+    public PatchStore getPatchStore();
     
     /**
      * Get the Id that identifies this log.

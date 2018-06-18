@@ -27,18 +27,17 @@ import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServerConfig;
 
 public class PatchStoreMem extends PatchStore {
-    
-    public static void registerPatchStoreMem() {
-        PatchStore ps = new PatchStoreMem(DPS.PatchStoreMemProvider);
-        PatchStoreMgr.registerShortName(DeltaConst.LOG_MEM, ps.getProviderName());
-        PatchStoreMgr.register(ps);
-    }
+
+//    public static void registerPatchStoreMem() {
+//        PatchStore ps = new PatchStoreMem(DPS.PatchStoreMemProvider);
+//        PatchStoreMgr.registerShortName(DeltaConst.LOG_MEM, ps.getProviderName());
+//        PatchStoreMgr.register(ps);
+//    }
     
     private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
     
@@ -53,13 +52,13 @@ public class PatchStoreMem extends PatchStore {
     @Override
     public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
         DataSourceDescription dsd = ds.getDescription();
-        PatchLog plog =  new PatchLogMem(dsd);
+        PatchLog plog =  new PatchLogMem(dsd, this);
         logs.put(ds.getDescription(), plog);
     }
 
     @Override
     protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
-        PatchLog plog =  new PatchLogMem(dsd);
+        PatchLog plog =  new PatchLogMem(dsd, this);
         logs.put(dsd, plog);
         return plog;
     }

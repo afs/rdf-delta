@@ -70,6 +70,8 @@ public class patch2rdf extends CmdGeneral
     protected void exec() {
         DatasetGraph dsg;
         
+        boolean writeOnFinish = false;
+        
         // Data.
         if ( modDataset.getAssemblerFile() != null )
             dsg = modDataset.getDatasetGraph();
@@ -80,6 +82,7 @@ public class patch2rdf extends CmdGeneral
                     Txn.executeWrite(dsg, ()->RDFDataMgr.read(dsg, fn));
                 });
             }
+            writeOnFinish = true;
         }
         
         // Patches
@@ -98,7 +101,8 @@ public class patch2rdf extends CmdGeneral
             apply(dsg, patch);
         });
         
-        Txn.executeRead(dsg, ()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
+        if ( writeOnFinish )
+            Txn.executeRead(dsg, ()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
     }
     
     private void apply(DatasetGraph dsg, RDFPatch patch) {

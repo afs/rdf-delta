@@ -18,14 +18,8 @@
 
 package org.seaborne.delta.server.local;
 
-import java.io.File ;
-import java.io.IOException ;
-import java.nio.file.Files ;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption ;
-import java.util.Comparator ;
 
-import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst ;
@@ -44,7 +38,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DataSource {
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
-    private static final String DELETE_MARKER = "-deleted";
     private final DataSourceDescription dsDescription;
     private final Path     initialData;
     private final PatchLog patchLog;
@@ -53,20 +46,7 @@ public class DataSource {
     private final Path path;
     
     /**
-     * Attach to a datasource file area and return a {@link DataSource} object.
-     * The directory {@code dsPath} must exist.
-     * The {@code DataSource} area is not formatted by the provider.
-     * @deprecated To be removed. 
-     */
-    @Deprecated
-    public static DataSource connect(Id dsRef, String uri, String dsName, Path dsPath) {
-        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
-        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsd.getId());
-        return connect(dsd, patchStore, dsPath) ;
-    }
-        
-    /**
-     * Attach to a datasource file area and return a {@link DataSource} object.
+     * Attach to a {@link DataSource} file area and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
      * The {@code DataSource} area is not formatted by the provider. 
      */
@@ -81,11 +61,10 @@ public class DataSource {
      * Attach to a datasource file area and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
      */
-    public static DataSource create(Id dsRef, String uri, String dsName, Path dsPath) {
-        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsRef);
-        DataSourceDescription dsd = new DataSourceDescription(dsRef, dsName, uri);
+    public static DataSource create(DataSourceDescription dsd, Path dsPath) {
+        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsd.getId());
         PatchLog patchLog = patchStore.createLog(dsd, dsPath);
-        // XXX
+        // [FILE]
         Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         IOX.ensureFile(initialData);
         DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
@@ -129,6 +108,10 @@ public class DataSource {
         return patchLog;
     }
 
+    public PatchStore getPatchStore() {
+        return patchLog.getPatchStore();
+    }
+
     public DataSourceDescription getDescription() {
         return dsDescription;
     }
@@ -146,32 +129,7 @@ public class DataSource {
         PatchStore.release(getPatchLog());
 
         if ( ! inMemory() ) {
-            if ( true ) {
-                // Mark unavailable.
-                Path disabled = getPath().resolve(DeltaConst.DISABLED);
-                try { Files.createFile(disabled); } 
-                catch (IOException ex) { throw IOX.exception(ex); }
-            }
-            if ( true ) {
-                // Move to "NAME-deleted-N"
-                Path dest = IOX.uniqueDerivedPath(getPath(), (x)->x+DELETE_MARKER);
-                try { Files.move(getPath(), dest, StandardCopyOption.ATOMIC_MOVE); }
-                catch (IOException e) { throw IOX.exception(e); }
-            }
-            if ( false ) {
-                // Destroy.
-                try {
-                    Files.walk(getPath())
-                    // So a directory path itself is after its entries. 
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-                }
-                catch (IOException e) { throw IOX.exception(e); }
-                File d = getPath().toFile();
-                FileOps.clearAll(d);
-                d.delete();
-            }
+            Cfg.retire(getPath());
         }
     }
 

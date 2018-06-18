@@ -60,12 +60,13 @@ import org.slf4j.LoggerFactory;
 public class PatchLogFile implements PatchLog {
     private static final boolean CHECKING = true ;
 
-    // Centralized logger for regular lifecyle reporting.
+    // Centralized logger for regular lifecycle reporting.
     private static Logger  LOG     = LoggerFactory.getLogger(PatchLogFile.class);
 
     // Currently, id of the DataSource 
     private final Id logId;
     private final DataSourceDescription dsd;
+    private final PatchStore      patchStore;
     private final FileStore       fileStore;
 
     // Forward, backwards chain?
@@ -77,14 +78,15 @@ public class PatchLogFile implements PatchLog {
     private long latestVersion = VERSION_UNSET;
     
     /** Attached to an existing {@code PatchLog}. */
-    public static PatchLogFile attach(DataSourceDescription dsd, Location location) {
-        return new PatchLogFile(dsd, location);
+    public static PatchLogFile attach(DataSourceDescription dsd, PatchStore patchStore, Location location) {
+        return new PatchLogFile(dsd, patchStore, location);
     }
     
-    private PatchLogFile(DataSourceDescription dsd, Location location) {
+    private PatchLogFile(DataSourceDescription dsd, PatchStore patchStore, Location location) {
         this.dsd = dsd;
         this.logId = dsd.getId();
         this.fileStore = FileStore.attach(location, "patch");
+        this.patchStore = patchStore;
         initFromFileStore();
     }
     
@@ -373,6 +375,11 @@ public class PatchLogFile implements PatchLog {
     
     public FileStore getFileStore() {
         return fileStore;
+    }
+
+    @Override
+    public PatchStore getPatchStore() {
+        return null;
     }
 
     @Override

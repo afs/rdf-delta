@@ -38,7 +38,7 @@ public class list extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        return getCommandName()+"--server URL";
+        return getCommandName()+" --server URL";
     }
     
     @Override

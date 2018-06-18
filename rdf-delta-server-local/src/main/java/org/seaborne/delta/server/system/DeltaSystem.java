@@ -22,6 +22,7 @@ import org.apache.jena.system.JenaSystem ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
+/** Delta server-side. */
 public class DeltaSystem {
 
     /** Development support - flag to enable output during
@@ -33,9 +34,41 @@ public class DeltaSystem {
     
     private static Class<DeltaSubsystemLifecycle> classAtRuntime = DeltaSubsystemLifecycle.class;
     
+    /** <b>Startup</b>
+     * <p>
+     * RDF Delta uses both Jena system initialization and it's own initialization.
+     * <p>
+     * <a href="https://jena.apache.org/documentation/notes/system-initialization.html">Jena system initialization</a>
+     * is used for the libraries (RDF Patch, The Delta base system, and the client code)
+     * and Delta initialization for the local server; it runs after Jena initialization.
+     * <p>
+     * Client and library:
+     * <ul>
+     * <li>Class InitPatch -- rdf-patch -- calls PatchSystem.init();     
+     * <li>Class InitDelta -- rdf-delta-base -- calls Delta.init(), sets loggers
+     * <li>Class InitDeltaClient -- rdf-delta-client -- calls VocabDelta.init(); sets vocabularies, registers assembler
+     * <li>Class InitJenaDeltaServerLocal -- rdf-delta-server-local -- Unused, replaced by delta initialization    
+     * </ul>     
+     * <p>
+     * Server, in module {@code rdf-delta-server-local}:
+     * <ul>
+     * <li>Class DeltaInitLevel0 -- hardwired in DeltaSystem -- Ensures JenaSystem.init();  
+     * <li>Class DeltaInitLevel1 -- First initializer
+     * <li>Any PatchStoreProviders, using interface DeltaSubsystemLifecycle
+     * <li>Class InitDeltaServerLocal -- after providers; call DPS.init();        
+     * </ul>
+     * Debug flags<br/>
+     * {@code JenaSystem.DEBUG_INIT}<br/>
+     * {@code DeltaSystem.DEBUG_INIT}<br/>
+     */
+    
     public static void init() {
+        // Trigger by the local server start. 
+        // The LocalServer static initializer calls "DPS.init()" calls "DeltaSystem.init()".
         JenaSystem.init();
-        new Initializer<DeltaSubsystemLifecycle>(classAtRuntime, new DeltaInitLevel0(), DEBUG_INIT, NAME).init();
+        Initializer<DeltaSubsystemLifecycle> initializer = 
+            new Initializer<DeltaSubsystemLifecycle>(classAtRuntime, new DeltaInitLevel0(), DEBUG_INIT, NAME);
+        initializer.init();
     }
     
     public static void logLifecycle(String fmt, Object...args) {

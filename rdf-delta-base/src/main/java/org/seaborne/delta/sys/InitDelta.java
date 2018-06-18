@@ -22,6 +22,12 @@ import org.apache.jena.system.JenaSubsystemLifecycle ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.patch.system.InitPatch ;
 
+/** General subsystem initialization using Jena system initialization.
+ * <p>
+ * <a href="https://jena.apache.org/documentation/notes/system-initialization.html">Jena system initialization</a>
+ * <p>
+ * See {@code DeltaSystem.init} for details of the server initialization.
+ */
 public class InitDelta implements JenaSubsystemLifecycle {
     public static final int level = InitPatch.level+10;
 

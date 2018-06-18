@@ -18,22 +18,31 @@
 
 package org.seaborne.delta.server.local.patchlog;
 
+import java.util.stream.Stream;
+
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.patch.RDFPatch;
 
+/**
+ * {@code AbstractPatchLog} provides a framework for implementing a {@link PatchLog}.   
+ */
 public abstract class AbstractPatchLog implements PatchLog {
+    // Not clear how much this class can provide.
+    // A version<->id mapping? so the implementation needs to worry only about versions or ids?
 
     private final DataSourceDescription dsd;
+    private final PatchStore patchStore;
 
     protected abstract RDFPatch earliestPatch();
     protected abstract RDFPatch latestPatch();
     protected abstract long earliestVersion();
     protected abstract long latestVersion();
     
-    protected AbstractPatchLog(DataSourceDescription dsd) {
+    protected AbstractPatchLog(DataSourceDescription dsd, PatchStore patchStore) {
         this.dsd = dsd;
+        this.patchStore = patchStore;
     }
 
     @Override
@@ -72,47 +81,81 @@ public abstract class AbstractPatchLog implements PatchLog {
     public boolean isEmpty() {
         return getEarliestVersion() < 0;
     }
+    
 
-//    @Override
-//    public boolean contains(Id patchId) {
-//        return false;
-//    }
-//
-//    @Override
-//    public long append(RDFPatch patch) {
-//        return 0;
-//    }
-//
-//    @Override
-//    public RDFPatch fetch(Id patchId) {
-//        return null;
-//    }
-//
-//    @Override
-//    public RDFPatch fetch(long version) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Stream<RDFPatch> range(Id start, Id finish) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Stream<RDFPatch> range(long start, long finish) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Id find(long version) {
-//        return null;
-//    }
-//
-//    @Override
-//    public long find(Id id) {
-//        return 0;
-//    }
-//
-//    @Override
-//    public void release() {}
+    @Override
+    public PatchStore getPatchStore() {
+        return patchStore;
+    }
+    
+    static class PL extends AbstractPatchLog {
+
+        protected PL(DataSourceDescription dsd, PatchStore patchStore) {
+            super(dsd, patchStore);
+        }
+
+        @Override
+        public boolean contains(Id patchId) {
+            return false;
+        }
+
+        @Override
+        public long append(RDFPatch patch) {
+            return 0;
+        }
+
+        @Override
+        public RDFPatch fetch(Id patchId) {
+            return null;
+        }
+
+        @Override
+        public RDFPatch fetch(long version) {
+            return null;
+        }
+
+        @Override
+        public Stream<RDFPatch> range(Id start, Id finish) {
+            return null;
+        }
+
+        @Override
+        public Stream<RDFPatch> range(long start, long finish) {
+            return null;
+        }
+
+        @Override
+        public Id find(long version) {
+            return null;
+        }
+
+        @Override
+        public long find(Id id) {
+            return 0;
+        }
+
+        @Override
+        public void release() {}
+
+        @Override
+        protected RDFPatch earliestPatch() {
+            return null;
+        }
+
+        @Override
+        protected RDFPatch latestPatch() {
+            return null;
+        }
+
+        @Override
+        protected long earliestVersion() {
+            return 0;
+        }
+
+        @Override
+        protected long latestVersion() {
+            return 0;
+        }
+        
+    }
 }

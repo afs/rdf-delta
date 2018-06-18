@@ -23,6 +23,12 @@ import org.apache.jena.system.JenaSystem;
 import org.seaborne.delta.client.assembler.VocabDelta;
 import org.seaborne.delta.sys.InitDelta;
 
+/** Delta client initialization using Jena system initialization.
+ * <p>
+ * <a href="https://jena.apache.org/documentation/notes/system-initialization.html">Jena system initialization</a>
+ * <p>
+ * See {@code DeltaSystem.init} for details of the server initialization.
+ */
 public class InitDeltaClient implements JenaSubsystemLifecycle {
     public static final int level = InitDelta.level+1;
     

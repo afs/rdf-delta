@@ -16,28 +16,24 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.system;
+package org.seaborne.delta.server.local;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.apache.jena.system.JenaSystem;
+import org.seaborne.delta.server.local.patchlog.PatchLog;
+import org.seaborne.delta.server.local.patchlog.PatchStore;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 
-/** Patch initialization using Jena system initialization
- * <p>
- * <a href="https://jena.apache.org/documentation/notes/system-initialization.html">Jena system initialization</a>
+/** The provider (factory) of {@link PatchStore} implementations.
+ * These are added to {@link PatchStoreMgr}.
+ * There will be only one object of each {@code PatchStoreProvider}.  
  */
-public class InitPatch implements JenaSubsystemLifecycle { 
-    public static int level = 60;
+public interface PatchStoreProvider {
 
-    @Override
-    public void start() {
-        JenaSystem.logLifecycle("Patch.init - start") ;
-        PatchSystem.init();
-        JenaSystem.logLifecycle("Patch.init - finish") ;
-    }
+    /** Create the {@link PatchStore} object for this process.
+     * This should boot itself to be able to report existing {@link PatchLog PatchLogs}. 
+     */
+    public PatchStore create() ;
 
-    @Override
-    public void stop() {}
-
-    @Override
-    public int level() { return level ; }
+    //public PatchStore delete() ;
+    
+    
 }

@@ -21,9 +21,9 @@ package org.seaborne.delta.server.system;
 import org.apache.jena.system.JenaSubsystemLifecycle ;
 import org.apache.jena.system.JenaSystem ;
 
-/** If you want to trigger Delta init for jena ...
+/** If you want to trigger Delta init for Jena initialization ...
  *  name this is META-INF/services/org.apache.jena.system.JenaSubsystemLifecycle
- *  (not normally done this way - can also happen in InitJenaDeltaServerLocal_
+ *  (not normally done this way - can also happen in {@code InitJenaDeltaServerLocal})
  */
 public class JenaInitHook implements JenaSubsystemLifecycle {
 
