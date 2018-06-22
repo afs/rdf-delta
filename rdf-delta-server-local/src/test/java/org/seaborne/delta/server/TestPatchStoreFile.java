@@ -23,7 +23,7 @@ import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 
 public class TestPatchStoreFile extends AbstractTestPatchStore {
     @Override
-    protected PatchStore createProvider() {
+    protected PatchStore createPatchStore() {
         return new PatchStoreFile();
     }
 }

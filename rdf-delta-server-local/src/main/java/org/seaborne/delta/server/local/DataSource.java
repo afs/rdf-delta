@@ -52,7 +52,9 @@ public class DataSource {
      */
     public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore, Path dsPath) {
         PatchLog patchLog = patchStore.connectLog(dsd, dsPath);
-        Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
+        Path initialData = null;
+        if ( dsPath != null )
+            initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
         return dataSource;
     }
@@ -65,7 +67,9 @@ public class DataSource {
         PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsd.getId());
         PatchLog patchLog = patchStore.createLog(dsd, dsPath);
         // [FILE]
-        Path initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
+        Path initialData = null;
+        if ( dsPath != null )
+            initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
         IOX.ensureFile(initialData);
         DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
         return dataSource;

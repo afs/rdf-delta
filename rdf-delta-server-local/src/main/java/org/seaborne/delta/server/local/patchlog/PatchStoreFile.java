@@ -52,12 +52,20 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     protected PatchLogFile create(DataSourceDescription dsd, Path dsPath) {
+        // [FILE] Currently work done in LocalServer.
         Path logPath = dsPath.resolve(DeltaConst.LOG);
         IOX.ensureDirectory(logPath);
         Location loc = Location.create(logPath.toString());
         PatchLogFile patchLog = PatchLogFile.attach(dsd, this, loc);
         sources.add(dsd); 
         return patchLog ;
+    }
+
+    //@Override
+    protected void delete(PatchLog patchLog) {
+        // [FILE] Currently work done in LocalServer.
+        DataSourceDescription dsd = patchLog.getDescription();
+        sources.remove(dsd);
     }
 
     @Override

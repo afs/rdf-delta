@@ -39,7 +39,7 @@ public class TestPatchStoreMem extends AbstractTestPatchStore {
     }
 
     @Override
-    protected PatchStore createProvider() {
+    protected PatchStore createPatchStore() {
         return new PatchStoreMem();
     }
     

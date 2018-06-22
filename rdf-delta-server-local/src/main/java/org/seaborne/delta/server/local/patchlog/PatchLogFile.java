@@ -184,9 +184,14 @@ public class PatchLogFile implements PatchLog {
     }
     
     @Override
-    public PatchLogInfo getDescription() {
+    public PatchLogInfo getInfo() {
         // AbstractPatchLog
         return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
+    }
+    
+    @Override
+    public DataSourceDescription getDescription() {
+        return dsd; 
     }
 
     @Override
@@ -240,7 +245,7 @@ public class PatchLogFile implements PatchLog {
         Id previousId = Id.fromNode(patch.getPrevious());
 
         if ( LOG.isDebugEnabled() )
-            FmtLog.debug(LOG, "append: id=%s prev=%s to log %s", patchId, previousId, getDescription());
+            FmtLog.debug(LOG, "append: id=%s prev=%s to log %s", patchId, previousId, getInfo());
 
         validateNewPatch(patchId, previousId, this::badPatchEx);
 

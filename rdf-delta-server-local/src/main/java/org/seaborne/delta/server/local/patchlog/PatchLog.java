@@ -21,6 +21,7 @@ package org.seaborne.delta.server.local.patchlog;
 import java.util.Objects ;
 import java.util.stream.Stream;
 
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.server.local.DataSource ;
@@ -38,7 +39,7 @@ import org.seaborne.patch.RDFPatch;
  * The gap is not expected to be big, nor frequent.
  * <p>
  * Versions numbers are not guaranteed to be stable across process restart.
- * Clients should use {@link #getDescription()} to find the current range. 
+ * Clients should use {@link #getInfo()} to find the current range. 
  */
 public interface PatchLog {
     
@@ -55,11 +56,19 @@ public interface PatchLog {
     public long getLatestVersion();
 
     /**
+     * Return a description of the current state of this {@code PatchLog}.
+     * This is the state at a point in time and does not track subsequent
+     * changes to the patch log. In other words, it is not "live".
+     */
+    public PatchLogInfo getInfo();
+    
+    /**
      * Return a description of the {@code PatchLog}. This is the state at a
      * point in time and does not track subsequent changes to the patch log. In
      * other words, it is not "live".
      */
-    public PatchLogInfo getDescription();
+    public DataSourceDescription getDescription();
+
     
     /**
      * Return the {@link PatchStore} responsible for this {@code PatchLog}.  

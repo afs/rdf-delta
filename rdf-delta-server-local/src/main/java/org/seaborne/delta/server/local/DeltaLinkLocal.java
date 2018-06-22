@@ -145,7 +145,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
         DataSource source = getDataSource(dsRef);
         if ( source == null )
             return null;
-        return source.getPatchLog().getDescription();
+        return source.getPatchLog().getInfo();
     }
 
     @Override

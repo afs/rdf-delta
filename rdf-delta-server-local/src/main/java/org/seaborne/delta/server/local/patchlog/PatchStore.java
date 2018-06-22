@@ -48,7 +48,6 @@ public abstract class PatchStore {
     // ---- PatchStore.Provider
 
     // -------- Global
-    // XXX Split out PatchStore.Provider management.
     // DataRegistry?
     private static Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
 
@@ -66,7 +65,7 @@ public abstract class PatchStore {
      * @param patchLog
      */
     public static void release(PatchLog patchLog) {
-        Id dsRef = patchLog.getDescription().getDataSourceId();
+        Id dsRef = patchLog.getLogId();
         if ( ! logExists(dsRef) ) {
             FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
             return;
@@ -129,15 +128,21 @@ public abstract class PatchStore {
      * Return a new {@link PatchLog}. Checking that there is no registered
      * {@link PatchLog} for this {@code dsRef} has already been done.
      * 
-     * @param dsRef
-     * @param dsName
-     * @param dsPath : Path to the DataSource area. PatchStore-impl can create local files.
+     * @param dsd
+     * @param dsPath : Path to the DataSource area. PatchStore-impl can create local files. May be null.
      * @return PatchLog
      */
     protected abstract PatchLog create(DataSourceDescription dsd, Path dsPath);
 
+    /**
+     * Delete a {@link PatchLog}.
+     * @param patchLog
+     */
+    //protected abstract void delete(PatchLog patchLog);
+
     /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
     public PatchLog connectLog(DataSourceDescription dsd, Path dsPath) {
+        FmtLog.info(LOG, "Connect log: %s", dsd);
         PatchLog pLog = getLog(dsd.getId());
         if ( pLog == null )
             pLog = create$(dsd, dsPath);
@@ -146,6 +151,7 @@ public abstract class PatchStore {
     
     /** Return a new {@link PatchLog}, which must not already exist. */ 
     public PatchLog createLog(DataSourceDescription dsd, Path dsPath) {
+        FmtLog.info(LOG, "Create log: %s", dsd);
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");

@@ -41,7 +41,7 @@ public abstract class AbstractTestPatchStore {
     private static String DIR = "target/PatchStore"; 
     private static Path patchesArea;
     private static int counter = 0;
-    private static PatchStore provider = null;
+    private static PatchStore patchStore = null;
         
     @BeforeClass public static void setup() {
         FileOps.clearAll(DIR);
@@ -57,12 +57,12 @@ public abstract class AbstractTestPatchStore {
     /** Return the PatchStore implementation under test.
      *  Return the same object each time. */
     private PatchStore provider() {
-        if ( provider == null )
-            provider = createProvider();
-        return provider;
+        if ( patchStore == null )
+            patchStore = createPatchStore();
+        return patchStore;
     }
     
-    protected abstract PatchStore createProvider();
+    protected abstract PatchStore createPatchStore();
     
     private PatchLog patchLog() {
         PatchStore patchStore = provider();
@@ -120,21 +120,22 @@ public abstract class AbstractTestPatchStore {
        // header not written.
         
         patchLog.append(patch);
-        PatchLogInfo info = patchLog.getDescription();
-        Id id = info.getDataSourceId();
+        
+        PatchLogInfo info = patchLog.getInfo();
+        Id id = patchLog.getLogId();
+        DataSourceDescription dsd = patchLog.getDescription();
         
         // Reset internal.
         PatchStore.clearLogIdCache();
         
-        String name = info.getDataSourceName();
+        String name = dsd.getName();
         PatchStore provider = provider();
-        Path patchesArea = Paths.get(DIR, info.getDataSourceName()); 
+        Path patchesArea = Paths.get(DIR, name); 
 
         // Same FileStore, different PatchLog?
-        DataSourceDescription dsd = new DataSourceDescription(id, name, null);
-        PatchLog patchLog1 = provider.connectLog(dsd, patchesArea);
-        
-        PatchLogInfo info1 = patchLog1.getDescription();
+        DataSourceDescription dsd2 = new DataSourceDescription(id, name, null);
+        PatchLog patchLog1 = provider.connectLog(dsd2, patchesArea);
+        PatchLogInfo info1 = patchLog1.getInfo();
         assertEquals(info, info1);
     }
     // Get non-existent.

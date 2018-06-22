@@ -18,40 +18,27 @@
 
 package org.seaborne.patch;
 
-import org.apache.jena.graph.Node;
-import org.seaborne.patch.changes.RDFChangesWrapper;
+public class RDFPatchWrapper implements RDFPatch {
 
-/**
- * An {@link RDFPatch} where the header is taken from one place and the body
- * (everything that isn't header) from an existing patch.
- */
-public class RDFPatchAltHeader implements RDFPatch {
+    private final RDFPatch other;
+    protected final RDFPatch get() { return other; }
 
-    private final RDFPatch body;
-    private final PatchHeader header;
-    
-    public RDFPatchAltHeader(PatchHeader header, RDFPatch body) {
-        this.body = body;
-        this.header = header;
+    public RDFPatchWrapper(RDFPatch other) {
+        this.other = other;
     }
     
     @Override
     public PatchHeader header() {
-        return header;
+        return other.header();
     }
-    
+
     @Override
     public void apply(RDFChanges changes) {
-        // Ignore the header.
-        RDFChanges x = new RDFChangesWrapper(changes) {
-            @Override public void header(String field, Node value) { }
-        };
-        header.apply(changes);
-        body.apply(x);
+        other.apply(changes);
     }
-    
+
     @Override
     public boolean repeatable() {
-        return body.repeatable();
+        return other.repeatable();
     }
 }

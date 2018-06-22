@@ -68,8 +68,13 @@ public abstract class AbstractPatchLog implements PatchLog {
     }
 
     @Override
-    public PatchLogInfo getDescription() {
+    public PatchLogInfo getInfo() {
         return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
+    }
+    
+    @Override
+    public DataSourceDescription getDescription() {
+        return dsd; 
     }
 
     @Override

@@ -128,7 +128,7 @@ public class DeltaServer {
             // Print nicely.
             sources.sort( (ds1, ds2)-> ds1.getName().compareTo(ds2.getName()) );
             sources.forEach(ds->{
-                PatchLogInfo info = ds.getPatchLog().getDescription();
+                PatchLogInfo info = ds.getPatchLog().getInfo();
                 FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s]", info.getDataSourceDescr(), verString(info.getMinVersion()), verString(info.getMaxVersion()) );
             });
         }

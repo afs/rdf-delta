@@ -192,7 +192,7 @@ public class FileStore {
      * <p>
      * This operation is thread-safe.
      */
-    public FileEntry allocateFilename() {
+    private FileEntry allocateFilename() {
         // --> IOX
         // TODO Use Files.createTempFile? Or does recovery mean we need more control?
         synchronized(this) { 
@@ -217,7 +217,7 @@ public class FileStore {
      * <p>
      * This operation writes to a temporary file on the same filesystem, then moves it to
      * the new location. Therefore it is atomic.
-     * @params Consumer The code to write the contents.
+     * @param action The code to write the contents.
      * @returns Path to the new file.
      */
     public FileEntry writeNewFile(IOConsumer<OutputStream> action) {

@@ -168,7 +168,9 @@ public class LocalServer {
             (PatchStoreMgr.registered().stream().flatMap(ps->{
                 if ( ! ps.callInitFromPersistent(config) )
                     return null;
-                return ps.initFromPersistent(config).stream();
+                List<DataSource> dataSourceExt = ps.initFromPersistent(config);
+                LOG.info("External: "+ps.getProviderName()+" : "+dataSourceExt);
+                return dataSourceExt.stream();
             }));
         
         // PatchStore's that rely on the scan of local directories and checking the "log_type" field.        
@@ -299,7 +301,7 @@ public class LocalServer {
     public List<PatchLogInfo> listPatchLogInfo() {
         // Important enough to have it's own cut-through method. 
         List<PatchLogInfo> x = new ArrayList<>();
-        dataRegistry.forEach((id, ds)-> x.add(ds.getPatchLog().getDescription()));
+        dataRegistry.forEach((id, ds)-> x.add(ds.getPatchLog().getInfo()));
         return x;
       }
 
@@ -368,8 +370,9 @@ public class LocalServer {
             DataSource datasource = getDataSource(dsRef);
             if ( datasource == null )
                 return;
-//            PatchStore patchStore = datasource.getPatchStore();
-//            patchStore.disable(dsRef);
+            PatchStore patchStore = datasource.getPatchStore();
+            //patchStore.delete(dsRef);
+            
             // [FILE] **** ASSUMES THERE IS A DISK AREA
             // Make inaccessible to getDataSource (for create and remove). 
             dataRegistry.remove(dsRef);
