@@ -22,8 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.server.local.patchlog.*;
+import org.seaborne.delta.server.local.patchlog.FileStore;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
+import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.slf4j.Logger ;
 
 public class DPS {
@@ -31,10 +33,11 @@ public class DPS {
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
     
-    public static String PatchStoreFileProvider = "PatchStoreFileProvider";
-    public static String PatchStoreMemProvider = "PatchStoreMemProvider";
-    
     private static volatile boolean initialized = false ;
+    
+    public static String PatchStoreFileProvider = "PatchStore/File";
+    public static String PatchStoreMemProvider  = "PatchStore/Mem";
+    public static String PatchStoreZkProvider  = "PatchStore/Zk";
     
     public static void init() { 
         if ( initialized ) 
@@ -65,18 +68,20 @@ public class DPS {
     // Things to do once.
     private static void initOnce() {
         // Find PatchStoreProviders.
-        // Not active yet.
         List<PatchStoreProvider> providers = new ArrayList<>();
         
         // Hard code the discovery for now.
-        providers.add(PatchStoreFile::new);
-        providers.add(PatchStoreMem::new);
+        providers.add(new PatchStoreProviderFile());
+        providers.add(new PatchStoreProviderMem());
+        //providers.add(new PatchStoreProviderZk());
         
         providers.forEach(psp->{
             PatchStore pStore = psp.create();
-            PatchStoreMgr.registerShortName(DeltaConst.LOG_FILE, pStore.getProviderName());
+            LOG.info("Provider: "+pStore.getProviderName());
+            PatchStoreMgr.registerShortName(psp.getShortName(), pStore.getProviderName());
             PatchStoreMgr.register(pStore);
         });
-//        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
+        //PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreZkProvider);
+        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
     }
 }

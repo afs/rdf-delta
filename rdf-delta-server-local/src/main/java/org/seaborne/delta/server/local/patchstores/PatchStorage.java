@@ -16,27 +16,18 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.local.patchstores;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import java.util.stream.Stream;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestFileStore.class
-    , TestPatchStoreFile.class
-    , TestPatchStoreMem.class
-    , TestLocalServerBuildConfig.class
-    , TestLocalServer.class
-    , TestLocalServerCreateDelete.class
-})
+import org.seaborne.delta.Id;
+import org.seaborne.patch.RDFPatch;
 
-public class TS_ServerLocal {
-    @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
-    }
+/**
+ * Interface for the bulk storage of patches.
+ */
+public interface PatchStorage { //extends KeyValueStore<Id, RDFPatch> {
+    public Stream<Id> find();
+    public void store(Id key, RDFPatch value);
+    public RDFPatch fetch(Id key);
 }
-
-

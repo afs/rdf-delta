@@ -30,9 +30,7 @@ import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.lib.IOX ;
-import org.seaborne.delta.server.local.DPS ;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.*;
 
 /** A {@code PatchStore} storing patches in a {@link FileStore} */  
 public class PatchStoreFile extends PatchStore {

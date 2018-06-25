@@ -18,8 +18,6 @@
 
 package org.seaborne.delta.server.local;
 
-import org.seaborne.delta.server.local.patchlog.PatchLog;
-import org.seaborne.delta.server.local.patchlog.PatchStore;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 
 /** The provider (factory) of {@link PatchStore} implementations.
@@ -32,8 +30,7 @@ public interface PatchStoreProvider {
      * This should boot itself to be able to report existing {@link PatchLog PatchLogs}. 
      */
     public PatchStore create() ;
-
-    //public PatchStore delete() ;
     
-    
+    /** Short name used in server configuration files to set the default provider via "log_type" */ 
+    public String getShortName();
 }

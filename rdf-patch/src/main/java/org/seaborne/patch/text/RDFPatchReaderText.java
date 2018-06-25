@@ -70,8 +70,9 @@ public class RDFPatchReaderText implements PatchProcessor {
         read(tokenizer, processor);
     }
 
-    /** Execute one tuple, skipping blanks and comments.
-     *  Return true if there is the possiblity of more.
+    /** 
+     * Execute one tuple, skipping blanks and comments.
+     * Return true if there is the possibility of more.
      */
     private static boolean apply1(Tokenizer input, RDFChanges sink) {
         boolean oneTransaction = true;  

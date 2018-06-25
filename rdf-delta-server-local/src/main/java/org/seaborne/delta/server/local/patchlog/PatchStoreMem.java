@@ -27,9 +27,7 @@ import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.*;
 
 public class PatchStoreMem extends PatchStore {
 

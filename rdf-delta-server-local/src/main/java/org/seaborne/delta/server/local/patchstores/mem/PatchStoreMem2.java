@@ -16,27 +16,19 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.local.patchstores.mem;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import java.nio.file.Path;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestFileStore.class
-    , TestPatchStoreFile.class
-    , TestPatchStoreMem.class
-    , TestLocalServerBuildConfig.class
-    , TestLocalServer.class
-    , TestLocalServerCreateDelete.class
-})
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.patchlog.PatchStoreMem;
+import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 
-public class TS_ServerLocal {
-    @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+public class PatchStoreMem2 extends PatchStoreMem {
+    @Override
+    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
+        PatchLog plog = new PatchLogBase(dsd, new PatchLogIndexMem(), new PatchStorageMem(), null);
+        return plog;
     }
 }
-
-

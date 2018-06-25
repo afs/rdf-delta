@@ -511,7 +511,8 @@ public abstract class AbstractTestDeltaLink {
         assertNull(dsd);
     }
 
-    @Test
+    //@Test
+    // Feature Initial state not active.
     public void datasource_init_01() {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("datasource_15", "http://example/uri");

@@ -46,6 +46,8 @@ import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DataSource ;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
@@ -384,7 +386,7 @@ public class PatchLogFile implements PatchLog {
 
     @Override
     public PatchStore getPatchStore() {
-        return null;
+        return patchStore;
     }
 
     @Override

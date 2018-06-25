@@ -23,8 +23,6 @@ import java.nio.file.Path;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.patchlog.PatchLog ;
-import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

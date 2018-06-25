@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.server;
 
-import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 
 public class TestPatchStoreFile extends AbstractTestPatchStore {

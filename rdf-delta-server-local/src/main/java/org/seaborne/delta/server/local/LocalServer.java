@@ -27,12 +27,9 @@ import java.util.stream.Collectors ;
 import org.apache.jena.atlas.lib.ListUtils ;
 import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.lib.SetUtils ;
-import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.LibX;
-import org.seaborne.delta.server.local.patchlog.PatchStore ;
-import org.seaborne.delta.server.local.patchlog.PatchStoreFile ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
@@ -59,18 +56,19 @@ public class LocalServer {
     
     /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
     static /*package*/ void initSystem() {
-        //Class initializer
-        // Ensure the file-based PatchStore provider is available
-        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreFileProvider) ) {
-            FmtLog.warn(LOG, "PatchStoreFile provider not registered");
-            PatchStore ps = new PatchStoreFile();
-            if ( ! DPS.PatchStoreFileProvider.equals(ps.getProviderName())) {
-                FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreFileProvider, ps.getProviderName());
-                throw new DeltaConfigException();
-            }
-            PatchStoreMgr.register(ps);
-        }
         
+//        //Class initializer
+//        // Ensure the file-based PatchStore provider is available
+//        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreFileProvider) ) {
+//            FmtLog.warn(LOG, "PatchStoreFile provider not registered");
+//            PatchStore ps = new PatchStoreFile();
+//            if ( ! DPS.PatchStoreFileProvider.equals(ps.getProviderName())) {
+//                FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreFileProvider, ps.getProviderName());
+//                throw new DeltaConfigException();
+//            }
+//            PatchStoreMgr.register(ps);
+//        }
+//        
         // Before anything else, set the default the log provider to "file"
         // This gives a default to a delta.cfg setting.
         if ( PatchStoreMgr.getDftPatchStore() == null ) {

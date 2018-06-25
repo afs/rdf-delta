@@ -29,6 +29,8 @@ import org.apache.jena.ext.com.google.common.collect.BiMap ;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap ;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +106,7 @@ public class PatchStoreMgr {
     public static void setDftPatchStoreName(String providerName) {
         PatchStore impl = patchStores.get(providerName);
         if ( impl == null )
-            throw new DeltaConfigException("No provider for '"+providerName+"'");  
+            throw new DeltaConfigException("No provider for '"+providerName+"'");
         dftPatchStore = impl;
         FmtLog.info(LOG, "Set default patch store: %s", providerName);
     }
@@ -146,8 +148,9 @@ public class PatchStoreMgr {
     }
 
     public static void reset() {
-        shortName2LongName.clear();
-        patchStores.clear();
+        System.err.println("FIX NEEDED");
+        //shortName2LongName.clear();
+        //patchStores.clear();
         dftPatchStore = null;
     }
 }

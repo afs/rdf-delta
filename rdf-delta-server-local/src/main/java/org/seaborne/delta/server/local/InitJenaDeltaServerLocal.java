@@ -18,8 +18,8 @@
 
 package org.seaborne.delta.server.local;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSubsystemLifecycle ;
+import org.apache.jena.sys.JenaSystem;
 import org.seaborne.delta.server.system.DeltaSystem ;
 
 /** Hook into JenaSystem initialization.

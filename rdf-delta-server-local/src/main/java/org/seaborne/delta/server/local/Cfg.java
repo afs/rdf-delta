@@ -42,7 +42,6 @@ import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.delta.server.local.patchlog.PatchStore;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.slf4j.Logger;
 

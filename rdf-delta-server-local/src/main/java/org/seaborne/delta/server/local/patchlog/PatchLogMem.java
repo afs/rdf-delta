@@ -28,6 +28,8 @@ import java.util.stream.Stream;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.patch.RDFPatch;
 
 /** Simple, lightweight implementation of {@link PatchLog}. */ 

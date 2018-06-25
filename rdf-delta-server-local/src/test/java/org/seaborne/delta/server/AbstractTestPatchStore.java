@@ -19,7 +19,6 @@
 package org.seaborne.delta.server;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,8 +30,9 @@ import org.junit.Test;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.server.local.patchlog.PatchLog;
-import org.seaborne.delta.server.local.patchlog.PatchStore;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.system.DeltaSystem;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
@@ -46,6 +46,7 @@ public abstract class AbstractTestPatchStore {
     @BeforeClass public static void setup() {
         FileOps.clearAll(DIR);
         FileOps.ensureDir(DIR);
+        DeltaSystem.init();
         PatchStore.clearLogIdCache();
     }
     
@@ -54,8 +55,9 @@ public abstract class AbstractTestPatchStore {
 //        FileOps.ensureDir(DIR);
     }
     
-    /** Return the PatchStore implementation under test.
-     *  Return the same object each time. */
+    /**
+     * Return the PatchStore implementation under test. Return the same object each time.
+     */
     private PatchStore provider() {
         if ( patchStore == null )
             patchStore = createPatchStore();

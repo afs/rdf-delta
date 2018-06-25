@@ -22,20 +22,24 @@ import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
 import org.seaborne.delta.server.local.DPS ;
-import org.seaborne.delta.server.local.patchlog.PatchStore ;
+import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMem ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr ;
 
 public class TestPatchStoreMem extends AbstractTestPatchStore {
     
+    private static String providerName; 
+    
     @BeforeClass public static void beforeClass() {
         DPS.resetSystem();
         PatchStoreMgr.register(new PatchStoreMem());
+        providerName = PatchStoreMgr.getDftPatchStoreName();
         PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
     }
     
     @AfterClass public static void afterClass() {
         DPS.resetSystem();
+        PatchStoreMgr.setDftPatchStoreName(providerName);
     }
 
     @Override

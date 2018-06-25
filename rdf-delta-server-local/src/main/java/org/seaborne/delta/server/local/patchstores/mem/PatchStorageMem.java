@@ -16,27 +16,37 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.local.patchstores.mem;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestFileStore.class
-    , TestPatchStoreFile.class
-    , TestPatchStoreMem.class
-    , TestLocalServerBuildConfig.class
-    , TestLocalServer.class
-    , TestLocalServerCreateDelete.class
-})
+import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.patch.RDFPatch;
 
-public class TS_ServerLocal {
-    @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+/**
+ * 
+ */
+public class PatchStorageMem implements PatchStorage {
+
+    private Map<Id, RDFPatch> store = new LinkedHashMap<>();
+    
+    public PatchStorageMem() {}
+    
+    @Override
+    public Stream<Id> find() {
+        return store.keySet().stream();
+    }
+
+    @Override
+    public void store(Id key, RDFPatch value) {
+        store.put(key, value);
+    }
+
+    @Override
+    public RDFPatch fetch(Id key) {
+        return store.get(key);
     }
 }
-
-

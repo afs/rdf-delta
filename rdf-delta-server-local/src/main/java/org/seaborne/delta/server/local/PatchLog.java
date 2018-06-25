@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local;
 
 import java.util.Objects ;
 import java.util.stream.Stream;
@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.patch.PatchHeader ;
 import org.seaborne.patch.RDFPatch;
 

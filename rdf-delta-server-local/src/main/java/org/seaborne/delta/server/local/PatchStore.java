@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local;
 
 import java.nio.file.Path ;
 import java.util.List;
@@ -28,8 +28,6 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaException ;
 import org.seaborne.delta.Id ;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.LocalServerConfig;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
@@ -109,7 +107,7 @@ public abstract class PatchStore {
     
     /** 
      * Scan for DataSources.
-     * Only DataSources that are compatible with the Patchstore provider called
+     * Only DataSources that are compatible with the PatchStore provider called
      * should be included in the returned list.  
      */
     public abstract List<DataSource> initFromPersistent(LocalServerConfig config);
@@ -151,7 +149,6 @@ public abstract class PatchStore {
     
     /** Return a new {@link PatchLog}, which must not already exist. */ 
     public PatchLog createLog(DataSourceDescription dsd, Path dsPath) {
-        FmtLog.info(LOG, "Create log: %s", dsd);
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
@@ -162,6 +159,7 @@ public abstract class PatchStore {
     private PatchLog create$(DataSourceDescription dsd, Path dsPath) {
         Id dsRef = dsd.getId();
         PatchLog patchLog = create(dsd, dsPath);
+        FmtLog.info(LOG, "Create log[%s]: %s", patchLog.getPatchStore().getProviderName(), dsd);
         logs.put(dsRef, patchLog);
         return patchLog;
     }

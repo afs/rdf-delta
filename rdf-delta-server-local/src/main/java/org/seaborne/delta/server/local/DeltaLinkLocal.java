@@ -29,7 +29,6 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
 import org.seaborne.delta.link.DeltaNotRegisteredException;
-import org.seaborne.delta.server.local.patchlog.PatchLog;
 import org.seaborne.patch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
