@@ -120,15 +120,15 @@ public interface DeltaLink {
     /** Get the current version: if this is an HTTP connection, this causes network traffic. */
     public default long getCurrentVersion(Id dsRef) { return getPatchLogInfo(dsRef).getMaxVersion(); }
 
-    /** Retrieve a patch by datasource and version. */ 
+    /** Retrieve a patch by data source and version. */ 
     public RDFPatch fetch(Id dsRef, long version);
 
-    /** Retrieve a patch by datasource and patch id. */ 
+    /** Retrieve a patch by data source and patch id. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);
 
     /**
-     * Retrieve a URL (which might be a file reference) to 
-     * the initial state of a datasource.
+     * Retrieve a URL to the initial state.
+     * The log starts with this state.
      */
     public String initialState(Id dsRef) ;
 

@@ -21,8 +21,6 @@ package org.seaborne.delta.server.local;
 import static org.apache.jena.atlas.lib.ListUtils.toList;
 import static org.seaborne.delta.Id.str;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.jena.atlas.logging.FmtLog;
@@ -244,14 +242,7 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
 
     @Override
     public String initialState(Id dsRef) {
-        DataSource dataSource = getDataSource(dsRef);
-        Path p = dataSource.getInitialDataPath();
-        if ( Files.isDirectory(p) ) {
-            throw new DeltaException("TDB database not supported for initial data");
-        } else if ( !Files.isRegularFile(p) ) {
-            throw new DeltaException("Not a file or directory: " + p);
-        } else
-            // File.
-            return p.toUri().toString();
+        // Not implemented.
+        return null;
     }
 }

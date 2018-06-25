@@ -191,10 +191,6 @@ public class Cfg {
         if ( ! Cfg.isEnabled(sourcePath) )
             throw new DeltaBadRequestException("DataSource area disabled: "+sourceArea);
 
-        String dataDirName = sourceArea.getPath(DeltaConst.DATA);
-        if ( FileOps.exists(dataDirName) )
-            throw new DeltaBadRequestException("DataSource area has a likely looking database already");
-
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
         LOG.info(JSON.toStringFlat(obj));

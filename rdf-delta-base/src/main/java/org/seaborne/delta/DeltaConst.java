@@ -150,10 +150,6 @@ public class DeltaConst {
     // Relative path name in a DataSource for the log area.
     public static final String LOG             = "Log";
     
-    // The intial data area - server side  
-    //public static final String INITIAL_DATA    = "Data";
-    public static final String INITIAL_DATA    = "data.ttl";
-
     // The database area - client side directory (TDB or with files)  
     public static final String DATA            = "data";
     

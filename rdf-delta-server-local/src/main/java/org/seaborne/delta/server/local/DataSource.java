@@ -22,9 +22,7 @@ import java.nio.file.Path;
 
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.lib.IOX ;
 import org.seaborne.delta.server.local.patchlog.PatchLog ;
 import org.seaborne.delta.server.local.patchlog.PatchStore ;
 import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
 public class DataSource {
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
     private final DataSourceDescription dsDescription;
-    private final Path     initialData;
     private final PatchLog patchLog;
 
     // Duplicates location if not in-memory.
@@ -52,34 +49,25 @@ public class DataSource {
      */
     public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore, Path dsPath) {
         PatchLog patchLog = patchStore.connectLog(dsd, dsPath);
-        Path initialData = null;
-        if ( dsPath != null )
-            initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
-        DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
+        DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
         return dataSource;
     }
 
     /**
-     * Attach to a datasource file area and return a {@link DataSource} object.
+     * Attach to a data source and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
      */
     public static DataSource create(DataSourceDescription dsd, Path dsPath) {
         PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsd.getId());
         PatchLog patchLog = patchStore.createLog(dsd, dsPath);
-        // [FILE]
-        Path initialData = null;
-        if ( dsPath != null )
-            initialData = dsPath.resolve(DeltaConst.INITIAL_DATA);
-        IOX.ensureFile(initialData);
-        DataSource dataSource = new DataSource(dsd, dsPath, initialData, patchLog);
+        DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
         return dataSource;
     }
 
-    private DataSource(DataSourceDescription dsd, Path location, Path initialData, PatchLog patchLog) {
+    private DataSource(DataSourceDescription dsd, Path location, PatchLog patchLog) {
         super();
         this.dsDescription = dsd;
         this.path = location;
-        this.initialData = initialData;  
         this.patchLog = patchLog;
     }
 
@@ -93,10 +81,6 @@ public class DataSource {
 
     public Location getLocation() {
         return Location.create(path.toString());
-    }
-
-    public Path getInitialDataPath() {
-        return initialData;
     }
 
     /** Get path to file area - returns null if this is an in-memory DataSource. */
