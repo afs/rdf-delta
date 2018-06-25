@@ -58,9 +58,14 @@ public class PatchStoreMem extends PatchStore {
 
     @Override
     protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
-        PatchLog plog =  new PatchLogMem(dsd, this);
+        PatchLog plog = new PatchLogMem(dsd, this);
         logs.put(dsd, plog);
         return plog;
+    }
+
+    @Override
+    protected void delete(PatchLog patchLog) {
+        logs.remove(patchLog.getDescription());
     }
 
     @Override

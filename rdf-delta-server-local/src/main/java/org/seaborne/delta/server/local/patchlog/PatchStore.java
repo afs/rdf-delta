@@ -138,7 +138,7 @@ public abstract class PatchStore {
      * Delete a {@link PatchLog}.
      * @param patchLog
      */
-    //protected abstract void delete(PatchLog patchLog);
+    protected abstract void delete(PatchLog patchLog);
 
     /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
     public PatchLog connectLog(DataSourceDescription dsd, Path dsPath) {

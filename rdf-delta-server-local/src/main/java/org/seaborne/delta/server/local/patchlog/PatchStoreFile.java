@@ -61,7 +61,7 @@ public class PatchStoreFile extends PatchStore {
         return patchLog ;
     }
 
-    //@Override
+    @Override
     protected void delete(PatchLog patchLog) {
         // [FILE] Currently work done in LocalServer.
         DataSourceDescription dsd = patchLog.getDescription();
