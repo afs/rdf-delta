@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.server.system;
 
-import org.apache.jena.system.JenaSystem ;
+import org.apache.jena.sys.JenaSystem ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 

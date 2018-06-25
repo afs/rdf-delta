@@ -18,8 +18,8 @@
 
 package org.seaborne.delta.server.system;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.apache.jena.system.JenaSystem ;
+import org.apache.jena.sys.JenaSubsystemLifecycle ;
+import org.apache.jena.sys.JenaSystem ;
 
 /** If you want to trigger Delta init for Jena initialization ...
  *  name this is META-INF/services/org.apache.jena.system.JenaSubsystemLifecycle

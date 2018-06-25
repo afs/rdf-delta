@@ -19,7 +19,7 @@
 package org.seaborne.delta;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.system.JenaSystem ;
+import org.apache.jena.sys.JenaSystem ;
 import org.seaborne.delta.sys.InitDelta ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;

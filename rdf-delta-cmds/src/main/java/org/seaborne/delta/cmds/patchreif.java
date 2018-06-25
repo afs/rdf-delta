@@ -24,7 +24,7 @@ import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSystem;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;

@@ -18,7 +18,7 @@
 
 package org.seaborne.patch.system;
 
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSystem;
 
 public class PatchSystem {
 

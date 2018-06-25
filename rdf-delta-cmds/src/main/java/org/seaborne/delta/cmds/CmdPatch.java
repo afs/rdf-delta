@@ -24,7 +24,7 @@ import java.io.InputStream ;
 import jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSystem;
 
 /** Abstract base alss to work on patch files given on the command line */
 public abstract class CmdPatch extends CmdGeneral

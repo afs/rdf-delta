@@ -243,9 +243,6 @@ public class DeltaClient {
             throw new DeltaConfigException("Data source '"+datasourceId.toString()+"' not found for this DeltaClient");
         DataState dataState = zone.connect(datasourceId);
         DatasetGraph dsg = zone.getDataset(dataState);
-        if ( dsg == null ) {
-            System.err.println("DSG IS null");
-        }
         DeltaConnection dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
         putCache(datasourceId, dConn);
     }

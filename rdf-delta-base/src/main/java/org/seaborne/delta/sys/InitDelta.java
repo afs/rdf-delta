@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.sys;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
+import org.apache.jena.sys.JenaSubsystemLifecycle ;
 import org.seaborne.delta.Delta ;
 import org.seaborne.patch.system.InitPatch ;
 

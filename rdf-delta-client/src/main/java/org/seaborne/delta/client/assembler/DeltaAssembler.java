@@ -146,8 +146,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         Id dsRef = zone.getIdForName(dsName);
         
         if ( dsRef == null ) {
-            //DEV System.err.println("Does not exist locally");
-            // new locally - need to wait for the server
             try { 
                 DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
                 if ( dsd == null )
@@ -161,8 +159,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
                 throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage());
             }
         } else {
-            //DEV System.err.println("Exists locally");
-            // Exists locally.
             try {
                 DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
                 if ( dsd == null )
@@ -179,8 +175,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         
         DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
         DatasetGraph dsg = deltaConnection.getDatasetGraph();
-        if ( dsg == null )
-            System.err.println("NPE");
 
         // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation. 
         // And someday tap into services to add a "sync before operation" step.

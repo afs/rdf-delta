@@ -21,7 +21,7 @@ package org.seaborne.delta.cmds;
 import java.io.InputStream ;
 
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSystem;
 import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;

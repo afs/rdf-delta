@@ -91,8 +91,6 @@ public class F_PatchFilter implements javax.servlet.Filter {
                     idx1 = servletPath.length()+1;
             }
             int idx2 = uri.indexOf('/', idx1);
-            //System.err.printf("[%d, %d]\n", idx1, idx2);
-            // Possible name or id
             String dsName;
             String trailing;
             if ( idx2 > idx1 ) {
@@ -104,7 +102,6 @@ public class F_PatchFilter implements javax.servlet.Filter {
                     dsName = uri.substring(idx1);
                     trailing = null;
                 } catch (StringIndexOutOfBoundsException ex) {
-                    System.err.println("uri = "+uri);
                     dsName = uri ;
                     throw ex;
                 }

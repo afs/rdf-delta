@@ -145,7 +145,6 @@ public abstract class DeltaServlet extends HttpServlet {
             Delta.DELTA_LOG.error("HTTP exception: "+ex.getRC()+" -- "+ex.getMessage());
             try { resp.sendError(ex.getRC(), ex.getMessage()) ; } catch (IOException ex2) {}
         } catch (Throwable ex) {
-            ex.printStackTrace(System.err);
             Delta.DELTA_LOG.error(ex.getMessage(), ex);
             try { resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, ex.getMessage()) ; }
             catch (IOException ex2) {}

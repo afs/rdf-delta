@@ -18,8 +18,8 @@
 
 package org.seaborne.patch.system;
 
-import org.apache.jena.system.JenaSubsystemLifecycle ;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSubsystemLifecycle ;
+import org.apache.jena.sys.JenaSystem;
 
 /** Patch initialization using Jena system initialization
  * <p>

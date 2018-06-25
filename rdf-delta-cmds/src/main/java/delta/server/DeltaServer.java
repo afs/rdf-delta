@@ -61,6 +61,14 @@ public class DeltaServer {
     private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
 
     public static void main(String...args) {
+        try { 
+            mainSub(args);
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
+        
+    }
+    public static void mainSub(String...args) {
         // ---- Command Line
         CmdLineArgs cla = new CmdLineArgs(args);
         

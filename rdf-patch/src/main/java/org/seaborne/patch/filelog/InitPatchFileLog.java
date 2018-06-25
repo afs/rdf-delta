@@ -18,8 +18,8 @@
 
 package org.seaborne.patch.filelog;
 
-import org.apache.jena.system.JenaSubsystemLifecycle;
-import org.apache.jena.system.JenaSystem;
+import org.apache.jena.sys.JenaSubsystemLifecycle;
+import org.apache.jena.sys.JenaSystem;
 import org.seaborne.patch.system.InitPatch;
 
 public class InitPatchFileLog implements JenaSubsystemLifecycle {
