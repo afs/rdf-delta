@@ -44,6 +44,11 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
         // comma separated host:port pairs
         String connectString = System.getProperty("delta.zk");
+        
+        if ( connectString == null || connectString.isEmpty() )
+            // XXX Switch off in some way
+            return null;
+        
         try {
             CuratorFramework client = CuratorFrameworkFactory.builder()
                 .connectString(connectString)

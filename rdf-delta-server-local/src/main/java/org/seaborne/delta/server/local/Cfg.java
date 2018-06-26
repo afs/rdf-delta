@@ -63,6 +63,7 @@ public class Cfg {
         Pair<List<Path>, List<Path>> pair = scanDirectory(location);
         List<Path> dataSourcePaths = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();
+        
         //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
@@ -89,8 +90,9 @@ public class Cfg {
                 PatchStore ps = PatchStoreMgr.getPatchStoreByProvider(providerName);
                 DataSource ds = DataSource.connect(dsd, ps, p);
                 //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
-    
-                ps.addDataSource(ds, sourceObj, p);
+//                if ( ! ps.callInitFromPersistent(null) )
+//                    // If this hasn't initialized as an "external" PatchStore...
+//                    ps.addDataSource(ds, sourceObj, p);
                 if ( LOG.isDebugEnabled() ) 
                     FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
                 if ( LOG.isDebugEnabled() ) 

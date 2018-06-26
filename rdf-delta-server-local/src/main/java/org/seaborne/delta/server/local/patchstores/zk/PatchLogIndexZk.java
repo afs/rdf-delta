@@ -70,12 +70,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
         //Guess: 1
-        if ( x.contains(versionPath(1)) )
+        if ( x.isEmpty() )
+            earliestVersion = DeltaConst.VERSION_INIT;
+        else if ( x.contains(versionPath(1)) )
             earliestVersion = 1;
         else {
             try {
-            earliestVersion = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
-            } catch (NoSuchElementException ex) {}
+                earliestVersion = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+            } catch (NoSuchElementException ex) {  }
         }
         earliestId = mapVersionToId(earliestVersion);
     }
@@ -101,6 +103,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
     
     @Override
     public Id mapVersionToId(long ver) {
+        if ( ver == DeltaConst.VERSION_INIT || ver == DeltaConst.VERSION_UNSET )
+            return null;
         String p = versionPath(ver);
         byte[] b = Zk.zkFetch(client, versionPath(ver));
         if ( b == null )

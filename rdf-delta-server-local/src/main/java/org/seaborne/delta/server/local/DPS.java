@@ -88,7 +88,7 @@ public class DPS {
             PatchStoreMgr.register(psp);
         });
         // Still need to set the server-wide default PatchStore.
-        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreZkProvider);
+//        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreZkProvider);
 //        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
     }
 }

@@ -19,7 +19,7 @@
 package org.seaborne.delta.server.local.patchstores.zk;
 
 import static org.seaborne.delta.server.local.patchstores.zk.Zk.*;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nDsd;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.*;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nPatches;
 
@@ -125,11 +125,14 @@ public class PatchStoreZk extends PatchStore {
     
     @Override
     public boolean callInitFromPersistent(LocalServerConfig config) {
-        return true;
+        return client != null;
     }
 
     @Override
     public List<DataSource> initFromPersistent(LocalServerConfig config) {
+//        if ( client == null )
+//            return Collections.emptyList();
+        
         boolean isEmpty = zkCalc(()->client.checkExists().forPath(ZkConst.pRoot)==null);
         try {
             if ( isEmpty ) {
@@ -184,12 +187,11 @@ public class PatchStoreZk extends PatchStore {
         
         String logPath = zkPath(ZkConst.pLogs, dsName);
         if ( ! zkExists(client, logPath) ) {
+            LOGZK.info("Does not exist: format");
             zkLock(client, ZkConst.pStoreLock, ()->{
                 formatLog(dsd, logPath);
             });
         }
-        Zk.listNodes(client, logPath);
-        // no state
         PatchLogIndex store = new PatchLogIndexZk(client, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions));
         PatchStorage storage = new PatchStorageZk(client, zkPath(logPath, ZkConst.nPatches));
         PatchLog patchLog = new PatchLogBase(dsd, store, storage, this) ;
@@ -213,13 +215,15 @@ public class PatchStoreZk extends PatchStore {
      *   /delta/logs/NAME/lock
      *   /delta/logs/NAME/state      -- JSON 
      *   /delta/logs/NAME/patches-   -- Sequence node
-     *   /delta/logs/NAME/archive
+     *   /delta/logs/NAME/versions
      * </pre>
      */
     private void formatLog(DataSourceDescription dsd, String logPath) {
         zkCreate(client, logPath);
         zkCreate(client, zkPath(logPath, nLock));
         zkCreate(client, zkPath(logPath, nPatches));
+        // Set in PatchLogIndexZk
+        //zkCreate(client, zkPath(logPath, nVersions));
         //zkCreate(client, zkPath(logPath, nVersionsSeq), CreateMode.PERSISTENT_SEQUENTIAL);
 
         String dsdPath = zkPath(logPath, nDsd);
@@ -228,10 +232,8 @@ public class PatchStoreZk extends PatchStore {
         JsonObject dsdJson = dsd.asJson();
         byte[] b1 = jsonBytes(dsdJson);
         zkCreateSet(client, dsdPath, b1);
-
         // Don't write initial state - handled in PatchLogIndexZk.
     }
-    
     
     private byte[] jsonBytes(JsonValue json) {
         ByteArrayOutputStream out = new ByteArrayOutputStream(8*1024);

@@ -23,7 +23,7 @@ up-to-date using the RDF Patch Log as a journal of changes to be applied.
 
 Website: https://afs.github.io/rdf-delta
 
-##= High Availablity  Apache Jena Fuseki
+## High Availablity Apache Jena Fuseki
 
 https://afs.github.io/rdf-delta/ha-fuseki.html
 
@@ -58,3 +58,7 @@ http://central.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
 ## Status
 
 [![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg)](https://travis-ci.org/afs/rdf-delta)
+
+## Contributing
+
+See [CONTRIBUTING](.github/CONTRIBUTING.md).
