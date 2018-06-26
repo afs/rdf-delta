@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-## Replace 
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 ## Usage: dcmd <delta_main>
 ## Sets up the java enviroment to run a command from RDF Delta.

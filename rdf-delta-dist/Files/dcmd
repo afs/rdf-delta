@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 ## Sets up the java enviroment to run a command from RDF Delta.
 
@@ -19,7 +20,7 @@ then
 fi
 
 function usage() {
-    echo "Commands: server, mk, rm, list, get, add, parse, path, r2p, " 1>&2
+    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
 }

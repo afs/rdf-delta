@@ -1,4 +1,6 @@
-prefix ex: <http://example.org/>
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+PREFIX ex: <http://example.org/>
 
 ex:s ex:p ex:o .
 
