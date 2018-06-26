@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
@@ -38,13 +37,6 @@ public class PatchStoreMem extends PatchStore {
     
     public PatchStoreMem(PatchStoreProvider provider) {
         super(provider);
-    }
-
-    @Override
-    public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
-        DataSourceDescription dsd = ds.getDescription();
-        PatchLog plog = createPatchLog(dsd);
-        logs.put(ds.getDescription(), plog);
     }
 
     @Override

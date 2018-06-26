@@ -72,11 +72,9 @@ public class Cfg {
                 // Extract name from disk name. 
                 String dsName = p.getFileName().toString();
                 // read config file.
-                //DataSource ds = Cfg.makeDataSource(p);
-                
                 JsonObject sourceObj = JSON.read(p.resolve(DeltaConst.DS_CONFIG).toString());
+
                 // Patch Store provider short name.
-                
                 String logType = JSONX.getStrOrNull(sourceObj, F_LOG_TYPE);
                 String providerName = PatchStoreMgr.shortName2LongName(logType);
                 
@@ -90,9 +88,6 @@ public class Cfg {
                 PatchStore ps = PatchStoreMgr.getPatchStoreByProvider(providerName);
                 DataSource ds = DataSource.connect(dsd, ps, p);
                 //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
-//                if ( ! ps.callInitFromPersistent(null) )
-//                    // If this hasn't initialized as an "external" PatchStore...
-//                    ps.addDataSource(ds, sourceObj, p);
                 if ( LOG.isDebugEnabled() ) 
                     FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
                 if ( LOG.isDebugEnabled() ) 
@@ -103,7 +98,7 @@ public class Cfg {
     }
 
     /** 
-     * Scan a directory for datasource areas.
+     * Scan a directory for DataSource areas.
      * These must have a file called source.cfg.
      */
     public static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Location serverRoot) {

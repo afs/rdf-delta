@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaException;
@@ -100,12 +99,12 @@ public abstract class PatchStore {
         return provider;
     }
     
-    /** Does the PatchStore have state across restarts? */ 
+    /** Do the {@code PatchStore} logs exist across restarts? */ 
     public boolean isEphemeral() {
         return false;
     }
     
-    /** Does the {@link PatchStore} have a file area? */ 
+    /** Do the {@code PatchStore} have a file area? */ 
     public boolean hasFileArea() {
         return false;
     }
@@ -126,10 +125,10 @@ public abstract class PatchStore {
      */
     public abstract List<DataSource> initFromPersistent(LocalServerConfig config);
     
-    /** Add a {@link DataSource} to be managed with this {@code PatchStore}.
-     * The Path is the path to the DataSource area.
-     */
-    public abstract void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea);
+//    /** Add a {@link DataSource} to be managed with this {@code PatchStore}.
+//     * The Path is the path to the DataSource area.
+//     */
+//    public abstract void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea);
 
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
     // Somewhat related to the DataRegistry.

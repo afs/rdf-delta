@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
@@ -79,11 +78,6 @@ public class PatchStoreFile extends PatchStore {
     @Override
     public List<DataSourceDescription> listDataSources() {
         return new ArrayList<>(sources);
-    }
-
-    @Override
-    public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
-        sources.add(ds.getDescription());
     }
 
     @Override

@@ -125,6 +125,8 @@ public class DataSource {
 
     @Override
     public String toString() {
-        return String.format("[DataSource:%s %s]", dsDescription.getName(), dsDescription.getId());
+        return String.format("[DataSource:%s %s (%s)]", 
+                             dsDescription.getName(), dsDescription.getId(),
+                             patchLog.getPatchStore().getProvider().getShortName());
     }
 }

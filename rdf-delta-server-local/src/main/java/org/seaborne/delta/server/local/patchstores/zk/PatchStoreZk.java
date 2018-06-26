@@ -151,11 +151,6 @@ public class PatchStoreZk extends PatchStore {
     }
 
     @Override
-    public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
-        create(ds.getDescription(), dataSourceArea);
-    }
-
-    @Override
     public List<DataSourceDescription> listDataSources() {
         List<DataSourceDescription> descriptions = new ArrayList<DataSourceDescription>();
         
