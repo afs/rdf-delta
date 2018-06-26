@@ -25,7 +25,7 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.patchlog.FileStore ;
+import org.seaborne.delta.server.local.filestore.FileStore;
 
 public class DeltaTestLib {
     // Static resources area.

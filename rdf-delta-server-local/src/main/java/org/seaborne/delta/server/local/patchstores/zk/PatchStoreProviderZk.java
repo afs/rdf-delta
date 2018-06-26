@@ -24,17 +24,23 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
-    public PatchStoreProviderZk() {}
+    private final CuratorFramework client;
+
+    public PatchStoreProviderZk() {
+        this(makeClient());
+    }
     
-    @Override
-    public PatchStore create() {
-        // initFromPersistent(LocalServerConfig config)
-        
+    public PatchStoreProviderZk(CuratorFramework client) {
+        this.client = client;
+    }
+    
+    private static CuratorFramework makeClient() {
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
         // comma separated host:port pairs
         String connectString = System.getProperty("delta.zk");
@@ -46,16 +52,26 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
                 .build();
             client.start();
             client.blockUntilConnected();
-            return new PatchStoreZk(client);
+            return client;
         }
         catch (Exception ex) {
-            Log.error(this,  "Failed to setup zookeeper backed PatchStore", ex);
+            Log.error(PatchStoreProviderZk.class,  "Failed to setup zookeeper backed PatchStore", ex);
             throw new DeltaConfigException("Failed to setup zookeeper backed PatchStore", ex);
         }
     }
     
     @Override
+    public PatchStore create() {
+        return new PatchStoreZk(client, this); 
+    }
+
+    @Override
+    public String getProviderName() {
+        return DPS.PatchStoreZkProvider;
+    }
+    
+    @Override
     public String getShortName() {
-        return "zk";
+        return DPS.pspZk;
     }
 }

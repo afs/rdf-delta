@@ -23,30 +23,44 @@ import org.junit.BeforeClass ;
 import org.junit.Test ;
 import org.seaborne.delta.server.local.DPS ;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMem ;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMgr ;
+import org.seaborne.delta.server.local.PatchStoreMgr;
+import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 
 public class TestPatchStoreMem extends AbstractTestPatchStore {
     
     private static String providerName; 
+    private static String unregister;
+    
+//    Why does registration make any difference?
+//        Localserver.create -> defaults.
     
     @BeforeClass public static void beforeClass() {
-        DPS.resetSystem();
-        PatchStoreMgr.register(new PatchStoreMem());
         providerName = PatchStoreMgr.getDftPatchStoreName();
-        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
+        // In case not registered ...
+        if ( PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreMemProvider) == null ) {
+            PatchStoreProvider psp = new PatchStoreProviderMem();
+            PatchStoreMgr.register(psp);
+            unregister = psp.getProviderName();
+            PatchStoreMgr.setDftPatchStoreName(unregister);
+        } else
+            PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
     }
     
     @AfterClass public static void afterClass() {
-        DPS.resetSystem();
-        PatchStoreMgr.setDftPatchStoreName(providerName);
+        //DPS.resetSystem();
+        if ( providerName != null )
+            PatchStoreMgr.setDftPatchStoreName(providerName);
+        if ( unregister != null )
+            PatchStoreMgr.unregister(unregister);
     }
 
     @Override
-    protected PatchStore createPatchStore() {
-        return new PatchStoreMem();
+    protected PatchStore patchStore() {
+        return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreMemProvider);
     }
     
+    // No persistent state - no recovery.
     @Override
     @Test public void recovery1() {}
 }

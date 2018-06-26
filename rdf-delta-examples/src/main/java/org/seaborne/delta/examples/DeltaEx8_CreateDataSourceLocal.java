@@ -53,7 +53,8 @@ public class DeltaEx8_CreateDataSourceLocal {
             System.out.println(ds);
             System.out.println("    "+ds.getURI());
             System.out.println("    "+ds.getId());
-            System.out.println("    "+ds.getLocation());
+            if ( ds.getPath() != null )
+                System.out.println("    "+ds.getPath());
             System.out.println("    "+ds.getPatchLog());
         });
     }

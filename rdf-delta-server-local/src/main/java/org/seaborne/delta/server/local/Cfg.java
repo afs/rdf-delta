@@ -42,7 +42,6 @@ import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.slf4j.Logger;
 
 /** Various configuration utilities; file-based server. */ 
@@ -169,8 +168,9 @@ public class Cfg {
     
     
     private static Logger LOG = Delta.DELTA_LOG;
-    /** Set up a disk file area for the data source */
-    /*package*/ static Path setupDataSourceByFile(Location root, DataSourceDescription dsd) {
+    /** Set up a disk file area for the data source 
+     * @param patchStore */
+    /*package*/ static Path setupDataSourceByFile(Location root, PatchStore patchStore, DataSourceDescription dsd) {
         // Disk file setup.
         // Eventually this fixed code needs to move to PatchStoreFile or a library and be invoked from PatchStoreFile. 
         
@@ -192,6 +192,7 @@ public class Cfg {
 
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
+        obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
         LOG.info(JSON.toStringFlat(obj));
         try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
             JSON.write(out, obj);

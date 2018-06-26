@@ -18,14 +18,29 @@
 
 package org.seaborne.delta.server;
 
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreMgr;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.test.TestingServer;
+import org.seaborne.delta.server.local.patchstores.zk.Zk;
 
-public class TestPatchStoreFile extends AbstractTestPatchStore {
-    
-    @Override
-    protected PatchStore patchStore() {
-        return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreFileProvider);
+public class ZkT {
+    /** Create a testing ZooKeeper server */
+    public static TestingServer localServer() {
+
+        try {
+            TestingServer server = new TestingServer();
+            server.start();
+            return server ;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
+    
+    /** Setup a fresh ZooKeeper test server and return a curator client for it.*/
+    public static CuratorFramework curator() {
+            TestingServer server = localServer();
+            String connectString = "localhost:" + server.getPort();
+            return Zk.curator(connectString); 
+    }
+            
+
 }

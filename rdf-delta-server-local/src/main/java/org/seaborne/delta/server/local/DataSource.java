@@ -20,10 +20,8 @@ package org.seaborne.delta.server.local;
 
 import java.nio.file.Path;
 
-import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +34,10 @@ public class DataSource {
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
     private final DataSourceDescription dsDescription;
     private final PatchLog patchLog;
+    // Optional path to a file area for further information.
+    // For the file-backed PatchStore, this includes the patches.
+    private final Path dsPath;
 
-    // Duplicates location if not in-memory.
-    private final Path path;
-    
     /**
      * Attach to a {@link DataSource} file area and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
@@ -51,21 +49,40 @@ public class DataSource {
         return dataSource;
     }
 
-    /**
-     * Attach to a data source and return a {@link DataSource} object.
-     * The directory {@code dsPath} must exist.
-     */
-    public static DataSource create(DataSourceDescription dsd, Path dsPath) {
-        PatchStore patchStore = PatchStoreMgr.selectPatchStore(dsd.getId());
+//    /**
+//     * Attach to a data source and return a {@link DataSource} object.
+//     * The directory {@code dsPath} must exist.
+//     */
+//    public static DataSource create(DataSourceDescription dsd, Path dsPath) {
+//        // [FILE]
+//        PatchStore patchStore = selectPatchStore(dsd.getId());
+//        PatchLog patchLog = patchStore.createLog(dsd, dsPath);
+//        DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
+//        return dataSource;
+//    }
+
+    public static DataSource create(DataSourceDescription dsd, Path dsPath, PatchStore patchStore) {
         PatchLog patchLog = patchStore.createLog(dsd, dsPath);
         DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
         return dataSource;
     }
 
-    private DataSource(DataSourceDescription dsd, Path location, PatchLog patchLog) {
+    /**
+     * Choose the {@link PatchStore} for creating a new {@link PatchLog}
+     * Return the current global default if not specifically found
+     */
+    private static PatchStore selectPatchStore(Id dsRef) {
+//     // Look in existing bindings.
+//     PatchStore patchStore = ??? ;
+//     if ( patchStore != null )
+//         return patchStore;
+        return PatchStoreMgr.getDftPatchStore();
+    }
+    
+    private DataSource(DataSourceDescription dsd, Path dsPath, PatchLog patchLog) {
         super();
         this.dsDescription = dsd;
-        this.path = location;
+        this.dsPath = dsPath; 
         this.patchLog = patchLog;
     }
 
@@ -77,19 +94,15 @@ public class DataSource {
         return dsDescription.getUri();
     }
 
-    public Location getLocation() {
-        return Location.create(path.toString());
-    }
-
-    /** Get path to file area - returns null if this is an in-memory DataSource. */
-    public Path getPath() {
-        return path;
-    }
-
     public String getName() {
         return dsDescription.getName();
     }
 
+    /** Return the optional {@link Path} associated with this {@link DataSource}. */ 
+    public Path getPath() {
+        return dsPath;
+    }
+    
     public PatchLog getPatchLog() {
         return patchLog;
     }
@@ -102,20 +115,11 @@ public class DataSource {
         return dsDescription;
     }
     
-    public boolean inMemory() {
-        return false;
-    }
-    
     public void release() {
-        // Decision what to do with the state?
-        //  1 - mark unavailable 
-        //  2 - move aside
-        //  3 - really delete
-
         PatchStore.release(getPatchLog());
-
-        if ( ! inMemory() ) {
-            Cfg.retire(getPath());
+        if ( dsPath != null ) {
+            // [FILE] Move into PatchStoreFile.release.
+            Cfg.retire(dsPath);
         }
     }
 

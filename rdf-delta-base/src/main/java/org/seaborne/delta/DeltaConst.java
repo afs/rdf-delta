@@ -141,7 +141,7 @@ public class DeltaConst {
     // Default name for the server configuration file.
     public static final String SERVER_CONFIG   = "delta.cfg";
     
-    // Name for the datasource configuration file.
+    // Name for the DataSource configuration file.
     public static final String DS_CONFIG       = "source.cfg";
 
     // Relative path name in a DataSource for the "sources" area.

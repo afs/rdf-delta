@@ -16,23 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local;
+package test;
 
-/** The provider (factory) of {@link PatchStore} implementations.
- * These are added to {@link PatchStoreMgr}.
- * There will be only one object of each {@code PatchStoreProvider}.  
- */
-public interface PatchStoreProvider {
+import org.junit.Test;
+import org.seaborne.delta.server.AbstractTestPatchStore;
+import org.seaborne.delta.server.ZkT;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
 
-    /** 
-     * Create the {@link PatchStore} object for this process.
-     * This should boot itself to be able to report existing {@link PatchLog PatchLogs}. 
-     */
-    public PatchStore create() ;
+public class TestPatchStoreZk extends AbstractTestPatchStore {
+    //extends TestPatchStoreMem {
+
+    // Really all covered by AbstractTestPatchLog
     
-    /** Long name */ 
-    public String getProviderName();
+    @Override
+    protected PatchStore patchStore() {
+        return PatchStoreZk.create(ZkT.curator());
+    }
     
-    /** Short name used in server configuration files to set the default provider via "log_type" */ 
-    public String getShortName();
+    @Override
+    @Test public void recovery1() {}
+
 }

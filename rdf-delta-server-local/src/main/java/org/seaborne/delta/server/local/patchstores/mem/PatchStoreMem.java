@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local.patchstores.mem;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -28,39 +28,36 @@ import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 
 public class PatchStoreMem extends PatchStore {
 
-//    public static void registerPatchStoreMem() {
-//        PatchStore ps = new PatchStoreMem(DPS.PatchStoreMemProvider);
-//        PatchStoreMgr.registerShortName(DeltaConst.LOG_MEM, ps.getProviderName());
-//        PatchStoreMgr.register(ps);
-//    }
-    
+    // For tracking.
+    // DataRegistry Id->DataSource is the real cache. 
     private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
     
-    public PatchStoreMem(String providerName) {
-        super(providerName);
-    }
-
-    public PatchStoreMem() {
-        this(DPS.PatchStoreMemProvider);
+    public PatchStoreMem(PatchStoreProvider provider) {
+        super(provider);
     }
 
     @Override
     public void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea) {
         DataSourceDescription dsd = ds.getDescription();
-        PatchLog plog =  new PatchLogMem(dsd, this);
+        PatchLog plog = createPatchLog(dsd);
         logs.put(ds.getDescription(), plog);
     }
 
     @Override
     protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
-        PatchLog plog = new PatchLogMem(dsd, this);
+        PatchLog plog = createPatchLog(dsd);
         logs.put(dsd, plog);
         return plog;
     }
 
+    protected PatchLog createPatchLog(DataSourceDescription dsd) {
+        return new PatchLogBase(dsd, new PatchLogIndexMem(), new PatchStorageMem(), this);
+    }
+    
     @Override
     protected void delete(PatchLog patchLog) {
         logs.remove(patchLog.getDescription());

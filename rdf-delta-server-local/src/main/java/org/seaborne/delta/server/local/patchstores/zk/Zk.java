@@ -23,9 +23,12 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
@@ -43,7 +46,26 @@ public class Zk {
         String msg = String.format("%s[%s] ZooKeeper exception: %s", caller, path, ex.getMessage(), ex);
         LOG.warn(msg, ex);
     }
-
+    
+    /** Connect a curator client to a running ZooKepper server. */
+    public static CuratorFramework curator(String connectString) {
+        try {
+            RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
+            CuratorFramework client = 
+                CuratorFrameworkFactory.builder()
+                //.namespace("delta")
+                .connectString(connectString)
+                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
+                .retryPolicy(policy)
+                .build();
+            client.start();
+            //client.getConnectionStateListenable().addListener((c, newState)->System.out.println("** STATE CHANGED TO : " + newState));
+            client.blockUntilConnected();
+            return client;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     
     private static void zkException(Exception ex) {
         LOG.warn("ZooKeeper exception: "+ex.getMessage(), ex);
@@ -188,6 +210,9 @@ public class Zk {
         //return -1;
     }
     
+    public static void listNodes(CuratorFramework client) {
+        listNodes(client, "/");
+    }
     
     public static void listNodes(CuratorFramework client, String path) {
         String initial = path.equals("/") ? "" : path;

@@ -16,19 +16,24 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.mem;
-
-import java.nio.file.Path;
+package test;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.PatchLog;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMem;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
+import org.seaborne.delta.server.local.patchstores.mem.PatchLogIndexMem;
+import org.seaborne.delta.server.local.patchstores.mem.PatchStorageMem;
 
-public class PatchStoreMem2 extends PatchStoreMem {
+public class TestPatchLogMem extends AbstractTestPatchLog {
+
     @Override
-    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
-        PatchLog plog = new PatchLogBase(dsd, new PatchLogIndexMem(), new PatchStorageMem(), null);
-        return plog;
+    protected PatchLog patchLog() {
+        DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
+        return new PatchLogBase(dsd, 
+            new PatchLogIndexMem(),
+            new PatchStorageMem(),
+            null);
     }
+
 }

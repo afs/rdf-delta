@@ -38,7 +38,6 @@ import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMgr ;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {

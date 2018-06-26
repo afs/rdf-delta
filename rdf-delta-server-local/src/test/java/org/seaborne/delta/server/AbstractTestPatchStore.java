@@ -60,11 +60,11 @@ public abstract class AbstractTestPatchStore {
      */
     private PatchStore provider() {
         if ( patchStore == null )
-            patchStore = createPatchStore();
+            patchStore = patchStore();
         return patchStore;
     }
     
-    protected abstract PatchStore createPatchStore();
+    protected abstract PatchStore patchStore();
     
     private PatchLog patchLog() {
         PatchStore patchStore = provider();

@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.server.local.patchlog.FileStore;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
+import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
+import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.slf4j.Logger ;
 
 public class DPS {
@@ -38,6 +38,12 @@ public class DPS {
     public static String PatchStoreFileProvider = "PatchStore/File";
     public static String PatchStoreMemProvider  = "PatchStore/Mem";
     public static String PatchStoreZkProvider  = "PatchStore/Zk";
+
+    // Short names.
+    public static String pspFile = "file";
+    public static String pspMem  = "mem";
+    public static String pspZk   = "zk";
+
     
     public static void init() { 
         if ( initialized ) 
@@ -46,7 +52,7 @@ public class DPS {
             if ( initialized ) 
                 return ;
             initialized = true ;
-            initOnce() ;
+            initPatchStoreProviders() ;
         }
     }
 
@@ -61,27 +67,28 @@ public class DPS {
         FileStore.resetTracked();
         PatchStoreMgr.reset();
         PatchStore.clearLogIdCache();
+        
+        initPatchStoreProviders();
         // This would be called after initialization, when LocalServer is first touched.
         LocalServer.initSystem();
     }
     
     // Things to do once.
-    private static void initOnce() {
+    private static void initPatchStoreProviders() {
         // Find PatchStoreProviders.
         List<PatchStoreProvider> providers = new ArrayList<>();
         
         // Hard code the discovery for now.
         providers.add(new PatchStoreProviderFile());
         providers.add(new PatchStoreProviderMem());
-        //providers.add(new PatchStoreProviderZk());
+        providers.add(new PatchStoreProviderZk());
         
         providers.forEach(psp->{
-            PatchStore pStore = psp.create();
-            LOG.info("Provider: "+pStore.getProviderName());
-            PatchStoreMgr.registerShortName(psp.getShortName(), pStore.getProviderName());
-            PatchStoreMgr.register(pStore);
+            LOG.info("Provider: "+psp.getProviderName());
+            PatchStoreMgr.register(psp);
         });
-        //PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreZkProvider);
-        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
+        // Still need to set the server-wide default PatchStore.
+        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreZkProvider);
+//        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
     }
 }

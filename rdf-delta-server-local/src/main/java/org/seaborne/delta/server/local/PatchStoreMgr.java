@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,9 +28,6 @@ import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.ext.com.google.common.collect.BiMap ;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap ;
 import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.PatchLog;
-import org.seaborne.delta.server.local.PatchStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,9 +80,20 @@ public class PatchStoreMgr {
         return patchStores.containsKey(providerName);
     }
     
+    
+    /**
+     * Add a {@link PatchStore} using the given {@link PatchStoreProvider} for details and
+     * to create the {@code PatchStore}
+     */
+    public static void register(PatchStoreProvider provider) {
+      registerShortName(provider.getShortName(), provider.getProviderName());
+      PatchStore pStore = provider.create();
+      registerPatchStore(pStore);
+    }
+    
     /** Add a PatchStore : it is registered by its provider name */ 
-    public static void register(PatchStore impl) {
-        String providerName = impl.getProviderName();
+    private static void registerPatchStore(PatchStore impl) {
+        String providerName = impl.getProvider().getProviderName();
         if ( longName2ShortName(providerName) == null )
             LOG.warn("No short name for: "+providerName);
         FmtLog.info(LOG, "Register patch store: %s", providerName);
@@ -112,19 +120,6 @@ public class PatchStoreMgr {
     }
     
     /**
-     * 
-     * Get the {@link PatchStore}. Return the current global default if not
-     * specifically found
-     */
-    public static PatchStore selectPatchStore(Id dsRef) {
-//     // Look in existing bindings.
-//     PatchStore patchStore = ??? ;
-//     if ( patchStore != null )
-//         return patchStore;
-        return PatchStoreMgr.getDftPatchStore();
-    }
-    
-    /**
      * Get the {@link PatchStore} by provider name.
      */
     public static PatchStore getPatchStoreByProvider(String providerName) {
@@ -144,13 +139,12 @@ public class PatchStoreMgr {
     public static String getDftPatchStoreName() {
         if ( dftPatchStore == null )
             return null;
-        return dftPatchStore.getProviderName(); 
+        return dftPatchStore.getProvider().getProviderName(); 
     }
 
     public static void reset() {
-        System.err.println("FIX NEEDED");
-        //shortName2LongName.clear();
-        //patchStores.clear();
+        shortName2LongName.clear();
+        patchStores.clear();
         dftPatchStore = null;
     }
 }

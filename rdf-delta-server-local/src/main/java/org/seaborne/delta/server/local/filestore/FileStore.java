@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local.filestore;
 
 import java.io.IOException ;
 import java.io.InputStream ;

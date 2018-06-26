@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local.patchstores.file;
 
 import static org.seaborne.delta.DeltaConst.VERSION_INIT ;
 import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
@@ -48,6 +48,8 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.filestore.FileEntry;
+import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
@@ -60,6 +62,10 @@ import org.slf4j.LoggerFactory;
 
 /** A sequence of patches for an {@link DataSource}. */
 public class PatchLogFile implements PatchLog {
+    
+    // XXX Predates PatchStorage/PatchLogIndex.
+    // Could do with converting.
+    
     private static final boolean CHECKING = true ;
 
     // Centralized logger for regular lifecycle reporting.

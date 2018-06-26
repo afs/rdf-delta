@@ -18,20 +18,25 @@
 
 package org.seaborne.delta.server.local.patchstores.file;
 
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchlog.PatchStoreFile;
 
 public class PatchStoreProviderFile implements PatchStoreProvider {
 
     @Override
     public PatchStore create() {
-        return new PatchStoreFile();
+        return new PatchStoreFile(this);
+    }
+    
+    @Override
+    public String getProviderName() {
+        return DPS.PatchStoreFileProvider;
     }
 
     @Override
     public String getShortName() {
-        return "file";
+        return DPS.pspFile;
     }
 
 }

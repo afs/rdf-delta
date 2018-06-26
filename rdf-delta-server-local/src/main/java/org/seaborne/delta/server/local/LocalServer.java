@@ -27,10 +27,10 @@ import java.util.stream.Collectors ;
 import org.apache.jena.atlas.lib.ListUtils ;
 import org.apache.jena.atlas.lib.Pair ;
 import org.apache.jena.atlas.lib.SetUtils ;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.LibX;
-import org.seaborne.delta.server.local.patchlog.PatchStoreMgr;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,38 +54,13 @@ public class LocalServer {
         initSystem();
     }
     
-    /** After Delta has initialized, make sure some sort of PatchStore provision is set. */ 
-    static /*package*/ void initSystem() {
-        
-//        //Class initializer
-//        // Ensure the file-based PatchStore provider is available
-//        if ( ! PatchStoreMgr.isRegistered(DPS.PatchStoreFileProvider) ) {
-//            FmtLog.warn(LOG, "PatchStoreFile provider not registered");
-//            PatchStore ps = new PatchStoreFile();
-//            if ( ! DPS.PatchStoreFileProvider.equals(ps.getProviderName())) {
-//                FmtLog.error(LOG, "PatchStoreFile provider name is wrong (expected=%s, got=%s)", DPS.PatchStoreFileProvider, ps.getProviderName());
-//                throw new DeltaConfigException();
-//            }
-//            PatchStoreMgr.register(ps);
-//        }
-//        
-        // Before anything else, set the default the log provider to "file"
-        // This gives a default to a delta.cfg setting.
-        if ( PatchStoreMgr.getDftPatchStore() == null ) {
-            //FmtLog.warn(LOG, "PatchStore default not set.");
-            PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
-        }
-    }
-    
-    /* File system layout:
-     *   Server Root
-     *      delta.cfg
-     *      /NAME ... per DataSource.
-     *          /source.cfg
-     *          /Log -- patch on disk (optional)
-     *          /data -- TDB database (optional)
-     *          /disabled -- if this file is present, then the datasource is not accessible.  
+    /** Placeholder for any system-wide initialization.
+     * 
+     * Each server is initialized via 
+     * {@link #create} {@literal ->} {@link #attachServer} {@literal ->} {@link #initThisServer}.
      */
+    static /*package*/ void initSystem() {
+    }
     
     private static Map<Location, LocalServer> servers = new ConcurrentHashMap<>();
     
@@ -167,7 +142,7 @@ public class LocalServer {
                 if ( ! ps.callInitFromPersistent(config) )
                     return null;
                 List<DataSource> dataSourceExt = ps.initFromPersistent(config);
-                LOG.info("External: "+ps.getProviderName()+" : "+dataSourceExt);
+                LOG.info("External: "+ps.getProvider().getProviderName()+" : "+dataSourceExt);
                 return dataSourceExt.stream();
             }));
         
@@ -244,6 +219,8 @@ public class LocalServer {
     private void initThisServer() {
         if ( serverConfig.getLogProvider() != null && PatchStoreMgr.getDftPatchStore() == null )
             PatchStoreMgr.setDftPatchStoreName(serverConfig.getLogProvider());  
+        if ( PatchStoreMgr.getDftPatchStore() == null )
+            FmtLog.warn(LOG, "Default PatchStore not set.");
     }
     
     public void shutdown() {
@@ -350,10 +327,9 @@ public class LocalServer {
         synchronized(lock) {
             Path sourcePath = null;
             if ( ! patchStore.isEphemeral() )
-                sourcePath = Cfg.setupDataSourceByFile(serverRoot, dsd);
-            // patchStore.createDataSource(dsd);
+                sourcePath = Cfg.setupDataSourceByFile(serverRoot, patchStore, dsd);
             // [FILE] **** ASSUMES THERE IS A DISK AREA
-            DataSource newDataSource = DataSource.create(dsd, sourcePath);
+            DataSource newDataSource = DataSource.create(dsd, sourcePath, patchStore);
             dataRegistry.put(dsd.getId(), newDataSource);
             return newDataSource;
         }

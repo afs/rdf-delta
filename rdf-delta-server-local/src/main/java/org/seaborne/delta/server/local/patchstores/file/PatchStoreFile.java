@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchlog;
+package org.seaborne.delta.server.local.patchstores.file;
 
 import java.nio.file.Path ;
 import java.util.ArrayList;
@@ -31,21 +31,26 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.filestore.FileStore;
 
 /** A {@code PatchStore} storing patches in a {@link FileStore} */  
 public class PatchStoreFile extends PatchStore {
-
-    // We manage ...
+    
+    /*   Server Root
+     *      delta.cfg
+     *      /NAME ... per DataSource.
+     *          /source.cfg
+     *          /Log -- patch on disk (optional)
+     *          /data -- TDB database (optional)
+     *          /disabled -- if this file is present, then the datasource is not accessible.  
+     */
+   
+    // We manage ... helpful tracking.
+    // DataRegistry does the main tracking.
     private Set<DataSourceDescription> sources = ConcurrentHashMap.newKeySet(); 
     
-//    public static void registerPatchStoreFile() {
-//        PatchStore ps = new PatchStoreFile();
-//        PatchStoreMgr.registerShortName(DeltaConst.LOG_FILE, ps.getProviderName());
-//        PatchStoreMgr.register(ps);
-//    }
-    
-    public PatchStoreFile() {
-        super(DPS.PatchStoreFileProvider) ;
+    /*package*/ PatchStoreFile(PatchStoreProvider provider) {
+        super(provider) ;
     }
 
     @Override
@@ -66,6 +71,11 @@ public class PatchStoreFile extends PatchStore {
         sources.remove(dsd);
     }
 
+    @Override
+    public boolean hasFileArea() {
+        return true;
+    }
+    
     @Override
     public List<DataSourceDescription> listDataSources() {
         return new ArrayList<>(sources);

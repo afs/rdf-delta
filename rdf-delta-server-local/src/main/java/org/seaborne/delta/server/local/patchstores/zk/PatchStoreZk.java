@@ -56,14 +56,15 @@ public class PatchStoreZk extends PatchStore {
     // Schema!
     // https://curator.apache.org/curator-framework/schema.html
     
-    public PatchStoreZk(CuratorFramework client) { 
-        // Initially uninitialized
-        // Should it initialize here? 
-        super(DPS.PatchStoreZkProvider);
+    /*package*/ PatchStoreZk(CuratorFramework client, PatchStoreProvider psp) { 
+        super(psp);
         this.client = client;
-        
     }
     
+    public static PatchStore create(CuratorFramework client) {
+        return new PatchStoreProviderZk(client).create();
+    }
+
     private static void formatPatchStore(CuratorFramework client) throws Exception {
         zkCreate(client, ZkConst.pRoot);
         zkCreate(client, ZkConst.pLogs);
@@ -187,6 +188,8 @@ public class PatchStoreZk extends PatchStore {
                 formatLog(dsd, logPath);
             });
         }
+        Zk.listNodes(client, logPath);
+        // no state
         PatchLogIndex store = new PatchLogIndexZk(client, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions));
         PatchStorage storage = new PatchStorageZk(client, zkPath(logPath, ZkConst.nPatches));
         PatchLog patchLog = new PatchLogBase(dsd, store, storage, this) ;

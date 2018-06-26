@@ -18,18 +18,18 @@
 
 package org.seaborne.delta.server.local;
 
-import java.nio.file.Path ;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.Map ;
-import java.util.concurrent.ConcurrentHashMap ;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.json.JsonObject ;
-import org.apache.jena.atlas.logging.FmtLog ;
+import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaException ;
-import org.seaborne.delta.Id ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
+import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@code PatchStore} is manager for a number of {@link PatchLog}s. One {@link PatchLog}
@@ -74,25 +74,39 @@ public abstract class PatchStore {
     
     /** Clear the internal mapping from Log (by Id) to its PatchLog. Used for testing. */
     public static void clearLogIdCache() {
-        logs.clear() ;
+        logs.clear();
     }
     
-    // ---- Global
+    // ---- /Global
     
     // -------- Instance
-    private final String providerName ;
+    private final PatchStoreProvider provider;
     
-    protected PatchStore(String providerName) {
-        this.providerName = providerName ;
+    protected PatchStore(PatchStoreProvider provider) {
+        this.provider = provider;
     }
     
-    /** Return the name of the provider implementation. */ 
-    public String getProviderName() { 
-        return providerName;
+//    // Do not used - only for injecting classes for testing. 
+//    protected PatchStore() {
+//        this.provider = new PatchStoreProvider() {
+//            @Override public PatchStore create()        { return PatchStore.this; }
+//            @Override public String getProviderName()   { return "PatchStoreProviderUnknown"; }
+//            @Override public String getShortName()      { return "unknown"; }
+//        };
+//    }
+
+    /** Return the provider implementation. */ 
+    public PatchStoreProvider getProvider() { 
+        return provider;
     }
     
     /** Does the PatchStore have state across restarts? */ 
     public boolean isEphemeral() {
+        return false;
+    }
+    
+    /** Does the {@link PatchStore} have a file area? */ 
+    public boolean hasFileArea() {
         return false;
     }
     
@@ -159,7 +173,7 @@ public abstract class PatchStore {
     private PatchLog create$(DataSourceDescription dsd, Path dsPath) {
         Id dsRef = dsd.getId();
         PatchLog patchLog = create(dsd, dsPath);
-        FmtLog.info(LOG, "Create log[%s]: %s", patchLog.getPatchStore().getProviderName(), dsd);
+        FmtLog.info(LOG, "Create log[%s]: %s", patchLog.getPatchStore().getProvider().getShortName(), dsd);
         logs.put(dsRef, patchLog);
         return patchLog;
     }
