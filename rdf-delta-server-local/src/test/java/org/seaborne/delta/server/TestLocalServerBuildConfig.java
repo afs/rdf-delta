@@ -18,19 +18,19 @@
 
 package org.seaborne.delta.server;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
 
 import org.apache.jena.tdb.base.file.Location;
 import org.junit.Test;
-import static org.junit.Assert.*;
-
-import org.seaborne.delta.server.local.DPS ;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
 
 /**
- *  Tests of configutation and building a {@link LocalServer}.
+ *  Tests of configuration and building a {@link LocalServer}.
  */
 public class TestLocalServerBuildConfig {
     
@@ -50,6 +50,7 @@ public class TestLocalServerBuildConfig {
         // Blank start up.
         LocalServerConfig conf = LocalServerConfig.create()
             .setLocation("target/test_config01")
+            .setLogProvider(DPS.PatchStoreMemProvider)
             .build();
         LocalServer.create(conf);
     }

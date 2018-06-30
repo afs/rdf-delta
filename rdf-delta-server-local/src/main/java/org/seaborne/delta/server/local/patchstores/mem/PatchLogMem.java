@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.local.patchstores.mem;
 
-import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreMgr;
+import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 
-public class TestPatchStoreFile extends AbstractTestPatchStore {
-    
-    @Override
-    protected PatchStore patchStore() {
-        return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreFileProvider);
+/** {@code PatchLogMem} - no state carried across JVMs */
+public class PatchLogMem extends PatchLogBase {
+    public PatchLogMem(DataSourceDescription dsd, PatchStore patchStore) {
+        super(dsd, new PatchLogIndexMem(), new PatchStorageMem(), patchStore);
     }
 }

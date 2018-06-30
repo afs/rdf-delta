@@ -49,36 +49,12 @@ public class DataSource {
         return dataSource;
     }
 
-//    /**
-//     * Attach to a data source and return a {@link DataSource} object.
-//     * The directory {@code dsPath} must exist.
-//     */
-//    public static DataSource create(DataSourceDescription dsd, Path dsPath) {
-//        // [FILE]
-//        PatchStore patchStore = selectPatchStore(dsd.getId());
-//        PatchLog patchLog = patchStore.createLog(dsd, dsPath);
-//        DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
-//        return dataSource;
-//    }
-
     public static DataSource create(DataSourceDescription dsd, Path dsPath, PatchStore patchStore) {
         PatchLog patchLog = patchStore.createLog(dsd, dsPath);
         DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
         return dataSource;
     }
 
-    /**
-     * Choose the {@link PatchStore} for creating a new {@link PatchLog}
-     * Return the current global default if not specifically found
-     */
-    private static PatchStore selectPatchStore(Id dsRef) {
-//     // Look in existing bindings.
-//     PatchStore patchStore = ??? ;
-//     if ( patchStore != null )
-//         return patchStore;
-        return PatchStoreMgr.getDftPatchStore();
-    }
-    
     private DataSource(DataSourceDescription dsd, Path dsPath, PatchLog patchLog) {
         super();
         this.dsDescription = dsd;
@@ -116,11 +92,7 @@ public class DataSource {
     }
     
     public void release() {
-        PatchStore.release(getPatchLog());
-        if ( dsPath != null ) {
-            // [FILE] Move into PatchStoreFile.release.
-            Cfg.retire(dsPath);
-        }
+        getPatchLog().release();
     }
 
     @Override

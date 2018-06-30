@@ -32,6 +32,7 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
@@ -61,7 +62,7 @@ public class LocalServerConfig {
         return location ;
     }
 
-    /** Name of the default PatchStore provider */ 
+    /** Name of the default PatchStore provider */
     public String getLogProvider() {
         return logProvider ;
     }
@@ -139,7 +140,16 @@ public class LocalServerConfig {
         }
         
         public LocalServerConfig build() {
-            return new LocalServerConfig(location, logProvider, configFile);
+            String provider = logProvider;
+            if ( provider == null )
+                provider = PatchStoreMgr.getDftPatchStoreName();
+            else if ( !PatchStoreMgr.isRegistered(provider) )
+                provider = PatchStoreMgr.shortName2LongName(provider);
+
+            if ( provider == null || !PatchStoreMgr.isRegistered(provider) )
+                Log.warn(this, "No provider for '" + logProvider + "'");
+
+            return new LocalServerConfig(location, provider, configFile);
         }
     }
     

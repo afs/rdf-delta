@@ -16,45 +16,18 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.patchstores;
 
-import org.junit.AfterClass ;
-import org.junit.BeforeClass ;
 import org.junit.Test ;
 import org.seaborne.delta.server.local.DPS ;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreMgr;
-import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 
 public class TestPatchStoreMem extends AbstractTestPatchStore {
     
     private static String providerName; 
     private static String unregister;
     
-//    Why does registration make any difference?
-//        Localserver.create -> defaults.
-    
-    @BeforeClass public static void beforeClass() {
-        providerName = PatchStoreMgr.getDftPatchStoreName();
-        // In case not registered ...
-        if ( PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreMemProvider) == null ) {
-            PatchStoreProvider psp = new PatchStoreProviderMem();
-            PatchStoreMgr.register(psp);
-            unregister = psp.getProviderName();
-            PatchStoreMgr.setDftPatchStoreName(unregister);
-        } else
-            PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreMemProvider);
-    }
-    
-    @AfterClass public static void afterClass() {
-        //DPS.resetSystem();
-        if ( providerName != null )
-            PatchStoreMgr.setDftPatchStoreName(providerName);
-        if ( unregister != null )
-            PatchStoreMgr.unregister(unregister);
-    }
-
     @Override
     protected PatchStore patchStore() {
         return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreMemProvider);

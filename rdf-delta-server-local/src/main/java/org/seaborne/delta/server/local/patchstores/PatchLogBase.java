@@ -28,6 +28,7 @@ import org.seaborne.delta.*;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +72,7 @@ public class PatchLogBase implements PatchLog {
         this.patchStorage = patchStorage;
         this.patchStore = patchStore;
         // Initialize as "no patches".
-        earliestId = null;
-        // XXX logState read earliest as well.
+        earliestId = logState.getEarliestId();
         earliestVersion = logState.isEmpty() ? DeltaConst.VERSION_INIT : DeltaConst.VERSION_FIRST;
         initFromStorage();
     }
@@ -81,45 +81,6 @@ public class PatchLogBase implements PatchLog {
     private void initFromStorage() {
         long latest = logState.getCurrentVersion();
         Id latestId = logState.getCurrentId();
-        
-//        // This needs to be improved
-//        AtomicLong counter = new AtomicLong(DeltaConst.VERSION_FIRST);
-//        
-//        // XXX patchStore.getLatest()
-//        // XXX patchStore.getIndex() : Array of (version, id, [prev?])
-//        // Assumes no gaps in the version number.
-//        patchStorage.find().forEach(id->{
-//            
-//            RDFPatch p = patchStorage.fetch(id);
-//            Id here = Id.fromNode(p.getId());
-//            Id prev = Id.fromNode(p.getPrevious());
-//            
-//            // XXX DUBIOUS - needs abstracting. 
-//            long version = counter.getAndIncrement();
-//            PatchIndexEntry entry = new PatchIndexEntry(version, id, prev, logId);
-//            if ( version > latest ) {
-//                if ( version == latest && ! Objects.equals(latestId, id) ) {
-//                    String msg = format("Latest version = %d but ids do not match: logState=%s patchStorage=%s",
-//                        version, latestId, id);
-//                    LOG.error(msg);
-//                    throw new DeltaConfigException(msg);
-//                }
-//                // Skip. better to stop looping.
-//                return;
-//            }
-//            
-//            entries.add(entry);
-//            versionToId.put(version, id);
-//        });
-//        
-//        if ( ! entries.isEmpty() ) {
-//            earliestId = entries.getFirst().getId();
-//            earliestVersion = entries.getFirst().getVersion();
-//        } else {
-//            earliestId = null;
-//            earliestVersion = DeltaConst.VERSION_INIT;
-//            
-//        }
     }
     
     @Override
@@ -197,8 +158,10 @@ public class PatchLogBase implements PatchLog {
             Id thisId = Id.fromNode(patch.getId());
             Id prevId = Id.fromNode(patch.getPrevious());        
 
-            if ( ! Objects.equals(logHead, prevId) )
+            if ( ! Objects.equals(logHead, prevId) ) {
+                RDFPatchOps.write(System.out, patch);
                 throw new DeltaBadRequestException(format("Previous not current: log head=%s : patch previous=%s",logHead, prevId));
+            }
 
             // Save patch.
             patchStorage.store(thisId, patch);

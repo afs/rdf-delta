@@ -46,7 +46,6 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
         String connectString = System.getProperty("delta.zk");
         
         if ( connectString == null || connectString.isEmpty() )
-            // XXX Switch off in some way
             return null;
         
         try {

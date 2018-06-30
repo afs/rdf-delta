@@ -25,8 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors ;
 
 import org.apache.jena.atlas.lib.ListUtils ;
-import org.apache.jena.atlas.lib.Pair ;
-import org.apache.jena.atlas.lib.SetUtils ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
@@ -44,22 +42,12 @@ import org.slf4j.LoggerFactory;
  * 
  * @see DeltaLinkLocal
  * @see DataSource
- *
  */
 public class LocalServer {
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
     static { 
         DeltaSystem.init();
-        initSystem();
-    }
-    
-    /** Placeholder for any system-wide initialization.
-     * 
-     * Each server is initialized via 
-     * {@link #create} {@literal ->} {@link #attachServer} {@literal ->} {@link #initThisServer}.
-     */
-    static /*package*/ void initSystem() {
     }
     
     private static Map<Location, LocalServer> servers = new ConcurrentHashMap<>();
@@ -73,6 +61,8 @@ public class LocalServer {
     // area is made and just the "disabled" file is needed).
     private Set<Id> disabledDatasources = new HashSet<>();
     private Object lock = new Object();
+
+    private final PatchStore patchStore;
     
     /** Attach to the runtime area for the server. Use "delta.cfg" as the configuration file name.  
      * @param serverRoot
@@ -137,37 +127,14 @@ public class LocalServer {
         Location location = config.getLocation();
 
         // PatchStore's that store their state themselves somehow.
-        List<DataSource> dataSourcesExternal = ListUtils.toList
+        List<DataSource> dataSources = ListUtils.toList
             (PatchStoreMgr.registered().stream().flatMap(ps->{
                 if ( ! ps.callInitFromPersistent(config) )
                     return null;
-                List<DataSource> dataSourceExt = ps.initFromPersistent(config);
-                LOG.info("External: "+ps.getProvider().getProviderName()+" : "+dataSourceExt);
-                return dataSourceExt.stream();
+                List<DataSource> dSources = ps.initFromPersistent(config);
+                FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), dSources);
+                return dSources.stream();
             }));
-        
-        // PatchStore's that rely on the scan of local directories and checking the "log_type" field.        
-        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
-        List<Path> dataSourcePaths = pair.getLeft();
-        List<Path> disabledDataSources = pair.getRight();
-        //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
-        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
-        
-        List<DataSource> dataSources = Cfg.scanForDataSources(location, LOG);
-
-        // Check we found any DataSource only via one route or the other.
-        {
-            Set<Id> set1 = ids(dataSourcesExternal);
-            Set<Id> set2 = ids(dataSources);
-            Set<Id> setBoth = SetUtils.intersection(set1, set2);
-            if ( ! setBoth.isEmpty() ) {
-                // Foudn the same DataSource two ways.
-                String msg = "Duplicate DataSources: "+setBoth;
-                LOG.warn(msg);
-                throw new DeltaConfigException(msg);
-            }
-        }
-        dataSourcesExternal.forEach(ds->dataRegistry.put(ds.getId(), ds));
         dataSources.forEach(ds->dataRegistry.put(ds.getId(), ds));
     }
 
@@ -206,7 +173,6 @@ public class LocalServer {
         LocalServer lServer = new LocalServer(config, dataRegistry);
         if ( ! loc.isMemUnique() ) 
             servers.put(loc, lServer);
-        lServer.initThisServer();
         return lServer ;
     }
 
@@ -214,15 +180,16 @@ public class LocalServer {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.serverRoot = config.getLocation();
-    }
-
-    private void initThisServer() {
-        if ( serverConfig.getLogProvider() != null && PatchStoreMgr.getDftPatchStore() == null )
-            PatchStoreMgr.setDftPatchStoreName(serverConfig.getLogProvider());  
-        if ( PatchStoreMgr.getDftPatchStore() == null )
-            FmtLog.warn(LOG, "Default PatchStore not set.");
+        this.patchStore = selectPatchStore(config);
     }
     
+    private static PatchStore selectPatchStore(LocalServerConfig config) {
+        PatchStore ps = PatchStoreMgr.getPatchStoreByProvider(config.getLogProvider());
+        if ( ps == null )
+            ps = PatchStoreMgr.getDftPatchStore();
+        return ps;
+    }
+
     public void shutdown() {
         LocalServer.release(this);
     }
@@ -299,7 +266,6 @@ public class LocalServer {
      * up manually.
      */
     public Id createDataSource(String name, String baseURI) {
-        PatchStore patchStore = PatchStoreMgr.getDftPatchStore();
         return createDataSource(patchStore, name, baseURI);
     }
     
@@ -326,9 +292,6 @@ public class LocalServer {
     private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(lock) {
             Path sourcePath = null;
-            if ( ! patchStore.isEphemeral() )
-                sourcePath = Cfg.setupDataSourceByFile(serverRoot, patchStore, dsd);
-            // [FILE] **** ASSUMES THERE IS A DISK AREA
             DataSource newDataSource = DataSource.create(dsd, sourcePath, patchStore);
             dataRegistry.put(dsd.getId(), newDataSource);
             return newDataSource;
@@ -345,10 +308,6 @@ public class LocalServer {
             if ( datasource == null )
                 return;
             PatchStore patchStore = datasource.getPatchStore();
-            //patchStore.delete(dsRef);
-            
-            // [FILE] **** ASSUMES THERE IS A DISK AREA
-            // Make inaccessible to getDataSource (for create and remove). 
             dataRegistry.remove(dsRef);
             disabledDatasources.add(dsRef);
             datasource.release();

@@ -44,7 +44,7 @@ public interface PatchLogIndex {
     public long getEarliestVersion();
 
     /**
-     * Get the {@code Id} of tjhe earlies entry in the log or null if the log is empty.
+     * Get the {@code Id} of the earliest entry in the log or null if the log is empty.
      */
     public Id getEarliestId();
     

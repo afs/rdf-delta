@@ -19,7 +19,7 @@
 package org.seaborne.delta.server.local.patchstores.zk;
 
 import static org.seaborne.delta.server.local.patchstores.zk.Zk.*;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.*;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nDsd;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nPatches;
 
@@ -41,9 +41,6 @@ import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.PatchLogBase;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 
@@ -187,9 +184,7 @@ public class PatchStoreZk extends PatchStore {
                 formatLog(dsd, logPath);
             });
         }
-        PatchLogIndex store = new PatchLogIndexZk(client, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions));
-        PatchStorage storage = new PatchStorageZk(client, zkPath(logPath, ZkConst.nPatches));
-        PatchLog patchLog = new PatchLogBase(dsd, store, storage, this) ;
+        PatchLog patchLog = new PatchLogZk(dsd, logPath, client, this);
         return patchLog;
     }
     

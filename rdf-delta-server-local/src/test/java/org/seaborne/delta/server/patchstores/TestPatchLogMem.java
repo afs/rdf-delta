@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package test;
+package org.seaborne.delta.server.patchstores;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;

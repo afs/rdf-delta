@@ -57,20 +57,22 @@ public class DPS {
     }
 
     /**
-     * For testing. This code knows where all the global state is and reset the
-     * system to the default after init() called.
+     * For testing. This code knows where all the global state is 
+     * and reset the system to the default after init() called.
+     * There default PatchStoreProvider is retained. 
      */
     public static void resetSystem() {
         // Clear
         // First - because this may initialize the system (tests called in isolation).
         LocalServer.releaseAll();
         FileStore.resetTracked();
+        String providername = PatchStoreMgr.getDftPatchStoreName();
         PatchStoreMgr.reset();
         PatchStore.clearLogIdCache();
         
         initPatchStoreProviders();
-        // This would be called after initialization, when LocalServer is first touched.
-        LocalServer.initSystem();
+        if ( providername != null && PatchStoreMgr.isRegistered(providername) )
+            PatchStoreMgr.setDftPatchStoreName(providername);
     }
     
     // Things to do once.

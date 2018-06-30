@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package test;
+package org.seaborne.delta.server.patchstores;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

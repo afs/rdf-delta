@@ -18,22 +18,22 @@
 
 package org.seaborne.delta.server.local.patchstores.file;
 
-import java.nio.file.Path ;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.lib.NotImplemented ;
-import org.apache.jena.tdb.base.file.Location ;
+import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaConst ;
-import org.seaborne.delta.lib.IOX ;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.filestore.FileStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** A {@code PatchStore} storing patches in a {@link FileStore} */  
 public class PatchStoreFile extends PatchStore {
+    private static Logger LOG = LoggerFactory.getLogger(PatchStoreFile.class);
     
     /*   Server Root
      *      delta.cfg
@@ -44,114 +44,49 @@ public class PatchStoreFile extends PatchStore {
      *          /disabled -- if this file is present, then the datasource is not accessible.  
      */
    
-    // We manage ... helpful tracking.
-    // DataRegistry does the main tracking.
-    private Set<DataSourceDescription> sources = ConcurrentHashMap.newKeySet(); 
+    private Location serverRoot;
+    private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
     
-    /*package*/ PatchStoreFile(PatchStoreProvider provider) {
-        super(provider) ;
+    public PatchStoreFile(PatchStoreProvider provider) {
+        super(provider);
     }
 
     @Override
-    protected PatchLogFile create(DataSourceDescription dsd, Path dsPath) {
-        // [FILE] Currently work done in LocalServer.
-        Path logPath = dsPath.resolve(DeltaConst.LOG);
-        IOX.ensureDirectory(logPath);
-        Location loc = Location.create(logPath.toString());
-        PatchLogFile patchLog = PatchLogFile.attach(dsd, this, loc);
-        sources.add(dsd); 
-        return patchLog ;
-    }
-
-    @Override
-    protected void delete(PatchLog patchLog) {
-        // [FILE] Currently work done in LocalServer.
-        DataSourceDescription dsd = patchLog.getDescription();
-        sources.remove(dsd);
-    }
-
-    @Override
-    public boolean hasFileArea() {
+    public boolean callInitFromPersistent(LocalServerConfig config) {
         return true;
-    }
-    
-    @Override
-    public List<DataSourceDescription> listDataSources() {
-        return new ArrayList<>(sources);
     }
 
     @Override
     public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        boolean dftToHere = DPS.PatchStoreFileProvider.equals(config.getLogProvider());
-        throw new NotImplemented();
+        serverRoot = config.getLocation();
+        // Patch Logs are directories in the server root directory.
+        // This will call to create the logs based on "log_type"
+        List<DataSource> dataSources = CfgFile.scanForDataSources(serverRoot, LOG);
+        return dataSources;
     }
-    
-    @Override
-    public boolean callInitFromPersistent(LocalServerConfig config) {
-        // Rely on LocalServer scan for retained, but state loosing, patchstores.  
-        return false ;
-    }
-    
-//    @Override
-//    public List<DataSource> initFromPersistent(LocalServerConfig config) {
-//        config.getLogProvider();
-//        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
-//        List<Path> dataSourcePaths = pair.getLeft();
-//        List<Path> disabledDataSources = pair.getRight();
-//
-//        //dataSourcesPaths.forEach(p->LOG.info("Data source: "+p));
-//        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
-//        
-//        List<DataSource> dataSources = ListUtils.toList
-//          (dataSourcePaths.stream().map(p->{
-//              // Extract name from disk name. 
-//              String dsName = p.getFileName().toString();
-//                             
-//              // Config file.
-//              // Check provider.
-//              // Make DataSource
-//              
-//              // Break up. DRY with LocalServer.
-//              DataSource ds = null ; //Cfg.makeDataSource(p);
-//              
-//              if ( LOG.isDebugEnabled() ) 
-//                  FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
-//              if ( LOG.isDebugEnabled() ) 
-//                  FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
-//              
-//              sources.add(ds.getDescription());
-//              return ds;
-//          })); 
-//      return dataSources;
-//    }
-    
-    
 
-    
-    // Add checking for log_type.
-//    @Override
-//    public List<DataSource> initFromPersistent(LocalServerConfig config) {
-//        Pair<List<Path>, List<Path>> pair = Cfg.scanDirectory(config.getLocation());
-//        List<Path> dataSourcePaths = pair.getLeft();
-//        List<Path> disabledDataSources = pair.getRight();
-//
-//        //dataSourcesPaths.forEach(p->LOG.info("Data source: "+p));
-//        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
-//
-//        List<DataSource> dataSources = ListUtils.toList
-//            (dataSourcePaths.stream().map(p->{
-//                // Extract name from disk name. 
-//                String dsName = p.getFileName().toString();
-//                DataSource ds = Cfg.makeDataSource(p);
-//                
-//                if ( LOG.isDebugEnabled() ) 
-//                    FmtLog.debug(LOG, "DataSource: id=%s, source=%s", ds.getId(), p);
-//                if ( LOG.isDebugEnabled() ) 
-//                    FmtLog.debug(LOG, "DataSource: %s (%s)", ds, ds.getName());
-//                
-//                sources.add(ds.getDescription());
-//                return ds;
-//            })); 
-//        return dataSources;
-//    }
+    @Override
+    public List<DataSourceDescription> listDataSources() {
+        return new ArrayList<>(logs.keySet());
+    }
+
+    @Override
+    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
+        Path patchLogArea = IOX.asPath(serverRoot).resolve(dsd.getName());
+        if ( ! Files.exists(patchLogArea) ) 
+            CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
+        Location loc = Location.create(patchLogArea.toString());
+        PatchLog pLog = PatchLogFile.attach(dsd, this, loc);
+        logs.put(dsd, pLog);
+        return pLog;
+    }
+
+    @Override
+    protected void delete(PatchLog patchLog) {
+        logs.remove(patchLog.getDescription());
+        Path p = ((PatchLogFile)patchLog).getFileStore().getPath();
+        CfgFile.retire(p);
+        patchLog.release();
+    }
+
 }

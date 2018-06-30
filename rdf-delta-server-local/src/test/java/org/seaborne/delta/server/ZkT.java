@@ -25,7 +25,6 @@ import org.seaborne.delta.server.local.patchstores.zk.Zk;
 public class ZkT {
     /** Create a testing ZooKeeper server */
     public static TestingServer localServer() {
-
         try {
             TestingServer server = new TestingServer();
             server.start();
@@ -37,10 +36,8 @@ public class ZkT {
     
     /** Setup a fresh ZooKeeper test server and return a curator client for it.*/
     public static CuratorFramework curator() {
-            TestingServer server = localServer();
-            String connectString = "localhost:" + server.getPort();
-            return Zk.curator(connectString); 
+        TestingServer server = localServer();
+        String connectString = "localhost:" + server.getPort();
+        return Zk.curator(connectString); 
     }
-            
-
 }

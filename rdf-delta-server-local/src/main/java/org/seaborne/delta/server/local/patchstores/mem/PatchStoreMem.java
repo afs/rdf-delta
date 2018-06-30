@@ -30,9 +30,6 @@ import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 
 public class PatchStoreMem extends PatchStore {
-
-    // For tracking.
-    // DataRegistry Id->DataSource is the real cache. 
     private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
     
     public PatchStoreMem(PatchStoreProvider provider) {

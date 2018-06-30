@@ -88,7 +88,8 @@ public class PatchStoreMgr {
     public static void register(PatchStoreProvider provider) {
       registerShortName(provider.getShortName(), provider.getProviderName());
       PatchStore pStore = provider.create();
-      registerPatchStore(pStore);
+      if ( pStore != null )
+          registerPatchStore(pStore);
     }
     
     /** Add a PatchStore : it is registered by its provider name */ 
@@ -113,10 +114,19 @@ public class PatchStoreMgr {
     /** Set the default choice of PatchStore */
     public static void setDftPatchStoreName(String providerName) {
         PatchStore impl = patchStores.get(providerName);
-        if ( impl == null )
-            throw new DeltaConfigException("No provider for '"+providerName+"'");
-        dftPatchStore = impl;
-        FmtLog.info(LOG, "Set default patch store: %s", providerName);
+        if ( impl != null ) {
+            dftPatchStore = impl;
+            FmtLog.info(LOG, "Set default patch store: %s", providerName);
+            return;
+        }
+        String providerName2 = shortName2LongName(providerName);
+        impl = patchStores.get(providerName2);
+        if ( impl != null ) {
+            dftPatchStore = impl;
+            FmtLog.info(LOG, "Set default patch store: %s", providerName);
+            return;
+        }
+        throw new DeltaConfigException("No provider for '"+providerName+"'");
     }
     
     /**

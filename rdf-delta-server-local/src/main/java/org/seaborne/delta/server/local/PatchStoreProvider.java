@@ -26,6 +26,7 @@ public interface PatchStoreProvider {
 
     /** 
      * Create the {@link PatchStore} object for this process.
+     * Return null to signal the implementation is not available. 
      * This should boot itself to be able to report existing {@link PatchLog PatchLogs}. 
      */
     public PatchStore create() ;

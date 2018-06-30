@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.patchstores;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +37,7 @@ import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
 public abstract class AbstractTestPatchStore {
-    //new PatchStoreFile
+
     private static String DIR = "target/PatchStore"; 
     private static Path patchesArea;
     private static int counter = 0;
@@ -65,62 +65,34 @@ public abstract class AbstractTestPatchStore {
     }
     
     protected abstract PatchStore patchStore();
-    
-    private PatchLog patchLog() {
-        PatchStore patchStore = provider();
-        Id dsRef = Id.create();
-        String name = "patch-store-"+(++counter);
-        Path patchesArea = Paths.get(DIR, name);
-        DataSourceDescription dsd = new DataSourceDescription(dsRef, name, null);
-        PatchLog patchLog = patchStore.createLog(dsd, patchesArea);
-        return patchLog;
-    }
-    
-    @Test public void ps1() {
-        PatchLog patchLog = patchLog();
-        
-        boolean b = patchLog.isEmpty();
-        long x = patchLog.getEarliestVersion();
-        
-        assertTrue(patchLog.isEmpty());
-    }
-    
-    @Test public void ps2() {
-        PatchLog patchLog = patchLog();
-        assertTrue(patchLog.isEmpty());
-        RDFPatch patch = RDFPatchOps.emptyPatch();
-        patchLog.append(patch);
-        assertFalse(patchLog.isEmpty());
-    }
-    
-    @Test public void ps3() {
-        PatchLog patchLog = patchLog();
-        RDFPatch patch = RDFPatchOps.emptyPatch();
-        long v = patchLog.append(patch);
-        assertEquals(1, v);
-        
-        RDFPatch patch1 = patchLog.fetch(1);
-        assertNotNull(patch1);
-        RDFPatch patch2 = patchLog.fetch(2);
-        assertNull(patch2);
-    }
 
-    @Test public void ps4() {
-        PatchLog patchLog = patchLog();
-        RDFPatch patch = RDFPatchOps.emptyPatch();
-        patchLog.append(patch);
-        // Does not exist
-        RDFPatch patch2 = patchLog.fetch(2);
-        assertNull(patch2);
+//    ps.release(patchLog);
+//    ps.exists("ABC");
+
+    
+    @Test public void patchStore_1() {
+//        PatchStore ps = provider();
+//        DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
+//        
+//        Path sourcePath = null;
+//        if ( ps.hasFileArea() )
+//            sourcePath = Cfg.setupDataSourceByFile(Location.create(DIR), patchStore, dsdSetup);
+//        PatchLog patchLog = ps.createLog(dsdSetup, sourcePath);
     }
     
     // Recovery (does not apply to PatchStoreMem)
-    @Test public void recovery1() {
-        PatchLog patchLog = patchLog();
+    //@Test 
+    public void recovery1() {
+        PatchStore ps = provider();
+        // Match dsd2 below
+        DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
+        
+        Path sourcePath = null;
+//        if ( ps.hasFileArea() )
+//            sourcePath = Cfg.setupDataSourceByFile(Location.create(DIR), patchStore, dsdSetup);
+        PatchLog patchLog = ps.createLog(dsdSetup, sourcePath);
+        
         RDFPatch patch = RDFPatchOps.emptyPatch();
-        
-       // header not written.
-        
         patchLog.append(patch);
         
         PatchLogInfo info = patchLog.getInfo();
@@ -135,10 +107,12 @@ public abstract class AbstractTestPatchStore {
         Path patchesArea = Paths.get(DIR, name); 
 
         // Same FileStore, different PatchLog?
-        DataSourceDescription dsd2 = new DataSourceDescription(id, name, null);
+        DataSourceDescription dsd2 = new DataSourceDescription(id, name, "http://example/ABC");
         PatchLog patchLog1 = provider.connectLog(dsd2, patchesArea);
         PatchLogInfo info1 = patchLog1.getInfo();
         assertEquals(info, info1);
     }
+    
+    // MORE TESTS
     // Get non-existent.
 }

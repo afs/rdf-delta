@@ -16,25 +16,16 @@
  * limitations under the License.
  */
 
-package test;
+package org.seaborne.delta.server.patchstores;
 
-import org.junit.Test;
-import org.seaborne.delta.server.ZkT;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
-import org.seaborne.delta.server.patchstores.AbstractTestPatchStore;
+import org.seaborne.delta.server.local.PatchStoreMgr;
 
-public class TestPatchStoreZk extends AbstractTestPatchStore {
-    //extends TestPatchStoreMem {
-
-    // Really all covered by AbstractTestPatchLog
+public class TestPatchStoreFile extends AbstractTestPatchStore {
     
     @Override
     protected PatchStore patchStore() {
-        return PatchStoreZk.create(ZkT.curator());
+        return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreFileProvider);
     }
-    
-    @Override
-    @Test public void recovery1() {}
-
 }

@@ -72,7 +72,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
         //Guess: 1
         if ( x.isEmpty() )
             earliestVersion = DeltaConst.VERSION_INIT;
-        else if ( x.contains(versionPath(1)) )
+        else if ( x.contains("00000001") )
+            // Fast-track the "obvious" answer
             earliestVersion = 1;
         else {
             try {

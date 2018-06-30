@@ -140,6 +140,17 @@ public class RDFPatchOps {
         return patch;
     }
     
+    /** Create a patch with a specified "prev". */
+    public static RDFPatch withPrev(RDFPatch body, Node prev) {
+        return withHeader(body, body.getId(), prev);
+    }
+
+    /** Create a patch with the id and prev as as given in the arguments, ignoring any header in the body patch. */
+    public static RDFPatch withHeader(RDFPatch body, Node id, Node prev) {
+        PatchHeader h = makeHeader(id, prev);
+        return withHeader(h, body);
+    }
+
     /** Create a patch with the header and body as given in the arguments, ignoring any header in the body patch. */
     public static RDFPatch withHeader(PatchHeader header, RDFPatch body) {
         return new RDFPatchAltHeader(header, body);

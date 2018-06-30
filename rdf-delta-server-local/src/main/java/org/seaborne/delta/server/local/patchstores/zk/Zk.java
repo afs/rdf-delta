@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local.patchstores.zk;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,10 +33,15 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
+import org.apache.jena.dboe.migrate.L;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
+import org.apache.zookeeper.server.ServerConfig;
+import org.apache.zookeeper.server.ZooKeeperServerMain;
+import org.apache.zookeeper.server.admin.AdminServer.AdminServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +51,33 @@ public class Zk {
     private static void zkException(String caller, String path, Exception ex) {
         String msg = String.format("%s[%s] ZooKeeper exception: %s", caller, path, ex.getMessage(), ex);
         LOG.warn(msg, ex);
+    }
+    
+    public static void runZookeeperServer(int port, String dataDir) {  
+        // Switch off JMX integration.
+        System.setProperty("zookeeper.jmx.log4j.disable", "true");
+        System.setProperty("zookeeper.nio.numSelectorThreads", "1");
+        // Reduce greatly.
+        System.setProperty("zookeeper.nio.numWorkerThreads", "4");
+        //"zookeeper.nio.directBufferBytes"
+        //"zookeeper.nio.shutdownTimeout"
+
+        // Usage: ZooKeeperServerMain configfile | port datadir [ticktime] [maxcnxns]
+        String[] a = {Integer.toString(port), "zk-data"};
+        L.async(() -> {
+            ServerConfig config = new ServerConfig();
+            config.parse(a);
+            ZooKeeperServerMain zksm = new ZooKeeperServerMain();
+            try {
+                zksm.runFromConfig(config);
+            }
+            catch (IOException | AdminServerException e) {
+                e.printStackTrace();
+            }
+        });
+        // Need to wait for the server to start.
+        // Better (?) : use ZooKeeperServer
+        Lib.sleep(500);
     }
     
     /** Connect a curator client to a running ZooKepper server. */

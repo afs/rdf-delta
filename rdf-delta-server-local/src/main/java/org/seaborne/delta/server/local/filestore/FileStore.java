@@ -132,6 +132,11 @@ public class FileStore {
     }
 
     /**
+     * Return the {@code Path} of the area being managed. 
+     */
+    public Path getPath() { return directory ; }
+    
+    /**
      * Return the index of the last allocation. Return the integer before the first
      * allocation if there has been no allocation.
      */

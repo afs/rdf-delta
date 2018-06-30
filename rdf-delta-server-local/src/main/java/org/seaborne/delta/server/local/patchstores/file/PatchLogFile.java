@@ -209,6 +209,9 @@ public class PatchLogFile implements PatchLog {
     
     @Override
     public void release() {
+        
+        
+        CfgFile.retire(fileStore.getPath());
         fileStore.release();
     }
     

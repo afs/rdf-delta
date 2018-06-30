@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * not a requirement.
  */
 public abstract class PatchStore {
-    protected static Logger LOG = LoggerFactory.getLogger(PatchStore.class); 
+    private static Logger LOG = LoggerFactory.getLogger(PatchStore.class); 
     
     // ---- PatchStore.Provider
 
@@ -61,7 +61,7 @@ public abstract class PatchStore {
      * Release ("delete") the {@link PatchLog}. 
      * @param patchLog
      */
-    public static void release(PatchLog patchLog) {
+    public void release(PatchLog patchLog) {
         Id dsRef = patchLog.getLogId();
         if ( ! logExists(dsRef) ) {
             FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
@@ -162,6 +162,10 @@ public abstract class PatchStore {
     
     /** Return a new {@link PatchLog}, which must not already exist. */ 
     public PatchLog createLog(DataSourceDescription dsd, Path dsPath) {
+        if ( getProvider() == null )
+            FmtLog.info(LOG, "Create log[?]: %s", dsd);
+        else  
+            FmtLog.info(LOG, "Create log[%s]: %s", getProvider().getShortName(), dsd);
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
@@ -172,7 +176,6 @@ public abstract class PatchStore {
     private PatchLog create$(DataSourceDescription dsd, Path dsPath) {
         Id dsRef = dsd.getId();
         PatchLog patchLog = create(dsd, dsPath);
-        FmtLog.info(LOG, "Create log[%s]: %s", patchLog.getPatchStore().getProvider().getShortName(), dsd);
         logs.put(dsRef, patchLog);
         return patchLog;
     }

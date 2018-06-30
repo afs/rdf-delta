@@ -30,37 +30,41 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.PatchStore;
 
 /**
  * Tests of {@link LocalServer} for creating and 
- * deleteing a {@link LocalServer} area.
+ * deleting a {@link LocalServer} area.
  * 
  * See {@link TestLocalServer} for tests involving
  * a static setup of data sources.
  */
 
 public class TestLocalServerCreateDelete {
-
     // Testing area that is created and modified by tests. 
     private static String DIR = "target/testing/delta";
 
+    @BeforeClass public static void beforeClass() {
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+    }
+    
     private static void initialize() {
-        PatchStore.clearLogIdCache();
-        FileOps.ensureDir(DIR);
+        DPS.resetSystem();
         FileOps.clearAll(DIR);
-        LocalServer.releaseAll();
-        // copy in setup.
+        // Copy in test setup.
         try { FileUtils.copyDirectory(new File(TestLocalServer.SERVER_DIR), new File(DIR)); }
         catch (IOException ex) { throw IOX.exception(ex); }
+        
     }
     
     @Before public void beforeTest() {
@@ -108,11 +112,7 @@ public class TestLocalServerCreateDelete {
         // Finds previous.
         LocalServer server1 = LocalServer.attach(loc);
         Id newId1 = server1.createDataSource("XYZ", "http://example/xyz");
-        
-        // Need to reset static in ??? PatchStore
-        // XXX PatchStore.reset
         LocalServer.release(server1);
-
         LocalServer server2 = LocalServer.attach(loc);
         try {
             Id newId2 = server2.createDataSource("XYZ", "http://example/xyz");
@@ -123,12 +123,16 @@ public class TestLocalServerCreateDelete {
     // "Restart" test.
     @Test public void local_server_restart_01() {
         Location loc = Location.create(DIR);
+        
         LocalServer server1 = LocalServer.attach(loc);
-        Id newId1 = server1.createDataSource("XYZ", "http://example/xyz");
+        assertEquals(2, server1.listDataSources().size());
+        
+        Id newId1 = server1.createDataSource("AXYZ", "http://example/axyz");
         LocalServer.release(server1);
         
         LocalServer server2 = LocalServer.attach(loc);
         // 3 - data1, data2 and the new XYZ.
+        
         assertEquals(3, server2.listDataSources().size());
         assertEquals(3, server2.listDataSourcesIds().size());
         

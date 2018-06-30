@@ -62,7 +62,7 @@ public class addpatch extends DeltaCmd {
     
     // --> RDFPatchOps.
 
-    private RDFPatch headers(Id id, Id prev) {
+    private RDFPatch cheaders(Id id, Id prev) {
         RDFChangesCollector c = new RDFChangesCollector();
         c.header(RDFPatchConst.ID, id.asNode());
         if ( prev != null )
