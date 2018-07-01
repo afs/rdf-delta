@@ -170,6 +170,18 @@
         <artifactId>log4j</artifactId>
         <version>${ver.log4j}</version>
       </dependency> 
+
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-recipes</artifactId>
+        <version>${ver.curator}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.apache.curator</groupId>
+        <artifactId>curator-test</artifactId>
+        <version>${ver.curator}</version>
+      </dependency> 
       
     </dependencies>
       

@@ -20,7 +20,9 @@ package delta.server;
 
 import static org.seaborne.delta.DeltaOps.verString;
 
+import java.io.IOException;
 import java.net.BindException;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,6 +31,7 @@ import java.util.Properties;
 
 import jena.cmd.ArgDecl;
 import jena.cmd.CmdLineArgs;
+import org.apache.curator.test.TestingServer;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
@@ -38,6 +41,7 @@ import org.seaborne.delta.cmds.dcmd;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.patchstores.zk.Zk;
 import org.slf4j.Logger;
 
 /** Command line run the server. */ 
@@ -133,8 +137,29 @@ public class DeltaServer {
         }
 
         if ( cla.contains(argZk) ) {
-            // XXX More, better ZK configuration.
             String connectionString = cla.getValue(argZk);
+            if ( connectionString.startsWith("here") ) {
+                if ( ! connectionString.startsWith("here:") ) {
+                    System.err.println("Required --zk=here:DIR wher DIR is teh zookeeper data directory"); 
+                    System.exit(1);
+                }
+                String dir = connectionString.substring("here:".length()); 
+                // Run a zookeeper server in this process.
+                int port = choosePort();
+                Zk.runZookeeperServer(port, dir);
+                connectionString = "localhost:"+port;
+            } else if ( connectionString.equals("test") ) {
+                try {
+                    @SuppressWarnings("resource")
+                    TestingServer server = new TestingServer();
+                    server.start();
+                    connectionString = "localhost:" + server.getPort();
+                }
+                catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
             properties.setProperty("delta.zk", connectionString);
             providerName = DPS.PatchStoreZkProvider;
         }
@@ -176,7 +201,7 @@ public class DeltaServer {
         
         // HTTP Server
         
-        int port = choosePort(cla, server);
+        int port = chooseServerPort(cla, server);
         DeltaLink link = DeltaLinkLocal.connect(server);
 
         PatchLogServer dps = PatchLogServer.create(port, link) ;
@@ -208,8 +233,8 @@ public class DeltaServer {
         dps.join();
     }
     
-    private static int choosePort(CmdLineArgs cla, LocalServer server) {
-        // The port choosen from this ordered list:
+    private static int chooseServerPort(CmdLineArgs cla, LocalServer server) {
+        // The port chosen from this ordered list:
         //   Command line
         //   Environment variable
         //   Server config file
@@ -259,5 +284,14 @@ public class DeltaServer {
         if ( x == null )
             x = System.getProperty(name) ;
         return x ;
+    }
+    
+    /** Choose an unused port for a server to listen on */
+    private static int choosePort() {
+        try (ServerSocket s = new ServerSocket(0)) {
+            return s.getLocalPort();
+        } catch (IOException ex) {
+            throw new RuntimeException("Failed to find a port");
+        }
     }
 }

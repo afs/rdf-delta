@@ -48,10 +48,16 @@ public class dcmd {
           ,"log4j.logger.org.apache.jena=WARN"
           ,"log4j.logger.org.apache.jena.tdb.loader=INFO"
           ,"log4j.logger.org.eclipse.jetty=WARN"
+          ,"log4j.logger.org.apache.zookeeper=WARN"
+          ,"log4j.logger.org.apache.curator=WARN"
+          ,""
           ,"log4j.logger.org.seaborne.delta=INFO"
-          , "## Parser output"
-          , "log4j.additivity.org.apache.jena.riot=false"
-          , "log4j.logger.org.apache.jena.riot=INFO, jena.plainlevel"
+          ,"log4j.logger.org.seaborne.patch=INFO"
+          ,"log4j.logger.Delta=INFO"
+          ,""
+          ,"## Parser output"
+          ,"log4j.additivity.org.apache.jena.riot=false"
+          ,"log4j.logger.org.apache.jena.riot=INFO, jena.plainlevel"
          ) ;
 
     public static void setLogging() {

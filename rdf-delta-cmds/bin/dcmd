@@ -25,7 +25,7 @@ ZK_CP="$M/org/apache/curator/curator-recipes/$VER_CURATOR/curator-recipes-$VER_C
 $M/org/apache/curator/curator-framework/$VER_CURATOR/curator-framework-$VER_CURATOR.jar:\
 $M/org/apache/curator/curator-client/$VER_CURATOR/curator-client-$VER_CURATOR.jar:\
 $M/org/apache/curator/curator-test/$VER_CURATOR/curator-test-$VER_CURATOR.jar:\
-$M/org/apache/zookeepe/zookeeper/$VER_ZK/zookeeper-$VER_ZK.jar:\
+$M/org/apache/zookeeper/zookeeper/$VER_ZK/zookeeper-$VER_ZK.jar:\
 $M/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:\
 $M/io/netty/3.10.5/netty-3.10.5.jar:\
 $M/com/google/guava/guava/20.0/guava-20.0.jar\

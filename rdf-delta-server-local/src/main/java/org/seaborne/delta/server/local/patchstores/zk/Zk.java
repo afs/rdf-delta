@@ -57,13 +57,14 @@ public class Zk {
         // Switch off JMX integration.
         System.setProperty("zookeeper.jmx.log4j.disable", "true");
         System.setProperty("zookeeper.nio.numSelectorThreads", "1");
+        System.setProperty("zookeeper.admin.enableServer", "false");
         // Reduce greatly.
         System.setProperty("zookeeper.nio.numWorkerThreads", "4");
         //"zookeeper.nio.directBufferBytes"
         //"zookeeper.nio.shutdownTimeout"
 
         // Usage: ZooKeeperServerMain configfile | port datadir [ticktime] [maxcnxns]
-        String[] a = {Integer.toString(port), "zk-data"};
+        String[] a = {Integer.toString(port), dataDir};
         L.async(() -> {
             ServerConfig config = new ServerConfig();
             config.parse(a);
