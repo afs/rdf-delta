@@ -78,7 +78,7 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
+    protected PatchLog create(DataSourceDescription dsd) {
         Path patchLogArea = serverRoot.resolve(dsd.getName());
         if ( ! Files.exists(patchLogArea) ) 
             CfgFile.setupDataSourceByFile(serverRoot, this, dsd);

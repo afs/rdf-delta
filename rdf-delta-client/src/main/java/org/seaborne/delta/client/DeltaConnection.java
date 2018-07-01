@@ -357,25 +357,6 @@ public class DeltaConnection implements AutoCloseable {
         //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
     }
 
-//    /** Get getRemoteVersionLatest with HTTP handling */
-//    private long getRemoteVersionLatestOrDefault(long dftValue) {
-//        try {
-//            return getRemoteVersionLatest();
-//        } catch (HttpException ex) {
-//            // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
-//            if ( ex.getCause() instanceof java.net.ConnectException ) {
-//                FmtLog.warn(LOG, "Failed to connect to get remote version: "+ex.getMessage());
-//                return dftValue;
-//            }
-//            if ( ex.getStatusLine() != null ) {
-//                FmtLog.warn(LOG, "Failed; "+ex.getStatusLine());
-//                return dftValue;
-//            }
-//            FmtLog.warn(LOG, "Failed to get remote version: "+ex.getMessage());
-//            throw ex;
-//        }
-//    }
-
     /** Play the patches (range is inclusive at both ends) */
     private void playPatches(long firstPatchVer, long lastPatchVer) {
         Pair<Long, Node> p = play(datasourceId, target, dLink, firstPatchVer, lastPatchVer);

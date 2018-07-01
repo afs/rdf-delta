@@ -193,14 +193,6 @@ public class Zone {
         return states.containsKey(dsRef);
     }
 
-//    /** Initialize a new area. */
-//    public DataState create(Id dsRef, String name, String uri, DatasetGraph dataset) {
-//        Objects.requireNonNull(dsRef,   "Data source reference");
-//        Objects.requireNonNull(name,    "Data source name");
-//        Objects.requireNonNull(dataset, "Database");
-//        return null;
-//    }
-    
     /** Initialize a new area. */
     public DataState create(Id dsRef, String name, String uri, LocalStorageType storage) {
         Objects.requireNonNull(dsRef,   "Data source reference");

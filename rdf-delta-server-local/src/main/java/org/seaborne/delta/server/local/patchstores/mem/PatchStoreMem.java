@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.server.local.patchstores.mem;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +36,7 @@ public class PatchStoreMem extends PatchStore {
     }
 
     @Override
-    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
+    protected PatchLog create(DataSourceDescription dsd) {
         PatchLog plog = createPatchLog(dsd);
         logs.put(dsd, plog);
         return plog;

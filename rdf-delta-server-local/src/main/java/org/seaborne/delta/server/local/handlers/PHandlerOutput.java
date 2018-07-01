@@ -37,7 +37,7 @@ public class PHandlerOutput implements PatchHandler {
     }
     
     @Override
-    synchronized // XXX revise
+    synchronized
     public void handle(Patch patch) {
         scWriter.start() ;
         patch.play(scWriter);

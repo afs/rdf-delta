@@ -62,7 +62,6 @@ public class Patch implements RDFPatch {
     }
 
     @Override
-    // XXX "apply" - wrong name?
     public void apply(RDFChanges changes) {
         patch.apply(changes) ;
     }

@@ -149,9 +149,6 @@ public class FileMgr {
         shiftFiles(directory, filename, 1, "%d");
     }
 
-//    /** Additional pattern for compression */
-//    /*package*/ static Pattern COMPRESSED = Pattern.compile("\\.gz");
-    
     /** Match an incremental file (does not match the base file name). **/
     /*package*/ static Pattern patternIncremental = Pattern.compile("(.*)(\\.)(\\d+)");
     
@@ -220,11 +217,6 @@ public class FileMgr {
     
     
     
-//    /** Create a file name using the base and the numeric modifier.*/
-//    private static String basename(String base, long idx) {
-//       return String.format("%s%s%d", base, NUM_SEP, idx);
-//    }
-
     /** Create a file name using the base and the numeric modifier, converted to a number using the format */
     /*package*/ static String basename(String base, long idx, String sep, String modFormat) {
         return String.format("%s%s"+modFormat, base, sep, idx);

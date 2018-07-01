@@ -103,7 +103,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         // delta:patchlog
         if ( ! exactlyOneProperty(root, pDeltaPatchLog) )
             throw new AssemblerException(root, "No patch log name") ;
-        // XXX
         String dsName = getAsStringValue(root, pDeltaPatchLog);
 
         // delta:storage

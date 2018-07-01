@@ -21,8 +21,6 @@ package org.seaborne.delta.server.patchstores;
 import static org.junit.Assert.assertEquals;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.apache.jena.atlas.lib.FileOps;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -84,13 +82,10 @@ public abstract class AbstractTestPatchStore {
     //@Test 
     public void recovery1() {
         PatchStore ps = provider();
+
         // Match dsd2 below
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
-        
-        Path sourcePath = null;
-//        if ( ps.hasFileArea() )
-//            sourcePath = Cfg.setupDataSourceByFile(Location.create(DIR), patchStore, dsdSetup);
-        PatchLog patchLog = ps.createLog(dsdSetup, sourcePath);
+        PatchLog patchLog = ps.createLog(dsdSetup);
         
         RDFPatch patch = RDFPatchOps.emptyPatch();
         patchLog.append(patch);
@@ -104,11 +99,10 @@ public abstract class AbstractTestPatchStore {
         
         String name = dsd.getName();
         PatchStore provider = provider();
-        Path patchesArea = Paths.get(DIR, name); 
 
         // Same FileStore, different PatchLog?
         DataSourceDescription dsd2 = new DataSourceDescription(id, name, "http://example/ABC");
-        PatchLog patchLog1 = provider.connectLog(dsd2, patchesArea);
+        PatchLog patchLog1 = provider.connectLog(dsd2);
         PatchLogInfo info1 = patchLog1.getInfo();
         assertEquals(info, info1);
     }

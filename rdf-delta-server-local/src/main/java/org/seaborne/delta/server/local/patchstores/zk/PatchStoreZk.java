@@ -24,7 +24,6 @@ import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nPatches;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -143,7 +142,7 @@ public class PatchStoreZk extends PatchStore {
             return Collections.emptyList();
         }
         
-        List<DataSource> dataSources = listDataSources().stream().map(dsd->DataSource.connect(dsd, this, null)).collect(Collectors.toList());
+        List<DataSource> dataSources = listDataSources().stream().map(dsd->DataSource.connect(dsd, this)).collect(Collectors.toList());
         return dataSources;
     }
 
@@ -155,7 +154,6 @@ public class PatchStoreZk extends PatchStore {
         if ( logNames.isEmpty() )
             LOGZK.info("<No logs>");
         else {
-            // XXX logNames.stream()
             logNames.forEach(name->{
                 String logPath = ZKPaths.makePath(ZkConst.pLogs, name);
                 String logDsd = ZKPaths.makePath(ZkConst.pLogs, name, ZkConst.nDsd);
@@ -168,7 +166,7 @@ public class PatchStoreZk extends PatchStore {
     }
     
     @Override
-    protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
+    protected PatchLog create(DataSourceDescription dsd) {
         String dsName = dsd.getName();
         if ( ! validateName(dsName) ) {
             String msg = String.format("Log name '%s' does not match regex '%s'", dsName, LogNameRegex);

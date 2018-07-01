@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.server.local;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -125,14 +124,7 @@ public abstract class PatchStore {
      */
     public abstract List<DataSource> initFromPersistent(LocalServerConfig config);
     
-//    /** Add a {@link DataSource} to be managed with this {@code PatchStore}.
-//     * The Path is the path to the DataSource area.
-//     */
-//    public abstract void addDataSource(DataSource ds, JsonObject sourceObj, Path dataSourceArea);
-
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
-    // Somewhat related to the DataRegistry.
-    // Could scan than looking for this PatchStore.
     public abstract List<DataSourceDescription> listDataSources();
 
     /**
@@ -143,7 +135,7 @@ public abstract class PatchStore {
      * @param dsPath : Path to the DataSource area. PatchStore-impl can create local files. May be null.
      * @return PatchLog
      */
-    protected abstract PatchLog create(DataSourceDescription dsd, Path dsPath);
+    protected abstract PatchLog create(DataSourceDescription dsd);
 
     /**
      * Delete a {@link PatchLog}.
@@ -152,16 +144,16 @@ public abstract class PatchStore {
     protected abstract void delete(PatchLog patchLog);
 
     /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
-    public PatchLog connectLog(DataSourceDescription dsd, Path dsPath) {
+    public PatchLog connectLog(DataSourceDescription dsd) {
         FmtLog.info(LOG, "Connect log: %s", dsd);
         PatchLog pLog = getLog(dsd.getId());
         if ( pLog == null )
-            pLog = create$(dsd, dsPath);
+            pLog = create$(dsd);
         return pLog;
     }
     
     /** Return a new {@link PatchLog}, which must not already exist. */ 
-    public PatchLog createLog(DataSourceDescription dsd, Path dsPath) {
+    public PatchLog createLog(DataSourceDescription dsd) {
         if ( getProvider() == null )
             FmtLog.info(LOG, "Create log[?]: %s", dsd);
         else  
@@ -169,13 +161,13 @@ public abstract class PatchStore {
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
-        return create$(dsd, dsPath);
+        return create$(dsd);
     }
     
     // Create always. No PatchStore level checking.
-    private PatchLog create$(DataSourceDescription dsd, Path dsPath) {
+    private PatchLog create$(DataSourceDescription dsd) {
         Id dsRef = dsd.getId();
-        PatchLog patchLog = create(dsd, dsPath);
+        PatchLog patchLog = create(dsd);
         logs.put(dsRef, patchLog);
         return patchLog;
     }

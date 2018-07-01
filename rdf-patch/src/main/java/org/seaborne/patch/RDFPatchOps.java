@@ -43,6 +43,7 @@ import org.seaborne.patch.changes.RDFChangesCounter;
 import org.seaborne.patch.changes.RDFChangesLog;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.system.DatasetGraphChanges ;
+import org.seaborne.patch.system.GraphChanges;
 import org.seaborne.patch.text.RDFPatchReaderText ;
 import org.seaborne.patch.text.TokenWriter ;
 import org.seaborne.patch.text.TokenWriterText ;
@@ -236,10 +237,10 @@ public class RDFPatchOps {
         return changes;
     }
     
-//    /** Create a {@link Graph} that sends changes to a {@link RDFChanges} stream */ 
-//    public static Graph changes(Graph graphBase, RDFChanges changes) {
-//        return new GraphChanges(graphBase, changes) ;
-//    }
+    /** Create a {@link Graph} that sends changes to a {@link RDFChanges} stream */ 
+    public static Graph changes(Graph graphBase, RDFChanges changes) {
+        return new GraphChanges(graphBase, changes) ;
+    }
     
     /** Create a {@link DatasetGraph} that writes changes to an {@link OutputStream} in text format.
      *  The caller is responsible for closing the {@link OutputStream}.

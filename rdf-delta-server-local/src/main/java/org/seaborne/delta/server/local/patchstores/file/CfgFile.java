@@ -92,7 +92,7 @@ public class CfgFile {
                         }
                     }
                     
-                    DataSource ds = DataSource.connect(dsd, ps, p);
+                    DataSource ds = DataSource.connect(dsd, ps);
                     //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
                     if ( LOG.isDebugEnabled() ) 
                         FmtLog.debug(LOG, "DataSource: %s [%s], source=%s", ds, ps.getProvider().getProviderName(),p );

@@ -40,36 +40,8 @@ import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {
-    // XXX Needs cleaning up!
-    // Or SingleLocalServer.
-    
-//    private static LocalServerConfig singleton = null;
-//    public static LocalServerConfig configuration() { return singleton ; }
-//    public static void setConfiguration(LocalServerConfig setup) { singleton = setup; }
-    
-    // ---- Global
     
     public static LocalServerConfig basic() { return LocalServerConfig.create().build(); }  
-    
-//    private static Properties singleton = new Properties();
-//
-//    public static void setProperties(Properties setup) {
-//        singleton = new Properties(setup);
-//    }
-//
-//    public static void merge(Properties setup) {
-//        setup.forEach((k, v) -> setSystemProperty((String)k, (String)v));
-//    }
-//
-//    public static void setSystemProperty(String key, String value) {
-//        singleton.setProperty(key, value);
-//    }
-//
-//    public static String getSystemProperty(String key) {
-//        return singleton.getProperty(key);
-//    }
-    
-    // ---- Global
 
     /** Name of the default PatchStore provider */ 
     private final String logProvider;
@@ -79,16 +51,6 @@ public class LocalServerConfig {
     
     /** Delta system properties */
     private final Properties properties; 
-
-    // XXX Delete
-//    /** Setup the system to run with a file-based Patch Store */ 
-//    public static void setFile(String directory) {
-//        FileStore.resetTracked();
-//        setSystemProperty("delta.file", directory);
-//        PatchStoreMgr.unregister(DPS.PatchStoreFileProvider);
-//        PatchStoreMgr.register(new PatchStoreProviderFile());
-//        PatchStoreMgr.setDftPatchStoreProvider(DPS.PatchStoreFileProvider); 
-//    }
 
     private LocalServerConfig(String logProvider, Properties properties, String configFile) {
         this.logProvider = logProvider;
@@ -111,72 +73,6 @@ public class LocalServerConfig {
         return properties.getProperty(key);
     }
 
-    public static Builder create() { return new Builder(); }
-    
-    /** Configuration builder.
-     *  Call "parse" or ("setPort" and "setLocation").
-     *  Can call "parse" and then modify 
-     */
-    static public class Builder {
-        private static Logger LOG = Delta.DELTA_CONFIG_LOG;
-        private String configFile = null;
-        private String logProvider = null;
-        private final Properties properties = new Properties(); 
-
-        
-        public Builder setLogProvider(String logProvider) {
-            Objects.requireNonNull(logProvider);
-            this.logProvider = logProvider;
-            return this;
-        }
-        
-        public Builder setProperty(String key, String value) {
-            properties.setProperty(key, value);
-            return this;
-        }
-        
-        public Builder setProperties(Properties properties) {
-            properties.forEach((k,v)->setProperty((String)k, (String)v));
-            return this;
-        }
-
-        /** Parse a configuration file. */
-        public Builder parse(String configFile) {
-            Path path = Paths.get(configFile);
-            if ( ! Files.exists(path) )
-                handleMissingConfigFile(path);
-            
-            // -- version
-            JsonObject obj = JSON.read(configFile);
-            int version = JSONX.getInt(obj, F_VERSION, -99);
-            if ( version == -99 ) {
-                LOG.warn("No version number for the configuration file : assuming 'current'");
-                version = DeltaConst.SYSTEM_VERSION;
-            }
-            if ( version != SYSTEM_VERSION )
-                throw new DeltaConfigException("Version number for LocalServer must be "+DeltaConst.SYSTEM_VERSION+".");
-            
-            this.configFile = configFile;
-
-            // -- log provider
-            String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
-            String providerName = PatchStoreMgr.canonical(logTypeName);
-            
-            if ( providerName == null )
-                providerName = DeltaConst.LOG_FILE;
-            logProvider = providerName;
-            setProperty("delta.file", path.getParent().toString());
-            return this;
-        }
-        
-        public LocalServerConfig build() {
-            String provider = null;
-            if ( logProvider != null )
-                provider = PatchStoreMgr.canonical(logProvider);
-            return new LocalServerConfig(provider, properties, configFile);
-        }
-    }
-    
     private static void handleMissingConfigFile(Path path) {
         //throw new DeltaConfigException("No such file: "+path.toString());
         JsonObject obj = JSONX.buildObject(b->{
@@ -213,6 +109,74 @@ public class LocalServerConfig {
         } else if ( !configFile.equals(other.configFile) )
             return false;
         return true;
+    }
+
+    public static Builder create() { return new Builder(); }
+
+    /** Configuration builder.
+     *  Call "parse" or ("setPort" and "setLocation").
+     *  Can call "parse" and then modify 
+     */
+    static public class Builder {
+        private static Logger LOG = Delta.DELTA_CONFIG_LOG;
+        private String configFile = null;
+        private String logProvider = null;
+        private final Properties properties = new Properties(); 
+    
+        
+        public Builder setLogProvider(String logProvider) {
+            Objects.requireNonNull(logProvider);
+            this.logProvider = logProvider;
+            return this;
+        }
+        
+        public Builder setProperty(String key, String value) {
+            properties.setProperty(key, value);
+            return this;
+        }
+        
+        public Builder setProperties(Properties properties) {
+            properties.forEach((k,v)->setProperty((String)k, (String)v));
+            return this;
+        }
+    
+        /** Parse a configuration file. */
+        public Builder parse(String configFile) {
+            Path path = Paths.get(configFile);
+            if ( ! Files.exists(path) )
+                handleMissingConfigFile(path);
+            
+            // -- version
+            JsonObject obj = JSON.read(configFile);
+            int version = JSONX.getInt(obj, F_VERSION, -99);
+            if ( version == -99 ) {
+                LOG.warn("No version number for the configuration file : assuming 'current'");
+                version = DeltaConst.SYSTEM_VERSION;
+            }
+            if ( version != SYSTEM_VERSION )
+                throw new DeltaConfigException("Version number for LocalServer must be "+DeltaConst.SYSTEM_VERSION+".");
+            
+            this.configFile = configFile;
+    
+            // -- log provider
+            logProvider = DPS.PatchStoreFileProvider;
+            String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
+            if ( logTypeName != null ) {
+                String providerName = PatchStoreMgr.canonical(logTypeName);
+                if ( providerName == null )
+                    providerName = DeltaConst.LOG_FILE;
+                logProvider = providerName;
+            }
+            setProperty("delta.file", path.getParent().toString());
+            return this;
+        }
+        
+        public LocalServerConfig build() {
+            String provider = null;
+            if ( logProvider != null )
+                provider = PatchStoreMgr.canonical(logProvider);
+            return new LocalServerConfig(provider, properties, configFile);
+        }
     }
     
 }

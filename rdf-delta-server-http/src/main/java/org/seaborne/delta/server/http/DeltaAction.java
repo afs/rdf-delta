@@ -41,11 +41,6 @@ public class DeltaAction {
     // For HTTP
     public final Args httpArgs;
     
-//    /** Basic action */
-//    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, Id clientId, RegToken regToken) {
-//        return new DeltaAction(request, response, regToken, null, null, null, null);
-//    }
-
     /** HTTP action */
     public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
                                      DeltaLink deltaLink, RegToken regToken,

@@ -57,8 +57,7 @@ import org.slf4j.LoggerFactory;
 
 /** A sequence of patches for an {@link DataSource}. */
 public class PatchLogFile implements PatchLog {
-    
-    // XXX Predates PatchStorage/PatchLogIndex.
+    // Predates PatchStorage/PatchLogIndex.
     // Could do with converting.
     
     private static final boolean CHECKING = true ;
@@ -223,13 +222,10 @@ public class PatchLogFile implements PatchLog {
      * @param patch
      */
     // XXX synchronized with fetching?
-    // XXX Validation? "knownToBeValid" ?
     @Override
     synchronized
     public long append(RDFPatch patch) {
-        // [DP-Fix]
-        // If the patch is bad, we need to remove it
-        // Timing hole.
+        // XXX If the patch is bad, we need to remove it. Timing hole?
 
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());

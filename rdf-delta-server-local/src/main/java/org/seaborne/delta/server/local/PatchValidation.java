@@ -38,15 +38,24 @@ public class PatchValidation {
     
     /** Validate a patch for this {@code PatchLog} */
     public static boolean validate(RDFPatch patch, PatchLog log) {
-        // XXX Check patchId != previousId
         Id previousId = Id.fromNode(patch.getPrevious());
         Id patchId = Id.fromNode(patch.getId());
+        if ( patchId == null ) {
+            FmtLog.warn(LOG, "No patch id");
+            return false;
+        }
+        
         if ( previousId == null ) {
             if ( !log.isEmpty() ) {
                 FmtLog.warn(LOG, "No previous for patch when PatchLog is not empty: patch=%s", patchId);
                 return false;
             }
         } else {
+            if ( Objects.equals(patchId, previousId) ) {
+                FmtLog.warn(LOG, "Patch ihas itself as the previous patch: patch=%s : previous=%s", patchId, previousId);
+                return false ;
+            }
+
             if ( log.isEmpty() ) {
                 FmtLog.warn(LOG, "Previous reference for patch but PatchLog is empty: patch=%s : previous=%s", patchId, previousId);
                 return false ;
@@ -59,10 +68,7 @@ public class PatchValidation {
         } catch (DeltaException ex) { return false; }
     }
 
-    @FunctionalInterface
-    public interface BadHandler { void bad(String fmt, Object ...args) ; }
-    
-    
+    @FunctionalInterface public interface BadHandler { void bad(String fmt, Object ...args) ; }
     
     public static void validateNewPatch(PatchLog log, Id patchId, Id previousId, BadHandler action) {
         if ( patchId == null )

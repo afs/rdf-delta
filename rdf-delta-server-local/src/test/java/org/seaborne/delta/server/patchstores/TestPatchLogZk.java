@@ -18,9 +18,6 @@
 
 package org.seaborne.delta.server.patchstores;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -86,8 +83,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
             ps.initFromPersistent(config);
 
             DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
-            Path dsPath = Paths.get("ABC");
-            PatchLog patchLog = ps.createLog(dsd, dsPath);
+            PatchLog patchLog = ps.createLog(dsd);
             return patchLog;
 
         } catch (Exception ex) {

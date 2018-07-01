@@ -27,9 +27,9 @@ import org.junit.Test;
 import org.seaborne.delta.server.local.*;
 
 /**
- *  Tests of {@link LocalServer} on a preconfigured LocalServer area.
- *  See {@link TestLocalServerCreateDelete} for tests involving create and delete
- *  of data sources.
+ * Tests of {@link LocalServer} on a preconfigured LocalServer area. See
+ * {@link TestLocalServerCreateDelete} for tests involving create and delete of data
+ * sources.
  */
 public class TestLocalServer {
     

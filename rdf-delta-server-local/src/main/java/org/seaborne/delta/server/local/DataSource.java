@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.server.local;
 
-import java.nio.file.Path;
 import java.util.Objects;
 
 import org.seaborne.delta.DataSourceDescription;
@@ -32,38 +31,35 @@ import org.slf4j.LoggerFactory;
  * These are managed through the {@link DataRegistry}.
  */
 public class DataSource {
+    // Might eb able to replace with 2PatchLog".
     private static Logger LOG = LoggerFactory.getLogger(DataSource.class);
     private final DataSourceDescription dsDescription;
     private final PatchLog patchLog;
-    // Optional path to a file area for further information.
-    // For the file-backed PatchStore, this includes the patches.
-    private final Path dsPath;
 
     /**
      * Attach to a {@link DataSource} file area and return a {@link DataSource} object.
      * The directory {@code dsPath} must exist.
      * The {@code DataSource} area is not formatted by the provider. 
      */
-    public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore, Path dsPath) {
+    public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore) {
         Objects.requireNonNull(dsd, "Null DataSourceDescription");
         Objects.requireNonNull(patchStore, "No patch store");
-        PatchLog patchLog = patchStore.connectLog(dsd, dsPath);
-        DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
+        PatchLog patchLog = patchStore.connectLog(dsd);
+        DataSource dataSource = new DataSource(dsd, patchLog);
         return dataSource;
     }
 
-    public static DataSource create(DataSourceDescription dsd, Path dsPath, PatchStore patchStore) {
+    public static DataSource create(DataSourceDescription dsd, PatchStore patchStore) {
         Objects.requireNonNull(dsd, "Null DataSourceDescription");
         Objects.requireNonNull(patchStore, "No patch store");
-        PatchLog patchLog = patchStore.createLog(dsd, dsPath);
-        DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
+        PatchLog patchLog = patchStore.createLog(dsd);
+        DataSource dataSource = new DataSource(dsd, patchLog);
         return dataSource;
     }
 
-    private DataSource(DataSourceDescription dsd, Path dsPath, PatchLog patchLog) {
+    private DataSource(DataSourceDescription dsd, PatchLog patchLog) {
         super();
         this.dsDescription = dsd;
-        this.dsPath = dsPath; 
         this.patchLog = patchLog;
     }
 
@@ -79,11 +75,6 @@ public class DataSource {
         return dsDescription.getName();
     }
 
-    /** Return the optional {@link Path} associated with this {@link DataSource}. */ 
-    public Path getPath() {
-        return dsPath;
-    }
-    
     public PatchLog getPatchLog() {
         return patchLog;
     }

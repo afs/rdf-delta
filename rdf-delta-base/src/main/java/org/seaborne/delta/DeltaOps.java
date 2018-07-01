@@ -44,23 +44,8 @@ public class DeltaOps {
             return "--";
         return Long.toString(version);
     }
-    
-//    public static DatasetGraph managedDatasetGraph(DatasetGraph dsg, String url) {
-//        RDFChangesHTTP changes = LibPatchSender.create1(url) ;
-//        DatasetGraph dsg1 = new DatasetGraphChangesVersion(dsg, changes);
-//        return dsg1 ;
-//    }
-//    
-    
-//    /** Called closes the {@link InputStream}. */
-//    public static void play(DatasetGraph dsg, InputStream input) {
-//        PatchReader pr = new PatchReader(input) ;
-//        RDFChanges sc = new RDFChangesApply(dsg) ; 
-//        pr.apply(sc);
-//    }
-    
-    /** Validate a name as a DataSource name */
-    
+
+    /** Validate a name as a {@code DataSource} name */
     public static boolean isValidName(String dsName) {
         if ( dsName == null )
             return false;

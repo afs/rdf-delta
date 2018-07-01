@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.server.local;
 
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors ;
@@ -44,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class LocalServer {
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
-    static { 
+    static {
         DeltaSystem.init();
     }
     
@@ -252,8 +251,7 @@ public class LocalServer {
     // Depends on the on-disk stub for a PatchLog. 
     private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(lock) {
-            Path sourcePath = null;
-            DataSource newDataSource = DataSource.create(dsd, sourcePath, patchStore);
+            DataSource newDataSource = DataSource.create(dsd, patchStore);
             dataRegistry.put(dsd.getId(), newDataSource);
             return newDataSource;
         }

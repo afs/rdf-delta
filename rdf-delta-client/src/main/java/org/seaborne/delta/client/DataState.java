@@ -35,11 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Track the state of one client connected to one {@code DataSource} */
-
 public class DataState {
-    // XXX Can this be shared between client and server?
-    // DataSourceDescription
-    
     static Logger LOG = LoggerFactory.getLogger(DataState.class);
     
     private final Zone zone;
@@ -120,8 +116,7 @@ public class DataState {
         return String.format("[DataState: %s version=%d patch=%s]", datasource, version(), latestPatchId());
     }
     
-    // XXX Sort out concurrency!
-    // XXX concurrency : Coordinate win DeltaConnection. 
+    // XXX Check concurrency! Coordinate win DeltaConnection. 
     public synchronized void updateState(long newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.

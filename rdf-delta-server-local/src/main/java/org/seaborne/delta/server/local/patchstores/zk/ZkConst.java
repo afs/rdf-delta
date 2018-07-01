@@ -29,7 +29,7 @@ public class ZkConst {
      * /delta/logs/NAME
      * /delta/logs/NAME/dsd
      * /delta/logs/NAME/lock
-     * /delta/logs/NAME/state               (first_version: ,  DataSourceDescription) XXX Check. 
+     * /delta/logs/NAME/state               (first_version: ,  DataSourceDescription) 
      * /delta/logs/NAME/patches-            patch  sequence node for "{ id: prev: version:}"
      * 
      * When including patch storage:

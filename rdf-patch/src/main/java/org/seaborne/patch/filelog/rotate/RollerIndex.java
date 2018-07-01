@@ -36,11 +36,6 @@ class RollerIndex implements Roller {
     private final String baseFilename;
     private final String indexFormat;
 
-//  /** Match an incremental file (does not match the base file name). **/
-//  private static Pattern patternIncremental = Pattern.compile("(.*)(\\.)(\\d+)");
-//  private static final String INC_SEP = ".";
-//
-//  private static String numFmt = "%d";
     public static Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
 
     

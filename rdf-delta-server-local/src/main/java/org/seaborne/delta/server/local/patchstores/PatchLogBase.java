@@ -133,19 +133,14 @@ public class PatchLogBase implements PatchLog {
         return patchStore;
     }
 
-    // TODO Is this operation needed?
-    // Tricky for slow storage, large log.
     @Override
     public boolean contains(Id patchId) {
         return false;
     }
 
-
-        @Override
+    @Override
     public long append(RDFPatch patch) {
         synchronized(lock) {
-
-            // XXX Migrate checks.
             long version = logState.nextVersion();
             Id thisId = Id.fromNode(patch.getId());
             Id prevId = Id.fromNode(patch.getPrevious());        
@@ -154,7 +149,7 @@ public class PatchLogBase implements PatchLog {
 
             patchStorage.store(thisId, patch);
             
-            // this is the commit point.
+            // This is the commit point.
             logState.save(version, thisId, prevId);
             
             if ( earliestId == null ) {

@@ -29,10 +29,6 @@ import org.seaborne.patch.text.TokenWriterText ;
 
 public class DeltaLib {
     
-    // XXX More here?
-    // Or less? (only use by the assembler?)
-    // See also DeltaClient. Assembler to use DeltaClient?
-
     /** Connect to a destination for changes */
     public static RDFChanges destination(String dest) {
         // TODO text vs binary

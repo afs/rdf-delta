@@ -50,8 +50,6 @@ import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.server.http.PatchLogServer;
 
 /** Drive updates and reads */
-
-
 public class Driver {
     protected static final Path DIR = Paths.get("target/loadtest");
     static { 
@@ -181,8 +179,6 @@ public class Driver {
         new Thread(r).start();
     }
     
-    
-    
     static void update(Model model, String param, String value) {
         String us = "DELETE { ?s ?p '%1%' } INSERT { ?s ?p '%2%' } WHERE { ?s ?p '%1%' }";
         us = us.replace("%1%", param);
@@ -205,33 +201,6 @@ public class Driver {
       x.forEach(dap->builder.add(dap.getName(), dap.getDataService()));
       return builder.build();
     }
-
-//        // From FusekiServer.Builder.
-//    /** Read and parse a Fuseki services/datasets file.
-//     *  <p>
-//     *  The application is responsible for ensuring a correct classpath. For example,
-//     *  including a dependency on {@code jena-text} if the configuration file
-//     *  includes a text index.     
-//     */
-//    public Builder parseConfigFile(String filename) {
-//        requireNonNull(filename, "filename");
-//        Model model = AssemblerUtils.readAssemblerFile(filename);
-//        
-//        // Fix up model.
-//        UpdateAction
-//        
-//        
-//        // Process server context
-//        Resource server = GraphUtils.getResourceByType(model, FusekiVocab.tServer);
-//        if ( server != null )
-//            AssemblerUtils.setContext(server, Fuseki.getContext()) ;
-//
-//        // Process services, whether via server ja:services or, if absent, by finding by type. 
-//        List<DataAccessPoint> x = FusekiConfig.servicesAndDatasets(model);
-//        // Unbundle so that they accumulate.
-//        x.forEach(dap->add(dap.getName(), dap.getDataService()));
-//    }
-
     
     protected static PatchLogServer patchLogServer(int port, String base) {
         PatchLogServer dps = PatchLogServer.server(port, base);
@@ -243,65 +212,4 @@ public class Driver {
             return null;
         }
     }
-
-
-
-    
-//    @BeforeClass
-//    public static void beforeClass() {
-//        dftStdHttpClient = HttpOp.getDefaultHttpClient();
-//        
-//        HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
-//        
-//        patchLogServer = patchLogServer();
-//        server1 = fuseki1();
-//        server2 = fuseki2();
-//        
-//        URL_DPS = "http://localhost:"+D_PORT+"/";
-//        
-//        conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
-//        conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
-//    }
-//    
-//    @AfterClass
-//    public static void afterClass() {
-//        server1.stop();
-//        server2.stop();
-//        patchLogServer.stop();
-//        IO.close( ((CloseableHttpClient)HttpOp.getDefaultHttpClient()) );
-//        HttpOp.setDefaultHttpClient(dftStdHttpClient);
-//    }
-//
-//    @Before public void before() {}
-//    @After  public void after()  {}
-//
-//    @Test public void basic_1() {
-//        conn1.query("ASK{}");
-//        conn2.query("ASK{}");
-//    }
-//    
-//    @Test public void update_1() {
-//        // Do an update on one server ...
-//        conn1.update(PREFIX+"INSERT DATA { :s :p 'update_1' }");
-//        // And see it on the other server ...
-//        try ( QueryExecution qExec = conn2.query(PREFIX+"ASK { :s :p 'update_1'}") ) {
-//            Assert.assertEquals(true, qExec.execAsk());
-//        }
-//    }
-//    
-//    @Test public void update_2() {
-//        // Do an update on one server ...
-//        conn1.update(PREFIX+"INSERT DATA { :s :p 'update_2_A' }");
-//        // And on the other server ...
-//        conn2.update(PREFIX+"INSERT DATA { :s :p 'update_2_B' }");
-//        
-//        // Ask each server ...
-//        try ( QueryExecution qExec = conn2.query(PREFIX+"ASK { :s :p 'update_2_A', 'update_2_B' }") ) {
-//            Assert.assertEquals(true, qExec.execAsk());
-//        }
-//        try ( QueryExecution qExec = conn1.query(PREFIX+"ASK { :s :p 'update_2_A', 'update_2_B' }") ) {
-//            Assert.assertEquals(true, qExec.execAsk());
-//        }
-//    }
-
 }
