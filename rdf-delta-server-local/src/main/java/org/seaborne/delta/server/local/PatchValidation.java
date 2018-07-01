@@ -18,14 +18,11 @@
 
 package org.seaborne.delta.server.local;
 
-import static java.lang.String.format;
-
 import java.util.Objects;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaBadPatchException;
-import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.patch.PatchHeader;
@@ -78,7 +75,7 @@ public class PatchValidation {
         Id logHead = log.getLatestId();
         // Works if previousId == null.
         if ( ! Objects.equals(logHead, previousId) ) {
-            throw new DeltaBadRequestException(format("Previous not current: log head=%s : patch previous=%s",logHead, previousId));
+            action.bad("Previous not current: log head=%s : patch previous=%s",logHead, previousId);
         }
     }
     

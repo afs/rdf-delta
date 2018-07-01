@@ -31,10 +31,10 @@ import jena.cmd.ArgDecl;
 import jena.cmd.CmdLineArgs;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.cmds.dcmd;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
 import org.seaborne.delta.server.local.*;
@@ -43,8 +43,7 @@ import org.slf4j.Logger;
 /** Command line run the server. */ 
 public class DeltaServer {
     public static void setLogging() {
-        //LogCtl.setLog4j();
-        LogCtl.setJavaLogging();
+        dcmd.setLogging();
     }
     
     static { setLogging(); }
@@ -56,6 +55,7 @@ public class DeltaServer {
 
     private static ArgDecl argBase     = new ArgDecl(true, "base");
     private static ArgDecl argZk       = new ArgDecl(true, "zk");
+    private static ArgDecl argMem      = new ArgDecl(false, "mem");
     private static ArgDecl argProvider = new ArgDecl(true, "provider");
 //    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
 
@@ -65,8 +65,8 @@ public class DeltaServer {
         } catch (Throwable th) {
             th.printStackTrace();
         }
-        
     }
+
     public static void mainSub(String...args) {
         // ---- Command Line
         CmdLineArgs cla = new CmdLineArgs(args);
@@ -75,11 +75,13 @@ public class DeltaServer {
         cla.add(argPort);
         cla.add(argBase);
         cla.add(argZk);
+        cla.add(argMem);
         cla.add(argProvider);
+        //cla.add(argConf);
         cla.process();
         
         if ( cla.contains(argHelp) ) {
-            System.err.println("Usage: server [--port=NNNN] [--base=DIR]");
+            System.err.println("Usage: server [--port=NNNN] [--base=DIR] [--zk=connectionString] ");
             System.exit(0);
         }
         
@@ -93,11 +95,27 @@ public class DeltaServer {
         Properties properties = new Properties();
         String providerName = null;
         
-        if ( cla.contains(argBase) && cla.contains(argZk) && ! cla.contains(argProvider) ) {
-            System.err.println("Multiple providers - need to name the default");
+        int x = 0 ;
+        
+        
+        if ( cla.contains(argBase) )
+            x++ ;
+        if ( cla.contains(argZk) )
+            x++;
+        if ( cla.contains(argMem) )
+            x++;
+        if ( cla.contains(argProvider) )
+            x++;
+            
+        if ( x < 1 ) {
+            System.err.println("No provider : one of --mem , --zk, --base or --provider is required"); 
             System.exit(1);
         }
-        
+        if ( x > 1 ) {
+            System.err.println("Exactly one of --mem , --zk, --base or --provider is required"); 
+            System.exit(1);
+        }
+         
         if ( cla.contains(argBase) ) {
             // File-based provider
             String directory = cla.getValue(argBase);
@@ -121,6 +139,9 @@ public class DeltaServer {
             providerName = DPS.PatchStoreZkProvider;
         }
 
+        if ( cla.contains(argMem) )
+            providerName = DPS.PatchStoreMemProvider;
+        
         if ( cla.contains(argProvider) )
             providerName = cla.getValue(argProvider);
         
@@ -143,21 +164,11 @@ public class DeltaServer {
 //            System.err.println("Exists, but is not a directory: "+base);
 //            System.exit(1);
 //        }
-//
-//        //String installArea = getenv(HOME);
-//
-//        // Logging.
-//        
-//        Location baseArea = IOX.asLocation(base);
-//        
-//        if ( configFile == null )
-//            configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         
         DPS.init();
         
         LocalServerConfig config = LocalServerConfig.create()
             .setLogProvider(providerName)
-//            .parse(configFile)
             .setProperties(properties)
             .build();
         
@@ -174,7 +185,7 @@ public class DeltaServer {
         // Information.
         
         List<DataSource> sources = server.listDataSources();
-        
+
         if ( sources.isEmpty() )
             FmtLog.info(LOG, "  No data sources");
         else {

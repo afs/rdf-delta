@@ -16,14 +16,33 @@ LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25
 JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar"
 
 H="$HOME/ASF/rdf-delta"
-D=
+
+M="$HOME/.m2/repo"
+
+VER_ZK=3.5.3-beta
+VER_CURATOR=4.0.1
+ZK_CP="$M/org/apache/curator/curator-recipes/$VER_CURATOR/curator-recipes-$VER_CURATOR.jar:\
+$M/org/apache/curator/curator-framework/$VER_CURATOR/curator-framework-$VER_CURATOR.jar:\
+$M/org/apache/curator/curator-client/$VER_CURATOR/curator-client-$VER_CURATOR.jar:\
+$M/org/apache/curator/curator-test/$VER_CURATOR/curator-test-$VER_CURATOR.jar:\
+$M/org/apache/zookeepe/zookeeper/$VER_ZK/zookeeper-$VER_ZK.jar:\
+$M/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:\
+$M/io/netty/3.10.5/netty-3.10.5.jar:\
+$M/com/google/guava/guava/20.0/guava-20.0.jar\
+"
+D="$ZK_CP"
 
 # Delta modules
 read -r -d '' MODULES << EOM
-rdf-delta-base rdf-delta-client rdf-delta-server-http
-rdf-delta-server-local rdf-delta-system rdf-delta-test
-rdf-patch tio dev-rdf-delta
+rdf-delta-base
+rdf-delta-client
+rdf-delta-server-http
+rdf-delta-server-local
+rdf-delta-system
+rdf-delta-test
+rdf-patch 
 rdf-delta-cmds
+dev-rdf-delta
 EOM
 
 if true # if in development area
