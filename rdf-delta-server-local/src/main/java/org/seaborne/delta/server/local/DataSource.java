@@ -19,6 +19,7 @@
 package org.seaborne.delta.server.local;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
@@ -44,12 +45,16 @@ public class DataSource {
      * The {@code DataSource} area is not formatted by the provider. 
      */
     public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore, Path dsPath) {
+        Objects.requireNonNull(dsd, "Null DataSourceDescription");
+        Objects.requireNonNull(patchStore, "No patch store");
         PatchLog patchLog = patchStore.connectLog(dsd, dsPath);
         DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
         return dataSource;
     }
 
     public static DataSource create(DataSourceDescription dsd, Path dsPath, PatchStore patchStore) {
+        Objects.requireNonNull(dsd, "Null DataSourceDescription");
+        Objects.requireNonNull(patchStore, "No patch store");
         PatchLog patchLog = patchStore.createLog(dsd, dsPath);
         DataSource dataSource = new DataSource(dsd, dsPath, patchLog);
         return dataSource;

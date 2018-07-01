@@ -26,6 +26,7 @@ public class TestPatchStoreFile extends AbstractTestPatchStore {
     
     @Override
     protected PatchStore patchStore() {
-        return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreFileProvider);
+        System.err.println("Fixup needed: TestPatchStoreFile");
+        return PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider).create(null);
     }
 }

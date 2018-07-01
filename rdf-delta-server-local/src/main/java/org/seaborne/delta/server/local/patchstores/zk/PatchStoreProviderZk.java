@@ -24,26 +24,23 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.*;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
     private final CuratorFramework client;
 
     public PatchStoreProviderZk() {
-        this(makeClient());
+        this(null);
     }
     
     public PatchStoreProviderZk(CuratorFramework client) {
         this.client = client;
     }
     
-    private static CuratorFramework makeClient() {
+    private static CuratorFramework makeClient(String connectString) {
+        
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
-        // comma separated host:port pairs
-        String connectString = System.getProperty("delta.zk");
         
         if ( connectString == null || connectString.isEmpty() )
             return null;
@@ -65,8 +62,13 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     }
     
     @Override
-    public PatchStore create() {
-        return new PatchStoreZk(client, this); 
+    public PatchStore create(LocalServerConfig config) {
+        CuratorFramework clientHere = client;
+        if ( clientHere == null ) {
+            String connectString = config.getProperty("delta.zk");
+            clientHere = makeClient(connectString);
+        }
+        return new PatchStoreZk(clientHere, this); 
     }
 
     @Override

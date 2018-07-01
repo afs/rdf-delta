@@ -19,13 +19,14 @@
 package org.seaborne.delta.server.local.patchstores.mem;
 
 import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
 
 public class PatchStoreProviderMem implements PatchStoreProvider {
 
     @Override
-    public PatchStore create() {
+    public PatchStore create(LocalServerConfig config) {
         return new PatchStoreMem(this);
     }
 

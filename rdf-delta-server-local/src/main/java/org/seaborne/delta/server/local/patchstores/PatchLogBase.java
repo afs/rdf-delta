@@ -18,17 +18,14 @@
 
 package org.seaborne.delta.server.local.patchstores;
 
-import static java.lang.String.format;
-
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.seaborne.delta.*;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchValidation;
 import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,23 +144,14 @@ public class PatchLogBase implements PatchLog {
         @Override
     public long append(RDFPatch patch) {
         synchronized(lock) {
-            // XXX Zk lock??
-            
-            // Check with PatchStoreFile.
-            
-            // Validate.
-            
-            Id logHead = logState.getCurrentId();
+
+            // XXX Migrate checks.
             long version = logState.nextVersion();
             Id thisId = Id.fromNode(patch.getId());
             Id prevId = Id.fromNode(patch.getPrevious());        
 
-            if ( ! Objects.equals(logHead, prevId) ) {
-                RDFPatchOps.write(System.out, patch);
-                throw new DeltaBadRequestException(format("Previous not current: log head=%s : patch previous=%s",logHead, prevId));
-            }
+            PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
 
-            // Save patch.
             patchStorage.store(thisId, patch);
             
             // this is the commit point.

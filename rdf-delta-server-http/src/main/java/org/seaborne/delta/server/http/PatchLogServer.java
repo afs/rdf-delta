@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.jena.fuseki.jetty.FusekiErrorHandler1;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.Lang ;
-import org.apache.jena.tdb.base.file.Location;
 import org.eclipse.jetty.http.MimeTypes ;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -48,9 +47,10 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServers;
 
 /**
- * An HTTP-based server providing oatch logs and the admin functions.
+ * An HTTP-based server providing patch logs and the admin functions.
  * <p>
  * Implemented as a packaging of Jetty with the necessary servlets for Delta.
  */
@@ -62,11 +62,10 @@ public class PatchLogServer {
     // Shared across servlets.
     private final AtomicReference<DeltaLink> engineRef;
     
-    /** Packaged start up : one area, with config file.*/
-    public static PatchLogServer server(int port, String path) {
-        Location baseArea = Location.create(path);
-        String configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
-        LocalServer server = LocalServer.create(baseArea, configFile);
+    /** Create a {@code PatchLogServer} 
+     * @param base */
+    public static PatchLogServer server(int port, String base) {
+        LocalServer server = LocalServers.createFile(base);
         DeltaLink link = DeltaLinkLocal.connect(server);
         return PatchLogServer.create(port, link) ;
     }

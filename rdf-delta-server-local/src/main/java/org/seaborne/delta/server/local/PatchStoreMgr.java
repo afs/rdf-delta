@@ -18,16 +18,11 @@
 
 package org.seaborne.delta.server.local;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
+import java.util.*;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.ext.com.google.common.collect.BiMap ;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap ;
-import org.seaborne.delta.DeltaConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +40,30 @@ public class PatchStoreMgr {
     // -------- PatchStore.Provider
     // Providers wire themselves in during server startup.
     // Providers should not be be removed if there are any in use. 
-    static Map<String, PatchStore> patchStores = new HashMap<>();
+    static Map<String, PatchStoreProvider> providers = new HashMap<>();
     
+    //    /** Set the default choice of PatchStore */
+    //    public static void setDftPatchStoreName(String providerName) {
+    //        PatchStore impl = patchStores.get(providerName);
+    //        if ( impl != null ) {
+    //            dftPatchStore = impl;
+    //            FmtLog.info(LOG, "Set default patch store: %s", providerName);
+    //            return;
+    //        }
+    //        String providerName2 = shortName2LongName(providerName);
+    //        impl = patchStores.get(providerName2);
+    //        if ( impl != null ) {
+    //            dftPatchStore = impl;
+    //            FmtLog.info(LOG, "Set default patch store: %s", providerName);
+    //            return;
+    //        }
+    //        throw new DeltaConfigException("No provider for '"+providerName+"'");
+    //    }
+        
+    //static Map<String, PatchStore> patchStores = new ConcurrentHashMap<>();
+
     // Default PatchStore.
-    private static PatchStore dftPatchStore;
+    private static PatchStoreProvider dftPatchStoreProvider;
 
     // ---- Short name / long name.
     private static BiMap<String, String> shortName2LongName = HashBiMap.create();
@@ -63,7 +78,7 @@ public class PatchStoreMgr {
      */
     public static String shortName2LongName(String shortName) {
         if ( shortName == null )
-            return getDftPatchStoreName();
+            return getDftPatchStoreProviderName();
         return shortName2LongName.get(shortName);
     }
     
@@ -72,14 +87,13 @@ public class PatchStoreMgr {
     }
     // ----
     
-    public static Collection<PatchStore> registered() {
-        return new HashSet<>(patchStores.values());
+    public static Collection<PatchStoreProvider> registered() {
+        return new HashSet<>(providers.values());
     }
 
     public static boolean isRegistered(String providerName) {
-        return patchStores.containsKey(providerName);
+        return providers.containsKey(providerName);
     }
-    
     
     /**
      * Add a {@link PatchStore} using the given {@link PatchStoreProvider} for details and
@@ -87,74 +101,125 @@ public class PatchStoreMgr {
      */
     public static void register(PatchStoreProvider provider) {
       registerShortName(provider.getShortName(), provider.getProviderName());
-      PatchStore pStore = provider.create();
-      if ( pStore != null )
-          registerPatchStore(pStore);
+      providers.put(provider.getProviderName(), provider);
     }
     
-    /** Add a PatchStore : it is registered by its provider name */ 
-    private static void registerPatchStore(PatchStore impl) {
-        String providerName = impl.getProvider().getProviderName();
-        if ( longName2ShortName(providerName) == null )
-            LOG.warn("No short name for: "+providerName);
-        FmtLog.info(LOG, "Register patch store: %s", providerName);
-        if ( patchStores.containsKey(providerName) )
-            LOG.error("Already registered: "+providerName);
-        patchStores.put(providerName, impl);
-    }
+    // XXX Clearup the PatchStore handling.
+    
+//    /** Add a PatchStore : it is registered by its provider name */
+//    private static void registerPatchStore(PatchStore impl) {
+//        String providerName = impl.getProvider().getProviderName();
+//        if ( longName2ShortName(providerName) == null )
+//            LOG.warn("No short name for: "+providerName);
+//        FmtLog.info(LOG, "Register patch store: %s", providerName);
+//        if ( patchStores.containsKey(providerName) )
+//            LOG.error("Already registered: "+providerName);
+//        patchStores.put(providerName, impl);
+//    }
     
     /** Unregister by provider name */ 
     public static void unregister(String providerName) {
         FmtLog.info(LOG, "Unregister patch store: %s", providerName);
-        if ( patchStores.containsKey(providerName) )
+        if ( ! providers.containsKey(providerName) )
             Log.warn(PatchStore.class, "Not registered: "+providerName);
-        patchStores.remove(providerName);
-    }
-
-    /** Set the default choice of PatchStore */
-    public static void setDftPatchStoreName(String providerName) {
-        PatchStore impl = patchStores.get(providerName);
-        if ( impl != null ) {
-            dftPatchStore = impl;
-            FmtLog.info(LOG, "Set default patch store: %s", providerName);
-            return;
-        }
-        String providerName2 = shortName2LongName(providerName);
-        impl = patchStores.get(providerName2);
-        if ( impl != null ) {
-            dftPatchStore = impl;
-            FmtLog.info(LOG, "Set default patch store: %s", providerName);
-            return;
-        }
-        throw new DeltaConfigException("No provider for '"+providerName+"'");
+        PatchStoreProvider psp = providers.remove(providerName);
+        if ( psp == dftPatchStoreProvider )
+            dftPatchStoreProvider = null;
+        
     }
     
     /**
-     * Get the {@link PatchStore} by provider name.
+     * Get the {@code PatchStoreProvider} by name.
      */
-    public static PatchStore getPatchStoreByProvider(String providerName) {
-        return patchStores.get(providerName);
+    public static PatchStoreProvider getPatchStoreProvider(String providerName) {
+        String name = key(providerName);
+        return providers.get(name); 
     }
 
-    /**
-     * Get the current default {@link PatchStore}, e.g. for creating new {@link PatchLog}s.
-     */
-    public static PatchStore getDftPatchStore() {
-        return dftPatchStore ;
+
+//    /** Set the default choice of PatchStore */
+//    public static void setDftPatchStoreName(String providerName) {
+//        PatchStore impl = patchStores.get(providerName);
+//        if ( impl != null ) {
+//            dftPatchStore = impl;
+//            FmtLog.info(LOG, "Set default patch store: %s", providerName);
+//            return;
+//        }
+//        String providerName2 = shortName2LongName(providerName);
+//        impl = patchStores.get(providerName2);
+//        if ( impl != null ) {
+//            dftPatchStore = impl;
+//            FmtLog.info(LOG, "Set default patch store: %s", providerName);
+//            return;
+//        }
+//        throw new DeltaConfigException("No provider for '"+providerName+"'");
+//    }
+    
+//    /**
+//     * Get the {@link PatchStore} by provider name.
+//     */
+//    public static PatchStore x_getPatchStoreByName(String providerName) {
+//        // By caching, the creation of the PatchStore is delayed until first needed,
+//        // giving time to set the environment up (e.g. LocalConfig properties).
+//        Objects.requireNonNull(providerName, "Null for provider name");
+//        String name = key(providerName); 
+//        if ( name == null ) {
+//            LOG.warn("No provider for "+providerName);
+//            return null;
+//        }
+//        PatchStoreProvider provider = providers.get(providerName);
+//        PatchStore ps = patchStores.computeIfAbsent(providerName, (k)->provider.create());
+//        return ps;
+//    }
+    
+    /** Return the preferred name */
+    public static String canonical(String name) {
+        return key(name);
     }
+        
+    private static String key(String name) {
+        if ( isRegistered(name) )
+            return name;
+        name = shortName2LongName(name);
+        if ( isRegistered(name) )
+            return name;
+        return null;
+    }
+
+//    /**
+//     * Get the current default {@link PatchStore}, e.g. for creating new {@link PatchLog}s.
+//     */
+//    public static PatchStore getDftPatchStore() {
+//        return dftPatchStore ;
+//    }
     
     /**
      * Get the current default {@code PatchStore} provider name.
      */
-    public static String getDftPatchStoreName() {
-        if ( dftPatchStore == null )
+    public static PatchStoreProvider getDftPatchStoreProvider() {
+        return dftPatchStoreProvider; 
+    }
+
+    public static void setDftPatchStoreProvider(PatchStoreProvider provider) {
+        dftPatchStoreProvider = provider; 
+    }
+
+    public static void setDftPatchStoreProvider(String providerName) {
+        PatchStoreProvider provider = providers.get(providerName);
+        if ( provider == null )
+            LOG.warn("No provider for default name: "+providerName);
+        setDftPatchStoreProvider(provider); 
+    }
+
+    public static String getDftPatchStoreProviderName() {
+        if ( dftPatchStoreProvider == null )
             return null;
-        return dftPatchStore.getProvider().getProviderName(); 
+        return dftPatchStoreProvider.getProviderName(); 
     }
 
     public static void reset() {
         shortName2LongName.clear();
-        patchStores.clear();
-        dftPatchStore = null;
+        providers.clear();
+        dftPatchStoreProvider = null;
     }
 }

@@ -22,28 +22,30 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.LocalServers;
 
 public class DeltaTestLib {
     // Static resources area.
     protected static String TDIR = "testing/";
-    public static Location ServerArea = Location.create("target/test/server");
+    public static String ServerArea = "target/test/server";
     
     private static void ensureClear(String area) {
         FileOps.ensureDir(area);
         FileOps.clearAll(area);
     }
     
-    /** Make a clean empty (no datasources) LocalServer */ 
+    /** Make a clean empty (no datasources) LocalServer with an in-memory provider.*/ 
     static LocalServer createEmptyTestServer() {
-        FileStore.resetTracked();
+        //return LocalServers.createMem();
+        DPS.resetSystem();
+        DPS.init();
+        ensureClear(ServerArea);
         String cfg = "delta.cfg";
-        ensureClear(ServerArea.getDirectoryPath());
-        IOX.copy(TDIR+cfg, ServerArea.getDirectoryPath());//.getPath(cfg)); 
-        LocalServer localServer = LocalServer.attach(ServerArea);
+        IOX.copy(TDIR+cfg, ServerArea);
+        LocalServer localServer = LocalServers.createFile(ServerArea);
         return localServer;
     }
     

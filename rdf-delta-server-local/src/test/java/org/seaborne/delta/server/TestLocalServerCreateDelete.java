@@ -39,12 +39,11 @@ import org.junit.Test;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.*;
 
 /**
  * Tests of {@link LocalServer} for creating and 
- * deleting a {@link LocalServer} area.
+ * deleting a {@link LocalServer} area using a file {@link PatchStoreProvider}.
  * 
  * See {@link TestLocalServer} for tests involving
  * a static setup of data sources.
@@ -59,45 +58,43 @@ public class TestLocalServerCreateDelete {
     }
     
     private static void initialize() {
-        DPS.resetSystem();
+        Location loc = Location.create(DIR);
         FileOps.clearAll(DIR);
         // Copy in test setup.
         try { FileUtils.copyDirectory(new File(TestLocalServer.SERVER_DIR), new File(DIR)); }
         catch (IOException ex) { throw IOX.exception(ex); }
-        
+
+        DPS.resetSystem();
+        DPS.init();
     }
-    
+
+    @AfterClass public static void afterClass() {
+        LocalServer.releaseAll();
+    }
+
     @Before public void beforeTest() {
         initialize();
     }
     
-    @AfterClass public static void afterClass() {
-        LocalServer.releaseAll();
-    }
-    
     @Test public void local_server_create_01() {
-        Location loc = Location.create(DIR);
-        LocalServer server = LocalServer.attach(loc);
+        LocalServer server = LocalServers.createFile(DIR);
     }
     
-    @Test public void local_server_create_02() {
-        Location loc = Location.create(DIR);
-        LocalServer server1 = LocalServer.attach(loc);
-        LocalServer server2 = LocalServer.attach(loc);
-        assertEquals(server1, server2);
-    }
+//    @Test public void local_server_create_02() {
+//        LocalServer server1 = LocalServer.attach(loc);
+//        LocalServer server2 = LocalServer.attach(loc);
+//        assertEquals(server1, server2);
+//    }
 
     @Test public void datasource_create_01() {
-        Location loc = Location.create(DIR);
-        LocalServer server = LocalServer.attach(loc);
+        LocalServer server = LocalServers.createFile(DIR);
         Id newId = server.createDataSource("XYZ", "http://example/xyz");
         assertNotNull(newId);
     }
     
     // Create does not overwrite
     @Test public void datasource_create_02() {
-        Location loc = Location.create(DIR);
-        LocalServer server = LocalServer.attach(loc);
+        LocalServer server = LocalServers.createFile(DIR);
         
         Id newId1 = server.createDataSource("XYZ", "http://example/xyz");
         try {
@@ -110,10 +107,10 @@ public class TestLocalServerCreateDelete {
     @Test public void local_server_create_03() {
         Location loc = Location.create(DIR);
         // Finds previous.
-        LocalServer server1 = LocalServer.attach(loc);
+        LocalServer server1 = LocalServers.createFile(DIR);
         Id newId1 = server1.createDataSource("XYZ", "http://example/xyz");
         LocalServer.release(server1);
-        LocalServer server2 = LocalServer.attach(loc);
+        LocalServer server2 = LocalServers.createFile(DIR);
         try {
             Id newId2 = server2.createDataSource("XYZ", "http://example/xyz");
             fail("Expected createDataSource to fail");
@@ -124,13 +121,13 @@ public class TestLocalServerCreateDelete {
     @Test public void local_server_restart_01() {
         Location loc = Location.create(DIR);
         
-        LocalServer server1 = LocalServer.attach(loc);
+        LocalServer server1 = LocalServers.createFile(DIR);
         assertEquals(2, server1.listDataSources().size());
         
         Id newId1 = server1.createDataSource("AXYZ", "http://example/axyz");
         LocalServer.release(server1);
         
-        LocalServer server2 = LocalServer.attach(loc);
+        LocalServer server2 = LocalServers.createFile(DIR);
         // 3 - data1, data2 and the new XYZ.
         
         assertEquals(3, server2.listDataSources().size());

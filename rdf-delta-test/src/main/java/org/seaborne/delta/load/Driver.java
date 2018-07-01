@@ -233,10 +233,6 @@ public class Driver {
 //    }
 
     
-    protected static PatchLogServer patchLogServer() {
-        return patchLogServer(DELTA_PORT, DELTA_DIR);
-    }
-    
     protected static PatchLogServer patchLogServer(int port, String base) {
         PatchLogServer dps = PatchLogServer.server(port, base);
         try { 

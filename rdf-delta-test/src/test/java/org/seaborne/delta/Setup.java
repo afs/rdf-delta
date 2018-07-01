@@ -29,11 +29,14 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.http.DeltaServlet;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
 
 public class Setup {
+    static { DPS.init(); }
+
     public interface LinkSetup {
 //        public void beforeSuite();
 //        public void afterSuite();
@@ -54,7 +57,7 @@ public class Setup {
         protected DeltaLink dlink = null;
         
         @Override
-        public void beforeClass() {}
+        public void beforeClass() { DPS.init(); }
 
         @Override
         public void afterClass() {}

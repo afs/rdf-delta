@@ -27,41 +27,75 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects ;
+import java.util.Properties;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.logging.Log;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {
-    /** Location of server area for DataSources */ 
-    private final Location location;
+    // XXX Needs cleaning up!
+    // Or SingleLocalServer.
     
+//    private static LocalServerConfig singleton = null;
+//    public static LocalServerConfig configuration() { return singleton ; }
+//    public static void setConfiguration(LocalServerConfig setup) { singleton = setup; }
+    
+    // ---- Global
+    
+    public static LocalServerConfig basic() { return LocalServerConfig.create().build(); }  
+    
+//    private static Properties singleton = new Properties();
+//
+//    public static void setProperties(Properties setup) {
+//        singleton = new Properties(setup);
+//    }
+//
+//    public static void merge(Properties setup) {
+//        setup.forEach((k, v) -> setSystemProperty((String)k, (String)v));
+//    }
+//
+//    public static void setSystemProperty(String key, String value) {
+//        singleton.setProperty(key, value);
+//    }
+//
+//    public static String getSystemProperty(String key) {
+//        return singleton.getProperty(key);
+//    }
+    
+    // ---- Global
+
     /** Name of the default PatchStore provider */ 
     private final String logProvider;
     
-    /** File name of the config file (if any - may be null) */
+    /** File name of the configuration file (if any - may be null) */
     private final String configFile;
     
-    private LocalServerConfig(Location location, String logProvider, String configFile) {
-        this.location = location;
+    /** Delta system properties */
+    private final Properties properties; 
+
+    // XXX Delete
+//    /** Setup the system to run with a file-based Patch Store */ 
+//    public static void setFile(String directory) {
+//        FileStore.resetTracked();
+//        setSystemProperty("delta.file", directory);
+//        PatchStoreMgr.unregister(DPS.PatchStoreFileProvider);
+//        PatchStoreMgr.register(new PatchStoreProviderFile());
+//        PatchStoreMgr.setDftPatchStoreProvider(DPS.PatchStoreFileProvider); 
+//    }
+
+    private LocalServerConfig(String logProvider, Properties properties, String configFile) {
         this.logProvider = logProvider;
         this.configFile = configFile;
+        this.properties = properties; 
     }
     
-    /** Location of server area for DataSources */ 
-    public Location getLocation() {
-        return location ;
-    }
-
     /** Name of the default PatchStore provider */
     public String getLogProvider() {
         return logProvider ;
@@ -72,6 +106,11 @@ public class LocalServerConfig {
         return configFile ;
     }
 
+    /** Get property */
+    public String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+
     public static Builder create() { return new Builder(); }
     
     /** Configuration builder.
@@ -80,23 +119,10 @@ public class LocalServerConfig {
      */
     static public class Builder {
         private static Logger LOG = Delta.DELTA_CONFIG_LOG;
-        private Location location = null;
         private String configFile = null;
         private String logProvider = null;
-        
-        public Builder setLocation(Location location) {
-            Objects.requireNonNull(location);
-            if ( ! location.exists() )
-                throw new DeltaConfigException("No such location: "+location);
-            this.location = location ;
-            return this;
-        }
+        private final Properties properties = new Properties(); 
 
-        public Builder setLocation(String location) {
-            Objects.requireNonNull(location);
-            Location loc = Location.create(location);
-            return setLocation(loc);
-        }
         
         public Builder setLogProvider(String logProvider) {
             Objects.requireNonNull(logProvider);
@@ -104,19 +130,22 @@ public class LocalServerConfig {
             return this;
         }
         
-        /** parse a config file.
-         * If Location is not set, default the location to the directory of the configuration file. 
-         */
+        public Builder setProperty(String key, String value) {
+            properties.setProperty(key, value);
+            return this;
+        }
+        
+        public Builder setProperties(Properties properties) {
+            properties.forEach((k,v)->setProperty((String)k, (String)v));
+            return this;
+        }
+
+        /** Parse a configuration file. */
         public Builder parse(String configFile) {
             Path path = Paths.get(configFile);
             if ( ! Files.exists(path) )
                 handleMissingConfigFile(path);
             
-            if ( location == null ) {
-                Path locPath = path.getParent();
-                location = IOX.asLocation(locPath);
-            }
-
             // -- version
             JsonObject obj = JSON.read(configFile);
             int version = JSONX.getInt(obj, F_VERSION, -99);
@@ -131,25 +160,20 @@ public class LocalServerConfig {
 
             // -- log provider
             String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
-            String providerName = PatchStoreMgr.shortName2LongName(logTypeName);
+            String providerName = PatchStoreMgr.canonical(logTypeName);
             
             if ( providerName == null )
                 providerName = DeltaConst.LOG_FILE;
             logProvider = providerName;
-            return this;  
+            setProperty("delta.file", path.getParent().toString());
+            return this;
         }
         
         public LocalServerConfig build() {
-            String provider = logProvider;
-            if ( provider == null )
-                provider = PatchStoreMgr.getDftPatchStoreName();
-            else if ( !PatchStoreMgr.isRegistered(provider) )
-                provider = PatchStoreMgr.shortName2LongName(provider);
-
-            if ( provider == null || !PatchStoreMgr.isRegistered(provider) )
-                Log.warn(this, "No provider for '" + logProvider + "'");
-
-            return new LocalServerConfig(location, provider, configFile);
+            String provider = null;
+            if ( logProvider != null )
+                provider = PatchStoreMgr.canonical(logProvider);
+            return new LocalServerConfig(provider, properties, configFile);
         }
     }
     
@@ -171,7 +195,6 @@ public class LocalServerConfig {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((configFile == null) ? 0 : configFile.hashCode());
-        result = prime * result + ((location == null) ? 0 : location.hashCode());
         return result;
     }
 
@@ -188,11 +211,6 @@ public class LocalServerConfig {
             if ( other.configFile != null )
                 return false;
         } else if ( !configFile.equals(other.configFile) )
-            return false;
-        if ( location == null ) {
-            if ( other.location != null )
-                return false;
-        } else if ( !location.equals(other.location) )
             return false;
         return true;
     }

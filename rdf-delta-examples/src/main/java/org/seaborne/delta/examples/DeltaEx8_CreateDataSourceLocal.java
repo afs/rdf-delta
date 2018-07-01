@@ -24,6 +24,7 @@ import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServers;
 
 /** Locally, create a new DataSource, remove it. */ 
 public class DeltaEx8_CreateDataSourceLocal {
@@ -31,7 +32,7 @@ public class DeltaEx8_CreateDataSourceLocal {
     public static void main(String... args) {
         Location loc = Location.create("DeltaServer");
         // LocalServer is the engine part of the patch log server.
-        LocalServer server = LocalServer.attach(loc);
+        LocalServer server = LocalServers.createFile(loc.getDirectoryPath());
         state(server.listDataSources());
         System.out.println();
         

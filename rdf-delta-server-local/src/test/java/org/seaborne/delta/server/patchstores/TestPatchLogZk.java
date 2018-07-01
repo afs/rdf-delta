@@ -30,9 +30,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
+import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class TestPatchLogZk extends AbstractTestPatchLog {
 
@@ -76,10 +78,12 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
             client.blockUntilConnected();
 
 
-            PatchStore ps = PatchStoreZk.create(client);
-            ps.initFromPersistent(null);
-            // Try again.
-            //ps.initFromPersistent(null);
+            LocalServerConfig config = LocalServerConfig.create()
+                .setLogProvider(DPS.PatchStoreZkProvider)
+                .setProperty("delta.zk", connectString)
+                .build();
+            PatchStore ps = new PatchStoreProviderZk().create(config);
+            ps.initFromPersistent(config);
 
             DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
             Path dsPath = Paths.get("ABC");

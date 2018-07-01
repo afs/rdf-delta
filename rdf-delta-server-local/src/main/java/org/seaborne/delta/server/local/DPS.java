@@ -66,13 +66,9 @@ public class DPS {
         // First - because this may initialize the system (tests called in isolation).
         LocalServer.releaseAll();
         FileStore.resetTracked();
-        String providername = PatchStoreMgr.getDftPatchStoreName();
         PatchStoreMgr.reset();
         PatchStore.clearLogIdCache();
-        
         initPatchStoreProviders();
-        if ( providername != null && PatchStoreMgr.isRegistered(providername) )
-            PatchStoreMgr.setDftPatchStoreName(providername);
     }
     
     // Things to do once.

@@ -19,9 +19,10 @@
 package test;
 
 import org.junit.Test;
-import org.seaborne.delta.server.ZkT;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
+import org.seaborne.delta.server.local.PatchStoreMgr;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchStore;
 
 public class TestPatchStoreZk extends AbstractTestPatchStore {
@@ -31,7 +32,10 @@ public class TestPatchStoreZk extends AbstractTestPatchStore {
     
     @Override
     protected PatchStore patchStore() {
-        return PatchStoreZk.create(ZkT.curator());
+        System.err.println("Fixup needed: TestPatchStoreZk");
+        LocalServerConfig config = null;
+        return PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreMemProvider).create(config);
+        //return PatchStoreZk.create(ZkT.curator());
     }
     
     @Override

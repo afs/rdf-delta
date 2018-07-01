@@ -30,7 +30,7 @@ public class TestPatchStoreMem extends AbstractTestPatchStore {
     
     @Override
     protected PatchStore patchStore() {
-        return PatchStoreMgr.getPatchStoreByProvider(DPS.PatchStoreMemProvider);
+        return PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreMemProvider).create(null);
     }
     
     // No persistent state - no recovery.

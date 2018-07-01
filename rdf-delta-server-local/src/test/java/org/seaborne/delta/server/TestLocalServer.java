@@ -18,13 +18,13 @@
 
 package org.seaborne.delta.server;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
 
-import org.apache.jena.tdb.base.file.Location;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.*;
 
 /**
  *  Tests of {@link LocalServer} on a preconfigured LocalServer area.
@@ -35,11 +35,14 @@ public class TestLocalServer {
     
     // This is the pre-setup testing area and is not modified in tests.
     public static String SERVER_DIR = "testing/DeltaServer";
+    
+    @BeforeClass public static void beforeClass() {
+        DPS.resetSystem();
+        DPS.init();
+    }
 
     @Test public void local_server_01() {
-        // Pre-setup.
-        Location loc = Location.create(SERVER_DIR);
-        LocalServer server = LocalServer.create(loc, "delta.cfg");
+        LocalServer server = LocalServers.createFile(SERVER_DIR);
         List<DataSource> sources = server.listDataSources();
         assertEquals(2, sources.size());
         test(sources.get(0));

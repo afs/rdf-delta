@@ -20,6 +20,9 @@ package org.seaborne.delta;
 
 import static org.junit.Assert.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -27,30 +30,22 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
-import org.apache.jena.tdb.base.file.Location;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.seaborne.delta.client.DeltaClient;
-import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.LocalStorageType;
-import org.seaborne.delta.client.SyncPolicy;
-import org.seaborne.delta.client.Zone;
+import org.junit.*;
+import org.seaborne.delta.client.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServers;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.filestore.FileStore;
 
 // There are restart tests in AbstractTestsDeltaConnection as well.
 // Here we are concerned with different ways to restart on the client side
-// such as extenr datasets, deleted remote while inactive etc.
+// such as external datasets, deleted remote while inactive etc.
 public class TestRestart {
     static String DIR_ZONE = "target/Zone3";
-    static Location ServerArea = Location.create("target/test/server");
+    static Path ServerArea = Paths.get("target/test/server");
     static String TDIR = "testing/";
     
     private Zone zone;
@@ -60,7 +55,7 @@ public class TestRestart {
 
     @Before public void before() {
         ensureClear(DIR_ZONE);
-        ensureClear(ServerArea.getDirectoryPath());
+        ensureClear(ServerArea.toString());
     }
     
     @After public void after() {
@@ -72,16 +67,15 @@ public class TestRestart {
     }
         
     private static void ensureClearRemote() {   
-        ensureClear(ServerArea.getDirectoryPath());
+        ensureClear(ServerArea.toString());
         FileStore.resetTracked();
         PatchStore.clearLogIdCache();
     }
     
-    private static void ensureClear(String area) {
-        FileOps.ensureDir(area);
-        FileOps.clearAll(area);
-    }
-    
+    private static void ensureClear(String dirname) {
+        FileOps.ensureDir(dirname);
+        FileOps.clearAll(dirname);
+    }    
     //DeltaTestLib.
     
     
@@ -119,12 +113,12 @@ public class TestRestart {
         ensureClearLocal();
         ensureClearRemote();
         String cfg = "delta.cfg";
-        IOX.copy(TDIR+cfg, ServerArea.getDirectoryPath()); 
+        IOX.copy(TDIR+cfg, ServerArea.toString()); 
         setup();
     }
     
     private void setup() {
-        localServer = LocalServer.attach(ServerArea);
+        localServer = LocalServers.createFile(ServerArea);
         deltaLink = DeltaLinkLocal.connect(localServer);
         deltaLink.register(Id.create());
         zone = Zone.connect(DIR_ZONE);

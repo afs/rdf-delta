@@ -20,15 +20,11 @@ package org.seaborne.delta.server.local;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors ;
 
-import org.apache.jena.atlas.lib.ListUtils ;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
-import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +32,12 @@ import org.slf4j.LoggerFactory;
 /**
  * A local server.
  * <p>
- * This provides for several {@link DataSource} areas (one per managed patch set - i.e.
- * one per dataset). {@code LocalServer} is responsible for server wide configuration and
+ * This provides for operations on a {@link PatchStore} for several {@link DataSource}
+ * areas using a {@link DataRegistry}.
+ * {@code LocalServer} is responsible for server-wide configuration and
  * for the {@link DataSource} lifecycle of create and delete.
  * 
+ * @see LocalServers
  * @see DeltaLinkLocal
  * @see DataSource
  */
@@ -50,10 +48,10 @@ public class LocalServer {
         DeltaSystem.init();
     }
     
-    private static Map<Location, LocalServer> servers = new ConcurrentHashMap<>();
+    // Track the LocalServers, - mainly so testing are clear them all. 
+    private static List<LocalServer> servers = new ArrayList<>();
     
     private final DataRegistry dataRegistry;
-    private final Location serverRoot;
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
     // Cache of known disabled data sources. (Not set at startup - disabled
@@ -64,77 +62,58 @@ public class LocalServer {
 
     private final PatchStore patchStore;
     
-    /** Attach to the runtime area for the server. Use "delta.cfg" as the configuration file name.  
-     * @param serverRoot
-     * @return LocalServer
-     */
-    public static LocalServer attach(Location serverRoot) {
-        return create(serverRoot, DeltaConst.SERVER_CONFIG); 
+    /** Create a {@code LocalServer} with default setup. */ 
+    public static LocalServer create() {
+        LocalServerConfig conf = LocalServerConfig.create().build();
+        return create(conf);
     }
     
-    /** Attach to the runtime area for the server. 
-     * Use "delta.cfg" as the configuration file name.
-     * Use the directory fo the configuration file as the location.
-     * @param confFile  Filename
-     * @return LocalServer
-     */
+    /** Create a {@code LocalServer} using the given configuration file. */
     public static LocalServer create(String confFile) {
         LocalServerConfig conf = LocalServerConfig.create()
             .parse(confFile)
             .build();
         return create(conf);
     }
-    
 
-    /** Attach to the runtime area for the server.
-     * @param serverRoot
-     * @param confFile  Filename: absolute filename, or relative to the server process.
-     * @return LocalServer
-     */
-    public static LocalServer create(Location serverRoot, String confFile) {
-        confFile = LibX.resolve(serverRoot, confFile);
-        LocalServerConfig conf = LocalServerConfig.create()
-            .setLocation(serverRoot)
-            .parse(confFile)
-            .build();
-        return create(conf);
-    }
-    
-    /** Create a {@code LocalServer} based on a configuration file. */
+    /** Create a {@code LocalServer} based on a configuration. */
     public static LocalServer create(LocalServerConfig conf) {
         Objects.requireNonNull(conf, "Null for configuation");
-        if ( conf.getLocation() == null )
-            throw new DeltaConfigException("No location");
-        if ( servers.containsKey(conf.getLocation()) ) {
-            LocalServer server = servers.get(conf.getLocation());
-            if ( ! conf.equals(server.getConfig()) )
-                throw new DeltaConfigException("Attempt to have two servers, with different configurations for the same file area"); 
-            return server;
-        }
-        LOG.info("Base: "+conf.getLocation());
-        DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
-        fillDataRegistry(dataRegistry, conf);
-        return attachServer(conf, dataRegistry);
+        PatchStore ps = selectPatchStore(conf);
+        return create(ps, conf);
     }
     
-    /** Fill a {@link DataRegistry} by:
-     * <ul>
-     * <li>for any PatchStore that provides the function, call {@code initFromPersistent}
-     * <li>scan the server area for directories and deal with {@code log_type}.
-     * </ul>
-     */
-    private static void fillDataRegistry(DataRegistry dataRegistry, LocalServerConfig config) {
-        Location location = config.getLocation();
+    private static PatchStore selectPatchStore(LocalServerConfig config) {
+        String providerName = config.getLogProvider();
+        if ( providerName == null )
+            throw new DeltaConfigException("LocalServer.selectPatchStore: Provider name is null");
+        PatchStoreProvider psp = PatchStoreMgr.getPatchStoreProvider(providerName);
+        if ( psp == null )
+            throw new DeltaConfigException("No patch store provider: "+config.getLogProvider());
+        PatchStore ps = psp.create(config);
+        if ( ps == null )
+            throw new DeltaConfigException("Patch store not created and configured: "+config.getLogProvider());
+        return ps;
+    }
 
-        // PatchStore's that store their state themselves somehow.
-        List<DataSource> dataSources = ListUtils.toList
-            (PatchStoreMgr.registered().stream().flatMap(ps->{
-                if ( ! ps.callInitFromPersistent(config) )
-                    return null;
-                List<DataSource> dSources = ps.initFromPersistent(config);
-                FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), dSources);
-                return dSources.stream();
-            }));
+    /** Create a {@code LocalServer} with a specific {@link PatchStore}. */
+    public static LocalServer create(PatchStore ps, LocalServerConfig conf) {
+        Objects.requireNonNull(ps, "Null for PatchStore");
+        DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
+        fillDataRegistry(ps, dataRegistry, conf);
+        return localServer(conf, ps, dataRegistry);
+    }
+
+    /**
+     * Fill a {@link DataRegistry} by initializing the {@link PatchStore PatchStores}
+     * that provides the function, call {@code initFromPersistent}.
+     * @param ps 
+     */
+    private static void fillDataRegistry(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
+        if ( ! ps.callInitFromPersistent(config) )
+            return;
+        List<DataSource> dataSources = ps.initFromPersistent(config);
+        FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), dataSources);
         dataSources.forEach(ds->dataRegistry.put(ds.getId(), ds));
     }
 
@@ -144,62 +123,44 @@ public class LocalServer {
     
     /** Finish using this {@code LocalServer} */
     public static void release(LocalServer localServer) {
-        Location key = localServer.serverConfig.getLocation();
-        if ( key != null ) {
-            servers.remove(key);
-            localServer.shutdown$();
-        }
-        PatchStore.clearLogIdCache();
+        localServer.shutdown$();
+        servers.remove(localServer);
     }
 
     /** For testing */
     public static void releaseAll() {
-        servers.forEach((location, server)->server.shutdown());
+        servers.forEach(server->server.shutdown$());
+        servers.clear();
     }
     
-    private static LocalServer attachServer(LocalServerConfig config, DataRegistry dataRegistry) {
-        Location loc = config.getLocation();
-        if ( ! loc.isMemUnique() ) {
-            if ( servers.containsKey(loc) ) {
-                LocalServer lServer = servers.get(loc);
-                LocalServerConfig config2 = lServer.getConfig();
-                if ( Objects.equals(config, config2) ) {
-                    return lServer; 
-                } else {
-                    throw new DeltaException("Attempt to attach to existing location with different configuration: "+loc);
-                }
-            }
-        }
-        LocalServer lServer = new LocalServer(config, dataRegistry);
-        if ( ! loc.isMemUnique() ) 
-            servers.put(loc, lServer);
+    private static LocalServer localServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
+        LocalServer lServer = new LocalServer(config, patchStore, dataRegistry);
+        servers.add(lServer);
         return lServer ;
     }
 
-    private LocalServer(LocalServerConfig config, DataRegistry dataRegistry) {
+    private LocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
-        this.serverRoot = config.getLocation();
-        this.patchStore = selectPatchStore(config);
+        this.patchStore = patchStore;
+        
     }
     
-    private static PatchStore selectPatchStore(LocalServerConfig config) {
-        PatchStore ps = PatchStoreMgr.getPatchStoreByProvider(config.getLogProvider());
-        if ( ps == null )
-            ps = PatchStoreMgr.getDftPatchStore();
-        return ps;
-    }
-
     public void shutdown() {
         LocalServer.release(this);
     }
 
     private void shutdown$() {
+        // Implicitly, one LocalServer per JVM.
         dataRegistry.clear();
     }
 
     public DataRegistry getDataRegistry() {
         return dataRegistry;
+    }
+    
+    public PatchStore getPatchStore() {
+        return patchStore;
     }
     
     public DataSource getDataSource(Id dsRef) {

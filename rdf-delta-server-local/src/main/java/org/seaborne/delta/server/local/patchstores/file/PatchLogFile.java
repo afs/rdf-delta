@@ -36,18 +36,13 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.ext.com.google.common.collect.Maps ;
-import org.apache.jena.graph.Node ;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DataSourceDescription ;
-import org.seaborne.delta.DeltaBadPatchException ;
-import org.seaborne.delta.DeltaException ;
-import org.seaborne.delta.DeltaNotFoundException ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchValidation;
 import org.seaborne.delta.server.local.filestore.FileEntry;
 import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
@@ -217,23 +212,7 @@ public class PatchLogFile implements PatchLog {
     
     /** Validate a patch for this {@code PatchLog} */
     public boolean validate(RDFPatch patch) {
-        Id previousId = Id.fromNode(patch.getPrevious());
-        Id patchId = Id.fromNode(patch.getId());
-        if ( previousId == null ) {
-            if ( !isEmpty() ) {
-                FmtLog.warn(LOG, "No previous for patch when PatchLog is not empty: patch=%s", patchId);
-                return false;
-            }
-        } else {
-            if ( isEmpty() ) {
-                FmtLog.warn(LOG, "Previous reference for patch but PatchLog is empty: patch=%s : previous=%s", patchId, previousId);
-                return false ;
-            }
-        }
-        try { 
-            validate(patch.header(), patchId, previousId, this::badPatchEx);
-            return true ;
-        } catch (DeltaException ex) { return false; }
+        return PatchValidation.validate(patch, this);
     }
     
     /**
@@ -258,7 +237,7 @@ public class PatchLogFile implements PatchLog {
         if ( LOG.isDebugEnabled() )
             FmtLog.debug(LOG, "append: id=%s prev=%s to log %s", patchId, previousId, getInfo());
 
-        validateNewPatch(patchId, previousId, this::badPatchEx);
+        PatchValidation.validateNewPatch(this, patchId, previousId, PatchValidation::badPatchEx);
 
         if ( ! Objects.equals(previousId, this.latestId) ) {
             String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
@@ -284,69 +263,6 @@ public class PatchLogFile implements PatchLog {
         latestVersion = version;
         validateLatest();
         return version; 
-    }
-
-    @FunctionalInterface
-    interface BadHandler { void bad(String fmt, Object ...args) ; }
-    
-    private void validateNewPatch(Id patchId, Id previousId, BadHandler action) {
-        if ( patchId == null )
-            action.bad("Patch: No id");
-        if ( idToVersion.containsKey(patchId) )
-            action.bad("Patch already exists: patch=%s", patchId);
-        if ( headers.containsKey(patchId) ) 
-            action.bad("Patch header already exists: patch=%s", patchId);
-    }
-    
-//    private void validate(Id patchId, Id previousId, BadHandler action) {
-//        if ( patchId == null )
-//            badPatchEx("No id");
-//
-//        if ( ! idToVersion.containsKey(patchId) )
-//            action.bad("Patch not found: patch=%s", patchId);
-//        if ( ! headers.containsKey(patchId) ) 
-//            action.bad("Patch header not found: patch=%s", patchId);
-//        
-//        PatchHeader header = headers.get(patchId);
-//        validate(header, patchId, previousId, action);
-//    }
-        
-    private void validate(PatchHeader header, Id patchId, Id previousId, BadHandler action) {
-        // Non header
-        if ( previousId != null ) {
-            if ( ! idToVersion.containsKey(previousId) )
-                action.bad("Patch previous not found: patch=%s, previous=%s", patchId, previousId);
-            if ( ! headers.containsKey(previousId) ) 
-                action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
-            
-            Node prevId = header.getPrevious() ;
-            if ( previousId.asNode().equals(prevId) )
-                action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
-        } else {
-            if ( header.getPrevious() != null )
-                action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
-        }
-           
-        if ( ! previousId.equals(getLatestId()) ) {
-            // No empty log, previousId != null but does not match log head.
-            // Validation should have caught this. 
-            badPatchEx("Patch not an update on the latest logged one: id=%s prev=%s (log=[%d, %s])", 
-                        patchId, previousId, getLatestVersion(), getLatestId());
-        }
-    }
-    
-    private void badPatchEx(String fmt, Object...args) {
-        badPatchWarning(fmt, args);
-        String msg = String.format(fmt, args);
-        throw new DeltaBadPatchException(msg);
-    }
-    
-    private void badPatchError(String fmt, Object...args) {
-        FmtLog.error(LOG, String.format(fmt, args)); 
-    }
-
-    private void badPatchWarning(String fmt, Object...args) {
-        FmtLog.warn(LOG, String.format(fmt, args)); 
     }
 
     private void validateVersionNotInUse(long version) {

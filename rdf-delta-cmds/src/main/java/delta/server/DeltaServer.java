@@ -25,23 +25,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List ;
+import java.util.Properties;
 
 import jena.cmd.ArgDecl;
 import jena.cmd.CmdLineArgs;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataSource;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.*;
 import org.slf4j.Logger;
 
 /** Command line run the server. */ 
@@ -55,10 +51,13 @@ public class DeltaServer {
     
     private static Logger LOG = DPS.LOG; 
 
-    private static ArgDecl argHelp = new ArgDecl(false, "help", "h");
-    private static ArgDecl argPort = new ArgDecl(true, "port");
-    private static ArgDecl argBase = new ArgDecl(true, "base");
-    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
+    private static ArgDecl argHelp     = new ArgDecl(false, "help", "h");
+    private static ArgDecl argPort     = new ArgDecl(true, "port");
+
+    private static ArgDecl argBase     = new ArgDecl(true, "base");
+    private static ArgDecl argZk       = new ArgDecl(true, "zk");
+    private static ArgDecl argProvider = new ArgDecl(true, "provider");
+//    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
 
     public static void main(String...args) {
         try { 
@@ -75,7 +74,8 @@ public class DeltaServer {
         cla.add(argHelp);
         cla.add(argPort);
         cla.add(argBase);
-        cla.add(argConf);
+        cla.add(argZk);
+        cla.add(argProvider);
         cla.process();
         
         if ( cla.contains(argHelp) ) {
@@ -83,49 +83,95 @@ public class DeltaServer {
             System.exit(0);
         }
         
-        String configFile = null;
-        if ( cla.contains(argConf) )
-            configFile = cla.getArg(argConf).getValue();
-        else
-            configFile = getenv(DeltaConst.ENV_CONFIG);
+//        String configFile = null;
+//        if ( cla.contains(argConf) )
+//            configFile = cla.getArg(argConf).getValue();
+//        else
+//            configFile = getenv(DeltaConst.ENV_CONFIG);
         
-        // ---- Environment
-        String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
-        if ( runtimeArea == null ) {
-            runtimeArea = getenv(DeltaConst.ENV_BASE);
-            // Default to "."?
-            if ( runtimeArea == null ) {
-                System.err.println("Must use --base or environment variable DELTA_BASE to set the server runtime area.");
+        // ---- Local server
+        Properties properties = new Properties();
+        String providerName = null;
+        
+        if ( cla.contains(argBase) && cla.contains(argZk) && ! cla.contains(argProvider) ) {
+            System.err.println("Multiple providers - need to name the default");
+            System.exit(1);
+        }
+        
+        if ( cla.contains(argBase) ) {
+            // File-based provider
+            String directory = cla.getValue(argBase);
+            Path base = Paths.get(directory).toAbsolutePath();
+            if ( ! Files.exists(base) ) {
+                System.err.println("No such directory: "+base);
                 System.exit(1);
             }
-        }
-        
-        Path base = Paths.get(runtimeArea).toAbsolutePath();
-        if ( ! Files.exists(base) ) {
-            System.err.println("No such directory: "+base);
-            System.exit(1);
-        }
-        if ( ! Files.isDirectory(base) ) {
-            System.err.println("Exists, but is not a directory: "+base);
-            System.exit(1);
+            if ( ! Files.isDirectory(base) ) {
+                System.err.println("Exists, but is not a directory: "+base);
+                System.exit(1);
+            }
+            properties.setProperty("delta.file", directory);
+            providerName = DPS.PatchStoreFileProvider;
         }
 
-        //String installArea = getenv(HOME);
+        if ( cla.contains(argZk) ) {
+            // XXX More, better ZK configuration.
+            String connectionString = cla.getValue(argZk);
+            properties.setProperty("delta.zk", connectionString);
+            providerName = DPS.PatchStoreZkProvider;
+        }
 
-        // Logging.
+        if ( cla.contains(argProvider) )
+            providerName = cla.getValue(argProvider);
         
-        Location baseArea = IOX.asLocation(base);
+//        String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
+//        if ( runtimeArea == null ) {
+//            runtimeArea = getenv(DeltaConst.ENV_BASE);
+//            // Default to "."?
+//            if ( runtimeArea == null ) {
+//                System.err.println("Must use --base or environment variable DELTA_BASE to set the server runtime area.");
+//                System.exit(1);
+//            }
+//        }
+//        
+//        Path base = Paths.get(runtimeArea).toAbsolutePath();
+//        if ( ! Files.exists(base) ) {
+//            System.err.println("No such directory: "+base);
+//            System.exit(1);
+//        }
+//        if ( ! Files.isDirectory(base) ) {
+//            System.err.println("Exists, but is not a directory: "+base);
+//            System.exit(1);
+//        }
+//
+//        //String installArea = getenv(HOME);
+//
+//        // Logging.
+//        
+//        Location baseArea = IOX.asLocation(base);
+//        
+//        if ( configFile == null )
+//            configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
         
-        if ( configFile == null )
-            configFile = baseArea.getPath(DeltaConst.SERVER_CONFIG);
+        DPS.init();
         
-        //FmtLog.info(LOG, "Delta Server configuration=%s", baseArea);
-        LocalServer server = LocalServer.create(baseArea, configFile);
+        LocalServerConfig config = LocalServerConfig.create()
+            .setLogProvider(providerName)
+//            .parse(configFile)
+            .setProperties(properties)
+            .build();
+        
+        LocalServer server = LocalServer.create(config);
+        
+        // HTTP Server
+        
         int port = choosePort(cla, server);
         DeltaLink link = DeltaLinkLocal.connect(server);
 
         PatchLogServer dps = PatchLogServer.create(port, link) ;
-        FmtLog.info(LOG, "Delta Server port=%d, base=%s", port, base.toString());
+        FmtLog.info(LOG, "Delta Server port=%d", port);
+        
+        // Information.
         
         List<DataSource> sources = server.listDataSources();
         

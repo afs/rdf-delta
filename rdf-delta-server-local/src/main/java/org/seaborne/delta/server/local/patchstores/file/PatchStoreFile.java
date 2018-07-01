@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local.patchstores.file;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,11 +45,18 @@ public class PatchStoreFile extends PatchStore {
      *          /disabled -- if this file is present, then the datasource is not accessible.  
      */
    
-    private Location serverRoot;
     private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
+
+    private final Path serverRoot;
     
-    public PatchStoreFile(PatchStoreProvider provider) {
+    public PatchStoreFile(String location, PatchStoreProvider provider) {
+        this(Paths.get(location), provider);
+    }
+    
+    public PatchStoreFile(Path location, PatchStoreProvider provider) {
         super(provider);
+        IOX.ensureDirectory(location);
+        this.serverRoot = location; 
     }
 
     @Override
@@ -58,10 +66,9 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        serverRoot = config.getLocation();
         // Patch Logs are directories in the server root directory.
         // This will call to create the logs based on "log_type"
-        List<DataSource> dataSources = CfgFile.scanForDataSources(serverRoot, LOG);
+        List<DataSource> dataSources = CfgFile.scanForDataSources(serverRoot, this, LOG);
         return dataSources;
     }
 
@@ -72,7 +79,7 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     protected PatchLog create(DataSourceDescription dsd, Path dsPath) {
-        Path patchLogArea = IOX.asPath(serverRoot).resolve(dsd.getName());
+        Path patchLogArea = serverRoot.resolve(dsd.getName());
         if ( ! Files.exists(patchLogArea) ) 
             CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
         Location loc = Location.create(patchLogArea.toString());

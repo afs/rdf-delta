@@ -57,9 +57,9 @@ public class PatchStoreZk extends PatchStore {
         super(psp);
         this.client = client;
     }
-    
-    public static PatchStore create(CuratorFramework client) {
-        return new PatchStoreProviderZk(client).create();
+
+    public static PatchStore create(CuratorFramework client, LocalServerConfig config) {
+        return new PatchStoreProviderZk(client).create(config);
     }
 
     private static void formatPatchStore(CuratorFramework client) throws Exception {

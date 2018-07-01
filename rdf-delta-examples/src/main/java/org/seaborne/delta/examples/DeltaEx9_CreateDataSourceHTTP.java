@@ -29,6 +29,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServers;
 
 /** Connect to an HTTP server, create a new DataSource, remove it. */ 
 public class DeltaEx9_CreateDataSourceHTTP {
@@ -46,7 +47,7 @@ public class DeltaEx9_CreateDataSourceHTTP {
     public static void main2(String... args) {
         // The local state of the server.
         Location loc = Location.create("DeltaServer");
-        LocalServer localServer = LocalServer.attach(loc);
+        LocalServer localServer = LocalServers.createFile(loc.getDirectoryPath());
         DeltaLink serverState = DeltaLinkLocal.connect(localServer);
         PatchLogServer server = PatchLogServer.create(1066, serverState);
         // --------
