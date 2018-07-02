@@ -18,13 +18,14 @@
 
 package org.seaborne.delta.server.local.patchstores.file;
 
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.local.*;
 
 public class PatchStoreProviderFile implements PatchStoreProvider {
 
     @Override
     public PatchStore create(LocalServerConfig config) {
-        String fileArea = config.getProperty("delta.file");
+        String fileArea = config.getProperty(DeltaConst.pDeltaFile);
         if ( fileArea == null )
             return null;
         return new PatchStoreFile(fileArea, this);

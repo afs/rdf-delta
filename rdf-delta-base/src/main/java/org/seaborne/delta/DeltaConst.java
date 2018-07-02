@@ -94,6 +94,10 @@ public class DeltaConst {
     public static final String LOG_SQL         = "sql";
     public static final String LOG_S3          = "s3";
 
+    // Properties used to define patch store providers. 
+    public static final String pDeltaFile      = "delta.file";
+    public static final String pDeltaZk        = "delta.zk";
+    
     // HTTP query string.
     // Registration
     public static final String paramRef        = "ref";

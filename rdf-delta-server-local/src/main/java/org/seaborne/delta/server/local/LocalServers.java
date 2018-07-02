@@ -21,6 +21,7 @@ package org.seaborne.delta.server.local;
 import java.nio.file.Path;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 /** Ways to construct a {@link LocalServer} */
@@ -32,43 +33,53 @@ public class LocalServers {
         return LocalServer.create(configuration);
     }
 
-    /** Create a {@link LocalServer} with a file-based {@link PatchStoreProvider}. */ 
-    public static LocalServer createFile(String directory) {
-        LocalServerConfig config = LocalServerConfig.create()
-            .setProperty("delta.file", directory)
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a file-based patch store. */ 
+    public static LocalServerConfig configFile(String directory) {
+        return LocalServerConfig.create()
+            .setProperty(DeltaConst.pDeltaFile, directory)
             .setLogProvider(DPS.PatchStoreFileProvider)
             .build();
-        return create(config);
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a memory-based patch store. */ 
+    public static LocalServerConfig configMem() {
+        return LocalServerConfig.create()
+            .setLogProvider(DPS.PatchStoreMemProvider)
+            .build();
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based patch store. */ 
+    public static LocalServerConfig configZk(String connectionString) { 
+        LocalServerConfig.Builder builder = LocalServerConfig.create()
+            .setLogProvider(DPS.PatchStoreZkProvider);
+        if ( connectionString != null )
+            builder.setProperty(DeltaConst.pDeltaZk, connectionString);
+        return builder.build();
+    }
+
+    /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */ 
+    public static LocalServer createFile(String directory) {
+        return create(configFile(directory));
     }
     
-    /** Create a {@link LocalServer} with a file-based {@link PatchStoreProvider}. */ 
+    /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */ 
     public static LocalServer createFile(Path dirPath) {
         return createFile(dirPath.toString());
     }
 
-    /** Create a {@link LocalServer} with an in-memory {@link PatchStoreProvider}. */ 
+    /** Create a {@link LocalServer} with an in-memory {@link PatchStore}. */ 
     public static LocalServer createMem() {
-        LocalServerConfig config = LocalServerConfig.create()
-            .setLogProvider(DPS.PatchStoreMemProvider)
-            .build();
-        return create(config);
+        return create(configMem());
     }
     
-    /** Create a {@link LocalServer} with an in-memory {@link PatchStoreProvider}. */ 
+    /** Create a {@link LocalServer} with a Apache ZooKeeper based {@link PatchStore}. */ 
     public static LocalServer createZk(String connectionString) { 
-        LocalServerConfig config = LocalServerConfig.create()
-            .setLogProvider(DPS.PatchStoreMemProvider)
-            .setProperty("delta.zk", connectionString)
-            .build();
-        return create(config);
+        return create(configZk(connectionString));
     }
     
     /** Create a {@link LocalServer} using an existing {@link CuratorFramework}. */ 
     public static LocalServer createZk(CuratorFramework client) {
-        LocalServerConfig config = LocalServerConfig.create()
-            .setLogProvider(DPS.PatchStoreMemProvider)
-            .setProperty("delta.zk", client.getZookeeperClient().getCurrentConnectionString())
-            .build();
+        LocalServerConfig config = configZk(null);
         PatchStore ps = new PatchStoreProviderZk(client).create(config);
         return LocalServer.create(ps, config); 
     }

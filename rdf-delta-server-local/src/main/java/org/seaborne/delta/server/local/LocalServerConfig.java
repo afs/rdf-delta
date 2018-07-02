@@ -97,6 +97,9 @@ public class LocalServerConfig {
 
     public static Builder create() { return new Builder(); }
 
+    public static Builder create(LocalServerConfig other) { return new Builder(other); }
+
+    
     /** Configuration builder.
      *  Call "parse" or ("setPort" and "setLocation").
      *  Can call "parse" and then modify 
@@ -107,7 +110,14 @@ public class LocalServerConfig {
         private String logProvider = null;
         private final Properties properties = new Properties(); 
     
+        public Builder() {}
         
+        public Builder(LocalServerConfig other) {
+            this.configFile = other.configFile;
+            this.logProvider = other.logProvider;
+            copyPropertiesInto(other.properties, this.properties);
+        }
+
         public Builder setLogProvider(String logProvider) {
             Objects.requireNonNull(logProvider);
             this.logProvider = logProvider;
@@ -120,10 +130,15 @@ public class LocalServerConfig {
         }
         
         public Builder setProperties(Properties properties) {
-            properties.forEach((k,v)->setProperty((String)k, (String)v));
+            copyPropertiesInto(properties, this.properties);
             return this;
         }
     
+        /** Copy properties from {@code src} to {@code dest}. */
+        private static void copyPropertiesInto(Properties src, Properties dest) {
+            src.forEach((k,v)->dest.setProperty((String)k, (String)v));
+        }
+        
         /** Parse a configuration file. */
         public Builder parse(String configFile) {
             Path path = Paths.get(configFile);
@@ -150,7 +165,7 @@ public class LocalServerConfig {
                     providerName = DeltaConst.LOG_FILE;
                 logProvider = providerName;
             }
-            setProperty("delta.file", path.getParent().toString());
+            setProperty(DeltaConst.pDeltaFile, path.getParent().toString());
             return this;
         }
         

@@ -35,6 +35,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.cmds.dcmd;
@@ -97,7 +98,6 @@ public class DeltaServer {
         
         // ---- Local server
         Properties properties = new Properties();
-        String providerName = null;
         String envBase = System.getenv(DeltaConst.ENV_BASE);
         
         int x = 0 ;
@@ -121,6 +121,8 @@ public class DeltaServer {
             System.exit(1);
         }
          
+        LocalServerConfig config = null;
+        
         if ( cla.contains(argBase) || envBase != null ) {
             // File-based provider
             String directory = envBase != null ? envBase : cla.getValue(argBase);
@@ -133,8 +135,7 @@ public class DeltaServer {
                 System.err.println("Exists, but is not a directory: "+base);
                 System.exit(1);
             }
-            properties.setProperty("delta.file", directory);
-            providerName = DPS.PatchStoreFileProvider;
+            config = LocalServers.configFile(directory);
         }
 
         if ( cla.contains(argZk) ) {
@@ -160,43 +161,22 @@ public class DeltaServer {
                     throw new RuntimeException(ex);
                 }
             }
-
-            properties.setProperty("delta.zk", connectionString);
-            providerName = DPS.PatchStoreZkProvider;
+            config = LocalServers.configZk(connectionString);
         }
 
         if ( cla.contains(argMem) )
-            providerName = DPS.PatchStoreMemProvider;
+            config = LocalServers.configMem();
         
         if ( cla.contains(argProvider) )
-            providerName = cla.getValue(argProvider);
-        
-//        String runtimeArea = cla.contains(argBase) ? cla.getArg(argBase).getValue() : null;
-//        if ( runtimeArea == null ) {
-//            runtimeArea = getenv(DeltaConst.ENV_BASE);
-//            // Default to "."?
-//            if ( runtimeArea == null ) {
-//                System.err.println("Must use --base or environment variable DELTA_BASE to set the server runtime area.");
-//                System.exit(1);
-//            }
-//        }
-//        
-//        Path base = Paths.get(runtimeArea).toAbsolutePath();
-//        if ( ! Files.exists(base) ) {
-//            System.err.println("No such directory: "+base);
-//            System.exit(1);
-//        }
-//        if ( ! Files.isDirectory(base) ) {
-//            System.err.println("Exists, but is not a directory: "+base);
-//            System.exit(1);
-//        }
+            config = LocalServerConfig.create().setLogProvider(cla.getValue(argProvider)).build();
+
+        if  ( config == null )
+            throw new DeltaConfigException("Failed to define a configuration");
         
         DPS.init();
-        
-        LocalServerConfig config = LocalServerConfig.create()
-            .setLogProvider(providerName)
-            .setProperties(properties)
-            .build();
+
+        if ( ! properties.isEmpty() )
+            config = LocalServerConfig.create(config).setProperties(properties).build();
         
         LocalServer server = LocalServer.create(config);
         
