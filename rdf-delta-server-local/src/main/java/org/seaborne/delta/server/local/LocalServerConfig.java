@@ -22,15 +22,12 @@ import static org.seaborne.delta.DeltaConst.F_LOG_TYPE ;
 import static org.seaborne.delta.DeltaConst.F_VERSION;
 import static org.seaborne.delta.DeltaConst.SYSTEM_VERSION ;
 
-import java.io.IOException ;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects ;
 import java.util.Properties;
 
-import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.io.IndentedWriter ;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.Delta;
@@ -71,19 +68,6 @@ public class LocalServerConfig {
     /** Get property */
     public String getProperty(String key) {
         return properties.getProperty(key);
-    }
-
-    private static void handleMissingConfigFile(Path path) {
-        //throw new DeltaConfigException("No such file: "+path.toString());
-        JsonObject obj = JSONX.buildObject(b->{
-            b.key(F_VERSION).value(DeltaConst.SYSTEM_VERSION);
-            // Default log provider
-            b.key(F_LOG_TYPE).value(DeltaConst.LOG_FILE);
-        });
-        try ( IndentedWriter out = new IndentedWriter(Files.newOutputStream(path)); ) {
-            JSON.write(out, obj);
-            out.ensureStartOfLine();
-        } catch (IOException ex) { IO.exception(ex); }
     }
 
     @Override
@@ -144,8 +128,7 @@ public class LocalServerConfig {
         public Builder parse(String configFile) {
             Path path = Paths.get(configFile);
             if ( ! Files.exists(path) )
-                handleMissingConfigFile(path);
-            
+                throw new DeltaConfigException("File not found: "+configFile);
             // -- version
             JsonObject obj = JSON.read(configFile);
             int version = JSONX.getInt(obj, F_VERSION, -99);
