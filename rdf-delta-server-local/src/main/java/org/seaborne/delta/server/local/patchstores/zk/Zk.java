@@ -149,7 +149,7 @@ public class Zk {
         } catch (IllegalArgumentException ex) {
             return null;
         } catch (Exception ex) {
-            LOG.error("Failed: zkFetch(" + path + ") " + ex.getMessage(), ex);
+            //LOG.warn("Failed: zkFetch(" + path + ") " + ex.getMessage());
             return null;
         }
     }

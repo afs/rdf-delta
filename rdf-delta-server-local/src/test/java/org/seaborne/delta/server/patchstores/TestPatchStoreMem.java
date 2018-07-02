@@ -25,9 +25,6 @@ import org.seaborne.delta.server.local.PatchStoreMgr;
 
 public class TestPatchStoreMem extends AbstractTestPatchStore {
     
-    private static String providerName; 
-    private static String unregister;
-    
     @Override
     protected PatchStore patchStore() {
         return PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreMemProvider).create(null);

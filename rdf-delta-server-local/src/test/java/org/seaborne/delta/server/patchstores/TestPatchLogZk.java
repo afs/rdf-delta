@@ -46,7 +46,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
     
     @After public void after() {
         try {
-        server.close();
+            server.close();
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
@@ -55,16 +55,13 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
     
     @Override
     protected PatchLog patchLog() {
-        
         try {
             String connectString = "localhost:" + server.getPort();
             RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
 
             CuratorFramework client = 
                 CuratorFrameworkFactory.builder()
-                //.namespace("delta")
                 .connectString(connectString)
-                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
                 .retryPolicy(policy)
                 .build();
             client.start();

@@ -21,50 +21,80 @@ package org.seaborne.delta.server.patchstores;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
+
+/**
+ * Some basic test to make sure a patch log works.
+ * Most testing comes from using in the integration tests.
+ */
 
 public abstract class AbstractTestPatchLog {
     
     protected abstract PatchLog patchLog();
     
-    @Test public void ps1() {
+    @Test public void patchLog_1_empty() {
         PatchLog patchLog = patchLog();
         
         boolean b = patchLog.isEmpty();
-        long x = patchLog.getEarliestVersion();
+        assertTrue(patchLog.isEmpty());
         
-        assertTrue(patchLog.isEmpty());
+        PatchLogInfo x = patchLog.getInfo();
+        assertEquals(null, x.getLatestPatch());
+        assertEquals(DeltaConst.VERSION_INIT, x.getMaxVersion());
+        assertEquals(DeltaConst.VERSION_INIT, x.getMinVersion());
     }
     
-    @Test public void ps2() {
+    @Test public void patchLog_2_singlePatch() {
         PatchLog patchLog = patchLog();
         assertTrue(patchLog.isEmpty());
-        RDFPatch patch = RDFPatchOps.emptyPatch();
-        patchLog.append(patch);
-        assertFalse(patchLog.isEmpty());
-    }
-    
-    @Test public void ps3() {
-        PatchLog patchLog = patchLog();
+        
         RDFPatch patch = RDFPatchOps.emptyPatch();
         long v = patchLog.append(patch);
         assertEquals(1, v);
-        
         RDFPatch patch1 = patchLog.fetch(1);
         assertNotNull(patch1);
+        
+        PatchLogInfo x = patchLog.getInfo();
+        assertEquals(patch.getId(), x.getLatestPatch().asNode());
+        assertEquals(1, x.getMaxVersion());
+        assertEquals(DeltaConst.VERSION_FIRST, x.getMinVersion());
+
         RDFPatch patch2 = patchLog.fetch(2);
         assertNull(patch2);
-    }
+}
 
-    @Test public void ps4() {
+    @Test public void patchLog_3_two_patches() {
         PatchLog patchLog = patchLog();
-        RDFPatch patch = RDFPatchOps.emptyPatch();
-        patchLog.append(patch);
+        RDFPatch patchAdd1 = RDFPatchOps.emptyPatch();
+        long v1 = patchLog.append(patchAdd1);
+        assertEquals(1, v1);
+        
         // Does not exist
-        RDFPatch patch2 = patchLog.fetch(2);
-        assertNull(patch2);
-    }
+        RDFPatch patch_missing = patchLog.fetch(2);
+        assertNull(patch_missing);
+        
+        RDFPatch patchFetch1 = patchLog.fetch(1);
+        assertNotNull(patchFetch1);
+        
+        RDFPatch patchAdd2 = RDFPatchOps.withHeader(patchAdd1, Id.create().asNode(), patchAdd1.getId());
+        
+        long v2 = patchLog.append(patchAdd2);
+        assertEquals(2, v2);
 
+        RDFPatch patch3 = patchLog.fetch(3);
+        assertNull(patch3);
+
+        RDFPatch patchFetch2 = patchLog.fetch(2);
+        assertNotNull(patchFetch2);
+        
+        PatchLogInfo x = patchLog.getInfo();
+        assertEquals(patchFetch2.getId(), x.getLatestPatch().asNode());
+        assertEquals(2, x.getMaxVersion());
+        assertEquals(DeltaConst.VERSION_FIRST, x.getMinVersion());
+    }
 }

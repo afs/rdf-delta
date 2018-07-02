@@ -22,9 +22,7 @@ import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import org.seaborne.delta.server.patchstores.TestPatchLogMem;
-import org.seaborne.delta.server.patchstores.TestPatchStoreFile;
-import org.seaborne.delta.server.patchstores.TestPatchStoreMem;
+import org.seaborne.delta.server.patchstores.*;
 import test.TestPatchStoreZk;
 
 @RunWith(Suite.class)
@@ -32,8 +30,8 @@ import test.TestPatchStoreZk;
     TestFileStore.class
     
     , TestPatchLogMem.class
-//    , TestPatchLogFile.class
-//    , TestPatchLogZk.class
+    , TestPatchLogFile.class
+    , TestPatchLogZk.class
     
     , TestPatchStoreMem.class
     , TestPatchStoreFile.class
