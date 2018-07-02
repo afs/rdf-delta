@@ -40,6 +40,7 @@ import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreMgr;
@@ -199,7 +200,9 @@ public class CfgFile {
         
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
-        obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
+        if ( ! DPS.pspFile.equals(patchStore.getProvider().getShortName()) )  
+            // Not file - explicitly set the provider. 
+            obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
         LOG.info(JSON.toStringFlat(obj));
         try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
             JSON.write(out, obj);
