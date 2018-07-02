@@ -20,7 +20,7 @@ package delta;
 
 public class dcmd {
 
-    public static void main(String[] args) {
+    public static void main(String... args) {
         org.seaborne.delta.cmds.dcmd.main(args);
     }
 

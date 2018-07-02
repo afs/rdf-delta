@@ -82,7 +82,7 @@ public class DPS {
         providers.add(new PatchStoreProviderZk());
         
         providers.forEach(psp->{
-            LOG.info("Provider: "+psp.getProviderName());
+            LOG.debug("Provider: "+psp.getProviderName());
             PatchStoreMgr.register(psp);
         });
         // Still need to set the server-wide default PatchStore.

@@ -71,13 +71,12 @@ public class PatchStoreZk extends PatchStore {
     
     private void init() throws Exception {
         List<DataSourceDescription> x = listDataSources();
-        x.forEach(dsd->FmtLog.info(LOGZK, "Log: %s", dsd));
+//        if ( x.isEmpty() )
+//            LOGZK.info("<No logs>");
+//        else
+//            x.forEach(dsd->FmtLog.info(LOGZK, "Log: %s", dsd));
         lastSeen = new HashSet<>(x);
-        patchLogWatcher.process(null);
-        // Use the ZooKeeper state and don't cache anything here.
-        // Small timing hole!
-        // But we do not rely on the local list of seen logs.
-        // If worried, call scanForLogs()() here. 
+        watchForLogs();
     }
 
     // ---- Watching for logs
@@ -151,17 +150,13 @@ public class PatchStoreZk extends PatchStore {
         List<DataSourceDescription> descriptions = new ArrayList<DataSourceDescription>();
         
         List<String> logNames = Zk.zkSubNodes(client, ZkConst.pLogs);
-        if ( logNames.isEmpty() )
-            LOGZK.info("<No logs>");
-        else {
-            logNames.forEach(name->{
-                String logPath = ZKPaths.makePath(ZkConst.pLogs, name);
-                String logDsd = ZKPaths.makePath(ZkConst.pLogs, name, ZkConst.nDsd);
-                JsonObject obj = zkFetchJson(client, logDsd);
-                DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
-                descriptions.add(dsd);
-            });
-        }
+        logNames.forEach(name->{
+            String logPath = ZKPaths.makePath(ZkConst.pLogs, name);
+            String logDsd = ZKPaths.makePath(ZkConst.pLogs, name, ZkConst.nDsd);
+            JsonObject obj = zkFetchJson(client, logDsd);
+            DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
+            descriptions.add(dsd);
+        });
         return descriptions;
     }
     
