@@ -67,7 +67,6 @@ public class DeltaConst {
     // May need to reuse field at sometime.
     @Deprecated
     public static final String F_BASE          = "base";
-    //public static final String F_PORT          = "port";
     
     public static final String F_SOURCES       = "sources";
     public static final String F_ID            = "id";
@@ -96,6 +95,8 @@ public class DeltaConst {
     public static final String LOG_S3          = "s3";
 
     // HTTP query string.
+    // Registration
+    public static final String paramRef        = "ref";
     public static final String paramClient     = F_CLIENT;
     public static final String paramReg        = F_TOKEN;
 
@@ -123,9 +124,6 @@ public class DeltaConst {
                                                                             contentTypePatchTextAlt,
                                                                             contentTypePatchBinary);
 
-    // Registration
-    public static final String paramRef        = "ref";
-
     // Environment variable name for the runtime area for the Delta server.
     public static final String ENV_BASE        = "DELTA_BASE";
 
@@ -135,33 +133,6 @@ public class DeltaConst {
     // Environment variable name for the port number of the Delta server.
     public static final String ENV_PORT        = "DELTA_PORT";
 
-    // Environment variable name for the configuration file.
-    public static final String ENV_CONFIG      = "DELTA_CONFIG";
-
-    // Default name for the server configuration file.
-    public static final String SERVER_CONFIG   = "delta.cfg";
-    
-    // Name for the DataSource configuration file.
-    public static final String DS_CONFIG       = "source.cfg";
-
-    // Relative path name in a DataSource for the "sources" area.
-    public static final String SOURCES         = "Sources";
-    
-    // Relative path name in a DataSource for the log area.
-    public static final String LOG             = "Log";
-    
-    // The database area - client side directory (TDB or with files)  
-    public static final String DATA            = "data";
-    
-    /** Name of the file holding the persistent state, client DeltaConnection. */
-    public static final String STATE_CLIENT    = "state";
-    
-    /** Name of the file holding the persistent state, local server data source .*/
-    public static final String STATE_DS        = "state";
-    
-    /** Marker file for "deletes" data sources (they are only hidden) */  
-    public static final String DISABLED        = "disabled";
-    
     /** The size of the server-wide LRU cache */
     public static final int PATCH_CACHE_SIZE   = 1000;
     

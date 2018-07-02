@@ -17,8 +17,6 @@ package org.seaborne.delta.client;
  * limitations under the License.
  */
 
-import static org.seaborne.delta.DeltaConst.DATA;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -205,9 +203,9 @@ public class Zone {
         
         // {zone}/{name}/state
         // Always write the datastate even if ephemeral.
-        Path statePath = conn.resolve(DeltaConst.STATE_CLIENT);
+        Path statePath = conn.resolve(FN.STATE);
         // {zone}/{name}/data
-        Path dataPath = storage.isEphemeral() ? null : conn.resolve(DATA);
+        Path dataPath = storage.isEphemeral() ? null : conn.resolve(FN.DATA);
         
         synchronized (zoneLock) {
             if ( ! INITIALIZED )
@@ -228,7 +226,7 @@ public class Zone {
     }
     
     private Path dataPath(DataState dataState) {
-        Path dataPath = stateArea(dataState).resolve(DATA);
+        Path dataPath = stateArea(dataState).resolve(FN.DATA);
         return dataPath;
     }
 
@@ -362,7 +360,7 @@ public class Zone {
 
     /** Put state file name into DataState then only have here */  
     private DataState readDataState(Path p) {
-        Path versionFile = p.resolve(DeltaConst.STATE_CLIENT);
+        Path versionFile = p.resolve(FN.STATE);
         if ( ! Files.exists(versionFile) )
             throw new DeltaConfigException("No state file: "+versionFile);
 
@@ -398,7 +396,7 @@ public class Zone {
         // File: "state"
     
         boolean good = true;
-        Path dataArea = path.resolve(DeltaConst.DATA);
+        Path dataArea = path.resolve(FN.DATA);
 //        if ( ! Files.exists(dataArea) ) {
 //            // Should check its not a memory area.
 //            FmtLog.warn(DataState.LOG,  "No data area: %s", path);
@@ -406,7 +404,7 @@ public class Zone {
 //            //return false;
 //        }
         
-        Path pathState = path.resolve(DeltaConst.STATE_CLIENT);
+        Path pathState = path.resolve(FN.STATE);
         if ( ! Files.exists(pathState) )  {
             FmtLog.warn(DataState.LOG,  "No state file: %s", path);
             good = false;

@@ -98,10 +98,9 @@ public class DeltaServer {
         // ---- Local server
         Properties properties = new Properties();
         String providerName = null;
+        String envBase = System.getenv(DeltaConst.ENV_BASE);
         
         int x = 0 ;
-        
-        
         if ( cla.contains(argBase) )
             x++ ;
         if ( cla.contains(argZk) )
@@ -110,7 +109,9 @@ public class DeltaServer {
             x++;
         if ( cla.contains(argProvider) )
             x++;
-            
+        if ( envBase != null )
+            // File base via and environment variable.
+            x++;
         if ( x < 1 ) {
             System.err.println("No provider : one of --mem , --zk, --base or --provider is required"); 
             System.exit(1);
@@ -120,9 +121,9 @@ public class DeltaServer {
             System.exit(1);
         }
          
-        if ( cla.contains(argBase) ) {
+        if ( cla.contains(argBase) || envBase != null ) {
             // File-based provider
-            String directory = cla.getValue(argBase);
+            String directory = envBase != null ? envBase : cla.getValue(argBase);
             Path base = Paths.get(directory).toAbsolutePath();
             if ( ! Files.exists(base) ) {
                 System.err.println("No such directory: "+base);

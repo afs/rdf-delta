@@ -22,17 +22,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.atlas.lib.Registry ;
-import org.seaborne.delta.DeltaConst ;
 import org.seaborne.delta.Id;
 import org.slf4j.Logger ;
 
 /** The registry of all data under the control of server.
  *  Each {@link LocalServer} has a single {@code DataRegistry}
  *  which provides the lookup map for the managed {@link DataSource}s.
- *  <p>
- *  Each {@link DataSource} has a file directory to hold the information about it. This includes a config file
- *  ("{@code source.cfg}" : see {@link DeltaConst#DS_CONFIG})
- *  and a patches area.
  *  <p>
  *  The patches area is a {@link PatchLog}, 
  *  and the implementations are determined by {@link PatchStore}, technology for a group of implmentations.

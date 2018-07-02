@@ -71,7 +71,7 @@ public class CfgFile {
                     // Extract name from disk name. 
                     String dsName = p.getFileName().toString();
                     // read config file.
-                    JsonObject sourceObj = JSON.read(p.resolve(DeltaConst.DS_CONFIG).toString());
+                    JsonObject sourceObj = JSON.read(p.resolve(FileNames.DS_CONFIG).toString());
 
                     DataSourceDescription dsd = DataSourceDescription.fromJson(sourceObj);
                     if ( ! Objects.equals(dsName, dsd.getName()) )
@@ -132,7 +132,7 @@ public class CfgFile {
      * This does not check the path leads to a valid source area.
      */
     /*package*/ static boolean isEnabled(Path path) {
-        Path disabled = path.resolve(DeltaConst.DISABLED);
+        Path disabled = path.resolve(FileNames.DISABLED);
         return ! Files.exists(disabled);
     }
 
@@ -142,7 +142,7 @@ public class CfgFile {
     /*package*/ static boolean isMinimalDataSource(Path path) {
         if ( ! Files.isDirectory(path) ) 
             return false ;
-        Path cfg = path.resolve(DeltaConst.DS_CONFIG);
+        Path cfg = path.resolve(FileNames.DS_CONFIG);
         if ( ! Files.exists(cfg) )
             return false ;
         if ( ! Files.isRegularFile(cfg) ) 
@@ -157,7 +157,7 @@ public class CfgFile {
         if ( ! CfgFile.isMinimalDataSource(path) )
             return false;
         // Additional requirements
-        Path patchesArea = path.resolve(DeltaConst.LOG);
+        Path patchesArea = path.resolve(FileNames.LOG);
         if ( ! Files.exists(patchesArea) )
             return false;
         // If we keep a state file....
@@ -204,7 +204,7 @@ public class CfgFile {
             // Not file - explicitly set the provider. 
             obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
         LOG.info(JSON.toStringFlat(obj));
-        try (OutputStream out = Files.newOutputStream(sourcePath.resolve(DeltaConst.DS_CONFIG))) {
+        try (OutputStream out = Files.newOutputStream(sourcePath.resolve(FileNames.DS_CONFIG))) {
             JSON.write(out, obj);
         } catch (IOException ex)  { throw IOX.exception(ex); }
         return sourcePath;
@@ -216,7 +216,7 @@ public class CfgFile {
     /*package*/ static void retire(Path pathLog) {
 //        if ( true ) {
 //            // Mark unavailable.
-//            Path disabled = pathLog.resolve(DeltaConst.DISABLED);
+//            Path disabled = pathLog.resolve(ConstDISABLED);
 //            try { Files.createFile(disabled); } 
 //            catch (IOException ex) { throw IOX.exception(ex); }
 //        }
