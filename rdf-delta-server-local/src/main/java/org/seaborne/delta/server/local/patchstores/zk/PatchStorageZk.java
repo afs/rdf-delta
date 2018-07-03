@@ -30,6 +30,14 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
+/**
+ * Patch storage in Apache ZooKeeper. 
+ * <p>
+ * <b>Note</b> Apache ZooKeeper is <a href="https://zookeeper.apache.org/doc/r3.4.12/zookeeperProgrammers.html#Data+Access"
+ * >not designed for storing large objects</a>. 
+ * The default maximum is 1M and most data for znodes should be much less that that. 
+ * They can cause slow startup because ZooKeeper keeps the database in-memory.
+ */
 public class PatchStorageZk implements PatchStorage {
 
     private final CuratorFramework client;
@@ -40,6 +48,7 @@ public class PatchStorageZk implements PatchStorage {
         this.client = client;
         this.patches = patches;
         this.versionCounter = null;
+        Zk.zkEnsure(client, patches);
     }
     
     @Override

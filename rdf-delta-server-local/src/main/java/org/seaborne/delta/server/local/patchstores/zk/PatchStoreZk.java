@@ -21,7 +21,6 @@ package org.seaborne.delta.server.local.patchstores.zk;
 import static org.seaborne.delta.server.local.patchstores.zk.Zk.*;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nDsd;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nPatches;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -204,10 +203,11 @@ public class PatchStoreZk extends PatchStore {
     private void formatLog(DataSourceDescription dsd, String logPath) {
         zkCreate(client, logPath);
         zkCreate(client, zkPath(logPath, nLock));
-        zkCreate(client, zkPath(logPath, nPatches));
+        // Set in PatchStorageZk
+        //    zkCreate(client, zkPath(logPath, nPatches));
         // Set in PatchLogIndexZk
-        //zkCreate(client, zkPath(logPath, nVersions));
-        //zkCreate(client, zkPath(logPath, nVersionsSeq), CreateMode.PERSISTENT_SEQUENTIAL);
+        //    zkCreate(client, zkPath(logPath, nVersions));
+        //    zkCreate(client, zkPath(logPath, nVersionsSeq), CreateMode.PERSISTENT_SEQUENTIAL);
 
         String dsdPath = zkPath(logPath, nDsd);
 

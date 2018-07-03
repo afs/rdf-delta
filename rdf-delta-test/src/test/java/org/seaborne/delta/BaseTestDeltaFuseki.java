@@ -18,13 +18,11 @@
 
 package org.seaborne.delta ;
 
-import java.io.IOException ;
 import java.net.BindException ;
-import java.net.ServerSocket ;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.FusekiException ;
+import org.apache.jena.fuseki.FusekiLib;
 import org.apache.jena.fuseki.embedded.FusekiServer;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
@@ -42,8 +40,8 @@ public class BaseTestDeltaFuseki {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
     
-    protected static int F1_PORT  =    choosePort();
-    protected static int F2_PORT  =    choosePort();
+    protected static int F1_PORT  =    FusekiLib.choosePort();
+    protected static int F2_PORT  =    FusekiLib.choosePort();
     // Needs to be fixed - it's in the Fuseki config files.
     protected static int D_PORT   =    1068;
     
@@ -55,16 +53,6 @@ public class BaseTestDeltaFuseki {
     
     protected static String PREFIX = "PREFIX : <http://example/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n";
 
-    // Use FusekiLib.choosePort() when 2.7.0 is out.
-    /** Choose an unused port for a server to listen on */
-    public static int choosePort() {
-        try (ServerSocket s = new ServerSocket(0)) {
-            return s.getLocalPort();
-        } catch (IOException ex) {
-            throw new FusekiException("Failed to find a port");
-        }
-    }
-    
     protected static PatchLogServer patchLogServer() {
         return patchLogServer(Start.CLEAN);
     }
