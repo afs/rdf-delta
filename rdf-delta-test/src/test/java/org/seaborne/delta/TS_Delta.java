@@ -26,8 +26,10 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses( {
-    TestLocalLink.class ,
-    TestLocalConnection.class ,
+    TestLocalLinkMem.class ,
+    TestLocalLinkFile.class ,
+    TestLocalConnectionMem.class ,
+    TestLocalConnectionFile.class ,
     TestLocalClient.class ,
     
     TestRemoteLink.class ,

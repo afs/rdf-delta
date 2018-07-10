@@ -18,13 +18,18 @@
 
 package org.seaborne.delta;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.apache.jena.atlas.logging.LogCtl;
+import org.junit.*;
+import org.seaborne.delta.server.system.DeltaSystem;
 
-public class TestLocalConnection extends AbstractTestDeltaConnection {
-    static Setup.LinkSetup setup = new Setup.LocalSetup();
+public class TestLocalLinkFile extends AbstractTestDeltaLink {
+    @BeforeClass public static void setForTesting() { 
+        //LogCtl.setLog4j();
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        DeltaSystem.init();
+    }
+    
+    static Setup.LinkSetup setup = Setup.LocalSetup.createFile();
     
     @Override
     public Setup.LinkSetup getSetup() {

@@ -78,11 +78,11 @@ public class LocalServer {
     /** Create a {@code LocalServer} based on a configuration. */
     public static LocalServer create(LocalServerConfig conf) {
         Objects.requireNonNull(conf, "Null for configuation");
-        PatchStore ps = selectPatchStore(conf);
+        PatchStore ps = createPatchStore(conf);
         return create(ps, conf);
     }
     
-    private static PatchStore selectPatchStore(LocalServerConfig config) {
+    private static PatchStore createPatchStore(LocalServerConfig config) {
         String providerName = config.getLogProvider();
         if ( providerName == null )
             throw new DeltaConfigException("LocalServer.selectPatchStore: Provider name is null");
@@ -99,21 +99,17 @@ public class LocalServer {
     public static LocalServer create(PatchStore ps, LocalServerConfig conf) {
         Objects.requireNonNull(ps, "Null for PatchStore");
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
-        fillDataRegistry(ps, dataRegistry, conf);
+        initializePatchStore(ps, dataRegistry, conf);
         return localServer(conf, ps, dataRegistry);
     }
 
     /**
      * Fill a {@link DataRegistry} by initializing the {@link PatchStore PatchStores}
      * that provides the function, call {@code initFromPersistent}.
-     * @param ps 
      */
-    private static void fillDataRegistry(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
-        if ( ! ps.callInitFromPersistent(config) )
-            return;
-        List<DataSource> dataSources = ps.initFromPersistent(config);
-        FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), dataSources);
-        dataSources.forEach(ds->dataRegistry.put(ds.getId(), ds));
+    private static void initializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
+        List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
+        FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), descriptions);
     }
 
     private static Set<Id> ids(Collection<DataSource> sources) {
@@ -133,6 +129,7 @@ public class LocalServer {
     }
     
     private static LocalServer localServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
+        patchStore.initialize(dataRegistry, config);
         LocalServer lServer = new LocalServer(config, patchStore, dataRegistry);
         servers.add(lServer);
         return lServer ;
@@ -195,9 +192,9 @@ public class LocalServer {
     }
     
     public List<DataSource> listDataSources() {
-      List<DataSource> x = new ArrayList<>();
-      dataRegistry.forEach((id, ds)-> x.add(ds));
-      return x;
+        List<DataSource> x = new ArrayList<>();
+        dataRegistry.forEach((id, ds)-> x.add(ds));
+        return x;
     }
 
     public List<PatchLogInfo> listPatchLogInfo() {
@@ -248,10 +245,10 @@ public class LocalServer {
         removeDataSource$(dsRef);
     }
     
-    // Depends on the on-disk stub for a PatchLog. 
     private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(lock) {
-            DataSource newDataSource = DataSource.create(dsd, patchStore);
+            PatchLog patchLog = patchStore.createLog(dsd);
+            DataSource newDataSource = new DataSource(dsd, patchLog);
             dataRegistry.put(dsd.getId(), newDataSource);
             return newDataSource;
         }
@@ -266,10 +263,10 @@ public class LocalServer {
             DataSource datasource = getDataSource(dsRef);
             if ( datasource == null )
                 return;
+            //dataRegistry.remove(dsRef);
             PatchStore patchStore = datasource.getPatchStore();
-            dataRegistry.remove(dsRef);
+            patchStore.release(datasource.getPatchLog());
             disabledDatasources.add(dsRef);
-            datasource.release();
         }
     }
 }

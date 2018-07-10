@@ -29,6 +29,7 @@ import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -40,13 +41,13 @@ import org.apache.jena.assembler.Mode;
 import org.apache.jena.assembler.assemblers.AssemblerBase;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
-import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.tdb.base.file.Location;
@@ -55,8 +56,6 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.changes.RDFChangesN;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,15 +82,16 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
      *     (not implemented)
      *  or
      *     delta:dataset <#datasetOther>, for external.
+     *
+     * If delta:change is a list with more than one element, then that is used to build a
+     * switchable DelatLink to replicated delta servers. 
      */
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
         // delta:changes.
         if ( ! exactlyOneProperty(root, pDeltaChanges) )
-            throw new AssemblerException(root, "No destination for changes given") ;
-        String destURL = getAsStringValue(root, pDeltaChanges);
-        // Future - multiple outputs.
-        List<String> xs = Arrays.asList(destURL);
+            throw new AssemblerException(root, "No destination for changes given");
+        List<String> deltaServers = getAsMultiStringValue(root, pDeltaChanges);
 
         // delta:zone.
         if ( ! exactlyOneProperty(root, pDeltaZone) )
@@ -114,13 +114,14 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
         
         // Build the RDFChanges: URLs to send each patch log entry. 
-        RDFChanges streamChanges = null ;
-        for ( String dest : xs ) {
-            FmtLog.info(log, "Destination: %s", dest) ;
-            RDFChanges sc = DeltaLib.destination(dest);
-            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
-        }
-        Dataset dataset = setupDataset(root, dsName, zoneLocation, storage, destURL);
+        // This would multiplex the changes to all RDFChanges
+//        RDFChanges streamChanges = null ;
+//        for ( String dest : deltaServers ) {
+//            FmtLog.info(log, "Destination: %s", dest) ;
+//            RDFChanges sc = DeltaLib.destination(dest);
+//            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
+//        }
+        Dataset dataset = setupDataset(root, dsName, zoneLocation, storage, deltaServers);
         
         //  Poll for changes as well.
 //      if ( root.hasProperty(pPollForChanges) ) {
@@ -133,9 +134,40 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         return dataset;
     }
     
-    static Dataset setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, String destURL) {
+    private List<String> getAsMultiStringValue(Resource r, Property p) {
+        Statement stmt = r.getProperty(p) ;
+        if ( stmt == null )
+            return null ;
+        RDFNode obj = stmt.getObject();
+        if ( obj.isLiteral() )
+            return Arrays.asList(obj.asLiteral().getLexicalForm());
+        if ( obj.isURIResource() )
+            return Arrays.asList(obj.asResource().getURI());
+        
+        RDFList rdfList = obj.asResource().as( RDFList.class );
+        List<RDFNode> x = rdfList.asJavaList();
+        List<String> xs = ListUtils.toList(x.stream().map(n->{
+            if ( n.isLiteral() )
+                return n.asLiteral().getLexicalForm();
+            if ( n.isURIResource() )
+                return n.asResource().getURI();
+            throw new AssemblerException(r, "Not a string or URI: "+n);
+        }));
+        return xs;
+    }
+
+    static Dataset setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, List<String> destURLs) {
         // Link to log server.
-        DeltaLink deltaLink = DeltaLinkHTTP.connect(destURL);
+        DeltaLink deltaLink;
+        if ( destURLs.size() == 1 ) 
+            deltaLink = DeltaLinkHTTP.connect(destURLs.get(0));
+        else {
+            List<DeltaLink> links = new ArrayList<>(destURLs.size());
+            for ( String destURL  : destURLs )
+                links.add(DeltaLinkHTTP.connect(destURL));
+            deltaLink = new DeltaLinkSwitchable(links);
+        }
+        
         Zone zone = Zone.connect(zoneLocation);
         DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
         SyncPolicy syncPolicy = SyncPolicy.TXN_RW;

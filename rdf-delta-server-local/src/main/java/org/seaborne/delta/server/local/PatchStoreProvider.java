@@ -29,7 +29,7 @@ public interface PatchStoreProvider {
      * Return null to signal the implementation is not available. 
      * This should boot itself to be able to report existing {@link PatchLog PatchLogs}. 
      */
-    public PatchStore create(LocalServerConfig config) ;
+    public PatchStore create(LocalServerConfig config);
     
     /** Long name */ 
     public String getProviderName();

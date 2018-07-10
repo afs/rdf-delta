@@ -128,6 +128,6 @@ public interface PatchLog {
     /** Translate a patch id to version. */ 
     public long find(Id id);
     
-    /** Release - do not use again */
+    /** Release - do not use again. */
     public void release();
 }

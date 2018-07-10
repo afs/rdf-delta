@@ -295,7 +295,7 @@ public class DeltaServer {
      * </ul> 
      * The search is in that order.
      */
-    public static String getenv(String name) {
+    private static String getenv(String name) {
         String x = System.getenv(name) ;
         if ( x == null )
             x = System.getProperty(name) ;

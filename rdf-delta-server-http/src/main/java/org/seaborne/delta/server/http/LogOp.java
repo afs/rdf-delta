@@ -19,10 +19,12 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
-import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.input.CountingInputStream;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonBuilder ;
@@ -33,7 +35,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
+import org.eclipse.jetty.io.RuntimeIOException;
 import org.seaborne.delta.*;
+import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
@@ -41,22 +45,30 @@ import org.slf4j.Logger ;
 public class LogOp {
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
     
-    /** Execute an append, assuming the action has been verified that it is an appened operation */ 
+    /** Execute an append, assuming the action has been verified that it is an append operation */ 
     public static void append(DeltaAction action) throws IOException {
         Id dsRef = idForDatasource(action);
         if ( dsRef == null )
             throw new DeltaNotFoundException("No such datasource: '"+action.httpArgs.datasourceName+"'");
         
-        Node patchId = null;
+        RDFPatch patch;
+        try {
+            patch = readPatch(action.request);
+        } catch (IOException ex) {
+            FmtLog.error(LOG, ex, "Patch:append ds:%s patch:failed: %s", dsRef.toString(), ex.getMessage());
+            throw new RuntimeIOException(ex);
+        } catch (PatchException ex) {
+            FmtLog.warn(LOG, ex, "Patch:append ds:%s patch:syntax error: %s", dsRef.toString(), ex.getMessage());
+            throw ex;
+        }
         
-        //FmtLog.info(LOG, "Patch:append ds:%s", dsRef); 
-        try (InputStream in = action.request.getInputStream()) {
-            RDFPatch patch = RDFPatchOps.read(in);
-            patchId = patch.getId();
-            if ( false )
-                RDFPatchOps.write(System.out, patch);
+        Node patchId = patch.getId();
+        if ( false )
+            RDFPatchOps.write(System.out, patch);
 
+        try {
             long version = action.dLink.append(dsRef, patch);
+            
             // Location of patch in "container/patch/id" form.
             //String location = action.request.getRequestURI()+"/patch/"+ref.asPlainString();
             String location = action.request.getRequestURI()+"?version="+version;
@@ -68,7 +80,7 @@ public class LogOp {
                 .pair(DeltaConst.F_LOCATION, location)
                 .finishObject()
                 .build();
-            
+
             FmtLog.info(LOG, "Patch:append ds:%s patch:%s => ver=%s", dsRef.toString(), Id.str(patchId), version);
             
             OutputStream out = action.response.getOutputStream();
@@ -81,13 +93,25 @@ public class LogOp {
         } catch (DeltaBadPatchException ex) {
             FmtLog.warn(LOG, ex, "Patch:append ds:%s patch:%s => %s", dsRef.toString(), Id.str(patchId), ex.getMessage());
             throw ex;
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             FmtLog.error(LOG, ex, "Patch:append ds:%s patch:%s => %s", dsRef.toString(), Id.str(patchId), ex.getMessage());
             throw ex;
         }
 
     }
     
+    private static RDFPatch readPatch(HttpServletRequest request) throws IOException {
+        long byteLength = request.getContentLengthLong();
+        try ( CountingInputStream in = new CountingInputStream(request.getInputStream()); ) {
+            RDFPatch patch = RDFPatchOps.read(in);
+            if ( byteLength != -1L ) {
+                if ( in.getByteCount() != byteLength )
+                    FmtLog.warn(LOG, "Length mismatch: Read: %d : Content-Length: %d",in.getByteCount(),  byteLength);  
+            }
+            return patch;
+        }
+    }
+
     private static Id idForDatasource(DeltaAction action) {
         String datasourceName = action.httpArgs.datasourceName;
         if ( Id.maybeUUID(datasourceName) ) {

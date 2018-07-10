@@ -168,7 +168,10 @@ public class RDFPatchOps {
     }
     
 
-    /** Read an {@link RDFPatch} from a file. */
+    /** 
+     * Read an {@link RDFPatch} from a file.
+     * Throws {@link PatchException} on patch parse error.
+     */
     public static RDFPatch read(InputStream input) {
         RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
         RDFChangesCollector c = new RDFChangesCollector() ;

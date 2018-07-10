@@ -39,7 +39,6 @@ public class JSONX {
         setup.accept(b);
         return b.finishObject(LABEL).build().getAsObject() ;
     }
-    
 
     /** Access a field of a JSON object : return as {@code Optional<String>} */ 
     public static Optional<String> getStr(JsonObject obj, String field) {
@@ -48,6 +47,9 @@ public class JSONX {
     
     /** Access a field of a JSON object : return a string or null */ 
     public static String getStrOrNull(JsonObject obj, String field) {
+        if ( obj == null )
+            System.err.println("getStrOrNull: null object");
+        
         JsonValue jv = obj.get(field);
         if ( jv == null )
             return null;

@@ -18,10 +18,7 @@
 
 package org.seaborne.patch.changes;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.jena.atlas.lib.Lib ;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -102,7 +99,11 @@ public class RDFChangesCollector implements RDFChanges {
         } ;
     }
 
-    public RDFPatch getRDFPatch() { return new RDFPatchStored(header, actions) ; } 
+    public RDFChangesCollector() { }
+
+    public RDFPatch getRDFPatch() {
+        return new RDFPatchStored(new HashMap<>(header), new ArrayList<>(actions)) ;
+    }        
 
 //    /** Play backwards, swapping adds for deletes and delete for adds */
 //    public void playReverse(RDFChanges target) {
@@ -182,17 +183,20 @@ public class RDFChangesCollector implements RDFChanges {
         FmtLog.warn(RDFChangesCollector.class,  "Unrecognized action: %s : %s", Lib.className(item), item) ;
     }
     
-    public RDFChangesCollector() { }
-
     private void collect(ChangeItem object) { 
         actions.add(object) ;
     }
 
     @Override
-    public void start() {}
+    public void start() { 
+        internalReset();
+    }
 
     @Override
-    public void finish() {}
+    public void finish() {
+        // Do not call internalReset() here.
+        // The collected patch may be used after .finish() happens.
+    }
 
     @Override
     public void segment() {
@@ -200,6 +204,10 @@ public class RDFChangesCollector implements RDFChanges {
     }
 
     public void reset() {
+        internalReset();
+    }
+
+    private void internalReset() {
         header.clear();
         actions.clear();
     }

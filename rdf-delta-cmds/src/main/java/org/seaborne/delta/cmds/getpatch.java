@@ -19,8 +19,10 @@
 package org.seaborne.delta.cmds;
 
 import jena.cmd.CmdException ;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.DeltaNotFoundException ;
 import org.seaborne.delta.Id ;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 
@@ -44,6 +46,17 @@ public class getpatch extends DeltaCmd {
     
     @Override
     protected void execCmd() {
+        if ( getPositional().isEmpty() ) {
+            Id dsRef = getDescription().getId();
+            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsRef);
+            if ( logInfo.getMaxVersion() == DeltaConst.VERSION_INIT |
+                logInfo.getMaxVersion() == DeltaConst.VERSION_UNSET ) {
+                throw new CmdException(getCommandName()+" : Empty log");
+            }
+            exec1(Long.toString(logInfo.getMaxVersion()));
+            return ;
+        }
+        
         getPositional().forEach(this::exec1);
     }
 
@@ -75,8 +88,5 @@ public class getpatch extends DeltaCmd {
     protected void checkForMandatoryArgs() {
         if ( !contains(argLogName) && ! contains(argDataSourceURI) ) 
             throw new CmdException("Required: one of --"+argLogName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
-        if ( getPositional().isEmpty() ) {
-            throw new CmdException(getCommandName()+" : No patch version"); 
-        }
     }
 }

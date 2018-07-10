@@ -66,8 +66,10 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     public PatchStore create(LocalServerConfig config) {
         CuratorFramework clientHere = client;
         if ( clientHere == null ) {
-            String connectString = config.getProperty(DeltaConst.pDeltaZk);
-            clientHere = makeClient(connectString);
+            String connectionString = config.getProperty(DeltaConst.pDeltaZk);
+            if ( connectionString == null )
+                Log.error(PatchStoreProviderZk.class, "No connection string in configuration"); 
+            clientHere = makeClient(connectionString);
         }
         return new PatchStoreZk(clientHere, this); 
     }

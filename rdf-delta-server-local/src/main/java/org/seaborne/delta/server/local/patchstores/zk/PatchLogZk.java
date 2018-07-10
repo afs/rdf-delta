@@ -35,9 +35,9 @@ import org.seaborne.delta.server.local.patchstores.PatchLogBase;
  */
 public class PatchLogZk extends PatchLogBase {
     // The decision of where to place it in the Zookeeper namespace is the responsibility of calling PatchStore.
-    public PatchLogZk(DataSourceDescription dsd, String logPath, CuratorFramework client, PatchStore patchStore) {
+    public PatchLogZk(DataSourceDescription dsd, int instance, String logPath, CuratorFramework client, PatchStore patchStore) {
         super(dsd,
-              new PatchLogIndexZk(client, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions)),
+              new PatchLogIndexZk(client, instance, dsd, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions)),
               new PatchStorageZk(client, zkPath(logPath, ZkConst.nPatches)),
               patchStore);
     }

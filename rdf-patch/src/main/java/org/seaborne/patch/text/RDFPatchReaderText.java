@@ -53,7 +53,6 @@ import org.seaborne.patch.changes.PatchCodes;
 public class RDFPatchReaderText implements PatchProcessor {
     private final Tokenizer tokenizer;
     
-    
     // Return true on end of transaction.
     private static void read(Tokenizer tokenizer, RDFChanges changes) {
         while( tokenizer.hasNext() ) {

@@ -38,6 +38,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.dboe.migrate.L;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
@@ -137,15 +138,34 @@ public class Zk {
             return null;
         if ( x.length == 0 )
             return null;
-        
         String s = StrUtils.fromUTF8bytes(x);
         return JSON.parse(new ByteArrayInputStream(x));
     }
 
-    public static byte[] zkFetch(CuratorFramework client, String path) {
+    public static JsonObject zkFetchJson(CuratorFramework client, Watcher watcher, String path) {
+        byte[] x = zkFetch(client, watcher, path);
+        if ( x == null )
+            return null;
+        if ( x.length == 0 )
+            return null;
+        String s = StrUtils.fromUTF8bytes(x);
+        return JSON.parse(new ByteArrayInputStream(x));
+    }
+
+    public static byte[] zkFetch(CuratorFramework client,  String path) {
         try {
-            byte[] x = client.getData().forPath(path);
-            return x;
+            return client.getData().forPath(path);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        } catch (Exception ex) {
+            //LOG.warn("Failed: zkFetch(" + path + ") " + ex.getMessage());
+            return null;
+        }
+    }
+    
+    public static byte[] zkFetch(CuratorFramework client, Watcher watcher, String path) {
+        try {
+            return client.getData().usingWatcher(watcher).forPath(path);
         } catch (IllegalArgumentException ex) {
             return null;
         } catch (Exception ex) {
@@ -172,7 +192,7 @@ public class Zk {
         zkCreate(client, path, CreateMode.PERSISTENT);
     }
 
-    public static void zkCreate(CuratorFramework client, String path, CreateMode mode) {
+    private static void zkCreate(CuratorFramework client, String path, CreateMode mode) {
         zkCreateSet(client, path, new byte[0]);
     }
 

@@ -37,13 +37,14 @@ import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
-import org.seaborne.delta.*;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreMgr;
 import org.slf4j.Logger;
 
 /** Various configuration utilities; file-based server. */ 
@@ -55,7 +56,7 @@ public class CfgFile {
      * Scan the given area for directories (must have a config file), check they are enabled,
      * and deal with {@code log_type}.
      */
-    public static List<DataSource> scanForDataSources(Path location, PatchStore ps, Logger LOG) {
+    public static List<DataSourceDescription> scanForLogs(Path location, PatchStore ps, Logger LOG) {
         // PatchStore's that rely on the scan of local directories and checking the "log_type" field.        
         Pair<List<Path>, List<Path>> pair = scanDirectory(location);
         List<Path> dataSourcePaths = pair.getLeft();
@@ -65,7 +66,7 @@ public class CfgFile {
         //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
         
-        List<DataSource> dataSources = ListUtils.toList
+        List<DataSourceDescription> descriptions = ListUtils.toList
             (dataSourcePaths.stream()
                 .map(p->{
                     // Extract name from disk name. 
@@ -77,31 +78,35 @@ public class CfgFile {
                     if ( ! Objects.equals(dsName, dsd.getName()) )
                         throw new DeltaConfigException("Names do not match: directory="+dsName+", dsd="+dsd);
 
-                    // Patch Store provider short name.
-                    String logType = JSONX.getStrOrNull(sourceObj, F_LOG_TYPE);
-                    if ( logType != null ) {
-                        String providerName = PatchStoreMgr.canonical(logType);
-                        if ( providerName == null ) {
-                            FmtLog.warn(LOG, "Unknown provider name: %s", providerName);
-                            return null;
-                        }
-                        // **** Variable PatchStores?
-                        //PatchStore ps = PatchStoreMgr.getPatchStoreByName(providerName);
-                        if ( !providerName.equals(thisProviderName) ) {
-                            FmtLog.warn(LOG, "'this' provider != found provider : %s != %s", thisProviderName, providerName);
-                            return null;
-                        }
-                    }
-                    
-                    DataSource ds = DataSource.connect(dsd, ps);
-                    //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
-                    if ( LOG.isDebugEnabled() ) 
-                        FmtLog.debug(LOG, "DataSource: %s [%s], source=%s", ds, ps.getProvider().getProviderName(),p );
-                    return ds;
+                    // XXX Clean up and remove.
+                    // This deals with F_LOG_TYPE - removed.
+//                    // Patch Store provider short name.
+//                    String logType = JSONX.getStrOrNull(sourceObj, F_LOG_TYPE);
+//                    if ( logType != null ) {
+//                        String providerName = PatchStoreMgr.canonical(logType);
+//                        if ( providerName == null ) {
+//                            FmtLog.warn(LOG, "Unknown provider name: %s", providerName);
+//                            return null;
+//                        }
+//                        // **** Variable PatchStores?
+//                        //PatchStore ps = PatchStoreMgr.getPatchStoreByName(providerName);
+//                        if ( !providerName.equals(thisProviderName) ) {
+//                            FmtLog.warn(LOG, "'this' provider != found provider : %s != %s", thisProviderName, providerName);
+//                            return null;
+//                        }
+//                    }
+                    return dsd;
+
+                    // If  F_LOG_TYPE  ...
+//                    DataSource ds = DataSource.connect(dsd, ps);
+//                    //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
+//                    if ( LOG.isDebugEnabled() ) 
+//                        FmtLog.debug(LOG, "DataSource: %s [%s], source=%s", ds, ps.getProvider().getProviderName(),p );
+//                    return ds;
                 })
             .filter(Objects::nonNull)
             );
-        return dataSources;
+        return descriptions;
     }
 
     /** 

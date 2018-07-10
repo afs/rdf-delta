@@ -60,16 +60,8 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    public boolean callInitFromPersistent(LocalServerConfig config) {
-        return true;
-    }
-
-    @Override
-    public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        // Patch Logs are directories in the server root directory.
-        // This will call to create the logs based on "log_type"
-        List<DataSource> dataSources = CfgFile.scanForDataSources(serverRoot, this, LOG);
-        return dataSources;
+    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
+        return CfgFile.scanForLogs(serverRoot, this, LOG);
     }
 
     @Override

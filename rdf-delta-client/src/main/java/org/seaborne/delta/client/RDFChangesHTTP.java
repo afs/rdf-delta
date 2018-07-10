@@ -217,7 +217,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         
         if ( false ) {
             if ( LOG.isDebugEnabled() ) {
-                // Ouch.
                 String s = new String(bytes, StandardCharsets.UTF_8);
                 LOG.debug("== Sending ...");
                 // Do NOT close!
@@ -253,7 +252,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                     // Bad request.
                     // This includes being out of sync with the patch log due to a concurrent update.
                     FmtLog.warn(LOG, "Patch %s : HTTP bad request: %s", idStr, r.getStatusLine().getReasonPhrase());
-                    throw new DeltaBadRequestException(r.getStatusLine().getReasonPhrase());
+                    throw new DeltaBadPatchException(r.getStatusLine().getReasonPhrase());
                 }
                 if ( sc == 401 && attempts == 1 && resetAction != null ) {
                     resetAction.run();

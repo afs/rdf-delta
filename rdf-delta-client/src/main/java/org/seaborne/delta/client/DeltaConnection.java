@@ -127,7 +127,7 @@ public class DeltaConnection implements AutoCloseable {
         // Where to put incoming changes. 
         this.target = new RDFChangesApply(basedsg);
         // Where to send outgoing changes.
-        RDFChanges monitor = createRDFChanges(datasourceId);
+        RDFChanges monitor = new RDFChangesDS();
         this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
         this.managedDataset = DatasetFactory.wrap(managed);
         // ----
@@ -238,12 +238,6 @@ public class DeltaConnection implements AutoCloseable {
         }
     }
     
-    private RDFChanges createRDFChanges(Id dsRef) {
-        RDFChanges changes = new RDFChangesDS();
-        //changes = new RDFChangesSuppressEmpty(changes);
-        return changes; 
-    }
-    
     /*package*/ void start() {
         checkDeltaConnection();
         trySyncIfAuto();
@@ -313,19 +307,6 @@ public class DeltaConnection implements AutoCloseable {
     private boolean attempt(Runnable action) {
         try { action.run(); return true ; }
         catch (RuntimeException ex ) { return false ; }
-//      } catch (HttpException ex) {
-//      // Much the same as : ex.getResponse() == null; HTTP didn't do its thing.
-//      if ( ex.getCause() instanceof java.net.ConnectException ) {
-//          FmtLog.warn(LOG, "Failed to sync: "+ex.getMessage());
-//          return;
-//      }
-//      if ( ex.getStatusLine() != null ) {
-//          FmtLog.warn(LOG, "Failed: "+ex.getStatusLine());
-//          return;
-//      }
-//      FmtLog.warn(LOG, "Failed to get remote PatchLogInfo: "+ex.getMessage());
-//      throw ex;
-//  }
     }
     
     /** Sync until some version */
@@ -541,5 +522,4 @@ public class DeltaConnection implements AutoCloseable {
             str = str + " : invalid";
         return str;
     }
-
 }

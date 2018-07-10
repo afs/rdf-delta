@@ -18,15 +18,31 @@
 
 package org.seaborne.delta.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.seaborne.delta.server.local.patchstores.zk.Zk;
 
 public class ZkT {
-    /** Create a testing ZooKeeper server */
+    
+    public static List<TestingServer> servers = new ArrayList<>(); 
+    
+    /** Stop all {@code TestingServers}. */ 
+    public static void clearAll() {
+        servers.forEach(s->{
+            try {
+                s.stop();
+            } catch (Exception ex) {}
+        });
+    }
+    
+    /** Create a testing ZooKeeper server: record in {@link ZkT#servers}. */
     public static TestingServer localServer() {
         try {
             TestingServer server = new TestingServer();
+            servers.add(server);
             server.start();
             return server ;
         } catch (Exception ex) {
@@ -34,7 +50,8 @@ public class ZkT {
         }
     }
     
-    /** Setup a fresh ZooKeeper test server and return a curator client for it.*/
+    /** Setup a fresh ZooKeeper test server and return a curator client for it.
+     * The test server is added to {@link ZkT#servers}. */
     public static CuratorFramework curator() {
         TestingServer server = localServer();
         String connectString = "localhost:" + server.getPort();

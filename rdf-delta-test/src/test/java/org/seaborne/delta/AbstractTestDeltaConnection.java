@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue ;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger ;
+import java.util.stream.LongStream;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
@@ -163,10 +164,45 @@ public abstract class AbstractTestDeltaConnection {
 
             Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));
             Set<Quad> set2 = Txn.calculateRead(dsg2, ()->Iter.toSet(dsg2.find()));
+            
             assertEquals(set1, set2);
         }
     }
     
+    // Make a change, make another change
+    @Test
+    public void change_3() {
+        String NAME = "change_3";
+        DeltaClient dClient = createRegister(NAME);
+        try(DeltaConnection dConn = dClient.get(NAME)) {
+            Id dsRef = dConn.getDataSourceId();
+            long version = dConn.getRemoteVersionLatest();
+
+            DatasetGraph dsg = dConn.getDatasetGraph();
+            Txn.executeWrite(dsg, ()->{
+                Quad q = SSE.parseQuad("(_ :s1 :p1 :o1)");
+                dsg.add(q);
+            });
+            Txn.executeWrite(dsg, ()->{
+                Quad q = SSE.parseQuad("(_ :s2 :p2 :o2)");
+                dsg.add(q);
+            });
+            
+            // Rebuild directly.
+            DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
+            long ver = dConn.getRemoteVersionLatest();
+            PatchLogInfo info = dConn.getLink().getPatchLogInfo(dsRef);
+            LongStream.rangeClosed(info.getMinVersion(), info.getMaxVersion()).forEach(v->{
+                RDFPatch patch = dConn.getLink().fetch(dsRef, v) ;
+                RDFPatchOps.applyChange(dsg2, patch);
+            });
+
+            Set<Quad> set1 = Txn.calculateRead(dsg, ()->Iter.toSet(dsg.find()));
+            Set<Quad> set2 = Txn.calculateRead(dsg2, ()->Iter.toSet(dsg2.find()));
+            assertEquals(set1, set2);
+        }
+    }
+
     @Test
     public void change_empty_commit_1() {
         Quad q = SSE.parseQuad("(:g :s :p :o)") ;
@@ -247,7 +283,8 @@ public abstract class AbstractTestDeltaConnection {
     }
 
     @Test public void change_read_same_3() {
-        change_read_same(()->getSetup().restart());
+        if ( getSetup().restartable() )
+            change_read_same(()->getSetup().restart());
     }
 
     private static AtomicInteger counter = new AtomicInteger(0); 
@@ -359,15 +396,18 @@ public abstract class AbstractTestDeltaConnection {
     }
     
     @Test public void change_change_read_same_1() {
-        change_change_read_Same(()->{});
+        if ( getSetup().restartable() )
+            change_change_read_Same(()->{});
     }
 
     @Test public void change_change_read_same_2() {
-        change_change_read_Same(()->getSetup().relink());
+        if ( getSetup().restartable() )
+            change_change_read_Same(()->getSetup().relink());
     }
 
     @Test public void change_change_read_same_3() {
-        change_change_read_Same(()->getSetup().restart());
+        if ( getSetup().restartable() )
+            change_change_read_Same(()->getSetup().restart());
     }
 
     /** Make change.
@@ -378,7 +418,8 @@ public abstract class AbstractTestDeltaConnection {
      * Same dataset.
      */
     private void change_change_read_Same(Runnable betweenSections) {
-        change_change_read_Same(betweenSections, betweenSections);
+        if ( getSetup().restartable() )
+            change_change_read_Same(betweenSections, betweenSections);
     }
 
     private void change_change_read_Same(Runnable betweenSections1, Runnable betweenSections2) {

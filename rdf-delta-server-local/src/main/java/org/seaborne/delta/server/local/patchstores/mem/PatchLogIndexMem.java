@@ -28,7 +28,9 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 
 /** State control for a {@link PatchStore} */
 public class PatchLogIndexMem implements PatchLogIndex {
-    private Map<Long, Id> versions = new HashMap<>(); 
+    // Only needs to be a Map unless we need Id->Version.
+    //private BiMap<Long, Id> versions = HashBiMap.create();
+    private Map<Long, Id> versions = new HashMap<>();
     
     private long earliestVersion = DeltaConst.VERSION_UNSET;
     private Id earliestId = null;
@@ -39,6 +41,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
     
     public PatchLogIndexMem() {
         version = DeltaConst.VERSION_INIT;
+        earliestVersion = DeltaConst.VERSION_INIT;
         current = null;
         prev = null;
     }
@@ -68,6 +71,9 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
     
     @Override
+    public void refresh() {}
+
+    @Override
     public long getCurrentVersion() {
         return version;
     }
@@ -83,11 +89,6 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
 
     @Override
-    public Id mapVersionToId(long ver) {
-        return versions.get(ver);
-    }
-
-    @Override
     public long getEarliestVersion() {
         return earliestVersion;
     }
@@ -97,4 +98,13 @@ public class PatchLogIndexMem implements PatchLogIndex {
         return earliestId;
     }
 
+    @Override
+    public Id mapVersionToId(long ver) {
+        return versions.get(ver);
+    }
+    
+//    @Override
+//    public long mapIdToVersion(Id id) {
+//        return versions.inverse().get(id);
+//    }
 }

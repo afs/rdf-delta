@@ -18,14 +18,17 @@
 
 package org.seaborne.delta.server.local.patchstores.mem;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 
 public class PatchStoreMem extends PatchStore {
@@ -37,15 +40,11 @@ public class PatchStoreMem extends PatchStore {
 
     @Override
     protected PatchLog create(DataSourceDescription dsd) {
-        PatchLog plog = createPatchLog(dsd);
+        PatchLog plog = new PatchLogBase(dsd, new PatchLogIndexMem(), new PatchStorageMem(), this);
         logs.put(dsd, plog);
         return plog;
     }
 
-    protected PatchLog createPatchLog(DataSourceDescription dsd) {
-        return new PatchLogBase(dsd, new PatchLogIndexMem(), new PatchStorageMem(), this);
-    }
-    
     @Override
     protected void delete(PatchLog patchLog) {
         logs.remove(patchLog.getDescription());
@@ -57,14 +56,7 @@ public class PatchStoreMem extends PatchStore {
     }
 
     @Override
-    public List<DataSource> initFromPersistent(LocalServerConfig config) {
-        // Scan for areas on disk?
-        throw new NotImplemented();
-    }
-
-    @Override
-    public boolean callInitFromPersistent(LocalServerConfig config) {
-        // Rely on LocalServer scan for retained, but state loosing, patchstores.  
-        return false ;
+    protected List<DataSourceDescription> initialize(LocalServerConfig config) { 
+        return Collections.emptyList();
     }
 }

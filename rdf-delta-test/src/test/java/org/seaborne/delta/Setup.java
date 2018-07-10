@@ -23,16 +23,14 @@ import java.net.BindException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.lib.Creator;
 import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.http.DeltaServlet;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.local.*;
 
 public class Setup {
     static { DPS.init(); }
@@ -50,11 +48,27 @@ public class Setup {
         public void afterTest();
         public DeltaLink getLink();
         public DeltaLink createLink();  // New link every time.
+        public boolean restartable();
     }
     
     public static class LocalSetup implements LinkSetup {
         protected LocalServer lserver = null;
         protected DeltaLink dlink = null;
+        private final Creator<LocalServer> builder;
+        private final boolean restartable;
+        
+        private LocalSetup(Creator<LocalServer> builder, boolean restartable) {
+            this.builder = builder;
+            this.restartable = restartable;
+        }
+        
+        public static LinkSetup createMem() {
+            return new LocalSetup(()->LocalServers.createMem(), false);
+        }
+        
+        public static LinkSetup createFile() {
+            return new LocalSetup(()->DeltaTestLib.createEmptyTestServer(), true);
+        }
         
         @Override
         public void beforeClass() { DPS.init(); }
@@ -66,7 +80,7 @@ public class Setup {
         public DeltaLink getLink() {
             return dlink;
         }
-
+        
         @Override
         public DeltaLink createLink() {
             return DeltaLinkLocal.connect(lserver); 
@@ -74,7 +88,7 @@ public class Setup {
         
         @Override
         public void beforeTest() {
-            lserver = DeltaTestLib.createEmptyTestServer();
+            lserver = builder.create();
             dlink = createLink();
         }
         
@@ -97,13 +111,18 @@ public class Setup {
             // XXX [JVM-global registrations]
             DeltaServlet.clearAllRegistrations();
             if ( lserver == null )
-                lserver = DeltaTestLib.createEmptyTestServer();
+                lserver = builder.create();
             else {
                 LocalServerConfig config = lserver.getConfig() ;
                 LocalServer.release(lserver);
                 lserver = LocalServer.create(config);
             }
             relink();
+        }
+
+        @Override
+        public boolean restartable() {
+            return restartable;
         }
     }
 
@@ -183,6 +202,11 @@ public class Setup {
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server.setEngine(localLink);
             relink();
+        }
+        
+        @Override
+        public boolean restartable() {
+            return true;
         }
 
         @Override

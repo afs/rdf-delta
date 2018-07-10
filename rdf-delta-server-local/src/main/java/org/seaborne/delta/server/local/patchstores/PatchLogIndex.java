@@ -22,7 +22,7 @@ import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.PatchStore;
 
-/** State control for a {@link PatchStore} */
+/** State control for a {@link PatchStore}. The index is {@code version -> id} mapping. */
 public interface PatchLogIndex {
     /** Return whether the log is empty. */ 
     public boolean isEmpty();
@@ -35,6 +35,12 @@ public interface PatchLogIndex {
     
     /** Save the new head of log information. */
     public void save(long version, Id patch, Id prev);
+    
+    /**
+     * Ensure the index is up-to-date. 
+     * This should not be necessary.
+     */
+    public void refresh();
     
     /**
      * Get the earliest version in the log.
@@ -61,6 +67,9 @@ public interface PatchLogIndex {
     /** Get the {@code Id} of the previous entry, or null if there isn't one. */
     public Id getPreviousId();
 
-    /** Map version number to the {@link Id} for the patch it refers to */ 
-    public Id mapVersionToId(long version); 
+    /** Map version number to the {@link Id} for the patch it refers to. */ 
+    public Id mapVersionToId(long version);
+    
+//    /** Map {@link Id} to version number. */ 
+//    public long mapIdToVersion(Id id); 
 }

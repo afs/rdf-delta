@@ -210,7 +210,7 @@ public class PatchLogFile implements PatchLog {
     }
     
     /** Validate a patch for this {@code PatchLog} */
-    public boolean validate(RDFPatch patch) {
+    private boolean validate(RDFPatch patch) {
         return PatchValidation.validate(patch, this);
     }
     
@@ -229,6 +229,11 @@ public class PatchLogFile implements PatchLog {
 
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());
+        
+        // Is it a reply of the last patch?
+        if ( ! isEmpty() && getLatestId().equals(patchId) ) {
+            return getLatestVersion(); 
+        }
 
         if ( LOG.isDebugEnabled() )
             FmtLog.debug(LOG, "append: id=%s prev=%s to log %s", patchId, previousId, getInfo());

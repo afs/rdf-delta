@@ -24,16 +24,28 @@ import java.util.NoSuchElementException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.zookeeper.Watcher;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** State control for a {@link PatchStore} */
 public class PatchLogIndexZk implements PatchLogIndex {
+    private static Logger LOG = LoggerFactory.getLogger(PatchLogIndexZk.class);
+    
+    private final Object lock = new Object();
     private final CuratorFramework client;
+
+    private int instance;
+
+    private final DataSourceDescription dsd;
     private final String statePath;
     private final String versionsPath;
     
@@ -48,25 +60,22 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final String fVersion = "version";
     private final String fId = "id";
     private final String fPrevious = "previous";
+
+    /** PatchLogIndexZk
+     *  {@code statePath} - where the patches are stored.
+     *  {@code versionsPath} - directory where the meta data JSON object is stored as name "%08d" 
+     * @param instance 
+     */
     
-    public PatchLogIndexZk(CuratorFramework client, String statePath, String versionsPath) {
+    public PatchLogIndexZk(CuratorFramework client, int instance, DataSourceDescription dsd, String statePath, String versionsPath) {
         this.client = client ;
+        this.instance = instance;
+        this.dsd = dsd;
         Zk.zkEnsure(client, statePath);
         Zk.zkEnsure(client, versionsPath);
         this.statePath = statePath;
         this.versionsPath = versionsPath;
-        
-        JsonObject obj = Zk.zkFetchJson(client, statePath);
-        if ( obj == null ) {
-            save(DeltaConst.VERSION_INIT, null, null);
-            earliestVersion = DeltaConst.VERSION_INIT;
-            return;
-        }
-        
-        version = obj.get(fVersion).getAsNumber().value().longValue();
-        current = getIdOrNull(obj, fId);
-        previous = getIdOrNull(obj, fPrevious);
-        
+
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
         //Guess: 1
@@ -81,6 +90,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
             } catch (NoSuchElementException ex) {  }
         }
         earliestId = mapVersionToId(earliestVersion);
+        // Initialize, start watching
+        stateOrInit();
     }
 
     private Id getIdOrNull(JsonObject obj, String field) {
@@ -101,42 +112,81 @@ public class PatchLogIndexZk implements PatchLogIndex {
     public long nextVersion() {
         return version+1;
     }
+
+    // ---- Zookeeper index state watching.
     
-    @Override
-    public Id mapVersionToId(long ver) {
-        if ( ver == DeltaConst.VERSION_INIT || ver == DeltaConst.VERSION_UNSET )
-            return null;
-        String p = versionPath(ver);
-        byte[] b = Zk.zkFetch(client, versionPath(ver));
-        if ( b == null )
-            return null;
-        Id id = Id.fromBytes(b);
-        return id;
+    // XXX Migrate the test
+    private void newVersion(long newVersion) {
+        version = newVersion;
+        if ( newVersion >= DeltaConst.VERSION_FIRST && 
+             (earliestVersion == DeltaConst.VERSION_INIT || earliestVersion == DeltaConst.VERSION_UNSET) ) {
+            // If going no patch -> patch, set the start.
+            earliestVersion = DeltaConst.VERSION_FIRST;
+        }
     }
 
-    private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
+    @Override
+    public void save(long version, Id patch, Id prev) {
+        newVersion(version);
+        this.current = patch;
+        this.previous = prev;
+        JsonObject x = stateToJson(version, patch, prev);
+        if ( patch != null ) {
+            Zk.zkCreateSet(client, versionPath(version), patch.asBytes());
+        }
+        Zk.zkSetJson(client, statePath, x);
+    }
+
+    @Override
+    public void refresh() {
+        //loadState(false);
+    }
     
-    private long versionFromName(String name) {
-        try {
-            return Long.parseLong(name);
-        } catch (NumberFormatException ex) {
-            Log.warn(this, "Attempt to extract the version from '"+name+"'");
-            return -1;
+    // ---- Zookeeper index state watching.
+
+    private Watcher logStateWatcher = (event)->{
+        synchronized(lock) {
+            event.getType();
+            FmtLog.info(LOG, "++++ [%d] Log watcher", instance);
+            state();
+        }
+    };
+
+    private void state() {
+        JsonObject obj = getWatchState();
+        if ( obj != null )
+            jsonToState(obj);
+    }
+
+    private void stateOrInit() {
+        JsonObject obj = getWatchState();
+        if ( obj != null )
+            jsonToState(obj);
+        else
+            initState();
+    }
+
+    private void initState() {
+        if ( current == null ) {
+                save(DeltaConst.VERSION_INIT, null, null);
+            earliestVersion = DeltaConst.VERSION_INIT;
+        } else {
+            save(version, current, previous); 
         }
     }
     
-    @Override
-    public void save(long version, Id patch, Id prev) {
-        this.version = version;
-        this.current = patch;
-        this.previous = prev;
-        JsonObject x = state(version, patch, prev);
-        if ( patch != null )
-            Zk.zkCreateSet(client, versionPath(version), patch.asBytes());
-        Zk.zkSetJson(client, statePath, x);
+    private void loadState(boolean init) {
+        JsonObject obj = Zk.zkFetchJson(client, statePath);
+        if ( obj == null )
+            return;
+        jsonToState(obj);
     }
     
-    private JsonObject state(long version, Id patch, Id prev) {
+    private JsonObject getWatchState() {
+        return Zk.zkFetchJson(client, logStateWatcher, statePath);
+    }
+
+    private JsonObject stateToJson(long version, Id patch, Id prev) {
         return JSONX.buildObject(b->{
             b.pair(fVersion, version);
             if ( patch != null )
@@ -146,6 +196,26 @@ public class PatchLogIndexZk implements PatchLogIndex {
         }); 
     }
     
+    private void jsonToState(JsonObject obj) {
+        try {
+            long ver = obj.get(fVersion).getAsNumber().value().longValue();
+            if ( ver == version )
+                return ;
+            newVersion(ver);
+            if ( version >= DeltaConst.VERSION_FIRST && 
+                 // XXX Abstract! Deltaconst.versionNoPatch
+                 (earliestVersion == DeltaConst.VERSION_INIT || earliestVersion == DeltaConst.VERSION_UNSET) ) {
+                 // If going no patch -> patch, set the start.
+                earliestVersion = DeltaConst.VERSION_FIRST;
+            }
+            current = getIdOrNull(obj, fId);
+            previous = getIdOrNull(obj, fPrevious);
+            FmtLog.info(LOG, "[%d], State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
+        } catch (RuntimeException ex) {
+            FmtLog.info(this.getClass(), "Failed to load the patch log index state", ex);
+        }
+    }
+
     @Override
     public long getCurrentVersion() {
         return version;
@@ -171,4 +241,31 @@ public class PatchLogIndexZk implements PatchLogIndex {
         return earliestId;
     }
 
+    @Override
+    public Id mapVersionToId(long ver) {
+        if ( ver == DeltaConst.VERSION_INIT || ver == DeltaConst.VERSION_UNSET )
+            return null;
+        String p = versionPath(ver);
+        byte[] b = Zk.zkFetch(client, versionPath(ver));
+        if ( b == null )
+            return null;
+        Id id = Id.fromBytes(b);
+        return id;
+    }
+
+//    @Override
+//    public long mapIdToVersion(Id id) {
+//        throw new UnsupportedOperationException();
+//    }
+
+    private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
+
+    private long versionFromName(String name) {
+        try {
+            return Long.parseLong(name);
+        } catch (NumberFormatException ex) {
+            Log.warn(this, "Attempt to extract the version from '"+name+"'");
+            return -1;
+        }
+    }
 }

@@ -46,6 +46,10 @@ public class DataRegistry extends Registry<Id, DataSource> {
         this.label = label ;
     }
     
+    public void add(DataSource ds) {
+        put(ds.getId(), ds);
+    }
+
     @Override
     public void put(Id key, DataSource ds) {
         if ( LOG.isDebugEnabled() ) LOG.debug("Register datasource: "+key );

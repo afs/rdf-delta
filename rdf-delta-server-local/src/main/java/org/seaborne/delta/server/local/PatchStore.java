@@ -56,20 +56,6 @@ public abstract class PatchStore {
         return logs.containsKey(dsRef);
     }
     
-    /**
-     * Release ("delete") the {@link PatchLog}. 
-     * @param patchLog
-     */
-    public void release(PatchLog patchLog) {
-        Id dsRef = patchLog.getLogId();
-        if ( ! logExists(dsRef) ) {
-            FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
-            return;
-        }
-        logs.remove(dsRef);
-        patchLog.release();
-    }
-    
     /** Clear the internal mapping from Log (by Id) to its PatchLog. Used for testing. */
     public static void clearLogIdCache() {
         logs.clear();
@@ -79,6 +65,8 @@ public abstract class PatchStore {
     
     // -------- Instance
     private final PatchStoreProvider provider;
+
+    private DataRegistry dataRegistry = null;
     
     protected PatchStore(PatchStoreProvider provider) {
         this.provider = provider;
@@ -108,21 +96,25 @@ public abstract class PatchStore {
         return false;
     }
     
-    /**
-     * Boot style for this {@code PatchStore} provider.
-     * Either it can provide the complete details to the server with {@link #initFromPersistent}
-     * or the {@code LocalServer} will scan for DataSource directories.
-     * <p>
-     * If this call returns false, {@link #initFromPersistent} is not called.
-     */
-    public abstract boolean callInitFromPersistent(LocalServerConfig config);
-    
     /** 
-     * Scan for DataSources.
-     * Only DataSources that are compatible with the PatchStore provider called
+     * Initialize a {@code PatchStore}.
+     * The {@link DataRegistry} is used to route incoming requests,
+     * by name the patch log name, to {@link PatchLog PatchLogs}; this argument may be null
+     * for {@code PatchStores} not attached to a server (testing, development cases).  
+     * Only {@link DataSource DataSources} that are compatible with the {@code PatchStore} provider called
      * should be included in the returned list.  
      */
-    public abstract List<DataSource> initFromPersistent(LocalServerConfig config);
+    public List<DataSourceDescription> initialize(DataRegistry dataRegistry, LocalServerConfig config) {
+        this.dataRegistry = dataRegistry;
+        List<DataSourceDescription> descr = initialize(config);
+        descr.forEach(dsd->createPatchLog(dsd));
+        return descr;
+    }
+    
+    /** 
+     * Initialize a patch store and provide a list of existing logs.
+    */ 
+    protected abstract  List<DataSourceDescription> initialize(LocalServerConfig config);
     
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
     public abstract List<DataSourceDescription> listDataSources();
@@ -137,18 +129,12 @@ public abstract class PatchStore {
      */
     protected abstract PatchLog create(DataSourceDescription dsd);
 
-    /**
-     * Delete a {@link PatchLog}.
-     * @param patchLog
-     */
-    protected abstract void delete(PatchLog patchLog);
-
     /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
     public PatchLog connectLog(DataSourceDescription dsd) {
         FmtLog.info(LOG, "Connect log: %s", dsd);
         PatchLog pLog = getLog(dsd.getId());
         if ( pLog == null )
-            pLog = create$(dsd);
+            pLog = createPatchLog(dsd);
         return pLog;
     }
     
@@ -161,14 +147,51 @@ public abstract class PatchStore {
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");
-        return create$(dsd);
+        return createPatchLog(dsd);
     }
     
-    // Create always. No PatchStore level checking.
-    private PatchLog create$(DataSourceDescription dsd) {
+    /** Create and properly register a new {@link PatchLog}.
+     *  Call this to add new patch logs including remote changes.
+     *  This method calls {@link #create} provided by the subclass.
+     */  
+    final
+    protected PatchLog createPatchLog(DataSourceDescription dsd) {
         Id dsRef = dsd.getId();
         PatchLog patchLog = create(dsd);
         logs.put(dsRef, patchLog);
+        if ( dataRegistry != null ) {
+            DataSource dataSource = new DataSource(dsd, patchLog);
+            dataRegistry.add(dataSource);
+        }
         return patchLog;
     }
+
+    /**
+     * Release ("delete") the {@link PatchLog}. 
+     */
+    public void release(PatchLog patchLog) {
+        Id dsRef = patchLog.getLogId();
+        if ( ! logExists(dsRef) ) {
+            FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
+            return;
+        }
+        dataRegistry.remove(dsRef);
+        logs.remove(dsRef);
+        patchLog.release();
+    }
+
+    /** Call back from subclass when they detech the need to delete a log */ 
+    final
+    protected void releasePatchLog(Id dsRef) {
+        DataSource ds = dataRegistry.get(dsRef);
+        if ( ds == null )
+            return ;
+        release(ds.getPatchLog());
+    }
+    
+    /**
+     * Delete a {@link PatchLog}.
+     * @param patchLog
+     */
+    protected abstract void delete(PatchLog patchLog);
 }

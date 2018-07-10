@@ -70,7 +70,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
 
             LocalServerConfig config = LocalServers.configZk(connectString);
             PatchStore ps = new PatchStoreProviderZk().create(config);
-            ps.initFromPersistent(config);
+            ps.initialize(null, config);
 
             DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
             PatchLog patchLog = ps.createLog(dsd);

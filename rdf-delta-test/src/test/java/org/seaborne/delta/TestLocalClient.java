@@ -27,7 +27,7 @@ public class TestLocalClient extends AbstractTestDeltaClient {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
     
-    static Setup.LinkSetup setup = new Setup.LocalSetup();
+    static Setup.LinkSetup setup = Setup.LocalSetup.createFile();
     
     @Override
     public Setup.LinkSetup getSetup() {

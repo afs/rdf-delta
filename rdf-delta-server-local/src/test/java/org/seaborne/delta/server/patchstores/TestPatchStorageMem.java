@@ -16,29 +16,15 @@
  * limitations under the License.
  */
 
-package test;
+package org.seaborne.delta.server.patchstores;
 
-import org.junit.Test;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.LocalServerConfig;
-import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreMgr;
-import org.seaborne.delta.server.patchstores.AbstractTestPatchStore;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.delta.server.local.patchstores.mem.PatchStorageMem;
 
-public class TestPatchStoreZk extends AbstractTestPatchStore {
-    //extends TestPatchStoreMem {
+public class TestPatchStorageMem extends AbstractTestPatchStorage {
 
-    // Really all covered by AbstractTestPatchLog
-    
     @Override
-    protected PatchStore patchStore() {
-        System.err.println("Fixup needed: TestPatchStoreZk");
-        LocalServerConfig config = null;
-        return PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreMemProvider).create(config);
-        //return PatchStoreZk.create(ZkT.curator());
+    protected PatchStorage patchStorage() {
+        return new PatchStorageMem();
     }
-    
-    @Override
-    @Test public void recovery1() {}
-
 }

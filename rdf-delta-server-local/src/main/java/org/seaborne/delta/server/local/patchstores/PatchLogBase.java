@@ -18,10 +18,14 @@
 
 package org.seaborne.delta.server.local.patchstores;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.NotImplemented;
-import org.seaborne.delta.*;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchValidation;
@@ -50,9 +54,6 @@ public class PatchLogBase implements PatchLog {
 
     private final PatchStorage patchStorage;
     
-    private Id earliestId; 
-    private long earliestVersion;
-    
     // Use one-way linked list from latest to earliest.
     // it is a cache of the patch log details.   
     // May be truncated - the earliest entry points to a patch not in the list - need to get from the storage an look fo rthe previous patch.
@@ -68,9 +69,6 @@ public class PatchLogBase implements PatchLog {
         this.logState = logState;
         this.patchStorage = patchStorage;
         this.patchStore = patchStore;
-        // Initialize as "no patches".
-        earliestId = logState.getEarliestId();
-        earliestVersion = logState.isEmpty() ? DeltaConst.VERSION_INIT : DeltaConst.VERSION_FIRST;
         initFromStorage();
     }
     
@@ -82,12 +80,12 @@ public class PatchLogBase implements PatchLog {
     
     @Override
     public Id getEarliestId() {
-        return earliestId;
+        return logState.getEarliestId();
     }
 
     @Override
     public long getEarliestVersion() {
-        return earliestVersion;
+        return logState.getEarliestVersion();
     }
 
     @Override
@@ -109,7 +107,6 @@ public class PatchLogBase implements PatchLog {
         if ( ! logState.isEmpty() ) {
             return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
         } else
-            // Correct?
             return new PatchLogInfo(dsd, getEarliestVersion(), getEarliestVersion(), null);
     }
 
@@ -125,7 +122,7 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public boolean isEmpty() {
-        return earliestId == null;
+        return logState.isEmpty();
     }
 
     @Override
@@ -140,22 +137,28 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public long append(RDFPatch patch) {
+//        System.err.println(">>append");
+//        RDFPatchOps.write(System.err, patch);
+//        System.err.println("<<append");
         synchronized(lock) {
-            long version = logState.nextVersion();
             Id thisId = Id.fromNode(patch.getId());
             Id prevId = Id.fromNode(patch.getPrevious());        
 
+            // Is it a reply of the last patch?
+            if ( ! isEmpty() && getLatestId().equals(thisId) ) {
+                if ( Objects.equals(prevId, logState.getPreviousId()) )
+                    FmtLog.warn(LOG, "Patch id matches log head, but patch previous does not match log previous id");   
+                return getLatestVersion();
+            }
+
+            long version = logState.nextVersion();
+            
             PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
 
             patchStorage.store(thisId, patch);
             
             // This is the commit point.
             logState.save(version, thisId, prevId);
-            
-            if ( earliestId == null ) {
-                earliestVersion = version;
-                earliestId = thisId;
-            }
             return version;
         }
     }

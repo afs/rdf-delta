@@ -23,11 +23,12 @@ import java.nio.file.Path;
 import org.apache.curator.framework.CuratorFramework;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
+import org.seaborne.delta.server.system.DeltaSystem;
 
 /** Ways to construct a {@link LocalServer} */
 public class LocalServers {
-    
-    // LocalServer.Builder?
+    static { DeltaSystem.init(); } 
 
     public static LocalServer create(LocalServerConfig configuration) {
         return LocalServer.create(configuration);
@@ -77,7 +78,9 @@ public class LocalServers {
         return create(configZk(connectionString));
     }
     
-    /** Create a {@link LocalServer} using an existing {@link CuratorFramework}. */ 
+    /** Create a {@link LocalServer} using an existing {@link CuratorFramework}.
+     * Special case; normally, each {@link PatchStoreZk} has it's own {@code CuratorFramework}.
+     */ 
     public static LocalServer createZk(CuratorFramework client) {
         LocalServerConfig config = configZk(null);
         PatchStore ps = new PatchStoreProviderZk(client).create(config);

@@ -22,7 +22,6 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
@@ -37,18 +36,14 @@ public class DeltaTestLib {
         FileOps.clearAll(area);
     }
     
-    /** Make a clean empty (no datasources) LocalServer with an in-memory provider.*/ 
     static LocalServer createEmptyTestServer() {
-        //return LocalServers.createMem();
         DPS.resetSystem();
         DPS.init();
         ensureClear(ServerArea);
-        String cfg = "delta.cfg";
-        IOX.copy(TDIR+cfg, ServerArea);
         LocalServer localServer = LocalServers.createFile(ServerArea);
         return localServer;
     }
-    
+//    
     static Quad freshQuad() {
         return SSE.parseQuad("(_ :s :p '"+DateTimeUtils.nowAsXSDDateTimeString()+"'^^xsd:dateTimeStamp)");
     }

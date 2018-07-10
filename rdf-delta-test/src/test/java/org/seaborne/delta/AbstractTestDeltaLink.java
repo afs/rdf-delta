@@ -20,14 +20,13 @@ package org.seaborne.delta;
 
 import static org.junit.Assert.*;
 
-import java.io.InputStream;
 import java.util.List ;
 
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDFLib ;
+import org.apache.jena.web.HttpSC;
 import org.junit.BeforeClass ;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
@@ -163,32 +162,75 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_append_1", "http://example/");
         
-        InputStream in = IO.openFile(FILES_DIR+"/patch1.rdfp");
-        RDFPatch patch = RDFPatchOps.read(in);
+        RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
 
         long version = dLink.getCurrentVersion(dsRef); // 0
         long version1 = dLink.append(dsRef, patch);    // Should be 1
         assertNotEquals(version, version1);
-
+        assertEquals(1, version1);
+        
         long version2 = dLink.getCurrentVersion(dsRef);
         assertEquals(version1, version2);
         
         RDFPatch patch1 = dLink.fetch(dsRef, version1) ;
         assertNotNull(patch1);
-//        if ( ! equals(patch1, patch) ) {
-//            System.out.println("**** Patch (as read)");
-//            RDFPatchOps.write(System.out, patch);
-//            System.out.println("**** Patch (as fetched)");
-//            RDFPatchOps.write(System.out, patch);
-//            equals(patch1, patch);
-//        }
-        
         assertTrue(equals(patch1, patch));
         RDFPatch patch2 = dLink.fetch(dsRef, Id.fromNode(patch.getId())) ;
         assertNotNull(patch2);
         assertTrue(equals(patch1, patch2));
     }
 
+    @Test
+    public void patch_append_2() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("patch_append_2", "http://example/");
+        
+        RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
+        RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
+        assertEquals(patch1.getId(), patch2.getPrevious());
+
+        long version = dLink.getCurrentVersion(dsRef); // 0
+        long version1 = dLink.append(dsRef, patch1);    // Should be 1
+        assertEquals(1, version1);
+
+        // Send second patch.
+        long version2 = dLink.append(dsRef, patch2);
+        assertEquals(2, version2);
+    }
+
+    @Test
+    public void patch_append_3() {
+        DeltaLink dLink = getLinkRegistered();
+        Id dsRef = dLink.newDataSource("patch_append_2", "http://example/");
+        
+        RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
+        RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
+        assertEquals(patch1.getId(), patch2.getPrevious());
+
+        long version = dLink.getCurrentVersion(dsRef); // 0
+        long version1 = dLink.append(dsRef, patch1);    // Should be 1
+        assertEquals(1, version1);
+
+        // Send again.  Resend the head is acceptable.
+        long version1a = dLink.append(dsRef, patch1);
+        assertEquals(version1, version1a);
+
+        long version2 = dLink.append(dsRef, patch2);
+        assertEquals(2, version2);
+        
+        long version2a = dLink.append(dsRef, patch2);
+        assertEquals(version2, version2a);
+        
+        // Can't send patch1 now.
+        try { 
+            long version1b = dLink.append(dsRef, patch1);
+            fail("Managed to resend earlier patch");
+            //assertEquals(-1, version1b);
+        } catch (DeltaBadPatchException ex) {
+            assertEquals(HttpSC.BAD_REQUEST_400, ex.getStatusCode());
+        }
+    }
+    
     @Test
     public void patch_add_error_1() {
         // Unregistered patch
@@ -256,7 +298,8 @@ public abstract class AbstractTestDeltaLink {
     
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_03() {
-     // Patches start at 1.
+        // Patches start at 1.
+        // No such patch is a null return, not an exception.
         DeltaLink dLink = getLinkRegistered();
         Id dsRef = dLink.newDataSource("patch_404_2", "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
@@ -287,27 +330,28 @@ public abstract class AbstractTestDeltaLink {
         patch_seq("patch1.rdfp", "patch2.rdfp", "patch3.rdfp");
     }
     
-    @Test(expected=DeltaException.class)
-    public void patch_seq_bad_02() {
-        // patch1 then patch1 again -> error.
+    public void patch_seq_02() {
+        // patch1 then patch1 again -> Ok.
         patch_seq("patch1.rdfp", "patch1.rdfp");
-        fail("Should not get here");
     }
     
     @Test(expected=DeltaException.class)
     public void patch_seq_bad_03() {
         // patch1 then patch3 (non-existent previous)
         patch_seq("patch1.rdfp", "patch3.rdfp");
-        fail("Should not get here");
     }
     
-    @Test(expected=DeltaException.class)
+    @Test
     public void patch_seq_bad_04() {
-        // patch1 then patch2 then patch2 again
+        // patch1 then patch2 then patch2 again -> OK
         patch_seq("patch1.rdfp", "patch2.rdfp", "patch2.rdfp");
-        fail("Should not get here");
     }
 
+    @Test(expected=DeltaException.class)
+    public void patch_seq_bad_05() {
+        // patch1 then patch2 then patch1 again -> bad. 
+        patch_seq("patch1.rdfp", "patch2.rdfp", "patch1.rdfp");
+    }
     // Link test, connection test.
     
     @Test
@@ -536,8 +580,8 @@ public abstract class AbstractTestDeltaLink {
         RegToken regToken = dLink.register(clientId);
 
         Id dsRef = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
-        // Options.
         dLink.removeDataSource(dsRef);
+        
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
         assertNull(dsd);
 

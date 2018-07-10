@@ -25,10 +25,13 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.patch.RDFPatch ;
 
-/** Interface to the server for the operations.
- * A server is any engine that that provides the Delta operations
- * and it may be local or remote.
- * <p> The client connection for operations on a specific dataset is {@code DeltaConnection}.
+/**
+ * Interface to the server for the operations.
+ * <p>
+ * A server is any engine that that provides the Delta operations and it may be local or
+ * remote.
+ * <p>
+ * The client connection for operations on a specific dataset is {@code DeltaConnection}.
  */
 public interface DeltaLink {
     /** 
