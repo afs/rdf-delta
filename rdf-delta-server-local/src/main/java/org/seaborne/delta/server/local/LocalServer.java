@@ -249,6 +249,7 @@ public class LocalServer {
         synchronized(lock) {
             PatchLog patchLog = patchStore.createLog(dsd);
             DataSource newDataSource = new DataSource(dsd, patchLog);
+            // XXX Isn't this done in PatchStore.createPatchLog as well?
             dataRegistry.put(dsd.getId(), newDataSource);
             return newDataSource;
         }
@@ -258,13 +259,14 @@ public class LocalServer {
         DataSource datasource1 = getDataSource(dsRef);
         if ( datasource1 == null )
             return;
+        
         // Lock with create.
         synchronized(lock) {
             DataSource datasource = getDataSource(dsRef);
             if ( datasource == null )
                 return;
-            //dataRegistry.remove(dsRef);
             PatchStore patchStore = datasource.getPatchStore();
+            // This does the dataRegsitry remove.
             patchStore.release(datasource.getPatchLog());
             disabledDatasources.add(dsRef);
         }

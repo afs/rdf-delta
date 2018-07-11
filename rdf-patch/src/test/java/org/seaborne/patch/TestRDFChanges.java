@@ -147,7 +147,6 @@ public class TestRDFChanges {
             x.txnCommit();
         });
         RDFChangesCounter changes = new RDFChangesCounter();
-        RDFPatchOps.write(System.out, patch);
         patch.apply(changes);
         PatchSummary ps = changes.summary();
         assertEquals(1, ps.getCountTxnBegin());

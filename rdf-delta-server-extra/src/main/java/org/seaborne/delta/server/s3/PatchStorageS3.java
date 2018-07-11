@@ -54,7 +54,6 @@ public class PatchStorageS3 implements PatchStorage {
     
     private static void init(AmazonS3 client, String bucketName, String prefix) {
         if ( ! bucketExists(client, bucketName) )
-            
             createBucket(client, bucketName);
     }
 
@@ -149,4 +148,7 @@ public class PatchStorageS3 implements PatchStorage {
         }
 
     }
+
+    @Override
+    public void delete(Id id) {}
 }

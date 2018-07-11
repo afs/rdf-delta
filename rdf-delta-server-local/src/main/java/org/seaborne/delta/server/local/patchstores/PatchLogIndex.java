@@ -69,6 +69,9 @@ public interface PatchLogIndex {
 
     /** Map version number to the {@link Id} for the patch it refers to. */ 
     public Id mapVersionToId(long version);
+
+    /** Release the state for this log during deletion. */
+    public void release();
     
 //    /** Map {@link Id} to version number. */ 
 //    public long mapIdToVersion(Id id); 

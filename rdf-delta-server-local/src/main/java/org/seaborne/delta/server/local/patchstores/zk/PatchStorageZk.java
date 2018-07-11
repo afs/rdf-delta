@@ -76,4 +76,16 @@ public class PatchStorageZk implements PatchStorage {
             System.err.println("Zero bytes");
         return RDFPatchOps.read(new ByteArrayInputStream(b));
     }
+
+    @Override
+    public void delete(Id id) { 
+        String p = Zk.zkPath(patches, id.asPlainString());    
+        Zk.zkRun(()->client.delete().forPath(p));
+    }
+
+    
+    @Override
+    public void release() { 
+        find().forEach(this::delete);
+    }
 }

@@ -32,7 +32,7 @@ import org.seaborne.patch.text.TokenWriterText ;
 
 /** Convert a {@link StreamRDF} to a {@code RDF Patch}.
  *  {@link StreamRDF#start} and {@link StreamRDF#finish}
- *  must be called; these brackets the patch in transaction markers 
+ *  must be called; these bracket the patch in transaction markers 
  *  {@code TX} and {@code TC}.  
  */
 public class StreamPatch implements StreamRDF {

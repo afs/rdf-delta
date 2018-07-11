@@ -136,6 +136,7 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
+    final
     public long append(RDFPatch patch) {
 //        System.err.println(">>append");
 //        RDFPatchOps.write(System.err, patch);
@@ -202,6 +203,8 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
-    public void release() {}
-
+    public void release() {
+        logState.release();
+        patchStorage.release();
+    }
 }

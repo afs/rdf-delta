@@ -18,15 +18,21 @@
 
 package org.seaborne.delta.client;
 
+import static java.lang.String.format;
+
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.apache.jena.atlas.web.HttpException;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DeltaLinkSwitchable extends DeltaLinkWrapper {
+    private static Logger LOG = LoggerFactory.getLogger(DeltaLinkSwitchable.class);
+    
     /* DeltalLink operations are "retryable" except for append. If one fails, then it can
      * be re-executed for the same effect.
      * 
@@ -38,8 +44,8 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
      */
 
     private List<DeltaLink> others;
-    private int current = 0;
-    private DeltaLink currentLink;
+    private volatile int current = 0;
+    private volatile DeltaLink currentLink;
     
     public DeltaLinkSwitchable(List<DeltaLink> others) {
         super(null);
@@ -57,26 +63,46 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
     // Note: DeltalLink operations are "retryable" with care.
     @Override
     protected <T> T execRtn(Supplier<T> action) {
+        check();
         try { 
             return action.get();
-        } catch (HttpException ex) {
-            switchover();
+        } catch (RuntimeException ex) {
+            exceptionSwitching(ex);
+            switchoverCurrentLink();
             return action.get();
         }
     }
 
     @Override
     protected void exec(Runnable action) {
+        check();
         try { 
             action.run();
-        } catch (HttpException ex) {
-            switchover();
+        } catch (RuntimeException ex) {
+            exceptionSwitching(ex);
+            switchoverCurrentLink();
             action.run();
         }
     } 
 
-    private void switchover() {
+    private static void exceptionSwitching(RuntimeException ex) {
+        //System.err.printf("Switching: %s\n", ex.getMessage());
+        //ex.printStackTrace();
+        FmtLog.warn(LOG, "HTTP failure switch over: %s", ex.getMessage());
+    }
+
+    /** Ask to switch links */ 
+    public void switchover() {
+        LOG.info("Application-requested witchover");
+        switchoverCurrentLink();
+    }
+        
+    private void switchoverCurrentLink() {
+        DeltaLink lastLink = currentLink;
         int last = current;
+        if ( others.size() == 1 )
+            throw new DeltaException("One one link : Can't find a replacement DeltaLink on switchover");
+        
         // precaution: limit re-links.
         for(int i = 0 ; i < others.size(); i++ ) { 
             try { 
@@ -85,9 +111,23 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
                 if ( last == current )
                     // currentLink "reset"
                     throw new DeltaException("Can't find a replacement DeltaLink on switchover");
+                FmtLog.info(LOG, "Switch %s to %s", lastLink, currentLink);
+                System.err.printf("Switch %s to %s\n", lastLink, currentLink);
                 currentLink.ping();
                 return;
-            } catch (Exception ex) { /* Ignore and loop */ } 
+            } catch (RuntimeException ex) { throw ex; } 
         }
+    }
+    
+    private void check() {
+        if ( !others.isEmpty() ) {
+            if ( others.get(current) != currentLink )
+                throw new IllegalStateException("Current not set correctly");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return format("DeltaLinkSwitchable: current=%d %s", current, others);
     }
 }

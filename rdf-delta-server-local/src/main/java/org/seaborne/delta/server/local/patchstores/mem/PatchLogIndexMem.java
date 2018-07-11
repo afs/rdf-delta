@@ -102,6 +102,14 @@ public class PatchLogIndexMem implements PatchLogIndex {
     public Id mapVersionToId(long ver) {
         return versions.get(ver);
     }
+
+    @Override
+    public void release() {
+        versions.clear();
+        version = DeltaConst.VERSION_UNSET;
+        current = null;
+        prev = null;
+    }
     
 //    @Override
 //    public long mapIdToVersion(Id id) {

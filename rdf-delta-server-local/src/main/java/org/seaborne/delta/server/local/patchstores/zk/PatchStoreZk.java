@@ -25,12 +25,14 @@ import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.SetUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
@@ -67,7 +69,6 @@ public class PatchStoreZk extends PatchStore {
     }
 
     public static PatchStore create(int x, LocalServerConfig config) {
-        
         return new PatchStoreProviderZk(null).create(config);
     }
 
@@ -87,6 +88,7 @@ public class PatchStoreZk extends PatchStore {
 //            x.forEach(dsd->FmtLog.info(LOGZK, "Log: %s", dsd));
         lastSeen = new HashSet<>(x);
         watchForLogs();
+        lastSeen = scanForLogChanges();
     }
 
     // ---- Watching for logs
@@ -107,34 +109,23 @@ public class PatchStoreZk extends PatchStore {
         zkRun(() -> client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pLogs) );
     }
     
-    /** Do a scan for logs now. */
-    private void scanForLogs() {  
-        synchronized(watcherLock) {
-            Set<DataSourceDescription> newLogs = scanForLogChanges();
-            newLogs.forEach(dsd->
-            // if does not exist.
-                createPatchLog(dsd)
-                );
-        }
-    }
-    
     private Set<DataSourceDescription> scanForLogChanges() {
         Set<DataSourceDescription> nowSeen = new HashSet<>(listDataSources());
-        // Access once.
         Set<DataSourceDescription> lastSeen$ = lastSeen;
-        // Reload ASAP.
-//        FmtLog.info(LOGZK, "** [%d] Watcher ** last: %s", instance, lastSeen);
-//        FmtLog.info(LOGZK, "** [%d] Watcher ** now:  %s", instance, nowSeen);
+        FmtLog.info(LOGZK, "** [%d] Store watcher ** now: %s, last: %s", instance, nowSeen, lastSeen);
         
         Set<DataSourceDescription> newLogs = SetUtils.difference(nowSeen, lastSeen$);
         Set<DataSourceDescription> deletedLogs = SetUtils.difference(lastSeen$, nowSeen);
+        
         if ( ! newLogs.isEmpty() ) {
+            //System.err.printf("[%d] New: %s\n", instance, newLogs);
             FmtLog.info(LOGZK, "[%d] New: %s", instance, newLogs);
             newLogs.forEach(dsd->createPatchLog(dsd));
         }
 
         if ( ! deletedLogs.isEmpty() ) {
-            FmtLog.info(LOGZK, "[%d] Deleted: ", instance, deletedLogs);
+            //System.err.printf("[%d] Deleted: %s\n", instance, deletedLogs);
+            FmtLog.info(LOGZK, "[%d] Deleted: %s", instance, deletedLogs);
             deletedLogs.forEach(dsd->releasePatchLog(dsd.getId()));
         }
         return nowSeen;
@@ -167,18 +158,42 @@ public class PatchStoreZk extends PatchStore {
         FmtLog.info(LOGZK, "[%d] listDataSources", instance);
         List<DataSourceDescription> descriptions = new ArrayList<DataSourceDescription>();
         List<String> logNames = Zk.zkSubNodes(client, ZkConst.pLogs);
-        logNames.forEach(name->{
+        for ( String name: logNames) {
             FmtLog.info(LOGZK, "[%d] listDataSources: %s", instance, name);
-            String logPath = ZKPaths.makePath(ZkConst.pLogs, name);
+            //String logPath = ZKPaths.makePath(ZkConst.pLogs, name);
             String logDsd = ZKPaths.makePath(ZkConst.pLogs, name, ZkConst.nDsd);
             JsonObject obj = zkFetchJson(client, logDsd);
             if ( obj == null )
-                Zk.listNodes(client);
-            
+                // Timing! Name (/delta/logs/NAME/) has appeared, not the DSD yet.
+                // (Otherwise we need to add a lock)
+                continue;
             DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
             descriptions.add(dsd);
-        });
+        };
         return descriptions;
+    }
+    
+    //@Override
+    // Compare and contrast.
+    public List<DataSourceDescription> listDataSources1() {
+        FmtLog.info(LOGZK, "[%d] listDataSources", instance);
+        List<String> logNames = Zk.zkSubNodes(client, ZkConst.pLogs);
+        Stream<DataSourceDescription> descriptions =
+            logNames.stream()
+                .map(name->{
+                    FmtLog.info(LOGZK, "[%d] listDataSources: %s", instance, name);
+                    String logPath = ZKPaths.makePath(ZkConst.pLogs, name);
+                    String logDsd = ZKPaths.makePath(ZkConst.pLogs, name, ZkConst.nDsd);
+                    JsonObject obj = zkFetchJson(client, logDsd);
+                    if ( obj == null )
+                        // Timing! Name (/delta/logs/NAME/) has appeared, not the DSD yet.
+                        return null;
+                    DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
+                    return dsd;
+                })
+                .filter(Objects::nonNull)
+                ;
+        return ListUtils.toList(descriptions);
     }
     
     @Override

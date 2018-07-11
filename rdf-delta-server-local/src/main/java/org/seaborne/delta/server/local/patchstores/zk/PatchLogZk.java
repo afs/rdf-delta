@@ -34,11 +34,21 @@ import org.seaborne.delta.server.local.patchstores.PatchLogBase;
  * individual patch size.
  */
 public class PatchLogZk extends PatchLogBase {
+    private final CuratorFramework client;
+    private final String logPath;
+
     // The decision of where to place it in the Zookeeper namespace is the responsibility of calling PatchStore.
     public PatchLogZk(DataSourceDescription dsd, int instance, String logPath, CuratorFramework client, PatchStore patchStore) {
         super(dsd,
               new PatchLogIndexZk(client, instance, dsd, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions)),
               new PatchStorageZk(client, zkPath(logPath, ZkConst.nPatches)),
               patchStore);
+        this.client = client;
+        this.logPath = logPath;
+    }
+    
+    @Override
+    public void release() {
+        Zk.zkDelete(client, logPath);
     }
 }

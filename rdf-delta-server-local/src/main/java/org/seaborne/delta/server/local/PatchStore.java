@@ -161,17 +161,23 @@ public abstract class PatchStore {
         logs.put(dsRef, patchLog);
         if ( dataRegistry != null ) {
             DataSource dataSource = new DataSource(dsd, patchLog);
+            // XXX Isn't this done in LocalServer.createDataSource$ as well?
             dataRegistry.add(dataSource);
         }
         return patchLog;
     }
 
+    // XXX Sort out/verify the responsibility and call order for crate/release, all paths.
+    // LocalServer/PatchStore on its own/Zk async update.
+    // Single place to release, including call from LocalServer.
+    
     /**
      * Release ("delete") the {@link PatchLog}. 
      */
     public void release(PatchLog patchLog) {
         Id dsRef = patchLog.getLogId();
-        if ( ! logExists(dsRef) ) {
+        // See also LocalServer.removeDataSource$
+        if ( ! dataRegistry.contains(dsRef) ) {
             FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
             return;
         }
@@ -180,12 +186,16 @@ public abstract class PatchStore {
         patchLog.release();
     }
 
-    /** Call back from subclass when they detech the need to delete a log */ 
+    /** 
+     * Remove and properly de-register a {@link PatchLog}. 
+     * Call this from subclasses notifying the deletion of a patch log elsewhere.
+     */  
     final
     protected void releasePatchLog(Id dsRef) {
         DataSource ds = dataRegistry.get(dsRef);
         if ( ds == null )
             return ;
+        //dataRegistry.remove(dsRef);
         release(ds.getPatchLog());
     }
     

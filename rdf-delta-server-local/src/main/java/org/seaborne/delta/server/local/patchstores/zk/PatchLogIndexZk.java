@@ -46,6 +46,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private int instance;
 
     private final DataSourceDescription dsd;
+    private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas 
     private final String statePath;
     private final String versionsPath;
     
@@ -55,22 +56,23 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private long version = DeltaConst.VERSION_UNSET;
     private Id current = null;
     private Id previous = null;
-    // XXX Need watcher.
     
     private final String fVersion = "version";
     private final String fId = "id";
     private final String fPrevious = "previous";
 
-    /** PatchLogIndexZk
-     *  {@code statePath} - where the patches are stored.
-     *  {@code versionsPath} - directory where the meta data JSON object is stored as name "%08d" 
-     * @param instance 
+    /** {@code PatchLogIndexZk}
+     * <ul>
+     * <li>{@code statePath} - where the patches are stored.
+     * <li>{@code versionsPath} - directory where the meta data JSON object is stored as name "%08d"
+     * </ul> 
      */
     
     public PatchLogIndexZk(CuratorFramework client, int instance, DataSourceDescription dsd, String statePath, String versionsPath) {
         this.client = client ;
         this.instance = instance;
         this.dsd = dsd;
+        this.logName = dsd.getName();
         Zk.zkEnsure(client, statePath);
         Zk.zkEnsure(client, versionsPath);
         this.statePath = statePath;
@@ -118,11 +120,9 @@ public class PatchLogIndexZk implements PatchLogIndex {
     // XXX Migrate the test
     private void newVersion(long newVersion) {
         version = newVersion;
-        if ( newVersion >= DeltaConst.VERSION_FIRST && 
-             (earliestVersion == DeltaConst.VERSION_INIT || earliestVersion == DeltaConst.VERSION_UNSET) ) {
+        if ( newVersion >= DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) )
             // If going no patch -> patch, set the start.
             earliestVersion = DeltaConst.VERSION_FIRST;
-        }
     }
 
     @Override
@@ -131,9 +131,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
         this.current = patch;
         this.previous = prev;
         JsonObject x = stateToJson(version, patch, prev);
-        if ( patch != null ) {
+        if ( patch != null )
             Zk.zkCreateSet(client, versionPath(version), patch.asBytes());
-        }
         Zk.zkSetJson(client, statePath, x);
     }
 
@@ -146,13 +145,12 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     private Watcher logStateWatcher = (event)->{
         synchronized(lock) {
-            event.getType();
-            FmtLog.info(LOG, "++++ [%d] Log watcher", instance);
-            state();
+            //FmtLog.info(LOG, "++ [%d:%s] Log watcher", instance, logName);
+            syncState();
         }
     };
 
-    private void state() {
+    private void syncState() {
         JsonObject obj = getWatchState();
         if ( obj != null )
             jsonToState(obj);
@@ -202,15 +200,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
             if ( ver == version )
                 return ;
             newVersion(ver);
-            if ( version >= DeltaConst.VERSION_FIRST && 
-                 // XXX Abstract! Deltaconst.versionNoPatch
-                 (earliestVersion == DeltaConst.VERSION_INIT || earliestVersion == DeltaConst.VERSION_UNSET) ) {
+            if ( version >= DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) ) { 
                  // If going no patch -> patch, set the start.
                 earliestVersion = DeltaConst.VERSION_FIRST;
             }
             current = getIdOrNull(obj, fId);
             previous = getIdOrNull(obj, fPrevious);
-            FmtLog.info(LOG, "[%d], State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
+            FmtLog.info(LOG, "-- [%d] State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
         } catch (RuntimeException ex) {
             FmtLog.info(this.getClass(), "Failed to load the patch log index state", ex);
         }
@@ -267,5 +263,12 @@ public class PatchLogIndexZk implements PatchLogIndex {
             Log.warn(this, "Attempt to extract the version from '"+name+"'");
             return -1;
         }
+    }
+
+    @Override
+    public void release() {
+        // XXX Zk lock needed.
+        Zk.zkDelete(client, statePath);
+        Zk.zkDelete(client, versionsPath);
     }
 }

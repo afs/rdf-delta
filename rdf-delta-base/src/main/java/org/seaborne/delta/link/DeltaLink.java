@@ -77,6 +77,15 @@ public interface DeltaLink {
         return getDataSourceDescription(dsRef) != null;
     }
 
+    /**
+     * Return a {@link DeltaLog} object for the specificed patch log.
+     * This does not guarantee the log exists - use {@link #exists} to check
+     * if required. 
+     */
+    public default DeltaLog getDeltaLog(Id dsRef) {
+        return new DeltaLog(this, dsRef);
+    }
+    
     /** Return the name of a dataset, or "<null>" if not registered. */
     public default String getDataSourceName(Id dsRef) {
         DataSourceDescription dsd = getDataSourceDescription(dsRef);

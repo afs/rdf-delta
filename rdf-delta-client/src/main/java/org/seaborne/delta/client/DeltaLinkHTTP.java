@@ -104,7 +104,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     // A quick local check only.
     private void checkRegistered() {
-        if ( regToken == null ) 
+        if ( regToken == null )
             throw new DeltaNotRegisteredException("Not registered");
     }
 
@@ -461,5 +461,10 @@ public class DeltaLinkHTTP implements DeltaLink {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         // [NET] Network point
         return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx);
+    }
+    
+    @Override
+    public String toString() {
+        return "link:"+remoteServer;
     }
 }

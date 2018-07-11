@@ -197,6 +197,8 @@ public class Zone {
         Objects.requireNonNull(name,    "Data source name");
         Objects.requireNonNull(storage, "Storage type");
         
+        // XXX What about Zones with no persistent state? No stateArea?
+        
         // Per data source area.
         Path conn = stateArea.resolve(name);
         FileOps.ensureDir(conn.toString());

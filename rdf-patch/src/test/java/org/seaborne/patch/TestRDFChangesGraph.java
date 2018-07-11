@@ -93,7 +93,7 @@ public class TestRDFChangesGraph {
     private Graph graph;
     
     // ----
-    // Replay a chnages byte stream into a completely fresh graph 
+    // Replay a changes byte stream into a completely fresh graph 
     private Graph replay() {
         IO.close(bout);
         final boolean DEBUG = false;

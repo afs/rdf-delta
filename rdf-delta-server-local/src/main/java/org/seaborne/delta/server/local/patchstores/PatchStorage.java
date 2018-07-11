@@ -18,16 +18,33 @@
 
 package org.seaborne.delta.server.local.patchstores;
 
+import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.lib.ListUtils;
 import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFPatch;
 
 /**
  * Interface for the bulk storage of patches.
  */
-public interface PatchStorage { //extends KeyValueStore<Id, RDFPatch> {
+public interface PatchStorage {
+    /** Stream of all the patches - in no particular order */
     public Stream<Id> find();
+    
+    /** Store a patch */
     public void store(Id key, RDFPatch value);
+    
+    /** Get a patch */
     public RDFPatch fetch(Id key);
+    
+    /** Delete a patch */
+    public void delete(Id id);
+    
+    /** Release all the patches and any other state for this {@code PatchStorage} */
+    public default void release() {
+        // Copy to isolate.
+        List<Id> x = ListUtils.toList(find()); 
+        x.forEach(this::delete);
+    }
 }

@@ -93,7 +93,7 @@ public class DeltaClient {
     
     /** 
      * Create a {@code DeltaClient} which consists of a {@link Zone}, client-side recorded state
-     * of the datasets being managed, and a {@link DeltaLink} connection to the patch log server.
+     * of the dataset being managed, and a {@link DeltaLink} connection to the patch log server.
      */
     public static DeltaClient create(Zone zone, DeltaLink dLink) {
         Objects.requireNonNull(zone);
@@ -178,7 +178,7 @@ public class DeltaClient {
      * This operation contacts the patch log server.
      */
     public void attach(Id datasourceId, LocalStorageType storageType) {
-        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(datasourceId, "datasourceId");
         DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
         if ( dsd == null )
             throw new DeltaBadRequestException("Can't attach: no such link data source : "+datasourceId);
