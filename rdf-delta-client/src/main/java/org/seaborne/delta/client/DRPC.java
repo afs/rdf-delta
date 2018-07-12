@@ -18,9 +18,7 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DeltaConst.F_ARG;
 import static org.seaborne.delta.DeltaConst.*;
-import static org.seaborne.delta.DeltaConst.F_TOKEN;
 
 import java.io.IOException ;
 import java.util.Objects ;
@@ -41,7 +39,6 @@ import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 public class DRPC {
@@ -49,10 +46,10 @@ public class DRPC {
     static AtomicLong counter = new AtomicLong(0);
     
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
-    public static JsonValue rpc(String url, String opName, RegToken token, JsonValue arg) {
+    public static JsonValue rpc(String url, String opName, JsonValue arg) {
         JsonObject a = JSONX.buildObject((b)->{
-            if ( token != null )
-                b.key(F_TOKEN).value(token.asString());
+//            if ( token != null )
+//                b.key(F_TOKEN).value(token.asString());
             b.pair(F_OP, opName);
             b.pair(F_OP_ID, Long.toString(counter.incrementAndGet()));
             b.pair(F_ARG, arg);

@@ -24,10 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaNotRegisteredException ;
 
 /** Base class for operations working on HTTPrequest directly, unlike RPCs */ 
 public abstract class HttpOperationBase extends DeltaServlet {
@@ -40,13 +37,12 @@ public abstract class HttpOperationBase extends DeltaServlet {
     final
     protected DeltaAction parseRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Args args = parseArgs(request);
-        return DeltaAction.create(request, response, getLink(), args.regToken, getOpName(), null, args);
+        return DeltaAction.create(request, response, getLink(), args.token, getOpName(), null, args);
     }
 
     @Override
     final
     protected void validateAction(DeltaAction action) throws IOException {
-        checkRegistration(action);
         validateAction(action.httpArgs);
     }
 
@@ -55,16 +51,6 @@ public abstract class HttpOperationBase extends DeltaServlet {
         return Args.argsParams(request);
     }
     
-    protected abstract void checkRegistration(DeltaAction action);
-    
-    /** Helper implementation of checkRegistration when resgutration required. */
-    protected void checkRegistered(DeltaAction action) {
-        if ( action.regToken == null )
-            throw new DeltaHttpException(HttpSC.FORBIDDEN_403, "No registration token") ;
-        if ( !isRegistered(action.regToken) )
-            throw new DeltaNotRegisteredException("Not registered") ;
-    }
-
     protected abstract void validateAction(Args httpArgs);
     
     protected abstract String getOpName();

@@ -23,14 +23,13 @@ The request is a JSON document of the form:
 ```
 {
    "op" : "..."
-   "token" : "..."
    "arg" : { ... }
 }
 ```
 
 `"op"` gives the operation name, `"arg"` is the operation specific
-arguments, and `"token"` the connection registration.  The result is a
-JSON value that depends entirely on the operation called.
+arguments.  The result is a JSON value that depends entirely on the
+operation called.
 
 | Operation                |      |
 | ------------------------ | -------------------------- |
@@ -41,17 +40,6 @@ JSON value that depends entirely on the operation called.
 | `"create_datasource"`      | Create a log for a dataset |
 | `"remove_datasource"`      | Remove a log for a dataset |
 | `"ping"`                   | Ping operation for checking reachability of the DPS. |
-
-### Registration and Security
-
-
-| Operation        |      |
-| ---------------- | ---- |
-| `"register"`      | Register client                            |
-| `"isregistered"`  | Check whether a client is registered       |
-| `"deregister"`     | Remove a registration                      |
-
-Registration and allocation of a token (a UUID) gives a control over access.
 
 ### API
 

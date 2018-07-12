@@ -19,10 +19,6 @@
 package org.seaborne.delta;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertFalse ;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull ;
-import static org.junit.Assert.assertTrue ;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger ;
@@ -42,7 +38,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
@@ -67,15 +62,8 @@ public abstract class AbstractTestDeltaConnection {
     protected abstract Setup.LinkSetup getSetup();
     
     protected DeltaLink getLink() {
-        DeltaLink dLink = getSetup().getLink() ;
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        return dLink;
+        return getSetup().getLink();
     }
-
-    protected DeltaLink getLinkUnregister() {
-        return getSetup().getLink() ;
-    }    
     
     protected Zone getZone() { return Zone.get(DIR); }
     

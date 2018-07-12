@@ -44,8 +44,6 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaNotRegisteredException ;
-import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Receive a JSON object, return a JSON object */ 
@@ -94,10 +92,8 @@ public class S_DRPC extends DeltaServlet {
                 resp.sendError(HttpSC.BAD_REQUEST_400, "No op name: "+JSON.toStringFlat(input));
             if ( arg == null )
                 resp.sendError(HttpSC.BAD_REQUEST_400, "No argument to RPC: "+JSON.toStringFlat(input));
-            RegToken regToken = null;
-            if ( input.hasKey(F_TOKEN) )
-                regToken = new RegToken(getFieldAsString(input,  F_TOKEN));
-            return DeltaAction.create(req, resp, getLink(), regToken, op, opid, arg, input);
+            String token = getFieldAsString(input,  F_TOKEN, false);
+            return DeltaAction.create(req, resp, getLink(), token, op, opid, arg, input);
         } catch (JsonException ex) {
             throw new DeltaBadRequestException("Bad JSON in request: "+ex.getMessage()+ " : "+JSON.toStringFlat(input));
         } 
@@ -108,22 +104,13 @@ public class S_DRPC extends DeltaServlet {
         // Checking once basic parsing of the request has been done to produce the JsonAction 
         switch(action.opName) {
             case OP_PING:
-                return;
-                // Does own check.
-            case OP_REGISTER:
-                // No registration required.
-            case OP_ISREGISTERED:
             case OP_LIST_DS:
             case OP_LIST_DSD:
             case OP_LIST_LOG_INFO:
             case OP_DESCR_DS:
             case OP_DESCR_LOG:
-                break;
-                // Registration required.
-            case OP_DEREGISTER:
             case OP_CREATE_DS:
             case OP_REMOVE_DS:
-                checkRegistration(action);
                 break;
             default:
                 LOG.warn("Unknown operation: "+action.opName);
@@ -131,14 +118,6 @@ public class S_DRPC extends DeltaServlet {
         }
     }
 
-    protected void checkRegistration(DeltaAction action) {
-        if ( action.regToken == null )
-            throw new DeltaBadRequestException("No registration token") ;
-        if ( !isRegistered(action.regToken) )
-            throw new DeltaNotRegisteredException("Not registered") ;
-    }
-
-    
     private String lastOpName = null;
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
@@ -150,15 +129,6 @@ public class S_DRPC extends DeltaServlet {
             switch(action.opName) {
                 case OP_PING:
                     rslt = ping(action);
-                    break ;
-                case OP_REGISTER:
-                    rslt = register(action);
-                    break ;
-                case OP_DEREGISTER:
-                    rslt = deregister(action);
-                    break ;
-                case OP_ISREGISTERED:
-                    rslt = isRegistered(action);
                     break ;
                 case OP_LIST_DS:
                     rslt = listDataSources(action);
@@ -237,33 +207,6 @@ public class S_DRPC extends DeltaServlet {
         return ServerLib.ping();
     }
 
-    // Header: { client: } -> { token: }   
-    private JsonValue register(DeltaAction action) {
-        Id client = getFieldAsId(action, F_CLIENT);
-        // XXX Proper Registration - hook to policy here.
-        RegToken token = new RegToken();
-        register(client, token);
-        JsonValue jv = JSONX.buildObject((x)-> {
-            x.key(F_TOKEN).value(token.getUUID().toString());
-        });
-        return jv;
-    }
-
-    // Header: { token: } -> { boolean: }   
-    private JsonValue isRegistered(DeltaAction action) {
-        // Registation not checked (it would be a "bad request" - this is done in validateAction) 
-       if ( action.regToken == null )
-           return resultFalse;
-       if ( !isRegistered(action.regToken) )
-           return resultFalse;
-        return resultTrue;
-    }
-
-    private JsonValue deregister(DeltaAction action) {
-        deregister(action.regToken);
-        return noResults;
-    }
-    
     private JsonValue listDataSources(DeltaAction action) {
         List<Id> ids = action.dLink.listDatasets();
         return JSONX.buildObject(b->{

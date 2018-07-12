@@ -30,7 +30,6 @@ import org.apache.jena.web.HttpSC;
 import org.junit.BeforeClass ;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
@@ -47,94 +46,10 @@ public abstract class AbstractTestDeltaLink {
     public abstract Setup.LinkSetup getSetup();
     public DeltaLink getLink() { return getSetup().getLink(); }
 
-    public DeltaLink getLinkRegistered() { 
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        return dLink;
-    }
-
     @Test
     public void ping_01() {
         DeltaLink dLink = getLink();
         dLink.ping();
-    }
-    
-    @Test
-    public void register_01() {
-        DeltaLink dLink = getLink();
-        Id id = Id.create();
-        RegToken regToken = dLink.register(id);
-        assertNotNull(regToken);
-    }
-
-    @Test
-    public void register_02() { 
-        DeltaLink dLink = getLink();
-        Id id = Id.create();
-        assertFalse(dLink.isRegistered());
-        RegToken regToken = dLink.register(id);
-        assertEquals(id, dLink.getClientId());
-        assertEquals(regToken, dLink.getRegToken());
-        assertTrue(dLink.isRegistered());
-    }
-
-    @Test
-    public void register_03() { 
-        DeltaLink dLink = getLink();
-        Id id = Id.create();
-        assertFalse(dLink.isRegistered());
-        RegToken regToken = dLink.register(id);
-        assertTrue(dLink.isRegistered());
-        dLink.deregister();
-        assertFalse(dLink.isRegistered());
-        assertNull(dLink.getRegToken());
-        // Remember last clientId
-        assertNotNull(dLink.getClientId());
-    }
-
-    @Test
-    public void register_04() { 
-        DeltaLink dLink = getLink();
-        assertFalse(dLink.isRegistered());
-        // Bad
-    }
-
-    @Test
-    public void register_05() { 
-        DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken1 = dLink.register(clientId);
-        RegToken regToken2 = dLink.register(clientId);
-        dLink.deregister();
-        assertFalse(dLink.isRegistered());
-    }
-
-    @Test
-    public void register_06() { 
-        // Not valid for DeltaLinkLocal.  Multiple registration is not provided. 
-        // Valid for for DeltaLinkHTTP and happens when a client restarts.
-        DeltaLink dLink = getLink();
-        Id clientId1 = Id.create();
-        Id clientId2 = Id.create();
-        assertNotEquals(clientId1, clientId2);
-        RegToken regToken1 = dLink.register(clientId1);
-        RegToken regToken2 = dLink.register(clientId2);
-        // New registration token.
-        assertNotEquals(regToken1, regToken2);
-    }
-
-    @Test
-    public void register_07() {
-        // Two separate registrations.
-        DeltaLink dLink1 = getSetup().createLink();
-        DeltaLink dLink2 = getSetup().createLink();
-        Id clientId1 = Id.create();
-        Id clientId2 = Id.create();
-        assertNotEquals(clientId1, clientId2);
-        RegToken regToken1 = dLink1.register(clientId1);
-        RegToken regToken2 = dLink2.register(clientId2);
-        assertNotEquals(regToken1, regToken2);
     }
     
     //---- Patches that are bad in some way.
@@ -149,7 +64,7 @@ public abstract class AbstractTestDeltaLink {
     public void patch_bad_03()  { patch_bad("patch_bad_3.rdfp"); }
     
     private void patch_bad(String filename) {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource(filename, "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+filename);
         long version = dLink.append(dsRef, patch);
@@ -159,7 +74,7 @@ public abstract class AbstractTestDeltaLink {
     // Patch at the link level. 
     @Test
     public void patch_append_1() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_append_1", "http://example/");
         
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
@@ -182,7 +97,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void patch_append_2() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_append_2", "http://example/");
         
         RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
@@ -200,7 +115,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void patch_append_3() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_append_2", "http://example/");
         
         RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
@@ -232,22 +147,9 @@ public abstract class AbstractTestDeltaLink {
     }
     
     @Test
-    public void patch_add_error_1() {
-        // Unregistered patch
-        DeltaLink dLink = getLinkRegistered();
-        Id dsRef = dLink.newDataSource("patch_add_error_1", "http://example/");
-        dLink.deregister();
-        try { 
-            RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
-            long version1 = dLink.append(dsRef, patch);
-            fail("Managed to send a patch when not registered");
-        } catch (DeltaException ex) {} 
-    }
-    
-    @Test
     public void patch_add_add() {
         // patch1 then patch2, checking the versions advance as expected.
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_add_add", "http://example/");
 
         PatchLogInfo logInfo0 = dLink.getPatchLogInfo(dsRef);
@@ -274,7 +176,7 @@ public abstract class AbstractTestDeltaLink {
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_01() {
         // No such patch.
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_404_1", "http://example/");
         RDFPatch patch = dLink.fetch(dsRef, 99);
         assertNull(patch);
@@ -283,7 +185,7 @@ public abstract class AbstractTestDeltaLink {
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_02() {
         // Patches start at 1.
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_404_2", "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         long version1 = dLink.append(dsRef, patch);
@@ -300,7 +202,7 @@ public abstract class AbstractTestDeltaLink {
     public void patch_http404_03() {
         // Patches start at 1.
         // No such patch is a null return, not an exception.
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_404_2", "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         long version1 = dLink.append(dsRef, patch);
@@ -313,13 +215,13 @@ public abstract class AbstractTestDeltaLink {
 
     static int counter = 1 ;
     private void patch_seq(String...filenames) {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_seq_"+(counter++), "http://example/");
         patch_send(dsRef, filenames);
     }
     
     private void patch_send(Id dsRef, String...filenames) {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         for ( String fn : filenames ) {
             RDFPatch patch = RDFPatchOps.read(FILES_DIR+fn);
             dLink.append(dsRef, patch);
@@ -358,8 +260,6 @@ public abstract class AbstractTestDeltaLink {
     public void datasource_create_01() {
         DeltaLink dLink = getLink();
         assertTrue(dLink.listDatasets().isEmpty());
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
         Id dsRef = dLink.newDataSource("datasource_create_01", "http://example/uri");
         assertFalse(dLink.listDatasets().isEmpty());
         assertEquals(1, dLink.listDatasets().size());
@@ -374,7 +274,7 @@ public abstract class AbstractTestDeltaLink {
         
     @Test
     public void datasource_create_02() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
 
         assertTrue(dLink.listDatasets().isEmpty());
         assertTrue(dLink.listDescriptions().isEmpty());
@@ -397,7 +297,7 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void datasource_create_03() {
         // As 02 but by URI.
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         String uri = "http://example/uri2a";
         Id dsRef = dLink.newDataSource("datasource_create_03", uri);
 
@@ -415,7 +315,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_create_04() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef1 = dLink.newDataSource("datasource_create_04_a", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
         // Does not exist : new name : URI is not a factor.
@@ -426,7 +326,7 @@ public abstract class AbstractTestDeltaLink {
     
     @Test
     public void datasource_create_05() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         assertEquals(0, dLink.listDatasets().size());
         Id dsRef1 = dLink.newDataSource("datasource_create_05", "http://example/uri");
     
@@ -448,7 +348,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_list_01a() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         assertEquals(0, dLink.listDatasets().size());
         assertEquals(0, dLink.listDescriptions().size());
         assertEquals(0, dLink.listPatchLogInfo().size());
@@ -456,7 +356,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_list_02() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_list_2", "http://example/uri");
         assertNotNull(dsRef);
         assertNotEquals(dsRef, Id.nullId());
@@ -467,7 +367,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_listDSD_03() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_listDSD_03", "http://example/uri16");
         assertEquals(1, dLink.listDatasets().size());
         List<DataSourceDescription> all = dLink.listDescriptions();
@@ -478,7 +378,7 @@ public abstract class AbstractTestDeltaLink {
     
     @Test
     public void datasource_listLog_04() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_listLog_04", "http://example/uri17");
         List<PatchLogInfo> x = dLink.listPatchLogInfo();
         assertEquals(1, x.size());
@@ -491,7 +391,7 @@ public abstract class AbstractTestDeltaLink {
     
     @Test
     public void datasource_listLog_05() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef1 = dLink.newDataSource("datasource_listLog_05-1", "http://example/uri18a");
         Id dsRef2 = dLink.newDataSource("datasource_listLog_05-2", "http://example/uri18b");
         List<PatchLogInfo> x = dLink.listPatchLogInfo();
@@ -503,7 +403,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_remove_01() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_remove_01", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
         dLink.removeDataSource(dsRef);
@@ -512,7 +412,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_remove_02() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_remote_02", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
         dLink.removeDataSource(dsRef);
@@ -522,7 +422,7 @@ public abstract class AbstractTestDeltaLink {
 
     @Test
     public void datasource_remove_03() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
         dLink.removeDataSource(dsRef);
         assertEquals(0, dLink.listDatasets().size());
@@ -532,7 +432,7 @@ public abstract class AbstractTestDeltaLink {
     
     @Test
     public void datasource_not_found_01() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
         Id dsRef1 = Id.create();
@@ -542,7 +442,7 @@ public abstract class AbstractTestDeltaLink {
     
     @Test
     public void datasource_not_found_02() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI("http://example/uri-not-present");
@@ -552,7 +452,7 @@ public abstract class AbstractTestDeltaLink {
     //@Test
     // Feature Initial state not active.
     public void datasource_init_01() {
-        DeltaLink dLink = getLinkRegistered();
+        DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_15", "http://example/uri");
         assertEquals(1, dLink.listDatasets().size());
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI("http://example/uri-not-present");
@@ -564,8 +464,6 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void create_delete_dLink() {
         DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
 
         Id dsRef = dLink.newDataSource("create_delete_01", "http://example/cd1");
         dLink.removeDataSource(dsRef);
@@ -576,8 +474,6 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void create_delete_create_dLink_1() {
         DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
 
         Id dsRef = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
         dLink.removeDataSource(dsRef);
@@ -595,8 +491,6 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void create_delete_create_dLink_2() {
         DeltaLink dLink = getLink();
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
         Id dsRef = dLink.newDataSource("create_delete_create_2", "http://example/cdc");
 
         // Add a patch

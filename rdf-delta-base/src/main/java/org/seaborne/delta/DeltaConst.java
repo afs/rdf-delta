@@ -40,18 +40,14 @@ public class DeltaConst {
     public static final String EP_RPC          = "$/rpc";
 
     // RPC calls - operation names.
-    public static final String OP_PING         = "ping";
-    public static final String OP_REGISTER     = "register";
-    public static final String OP_DEREGISTER   = "deregister";
-    public static final String OP_ISREGISTERED = "isregistered";
-    
-    public static final String OP_LIST_DS              = "list_datasource";
-    public static final String OP_LIST_DSD             = "list_descriptions";
-    public static final String OP_DESCR_DS             = "describe_datasource";
-    public static final String OP_DESCR_LOG            = "describe_log";
-    public static final String OP_LIST_LOG_INFO        = "list_log_info";
-    public static final String OP_CREATE_DS            = "create_datasource";
-    public static final String OP_REMOVE_DS            = "remove_datasource";
+    public static final String OP_PING           = "ping";
+    public static final String OP_LIST_DS        = "list_datasource";
+    public static final String OP_LIST_DSD       = "list_descriptions";
+    public static final String OP_DESCR_DS       = "describe_datasource";
+    public static final String OP_DESCR_LOG      = "describe_log";
+    public static final String OP_LIST_LOG_INFO  = "list_log_info";
+    public static final String OP_CREATE_DS      = "create_datasource";
+    public static final String OP_REMOVE_DS      = "remove_datasource";
 
     // JSON field names, in RPC and configuration files.
     public static final String F_OP            = "operation";
@@ -102,7 +98,7 @@ public class DeltaConst {
     // Registration
     public static final String paramRef        = "ref";
     public static final String paramClient     = F_CLIENT;
-    public static final String paramReg        = F_TOKEN;
+    public static final String paramToken      = F_TOKEN;
 
     public static final String paramPatch      = "patch";
     public static final String paramDatasource = F_DATASOURCE;

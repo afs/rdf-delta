@@ -108,12 +108,7 @@ abstract public class DeltaCmd extends CmdGeneral {
     @Override
     protected void exec() {
         try { 
-            dLink.register(clientId) ;
-            try { execCmd() ; }
-            finally {
-                //if ( dLink.isRegistered() )
-                    dLink.deregister();
-            }
+            execCmd();
         }
         catch (HttpException ex) { throw new CmdException(messageFromHttpException(ex)) ; }
     }

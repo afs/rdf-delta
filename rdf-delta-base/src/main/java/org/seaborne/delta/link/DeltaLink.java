@@ -144,33 +144,6 @@ public interface DeltaLink {
      */
     public String initialState(Id dsRef) ;
 
-    /** Register a client id.
-     * Only one client can be registered on a link at a time.
-     * @param clientId
-     * @return RegToken
-     */
-    public RegToken register(Id clientId);
-
-//    public RegToken register(String name);
-//    public RegToken register(String name, Id id);
-    
-    public void deregister();
-
-    /** Check whether registered for this link. */
-    public boolean isRegistered();
-
-    /** Return the registration token, or null if not registered.
-     * <p>
-     * This operation is local. 
-     */
-    public RegToken getRegToken();
-    
-    /** Return the registration token, or null if not registered.
-     * <p>
-     * This operation is local. 
-     */
-    public Id getClientId();
-    
     /** No-op end-to-end operation. This operation succeeds or throws an exception.
      *  This operation makes one attempt only to perform the ping even if the {@code DeltaLink}
      *  has some level of retry policy.

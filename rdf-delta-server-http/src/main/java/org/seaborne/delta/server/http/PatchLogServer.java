@@ -42,7 +42,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -177,8 +176,6 @@ public class PatchLogServer {
         if ( engine != null ) {
             if ( engineRef.get() != null )
                 engineRef.get().close();
-            Id clientId = Id.create();
-            engine.register(clientId);
         }
         engineRef.set(engine);
     }

@@ -28,7 +28,6 @@ import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.DeltaServlet;
 import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.local.*;
 
@@ -100,16 +99,11 @@ public class Setup {
 
         @Override
         public void relink() {
-            Id clientId = dlink.getClientId();
             dlink =  DeltaLinkLocal.connect(lserver);
-            if ( clientId != null )
-                dlink.register(clientId);
         }
         
         @Override
         public void restart() {
-            // XXX [JVM-global registrations]
-            DeltaServlet.clearAllRegistrations();
             if ( lserver == null )
                 lserver = builder.create();
             else {
@@ -136,8 +130,6 @@ public class Setup {
          * synchronous to the tests otherwise).   
          */
         public static PatchLogServer startPatchServer() {
-            // XXX [JVM-global registrations]
-            DeltaServlet.clearAllRegistrations();
             PatchLogServer dps = PatchLogServer.create(TEST_PORT, null) ;
             try { dps.start(); }
             catch (BindException ex) { throw IOX.exception(ex); }
@@ -185,11 +177,8 @@ public class Setup {
         
         @Override
         public void relink() {
-            Id clientId = dlink.getClientId();
             resetDefaultHttpClient();
             dlink = createLink();
-            if ( clientId != null )
-                dlink.register(clientId);
         }
         
         

@@ -72,8 +72,6 @@ public class DeltaEx4_DatasetToPatchLogServer {
 
         // -- Setup connection to the patch log server.
         DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:"+PLOG_PORT+"/"); 
-        dLink.register(Id.create());
-        
         
         //-- Setup a Zone (workspace for recording local state like version of the dataset.
         // Ensure its work area exists and is empty.

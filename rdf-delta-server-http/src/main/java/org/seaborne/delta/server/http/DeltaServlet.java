@@ -37,7 +37,6 @@ import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.DeltaHttpException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 import org.slf4j.Logger ;
 
 /** Servlet and multiplexer for DeltaLinks */
@@ -51,15 +50,9 @@ public abstract class DeltaServlet extends HttpServlet {
     
     // Static to catch cross contamination.
     protected final Map<Id, DeltaLink> links = new ConcurrentHashMap<>();
-    // These should be unique across the server.
-    // XXX [JVM-global registrations]
-    protected static final Map<RegToken, Id> registrations = new ConcurrentHashMap<>();
     
     /** Automatically register when a RegToken is seen that is not recorded as registered.*/
     private static final boolean AutoRegistration = false;
-    
-    public static void clearRegistration(RegToken regToken) { registrations.remove(regToken) ; }  
-    public static void clearAllRegistrations()              { registrations.clear(); }
     
     protected DeltaServlet(AtomicReference<DeltaLink> engine) {
         this.engine = engine;
@@ -83,42 +76,6 @@ public abstract class DeltaServlet extends HttpServlet {
     protected abstract void validateAction(DeltaAction action) throws IOException;
     protected abstract void executeAction(DeltaAction action) throws IOException;
 
-    protected void register(Id client, RegToken token) {
-        registrations.put(token, client);
-    }
-
-    protected Id getRegistration(RegToken token) {
-        return registrations.get(token);
-    }
-
-    protected void deregister(RegToken token) {
-        registrations.remove(token);
-    }
-    
-    protected boolean isRegistered(RegToken token) {
-        if ( token == null )
-            return false;
-        return registrations.containsKey(token);
-    }
-    
-    protected boolean isRegisteredOrReset(RegToken token) {
-        if ( token == null )
-            return false;
-        boolean b = isRegistered(token);
-        if ( !b )
-            b = handleNotRegistered(token);
-        return b ;
-    }
-
-    protected boolean handleNotRegistered(RegToken token) {
-        if ( ! AutoRegistration )
-            return false ;
-        Id client = Id.nullId();
-        Delta.DELTA_LOG.info("Auto-registration: regtoken="+token);
-        register(client, token);
-        return true;
-    }
-    
     /**
      * {@code HttpServlet.service} : add PATCH, add protection for exceptions.
      * ({@link doCommon} should handle these).

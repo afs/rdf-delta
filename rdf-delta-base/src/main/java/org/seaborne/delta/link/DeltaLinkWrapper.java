@@ -113,29 +113,6 @@ public class DeltaLinkWrapper implements DeltaLink {
     }
 
     @Override
-    public RegToken register(Id clientId) {
-        return execRtn(()->get().register(clientId));
-    }
-
-    @Override
-    public void deregister() { exec(()->other.deregister()); }
-
-    @Override
-    public boolean isRegistered() {
-        return execRtn(()->get().isRegistered());
-    }
-
-    @Override
-    public RegToken getRegToken() {
-        return execRtn(()->get().getRegToken());
-    }
-
-    @Override
-    public Id getClientId() {
-        return execRtn(()->get().getClientId());
-    }
-
-    @Override
     public void ping() { exec(()->get().ping()); }
 
     @Override

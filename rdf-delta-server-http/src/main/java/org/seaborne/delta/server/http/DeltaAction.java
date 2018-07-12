@@ -24,13 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 
 public class DeltaAction {
     public final HttpServletRequest request;
     public final HttpServletResponse response;
     public final DeltaLink dLink;
-    public final RegToken regToken;
+    // Some marker sent by the client to help end-to-end tracking.  Usually not used. 
+    public final String token;
     public final String opName;
     
     // Should subclass but that then needs casting.
@@ -43,27 +43,27 @@ public class DeltaAction {
     
     /** HTTP action */
     public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
-                                     DeltaLink deltaLink, RegToken regToken,
+                                     DeltaLink deltaLink, String token,
                                      String opName, String opId, Args args) {
-        return new DeltaAction(request, response, deltaLink, regToken, opName, opId, null, null, args);
+        return new DeltaAction(request, response, deltaLink, token, opName, opId, null, null, args);
     }
         
     /** DRPC action */
     public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
-                                     DeltaLink deltaLink, RegToken regToken,
+                                     DeltaLink deltaLink, String token,
                                      String opName, String opId, JsonObject arg, JsonObject requestObject) {
-        return new DeltaAction(request, response, deltaLink, regToken, opName, opId, arg, requestObject, null);
+        return new DeltaAction(request, response, deltaLink, token, opName, opId, arg, requestObject, null);
     }
     
     /** DRPC action */
     private DeltaAction(HttpServletRequest request, HttpServletResponse response, 
-                        DeltaLink deltaLink, RegToken regToken, 
+                        DeltaLink deltaLink, String token, 
                         String opName, String opId, JsonObject arg, JsonObject requestObject, 
                         Args args) {
         this.request = request;
         this.response = response;
         this.dLink = deltaLink;
-        this.regToken = regToken;
+        this.token = token;
         this.opName = opName;
         this.rpcArg = arg;
         this.requestObject = requestObject;

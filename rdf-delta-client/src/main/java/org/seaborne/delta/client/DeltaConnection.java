@@ -37,7 +37,6 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchConst;
@@ -95,11 +94,6 @@ public class DeltaConnection implements AutoCloseable {
         DeltaConnection dConn = new DeltaConnection(dataState, dsg, dLink, syncTxnBegin);
         dConn.start();
         return dConn;
-    }
-    
-    private static void ensureRegistered(DeltaLink link, Id clientId) {
-        if ( ! link.isRegistered() )
-            link.register(clientId);
     }
     
     private DeltaConnection(DataState dataState, DatasetGraph basedsg, DeltaLink link, SyncPolicy syncTxnBegin) {
@@ -390,10 +384,6 @@ public class DeltaConnection implements AutoCloseable {
         return dLink;
     }
 
-    public Id getClientId() {
-        return dLink.getClientId();
-    }
-
     public String getInitialStateURL() {
         checkDeltaConnection();
         return dLink.initialState(datasourceId);
@@ -419,11 +409,6 @@ public class DeltaConnection implements AutoCloseable {
             remote.set(info);
         }
         return info;
-    }
-
-    public RegToken getRegToken() {
-        checkDeltaConnection();
-        return dLink.getRegToken();
     }
 
     /** Actively get the remote log latest id */  

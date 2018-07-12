@@ -38,8 +38,6 @@ import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaNotConnectedException ;
-import org.seaborne.delta.link.DeltaNotRegisteredException ;
-import org.seaborne.delta.link.RegToken;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
 import org.seaborne.patch.text.RDFPatchReaderText ;
@@ -56,7 +54,6 @@ public class DeltaLinkHTTP implements DeltaLink {
     private final String remoteReceive;
     private final String remoteData;
     
-    private RegToken regToken = null;
     private Id clientId = null;
     private boolean linkOpen = false;
     
@@ -102,14 +99,6 @@ public class DeltaLinkHTTP implements DeltaLink {
             throw new DeltaNotConnectedException("Not connected to URL = "+remoteServer);
     }
 
-    // A quick local check only.
-    private void checkRegistered() {
-        if ( regToken == null )
-            throw new DeltaNotRegisteredException("Not registered");
-    }
-
-    private static int RETRIES_REGISTRATION = 2 ;
-    
     // With backoff.
     private static int RETRIES_COMMS_FAILURE = 2 ;
 
@@ -124,23 +113,6 @@ public class DeltaLinkHTTP implements DeltaLink {
             try {
                 return callable.action();
             } catch (HttpException ex) {
-                if ( ex.getResponseCode() == HttpSC.UNAUTHORIZED_401 ) {
-                    if ( retryable.get() && i < RETRIES_REGISTRATION ) {
-                        // Reregister
-                        reregister();
-                        continue;
-                    }
-                    if ( retryMsg != null  )
-                        Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
-                    else
-                        Delta.DELTA_HTTP_LOG.warn("Failed to register");
-                    // Failed to register.
-                    if ( failureMsg != null )
-                        throw new DeltaNotRegisteredException(failureMsg.get());
-                    else
-                        throw new DeltaNotRegisteredException(ex.getMessage());
-                }
-                // Other HTTP problems.
                 if ( failureMsg != null )
                     // Other...
                     Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
@@ -153,17 +125,13 @@ public class DeltaLinkHTTP implements DeltaLink {
     private RDFChangesHTTP createRDFChanges(Id dsRef) {
         Objects.requireNonNull(dsRef);
         checkLink();
-        checkRegistered();
-        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"),
-                                  ()->calcChangesURL(dsRef),
-                                  ()->reregister());
+        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"), 
+                                  ()->calcChangesURL(dsRef));
     }
     
     /** Calculate the patch log URL */ 
     private String calcChangesURL(Id dsRef) {
-        String url = createURL(remoteSend, DeltaConst.paramDatasource, dsRef.asParam());
-        url = addToken(url);
-        return url;
+        return createURL(remoteSend, DeltaConst.paramDatasource, dsRef.asParam());
     }
 
     @Override
@@ -215,7 +183,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         String url = remoteReceive;
         url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
         url = appendURL(url, value.toString());
-        url = addToken(url);
         final String s = url;
         FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, valueLogStr, url);
         try { 
@@ -235,13 +202,6 @@ public class DeltaLinkHTTP implements DeltaLink {
                 return null ; //throw new DeltaNotFoundException(ex.getMessage());
             throw ex;
         }
-    }
-
-    private String addToken(String url) {
-        // If registered.
-        if ( regToken != null )
-            url = DeltaLib.makeURL(url, DeltaConst.paramReg, regToken.asString());
-        return url;
     }
 
     private static String appendURL(String url, String string) {
@@ -273,60 +233,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         return remoteReceive ;
     }
 
-    // ----
-    // /register?id=    -> JSON { token : "uuid" }
-    // /register?name=
-    // /register?name=
-    
-    
-    @Override
-    public RegToken register(Id clientId) {
-        checkLink();
-        JsonObject arg = JSONX.buildObject((b) -> {
-            b.key(DeltaConst.F_CLIENT).value(clientId.asPlainString());
-        });
-        JsonObject obj = rpc(DeltaConst.OP_REGISTER, arg);
-        String s = obj.get(DeltaConst.F_TOKEN).getAsString().value();
-        RegToken token = new RegToken(s);
-        this.clientId = clientId; 
-        this.regToken = token;
-        return token; 
-    }
-
-    @Override
-    public void deregister() {
-        checkLink();
-        JsonObject obj = rpc(DeltaConst.OP_DEREGISTER, emptyObject);
-        regToken = null;
-    }
-
-    /**
-     * If this returns we did contact the server,
-     * otherwise we get an exception.
-     */
-    
-    @Override
-    public boolean isRegistered() {
-        checkLink();
-        JsonObject obj = rpc(DeltaConst.OP_ISREGISTERED, emptyObject);
-        return obj.get(DeltaConst.F_VALUE).getAsBoolean().value();
-    }
-
-    /** Re-register with the same client id. A new {@link RegToken} is likely.  */ 
-    private RegToken reregister() {
-        return register(clientId);
-    }
-    
-    @Override
-    public RegToken getRegToken() {
-        return regToken;
-    }
-
-    @Override
-    public Id getClientId() {
-        return clientId;
-    }
-    
     @Override
     public List<Id> listDatasets() {
         JsonObject obj = rpc(DeltaConst.OP_LIST_DS, emptyObject);
@@ -442,7 +348,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         // [NET] Network point
-        return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx),
+        return retry(()->DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, argx),
                      ()->true,
                      ()->format("Retry : %s",opName),
                      ()->format("Failed : %s %s",opName,JSON.toStringFlat(argx))
@@ -460,7 +366,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     private JsonValue rpcOnceToValue(String opName, JsonObject arg) {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         // [NET] Network point
-        return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, regToken, argx);
+        return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, argx);
     }
     
     @Override

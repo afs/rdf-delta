@@ -171,8 +171,12 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         Zone zone = Zone.connect(zoneLocation);
         DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
         SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
-        // Use this as effectively a "ping" of the patch log server.
-        registerMaybe(deltaLink);
+        try { deltaLink.ping(); }
+        catch (HttpException ex) {
+            // rc < 0 : failed to connect - ignore.
+            if ( ex.getResponseCode() > 0 )
+                throw ex;
+        }
 
         Id dsRef = zone.getIdForName(dsName);
         
@@ -217,18 +221,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
        cxt.set(symDeltaZone, zone);
         
        return DatasetFactory.wrap(dsg);
-    }
-    
-    static void registerMaybe(DeltaLink deltaLink) {
-        try { 
-            deltaLink.ping();
-            Id clientId = Id.create();
-            deltaLink.register(clientId);
-        } catch (HttpException ex) {
-            // rc < 0 : failed to connect - ignore.
-            if ( ex.getResponseCode() > 0 )
-                throw ex;
-        }
     }
     
     private InputStream openChangesSrc(String x) {

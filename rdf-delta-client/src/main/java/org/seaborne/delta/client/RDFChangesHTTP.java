@@ -49,7 +49,6 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     // This should be tied to the DeltaLink and have that control text/binary.
     
     private static final Logger LOG = Delta.DELTA_HTTP_LOG;
-    // XXX Caching? Auth?
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes ;
     private final Runnable resetAction;
@@ -68,16 +67,23 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     
     /** Send changes to a specific URL */
     public RDFChangesHTTP(String label, String urlstr) {
-        this(label, null, ()->urlstr, null);
+        this(label, ()->urlstr, null);
+    }
+
+    // resetAction (on 401) not currently enabled.
+    
+    /** Send changes to a supplied URL, with an action a specific action  */
+    public RDFChangesHTTP(String label, Supplier<String> urlSupplier) {
+        this(label, urlSupplier, null);
     }
 
     /** Send changes to a supplied URL, with an action a specific action on any 401  */
-    public RDFChangesHTTP(String label, Supplier<String> urlSupplier, Runnable resetAction) {
+    private RDFChangesHTTP(String label, Supplier<String> urlSupplier, Runnable resetAction) {
         this(label, null, urlSupplier, resetAction);
     }
     
     /** Send changes to a supplied URL, with an action a specific action on any 401 and sync'ed on a specific object  */
-    public RDFChangesHTTP(String label, Object syncObject, Supplier<String> urlSupplier, Runnable resetAction) {
+    private RDFChangesHTTP(String label, Object syncObject, Supplier<String> urlSupplier, Runnable resetAction) {
         this(label, syncObject, urlSupplier, resetAction, new ByteArrayOutputStream(100*1024));
     }
 

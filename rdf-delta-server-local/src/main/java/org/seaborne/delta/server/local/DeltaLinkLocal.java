@@ -26,15 +26,13 @@ import java.util.List;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaLinkBase;
 import org.seaborne.delta.link.DeltaNotConnectedException;
-import org.seaborne.delta.link.DeltaNotRegisteredException;
 import org.seaborne.patch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Implementation of {@link DeltaLink} backed by a {@link LocalServer}. */
-public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
+public class DeltaLinkLocal implements DeltaLink {
     private static final int  BUF_SIZE = 128 * 1024;
 
     private static Logger     LOG      = LoggerFactory.getLogger(DeltaLinkLocal.class);
@@ -54,7 +52,6 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public Id newDataSource(String name, String baseURI) {
         checkLink();
-        checkRegistered();
         if ( !DeltaOps.isValidName(name) )
             throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
         return localServer.createDataSource(name, baseURI);
@@ -78,15 +75,9 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
             throw new DeltaNotConnectedException("Not connected");
     }
 
-    private void checkRegistered() {
-        if ( !isRegistered() )
-            throw new DeltaNotRegisteredException("Not registered");
-    }
-
     @Override
     public void removeDataSource(Id dsRef) {
         checkLink();
-        checkRegistered();
         localServer.removeDataSource(dsRef);
     }
 
@@ -138,7 +129,6 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public PatchLogInfo getPatchLogInfo(Id dsRef) {
         checkLink();
-        checkRegistered();
         DataSource source = getDataSource(dsRef);
         if ( source == null )
             return null;
@@ -148,7 +138,6 @@ public class DeltaLinkLocal extends DeltaLinkBase implements DeltaLink {
     @Override
     public long append(Id dsRef, RDFPatch rdfPatch) {
         checkLink();
-        checkRegistered();
         DataSource source = getDataSource(dsRef);
         // Patch not known to be valid yet.
         // Patch not safe in the Patch Log yet.

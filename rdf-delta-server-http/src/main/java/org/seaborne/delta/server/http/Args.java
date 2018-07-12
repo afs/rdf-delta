@@ -32,7 +32,6 @@ import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.link.RegToken;
 
 /** Parsed arguments for Patch and Fetch. 
  * <p>
@@ -54,10 +53,10 @@ public class Args {
         if ( ref != null )
             return registration.get(ref);
         String datasourceName = request.getParameter(DeltaConst.paramDatasource);
-        String patchIdStr = request.getParameter(DeltaConst.paramPatch);
-        String versionStr = request.getParameter(DeltaConst.paramVersion);
-        String clientIdStr = request.getParameter(DeltaConst.paramClient);
-        String regTokenStr = request.getParameter(DeltaConst.paramReg);  
+        String patchIdStr   = request.getParameter(DeltaConst.paramPatch);
+        String versionStr   = request.getParameter(DeltaConst.paramVersion);
+        String clientIdStr  = request.getParameter(DeltaConst.paramClient);
+        String tokenStr     = request.getParameter(DeltaConst.paramToken);  
 
         if ( datasourceName != null ) {
             if ( ! DeltaOps.isValidName(datasourceName) )
@@ -66,9 +65,8 @@ public class Args {
         
         Id patchId = patchIdStr == null ? null : Id.fromString(patchIdStr);
         Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
-        RegToken regToken = regTokenStr == null ? null : new RegToken(regTokenStr);
         Long version = versionStr == null ?null : new Long(versionStr);
-        return new Args(request, datasourceName, patchId, version, clientId, regToken);
+        return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
     }
     
     /** Process an HTTP request to extract the arguments.
@@ -88,19 +86,18 @@ public class Args {
      */
     public static Args pathArgs(HttpServletRequest request) {
         // Process, arguments for any operation.
-        // Firstly, do as query string parameters to set defauls.
+        // Firstly, do as query string parameters to set defaults.
         String datasourceName = request.getParameter(DeltaConst.paramDatasource);
         String patchIdStr = request.getParameter(DeltaConst.paramPatch);
         String versionStr = request.getParameter(DeltaConst.paramVersion);
         
         // Should be null.
         String clientIdStr = request.getParameter(DeltaConst.paramClient);
-        // Will happen for an append.
-        String regTokenStr = request.getParameter(DeltaConst.paramReg);  
+        // Marker carried by requests. Optional.
+        String tokenStr = request.getParameter(DeltaConst.paramToken);  
 
         Id patchId = patchIdStr == null ? null : Id.fromString(patchIdStr);
         Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
-        RegToken regToken = regTokenStr == null ? null : new RegToken(regTokenStr);
         
         Long version = null ;
         if ( versionStr != null ) {
@@ -118,7 +115,7 @@ public class Args {
         String x = getTrailing(request);
         if ( x.isEmpty() ) {
             // No name.
-            return new Args(request, datasourceName, patchId, version, clientId, regToken);
+            return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
         }
         
         if ( ! x.startsWith("/") )
@@ -155,7 +152,7 @@ public class Args {
                 version = parseVersion(patchStr, null);
             }
         }
-        return new Args(request, datasourceName, patchId, version, clientId, regToken);
+        return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
     }
     
     private static UUID parseUUID(String patchStr, UUID dft) {
@@ -210,9 +207,9 @@ public class Args {
     public final Id patchId;
     public final Long version;
     public final Id clientId;
-    public final RegToken regToken;
+    public final String token;
 
-    public Args(HttpServletRequest request, String datasourceName, Id patchId, Long verStr, Id clientId, RegToken regToken) {
+    public Args(HttpServletRequest request, String datasourceName, Id patchId, Long verStr, Id clientId, String token) {
         super();
         this.url = ServerLib.url(request);
         this.method = request.getMethod().toUpperCase(Locale.ROOT);
@@ -229,6 +226,6 @@ public class Args {
         this.patchId = patchId;
         this.version = verStr;
         this.clientId = clientId;
-        this.regToken = regToken;
+        this.token = token;
     }
 }

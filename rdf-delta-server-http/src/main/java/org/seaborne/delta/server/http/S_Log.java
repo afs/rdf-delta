@@ -48,15 +48,6 @@ public class S_Log extends HttpOperationBase {
     }
     
     @Override
-    protected void checkRegistration(DeltaAction action) {
-        if ( isFetchOperation(action) ) 
-            // Open;
-            return;
-        if ( isAppendOperation(action) )
-            checkRegistered(action);
-    }
-   
-    @Override
     protected void validateAction(Args httpArgs) {
         if ( isFetchOperation(httpArgs) ) return ;
         if ( isAppendOperation(httpArgs) ) return ;

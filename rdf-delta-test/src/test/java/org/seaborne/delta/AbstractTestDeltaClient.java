@@ -35,7 +35,6 @@ import org.junit.BeforeClass ;
 import org.junit.Test ;
 import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink ;
-import org.seaborne.delta.link.RegToken ;
 
 public abstract class AbstractTestDeltaClient {
     // See also with AbstractTestDeltaConnection
@@ -57,16 +56,9 @@ public abstract class AbstractTestDeltaClient {
     protected abstract Setup.LinkSetup getSetup();
     
     protected DeltaLink getLink() {
-        DeltaLink dLink = getSetup().getLink() ;
-        Id clientId = Id.create();
-        RegToken regToken = dLink.register(clientId);
-        return dLink;
+        return getSetup().getLink() ;
     }
 
-    protected DeltaLink getLinkUnregister() {
-        return getSetup().getLink() ;
-    }    
-    
     protected DeltaClient createDeltaClient() {
         return DeltaClient.create(zone, getLink());  
     }

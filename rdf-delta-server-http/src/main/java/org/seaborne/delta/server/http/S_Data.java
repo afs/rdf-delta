@@ -60,17 +60,6 @@ public class S_Data extends HttpOperationBase {
         doCommon(req, resp);
     }
     
-    // XXX Share with S_Fetch
-    
-    @Override
-    protected void checkRegistration(DeltaAction action) {
-        // Only warnings.
-        if ( action.regToken == null )
-            logger.warn("Data: No registration token") ;
-        if ( !isRegistered(action.regToken) )
-            logger.warn("Data: Not registered") ;
-    }
-    
     @Override
     protected void validateAction(Args httpArgs) {
     }

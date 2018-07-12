@@ -120,7 +120,6 @@ public class TestRestart {
     private void setup() {
         localServer = LocalServers.createFile(ServerArea);
         deltaLink = DeltaLinkLocal.connect(localServer);
-        deltaLink.register(Id.create());
         zone = Zone.connect(DIR_ZONE);
         deltaClient = DeltaClient.create(zone, deltaLink);
     }

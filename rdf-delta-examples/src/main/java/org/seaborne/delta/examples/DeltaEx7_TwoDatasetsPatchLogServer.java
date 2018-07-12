@@ -109,7 +109,6 @@ public class DeltaEx7_TwoDatasetsPatchLogServer {
     
     private static DeltaClient setup_dataset(String dsName, String zoneDir, String patchLogServerURL) {
         DeltaLink dLink = DeltaLinkHTTP.connect(patchLogServerURL); 
-        dLink.register(Id.create());
         
         // Probe to see if it exists.
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(dsName);
