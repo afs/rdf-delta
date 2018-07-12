@@ -33,6 +33,7 @@ import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 public class TestPatchLogZk extends AbstractTestPatchLog {
 
     private TestingServer server;
+    private CuratorFramework client;
     
     @Before public void before() {
         try {
@@ -45,6 +46,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
     }
     
     @After public void after() {
+        client.close();
         try {
             server.close();
         } catch (Exception ex) {
@@ -59,8 +61,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
             String connectString = "localhost:" + server.getPort();
             RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
 
-            CuratorFramework client = 
-                CuratorFrameworkFactory.builder()
+            client = CuratorFrameworkFactory.builder()
                 .connectString(connectString)
                 .retryPolicy(policy)
                 .build();

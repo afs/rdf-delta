@@ -112,7 +112,6 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
                     // currentLink "reset"
                     throw new DeltaException("Can't find a replacement DeltaLink on switchover");
                 FmtLog.info(LOG, "Switch %s to %s", lastLink, currentLink);
-                System.err.printf("Switch %s to %s\n", lastLink, currentLink);
                 currentLink.ping();
                 return;
             } catch (RuntimeException ex) { throw ex; } 

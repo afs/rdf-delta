@@ -69,7 +69,7 @@ public class TestLocalServerCreateDelete {
     }
 
     @AfterClass public static void afterClass() {
-        LocalServer.releaseAll();
+        DPS.resetSystem();
     }
 
     @Before public void beforeTest() {
