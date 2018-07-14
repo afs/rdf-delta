@@ -56,12 +56,10 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final String versionsPath;
     private final String lockPath;
     
-    
     private long earliestVersion = DeltaConst.VERSION_UNSET;
     private Id earliestId = null;
     
-    // Set by jsonToState.
-    // XXX Make sync.
+    // Set by newState
     private volatile long version = DeltaConst.VERSION_UNSET;
     private volatile Id current = null;
     private volatile Id previous = null;
@@ -125,32 +123,30 @@ public class PatchLogIndexZk implements PatchLogIndex {
     
     private void newState(long newVersion, Id patch, Id prev) {
         synchronized(lock) {
-            FmtLog.info(LOG, "newVersion %d->%d", version, newVersion);
+            FmtLog.debug(LOG, "newVersion %d->%d", version, newVersion);
             if ( newVersion <= version ) {
                 if ( newVersion == version ) {
                     if ( ! Objects.equals(patch, current) || ! Objects.equals(prev,previous) )
                         FmtLog.error(LOG, "Same version but different ids: current=(%s,%s), proposed=(%s,%s)", current, previous, patch, prev);
-                } else 
-                    FmtLog.info(LOG, "newVersion: no change", version, newVersion);
+                }
                 return ;
             }
             
             //FmtLog.debug(LOG, "-- [%d] State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
-            // XXX iff newVersion > version. 
-            version = newVersion;
-            if ( newVersion >= DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) )
+            if ( newVersion == DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) ) {
                 // If going no patch -> patch, set the start.
                 earliestVersion = DeltaConst.VERSION_FIRST;
+                earliestId = patch;
+            }
+            this.version = newVersion;
             this.current = patch;
             this.previous = prev;
-            if ( earliestId == null )
-                earliestId = patch;
         }
     }
 
     @Override
     public void save(long version, Id patch, Id prev) {
-        // Log wide lock?
+        // Should always be called inside the patch lock. 
         newState(version, patch, prev);
         JsonObject x = stateToJson(version, patch, prev);
         if ( patch != null )
@@ -167,7 +163,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     
     private Watcher logStateWatcher = (event)->{
         synchronized(lock) {
-            FmtLog.info(LOG, "++ [%d:%s] Log watcher", instance, logName);
+            FmtLog.debug(LOG, "++ [%d:%s] Log watcher", instance, logName);
             syncState();
         }
     };
@@ -195,22 +191,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     private void initState() {
-        FmtLog.info(LOG, "initState %s", logName);
-        if ( current == null )
-            earliestVersion = DeltaConst.VERSION_INIT;
-        version = DeltaConst.VERSION_INIT;
-        save(version, current, previous); 
+        runWithLock(()->{
+            FmtLog.debug(LOG, "initState %s", logName);
+            if ( current == null )
+                earliestVersion = DeltaConst.VERSION_INIT;
+            version = DeltaConst.VERSION_INIT;
+            save(version, current, previous);
+        });
     }
     
-//    private void loadState(boolean init) {
-//        JsonObject obj = Zk.zkFetchJson(client, statePath);
-//        if ( obj == null )
-//            return;
-//        jsonToState(obj);
-//    }
-    
     private static JsonObject stateToJson(long version, Id patch, Id prev) {
-        FmtLog.info(LOG, "stateToJson ver=%d", version);
+        FmtLog.debug(LOG, "stateToJson ver=%d", version);
         return JSONX.buildObject(b->{
             b.pair(fVersion, version);
             if ( patch != null )
@@ -222,7 +213,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     
     private void jsonToState(JsonObject obj) {
         try {
-            FmtLog.info(LOG, "jsonToState %s",JSON.toStringFlat(obj));
+            FmtLog.debug(LOG, "jsonToState %s",JSON.toStringFlat(obj));
             long ver = obj.get(fVersion).getAsNumber().value().longValue();
             if ( ver == version )
                 return ;
@@ -230,7 +221,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
             Id newPrevious = getIdOrNull(obj, fPrevious);
             newState(ver, newCurrent, newPrevious);
         } catch (RuntimeException ex) {
-            FmtLog.info(this.getClass(), "Failed to load the patch log index state", ex);
+            FmtLog.error(this.getClass(), "Failed to load the patch log index state", ex);
         }
     }
 

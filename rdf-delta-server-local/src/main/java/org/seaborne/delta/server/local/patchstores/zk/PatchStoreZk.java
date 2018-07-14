@@ -56,9 +56,8 @@ public class PatchStoreZk extends PatchStore {
     // https://curator.apache.org/curator-framework/schema.html
     
     // ---- Watching for logs
-    // Watch for log changes.
-    // XXX Cluster lock.
-    private Object storeLock = new Object();
+    private final Object storeLock = new Object();
+    
     private static int counter = 0; 
     private final CuratorFramework client;
     private final int instance;
@@ -253,7 +252,7 @@ public class PatchStoreZk extends PatchStore {
     
     @Override
     protected void delete(PatchLog patchLog) {
-        synchronized(storeLock) {
+        clusterLock(()->{
             String dsName = patchLog.getDescription().getName();
             PatchLog patchLog2 = patchLogs.remove(dsName);
             if ( patchLog2 == null )
@@ -261,7 +260,7 @@ public class PatchStoreZk extends PatchStore {
             String logPath = zkPath(ZkConst.pLogs, dsName);
             if ( zkExists(client, logPath) )
                 zkDelete(client, logPath);
-            }
+        }, null);
     }
 
     /**
@@ -313,7 +312,8 @@ public class PatchStoreZk extends PatchStore {
                 try {
                     action.run();
                 } catch(Exception ex) {
-                    onThrow.accept(ex);
+                    if ( onThrow != null )
+                        onThrow.accept(ex);
                 }
             });
         }
@@ -327,7 +327,8 @@ public class PatchStoreZk extends PatchStore {
                     try {
                         return action.run();
                     } catch(Exception ex) {
-                        onThrow.accept(ex);
+                        if ( onThrow != null )
+                            onThrow.accept(ex);
                         return null;        
                     }
                 });

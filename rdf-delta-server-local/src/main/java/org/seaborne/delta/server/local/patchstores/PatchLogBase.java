@@ -203,7 +203,8 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public long find(Id id) {
-        // Hmm
+        // XXX PatchLogBase.find(Id)
+        FmtLog.warn(LOG, "Not implemented (yet). find(Id)");
         return 0;
     }
 
