@@ -23,17 +23,26 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.LocalServers;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class TestPatchLogZk extends AbstractTestPatchLog {
 
+    static { LogCtl.setJavaLogging("src/test/resources/logging.properties"); }
+    
     private TestingServer server;
     private CuratorFramework client;
+
+//    @BeforeClass public static void beforeClass() { }
+//    @AfterClass public static void afterClass() {}
     
     @Before public void before() {
         try {

@@ -19,6 +19,7 @@
 package org.seaborne.delta.server.local.patchstores;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.NotImplemented;
@@ -44,12 +45,10 @@ import org.slf4j.LoggerFactory;
 
 public class PatchLogBase implements PatchLog {
     private final static Logger LOG = LoggerFactory.getLogger(PatchLogBase.class);
-    // Sync lock.
-    private Object lock = new Object();
     
     private final DataSourceDescription dsd;
     private final Id logId;
-    private final PatchLogIndex logState;
+    private final PatchLogIndex logIndex;
     private final PatchStore patchStore;
 
     private final PatchStorage patchStorage;
@@ -59,14 +58,14 @@ public class PatchLogBase implements PatchLog {
     // May be truncated - the earliest entry points to a patch not in the list - need to get from the storage an look fo rthe previous patch.
 
     public PatchLogBase(DataSourceDescription dsd,
-                        PatchLogIndex logState,
+                        PatchLogIndex logIndex,
                         PatchStorage patchStorage,
                         PatchStore patchStore) {
         this.dsd = dsd;
         // Currently, the log id is the id of the DataSource.
         this.logId = dsd.getId();
         
-        this.logState = logState;
+        this.logIndex = logIndex;
         this.patchStorage = patchStorage;
         this.patchStore = patchStore;
         initFromStorage();
@@ -74,40 +73,37 @@ public class PatchLogBase implements PatchLog {
     
     // Set earliestId, earliestVersion
     private void initFromStorage() {
-        long latest = logState.getCurrentVersion();
-        Id latestId = logState.getCurrentId();
+        long latest = logIndex.getCurrentVersion();
+        Id latestId = logIndex.getCurrentId();
     }
     
     @Override
     public Id getEarliestId() {
-        return logState.getEarliestId();
+        return logIndex.getEarliestId();
     }
 
     @Override
     public long getEarliestVersion() {
-        return logState.getEarliestVersion();
+        return logIndex.getEarliestVersion();
     }
 
     @Override
     public Id getLatestId() {
-        if ( logState.isEmpty() )
+        if ( logIndex.isEmpty() )
             return getEarliestId();
-        return logState.getCurrentId();
+        return logIndex.getCurrentId();
     }
 
     @Override
     public long getLatestVersion() {
-        if ( logState.isEmpty() )
+        if ( logIndex.isEmpty() )
             return getEarliestVersion();
-        return logState.getCurrentVersion();
+        return logIndex.getCurrentVersion();
     }
     
     @Override
     public PatchLogInfo getInfo() {
-        if ( ! logState.isEmpty() ) {
-            return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
-        } else
-            return new PatchLogInfo(dsd, getEarliestVersion(), getEarliestVersion(), null);
+        return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
     }
 
     @Override
@@ -122,7 +118,7 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public boolean isEmpty() {
-        return logState.isEmpty();
+        return logIndex.isEmpty();
     }
 
     @Override
@@ -141,27 +137,36 @@ public class PatchLogBase implements PatchLog {
 //        System.err.println(">>append");
 //        RDFPatchOps.write(System.err, patch);
 //        System.err.println("<<append");
-        synchronized(lock) {
+        
+        return patchLogLockRtn(()->{
             Id thisId = Id.fromNode(patch.getId());
             Id prevId = Id.fromNode(patch.getPrevious());        
 
             // Is it a reply of the last patch?
             if ( ! isEmpty() && getLatestId().equals(thisId) ) {
-                if ( Objects.equals(prevId, logState.getPreviousId()) )
+                if ( Objects.equals(prevId, logIndex.getPreviousId()) )
                     FmtLog.warn(LOG, "Patch id matches log head, but patch previous does not match log previous id");   
                 return getLatestVersion();
             }
 
-            long version = logState.nextVersion();
+            long version = logIndex.nextVersion();
             
             PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
 
             patchStorage.store(thisId, patch);
             
             // This is the commit point.
-            logState.save(version, thisId, prevId);
-            return version;
-        }
+            logIndex.save(version, thisId, prevId);
+            return Long.valueOf(version);
+        });
+    }
+
+    protected void patchLogLock(Runnable action) {
+        logIndex.runWithLock(action);
+    }
+    
+    protected <X> X patchLogLockRtn(Supplier<X> action) {
+        return logIndex.runWithLockRtn(action);
     }
 
     @Override
@@ -193,7 +198,7 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public Id find(long version) {
-        return logState.mapVersionToId(version);
+        return logIndex.mapVersionToId(version);
     }
 
     @Override
@@ -204,7 +209,7 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public void release() {
-        logState.release();
+        logIndex.release();
         patchStorage.release();
     }
 }

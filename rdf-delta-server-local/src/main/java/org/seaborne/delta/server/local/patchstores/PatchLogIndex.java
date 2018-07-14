@@ -18,12 +18,21 @@
 
 package org.seaborne.delta.server.local.patchstores;
 
+import java.util.function.Supplier;
+
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.PatchStore;
 
 /** State control for a {@link PatchStore}. The index is {@code version -> id} mapping. */
 public interface PatchLogIndex {
+    
+    /** Run action inside a patch log wide lock. */ 
+    public void runWithLock(Runnable action);
+    
+    /** Run action inside a patch log wide lock; return a result. */
+    public <X> X runWithLockRtn(Supplier<X> action);
+
     /** Return whether the log is empty. */ 
     public boolean isEmpty();
     
@@ -37,7 +46,7 @@ public interface PatchLogIndex {
     public void save(long version, Id patch, Id prev);
     
     /**
-     * Ensure the index is up-to-date. 
+     * Ensure the index is up-to-date.
      * This should not be necessary.
      */
     public void refresh();
@@ -72,7 +81,7 @@ public interface PatchLogIndex {
 
     /** Release the state for this log during deletion. */
     public void release();
-    
+
 //    /** Map {@link Id} to version number. */ 
 //    public long mapIdToVersion(Id id); 
 }

@@ -44,9 +44,9 @@ public class PatchStorageZk implements PatchStorage {
     private final String patches;
     private final SharedCount versionCounter;
 
-    public PatchStorageZk(CuratorFramework client, String patches) {
+    public PatchStorageZk(CuratorFramework client, String logPath) {
         this.client = client;
-        this.patches = patches;
+        this.patches = Zk.zkPath(logPath, ZkConst.nPatches);
         this.versionCounter = null;
         Zk.zkEnsure(client, patches);
     }

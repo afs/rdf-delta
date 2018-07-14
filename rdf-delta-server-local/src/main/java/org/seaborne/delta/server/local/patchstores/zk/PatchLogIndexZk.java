@@ -18,10 +18,15 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
+import static org.seaborne.delta.server.local.patchstores.zk.Zk.zkPath;
+
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -43,23 +48,27 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final Object lock = new Object();
     private final CuratorFramework client;
 
-    private int instance;
+    private /*final*/ int instance;
 
     private final DataSourceDescription dsd;
     private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas 
     private final String statePath;
     private final String versionsPath;
+    private final String lockPath;
+    
     
     private long earliestVersion = DeltaConst.VERSION_UNSET;
     private Id earliestId = null;
     
-    private long version = DeltaConst.VERSION_UNSET;
-    private Id current = null;
-    private Id previous = null;
-    
-    private final String fVersion = "version";
-    private final String fId = "id";
-    private final String fPrevious = "previous";
+    // Set by jsonToState.
+    // XXX Make sync.
+    private volatile long version = DeltaConst.VERSION_UNSET;
+    private volatile Id current = null;
+    private volatile Id previous = null;
+
+    private static final String fVersion = "version";
+    private static final String fId = "id";
+    private static final String fPrevious = "previous";
 
     /** {@code PatchLogIndexZk}
      * <ul>
@@ -68,15 +77,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
      * </ul> 
      */
     
-    public PatchLogIndexZk(CuratorFramework client, int instance, DataSourceDescription dsd, String statePath, String versionsPath) {
+    public PatchLogIndexZk(CuratorFramework client, int instance, DataSourceDescription dsd, String logPath) {
         this.client = client ;
         this.instance = instance;
         this.dsd = dsd;
         this.logName = dsd.getName();
+        this.statePath      = zkPath(logPath, ZkConst.nState);
+        this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
+        this.lockPath       = zkPath(logPath, ZkConst.nLock);
         Zk.zkEnsure(client, statePath);
         Zk.zkEnsure(client, versionsPath);
-        this.statePath = statePath;
-        this.versionsPath = versionsPath;
+        Zk.zkEnsure(client, lockPath);
 
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
@@ -96,14 +107,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
         stateOrInit();
     }
 
-    private Id getIdOrNull(JsonObject obj, String field) {
-        JsonValue jv = obj.get(field);
-        if ( jv == null )
-            return null;
-        String s = jv.getAsString().value();
-        return Id.fromString(s);
-    }
-
     @Override
     public boolean isEmpty() {
         //return version == DeltaConst.VERSION_UNSET || DeltaConst.VERSION_INIT;
@@ -112,24 +115,43 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     @Override
     public long nextVersion() {
+        // XXX Inside the cluster lock.
+        // Need parent lock cycle call down.
+        FmtLog.info(LOG, "Alloc version %d", (version+1));
         return version+1;
     }
 
     // ---- Zookeeper index state watching.
     
-    // XXX Migrate the test
-    private void newVersion(long newVersion) {
-        version = newVersion;
-        if ( newVersion >= DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) )
-            // If going no patch -> patch, set the start.
-            earliestVersion = DeltaConst.VERSION_FIRST;
+    private void newState(long newVersion, Id patch, Id prev) {
+        synchronized(lock) {
+            FmtLog.info(LOG, "newVersion %d->%d", version, newVersion);
+            if ( newVersion <= version ) {
+                if ( newVersion == version ) {
+                    if ( ! Objects.equals(patch, current) || ! Objects.equals(prev,previous) )
+                        FmtLog.error(LOG, "Same version but different ids: current=(%s,%s), proposed=(%s,%s)", current, previous, patch, prev);
+                } else 
+                    FmtLog.info(LOG, "newVersion: no change", version, newVersion);
+                return ;
+            }
+            
+            //FmtLog.debug(LOG, "-- [%d] State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
+            // XXX iff newVersion > version. 
+            version = newVersion;
+            if ( newVersion >= DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) )
+                // If going no patch -> patch, set the start.
+                earliestVersion = DeltaConst.VERSION_FIRST;
+            this.current = patch;
+            this.previous = prev;
+            if ( earliestId == null )
+                earliestId = patch;
+        }
     }
 
     @Override
     public void save(long version, Id patch, Id prev) {
-        newVersion(version);
-        this.current = patch;
-        this.previous = prev;
+        // Log wide lock?
+        newState(version, patch, prev);
         JsonObject x = stateToJson(version, patch, prev);
         if ( patch != null )
             Zk.zkCreateSet(client, versionPath(version), patch.asBytes());
@@ -142,49 +164,53 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
     
     // ---- Zookeeper index state watching.
-
+    
     private Watcher logStateWatcher = (event)->{
         synchronized(lock) {
-            //FmtLog.info(LOG, "++ [%d:%s] Log watcher", instance, logName);
+            FmtLog.info(LOG, "++ [%d:%s] Log watcher", instance, logName);
             syncState();
         }
     };
 
     private void syncState() {
-        JsonObject obj = getWatchState();
+        JsonObject obj = getWatchedState();
         if ( obj != null )
             jsonToState(obj);
     }
 
-    private void stateOrInit() {
-        JsonObject obj = getWatchState();
-        if ( obj != null )
-            jsonToState(obj);
-        else
-            initState();
-    }
-
-    private void initState() {
-        if ( current == null ) {
-                save(DeltaConst.VERSION_INIT, null, null);
-            earliestVersion = DeltaConst.VERSION_INIT;
-        } else {
-            save(version, current, previous); 
-        }
-    }
-    
-    private void loadState(boolean init) {
-        JsonObject obj = Zk.zkFetchJson(client, statePath);
-        if ( obj == null )
-            return;
-        jsonToState(obj);
-    }
-    
-    private JsonObject getWatchState() {
+    private JsonObject getWatchedState() {
         return Zk.zkFetchJson(client, logStateWatcher, statePath);
     }
 
-    private JsonObject stateToJson(long version, Id patch, Id prev) {
+    // ---- Zookeeper index state watching.
+
+    private void stateOrInit() {
+        synchronized(lock) {
+            JsonObject obj = getWatchedState();
+            if ( obj != null )
+                jsonToState(obj);
+            else
+                initState();
+        }
+    }
+
+    private void initState() {
+        FmtLog.info(LOG, "initState %s", logName);
+        if ( current == null )
+            earliestVersion = DeltaConst.VERSION_INIT;
+        version = DeltaConst.VERSION_INIT;
+        save(version, current, previous); 
+    }
+    
+//    private void loadState(boolean init) {
+//        JsonObject obj = Zk.zkFetchJson(client, statePath);
+//        if ( obj == null )
+//            return;
+//        jsonToState(obj);
+//    }
+    
+    private static JsonObject stateToJson(long version, Id patch, Id prev) {
+        FmtLog.info(LOG, "stateToJson ver=%d", version);
         return JSONX.buildObject(b->{
             b.pair(fVersion, version);
             if ( patch != null )
@@ -196,17 +222,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
     
     private void jsonToState(JsonObject obj) {
         try {
+            FmtLog.info(LOG, "jsonToState %s",JSON.toStringFlat(obj));
             long ver = obj.get(fVersion).getAsNumber().value().longValue();
             if ( ver == version )
                 return ;
-            newVersion(ver);
-            if ( version >= DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) ) { 
-                 // If going no patch -> patch, set the start.
-                earliestVersion = DeltaConst.VERSION_FIRST;
-            }
-            current = getIdOrNull(obj, fId);
-            previous = getIdOrNull(obj, fPrevious);
-            FmtLog.info(LOG, "-- [%d] State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
+            Id newCurrent = getIdOrNull(obj, fId);
+            Id newPrevious = getIdOrNull(obj, fPrevious);
+            newState(ver, newCurrent, newPrevious);
         } catch (RuntimeException ex) {
             FmtLog.info(this.getClass(), "Failed to load the patch log index state", ex);
         }
@@ -265,10 +287,48 @@ public class PatchLogIndexZk implements PatchLogIndex {
         }
     }
 
+    private Id getIdOrNull(JsonObject obj, String field) {
+        JsonValue jv = obj.get(field);
+        if ( jv == null )
+            return null;
+        String s = jv.getAsString().value();
+        return Id.fromString(s);
+    }
+
     @Override
     public void release() {
-        // XXX Zk lock needed.
+        // XXX Zk lock needed?
         Zk.zkDelete(client, statePath);
         Zk.zkDelete(client, versionsPath);
+    }
+
+    @Override
+    public void runWithLock(Runnable action) {
+        synchronized(lock) {
+            Zk.zkLock(client, lockPath, ()->{
+                try {
+                    action.run();
+                } catch(RuntimeException ex) {
+                    FmtLog.warn(LOG, "RuntimeException in runWithLock");
+                    ex.printStackTrace();
+                    throw ex;
+                }
+            });
+        }
+    }
+    
+    @Override
+    public <X> X runWithLockRtn(Supplier<X> action) {
+        synchronized(lock) {
+            return Zk.zkLockRtn(client, lockPath, ()->{
+                try {
+                    return action.get();
+                } catch(RuntimeException ex) {
+                    FmtLog.warn(LOG, "RuntimeException in runWithLock");
+                    ex.printStackTrace();
+                    throw ex;
+                }
+            });
+        }
     }
 }

@@ -38,7 +38,6 @@ public class TestLocalServer {
     
     @BeforeClass public static void beforeClass() {
         DPS.resetSystem();
-        DPS.init();
     }
 
     @Test public void local_server_01() {

@@ -18,10 +18,7 @@
 
 package org.seaborne.delta.server.patchstores;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.seaborne.delta.DeltaConst;
@@ -40,7 +37,8 @@ public abstract class AbstractTestPatchLog {
     
     protected abstract PatchLog patchLog();
     
-    @Test public void patchLog_1_empty() {
+    @Test
+    public void patchLog_1_empty() {
         PatchLog patchLog = patchLog();
         
         boolean b = patchLog.isEmpty();
@@ -53,12 +51,15 @@ public abstract class AbstractTestPatchLog {
     }
     
     @Test public void patchLog_2_singlePatch() {
+        //System.out.println("\n>> patchLog_2_singlePatch\n");
         PatchLog patchLog = patchLog();
         assertTrue(patchLog.isEmpty());
         
         RDFPatch patch = RDFPatchOps.emptyPatch();
         long v = patchLog.append(patch);
         assertEquals(1, v);
+        assertFalse(patchLog.isEmpty());
+        
         RDFPatch patch1 = patchLog.fetch(1);
         assertNotNull(patch1);
         
@@ -69,9 +70,11 @@ public abstract class AbstractTestPatchLog {
 
         RDFPatch patch2 = patchLog.fetch(2);
         assertNull(patch2);
-}
+        //System.out.println("\n<< patchLog_2_singlePatch\n");
+    }
 
-    @Test public void patchLog_3_two_patches() {
+    @Test
+    public void patchLog_3_two_patches() {
         PatchLog patchLog = patchLog();
         RDFPatch patchAdd1 = RDFPatchOps.emptyPatch();
         long v1 = patchLog.append(patchAdd1);

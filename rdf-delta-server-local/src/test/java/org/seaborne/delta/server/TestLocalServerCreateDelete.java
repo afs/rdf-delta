@@ -65,7 +65,6 @@ public class TestLocalServerCreateDelete {
         catch (IOException ex) { throw IOX.exception(ex); }
 
         DPS.resetSystem();
-        DPS.init();
     }
 
     @AfterClass public static void afterClass() {

@@ -63,7 +63,7 @@ public class DeltaConnection implements AutoCloseable {
     private final DatasetGraphChanges managed;
     private final Dataset managedDataset;
 
-    // Suppressed emopty commits versions
+    // Suppressed empty commits versions
     private final DatasetGraphChanges managedNoEmpty;
     private final Dataset managedNoEmptyDataset;
 
@@ -306,20 +306,20 @@ public class DeltaConnection implements AutoCloseable {
     /** Sync until some version */
     private void syncToVersion(long version) {
         //long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
-        if ( version == VERSION_UNSET ) {
-            FmtLog.warn(LOG, "Sync: Failed to sync");
+        if ( DeltaConst.versionNoPatches(version) ) {
+            FmtLog.warn(LOG, "Sync: Asked for no patches to sync");
             return;
         }
 
         long localVer = getLocalVersion();
 
-        // -1 ==> no entries, uninitialized.
-        if ( localVer < 0 ) {
-            FmtLog.info(LOG, "Sync: No log entries");
-            localVer = 0 ;
-            setLocalState(localVer, (Node)null);
-            return;
-        }
+//        // -1 ==> no entries, uninitialized.
+//        if ( DeltaConst.versionUninitialized(localVer) ) {
+//            FmtLog.info(LOG, "Sync: No log entries");
+//            localVer = DeltaConst.VERSION_INIT;
+//            setLocalState(localVer, (Node)null);
+//            return;
+//        }
         
         if ( localVer > version ) 
             FmtLog.info(LOG, "[%s] Local version ahead of remote : [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());

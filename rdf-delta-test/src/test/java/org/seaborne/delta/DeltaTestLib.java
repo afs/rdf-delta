@@ -38,7 +38,6 @@ public class DeltaTestLib {
     
     static LocalServer createEmptyTestServer() {
         DPS.resetSystem();
-        DPS.init();
         ensureClear(ServerArea);
         LocalServer localServer = LocalServers.createFile(ServerArea);
         return localServer;

@@ -18,18 +18,25 @@
 
 package org.seaborne.delta.link;
 
+import java.util.Objects;
+
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.patch.RDFPatch;
 
-/** Operations on a single patch log */
+/** Operations on a single patch log. This is a pairing of a {@link DeltaLink} (connection to a patch server)
+ * and the reference to a specfic log 
+ * 
+ *    */
 public class DeltaLog {
     
     private final DeltaLink dLink;
     private final Id dsRef;
 
     public DeltaLog(DeltaLink dLink, Id dsRef) {
+        Objects.requireNonNull(dLink, "Argument dLink"); 
+        Objects.requireNonNull(dsRef, "Argument dsRef"); 
         this.dLink = dLink;
         this.dsRef = dsRef;
     }

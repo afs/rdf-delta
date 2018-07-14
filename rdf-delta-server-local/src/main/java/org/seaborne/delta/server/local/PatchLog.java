@@ -79,7 +79,7 @@ public interface PatchLog {
      */
     public Id getLogId();
     
-    /** Is the {@code IPatchLog} empty? */
+    /** Is the {@code PatchLog} empty? */
     public boolean isEmpty();
     
     /** Does the log contain the patch with id {@code patchId}? */

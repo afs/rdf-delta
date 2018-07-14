@@ -22,11 +22,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -133,13 +135,7 @@ public class Zk {
     }
     
     public static JsonObject zkFetchJson(CuratorFramework client, String path) {
-        byte[] x = zkFetch(client, path);
-        if ( x == null )
-            return null;
-        if ( x.length == 0 )
-            return null;
-        String s = StrUtils.fromUTF8bytes(x);
-        return JSON.parse(new ByteArrayInputStream(x));
+        return zkFetchJson(client, null, path);
     }
 
     public static JsonObject zkFetchJson(CuratorFramework client, Watcher watcher, String path) {
@@ -153,19 +149,15 @@ public class Zk {
     }
 
     public static byte[] zkFetch(CuratorFramework client,  String path) {
-        try {
-            return client.getData().forPath(path);
-        } catch (IllegalArgumentException ex) {
-            return null;
-        } catch (Exception ex) {
-            //LOG.warn("Failed: zkFetch(" + path + ") " + ex.getMessage());
-            return null;
-        }
+        return zkFetch(client, null, path);
     }
     
     public static byte[] zkFetch(CuratorFramework client, Watcher watcher, String path) {
         try {
-            return client.getData().usingWatcher(watcher).forPath(path);
+            GetDataBuilder b = client.getData();
+            if ( watcher != null )
+                b.usingWatcher(watcher);
+            return b.forPath(path);
         } catch (IllegalArgumentException ex) {
             return null;
         } catch (Exception ex) {
@@ -203,7 +195,7 @@ public class Zk {
         });
     }
 
-    public static void zkLock(CuratorFramework client, String nLock, ZkRunnable action) {
+    public static void zkLock(CuratorFramework client, String nLock, Runnable action) {
         InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
         try {
             lock.acquire();
@@ -218,7 +210,27 @@ public class Zk {
             zkException("zkLock", nLock, ex);
         }
     }
+    
+    public static <X> X zkLockRtn(CuratorFramework client, String nLock, Supplier<X> action) {
+        InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
+        try {
+            lock.acquire();
+            if ( ! lock.isAcquiredInThisProcess() ) {}
+            
+            try {
+                return action.get();
+            } finally {
+                lock.release();
+            }
+        } catch (Exception ex) {
+            zkException("zkLock", nLock, ex);
+            return null;
+        }
+    }
 
+
+    // XXX Do we need these?
+    
     @FunctionalInterface
     public interface ZkRunnable { public void run() throws Exception; }
     

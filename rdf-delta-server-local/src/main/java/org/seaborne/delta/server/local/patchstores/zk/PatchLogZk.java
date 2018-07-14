@@ -18,8 +18,6 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.server.local.patchstores.zk.Zk.zkPath;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.PatchLog;
@@ -40,8 +38,8 @@ public class PatchLogZk extends PatchLogBase {
     // The decision of where to place it in the Zookeeper namespace is the responsibility of calling PatchStore.
     public PatchLogZk(DataSourceDescription dsd, int instance, String logPath, CuratorFramework client, PatchStore patchStore) {
         super(dsd,
-              new PatchLogIndexZk(client, instance, dsd, zkPath(logPath, ZkConst.nState), zkPath(logPath, ZkConst.nVersions)),
-              new PatchStorageZk(client, zkPath(logPath, ZkConst.nPatches)),
+              new PatchLogIndexZk(client, instance, dsd, logPath),
+              new PatchStorageZk(client, logPath),
               patchStore);
         this.client = client;
         this.logPath = logPath;

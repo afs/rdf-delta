@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local.patchstores.mem;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
@@ -28,6 +29,7 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 
 /** State control for a {@link PatchStore} */
 public class PatchLogIndexMem implements PatchLogIndex {
+    private Object lock = new Object();
     // Only needs to be a Map unless we need Id->Version.
     //private BiMap<Long, Id> versions = HashBiMap.create();
     private Map<Long, Id> versions = new HashMap<>();
@@ -110,6 +112,21 @@ public class PatchLogIndexMem implements PatchLogIndex {
         current = null;
         prev = null;
     }
+
+    @Override
+    public void runWithLock(Runnable action) {
+        synchronized(lock) {
+            action.run();
+        }
+    }
+    
+    @Override
+    public <X> X runWithLockRtn(Supplier<X> action) {
+        synchronized(lock) {
+            return action.get();
+        }
+    }
+
     
 //    @Override
 //    public long mapIdToVersion(Id id) {

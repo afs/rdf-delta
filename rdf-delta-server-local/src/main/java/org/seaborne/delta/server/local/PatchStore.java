@@ -119,6 +119,9 @@ public abstract class PatchStore {
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
     public abstract List<DataSourceDescription> listDataSources();
 
+    // XXX Implement getDataSource(String name) : use in PatchStoreZk.
+    //public DataSourceDescription getDataSource(String name) { return null; }
+
     /**
      * Return a new {@link PatchLog}. Checking that there is no registered
      * {@link PatchLog} for this {@code dsRef} has already been done.

@@ -26,6 +26,7 @@ import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.server.system.DeltaSystem;
 import org.slf4j.Logger ;
 
 public class DPS {
@@ -62,12 +63,13 @@ public class DPS {
      * There default PatchStoreProvider is retained. 
      */
     public static void resetSystem() {
-        // Clear
-        // First - because this may initialize the system (tests called in isolation).
+        DeltaSystem.init();
+        DPS.init();
         LocalServer.releaseAll();
         FileStore.resetTracked();
-        PatchStoreMgr.reset();
         PatchStore.clearLogIdCache();
+        // PatchStoreMgr.reset clears the patch store providers.
+        PatchStoreMgr.reset();
         initPatchStoreProviders();
     }
     

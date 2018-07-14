@@ -145,7 +145,12 @@ public class DeltaConst {
     /** The version number of the first patch */
     public static long VERSION_FIRST    = 1;
     
+
+    public static boolean versionUninitialized(long version) {
+        return version == DeltaConst.VERSION_UNSET;
+    }
+
     public static boolean versionNoPatches(long version) {
-        return (version == DeltaConst.VERSION_INIT || version == DeltaConst.VERSION_UNSET) ;
+        return (version == DeltaConst.VERSION_INIT || version == DeltaConst.VERSION_UNSET);
     }
 }
