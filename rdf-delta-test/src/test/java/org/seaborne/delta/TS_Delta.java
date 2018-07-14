@@ -30,6 +30,7 @@ import org.junit.runners.Suite.SuiteClasses;
     TestLocalLinkFile.class ,
     TestLocalConnectionMem.class ,
     TestLocalConnectionFile.class ,
+    //TestLocalConnectionZk.class ,
     TestLocalClient.class ,
     
     TestRemoteLink.class ,

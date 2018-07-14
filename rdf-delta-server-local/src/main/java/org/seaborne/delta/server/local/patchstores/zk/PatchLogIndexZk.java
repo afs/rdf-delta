@@ -83,9 +83,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
         this.statePath      = zkPath(logPath, ZkConst.nState);
         this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
         this.lockPath       = zkPath(logPath, ZkConst.nLock);
-        Zk.zkEnsure(client, statePath);
-        Zk.zkEnsure(client, versionsPath);
-        Zk.zkEnsure(client, lockPath);
 
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
@@ -187,6 +184,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 jsonToState(obj);
             else
                 initState();
+            if ( version == DeltaConst.VERSION_UNSET )
+                save(DeltaConst.VERSION_INIT, current, previous);
         }
     }
 
@@ -198,6 +197,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
             version = DeltaConst.VERSION_INIT;
             save(version, current, previous);
         });
+    }
+
+    /** The initial state object of a patch log */ 
+    /*package*/ static JsonObject initialStateJson() {
+        FmtLog.debug(LOG, "initialStateJson");
+        return JSONX.buildObject(b->{
+            b.pair(fVersion, DeltaConst.VERSION_INIT);
+        }); 
     }
     
     private static JsonObject stateToJson(long version, Id patch, Id prev) {

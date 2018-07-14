@@ -39,7 +39,7 @@ public class PatchLogZk extends PatchLogBase {
     public PatchLogZk(DataSourceDescription dsd, int instance, String logPath, CuratorFramework client, PatchStore patchStore) {
         super(dsd,
               new PatchLogIndexZk(client, instance, dsd, logPath),
-              new PatchStorageZk(client, logPath),
+              new PatchStorageZk(client, instance, logPath),
               patchStore);
         this.client = client;
         this.logPath = logPath;

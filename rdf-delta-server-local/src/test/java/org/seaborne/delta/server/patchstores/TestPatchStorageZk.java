@@ -60,7 +60,7 @@ public class TestPatchStorageZk extends AbstractTestPatchStorage {
     
     @Override
     protected PatchStorage patchStorage() {
-        return new PatchStorageZk(client, patches);
+        return new PatchStorageZk(client, 0, patches);
     }
 
 }

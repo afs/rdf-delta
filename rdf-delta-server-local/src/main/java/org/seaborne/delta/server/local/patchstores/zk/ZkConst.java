@@ -24,13 +24,13 @@ public class ZkConst {
 
     /* The ZooKeeper naming:
      * /delta/lock                          Store-wide lock
+     * /delta/activeLocks/NAME              Indicate a log is active.                   
      * 
      * Per log:
      * /delta/logs/NAME
      * /delta/logs/NAME/dsd
      * /delta/logs/NAME/lock
      * /delta/logs/NAME/state               (first_version: ,  DataSourceDescription) 
-     * /delta/logs/NAME/patches-            patch  sequence node for "{ id: prev: version:}"
      * 
      * When including patch storage:
      * /delta/logs/NAME/patches/
@@ -41,6 +41,7 @@ public class ZkConst {
     static final String pRoot           = "/delta";
     static final String pLogs           = zkPath(pRoot, "logs");
     static final String pStoreLock      = zkPath(pRoot, "lock");
+    static final String pActiveLogs     = zkPath(pRoot, "activeLogs");
 
     static final String nDsd            = "dsd";
     static final String nLock           = "lock";

@@ -199,15 +199,13 @@ public class Zk {
         InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
         try {
             lock.acquire();
-            if ( ! lock.isAcquiredInThisProcess() ) {}
-            
-            try {
-                action.run();
-            } finally {
-                lock.release();
-            }
+            if ( ! lock.isAcquiredInThisProcess() ) 
+                LOG.warn("zkLock: lock.isAcquiredInThisProcess() is false");
+            action.run();
         } catch (Exception ex) {
             zkException("zkLock", nLock, ex);
+        } finally {
+            try { lock.release(); } catch (Exception ex) {}
         }
     }
     
@@ -215,16 +213,15 @@ public class Zk {
         InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
         try {
             lock.acquire();
-            if ( ! lock.isAcquiredInThisProcess() ) {}
+            if ( ! lock.isAcquiredInThisProcess() ) 
+                LOG.warn("zkLockRtn: lock.isAcquiredInThisProcess() is false");
+            return action.get();
             
-            try {
-                return action.get();
-            } finally {
-                lock.release();
-            }
         } catch (Exception ex) {
             zkException("zkLock", nLock, ex);
             return null;
+        } finally {
+            try { lock.release(); } catch (Exception ex) {}
         }
     }
 
@@ -270,12 +267,6 @@ public class Zk {
         
     }
 
-    public static long zkGetNext(CuratorFramework client, String p, byte[] b) {
-        System.err.println("zkGetNext");
-        throw new NotImplemented();
-        //return -1;
-    }
-    
     public static void listNodes(CuratorFramework client) {
         listNodes(client, "/");
     }

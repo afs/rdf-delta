@@ -25,10 +25,13 @@ import java.util.stream.Stream;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.shared.SharedCount;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Patch storage in Apache ZooKeeper. 
@@ -39,12 +42,12 @@ import org.seaborne.patch.RDFPatchOps;
  * They can cause slow startup because ZooKeeper keeps the database in-memory.
  */
 public class PatchStorageZk implements PatchStorage {
-
+    private static Logger LOG = LoggerFactory.getLogger(PatchStorageZk.class); 
     private final CuratorFramework client;
     private final String patches;
     private final SharedCount versionCounter;
 
-    public PatchStorageZk(CuratorFramework client, String logPath) {
+    public PatchStorageZk(CuratorFramework client, int instance, String logPath) {
         this.client = client;
         this.patches = Zk.zkPath(logPath, ZkConst.nPatches);
         this.versionCounter = null;
@@ -73,7 +76,7 @@ public class PatchStorageZk implements PatchStorage {
         if ( b == null )
             return null;
         if ( b.length == 0 )
-            System.err.println("Zero bytes");
+            FmtLog.warn(LOG, "fetch(%s) : Zero bytes", key);
         return RDFPatchOps.read(new ByteArrayInputStream(b));
     }
 
