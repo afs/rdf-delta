@@ -183,7 +183,7 @@ public class CfgFile {
         
         Path sourcePath = root.resolve(dsd.getName());
 
-        if ( PatchStore.logExists(dsd.getId()) )
+        if ( patchStore.logExists(dsd.getId()) )
             throw new DeltaBadRequestException("DataSource area already exists and is active at: "+sourcePath);
         
         // Checking.

@@ -16,27 +16,32 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.patchstores;
+package org.seaborne.delta;
 
-import org.apache.curator.test.TestingServer;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.seaborne.delta.server.ZkT;
-import org.seaborne.delta.server.local.*;
+import org.junit.BeforeClass;
+import org.seaborne.delta.server.system.DeltaSystem;
 
-public class TestPatchStoreZk extends AbstractTestPatchStore {
+public class TestLocalLinkZk extends AbstractTestDeltaLink {
+    @BeforeClass public static void setForTesting() { 
+        //LogCtl.setLog4j();
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        DeltaSystem.init();
+    }
     
-    @Before public void beforeZkTest() {} 
-    @After public void afterZkTest() { ZkT.clearAll(); }
-    
+    static Setup.LinkSetup setup = Setup.LocalSetup.createMem();
+
     
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
-        TestingServer server = ZkT.localServer();
-        String connectionString = server.getConnectString();
-        LocalServerConfig config = LocalServers.configZk(connectionString);
-        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreZkProvider).create(config);
-        patchStore.initialize(dataRegistry, config);
-        return patchStore;
+    public Setup.LinkSetup getSetup() {
+        return setup;
     }
+    
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

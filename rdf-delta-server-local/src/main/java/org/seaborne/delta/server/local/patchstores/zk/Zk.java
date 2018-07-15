@@ -36,7 +36,6 @@ import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.Lib;
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.dboe.migrate.L;
 import org.apache.zookeeper.CreateMode;
@@ -251,11 +250,20 @@ public class Zk {
         }
     }
     
+    /** Set an existing zNode to the the bytes for the JSON object */
     public static void zkSetJson(CuratorFramework client, String statePath, JsonObject x) {
         // XXX Better? Direct JSON to bytes. / Jena.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         JSON.write(out, x); 
         zkSet(client, statePath, out.toByteArray());
+    }
+
+    /** Create and set a new zNode: the zNode must not exist before this operation. */
+    public static void zkCreateSetJson(CuratorFramework client, String statePath, JsonObject x) {
+        // XXX Better? Direct JSON to bytes. / Jena.
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        JSON.write(out, x); 
+        zkCreateSet(client, statePath, out.toByteArray());
     }
 
     public static void zkSet(CuratorFramework client, String p, byte[] b) {

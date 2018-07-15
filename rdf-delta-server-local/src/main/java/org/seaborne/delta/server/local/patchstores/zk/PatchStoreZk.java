@@ -19,7 +19,10 @@
 package org.seaborne.delta.server.local.patchstores.zk;
 
 import static org.seaborne.delta.server.local.patchstores.zk.Zk.*;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.*;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nDsd;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nState;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nVersions;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -40,7 +43,12 @@ import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.zk.Zk.ZkRunnable;
+import org.seaborne.delta.server.local.patchstores.zk.Zk.ZkSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 
@@ -123,20 +131,26 @@ public class PatchStoreZk extends PatchStore {
             return;
         FmtLog.info(LOGZK, "[%d] New=%s : Deleted=%s", instance, newLogs, deletedLogs);
         
-        List<DataSourceDescription> sources = listDataSources();
-        Map<String, DataSourceDescription> map = new HashMap<>();
-        
-        // XXX Better name to DSD
-        sources.forEach(source->map.put(source.getName(), source)); 
         
         newLogs.forEach(name->{
-            DataSourceDescription dsd = map.get(name);
+            // Read DSD.
+            String newLogPath = zkPath(ZkConst.pActiveLogs, name);
+            JsonObject obj = Zk.zkFetchJson(client, newLogPath);
+            if ( obj == null ) {
+                FmtLog.info(LOGZK, "[%d] New=%s : DSD not found", instance, name);
+                return; 
+            }
+            // Create local.
+            DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
             createPatchLog(dsd);
         });
 
         deletedLogs.forEach(name->{
-            DataSourceDescription dsd = map.get(name);
-            releasePatchLog(dsd.getId());
+            // Find the dsd via local cache info only.
+            PatchLogZk patchLog = patchLogs.get(name);
+            if ( patchLog == null )
+                return;
+            releasePatchLog(patchLog.getLogId());
         });
     }
     // ---- Watching for logs
@@ -165,7 +179,11 @@ public class PatchStoreZk extends PatchStore {
     @Override
     public List<DataSourceDescription> listDataSources() {
         FmtLog.debug(LOGZK, "[%d] listDataSources", instance);
-        return listDataSourcesZk();
+        return ListUtils.toList(
+            patchLogs.values().stream().map(log->log.getDescription())
+            );
+        
+        //return listDataSourcesZk();
     }
     
     // Guarantee to look in zookeeper, no local caching.
@@ -258,14 +276,14 @@ public class PatchStoreZk extends PatchStore {
                 // We are still inside the clusterLock and also the storeLock.
                 // Our own watcher will wait until we leave storeLock, and then find
                 // that "patchLogs.containsKey(dsd.getName())"
-                
                 String zkActiveLog = zkPath(ZkConst.pActiveLogs, dsName);
-                zkCreate(client, zkActiveLog);
+                JsonObject dsdJson = dsd.asJson();
+                zkCreateSetJson(client, zkActiveLog, dsdJson);
             }, null);
             FmtLog.debug(LOGZK, "[%d] format done", instance);
         } 
 
-        // storeLock still held.
+        // Local storeLock still held.
         // create local the local object.
         PatchLogZk patchLog = new PatchLogZk(dsd, instance, logPath, client, this);
         patchLogs.put(dsName, patchLog);
@@ -279,10 +297,14 @@ public class PatchStoreZk extends PatchStore {
             PatchLog patchLog2 = patchLogs.remove(dsName);
             if ( patchLog2 == null )
                 return; 
-            // Remove from activeLogs, leave in the "logs" area. 
-            String logPath = zkPath(ZkConst.pActiveLogs, dsName);
-            if ( zkExists(client, logPath) )
-                zkDelete(client, logPath);
+            // Remove from activeLogs, leave in the "logs" area.
+            // This triggers watchers.
+            String zkActiveLog = zkPath(ZkConst.pActiveLogs, dsName);
+            if ( zkExists(client, zkActiveLog) )
+                zkDelete(client, zkActiveLog);
+            String logPath = zkPath(ZkConst.pLogs, dsName);
+            // Clear up.
+            zkDelete(client, logPath);
         }, null);
     }
 
@@ -309,7 +331,6 @@ public class PatchStoreZk extends PatchStore {
         JsonObject initialState = PatchLogIndexZk.initialStateJson();
 
         zkCreate(client, logPath);
-        zkCreate(client, zkPath(logPath, nLock));
         
         // PatchStorageZk (created there as well)
         //    zkCreate(client, zkPath(logPath, nPatches));
@@ -321,14 +342,10 @@ public class PatchStoreZk extends PatchStore {
         String lockPath       = zkPath(logPath, nLock);
 
         // Paths.
-        Zk.zkEnsure(client, dsdPath);
-        Zk.zkEnsure(client, statePath);
-        Zk.zkEnsure(client, versionsPath);
-        Zk.zkEnsure(client, lockPath);
-
-        // JSON objects.
-        Zk.zkSetJson(client, dsdPath, dsdJson);
-        Zk.zkSetJson(client, statePath, initialState);
+        zkCreateSetJson(client, dsdPath, dsdJson);
+        zkCreateSetJson(client, statePath, initialState);
+        zkCreate(client, versionsPath);
+        zkCreate(client, lockPath);
     }
     
     private static byte[] jsonBytes(JsonValue json) {

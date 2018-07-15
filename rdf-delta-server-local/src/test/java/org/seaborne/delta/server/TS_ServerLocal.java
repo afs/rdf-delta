@@ -26,7 +26,11 @@ import org.seaborne.delta.server.patchstores.*;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestFileStore.class
+    TestLocalServerBuildConfig.class
+    
+    , TestPatchStorageMem.class
+    , TestPatchStorageZk.class
+    , TestFileStore.class
     
     , TestPatchLogMem.class
     , TestPatchLogFile.class
@@ -35,8 +39,7 @@ import org.seaborne.delta.server.patchstores.*;
     , TestPatchStoreMem.class
     , TestPatchStoreFile.class
     , TestPatchStoreZk.class
-    
-    , TestLocalServerBuildConfig.class
+
     , TestLocalServer.class
     , TestLocalServerCreateDelete.class
 })

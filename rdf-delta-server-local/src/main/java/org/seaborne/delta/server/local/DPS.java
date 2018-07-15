@@ -67,7 +67,6 @@ public class DPS {
         DPS.init();
         LocalServer.releaseAll();
         FileStore.resetTracked();
-        PatchStore.clearLogIdCache();
         // PatchStoreMgr.reset clears the patch store providers.
         PatchStoreMgr.reset();
         initPatchStoreProviders();

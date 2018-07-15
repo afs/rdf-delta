@@ -57,7 +57,7 @@ public class LocalServer {
     // data sources are skipped completely so no assumption if a valid format
     // area is made and just the "disabled" file is needed).
     private Set<Id> disabledDatasources = new HashSet<>();
-    private Object lock = new Object();
+    private Object serverLock = new Object();
 
     private final PatchStore patchStore;
     
@@ -246,7 +246,7 @@ public class LocalServer {
     }
     
     private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
-        synchronized(lock) {
+        synchronized(serverLock) {
             PatchLog patchLog = patchStore.createLog(dsd);
             DataSource newDataSource = new DataSource(dsd, patchLog);
             // XXX Isn't this done in PatchStore.createPatchLog as well?
@@ -261,10 +261,11 @@ public class LocalServer {
             return;
         
         // Lock with create.
-        synchronized(lock) {
+        synchronized(serverLock) {
             DataSource datasource = getDataSource(dsRef);
             if ( datasource == null )
                 return;
+            // Done in PatchStrore.release -- dataRegistry.remove
             PatchStore patchStore = datasource.getPatchStore();
             // This does the dataRegsitry remove.
             patchStore.release(datasource.getPatchLog());

@@ -44,9 +44,4 @@ public class PatchLogZk extends PatchLogBase {
         this.client = client;
         this.logPath = logPath;
     }
-    
-    @Override
-    public void release() {
-        Zk.zkDelete(client, logPath);
-    }
 }

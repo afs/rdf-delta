@@ -295,9 +295,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     @Override
     public void release() {
-        // XXX Zk lock needed?
-        Zk.zkDelete(client, statePath);
-        Zk.zkDelete(client, versionsPath);
+        // Release local resources.
     }
 
     @Override

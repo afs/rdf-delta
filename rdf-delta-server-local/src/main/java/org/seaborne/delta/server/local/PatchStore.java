@@ -44,20 +44,20 @@ public abstract class PatchStore {
     // ---- PatchStore.Provider
 
     // -------- Global
-    // DataRegistry?
-    private static Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
+    // DataRegistry? That is all of the LocalServer i.e. all patch stores.
+    private Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
 
     /** Return the {@link PatchLog}, which must already exist. */ 
-    public static PatchLog getLog(Id dsRef) { 
+    public PatchLog getLog(Id dsRef) { 
         return logs.get(dsRef);
     }
     
-    public static boolean logExists(Id dsRef) {
+    public boolean logExists(Id dsRef) {
         return logs.containsKey(dsRef);
     }
     
     /** Clear the internal mapping from Log (by Id) to its PatchLog. Used for testing. */
-    public static void clearLogIdCache() {
+    public void clearLogIdCache() {
         logs.clear();
     }
     
@@ -90,10 +90,9 @@ public abstract class PatchStore {
     public boolean isEphemeral() {
         return false;
     }
-    
-    /** Do the {@code PatchStore} have a file area? */ 
-    public boolean hasFileArea() {
-        return false;
+
+    public DataRegistry getDataRegistry() {
+        return dataRegistry;
     }
     
     /** 
@@ -175,7 +174,9 @@ public abstract class PatchStore {
     // Single place to release, including call from LocalServer.
     
     /**
-     * Release ("delete") the {@link PatchLog}. 
+     * Release ("delete") the {@link PatchLog}.
+     * Called from (1) LocalServer/client request and (2) releasePatchLog, cluster change.
+     * This method calls {@link #delete} provided by the subclass.
      */
     public void release(PatchLog patchLog) {
         Id dsRef = patchLog.getLogId();
@@ -186,7 +187,7 @@ public abstract class PatchStore {
         }
         dataRegistry.remove(dsRef);
         logs.remove(dsRef);
-        patchLog.release();
+        delete(patchLog);
     }
 
     /** 
@@ -198,7 +199,6 @@ public abstract class PatchStore {
         DataSource ds = dataRegistry.get(dsRef);
         if ( ds == null )
             return ;
-        //dataRegistry.remove(dsRef);
         release(ds.getPatchLog());
     }
     

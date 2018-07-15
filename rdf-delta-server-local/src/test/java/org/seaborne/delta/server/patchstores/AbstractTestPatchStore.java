@@ -18,16 +18,17 @@
 
 package org.seaborne.delta.server.patchstores;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-import java.nio.file.Path;
-import org.apache.jena.atlas.lib.FileOps;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DataRegistry;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.system.DeltaSystem;
@@ -36,48 +37,78 @@ import org.seaborne.patch.RDFPatchOps;
 
 public abstract class AbstractTestPatchStore {
 
-    private static String DIR = "target/PatchStore"; 
-    private static Path patchesArea;
+    // XXX Convert to parameterized tests 
+    
     private static int counter = 0;
-    private static PatchStore patchStore = null;
+    private PatchStore patchStore = null;
         
     @BeforeClass public static void setup() {
-        FileOps.clearAll(DIR);
-        FileOps.ensureDir(DIR);
         DeltaSystem.init();
-        PatchStore.clearLogIdCache();
     }
     
     @Before public void setupTest() {
-//        FileOps.clearAll(DIR);
-//        FileOps.ensureDir(DIR);
+        patchStore = provider();
+    }
+    
+    @After public void teardown() {
+        patchStore = null;
     }
     
     /**
      * Return the PatchStore implementation under test. Return the same object each time.
      */
     private PatchStore provider() {
-        if ( patchStore == null )
-            patchStore = patchStore();
+        if ( patchStore == null ) {
+            DataRegistry dataRegistry = new DataRegistry(this.getClass().getName()+":"+(++counter));
+            patchStore = patchStore(dataRegistry);
+        }
         return patchStore;
     }
     
-    protected abstract PatchStore patchStore();
-
-//    ps.release(patchLog);
-//    ps.exists("ABC");
-
+    protected abstract PatchStore patchStore(DataRegistry dataRegistry);
     
-    @Test public void patchStore_1() {
-//        PatchStore ps = provider();
-//        DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
-//        
-//        Path sourcePath = null;
-//        if ( ps.hasFileArea() )
-//            sourcePath = Cfg.setupDataSourceByFile(Location.create(DIR), patchStore, dsdSetup);
-//        PatchLog patchLog = ps.createLog(dsdSetup, sourcePath);
+    @Test public void patchStore_0() {
+        PatchStore ps = provider();
+        DataRegistry dataRegistry = ps.getDataRegistry();
+        assertTrue(dataRegistry.isEmpty());
+        assertTrue(ps.listDataSources().isEmpty());
     }
     
+    @Test public void patchStore_1() {
+        PatchStore ps = provider();
+        DataRegistry dataRegistry = ps.getDataRegistry();
+        
+        DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
+        PatchLog patchLog = ps.createLog(dsdSetup);
+        Id logId = patchLog.getLogId();
+        
+        assertEquals(dsdSetup.getId(), logId);
+        assertNotNull(dataRegistry.getByName("ABC"));
+        assertFalse(dataRegistry.isEmpty());
+        assertTrue(ps.logExists(dsdSetup.getId()));
+        assertEquals(patchLog, ps.getLog(logId));
+    }
+    
+    @Test public void patchStore_2() {
+        PatchStore ps = provider();
+        DataRegistry dataRegistry = ps.getDataRegistry();
+        
+        DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
+        PatchLog patchLog = ps.createLog(dsdSetup);
+        assertEquals(dsdSetup.getId(), patchLog.getLogId());
+        Id logId = patchLog.getLogId();
+        assertFalse(dataRegistry.isEmpty());
+        assertNotNull(dataRegistry.getByName("ABC"));
+        assertTrue(ps.logExists(dsdSetup.getId()));
+        assertNotNull(ps.getLog(logId));
+        
+        ps.release(patchLog);
+        assertTrue(dataRegistry.isEmpty());
+        assertNull(dataRegistry.getByName("ABC"));
+        assertFalse(ps.logExists(dsdSetup.getId()));
+        assertNull(ps.getLog(logId));
+    }
+
     // Recovery (does not apply to PatchStoreMem)
     //@Test 
     public void recovery1() {
@@ -94,8 +125,7 @@ public abstract class AbstractTestPatchStore {
         Id id = patchLog.getLogId();
         DataSourceDescription dsd = patchLog.getDescription();
         
-        // Reset internal.
-        PatchStore.clearLogIdCache();
+        DPS.resetSystem();
         
         String name = dsd.getName();
         PatchStore provider = provider();

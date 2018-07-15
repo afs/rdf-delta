@@ -37,7 +37,6 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.filestore.FileStore;
 
 // There are restart tests in AbstractTestsDeltaConnection as well.
@@ -69,7 +68,6 @@ public class TestRestart {
     private static void ensureClearRemote() {   
         ensureClear(ServerArea.toString());
         FileStore.resetTracked();
-        PatchStore.clearLogIdCache();
     }
     
     private static void ensureClear(String dirname) {
@@ -131,7 +129,6 @@ public class TestRestart {
         if ( localServer != null )
             localServer.shutdown();
         FileStore.resetTracked();
-        PatchStore.clearLogIdCache();
         zone = null;
         localServer = null;
         deltaClient = null;

@@ -84,7 +84,6 @@ public class PatchStoreFile extends PatchStore {
     protected void delete(PatchLog patchLog) {
         logs.remove(patchLog.getDescription());
         Path p = ((PatchLogFile)patchLog).getFileStore().getPath();
-        CfgFile.retire(p);
         patchLog.release();
     }
 

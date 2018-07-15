@@ -103,4 +103,5 @@ public abstract class AbstractTestPatchLog {
         assertEquals(2, x.getMaxVersion());
         assertEquals(DeltaConst.VERSION_FIRST, x.getMinVersion());
     }
+    
 }

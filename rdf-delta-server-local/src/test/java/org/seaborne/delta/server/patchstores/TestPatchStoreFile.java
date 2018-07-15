@@ -18,15 +18,19 @@
 
 package org.seaborne.delta.server.patchstores;
 
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreMgr;
+import org.apache.jena.atlas.lib.FileOps;
+import org.seaborne.delta.server.local.*;
 
 public class TestPatchStoreFile extends AbstractTestPatchStore {
+    private static String DIR = "target/test/patch-store-file";
     
     @Override
-    protected PatchStore patchStore() {
-        System.err.println("Fixup needed: TestPatchStoreFile");
-        return PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider).create(null);
+    protected PatchStore patchStore(DataRegistry dataRegistry) {
+        LocalServerConfig conf = LocalServers.configFile(DIR);
+        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider).create(conf);
+        FileOps.ensureDir(DIR);
+        FileOps.clearAll(DIR);
+        patchStore.initialize(dataRegistry, conf);
+        return patchStore;
     }
 }
