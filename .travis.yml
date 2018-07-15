@@ -1,8 +1,11 @@
 language: java
 sudo: false
 script: mvn verify
+
 jdk:
   - openjdk8
+  - openjdk10
+  - openjdk11
 
 ## env:
 ##   global:
