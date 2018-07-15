@@ -18,39 +18,21 @@
 
 package org.seaborne.delta;
 
-import org.apache.jena.atlas.logging.LogCtl;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
 
-@RunWith(Suite.class)
-@SuiteClasses( {
-    TestLocalLinkMem.class ,
-    TestLocalLinkFile.class ,
-    //TestLocalLinkZk.class ,
+public class TestLocalConnectionZk extends AbstractTestDeltaConnection {
+    static Setup.LinkSetup setup = Setup.LocalSetup.createZkMem();
     
-    TestLocalConnectionMem.class ,
-    TestLocalConnectionFile.class ,
-    TestLocalConnectionZk.class ,
-    TestLocalClient.class ,
-    
-    TestRemoteLink.class ,
-    TestRemoteConnection.class ,
-    TestRemoteClient.class ,
-
-    TestZone.class ,
-    TestRestart.class ,
-    
-    // Includes assembler tests.
-    TestDeltaFusekiGood.class ,
-    TestDeltaFusekiBad.class
-    
-})
-
-public class TS_Delta {
-    @BeforeClass public static void setForTesting() { 
-        //LogCtl.setLog4j();
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+    @Override
+    public Setup.LinkSetup getSetup() {
+        return setup;
     }
+    
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

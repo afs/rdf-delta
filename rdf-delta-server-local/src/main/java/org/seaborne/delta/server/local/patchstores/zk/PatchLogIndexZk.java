@@ -34,6 +34,7 @@ import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.server.local.PatchStore;
@@ -304,7 +305,9 @@ public class PatchLogIndexZk implements PatchLogIndex {
             Zk.zkLock(client, lockPath, ()->{
                 try {
                     action.run();
-                } catch(RuntimeException ex) {
+                } 
+                catch(DeltaException ex) { throw ex; }
+                catch(RuntimeException ex) {
                     FmtLog.warn(LOG, "RuntimeException in runWithLock");
                     ex.printStackTrace();
                     throw ex;
@@ -319,7 +322,9 @@ public class PatchLogIndexZk implements PatchLogIndex {
             return Zk.zkLockRtn(client, lockPath, ()->{
                 try {
                     return action.get();
-                } catch(RuntimeException ex) {
+                } 
+                catch(DeltaException ex) { throw ex; }
+                catch(RuntimeException ex) {
                     FmtLog.warn(LOG, "RuntimeException in runWithLock");
                     ex.printStackTrace();
                     throw ex;

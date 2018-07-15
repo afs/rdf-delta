@@ -20,6 +20,7 @@ package org.seaborne.delta;
 
 import java.net.BindException;
 
+import org.apache.curator.test.TestingServer;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.io.IO;
@@ -28,6 +29,7 @@ import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.local.*;
 
@@ -40,11 +42,11 @@ public class Setup {
         public void beforeClass();
         public void afterClass();
         public void beforeTest();
+        public void afterTest();
         
         public void relink();       // Same server, new link.
         public void restart();      // Different server, same state.
 
-        public void afterTest();
         public DeltaLink getLink();
         public DeltaLink createLink();  // New link every time.
         public boolean restartable();
@@ -67,6 +69,19 @@ public class Setup {
         
         public static LinkSetup createFile() {
             return new LocalSetup(()->DeltaTestLib.createEmptyTestServer(), true);
+        }
+        
+        public static LinkSetup createZkMem() {
+            return new LocalSetup(()->{
+                TestingServer server = ZkT.localServer();
+                DataRegistry dataRegistry = new DataRegistry("Zk-LocalServer");
+                String connectionString = server.getConnectString();
+                LocalServerConfig config = LocalServers.configZk(connectionString);
+                PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreZkProvider).create(config);
+                patchStore.initialize(dataRegistry, config);
+                LocalServer localServer = LocalServer.create(patchStore, config);
+                return localServer;
+            }, false);
         }
         
         @Override

@@ -44,6 +44,7 @@ import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.admin.AdminServer.AdminServerException;
+import org.seaborne.delta.DeltaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,7 +202,9 @@ public class Zk {
             if ( ! lock.isAcquiredInThisProcess() ) 
                 LOG.warn("zkLock: lock.isAcquiredInThisProcess() is false");
             action.run();
-        } catch (Exception ex) {
+        } 
+        catch (DeltaException ex) { throw ex; }
+        catch (Exception ex) {
             zkException("zkLock", nLock, ex);
         } finally {
             try { lock.release(); } catch (Exception ex) {}
@@ -215,10 +218,11 @@ public class Zk {
             if ( ! lock.isAcquiredInThisProcess() ) 
                 LOG.warn("zkLockRtn: lock.isAcquiredInThisProcess() is false");
             return action.get();
-            
-        } catch (Exception ex) {
+        }
+        catch (DeltaException ex) { throw ex; }
+        catch (Exception ex) {
             zkException("zkLock", nLock, ex);
-            return null;
+            return null; 
         } finally {
             try { lock.release(); } catch (Exception ex) {}
         }

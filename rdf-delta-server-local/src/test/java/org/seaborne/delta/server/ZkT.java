@@ -25,6 +25,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.seaborne.delta.server.local.patchstores.zk.Zk;
 
+/** Zookeeper testing support */
 public class ZkT {
     
     public static List<TestingServer> servers = new ArrayList<>(); 
