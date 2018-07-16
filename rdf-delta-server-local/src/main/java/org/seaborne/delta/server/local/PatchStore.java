@@ -113,7 +113,12 @@ public abstract class PatchStore {
     /** 
      * Initialize a patch store and provide a list of existing logs.
     */ 
-    protected abstract  List<DataSourceDescription> initialize(LocalServerConfig config);
+    protected abstract List<DataSourceDescription> initialize(LocalServerConfig config);
+    
+    final
+    public void shutdown() {
+        releaseStore();
+    }
     
     /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
     public abstract List<DataSourceDescription> listDataSources();
@@ -207,4 +212,11 @@ public abstract class PatchStore {
      * @param patchLog
      */
     protected abstract void delete(PatchLog patchLog);
+    
+    /** Stop using this {@code PatchStore} - subclasses release resources. */
+    protected abstract void releaseStore();
+
+    /** Delete this {@code PatchStore}. */
+    protected abstract void deleteStore();
+
 }

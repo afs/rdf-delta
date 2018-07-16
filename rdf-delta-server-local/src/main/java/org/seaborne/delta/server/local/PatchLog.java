@@ -129,6 +129,9 @@ public interface PatchLog {
     /** Translate a patch id to version. */ 
     public Version find(Id id);
     
-    /** Release - do not use again. */
+    /** Delete - do not use again. */
+    public void delete();
+
+    /** Free in-process resources */ 
     public void release();
 }

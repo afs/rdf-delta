@@ -114,6 +114,11 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
 
     @Override
+    public void delete() {
+        release();
+    }
+    
+    @Override
     public void runWithLock(Runnable action) {
         synchronized(lock) {
             action.run();
@@ -126,8 +131,6 @@ public class PatchLogIndexMem implements PatchLogIndex {
             return action.get();
         }
     }
-
-    
 //    @Override
 //    public long mapIdToVersion(Id id) {
 //        return versions.inverse().get(id);

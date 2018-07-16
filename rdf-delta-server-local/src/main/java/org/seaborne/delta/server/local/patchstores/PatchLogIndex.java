@@ -80,8 +80,11 @@ public interface PatchLogIndex {
     /** Map version number to the {@link Id} for the patch it refers to. */ 
     public Id mapVersionToId(Version version);
 
-    /** Release the state for this log during deletion. */
+    /** Release the in-process state for this log index. */
     public void release();
+
+    /** Delete (or make unavailable) the persistent state. */
+    public void delete();
 
 //    /** Map {@link Id} to version number. */ 
 //    public long mapIdToVersion(Id id); 

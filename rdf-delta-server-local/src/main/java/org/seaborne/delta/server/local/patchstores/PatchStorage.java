@@ -42,7 +42,10 @@ public interface PatchStorage {
     public void delete(Id id);
     
     /** Release all the patches and any other state for this {@code PatchStorage} */
-    public default void release() {
+    public default void release() { }
+    
+    /** Release all the patches and any other state for this {@code PatchStorage} */
+    public default void delete() {
         // Copy to isolate.
         List<Id> x = ListUtils.toList(find()); 
         x.forEach(this::delete);

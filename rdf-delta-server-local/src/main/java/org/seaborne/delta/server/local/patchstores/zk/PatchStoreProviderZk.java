@@ -29,6 +29,7 @@ import org.seaborne.delta.server.local.*;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
+    // Predefined CuratorFramework - or make one in "PatchStore create".
     private final CuratorFramework client;
 
     public PatchStoreProviderZk() {
@@ -40,18 +41,18 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     }
     
     private static CuratorFramework makeClient(String connectString) {
-        
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
-        
         if ( connectString == null || connectString.isEmpty() )
             return null;
         
         try {
-            CuratorFramework client = CuratorFrameworkFactory.builder()
-                .connectString(connectString)
-                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
-                .retryPolicy(policy)
-                .build();
+          CuratorFramework client = CuratorFrameworkFactory.newClient(connectString, policy);
+
+//            CuratorFramework client = CuratorFrameworkFactory.builder()
+//                .connectString(connectString)
+//                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
+//                .retryPolicy(policy)
+//                .build();
             client.start();
             client.blockUntilConnected();
             return client;

@@ -59,4 +59,14 @@ public class PatchStoreMem extends PatchStore {
     protected List<DataSourceDescription> initialize(LocalServerConfig config) { 
         return Collections.emptyList();
     }
+
+    @Override
+    protected void releaseStore() {
+        logs.clear();
+    }
+
+    @Override
+    protected void deleteStore() {
+        releaseStore();
+    }
 }

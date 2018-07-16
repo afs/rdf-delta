@@ -147,8 +147,8 @@ public class LocalServer {
     }
 
     private void shutdown$() {
-        // Implicitly, one LocalServer per JVM.
         dataRegistry.clear();
+        getPatchStore().shutdown();
     }
 
     public DataRegistry getDataRegistry() {

@@ -208,10 +208,17 @@ public class PatchLogBase implements PatchLog {
         FmtLog.warn(LOG, "Not implemented (yet). find(Id)");
         return Version.UNSET;
     }
+    
+    @Override
+    public void delete() {
+        logIndex.delete();
+        patchStorage.delete();
+    }
 
     @Override
     public void release() {
         logIndex.release();
         patchStorage.release();
     }
+
 }

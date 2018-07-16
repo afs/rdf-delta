@@ -32,6 +32,9 @@ import org.slf4j.LoggerFactory;
 
 public class DeltaLinkSwitchable extends DeltaLinkWrapper {
     private static Logger LOG = LoggerFactory.getLogger(DeltaLinkSwitchable.class);
+
+    /** Suppress switchover warnings (for tests, where switchovers are expected) */ 
+    public static boolean silentSwitchOver = true;
     
     /* DeltalLink operations are "retryable" except for append. If one fails, then it can
      * be re-executed for the same effect.
@@ -88,7 +91,8 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
     private static void exceptionSwitching(RuntimeException ex) {
         //System.err.printf("Switching: %s\n", ex.getMessage());
         //ex.printStackTrace();
-        FmtLog.warn(LOG, "HTTP failure switch over: %s", ex.getMessage());
+        if ( ! silentSwitchOver )
+            FmtLog.warn(LOG, "HTTP failure switch over: %s", ex.getMessage());
     }
 
     /** Ask to switch links */ 

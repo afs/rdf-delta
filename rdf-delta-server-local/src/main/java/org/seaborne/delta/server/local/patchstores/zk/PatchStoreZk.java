@@ -176,6 +176,18 @@ public class PatchStoreZk extends PatchStore {
     }
 
     @Override
+    protected void releaseStore() {
+        if ( client != null )
+            client.close();
+    }
+    
+    @Override
+    protected void deleteStore() {
+        // currently, do not delete persistent state.
+        releaseStore();
+    }
+
+    @Override
     public List<DataSourceDescription> listDataSources() {
         FmtLog.debug(LOGZK, "[%d] listDataSources", instance);
         return ListUtils.toList(

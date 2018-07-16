@@ -301,6 +301,11 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
+    public void delete() {
+        // Don't actually delete the state.
+    }
+    
+    @Override
     public void release() {
         // Release local resources.
     }

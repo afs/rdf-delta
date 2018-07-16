@@ -193,8 +193,13 @@ public class PatchLogFile implements PatchLog {
     }
     
     @Override
-    public void release() {
+    public void delete() {
         CfgFile.retire(fileStore.getPath());
+        release();
+    }
+    
+    @Override
+    public void release() {
         fileStore.release();
     }
     

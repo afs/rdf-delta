@@ -21,7 +21,6 @@ package org.seaborne.delta.server.patchstores;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
