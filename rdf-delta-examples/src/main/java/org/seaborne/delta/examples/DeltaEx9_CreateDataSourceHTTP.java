@@ -24,6 +24,7 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer;
@@ -66,7 +67,7 @@ public class DeltaEx9_CreateDataSourceHTTP {
         
         // and now connect to it
         try ( DeltaConnection dConn = dClient.get(dsRef) ) {
-            long version1 = dConn.getRemoteVersionLatest();
+            Version version1 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version1);
 
             // Change the dataset
@@ -75,7 +76,7 @@ public class DeltaEx9_CreateDataSourceHTTP {
                 dsg.add(quad);
             });
             
-            long version2 = dConn.getRemoteVersionLatest();
+            Version version2 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version2);
         }
 

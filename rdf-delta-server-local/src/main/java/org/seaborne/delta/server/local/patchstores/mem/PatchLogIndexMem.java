@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 
@@ -32,18 +32,18 @@ public class PatchLogIndexMem implements PatchLogIndex {
     private Object lock = new Object();
     // Only needs to be a Map unless we need Id->Version.
     //private BiMap<Long, Id> versions = HashBiMap.create();
-    private Map<Long, Id> versions = new HashMap<>();
+    private Map<Version, Id> versions = new HashMap<>();
     
-    private long earliestVersion = DeltaConst.VERSION_UNSET;
+    private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
     
-    private long version = DeltaConst.VERSION_UNSET;
+    private Version version = Version.UNSET;
     private Id current = null;
     private Id prev = null;
     
     public PatchLogIndexMem() {
-        version = DeltaConst.VERSION_INIT;
-        earliestVersion = DeltaConst.VERSION_INIT;
+        version = Version.INIT;
+        earliestVersion = Version.INIT;
         current = null;
         prev = null;
     }
@@ -55,12 +55,12 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
 
     @Override
-    public long nextVersion() {
-        return version+1;
+    public Version nextVersion() {
+        return version.inc();
     }
     
     @Override
-    public void save(long version, Id patch, Id prev) {
+    public void save(Version version, Id patch, Id prev) {
         this.version = version;
         this.current = patch;
         this.prev = prev;
@@ -76,7 +76,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
     public void refresh() {}
 
     @Override
-    public long getCurrentVersion() {
+    public Version getCurrentVersion() {
         return version;
     }
 
@@ -91,7 +91,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
 
     @Override
-    public long getEarliestVersion() {
+    public Version getEarliestVersion() {
         return earliestVersion;
     }
 
@@ -101,14 +101,14 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
 
     @Override
-    public Id mapVersionToId(long ver) {
+    public Id mapVersionToId(Version ver) {
         return versions.get(ver);
     }
 
     @Override
     public void release() {
         versions.clear();
-        version = DeltaConst.VERSION_UNSET;
+        version = Version.UNSET;
         current = null;
         prev = null;
     }

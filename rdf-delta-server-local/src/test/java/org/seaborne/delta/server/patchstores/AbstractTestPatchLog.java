@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
@@ -34,6 +35,10 @@ import org.seaborne.patch.RDFPatchOps;
  */
 
 public abstract class AbstractTestPatchLog {
+    
+    private static Version version_1 = Version.create(1);
+    private static Version version_2 = Version.create(2);
+    private static Version version_3 = Version.create(3);
     
     protected abstract PatchLog patchLog();
     
@@ -46,62 +51,60 @@ public abstract class AbstractTestPatchLog {
         
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(null, x.getLatestPatch());
-        assertEquals(DeltaConst.VERSION_INIT, x.getMaxVersion());
-        assertEquals(DeltaConst.VERSION_INIT, x.getMinVersion());
+        assertEquals(Version.INIT, x.getMaxVersion());
+        assertEquals(Version.INIT, x.getMinVersion());
     }
     
     @Test public void patchLog_2_singlePatch() {
-        //System.out.println("\n>> patchLog_2_singlePatch\n");
         PatchLog patchLog = patchLog();
         assertTrue(patchLog.isEmpty());
         
         RDFPatch patch = RDFPatchOps.emptyPatch();
-        long v = patchLog.append(patch);
-        assertEquals(1, v);
+        Version v = patchLog.append(patch);
+        assertEquals(version_1, v);
         assertFalse(patchLog.isEmpty());
         
-        RDFPatch patch1 = patchLog.fetch(1);
+        RDFPatch patch1 = patchLog.fetch(version_1);
         assertNotNull(patch1);
         
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(patch.getId(), x.getLatestPatch().asNode());
-        assertEquals(1, x.getMaxVersion());
-        assertEquals(DeltaConst.VERSION_FIRST, x.getMinVersion());
+        assertEquals(Version.FIRST, x.getMaxVersion());
+        assertEquals(Version.FIRST, x.getMinVersion());
 
-        RDFPatch patch2 = patchLog.fetch(2);
+        RDFPatch patch2 = patchLog.fetch(version_2);
         assertNull(patch2);
-        //System.out.println("\n<< patchLog_2_singlePatch\n");
     }
 
     @Test
     public void patchLog_3_two_patches() {
         PatchLog patchLog = patchLog();
         RDFPatch patchAdd1 = RDFPatchOps.emptyPatch();
-        long v1 = patchLog.append(patchAdd1);
-        assertEquals(1, v1);
+        Version v1 = patchLog.append(patchAdd1);
+        assertEquals(version_1, v1);
         
         // Does not exist
-        RDFPatch patch_missing = patchLog.fetch(2);
+        RDFPatch patch_missing = patchLog.fetch(version_2);
         assertNull(patch_missing);
         
-        RDFPatch patchFetch1 = patchLog.fetch(1);
+        RDFPatch patchFetch1 = patchLog.fetch(version_1);
         assertNotNull(patchFetch1);
         
         RDFPatch patchAdd2 = RDFPatchOps.withHeader(patchAdd1, Id.create().asNode(), patchAdd1.getId());
         
-        long v2 = patchLog.append(patchAdd2);
-        assertEquals(2, v2);
+        Version v2 = patchLog.append(patchAdd2);
+        assertEquals(version_2, v2);
 
-        RDFPatch patch3 = patchLog.fetch(3);
+        RDFPatch patch3 = patchLog.fetch(version_3);
         assertNull(patch3);
 
-        RDFPatch patchFetch2 = patchLog.fetch(2);
+        RDFPatch patchFetch2 = patchLog.fetch(version_2);
         assertNotNull(patchFetch2);
         
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(patchFetch2.getId(), x.getLatestPatch().asNode());
-        assertEquals(2, x.getMaxVersion());
-        assertEquals(DeltaConst.VERSION_FIRST, x.getMinVersion());
+        assertEquals(version_2, x.getMaxVersion());
+        assertEquals(Version.FIRST, x.getMinVersion());
     }
     
 }

@@ -19,7 +19,6 @@
 package org.seaborne.delta.server.local.patchstores.file;
 
 import static org.seaborne.delta.DeltaConst.VERSION_INIT ;
-import static org.seaborne.delta.DeltaConst.VERSION_UNSET ;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,11 +72,11 @@ public class PatchLogFile implements PatchLog {
 
     // Forward, backwards chain?
     // c.g. HistoryEntry
-    private BiMap<Id, Long> idToVersion =  Maps.synchronizedBiMap(HashBiMap.create()); 
+    private BiMap<Id, Version> idToVersion =  Maps.synchronizedBiMap(HashBiMap.create()); 
     private Map<Id, PatchHeader> headers = new ConcurrentHashMap<>();
     
     private Id latestId = null;
-    private long latestVersion = VERSION_UNSET;
+    private Version latestVersion = Version.UNSET;
     
     /** Attached to an existing {@code PatchLog}. */
     public static PatchLogFile attach(DataSourceDescription dsd, PatchStore patchStore, Location location) {
@@ -128,9 +127,10 @@ public class PatchLogFile implements PatchLog {
                     }
                 }
                 headers.put(id, patchHeader);
-                idToVersion.put(id, Long.valueOf(idx));
+                Version ver = Version.create(idx);
+                idToVersion.put(id, ver);
                 latestId = id;
-                latestVersion = idx;
+                latestVersion = ver;
             }
             catch (NoSuchFileException ex) {}
             catch (IOException ex) {}
@@ -139,16 +139,15 @@ public class PatchLogFile implements PatchLog {
 
     @Override
     public Id getEarliestId() {
-        long x = getEarliestVersion();
-        if ( x <= 0 )
-            // Legal versions start 1. 
+        Version x = getEarliestVersion();
+        if ( ! Version.isValid(x) )
             return null;
         return idToVersion.inverse().get(x);
     }
 
     @Override
-    public long getEarliestVersion() {
-        return fileStore.getMinIndex();
+    public Version getEarliestVersion() {
+        return Version.create(fileStore.getMinIndex());
     }
 
     @Override
@@ -158,29 +157,21 @@ public class PatchLogFile implements PatchLog {
     }
 
     @Override
-    public long getLatestVersion() {
+    public Version getLatestVersion() {
         validateLatest();
-       return fileStore.getCurrentIndex();
+       return Version.create(fileStore.getCurrentIndex());
     }
 
     private void validateLatest() {
         if ( CHECKING ) {
             synchronized(this) {
-                long ver = latestVersion;
                 long x = fileStore.getCurrentIndex();
+                if ( x == latestVersion.value() )
+                    return ;
                 // latestVersion = -1 (UNSET) and getCurrentIndex==0 (INIT) is OK
-                if ( ver == VERSION_UNSET ) {
-                    if ( x != VERSION_INIT )
-                        FmtLog.error(LOG, "Out of sync(1): latestVersion=%s, fileStore=%s", ver, x);
-                } else if ( x > VERSION_INIT ) {
-                    // Legal versions start 1.
-                    if ( ver != x )
-                        // Sync needed for this to be valid.
-                        FmtLog.error(LOG, "Out of sync(2): latestVersion=%s, fileStore=%s", ver, x);
-                }
-                else if ( ver > VERSION_INIT ) {
-                    FmtLog.error(LOG, "Out of sync(3): latestVersion=%s, fileStore=%s", ver, x);
-                }
+                if ( latestVersion == Version.UNSET && x == VERSION_INIT )
+                    return ;
+                FmtLog.error(LOG, "Out of sync(1): latestVersion=%s, fileStore=%s", latestVersion, x);
             }
         }
     }
@@ -222,7 +213,7 @@ public class PatchLogFile implements PatchLog {
     // XXX synchronized with fetching?
     @Override
     synchronized
-    public long append(RDFPatch patch) {
+    public Version append(RDFPatch patch) {
         // XXX If the patch is bad, we need to remove it. Timing hole?
 
         Id patchId = Id.fromNode(patch.getId());
@@ -252,10 +243,9 @@ public class PatchLogFile implements PatchLog {
             RDFChangesWriter dest = new RDFChangesWriter(tw) ;
             patch.apply(dest);
         });
-        long version = entry.version;
-
+        
+        Version version = Version.create(entry.version);
         validateVersionNotInUse(version);
-
         idToVersion.put(patchId, version);
         headers.put(patchId, patch.header());
         latestId = patchId;
@@ -264,7 +254,7 @@ public class PatchLogFile implements PatchLog {
         return version; 
     }
 
-    private void validateVersionNotInUse(long version) {
+    private void validateVersionNotInUse(Version version) {
         if ( idToVersion.inverse().containsKey(version) )
             // Internal consistency error. FleStore was supposed to make it unique.
             throw new InternalErrorException("Version already in-use: "+version);
@@ -272,35 +262,31 @@ public class PatchLogFile implements PatchLog {
     
     @Override
     public Stream<RDFPatch> range(Id start, Id finish) {
-        Long startVersion = idToVersion.get(start);
-        Long finishVersion = idToVersion.get(finish);
+        Version startVersion = idToVersion.get(start);
+        Version finishVersion = idToVersion.get(finish);
         if ( startVersion == null ) {}
         if ( finishVersion == null ) {}
         // Isolation not necessary. Patch files are immutable once written. 
         return
             LongStream
-                .rangeClosed(startVersion, finishVersion)
+                .rangeClosed(startVersion.value(), finishVersion.value())
                 .mapToObj(v->fetch(fileStore, v));
     }
     
-    private boolean validVersion(long version) {
-        return version != VERSION_INIT && version != VERSION_UNSET && version <= latestVersion;  
-    }
-    
     @Override
-    public Stream<RDFPatch> range(long start, long finish) {
-        if ( ! validVersion(start) )
+    public Stream<RDFPatch> range(Version start, Version finish) {
+        if ( ! Version.isValid(start) )
             throw new DeltaException("Bad start version : "+start);
-        if ( ! validVersion(finish) )
+        if ( ! Version.isValid(finish) )
             throw new DeltaException("Bad finish version : "+finish);
         // Isolation not necessary. Patch files are immutable once written. 
         return range$(start, finish);
     }
 
-    private Stream<RDFPatch> range$(long startVersion, long finishVersion) {
+    private Stream<RDFPatch> range$(Version startVersion, Version finishVersion) {
         return
             LongStream
-                .rangeClosed(startVersion, finishVersion)
+                .rangeClosed(startVersion.value(), finishVersion.value())
                 .mapToObj(v->fetch(fileStore, v));
     }
     
@@ -320,21 +306,21 @@ public class PatchLogFile implements PatchLog {
 
     @Override
     public RDFPatch fetch(Id patchId) {
-        Long version = idToVersion.get(patchId);
+        Version version = idToVersion.get(patchId);
         if ( version == null )
             return null;
         return fetch(version) ;
     }
 
     @Override
-    public RDFPatch fetch(long version) {
-        return fetch(fileStore, version); 
+    public RDFPatch fetch(Version version) {
+        return fetch(fileStore, version.value()); 
     }
     
     private RDFPatch fetch(FileStore fileStore, long version) {
-        if ( version < getEarliestVersion() )
+        if ( version < getEarliestVersion().value() )
             return null;
-        if ( version > getLatestVersion() )
+        if ( version > getLatestVersion().value() )
             return null;
         
         try ( InputStream in = fileStore.open((int)version) ) {
@@ -349,15 +335,15 @@ public class PatchLogFile implements PatchLog {
     }
 
     @Override
-    public long find(Id id) {
-        Long x = idToVersion.get(id);
+    public Version find(Id id) {
+        Version x = idToVersion.get(id);
         if ( x == null )
-            return VERSION_UNSET;
-        return x.longValue() ;
+            return Version.UNSET;
+        return x;
     }
     
     @Override
-    public Id find(long version) {
+    public Id find(Version version) {
         return idToVersion.inverse().get(version);
     }
     

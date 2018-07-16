@@ -32,10 +32,7 @@ import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
@@ -57,11 +54,11 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final String versionsPath;
     private final String lockPath;
     
-    private long earliestVersion = DeltaConst.VERSION_UNSET;
+    private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
     
     // Set by newState
-    private volatile long version = DeltaConst.VERSION_UNSET;
+    private volatile long version = Version.UNSET.value();
     private volatile Id current = null;
     private volatile Id previous = null;
 
@@ -85,20 +82,25 @@ public class PatchLogIndexZk implements PatchLogIndex {
         this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
         this.lockPath       = zkPath(logPath, ZkConst.nLock);
 
+        // XXX Maybe do a checking scan.
+        
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
         //Guess: 1
         if ( x.isEmpty() )
-            earliestVersion = DeltaConst.VERSION_INIT;
+            earliestVersion = Version.INIT;
         else if ( x.contains("00000001") )
             // Fast-track the "obvious" answer
-            earliestVersion = 1;
+            earliestVersion = Version.create(1);
         else {
             try {
-                earliestVersion = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+                long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+                earliestVersion = Version.create(ver);
             } catch (NoSuchElementException ex) {  }
         }
         earliestId = mapVersionToId(earliestVersion);
+        
+        
         // Initialize, start watching
         stateOrInit();
     }
@@ -110,11 +112,10 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public long nextVersion() {
-        // XXX Inside the cluster lock.
-        // Need parent lock cycle call down.
-        FmtLog.info(LOG, "Alloc version %d", (version+1));
-        return version+1;
+    public Version nextVersion() {
+        Version ver = Version.create(version+1);
+        FmtLog.debug(LOG, "Alloc version %d", ver);
+        return ver;
     }
 
     // ---- Zookeeper index state watching.
@@ -131,9 +132,9 @@ public class PatchLogIndexZk implements PatchLogIndex {
             }
             
             //FmtLog.debug(LOG, "-- [%d] State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
-            if ( newVersion == DeltaConst.VERSION_FIRST && DeltaConst.versionNoPatches(earliestVersion) ) {
+            if ( newVersion == DeltaConst.VERSION_FIRST && ! earliestVersion.isValid() ) {
                 // If going no patch -> patch, set the start.
-                earliestVersion = DeltaConst.VERSION_FIRST;
+                earliestVersion = Version.FIRST;
                 earliestId = patch;
             }
             this.version = newVersion;
@@ -143,8 +144,12 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public void save(long version, Id patch, Id prev) {
-        // Should always be called inside the patch lock. 
+    public void save(Version version, Id patch, Id prev) {
+        // Should always be called inside the patch lock.
+        save(version.value(), patch, prev);
+    }
+    
+    private void save(long version, Id patch, Id prev) {
         newState(version, patch, prev);
         JsonObject x = stateToJson(version, patch, prev);
         if ( patch != null )
@@ -194,7 +199,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         runWithLock(()->{
             FmtLog.debug(LOG, "initState %s", logName);
             if ( current == null )
-                earliestVersion = DeltaConst.VERSION_INIT;
+                earliestVersion = Version.INIT;
             version = DeltaConst.VERSION_INIT;
             save(version, current, previous);
         });
@@ -234,8 +239,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public long getCurrentVersion() {
-        return version;
+    public Version getCurrentVersion() {
+        return Version.create(version);
     }
 
     @Override
@@ -249,7 +254,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public long getEarliestVersion() {
+    public Version getEarliestVersion() {
         return earliestVersion;
     }
 
@@ -259,8 +264,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public Id mapVersionToId(long ver) {
-        if ( ver == DeltaConst.VERSION_INIT || ver == DeltaConst.VERSION_UNSET )
+    public Id mapVersionToId(Version ver) {
+        if ( ! Version.isValid(ver) )
             return null;
         String p = versionPath(ver);
         byte[] b = Zk.zkFetch(client, versionPath(ver));
@@ -275,8 +280,9 @@ public class PatchLogIndexZk implements PatchLogIndex {
 //        throw new UnsupportedOperationException();
 //    }
 
+    private String versionPath(Version ver) { return versionPath(ver.value()) ; }
     private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
-
+    
     private long versionFromName(String name) {
         try {
             return Long.parseLong(name);

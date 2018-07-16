@@ -27,6 +27,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchValidation;
@@ -73,7 +74,7 @@ public class PatchLogBase implements PatchLog {
     
     // Set earliestId, earliestVersion
     private void initFromStorage() {
-        long latest = logIndex.getCurrentVersion();
+        Version latest = logIndex.getCurrentVersion();
         Id latestId = logIndex.getCurrentId();
     }
     
@@ -83,7 +84,7 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
-    public long getEarliestVersion() {
+    public Version getEarliestVersion() {
         return logIndex.getEarliestVersion();
     }
 
@@ -95,7 +96,7 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
-    public long getLatestVersion() {
+    public Version getLatestVersion() {
         if ( logIndex.isEmpty() )
             return getEarliestVersion();
         return logIndex.getCurrentVersion();
@@ -133,7 +134,7 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     final
-    public long append(RDFPatch patch) {
+    public Version append(RDFPatch patch) {
 //        System.err.println(">>append");
 //        RDFPatchOps.write(System.err, patch);
 //        System.err.println("<<append");
@@ -149,7 +150,7 @@ public class PatchLogBase implements PatchLog {
                 return getLatestVersion();
             }
 
-            long version = logIndex.nextVersion();
+            Version version = logIndex.nextVersion();
             
             PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
 
@@ -157,7 +158,7 @@ public class PatchLogBase implements PatchLog {
             
             // This is the commit point.
             logIndex.save(version, thisId, prevId);
-            return Long.valueOf(version);
+            return version;
         });
     }
 
@@ -175,7 +176,7 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
-    public RDFPatch fetch(long version) {
+    public RDFPatch fetch(Version version) {
         Id id = find(version);
         if ( id == null )
             return null;
@@ -190,22 +191,22 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
-    public Stream<RDFPatch> range(long start, long finish) {
+    public Stream<RDFPatch> range(Version start, Version finish) {
         // Increment and probe.
         throw new NotImplemented();
         //return null;
     }
 
     @Override
-    public Id find(long version) {
+    public Id find(Version version) {
         return logIndex.mapVersionToId(version);
     }
 
     @Override
-    public long find(Id id) {
+    public Version find(Id id) {
         // XXX PatchLogBase.find(Id)
         FmtLog.warn(LOG, "Not implemented (yet). find(Id)");
-        return 0;
+        return Version.UNSET;
     }
 
     @Override

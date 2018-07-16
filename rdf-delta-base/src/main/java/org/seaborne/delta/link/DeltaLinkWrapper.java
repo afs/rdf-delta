@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.Version;
 import org.seaborne.patch.RDFPatch ;
 
 /** Wrapper for {@link DeltaLink} which can be subclassed to provide
@@ -93,12 +94,12 @@ public class DeltaLinkWrapper implements DeltaLink {
     }
 
     @Override
-    public long append(Id dsRef, RDFPatch patch) {
+    public Version append(Id dsRef, RDFPatch patch) {
         return execRtn(()->get().append(dsRef, patch));
     }
 
     @Override
-    public RDFPatch fetch(Id dsRef, long version) {
+    public RDFPatch fetch(Id dsRef, Version version) {
         return execRtn(()->get().fetch(dsRef, version));
     }
 

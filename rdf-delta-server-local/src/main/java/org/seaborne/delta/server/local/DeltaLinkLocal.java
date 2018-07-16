@@ -136,7 +136,7 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
-    public long append(Id dsRef, RDFPatch rdfPatch) {
+    public Version append(Id dsRef, RDFPatch rdfPatch) {
         checkLink();
         DataSource source = getDataSource(dsRef);
         // Patch not known to be valid yet.
@@ -148,7 +148,7 @@ public class DeltaLinkLocal implements DeltaLink {
             // source);
             long t1 = System.currentTimeMillis();
 
-            long version = patchLog.append(rdfPatch);
+            Version version = patchLog.append(rdfPatch);
 
             long t2 = System.currentTimeMillis();
             afterWrite(source, rdfPatch, version, (t2 - t1));
@@ -172,7 +172,7 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */
-    protected void afterWrite(DataSource source, RDFPatch rdfPatch, long version, long timeElapsed) {
+    protected void afterWrite(DataSource source, RDFPatch rdfPatch, Version version, long timeElapsed) {
         // FmtLog.info(LOG, "append: finish: Patch=%s[ver=%d] ds=%s",
         // str(rdfPatch.getId()), version, source);
         //FmtLog.info(LOG, "append (%.3fs): Patch=%s[ver=%d] ds=%s", (timeElapsed / 1000.0), str(rdfPatch.getId()), version, source);
@@ -211,7 +211,7 @@ public class DeltaLinkLocal implements DeltaLink {
 
     /** Retrieve a patch by version. */
     @Override
-    public RDFPatch fetch(Id dsRef, long version) {
+    public RDFPatch fetch(Id dsRef, Version version) {
         checkLink();
         DataSource source = getDataSourceOrNull(dsRef);
         if ( source == null )

@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.Version;
 import org.seaborne.patch.PatchHeader ;
 import org.seaborne.patch.RDFPatch;
 
@@ -46,13 +47,13 @@ public interface PatchLog {
     public Id getEarliestId();
     
     /** Return the version of first/earliest patch */
-    public long getEarliestVersion();
+    public Version getEarliestVersion();
 
     /** Return the {@link Id} of most recent patch */
     public Id getLatestId();
     
     /** Return the version of most recent patch */
-    public long getLatestVersion();
+    public Version getLatestVersion();
 
     /**
      * Return a description of the current state of this {@code PatchLog}.
@@ -86,19 +87,19 @@ public interface PatchLog {
     public boolean contains(Id patchId);
 
     /** Add a patch to the {@code PatchLog}. Return the version number. */
-    public long append(RDFPatch patch);
+    public Version append(RDFPatch patch);
     
     /** Get a patch by {@code Id}. */
     public RDFPatch fetch(Id patchId);
     
     /** Get a patch by version (version number may change across restarts). */
-    public RDFPatch fetch(long version) ;
+    public RDFPatch fetch(Version version) ;
 
     /** Get patches by range - start/finish are inclusive */
     public Stream<RDFPatch> range(Id start, Id finish) ;
 
     /** Get patches by range - start/finish are inclusive */
-    public Stream<RDFPatch> range(long start, long finish) ;
+    public Stream<RDFPatch> range(Version start, Version finish) ;
 
     /** Get a {@link PatchHeader} by {@code Id}.*/
     public default PatchHeader fetchHeader(Id patchId) {
@@ -107,7 +108,7 @@ public interface PatchLog {
     }
     
     /** Get a {@link PatchHeader} by version (version number may change across restarts) .*/
-    public default PatchHeader fetchHeader(long version) {
+    public default PatchHeader fetchHeader(Version version) {
         RDFPatch p = fetch(version) ;
         return p != null ? p.header() : null;
     }
@@ -118,15 +119,15 @@ public interface PatchLog {
     }
 
     /* Get patch headers by range - start/finish are inclusive */
-    public default Stream<PatchHeader> rangeHeaders(long start, long finish) {
+    public default Stream<PatchHeader> rangeHeaders(Version start, Version finish) {
         return range(start, finish).filter(Objects::nonNull).map(RDFPatch::header);
     }
 
     /** Translate a version number into its stable patch id. */
-    public Id find(long version);
+    public Id find(Version version);
     
     /** Translate a patch id to version. */ 
-    public long find(Id id);
+    public Version find(Id id);
     
     /** Release - do not use again. */
     public void release();

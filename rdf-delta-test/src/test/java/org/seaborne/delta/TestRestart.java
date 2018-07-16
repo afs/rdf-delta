@@ -43,6 +43,7 @@ import org.seaborne.delta.server.local.filestore.FileStore;
 // Here we are concerned with different ways to restart on the client side
 // such as external datasets, deleted remote while inactive etc.
 public class TestRestart {
+    private static Version version_1 = Version.create(1);
     static String DIR_ZONE = "target/Zone3";
     static Path ServerArea = Paths.get("target/test/server");
     static String TDIR = "testing/";
@@ -254,8 +255,8 @@ public class TestRestart {
         assertTrue(deltaClient.existsRemote(dsRef));
         
         PatchLogInfo info = deltaClient.getLink().getPatchLogInfo(dsRef);
-        assertEquals(1, info.getMinVersion());
-        assertEquals(1, info.getMaxVersion());
+        assertEquals(version_1, info.getMinVersion());
+        assertEquals(version_1, info.getMaxVersion());
         
         deltaClient.attach(dsRef, LocalStorageType.MEM);
         deltaClient.connect(dsRef, SyncPolicy.NONE);

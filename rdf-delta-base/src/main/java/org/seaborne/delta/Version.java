@@ -18,29 +18,103 @@
 
 package org.seaborne.delta;
 
+import java.util.Objects;
+
+import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonNumber;
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
+import org.seaborne.delta.lib.JSONX;
 
 /** A Version */
 public class Version {
     // Certain well known versions.
     public static Version UNSET = new Version(DeltaConst.VERSION_UNSET, "<unset>");
-    public static Version INIT = new Version(DeltaConst.VERSION_INIT, "<init>");
+    public static Version INIT  = new Version(DeltaConst.VERSION_INIT, "<init>");
+    public static Version FIRST = Version.create(DeltaConst.VERSION_FIRST);
     
     private final long version;
     private final String display;
 
-    public Version create(long version) { return new Version(version, null); }  
+    public static Version fromJson(JsonObject obj, String field, Version dftValue) {
+        long ver = JSONX.getLong(obj, field, dftValue.version) ;
+        return create(ver);  
+    }
+    
+    public static Version fromJson(JsonObject obj, String field) {
+        long ver = JSONX.getLong(obj, field, -99) ;
+        if ( ver < -1 )
+            throw new DeltaException("Bad version number: '"+JSON.toStringFlat(obj.get(field))+"'");
+        return create(ver);  
+    }
+    
+    public static Version create(JsonValue version) {
+        Objects.requireNonNull(version, "version");
+        if ( version.isNumber() ) {
+            long ver = JSONX.getLong(version, -2);
+            if ( ver < -1 )
+                throw new DeltaException("Bad version number: '"+JSON.toStringFlat(version)+"'");
+            return create(ver);
+        }
+        
+        if ( version.isString() ) {
+            try {
+                String s = version.getAsString().value();
+                long ver = Long.parseLong(s);
+                return create(ver);
+            } catch (NumberFormatException ex) {
+                throw new DeltaException("Bad format for version: '"+JSON.toStringFlat(version)+"'");
+            }
+        }
+        throw new DeltaException("Unrecognized JSON version: '"+JSON.toStringFlat(version)+"'");
+    }
+    
+    public static Version create(long version) {
+        return new Version(version, null);
+    }
     
     private Version(long version, String display) {
         this.version = version;
         this.display = display;
     }
     
+    public long value() {
+        return version;
+    }
+
+    public Version inc() {
+        if ( this == INIT )
+            return FIRST; 
+        if ( ! isValid() )
+            throw new DeltaException("Attempt to get inc version on a non-version number: "+this);
+        return Version.create(version+1);
+    }
+    
+
+
+    /** Is this version a possible version? (i.e. not a marker) */
+    public static boolean isValid(Version version) {
+        return version != null && version != Version.UNSET && version != Version.INIT ;
+    }
+
+    /** Is this version a possible version? (i.e. not a marker) */
+    public static boolean isValid(long version) {
+        return version > Version.INIT.version ;
+    }
+
+    /** Is this version a possible version? (i.e. not a marker) */
+    public boolean isValid() {
+        return isValid(this);
+    }
+
     public JsonValue asJson() {
         return JsonNumber.value(version) ;
     }
     
+    public String asParam() {
+        return Long.toString(version) ;
+    }
+
     // Does not use display for equality.
     
     @Override

@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 
 /** State control for a {@link PatchStore}. The index is {@code version -> id} mapping. */
@@ -38,12 +39,12 @@ public interface PatchLogIndex {
     
     /** 
      * Return the next version number.
-     * Returns the same value until {@link #save(long, Id, Id)} is called.  
+     * Returns the same value until {@link #save(Version, Id, Id)} is called.  
      */
-    public long nextVersion();
+    public Version nextVersion();
     
     /** Save the new head of log information. */
-    public void save(long version, Id patch, Id prev);
+    public void save(Version version, Id patch, Id prev);
     
     /**
      * Ensure the index is up-to-date.
@@ -56,7 +57,7 @@ public interface PatchLogIndex {
      * Returns {@link DeltaConst#VERSION_INIT} when the log is empty.
      * Returns {@link DeltaConst#VERSION_UNSET} when the log has not been initialized yet.
      */
-    public long getEarliestVersion();
+    public Version getEarliestVersion();
 
     /**
      * Get the {@code Id} of the earliest entry in the log or null if the log is empty.
@@ -68,7 +69,7 @@ public interface PatchLogIndex {
      * Returns {@link DeltaConst#VERSION_INIT} when the log is empty.
      */
     
-    public long getCurrentVersion();
+    public Version getCurrentVersion();
     
     /** Get the {@code Id} of the current head of the log, or null if there isn't one. */
     public Id getCurrentId();
@@ -77,7 +78,7 @@ public interface PatchLogIndex {
     public Id getPreviousId();
 
     /** Map version number to the {@link Id} for the patch it refers to. */ 
-    public Id mapVersionToId(long version);
+    public Id mapVersionToId(Version version);
 
     /** Release the state for this log during deletion. */
     public void release();

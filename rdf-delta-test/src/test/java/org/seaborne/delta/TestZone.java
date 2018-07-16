@@ -121,6 +121,6 @@ public class TestZone {
         }
         // read log.
         PatchLogInfo info = deltaLink.getPatchLogInfo(dsRef);
-        assertEquals(1, info.getMaxVersion());
+        assertEquals(Version.create(1), info.getMaxVersion());
     }
 }

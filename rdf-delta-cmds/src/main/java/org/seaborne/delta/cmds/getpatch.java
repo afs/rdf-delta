@@ -19,10 +19,7 @@
 package org.seaborne.delta.cmds;
 
 import jena.cmd.CmdException ;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.DeltaNotFoundException ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.*;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 
@@ -49,27 +46,29 @@ public class getpatch extends DeltaCmd {
         if ( getPositional().isEmpty() ) {
             Id dsRef = getDescription().getId();
             PatchLogInfo logInfo = dLink.getPatchLogInfo(dsRef);
-            if ( logInfo.getMaxVersion() == DeltaConst.VERSION_INIT |
-                logInfo.getMaxVersion() == DeltaConst.VERSION_UNSET ) {
+            if ( ! logInfo.getMaxVersion().isValid()) {
                 throw new CmdException(getCommandName()+" : Empty log");
             }
-            exec1(Long.toString(logInfo.getMaxVersion()));
+            exec1(logInfo.getMaxVersion());
             return ;
         }
         
-        getPositional().forEach(this::exec1);
+        getPositional().forEach(v->{
+            long patchVersion;
+            try {
+                patchVersion = Integer.parseInt(v);
+            } catch (NumberFormatException ex) {
+                throw new CmdException(getCommandName()+" : Invalid version");
+            }
+            exec1(Version.create(patchVersion));
+        });
+                    
     }
 
-    protected void exec1(String patchRef) {
+    protected void exec1(Version patchVersion) {
         Id patchId = null;
-        int patchVersion = -1;
-        try {
-            patchVersion = Integer.parseInt(patchRef);
-        } catch (NumberFormatException ex) {
-            throw new CmdException(getCommandName()+" : Invalid version");
-        }
         
-        Id dsRef =  getDescription().getId();
+        Id dsRef = getDescription().getId();
 
         RDFPatch patch;
         try {

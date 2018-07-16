@@ -48,7 +48,7 @@ public class DataState {
     private Id datasource;
     
     // Persistent state that varies.
-    private long version = -999;
+    private Version version = Version.UNSET;
     private Id patchId = null;
     private LocalStorageType storage ;
     
@@ -73,7 +73,7 @@ public class DataState {
     }
     
     /** Create new, initialize state. */ 
-    /*package*/ DataState(Zone zone, Path stateFile, LocalStorageType storage, Id dsRef, String name, String uri, int version, Id patchId) {
+    /*package*/ DataState(Zone zone, Path stateFile, LocalStorageType storage, Id dsRef, String name, String uri, Version version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
         this.state = null;
@@ -99,7 +99,7 @@ public class DataState {
         readState(stateStr);
     }
 
-    public long version() {
+    public Version version() {
         return version;
     }
 
@@ -117,7 +117,7 @@ public class DataState {
     }
     
     // XXX Check concurrency! Coordinate win DeltaConnection. 
-    public synchronized void updateState(long newVersion, Id patchId) {
+    public synchronized void updateState(Version newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe. 
         // Update on disk.
         writeState(this.stateStr, this.datasource, this.name, this.uri, this.storage, newVersion, patchId);
@@ -161,7 +161,7 @@ public class DataState {
     }
     
     /** Allow a different version so we can write the state ahead of changing in-memory */  
-    private static void writeState(RefString state, Id datasource, String name, String uri, LocalStorageType storage, long version, Id patchId) {
+    private static void writeState(RefString state, Id datasource, String name, String uri, LocalStorageType storage, Version version, Id patchId) {
         if ( state == null )
             // Not persisted.
             return ;
@@ -171,12 +171,12 @@ public class DataState {
         state.setString(x);
     }
     
-    private static String stateToString(Id datasource, String name, String uri, LocalStorageType storage, long version, Id patchId) {
+    private static String stateToString(Id datasource, String name, String uri, LocalStorageType storage, Version version, Id patchId) {
         JsonObject json = stateToJson(datasource, name, uri, storage, version, patchId);
         return JSON.toString(json);
     }
     
-    private static JsonObject stateToJson(Id datasource, String name, String uri,  LocalStorageType storage, long version, Id patchId) {
+    private static JsonObject stateToJson(Id datasource, String name, String uri,  LocalStorageType storage, Version version, Id patchId) {
         String x = "";
         if ( patchId != null )
             x = patchId.asPlainString();
@@ -184,7 +184,7 @@ public class DataState {
         return
             JSONX.buildObject(builder->{
                 builder
-                    .pair(F_VERSION, version)
+                    .pair(F_VERSION, version.asJson())
                     .pair(F_ID, patchStr)
                     .pair(F_NAME, name)
                     .pair(F_DATASOURCE, datasource.asPlainString());
@@ -204,8 +204,8 @@ public class DataState {
 
     /** JsonObject -> DataState */
     private static void setFromJsonObject(DataState dataState, JsonObject sourceObj) {
-        int version = JSONX.getInt(sourceObj, F_VERSION, -99);
-        if ( version == -99 ) {
+        Version version = Version.fromJson(sourceObj, F_VERSION, Version.UNSET);
+        if ( ! Version.isValid(version) ) {
             LOG.warn("No version: "+JSON.toStringFlat(sourceObj));
         }
         dataState.version = version;

@@ -23,6 +23,7 @@ import java.util.List;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.Version;
 import org.seaborne.patch.RDFPatch ;
 
 /**
@@ -127,13 +128,13 @@ public interface DeltaLink {
      *  because it was suppressed for some reason.
      *  (e.g. empty commit suppression).
      */
-    public long append(Id dsRef, RDFPatch patch);
+    public Version append(Id dsRef, RDFPatch patch);
     
     /** Get the current version: if this is an HTTP connection, this causes network traffic. */
-    public default long getCurrentVersion(Id dsRef) { return getPatchLogInfo(dsRef).getMaxVersion(); }
+    public default Version getCurrentVersion(Id dsRef) { return getPatchLogInfo(dsRef).getMaxVersion(); }
 
     /** Retrieve a patch by data source and version. */ 
-    public RDFPatch fetch(Id dsRef, long version);
+    public RDFPatch fetch(Id dsRef, Version version);
 
     /** Retrieve a patch by data source and patch id. */ 
     public RDFPatch fetch(Id dsRef, Id patchId);

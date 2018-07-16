@@ -23,10 +23,11 @@ import java.util.Objects;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 import org.seaborne.patch.RDFPatch;
 
 /** Operations on a single patch log. This is a pairing of a {@link DeltaLink} (connection to a patch server)
- * and the reference to a specfic log 
+ * and the reference to a specific log 
  * 
  *    */
 public class DeltaLog {
@@ -41,7 +42,7 @@ public class DeltaLog {
         this.dsRef = dsRef;
     }
     
-    public long getCurrentVersion() {
+    public Version getCurrentVersion() {
         return dLink.getCurrentVersion(dsRef);
     }
     
@@ -49,11 +50,11 @@ public class DeltaLog {
         return dLink.fetch(dsRef, patchId); 
     }
     
-    public RDFPatch fetch(long version) {
+    public RDFPatch fetch(Version version) {
         return dLink.fetch(dsRef, version); 
     }
     
-    public long append(RDFPatch patch) {
+    public Version append(RDFPatch patch) {
         return dLink.append(dsRef, patch);
     }
 

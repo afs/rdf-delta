@@ -92,8 +92,8 @@ public abstract class AbstractTestDeltaConnection {
         dClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(dsRef);
         assertNotNull(dConn.getDatasetGraph());
-        assertEquals(0, dConn.getLocalVersion());
-        assertEquals(0, dConn.getRemoteVersionLatest());
+        assertEquals(Version.INIT, dConn.getLocalVersion());
+        assertEquals(Version.INIT, dConn.getRemoteVersionLatest());
 
         Id dsRef1 = dConn.getDataSourceId();
         assertEquals(dsRef, dsRef1);
@@ -111,16 +111,16 @@ public abstract class AbstractTestDeltaConnection {
         DeltaClient dClient = createRegister(NAME);
         
         try(DeltaConnection dConn = dClient.get(NAME)) {
-            long verLocal0 = dConn.getLocalVersion();
-            long verRemotel0 = dConn.getRemoteVersionLatest();
+            Version verLocal0 = dConn.getLocalVersion();
+            Version verRemotel0 = dConn.getRemoteVersionLatest();
             
             DatasetGraph dsg = dConn.getDatasetGraph();
             Txn.executeWrite(dsg, ()->{
                 dsg.add(SSE.parseQuad("(:gx :sx :px :ox)"));
             });
             
-            long verLocal1 = dConn.getLocalVersion();
-            long verRemotel1 = dConn.getRemoteVersionLatest();
+            Version verLocal1 = dConn.getLocalVersion();
+            Version verRemotel1 = dConn.getRemoteVersionLatest();
             assertEquals(verLocal1, dConn.getLocalVersion());
             assertEquals(verRemotel1, dConn.getRemoteVersionLatest());
             
@@ -137,7 +137,7 @@ public abstract class AbstractTestDeltaConnection {
         DeltaClient dClient = createRegister(NAME);
         try(DeltaConnection dConn = dClient.get(NAME)) {
             Id dsRef = dConn.getDataSourceId();
-            long version = dConn.getRemoteVersionLatest();
+            Version version = dConn.getRemoteVersionLatest();
 
             DatasetGraph dsg = dConn.getDatasetGraph();
             Txn.executeWrite(dsg, ()->{
@@ -146,7 +146,7 @@ public abstract class AbstractTestDeltaConnection {
             });
             // Rebuild directly.
             DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
-            long ver = dConn.getRemoteVersionLatest();
+            Version ver = dConn.getRemoteVersionLatest();
             RDFPatch patch1 = dConn.getLink().fetch(dsRef, ver) ;
             RDFPatchOps.applyChange(dsg2, patch1);
 
@@ -164,7 +164,7 @@ public abstract class AbstractTestDeltaConnection {
         DeltaClient dClient = createRegister(NAME);
         try(DeltaConnection dConn = dClient.get(NAME)) {
             Id dsRef = dConn.getDataSourceId();
-            long version = dConn.getRemoteVersionLatest();
+            Version version = dConn.getRemoteVersionLatest();
 
             DatasetGraph dsg = dConn.getDatasetGraph();
             Txn.executeWrite(dsg, ()->{
@@ -178,10 +178,10 @@ public abstract class AbstractTestDeltaConnection {
             
             // Rebuild directly.
             DatasetGraph dsg2 = DatasetGraphFactory.createTxnMem();
-            long ver = dConn.getRemoteVersionLatest();
+            Version ver = dConn.getRemoteVersionLatest();
             PatchLogInfo info = dConn.getLink().getPatchLogInfo(dsRef);
-            LongStream.rangeClosed(info.getMinVersion(), info.getMaxVersion()).forEach(v->{
-                RDFPatch patch = dConn.getLink().fetch(dsRef, v) ;
+            LongStream.rangeClosed(info.getMinVersion().value(), info.getMaxVersion().value()).forEach(v->{
+                RDFPatch patch = dConn.getLink().fetch(dsRef, Version.create(v)) ;
                 RDFPatchOps.applyChange(dsg2, patch);
             });
 
@@ -200,35 +200,35 @@ public abstract class AbstractTestDeltaConnection {
             
             Id patchId0 = dConn.getRemoteIdLatest();
             assertNull(patchId0);
-            long ver0 = dConn.getRemoteVersionLatest();
+            Version ver0 = dConn.getRemoteVersionLatest();
             
             // The "no empty commits" dsg
             DatasetGraph dsg = dConn.getDatasetGraphNoEmpty();
             
             Txn.executeWrite(dsg, ()->{});
             Id patchId1 = dConn.getLatestPatchId();
-            long ver1 = dConn.getRemoteVersionLatest();
+            Version ver1 = dConn.getRemoteVersionLatest();
             // No change at start of log.
             assertEquals(patchId0, patchId1);
             assertEquals(ver0, ver1);
             
             Txn.executeWrite(dsg, ()->dsg.add(q));
             Id patchId2 = dConn.getLatestPatchId();
-            long ver2 = dConn.getRemoteVersionLatest();
+            Version ver2 = dConn.getRemoteVersionLatest();
             assertNotEquals(patchId0, patchId2);
             assertNotEquals(ver0, ver2);
             
             DatasetGraph dsgx = dConn.getDatasetGraph();
             Txn.executeWrite(dsgx, ()->{});
             Id patchId3 = dConn.getLatestPatchId();
-            long ver3 = dConn.getRemoteVersionLatest();
+            Version ver3 = dConn.getRemoteVersionLatest();
             assertNotEquals(patchId2, patchId3);
             assertNotEquals(ver2, ver3);
             
             // No change mid log.
             Txn.executeWrite(dsg, ()->Iter.count(dsg.find()));
             Id patchId4 = dConn.getLatestPatchId();
-            long ver4 = dConn.getRemoteVersionLatest();
+            Version ver4 = dConn.getRemoteVersionLatest();
             assertEquals(patchId3, patchId4);
             assertEquals(ver3, ver4);
             
@@ -298,8 +298,8 @@ public abstract class AbstractTestDeltaConnection {
         Quad quad = DeltaTestLib.freshQuad();
         DatasetGraph dsgBase;
     
-        long verLocal = -999;
-        long verRemote = -999;
+        Version verLocal = Version.UNSET;
+        Version verRemote = Version.UNSET;
         Id dsRef;
         
         String NAME = "DS-"+counter.incrementAndGet();
@@ -309,13 +309,13 @@ public abstract class AbstractTestDeltaConnection {
             dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
-            long ver = dConn.getLocalVersion();
+            Version ver = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
-            assertEquals(0, ver);
+            assertEquals(Version.INIT, ver);
             // Make change.
             Txn.executeWrite(dsg, ()->dsg.add(quad));
             verLocal = dConn.getLocalVersion();
-            assertEquals(ver+1, verLocal);
+            assertEquals(ver.value()+1, verLocal.value());
         }
         
         betweenSections.run();
@@ -327,8 +327,8 @@ public abstract class AbstractTestDeltaConnection {
         // dClient.connect(NAME);
         try(DeltaConnection dConn = dClient.get(NAME)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
-            long ver = dConn.getLocalVersion();
-            long ver2 = dConn.getRemoteVersionLatest();
+            Version ver = dConn.getLocalVersion();
+            Version ver2 = dConn.getRemoteVersionLatest();
     
             assertEquals(verLocal, ver);
             assertEquals(verLocal, ver2);
@@ -367,7 +367,7 @@ public abstract class AbstractTestDeltaConnection {
         try(DeltaConnection dConn = dClient.get(NAME)) {
             dConn.getPatchLogInfo().getDataSourceId();
             dsRef = dConn.getDataSourceId();
-            long version = dConn.getRemoteVersionLatest();
+            Version version = dConn.getRemoteVersionLatest();
             DatasetGraph dsg = dConn.getDatasetGraph();
             Txn.executeWrite(dsg, ()->dsg.add(quad) );
         }
@@ -415,8 +415,8 @@ public abstract class AbstractTestDeltaConnection {
         Quad quad2 = DeltaTestLib.freshQuad();
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
     
-        long verLocal = -999;
-        long verRemote = -999;
+        Version verLocal = Version.UNSET;
+        Version verRemote = Version.UNSET;
         Id dsRef;
         
         String NAME = "DS-"+counter.incrementAndGet();
@@ -425,14 +425,14 @@ public abstract class AbstractTestDeltaConnection {
             dsRef = dConn.getDataSourceId();
             dsgBase = dConn.getStorage();
             DatasetGraph dsg = dConn.getDatasetGraph();
-            long ver = dConn.getLocalVersion();
+            Version ver = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
-            assertEquals(0, ver);
+            assertEquals(Version.INIT, ver);
             // Make change.
             Txn.executeWrite(dsg, ()->dsg.add(quad1));
             verLocal = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
-            assertEquals(ver+1, verLocal);
+            assertEquals(ver.value()+1, verLocal.value());
         }
         
         betweenSections1.run();
@@ -445,11 +445,11 @@ public abstract class AbstractTestDeltaConnection {
             
             Txn.executeWrite(dsg, ()->dsg.add(quad2));
             
-            long ver = dConn.getLocalVersion();
-            long ver2 = dConn.getRemoteVersionLatest();
+            Version ver = dConn.getLocalVersion();
+            Version ver2 = dConn.getRemoteVersionLatest();
             
-            assertEquals(verLocal+1, ver);
-            assertEquals(verRemote+1, ver2);
+            assertEquals(verLocal.value()+1, ver.value());
+            assertEquals(verRemote.value()+1, ver2.value());
             
             verLocal = dConn.getLocalVersion();
             verRemote = dConn.getRemoteVersionLatest();
@@ -461,8 +461,8 @@ public abstract class AbstractTestDeltaConnection {
         dClient = resetDeltaClient(NAME); 
         try(DeltaConnection dConn = dClient.get(NAME)) {
             DatasetGraph dsg = dConn.getDatasetGraph();
-            long ver = dConn.getLocalVersion();
-            long ver2 = dConn.getRemoteVersionLatest();
+            Version ver = dConn.getLocalVersion();
+            Version ver2 = dConn.getRemoteVersionLatest();
     
             assertEquals(verLocal, ver);
             assertEquals(verLocal, ver2);
@@ -499,15 +499,15 @@ public abstract class AbstractTestDeltaConnection {
 //        Quad quad2 = DeltaTestLib.freshQuad();
 //        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
 //    
-//        long verLocal = -999;
-//        long verRemote = -999;
+//        Version verLocal = -999;
+//        Version verRemote = -999;
 //        Id dsRef;
 //        
 //        try(DeltaConnection dConn = create(dsgBase)) {
 //            dsRef = dConn.getDatasourceId();
 //            dsgBase = dConn.getStorage();
 //            DatasetGraph dsg = dConn.getDatasetGraph();
-//            long ver = dConn.getLocalVersionNumber();
+//            Version ver = dConn.getLocalVersionNumber();
 //            verRemote = dConn.getRemoteVersionLatest();
 //            assertEquals(0, ver);
 //            // Make change.
@@ -524,8 +524,8 @@ public abstract class AbstractTestDeltaConnection {
 //            
 //            Txn.executeWrite(dsg, ()->dsg.add(quad2));
 //            
-//            long ver = dConn.getLocalVersionNumber();
-//            long ver2 = dConn.getRemoteVersionLatest();
+//            Version ver = dConn.getLocalVersionNumber();
+//            Version ver2 = dConn.getRemoteVersionLatest();
 //            
 //            assertEquals(verLocal+1, ver);
 //            assertEquals(verRemote+1, ver2);
@@ -539,8 +539,8 @@ public abstract class AbstractTestDeltaConnection {
 //        // Reconnect and read
 //        try(DeltaConnection dConn = connect(dsRef, dsgBase)) {
 //            DatasetGraph dsg = dConn.getDatasetGraph();
-//            long ver = dConn.getLocalVersionNumber();
-//            long ver2 = dConn.getRemoteVersionLatest();
+//            Version ver = dConn.getLocalVersionNumber();
+//            Version ver2 = dConn.getRemoteVersionLatest();
 //    
 //            assertEquals(verLocal, ver);
 //            assertEquals(verLocal, ver2);

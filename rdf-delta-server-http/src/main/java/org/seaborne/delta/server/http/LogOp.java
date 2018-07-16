@@ -28,7 +28,6 @@ import org.apache.commons.io.input.CountingInputStream;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonBuilder ;
-import org.apache.jena.atlas.json.JsonNumber ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
@@ -67,16 +66,15 @@ public class LogOp {
             RDFPatchOps.write(System.out, patch);
 
         try {
-            long version = action.dLink.append(dsRef, patch);
+            Version version = action.dLink.append(dsRef, patch);
             
             // Location of patch in "container/patch/id" form.
             //String location = action.request.getRequestURI()+"/patch/"+ref.asPlainString();
             String location = action.request.getRequestURI()+"?version="+version;
 
-            JsonValue x = JsonNumber.value(version);
             JsonValue rslt = JsonBuilder.create()
                 .startObject()
-                .pair(DeltaConst.F_VERSION, version)
+                .pair(DeltaConst.F_VERSION, version.asJson())
                 .pair(DeltaConst.F_LOCATION, location)
                 .finishObject()
                 .build();
@@ -141,7 +139,8 @@ public class LogOp {
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: id="+patchId);
         } else if ( action.httpArgs.version != null ) {
-            patch = action.dLink.fetch(dsRef, action.httpArgs.version);
+            Version ver = Version.create(action.httpArgs.version);
+            patch = action.dLink.fetch(dsRef, ver);
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: version="+action.httpArgs.version);
         } else {

@@ -39,10 +39,12 @@ public class DeltaOps {
         return (fmt, args) -> log.info(String.format(fmt, args));
     }
     
-    public static String verString(long version) {
-        if ( version == DeltaConst.VERSION_UNSET )
+    public static String verString(Version version) {
+        if ( version == null )
+            return "<null>";
+        if ( version.equals(Version.UNSET) )
             return "--";
-        return Long.toString(version);
+        return Long.toString(version.value());
     }
 
     /** Validate a name as a {@code DataSource} name */

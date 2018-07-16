@@ -36,11 +36,11 @@ import org.seaborne.delta.lib.JSONX ;
  */
 public class PatchLogInfo {
     private final DataSourceDescription dsd;
-    private final long minVersion ;
-    private final long maxVersion ;
+    private final Version minVersion ;
+    private final Version maxVersion ;
     private final Id latestPatch ;
     
-    public PatchLogInfo(DataSourceDescription dsd, long minVersion, long maxVersion, Id latestPatch) {
+    public PatchLogInfo(DataSourceDescription dsd, Version minVersion, Version maxVersion, Id latestPatch) {
         this.dsd = dsd;
         this.minVersion = minVersion ;
         this.maxVersion = maxVersion ;
@@ -69,11 +69,11 @@ public class PatchLogInfo {
         b.finishObject();
     }
     
-    /** Add fileds to current JsonBuilder object */
+    /** Add fielsds to current JsonBuilder object */
     public void addJsonFields(JsonBuilder b) {
         dsd.addJsonFields(b);
-        b.key(F_MINVER).value(minVersion);
-        b.key(F_MAXVER).value(maxVersion);
+        b.key(F_MINVER).value(minVersion.asJson());
+        b.key(F_MAXVER).value(maxVersion.asJson());
         if ( latestPatch != null )
             b.key(F_LATEST).value(latestPatch.asString());
         else
@@ -82,8 +82,8 @@ public class PatchLogInfo {
     
     public static PatchLogInfo fromJson(JsonObject obj) {
         DataSourceDescription dsd = DataSourceDescription.fromJson(obj);
-        long minVer = JSONX.getLong(obj, F_MINVER, DeltaConst.VERSION_UNSET) ;
-        long maxVer = JSONX.getLong(obj, F_MAXVER, DeltaConst.VERSION_UNSET) ;
+        Version minVer = Version.fromJson(obj, F_MINVER, Version.UNSET) ;
+        Version maxVer = Version.fromJson(obj, F_MAXVER, Version.UNSET) ;
         String latestPatchStr = JSONX.getStrOrNull(obj, F_LATEST);
         Id latestPatch = null;
         if ( latestPatchStr != null && !latestPatchStr.isEmpty() )
@@ -116,11 +116,11 @@ public class PatchLogInfo {
         return dsd.getUri();
     }
 
-    public long getMinVersion() {
+    public Version getMinVersion() {
         return minVersion ;
     }
 
-    public long getMaxVersion() {
+    public Version getMaxVersion() {
         return maxVersion ;
     }
 
@@ -134,8 +134,8 @@ public class PatchLogInfo {
         int result = 1;
         result = prime * result + ((dsd == null) ? 0 : dsd.hashCode());
         result = prime * result + ((latestPatch == null) ? 0 : latestPatch.hashCode());
-        result = prime * result + (int)(maxVersion ^ (maxVersion >>> 32));
-        result = prime * result + (int)(minVersion ^ (minVersion >>> 32));
+        result = prime * result + ((maxVersion == null) ? 0 : maxVersion.hashCode());
+        result = prime * result + ((minVersion == null) ? 0 : minVersion.hashCode());
         return result;
     }
 
@@ -158,11 +158,16 @@ public class PatchLogInfo {
                 return false;
         } else if ( !latestPatch.equals(other.latestPatch) )
             return false;
-        if ( maxVersion != other.maxVersion )
+        if ( maxVersion == null ) {
+            if ( other.maxVersion != null )
+                return false;
+        } else if ( !maxVersion.equals(other.maxVersion) )
             return false;
-        if ( minVersion != other.minVersion )
+        if ( minVersion == null ) {
+            if ( other.minVersion != null )
+                return false;
+        } else if ( !minVersion.equals(other.minVersion) )
             return false;
         return true;
     }
-
 }

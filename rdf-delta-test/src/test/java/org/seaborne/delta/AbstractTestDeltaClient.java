@@ -77,8 +77,8 @@ public abstract class AbstractTestDeltaClient {
         
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
-        assertEquals(0, dConn.getLocalVersion());
-        assertEquals(0, dConn.getRemoteVersionLatest());
+        assertEquals(Version.INIT, dConn.getLocalVersion());
+        assertEquals(Version.INIT, dConn.getRemoteVersionLatest());
     }
 
     @Test
@@ -117,8 +117,8 @@ public abstract class AbstractTestDeltaClient {
         dClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
-        assertEquals(0, dConn.getLocalVersion());
-        assertEquals(0, dConn.getRemoteVersionLatest());
+        assertEquals(Version.INIT, dConn.getLocalVersion());
+        assertEquals(Version.INIT, dConn.getRemoteVersionLatest());
         
         Quad quad = SSE.parseQuad("(_ :s :p :o)");
         DatasetGraph dsg = dConn.getDatasetGraph();
@@ -145,8 +145,8 @@ public abstract class AbstractTestDeltaClient {
         dClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.NONE);
         DeltaConnection dConn = dClient.get(DS_NAME);
         assertNotNull(dConn);
-        assertEquals(0, dConn.getLocalVersion());
-        assertEquals(0, dConn.getRemoteVersionLatest());
+        assertEquals(Version.INIT, dConn.getLocalVersion());
+        assertEquals(Version.INIT, dConn.getRemoteVersionLatest());
         
         Quad quad = SSE.parseQuad("(_ :s :p :o)");
         DatasetGraph dsg = dConn.getDatasetGraph();

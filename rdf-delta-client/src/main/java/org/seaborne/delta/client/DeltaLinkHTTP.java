@@ -135,7 +135,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public long append(Id dsRef, RDFPatch patch) {
+    public Version append(Id dsRef, RDFPatch patch) {
         checkLink();
         
         long t1 = System.currentTimeMillis();
@@ -153,7 +153,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         if ( str != null ) {
             try {
                 JsonObject obj = JSON.parse(str);
-                int version = obj.get(DeltaConst.F_VERSION).getAsNumber().value().intValue();
+                Version version = Version.fromJson(obj, DeltaConst.F_VERSION);
                 return version;
             } catch (Exception ex) {
                 FmtLog.warn(this.getClass(), "[%s] Error in response body : %s", dsRef, ex.getMessage());
@@ -162,29 +162,29 @@ public class DeltaLinkHTTP implements DeltaLink {
             FmtLog.warn(this.getClass(), "[%s] No response body", dsRef);
         }
         // No response body or syntax error.
-        return -1;
+        return Version.UNSET;
     }
 
     @Override
-    public RDFPatch fetch(Id dsRef, long version) {
-        if ( version < 0 )
+    public RDFPatch fetch(Id dsRef, Version version) {
+        if ( !Version.isValid(version) )
             return null;
-        return fetchCommon(dsRef, DeltaConst.paramVersion, version, Long.toString(version));
+        return fetchCommon(dsRef, DeltaConst.paramVersion, version.asParam());
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
-        return fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam(), patchId.toString());
+        return fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam());
     }
 
-    private RDFPatch fetchCommon(Id dsRef, String param, Object value, String valueLogStr) {
+    private RDFPatch fetchCommon(Id dsRef, String param, String paramStr) {
         checkLink();
         
         String url = remoteReceive;
         url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
-        url = appendURL(url, value.toString());
+        url = appendURL(url, paramStr);
         final String s = url;
-        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, valueLogStr, url);
+        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, paramStr, url);
         try { 
             return retry(()->{
                 // [NET] Network point

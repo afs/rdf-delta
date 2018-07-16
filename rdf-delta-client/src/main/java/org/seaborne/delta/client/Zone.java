@@ -158,7 +158,7 @@ public class Zone {
         DataState dataState = readDataState(p);
         if ( dataState.getStorageType().isEphemeral() )
             // If ephemeral, force version to 0.
-            dataState.updateState(0, null);
+            dataState.updateState(Version.INIT, null);
         try {
             register(dataState);
         } catch (Exception ex) {
@@ -217,7 +217,7 @@ public class Zone {
             if ( dataPath != null )
                 FileOps.ensureDir(dataPath.toString());
             // statePath is null for ephemeral
-            DataState dataState = new DataState(this, statePath, storage, dsRef, name, uri, 0, null);
+            DataState dataState = new DataState(this, statePath, storage, dsRef, name, uri, Version.INIT, null);
             register(dataState);
             return dataState;
         }

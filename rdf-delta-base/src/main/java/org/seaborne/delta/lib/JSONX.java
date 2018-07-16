@@ -58,11 +58,16 @@ public class JSONX {
         return null ;
     }
     
-    /** Access a field of a JSON object : return a {@code long}, or the default value. */ 
+    /** Access a field of a JSON object : return a {@code long}, or the default value. */
     public static long getLong(JsonObject obj, String field, long dftValue) {
         JsonValue jv = obj.get(field);
         if ( jv == null )
             return dftValue;
+        return getLong(jv, dftValue);
+    }
+    
+    /** JSON value to long: return a {@code long}, or the default value. */
+    public static long getLong(JsonValue jv, long dftValue) {
         if ( jv.isNumber() ) {
             Number num = jv.getAsNumber().value();
             if ( num.doubleValue() < Long.MIN_VALUE || num.doubleValue() > Long.MAX_VALUE )
@@ -71,12 +76,17 @@ public class JSONX {
         }
         return dftValue ;
     }
-    
+
     /** Access a field of a JSON object, return an {@code int} or a default value. */ 
     public static int getInt(JsonObject obj, String field, int dftValue) {
         JsonValue jv = obj.get(field);
         if ( jv == null )
             return dftValue;
+        return getInt(jv, dftValue);
+    }
+    
+    /** JSON value to int: return a {@code long}, or the default value. */
+    public static int getInt(JsonValue jv, int dftValue) {
         if ( jv.isNumber() ) {
             long z = jv.getAsNumber().value().longValue();
             if ( z < Integer.MIN_VALUE || z > Integer.MAX_VALUE )

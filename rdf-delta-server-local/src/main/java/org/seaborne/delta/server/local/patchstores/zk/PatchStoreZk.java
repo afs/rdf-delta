@@ -129,8 +129,7 @@ public class PatchStoreZk extends PatchStore {
 
         if ( newLogs.isEmpty() && deletedLogs.isEmpty() )
             return;
-        FmtLog.info(LOGZK, "[%d] New=%s : Deleted=%s", instance, newLogs, deletedLogs);
-        
+        FmtLog.debug(LOGZK, "[%d] New=%s : Deleted=%s", instance, newLogs, deletedLogs);
         
         newLogs.forEach(name->{
             // Read DSD.

@@ -89,12 +89,13 @@ public class Zk {
         try {
             RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
             CuratorFramework client = 
-                CuratorFrameworkFactory.builder()
-                //.namespace("delta")
-                .connectString(connectString)
-                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
-                .retryPolicy(policy)
-                .build();
+                CuratorFrameworkFactory.newClient(connectString, 10000, 10000, policy);
+//                CuratorFrameworkFactory.builder()
+//                //.namespace("delta")
+//                .connectString(connectString)
+//                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
+//                .retryPolicy(policy)
+//                .build();
             client.start();
             //client.getConnectionStateListenable().addListener((c, newState)->System.out.println("** STATE CHANGED TO : " + newState));
             client.blockUntilConnected();
