@@ -23,15 +23,32 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
-import org.seaborne.delta.integration.TS_DeltaZk;
 
 @RunWith(Suite.class)
 @SuiteClasses( {
-    TS_Delta.class
-    , TS_DeltaZk.class
+    TestLocalLinkMem.class ,
+    TestLocalLinkFile.class ,
+    //TestLocalLinkZk.class ,
+    
+    TestLocalConnectionMem.class ,
+    TestLocalConnectionFile.class ,
+    TestLocalConnectionZk.class ,
+    TestLocalClient.class ,
+    
+    TestRemoteLink.class ,
+    TestRemoteConnection.class ,
+    TestRemoteClient.class ,
+
+    TestZone.class ,
+    TestRestart.class ,
+    
+    // Includes assembler tests.
+    TestDeltaFusekiGood.class ,
+    TestDeltaFusekiBad.class
+    
 })
 
-public class TS_Delta {
+public class TC_Delta {
     @BeforeClass public static void setForTesting() { 
         //LogCtl.setLog4j();
         LogCtl.setJavaLogging("src/test/resources/logging.properties");

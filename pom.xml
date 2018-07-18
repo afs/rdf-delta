@@ -74,6 +74,7 @@
     <ver.curator>4.0.1</ver.curator>
     <ver.aws-s3>1.11.359</ver.aws-s3>
     <ver.s3mock>0.2.5</ver.s3mock>
+    <ver.awaitility>3.1.1</ver.awaitility>
   </properties>
   
   <modules>
@@ -185,6 +186,12 @@
         <artifactId>curator-test</artifactId>
         <version>${ver.curator}</version>
       </dependency> 
+
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>${ver.awaitility}</version>
+      </dependency>
 
       <dependency>
         <groupId>com.amazonaws</groupId>
