@@ -23,7 +23,7 @@ public class PatchCodes {
     // An enum does not help.
     // One use is the reader where we need string -> code.
     // The other is the writer, where we need the label.
-    //  Buit in both, there 
+    // =
     // The "closed set " nature of enums is not exploited by the reader
     // and the writer is supported by maintaining the "isValid" function.
     

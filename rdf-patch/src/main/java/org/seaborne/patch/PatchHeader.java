@@ -53,10 +53,31 @@ public class PatchHeader {
     }
 
     public void apply(RDFChanges changes) {
-        forEach( (s,n) -> changes.header(s, n) );
+        // Do "H id" then "H prev" then the rest.
+        Node idNode = getId();
+        Node prevNode = getPrevious();
+        if ( idNode != null )
+            changes.header(RDFPatchConst.ID, idNode);
+        if ( prevNode != null )
+            changes.header(RDFPatchConst.PREV, prevNode);
+
+        // Then the rest,
+        
+        forEach( (s,n) -> {
+            switch(s) {
+                case RDFPatchConst.ID:
+                case RDFPatchConst.PREV:
+                case RDFPatch.PREVIOUS:
+                    return;
+                default:
+                    changes.header(s, n);
+            }
+        });
     }
     
     public void forEach(BiConsumer<String, Node> action) {
+        
+        
         header.forEach(action);
     }
 
