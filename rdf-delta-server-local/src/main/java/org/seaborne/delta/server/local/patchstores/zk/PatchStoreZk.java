@@ -23,6 +23,7 @@ import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nDsd;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nState;
 import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nVersions;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nHeaders;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -350,12 +351,14 @@ public class PatchStoreZk extends PatchStore {
         String dsdPath        = zkPath(logPath, nDsd);
         String statePath      = zkPath(logPath, nState);
         String versionsPath   = zkPath(logPath, nVersions);
+        String headersPath    = zkPath(logPath, nHeaders);
         String lockPath       = zkPath(logPath, nLock);
 
         // Paths.
         zkCreateSetJson(client, dsdPath, dsdJson);
         zkCreateSetJson(client, statePath, initialState);
         zkCreate(client, versionsPath);
+        zkCreate(client, headersPath);
         zkCreate(client, lockPath);
     }
     

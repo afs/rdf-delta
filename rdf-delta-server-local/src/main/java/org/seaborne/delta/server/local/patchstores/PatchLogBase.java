@@ -199,7 +199,7 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public Id find(Version version) {
-        return logIndex.mapVersionToId(version);
+        return logIndex.versionToId(version);
     }
 
     @Override

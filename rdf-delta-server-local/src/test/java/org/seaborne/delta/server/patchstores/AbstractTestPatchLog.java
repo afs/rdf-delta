@@ -68,6 +68,9 @@ public abstract class AbstractTestPatchLog {
         
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(patch.getId(), x.getLatestPatch().asNode());
+        
+        x.getMaxVersion();
+        
         assertEquals(Version.FIRST, x.getMaxVersion());
         assertEquals(Version.FIRST, x.getMinVersion());
 

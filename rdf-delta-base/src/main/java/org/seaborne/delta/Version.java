@@ -70,6 +70,13 @@ public class Version {
     }
     
     public static Version create(long version) {
+        // Versions count from 1 or use a constant,
+        if ( version == UNSET.value() )
+            return UNSET;
+        if ( version == INIT.value() )
+            return INIT;
+        if ( version <= 0 )
+            throw new DeltaException();
         return new Version(version, null);
     }
     
@@ -94,7 +101,9 @@ public class Version {
 
     /** Is this version a possible version? (i.e. not a marker) */
     public static boolean isValid(Version version) {
-        return version != null && version != Version.UNSET && version != Version.INIT ;
+        if ( version == null )
+            return false;
+        return version.isValid();
     }
 
     /** Is this version a possible version? (i.e. not a marker) */
@@ -104,7 +113,8 @@ public class Version {
 
     /** Is this version a possible version? (i.e. not a marker) */
     public boolean isValid() {
-        return isValid(this);
+        //return this != Version.UNSET && this != Version.INIT ;
+        return version != Version.UNSET.value() && version != Version.INIT.value() ;
     }
 
     public JsonValue asJson() {

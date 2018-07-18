@@ -18,8 +18,6 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
@@ -33,7 +31,6 @@ import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
-import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.StrUtils;
@@ -45,6 +42,7 @@ import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.admin.AdminServer.AdminServerException;
 import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,8 +119,7 @@ public class Zk {
         try {
             ZKPaths.mkdirs(client.getZookeeperClient().getZooKeeper(), path, true);
             return path;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LOG.error("Failed: mkdirs("+path+")",e) ;
             return null;
         }
@@ -145,8 +142,7 @@ public class Zk {
             return null;
         if ( x.length == 0 )
             return null;
-        String s = StrUtils.fromUTF8bytes(x);
-        return JSON.parse(new ByteArrayInputStream(x));
+        return JSONX.fromBytes(x);
     }
 
     public static byte[] zkFetch(CuratorFramework client,  String path) {
@@ -257,18 +253,14 @@ public class Zk {
     
     /** Set an existing zNode to the the bytes for the JSON object */
     public static void zkSetJson(CuratorFramework client, String statePath, JsonObject x) {
-        // XXX Better? Direct JSON to bytes. / Jena.
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JSON.write(out, x); 
-        zkSet(client, statePath, out.toByteArray());
+        byte[] bytes = JSONX.asBytes(x);
+        zkSet(client, statePath, bytes);
     }
 
     /** Create and set a new zNode: the zNode must not exist before this operation. */
     public static void zkCreateSetJson(CuratorFramework client, String statePath, JsonObject x) {
-        // XXX Better? Direct JSON to bytes. / Jena.
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JSON.write(out, x); 
-        zkCreateSet(client, statePath, out.toByteArray());
+        byte[] bytes = JSONX.asBytes(x);
+        zkCreateSet(client, statePath, bytes);
     }
 
     public static void zkSet(CuratorFramework client, String p, byte[] b) {
@@ -277,7 +269,6 @@ public class Zk {
             if ( stat == null )
                 LOG.warn("Did not set: "+p);
         });
-        
     }
 
     public static void listNodes(CuratorFramework client) {

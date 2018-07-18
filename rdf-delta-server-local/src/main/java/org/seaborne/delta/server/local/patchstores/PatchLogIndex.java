@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchInfo;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 
@@ -77,8 +78,11 @@ public interface PatchLogIndex {
     /** Get the {@code Id} of the previous entry, or null if there isn't one. */
     public Id getPreviousId();
 
-    /** Map version number to the {@link Id} for the patch it refers to. */ 
-    public Id mapVersionToId(Version version);
+    /** Map version number to the {@link Id} for the patch it refers to. */
+    public Id versionToId(Version version);
+
+    /** Map {@link Id} to version number. */ 
+    public PatchInfo getPatchInfo(Id id); 
 
     /** Release the in-process state for this log index. */
     public void release();
@@ -86,6 +90,4 @@ public interface PatchLogIndex {
     /** Delete (or make unavailable) the persistent state. */
     public void delete();
 
-//    /** Map {@link Id} to version number. */ 
-//    public long mapIdToVersion(Id id); 
 }

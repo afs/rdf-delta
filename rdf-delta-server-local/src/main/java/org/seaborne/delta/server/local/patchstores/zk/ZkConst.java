@@ -31,9 +31,12 @@ public class ZkConst {
      * /delta/logs/NAME/dsd
      * /delta/logs/NAME/lock
      * /delta/logs/NAME/state               (first_version: ,  DataSourceDescription) 
+     * /delta/logs/NAME/versions/00000000   Patch ids.
+     * /delta/logs/NAME/header/00000000       Patches, JSON state (optional). 
+     * 
      * 
      * When including patch storage:
-     * /delta/logs/NAME/patches/
+     *   /delta/logs/NAME/patches/
      */
 
     // Convention: p* is a path, n* is a zNode name.  
@@ -47,7 +50,9 @@ public class ZkConst {
     static final String nLock           = "lock";
     static final String nState          = "state";
     static final String nPatches        = "patches";
-    static final String nVersions       = "versions";
-    //static final String nVersionsSeq     = "versions-";
     
+    // Version to id.
+    static final String nVersions       = "versions";
+    // Id to (version, id, prev). 
+    static final String nHeaders        = "header";
 }

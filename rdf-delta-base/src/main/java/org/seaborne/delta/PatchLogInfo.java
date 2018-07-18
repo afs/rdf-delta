@@ -69,7 +69,7 @@ public class PatchLogInfo {
         b.finishObject();
     }
     
-    /** Add fielsds to current JsonBuilder object */
+    /** Add fields to current JsonBuilder object */
     public void addJsonFields(JsonBuilder b) {
         dsd.addJsonFields(b);
         b.key(F_MINVER).value(minVersion.asJson());

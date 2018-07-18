@@ -18,11 +18,12 @@
 
 package org.seaborne.delta.server.local.patchstores.mem;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchInfo;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
@@ -31,8 +32,8 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 public class PatchLogIndexMem implements PatchLogIndex {
     private Object lock = new Object();
     // Only needs to be a Map unless we need Id->Version.
-    //private BiMap<Long, Id> versions = HashBiMap.create();
-    private Map<Version, Id> versions = new HashMap<>();
+    private Map<Version, Id> versions = new ConcurrentHashMap<>();
+    private Map<Id, PatchInfo> patchHeaders = new ConcurrentHashMap<>();
     
     private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
@@ -56,7 +57,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
 
     @Override
     public Version nextVersion() {
-        return version.inc();
+        return getCurrentVersion().inc();
     }
     
     @Override
@@ -70,6 +71,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
         }
         
         versions.put(version, patch);
+        patchHeaders.put(patch, new PatchInfo(current, version, prev));
     }
     
     @Override
@@ -101,7 +103,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
     }
 
     @Override
-    public Id mapVersionToId(Version ver) {
+    public Id versionToId(Version ver) {
         return versions.get(ver);
     }
 
@@ -131,8 +133,9 @@ public class PatchLogIndexMem implements PatchLogIndex {
             return action.get();
         }
     }
-//    @Override
-//    public long mapIdToVersion(Id id) {
-//        return versions.inverse().get(id);
-//    }
+    
+    @Override
+    public PatchInfo getPatchInfo(Id id) {
+        return patchHeaders.get(id);
+    }
 }

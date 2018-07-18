@@ -20,15 +20,13 @@ package org.seaborne.delta.server.local.patchstores.zk;
 
 import static org.seaborne.delta.server.local.patchstores.zk.Zk.zkPath;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Supplier;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
@@ -51,8 +49,23 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final DataSourceDescription dsd;
     private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas 
     private final String statePath;
-    private final String versionsPath;
     private final String lockPath;
+    private final String versionsPath;
+    private final String headersPath;
+    
+    /* Keep head info - the (version, id, prev) is saved in /headers/<id> when a patch is stored in addition to the
+     * /versions/NNNN which as just id.
+     * This isn't necessary for operation. 
+     * It can be used to check the patch store.
+     */
+    private final boolean keepHeaderInfo = true;
+    
+    /*
+     * Verification can only happen if basic header information is stored.
+     * Requires header information to have been kept.
+     */
+    // Could write a verifier that went to the PatchStorage to get header info.   
+    private final boolean startupVerification = false && keepHeaderInfo ;
     
     private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
@@ -79,11 +92,10 @@ public class PatchLogIndexZk implements PatchLogIndex {
         this.dsd = dsd;
         this.logName = dsd.getName();
         this.statePath      = zkPath(logPath, ZkConst.nState);
-        this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
         this.lockPath       = zkPath(logPath, ZkConst.nLock);
+        this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
+        this.headersPath   = zkPath(logPath, ZkConst.nHeaders);
 
-        // XXX Maybe do a checking scan.
-        
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
         //Guess: 1
@@ -98,11 +110,111 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 earliestVersion = Version.create(ver);
             } catch (NoSuchElementException ex) {  }
         }
-        earliestId = mapVersionToId(earliestVersion);
-        
-        
+        earliestId = versionToId(earliestVersion);
         // Initialize, start watching
         stateOrInit();
+        
+        if ( startupVerification ) {
+            if ( ! keepHeaderInfo )
+                FmtLog.warn(LOG, "Not keeping header information. Verification may fail if any previous runs also did not keep header information."); 
+            verify(client, x);
+        }
+    }
+
+    private void verify(CuratorFramework client, List<String> versions) {
+        List<String> headers = Zk.zkSubNodes(client, headersPath);
+        
+        if ( versions.isEmpty() ) {
+            if ( ! headers.isEmpty() ) { /*msg*/ }
+            if ( version != Version.INIT.value() ) { /*msg*/ }
+            if ( current != null ) { /*msg*/ }
+            if ( previous != null ) { /*msg*/ }
+            return ;
+        }
+        // Create the threaded patches
+        Map<Id, Id> mapIdToPrev = new HashMap<>();
+        Map<Id, Id> mapPrevToId = new HashMap<>();
+        Map<Long, Id> mapLongToId = new HashMap<>();
+        
+        headers.forEach(idStr->{
+            Id id = Id.fromString(idStr);
+            String path = zkPath(headersPath, idStr);
+            JsonObject obj = Zk.zkFetchJson(client, path);
+            Id patchId = getIdOrNull(obj, fId);
+            if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
+            
+            Id prevId = getIdOrNull(obj, fPrevious);
+            long ver = JSONX.getLong(obj, fVersion, -99);
+            if ( patchId == null ) {
+                FmtLog.error(LOG, "Null patch id (%s, %s)", patchId, prevId);
+                return;
+            }
+            if ( mapIdToPrev.containsKey(patchId) )
+                FmtLog.error(LOG, "Duplicate for %s: was %s : now %s", patchId, mapIdToPrev.get(patchId), prevId);
+            
+            mapIdToPrev.put(patchId, prevId);
+            mapPrevToId.put(prevId, patchId);
+            mapLongToId.put(ver, patchId);
+        });
+        
+        // Find all the ids with no prev. 
+        List<Id> firsts = ListUtils.toList(mapIdToPrev.entrySet().stream().filter(e->e.getValue()==null).map(e->e.getKey()));
+        if ( firsts.isEmpty() ) {
+            FmtLog.error(LOG, "No initial patch found");
+            return;
+        }
+        if ( firsts.size() > 2 ) {
+            FmtLog.error(LOG, "Multiple patchs with no prev: %s", firsts);
+            return;
+        }
+        // Off by one!
+        List<Id> versionsCalc = new ArrayList<>(); 
+        Id initialId = firsts.get(0);
+        Id id = initialId;
+        long count = 0;
+        
+        for(;;) {
+            versionsCalc.add(id);
+            Id next = mapPrevToId.get(id);
+            if ( next == null )
+                break;
+            id = next;
+        }
+        
+        if ( versionsCalc.size() != versions.size() ) { /*msg*/ }
+        if ( versionsCalc.size()+1 != version ) { /*msg*/ }
+        
+        Id mostRecent = versionsCalc.get(versionsCalc.size()-1);
+        if ( ! mostRecent.equals(current) ) { /*msg*/ }
+        
+        if ( previous != null ) {
+            if ( versionsCalc.size() == 1 ) {}
+            Id mostRecentPrev = versionsCalc.get(versionsCalc.size()-2);
+            if ( mostRecentPrev.equals(previous) ) { /*msg*/ }
+        } else {
+            if ( versionsCalc.size() != 1 ) { /*msg*/ }
+        }
+    }
+
+    
+
+    // ---- Zookeeper index state watching.
+    
+    @Override
+    public void refresh() {
+        //loadState(false);
+    }
+    
+    // ---- Zookeeper index state watching.
+    
+    @Override
+    public void delete() {
+        // Don't actually delete the state.
+    }
+
+    @Override
+    public void release() {
+        // Release local resources.
     }
 
     @Override
@@ -148,22 +260,22 @@ public class PatchLogIndexZk implements PatchLogIndex {
         // Should always be called inside the patch lock.
         save(version.value(), patch, prev);
     }
-    
+
     private void save(long version, Id patch, Id prev) {
         newState(version, patch, prev);
         JsonObject x = stateToJson(version, patch, prev);
-        if ( patch != null )
+        byte[] bytes = JSONX.asBytes(x);
+        if ( patch != null ) {
+            // [META]
+            // Record the basic header - (version, id, prev) - for validation.   
+            if ( keepHeaderInfo )
+                Zk.zkCreateSet(client, headerPath(patch), bytes);
+            // Write version->id mapping.
             Zk.zkCreateSet(client, versionPath(version), patch.asBytes());
-        Zk.zkSetJson(client, statePath, x);
+        }
+        Zk.zkSet(client, statePath, bytes);
     }
 
-    @Override
-    public void refresh() {
-        //loadState(false);
-    }
-    
-    // ---- Zookeeper index state watching.
-    
     private Watcher logStateWatcher = (event)->{
         synchronized(lock) {
             FmtLog.debug(LOG, "++ [%d:%s] Log watcher", instance, logName);
@@ -174,7 +286,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private void syncState() {
         JsonObject obj = getWatchedState();
         if ( obj != null )
-            jsonToState(obj);
+            jsonSetState(obj);
     }
 
     private JsonObject getWatchedState() {
@@ -187,7 +299,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         synchronized(lock) {
             JsonObject obj = getWatchedState();
             if ( obj != null )
-                jsonToState(obj);
+                jsonSetState(obj);
             else
                 initState();
             if ( version == DeltaConst.VERSION_UNSET )
@@ -224,7 +336,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         }); 
     }
     
-    private void jsonToState(JsonObject obj) {
+    private void jsonSetState(JsonObject obj) {
         try {
             FmtLog.debug(LOG, "jsonToState %s",JSON.toStringFlat(obj));
             long ver = obj.get(fVersion).getAsNumber().value().longValue();
@@ -264,7 +376,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public Id mapVersionToId(Version ver) {
+    public Id versionToId(Version ver) {
+        // Cache?
         if ( ! Version.isValid(ver) )
             return null;
         String p = versionPath(ver);
@@ -275,13 +388,21 @@ public class PatchLogIndexZk implements PatchLogIndex {
         return id;
     }
 
-//    @Override
-//    public long mapIdToVersion(Id id) {
-//        throw new UnsupportedOperationException();
-//    }
+    @Override
+    public PatchInfo getPatchInfo(Id id) {
+        String p = headerPath(id);
+        JsonObject obj = Zk.zkFetchJson(client, p);
+        Id patchId = getIdOrNull(obj, fId);
+        if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
+        Id prevId = getIdOrNull(obj, fPrevious);
+        long ver = JSONX.getLong(obj, fVersion, -99);
+        Version version = ver < 0 ? Version.UNSET : Version.create(ver);
+        return new PatchInfo(patchId, Version.UNSET, prevId);
+    }
 
     private String versionPath(Version ver) { return versionPath(ver.value()) ; }
     private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
+    private String headerPath(Id id) { return Zk.zkPath(headersPath, id.asPlainString()); }
     
     private long versionFromName(String name) {
         try {
@@ -293,21 +414,10 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     private Id getIdOrNull(JsonObject obj, String field) {
-        JsonValue jv = obj.get(field);
-        if ( jv == null )
+        String s = JSONX.getStrOrNull(obj, field);
+        if ( s == null )
             return null;
-        String s = jv.getAsString().value();
         return Id.fromString(s);
-    }
-
-    @Override
-    public void delete() {
-        // Don't actually delete the state.
-    }
-    
-    @Override
-    public void release() {
-        // Release local resources.
     }
 
     @Override

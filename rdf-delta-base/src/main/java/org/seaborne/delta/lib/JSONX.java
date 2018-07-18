@@ -18,13 +18,14 @@
 
 package org.seaborne.delta.lib;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.util.Optional;
 import java.util.function.Consumer ;
 
-import org.apache.jena.atlas.json.JsonArray;
-import org.apache.jena.atlas.json.JsonBuilder ;
-import org.apache.jena.atlas.json.JsonObject ;
-import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.atlas.io.IndentedWriter;
+import org.apache.jena.atlas.json.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,4 +133,24 @@ public class JSONX {
         }
         throw new IllegalArgumentException("Not a JSON object or JSON array; "+arg);
     }
+    
+    /** Return a {@link JsonObject} parsed out of bytes. */ 
+    public static JsonObject fromBytes(byte[] bytes) {
+        return JSON.parse(new ByteArrayInputStream(bytes));
+    }
+
+    public static byte[] asBytes(JsonValue jsonValue) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writeFlat(out, jsonValue);
+        return out.toByteArray();
+    }
+    
+    /** Write out a JSON value - pass a JSON Object to get legal exchangeable JSON */
+    private static void writeFlat(OutputStream output, JsonValue jValue) {
+        IndentedWriter iOut = new IndentedWriter(output) ;
+        iOut.setFlatMode(true);
+        JSON.write(iOut, jValue) ;
+        iOut.flush() ;
+    }
+
 }
