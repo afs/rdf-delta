@@ -18,12 +18,8 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.server.local.patchstores.zk.Zk.*;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nDsd;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nLock;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nState;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nVersions;
-import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.nHeaders;
+import static org.seaborne.delta.server.local.patchstores.zk.ZkConst.*;
+import static org.seaborne.delta.zk.Zk.*;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
@@ -48,8 +44,9 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.zk.Zk.ZkRunnable;
-import org.seaborne.delta.server.local.patchstores.zk.Zk.ZkSupplier;
+import org.seaborne.delta.zk.Zk;
+import org.seaborne.delta.zk.Zk.ZkRunnable;
+import org.seaborne.delta.zk.Zk.ZkSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
 
@@ -159,6 +156,8 @@ public class PatchStoreZk extends PatchStore {
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
         if ( client == null )
             return Collections.emptyList();
+        
+       // Zk.listNodes(client);
         
         boolean isEmpty = zkCalc(()->client.checkExists().forPath(ZkConst.pRoot)==null);
         try {

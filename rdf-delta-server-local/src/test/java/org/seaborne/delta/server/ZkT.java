@@ -23,7 +23,7 @@ import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
-import org.seaborne.delta.server.local.patchstores.zk.Zk;
+import org.seaborne.delta.zk.Zk;
 
 /** Zookeeper testing support */
 public class ZkT {

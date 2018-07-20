@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStorageZk;
-import org.seaborne.delta.server.local.patchstores.zk.Zk;
+import org.seaborne.delta.zk.Zk;
 
 public class TestPatchStorageZk extends AbstractTestPatchStorage {
     static { LogCtl.setJavaLogging(); }

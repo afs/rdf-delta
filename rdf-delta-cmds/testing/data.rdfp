@@ -1,0 +1,7 @@
+H id <uuid:15724832-96c5-11e6-9d7f-131fb3e5c030> .
+TB .
+PA "rdf"  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+PD "rdf" .
+A <http://example/s> <http://example/p> <http://example/o> <http://example/g> .
+D <http://example/s> <http://example/p> <http://example/o> .
+TC.

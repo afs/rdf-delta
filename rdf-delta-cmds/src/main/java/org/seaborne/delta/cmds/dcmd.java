@@ -20,6 +20,7 @@ package org.seaborne.delta.cmds;
 
 import java.util.Arrays;
 
+import jena.cmd.CmdException;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.LogCtl;
 
@@ -69,7 +70,7 @@ public class dcmd {
     public static void main(String...args) {
         if ( args.length == 0 ) {
             System.err.println("Usage: dcmd SUB ARGS...");
-            System.exit(1);
+            throw new CmdException("Usage: dcmd SUB ARGS...");
         }
         
         String cmd = args[0];
@@ -83,9 +84,8 @@ public class dcmd {
             case "-help" :
             case "--help" :
                 System.err.println("Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r");
-                System.exit(0);
+                return;
         }
-
         
         // Map to full name.
         switch (cmdExec) {
@@ -104,6 +104,7 @@ public class dcmd {
                 cmdExec = "rmlog";
                 break;
             case "get" :
+            case "fetch" :
                 cmdExec = "getpatch";
                 break;
             case "server" :
@@ -111,7 +112,7 @@ public class dcmd {
                 break;
         }
        
-        // Execuet sub-command
+        // Execute sub-command
         switch (cmdExec) {
             case "mklog":       mklog.main(argsSub); break;
             case "rmlog":       rmlog.main(argsSub); break;

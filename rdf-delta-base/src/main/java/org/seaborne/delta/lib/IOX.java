@@ -53,8 +53,23 @@ public class IOX {
         return new RuntimeIOException(ioException);
     }
     
+    @FunctionalInterface
+    public interface ActionIO { void run() throws IOException; }
+    
+    /** Run an action. converting an {@link IOException} into a {@link RuntimeIOException}.
+     * <p>
+     * Idiom:
+     * <pre>
+     *     run(()->...)); 
+     * </pre>
+     */
+    public static void run(ActionIO action) {
+        try { action.run(); }
+        catch (IOException e) { throw exception(e); }
+    }
+    
     /** Write a file safely - the change happens (the function returns true) or
-     * somthing went wrong (the function throws a runtime exception) and the file is not changed.
+     * something went wrong (the function throws a runtime exception) and the file is not changed.
      * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.  
      */
     public static boolean safeWrite(Path file, IOConsumer<OutputStream> writerAction) {

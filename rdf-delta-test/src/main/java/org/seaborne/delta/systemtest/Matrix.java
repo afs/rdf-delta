@@ -48,7 +48,9 @@ import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.zk.Zk;
+import org.seaborne.delta.zk.Zk;
+import org.seaborne.delta.zk.ZkS;
+import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,6 @@ public class Matrix {
     static Logger LOG = LoggerFactory.getLogger("Matrix");
     
     static List<Integer> ports = new ArrayList<>();
-    
 
     private static TestingServer zkServer = null;
 
@@ -157,14 +158,14 @@ public class Matrix {
     }
     
     private static String startZoo(String dataDir) {
-        ZkM.zkSystemProps();
+        ZkS.zkSystemProps();
         int zkPort1 = choosePort();
-        ZooKeeperHelper zk1 = ZkM.runZookeeperServer(zkPort1, dataDir);
+        ZooServer zk1 = ZkS.runZookeeperServer(zkPort1, dataDir);
         zk1.start();
         return "localhost:"+zkPort1;
     }
     
-    static String startZooJVM() {
+    public static String startZooJVM() {
         try {
             zkServer = new TestingServer();
             zkServer.start();
@@ -176,13 +177,16 @@ public class Matrix {
 
     // Start a whole ensemble.
     // Really messy logging.
-    public static String startZooQ() {
-        ZkM.zkSystemProps();
+    public static String startZooQ(boolean clean) {
+        ZkS.zkSystemProps();
         String connectionString = format("localhost:2181,localhost:2182,localhost:2183");
         String [] args1 = {"./../zk/zk1/zoo.cfg"};
         String [] args2 = {"./../zk/zk2/zoo.cfg"};
         String [] args3 = {"./../zk/zk3/zoo.cfg"};
         //System.out.println("Server1 ...");
+        ZkS.runZookeeperServer("./../zk/zk1/zoo.cfg");
+        
+        
         L.async(()->QuorumPeerMain.main(args1));
         //System.out.println("Server2 ...");
         L.async(()->QuorumPeerMain.main(args2));
@@ -191,6 +195,17 @@ public class Matrix {
         return connectionString;
     }
     
+    /** One external zoo keeper */
+    public static String startZooQ_single(boolean clean) {
+        ZkS.zkSystemProps();
+        String connectionString = format("localhost:2180");
+        if ( clean )
+            FileOps.clearDirectory("./../zk/single/zk-data/version-2");
+        String [] args1 = {"./../zk/single/zoo.cfg"};
+        L.async(()->QuorumPeerMain.main(args1));
+        return connectionString;
+    }
+
     public static DeltaLink setupFuseki(String dsName, String zoneDir, int fusekiPort, String...deltaServers) {
         if ( deltaServers.length == 0 ) {
             System.err.println("setupFuseki: no deltaServers");

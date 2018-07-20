@@ -18,7 +18,7 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.server.local.patchstores.zk.Zk.zkPath;
+import static org.seaborne.delta.zk.Zk.zkPath;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -34,6 +34,7 @@ import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.zk.Zk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

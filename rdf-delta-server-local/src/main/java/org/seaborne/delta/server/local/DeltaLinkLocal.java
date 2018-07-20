@@ -175,8 +175,8 @@ public class DeltaLinkLocal implements DeltaLink {
     protected void afterWrite(DataSource source, RDFPatch rdfPatch, Version version, long timeElapsed) {
         // FmtLog.info(LOG, "append: finish: Patch=%s[ver=%d] ds=%s",
         // str(rdfPatch.getId()), version, source);
-        //FmtLog.info(LOG, "append (%.3fs): Patch=%s[ver=%d] ds=%s", (timeElapsed / 1000.0), str(rdfPatch.getId()), version, source);
-        FmtLog.info(LOG, "append : Patch=%s(>%s)[ver=%d] ds=%s", str(rdfPatch.getId()), str(rdfPatch.getPrevious()), version, source);
+        //FmtLog.info(LOG, "append (%.3fs): Patch=%s[%s] ds=%s", (timeElapsed / 1000.0), str(rdfPatch.getId()), version, source);
+        FmtLog.info(LOG, "append : Patch=%s(>%s)[%s] ds=%s", str(rdfPatch.getId()), str(rdfPatch.getPrevious()), version, source);
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */
@@ -219,10 +219,10 @@ public class DeltaLinkLocal implements DeltaLink {
         RDFPatch patch = source.getPatchLog().fetch(version);
         if ( LOG.isInfoEnabled() ) {
             if ( patch == null ) {
-                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Not found", source, version);
+                FmtLog.info(LOG, "fetch: Dest=%s, %s, Not found", source, version);
             } else {
                 Id id = Id.fromNode(patch.getId());
-                FmtLog.info(LOG, "fetch: Dest=%s, Version=%d, Patch=%s", source, version, id);
+                FmtLog.info(LOG, "fetch: Dest=%s, %s, Patch=%s", source, version, id);
             }
         }
         return patch;

@@ -28,6 +28,7 @@ import org.apache.curator.framework.recipes.shared.SharedCount;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.delta.zk.Zk;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;

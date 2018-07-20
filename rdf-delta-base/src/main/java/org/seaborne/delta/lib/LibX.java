@@ -19,11 +19,14 @@
 package org.seaborne.delta.lib;
 
 import java.io.ByteArrayInputStream ;
+import java.io.IOException;
 import java.io.InputStream ;
+import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays ;
 
+import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.tdb.base.file.Location;
 
@@ -85,7 +88,15 @@ public class LibX {
         return countNonNulls(objects) == objects.length;
     }
     
-    public static boolean exactlyOneSet(Object ... objects) {
+    public static boolean exactlyOneNotNull(Object ... objects) {
         return countNonNulls(objects) == 1;
+    }
+    
+    public static int choosePort() {
+        try (ServerSocket s = new ServerSocket(0)) {
+            return s.getLocalPort();
+        } catch (IOException ex) {
+            throw new RuntimeIOException("Failed to find a port");
+        }
     }
 }

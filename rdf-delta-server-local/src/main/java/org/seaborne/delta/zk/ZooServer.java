@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.systemtest;
+package org.seaborne.delta.zk;
 
 import java.io.IOException;
 
+import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.zookeeper.server.ContainerManager;
 import org.apache.zookeeper.server.ServerCnxnFactory;
@@ -32,15 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Baees on ZooKeeperServerMain.
+ * ZooKeeper server for running a zookeeper server asynchronously.
+ * @implNote
+ * Based on ZooKeeperServerMain which runs the server synchronously.
  */
-public class ZooKeeperHelper {
-    private static final Logger LOG =
-        LoggerFactory.getLogger(ZooKeeperHelper.class);
-
-    private static final String USAGE =
-        "Usage: ZooKeeperServerMain configfile | port datadir [ticktime] [maxcnxns]";
-
+public class ZooServer {
+    private static final Logger LOG = LoggerFactory.getLogger(ZooServer.class);
     // ZooKeeper server supports two kinds of connection: unencrypted and encrypted.
     private ServerCnxnFactory cnxnFactory;
     private ServerCnxnFactory secureCnxnFactory;
@@ -52,9 +50,29 @@ public class ZooKeeperHelper {
 
     private ServerConfig config;
 
-    public ZooKeeperHelper(ServerConfig config) {
+    public ZooServer(ServerConfig config) {
         this.config = config;
     }
+    
+    /* Information: To run ZooKeeperServerMain:
+      // Usage: ZooKeeperServerMain configfile | port datadir [ticktime] [maxcnxns]
+      String[] a = {Integer.toString(port), dataDir};
+      // Alternative - just fork it.
+      L.async(() -> {
+          ServerConfig config = new ServerConfig();
+          config.parse(a);
+          ZooKeeperServerMain zksm = new ZooKeeperServerMain();
+          try {
+              zksm.runFromConfig(config);
+          }
+          catch (IOException | AdminServerException e) {
+              e.printStackTrace();
+          }
+      });
+      // Need to wait for the server to start.
+      // Better (?) : use ZooKeeperServer
+      Lib.sleep(500);
+    */
     
     public void setupFromConfig() {
             // Note that this thread isn't going to be doing anything else,
@@ -68,7 +86,7 @@ public class ZooKeeperHelper {
                 e.printStackTrace();
             }
             zkServer = new ZooKeeperServer(txnLog, config.getTickTime(), config.getMinSessionTimeout(), config.getMaxSessionTimeout(), null);
-            // Can't. zkServer.registerServerShutdownHandler(cls.ca
+            // Can't. Not Java visible. zkServer.registerServerShutdownHandler(cls.ca
 //            // Start Admin server
 //            adminServer = AdminServerFactory.createAdminServer();
 //            adminServer.setZooKeeperServer(zkServer);
@@ -76,7 +94,6 @@ public class ZooKeeperHelper {
     }
     
     public void start() {
-//        try{
         LOG.info("Starting server");
         boolean needStartZKServer = true;
         LogCtl.disable("org.apache.zookeeper.server.ZooKeeperServer");
@@ -97,21 +114,28 @@ public class ZooKeeperHelper {
 
             if ( needStartZKServer )
                 zkServer.startup();
-            // join.
-//            if (cnxnFactory != null) {
-//                cnxnFactory.join();
-//            }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeIOException(e); 
         } catch (InterruptedException e) {
-            // warn, but generally this is ok
+            // Note from ZookpperServerMain: warn, but generally this is ok
             LOG.warn("Server interrupted", e);
         } finally {
             LogCtl.setLevel("org.apache.zookeeper.server.ZooKeeperServer", "WARN");
         }
-
     }
-
+    
+    public void join() {
+        if (cnxnFactory != null) {
+            try {
+                cnxnFactory.join();
+            }
+            catch (InterruptedException e) {
+                // Note from ZookpperServerMain: warn, but generally this is ok
+                LOG.warn("Server join interrupted", e);
+            }
+        }
+    }
+    
     /**
      * Shutdown the serving instance
      */
@@ -142,10 +166,5 @@ public class ZooKeeperHelper {
             catch (IOException e) { e.printStackTrace(); }
         }
 
-    }
-
-    // VisibleForTesting
-    ServerCnxnFactory getCnxnFactory() {
-        return cnxnFactory;
     }
 }

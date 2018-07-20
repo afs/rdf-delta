@@ -56,7 +56,7 @@ public class list extends DeltaCmd {
             PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.getId());
             if ( logInfo != null ) {
                 System.out.print(
-                                 String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getMinVersion(), logInfo.getMaxVersion(), 
+                                 String.format("[%s %s <%s> [%s,%s] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getMinVersion(), logInfo.getMaxVersion(), 
                                                (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()));
             }
             else

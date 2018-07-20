@@ -21,46 +21,21 @@ package org.seaborne.delta.systemtest;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 import org.apache.zookeeper.server.quorum.flexible.QuorumVerifier;
+import org.seaborne.delta.zk.ZkS;
 
 public class ZkM {
-    /* 
-     * Create a real ZookeeperServer as stand-alone with persistent state
-     * and return a wrapper.
-     * The server has not been started.
+    /** 
+     * Run an ensemble.
+     * Untested.
+     * 
+     * @param basePort
+     * @param dataDir
+     * @see ZkS#runZookeeperServer(String)
      */
-    public static ZooKeeperHelper runZookeeperServer(int port, String dataDir) {  
-        zkSystemProps();
-        String[] args = {Integer.toString(port), dataDir};
-        ServerConfig config = new ServerConfig();
-        config.parse(args);
-        ZooKeeperHelper zksm = new ZooKeeperHelper(config);
-        zksm.setupFromConfig();
-        return zksm;
-    }
-    
-    // These are all system properties only.
-    public static void zkSystemProps() {
-        Properties props = System.getProperties();
-        // See org.apache.zookeeper.jmx.ManagedUtil
-        props.setProperty("zookeeper.jmx.log4j.disable", "true");
-        
-        // See org.apache.zookeeper.server.admin.AdminServerFactory
-        props.setProperty("zookeeper.admin.enableServer", "false");
-        
-        // See org.apache.zookeeper.server.NIOServerCnxnFactory
-        props.setProperty("zookeeper.nio.numSelectorThreads", "1");
-        props.setProperty("zookeeper.nio.numWorkerThreads",   "4");
-        // "zookeeper.nio.directBufferBytes"
-        // "zookeeper.nio.shutdownTimeout"
-    }
-    
-    // Run an ensemble.
-    // Untested.
     public static void runZookeeperEnsemble(int basePort, String dataDir) {
         // Servers are: zk1, zk2, zk3.
         server(1, basePort, dataDir);
