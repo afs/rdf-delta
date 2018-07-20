@@ -18,15 +18,25 @@
 
 package delta.server;
 
-public class DeltaServerProperties {
-    // server level.
-    
-    public static final String pServerPort = "" ;
-    
-    public static final String pZookeeper = "" ;
-    
-    // JSON or java properties?
-    
-    
-    
+import org.apache.curator.test.TestingServer;
+
+class ZkJVM {
+    public static TestingServer buildZooJVM() {
+        try {
+            TestingServer zkServer = new TestingServer();
+            return zkServer;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static String startZooJVM() {
+        try {
+            TestingServer zkServer = buildZooJVM();
+            zkServer.start();
+            return "localhost:" + zkServer.getPort();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 }

@@ -18,25 +18,15 @@
 
 package delta.server;
 
-import org.apache.curator.test.TestingServer;
+public enum Provider {
+    UNSET, MEM, FILE, ZKS3, ZKZK;
 
-public class ZkM {
-    public static TestingServer buildZooJVM() {
-        try {
-            TestingServer zkServer = new TestingServer();
-            return zkServer;
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public static String startZooJVM() {
-        try {
-            TestingServer zkServer = buildZooJVM();
-            zkServer.start();
-            return "localhost:" + zkServer.getPort();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+    public static Provider create(String str) {
+        if ( UNSET.name().equalsIgnoreCase(str) )   return UNSET;
+        if ( MEM.name().equalsIgnoreCase(str) )     return MEM;
+        if ( FILE.name().equalsIgnoreCase(str) )    return FILE;
+        if ( ZKZK.name().equalsIgnoreCase(str) )    return ZKZK;
+        if ( ZKS3.name().equalsIgnoreCase(str) )    return ZKS3;
+        return null;
     }
 }

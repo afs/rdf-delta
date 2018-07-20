@@ -18,9 +18,8 @@
 
 package delta.server;
 
-import static delta.server.DeltaServer.Provider.FILE;
-import static delta.server.DeltaServer.Provider.UNSET;
-import static delta.server.DeltaServer.ZkMode.EXTERNAL;
+import static delta.server.Provider.*;
+import static delta.server.ZkMode.*;
 import static org.seaborne.delta.DeltaOps.verString;
 
 import java.net.BindException;
@@ -34,7 +33,6 @@ import jena.cmd.ArgDecl;
 import jena.cmd.CmdException;
 import jena.cmd.CmdLineArgs;
 import org.apache.curator.test.TestingServer;
-import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.NotImplemented;
@@ -80,56 +78,6 @@ public class DeltaServer {
     //private static ArgDecl argProvider = new ArgDecl(true, "provider");
 //    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
 
-    enum Provider { UNSET, MEM, FILE, ZKS3, ZK }
-
-    enum ZkMode { NONE, EXTERNAL, EMBEDDED, MEM }
-    
-    /**
-     * DeltaServer configuration.
-     * <p>
-     * Once created the setting have been checked and can be
-     * assumed to be correct and consistent without further checking.
-     */
-    static public class DeltaServerConfig {
-        public boolean verbose = false; 
-        
-        // server level.
-        public int serverPort = -1 ;
-        
-        // Provider. Assumes necessary classes are on the classpath.
-        public Provider provider = Provider.UNSET;
-        
-        // File provider
-        public String fileBase = null ;
-        
-        // Zookeeper provider
-        public String zkConnectionString = "" ;
-
-        // Co-hosted Zookeeper server type
-        public ZkMode zkMode = ZkMode.NONE;
-
-        // Zookeeper embedded full server
-        public int zkPort = -1;
-        public String zkData = "";
-        public String zkConf = "";
-        
-        public DeltaServerConfig( ) {} 
-        
-        public static DeltaServerConfig read(String file) {
-            // XXX DeltaServerConfig read(String file)
-            return null;
-        }
-        
-        public static DeltaServerConfig create(JsonObject obj) {
-            // XXX DeltaServerConfig JSON R
-            return null;
-        }
-
-        public static void writeJSON(DeltaServerConfig config, String file) {
-            // XXX DeltaServerConfig JSON W
-        }
-    }
-    
     public static void main(String...args) {
         DeltaSystem.init();
         try {
@@ -137,6 +85,9 @@ public class DeltaServer {
             // Run ZooKeepers and Delta Patch Server.
             PatchLogServer dps = run(deltaServerConfig);
             //dps.join();
+        } catch (CmdException ex) {
+            System.err.println(ex.getMessage());
+            return;
         } catch (Throwable th) {
             th.printStackTrace();
        }
@@ -147,7 +98,7 @@ public class DeltaServer {
         CmdLineArgs cla = new CmdLineArgs(args);
         
         cla.add(argHelp);
-        cla.add(argVerbose);
+        //cla.add(argVerbose);
         cla.add(argPort);
         cla.add(argBase);
         cla.add(argZk);
@@ -176,7 +127,7 @@ public class DeltaServer {
                 ,"    --zk=mem            Run a single Zookeeper without persistent storage."
                 );
             System.err.println(msg);
-            System.exit(0);
+            return null;
         }
         
 //        String configFile = null;
@@ -193,7 +144,7 @@ public class DeltaServer {
             x++ ; provider = FILE;
         }            
         if ( cla.contains(argZk) ) {
-            x++ ; provider = Provider.ZK; // And storage?
+            x++ ; provider = Provider.ZKZK; // And storage?
         }            
         if ( cla.contains(argMem) ) {
             x++; provider = Provider.MEM;
@@ -204,7 +155,6 @@ public class DeltaServer {
             cmdLineError("Exactly one of --mem , --zk, --base or --provider is required"); 
         
         DeltaServerConfig serverConfig = new DeltaServerConfig();
-        serverConfig.verbose = cla.contains(argVerbose);
         
         serverConfig.provider = provider;
         
@@ -227,9 +177,8 @@ public class DeltaServer {
                 // No configuration.
                 break;
             }
-            case ZK : {
-                String connectionString = cla.getValue(argZk);
-                // Complicated - put in it its static  
+            case ZKZK : {
+                // Complicated - put in a static  
                 zookeeperArgs(cla, serverConfig);
                 break;
             }
@@ -276,12 +225,14 @@ public class DeltaServer {
             serverConfig.zkMode = ZkMode.MEM;
         } else {
             if ( cla.contains(argZkPort) || cla.contains(argZkData) ) {
-                // Setting for a persistent zookeeper in-process with provded port and data areas.
+                // Setting for a persistent zookeeper in-process with provided port and data areas.
                 // This instance can be contacted by other ZooKeeper servers. 
                 if ( ! cla.contains(argZkPort) )
                     cmdLineError("No ZooKeeper port: need --zkPort=NNNN with --zkData");
                 if ( ! cla.contains(argZkData) )
                     cmdLineError("No ZooKeeper data folder: need --zkData=DIR with --zkPort");
+                serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
+                serverConfig.zkData = cla.getValue(argZkData);
             }
             serverConfig.zkMode = EXTERNAL;
         }
@@ -310,7 +261,7 @@ public class DeltaServer {
                 localServerConfig = LocalServers.configMem();
                 providerLabel = "mem";
                 break;
-            case ZK :
+            case ZKZK :
                 psp = installProvider(new PatchStoreProviderZk());
                 // Allocate zookeeper
                 switch(config.zkMode) {
@@ -322,7 +273,7 @@ public class DeltaServer {
                     case EXTERNAL :
                         break;
                     case MEM :
-                        config.zkConnectionString = ZkM.startZooJVM();
+                        config.zkConnectionString = ZkJVM.startZooJVM();
                         break;
                     default :
                         break;
@@ -485,7 +436,6 @@ public class DeltaServer {
     private static void cmdLineError(String fmt, Object...args) {
         if ( ! fmt.endsWith("\n") )
             fmt = fmt + "\n";
-        System.err.printf(fmt, args);
-        System.exit(1);
+        throw new CmdException(fmt);
     }
 }

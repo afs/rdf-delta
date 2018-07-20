@@ -16,30 +16,6 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.cmds;
+package delta.server;
 
-import delta.server.DeltaServer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-import org.seaborne.delta.lib.LogCtlX;
-
-@RunWith(Suite.class)
-@SuiteClasses( {
-    TestDeltaServerConfig.class
-    , TestCmds.class
-    , TestCmdServer.class
-})
-
-public class TS_DeltaCmds {
-    @BeforeClass public static void beforeClass() {
-        // So it happens once.
-        DeltaServer.setLogging();
-        // Change our mind about logging!
-        LogCtlX.setJavaLoggingClasspath("logging-quiet.properties");
-    }
-
-    @AfterClass public static void afterClass() {}
-}
+public enum ZkMode { NONE, EXTERNAL, EMBEDDED, MEM }
