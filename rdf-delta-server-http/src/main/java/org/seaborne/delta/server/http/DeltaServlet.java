@@ -21,7 +21,6 @@ package org.seaborne.delta.server.http;
 import java.io.IOException ;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServlet ;
 import javax.servlet.http.HttpServletRequest ;
@@ -44,7 +43,7 @@ public abstract class DeltaServlet extends HttpServlet {
 
     protected static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
     // Switchable so the server does not need to be restarted (for tests and admin operations).
-    protected final AtomicReference<DeltaLink> engine;
+    protected final DeltaLink engine;
     
     //protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
     
@@ -54,7 +53,7 @@ public abstract class DeltaServlet extends HttpServlet {
     /** Automatically register when a RegToken is seen that is not recorded as registered.*/
     private static final boolean AutoRegistration = false;
     
-    protected DeltaServlet(AtomicReference<DeltaLink> engine) {
+    protected DeltaServlet(DeltaLink engine) {
         this.engine = engine;
     }
     
@@ -69,7 +68,7 @@ public abstract class DeltaServlet extends HttpServlet {
 //    }
 
     public DeltaLink getLink() {
-        return engine.get();
+        return engine;
     }
     
     protected abstract DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;

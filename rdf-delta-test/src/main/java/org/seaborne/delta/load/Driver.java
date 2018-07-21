@@ -57,7 +57,6 @@ public class Driver {
         FileOps.ensureDir(DIR.toString());
     }
     
-    
     protected static int DELTA_PORT = FusekiLib.choosePort();
     protected static String DELTA_DIR = DIR.resolve("DeltaBase").toString();
     protected static String PATCH_LOG_NAME = "ABC";

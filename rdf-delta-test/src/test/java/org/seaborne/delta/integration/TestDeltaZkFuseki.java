@@ -29,7 +29,6 @@ import static org.seaborne.delta.systemtest.Matrix.deltaServerURL2;
 import java.util.function.Supplier;
 
 import org.apache.jena.atlas.lib.Lib;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdfconnection.RDFConnection;
@@ -44,9 +43,6 @@ import org.seaborne.delta.systemtest.Matrix;
 
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class TestDeltaZkFuseki {
-    
-    // remove when suite ready
-    static { LogCtl.setJavaLogging("logging-test.properties"); }
 
     private static Node g1 = SSE.parseNode(":g1"); 
     private static Node g2 = SSE.parseNode("_:g2"); 
@@ -83,7 +79,7 @@ public class TestDeltaZkFuseki {
         assertTrue(dLink2.existsByName("ABC"));
 
         int fusekiPort = Matrix.choosePort();
-        DeltaLinkSwitchable dLinkFuseki = (DeltaLinkSwitchable)Matrix.setupFuseki("ABC", "Zone", fusekiPort, deltaServerURL1, deltaServerURL2);
+        DeltaLinkSwitchable dLinkFuseki = (DeltaLinkSwitchable)Matrix.setupFuseki("ABC", "target/Zone", fusekiPort, deltaServerURL1, deltaServerURL2);
         String fusekiURL = "http://localhost:"+fusekiPort+"/ABC";
         RDFConnection conn = RDFConnectionFactory.connect(fusekiURL);
 
@@ -121,8 +117,8 @@ public class TestDeltaZkFuseki {
         
         // Set primary delta server.
         // Retry needed?
-        Matrix.setupFuseki("ABC", "Zone1", fusekiPort1, deltaServerURL1, deltaServerURL2);
-        Matrix.setupFuseki("ABC", "Zone2", fusekiPort2, deltaServerURL2, deltaServerURL1);
+        Matrix.setupFuseki("ABC", "target/Zone1", fusekiPort1, deltaServerURL1, deltaServerURL2);
+        Matrix.setupFuseki("ABC", "target/Zone2", fusekiPort2, deltaServerURL2, deltaServerURL1);
         
         String fusekiURL1 = "http://localhost:"+fusekiPort1+"/ABC";
         String fusekiURL2 = "http://localhost:"+fusekiPort1+"/ABC";

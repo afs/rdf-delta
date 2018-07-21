@@ -20,7 +20,6 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException;
 import java.net.BindException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
@@ -59,7 +58,7 @@ public class PatchLogServer {
     private final Server server;
     private final int port;
     // Shared across servlets.
-    private final AtomicReference<DeltaLink> engineRef;
+    private final DeltaLink engine;
     
     /** Create a {@code PatchLogServer} 
      * @param base */
@@ -78,29 +77,28 @@ public class PatchLogServer {
         DPS.init();
         this.port = port;
         this.server = jettyServer(port, false);
-        this.engineRef = new AtomicReference<>(null);
-        setEngine(engine);
+        this.engine = engine;
         
         ServletContextHandler handler = buildServletContext("/");
         
-        HttpServlet servletRDFPatchLog = new S_Log(engineRef);
+        HttpServlet servletRDFPatchLog = new S_Log(engine);
         HttpServlet servletPing = new S_Ping();
         //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
         
         // Filter - this catches RDF Patch Log requests. 
-        addFilter(handler, "/*", new F_PatchFilter(engineRef,
+        addFilter(handler, "/*", new F_PatchFilter(engine,
                                                    (req, resp)->servletRDFPatchLog.service(req, resp),
                                                    (req, resp)->servletPing.service(req, resp)
                                                    ));
         
         // Other
-        addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engineRef));
+        addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engine));
         //addServlet(handler, "/restart", new S_Restart());
         
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
         
         // Initial data. "/init-data?datasource=..."
-        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engineRef));
+        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engine));
 
         
         // ---- A default servlet at the end of the chain.
@@ -169,15 +167,6 @@ public class PatchLogServer {
         if ( loopback )
             connector.setHost("localhost");
         return server ;
-    }
-    
-    /** Internal */
-    public void setEngine(DeltaLink engine) {
-        if ( engine != null ) {
-            if ( engineRef.get() != null )
-                engineRef.get().close();
-        }
-        engineRef.set(engine);
     }
     
     private void addServlet(ServletContextHandler holder, String path, Servlet servlet) {

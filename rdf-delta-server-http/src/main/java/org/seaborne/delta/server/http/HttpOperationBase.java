@@ -19,7 +19,6 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +28,7 @@ import org.seaborne.delta.link.DeltaLink;
 /** Base class for operations working on HTTPrequest directly, unlike RPCs */ 
 public abstract class HttpOperationBase extends DeltaServlet {
 
-    public HttpOperationBase(AtomicReference<DeltaLink> engine) {
+    public HttpOperationBase(DeltaLink engine) {
         super(engine);
     }
     

@@ -27,7 +27,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.Creator;
 import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.http.PatchLogServer;
@@ -136,58 +136,42 @@ public class Setup {
     }
 
     public static class RemoteSetup implements LinkSetup {
-
-        private static int TEST_PORT=1086;
-        
-        /** Start a server - this server has no backing local DeltaLink
-         * which is reset for each test. This enables the server to be reused 
-         * (problems starting and stopping the background server
-         * synchronous to the tests otherwise).   
-         */
-        public static PatchLogServer startPatchServer() {
-            PatchLogServer dps = PatchLogServer.create(TEST_PORT, null) ;
-            try { dps.start(); }
-            catch (BindException ex) { throw IOX.exception(ex); }
-            return dps;
-        }
-        
-        public static void stopPatchServer(PatchLogServer dps) {
-            dps.stop();
-            // Clear cached connections.
-            resetDefaultHttpClient();
-        }
         
         // Local server of the patch server.
         private LocalServer localServer = null;
-        private static PatchLogServer server = null;
+        private PatchLogServer server = null;
         private DeltaLink dlink = null;
-        
+        private int testPort = -999;
+
         @Override
         public void beforeClass() {
-            if ( server == null )
-                server = startPatchServer();
         }
         
         @Override
         public void afterClass() {
-            stopPatchServer(server);
-            server = null ;
-            
         }
 
         @Override
         public void beforeTest() {
+            resetDefaultHttpClient();
+            testPort = LibX.choosePort();
             localServer = DeltaTestLib.createEmptyTestServer();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
-            server.setEngine(localLink);
+            server = PatchLogServer.create(testPort, localLink);
+            try {
+                server.start();
+            } catch (BindException e) {
+                e.printStackTrace();
+            }
             dlink = createLink();
         }
 
         @Override
         public void afterTest() {
+            server.stop();
             LocalServer.release(localServer);
-            server.setEngine(null);
             dlink = null;
+            testPort = -999;
         }
         
         @Override
@@ -199,12 +183,19 @@ public class Setup {
         
         @Override
         public void restart() {
+            server.stop();
+            //testPort = LibX.choosePort();
             LocalServerConfig config = localServer.getConfig() ;
             LocalServer.release(localServer);
             localServer = LocalServer.create(config);
             resetDefaultHttpClient();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
-            server.setEngine(localLink);
+            server = PatchLogServer.create(testPort, localLink);
+            try {
+                server.start();
+            } catch (BindException e) {
+                e.printStackTrace();
+            }
             relink();
         }
         
@@ -220,7 +211,7 @@ public class Setup {
         
         @Override
         public DeltaLink createLink() {
-            return DeltaLinkHTTP.connect("http://localhost:"+TEST_PORT+"/");
+            return DeltaLinkHTTP.connect("http://localhost:"+testPort+"/");
         }
 
         private static void resetDefaultHttpClient() {

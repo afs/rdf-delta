@@ -19,7 +19,6 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -39,12 +38,12 @@ import org.seaborne.delta.link.DeltaLink;
 public class F_PatchFilter implements javax.servlet.Filter {
     public interface Dispatch { void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException ; }
     
-    private final AtomicReference<DeltaLink> dLink;
+    private final DeltaLink dLink;
     private final Dispatch servlet;
     private final Dispatch rootPathServlet;
 
-    public F_PatchFilter(AtomicReference<DeltaLink> engineRef, Dispatch servlet, Dispatch rootPathServlet) {
-        this.dLink = engineRef;
+    public F_PatchFilter(DeltaLink engine, Dispatch servlet, Dispatch rootPathServlet) {
+        this.dLink = engine;
         this.servlet = servlet;
         this.rootPathServlet = rootPathServlet;
     }
@@ -136,12 +135,12 @@ public class F_PatchFilter implements javax.servlet.Filter {
 
     // Look by name then by id
     private DataSourceDescription lookup(String x) {
-        DataSourceDescription dsd = dLink.get().getDataSourceDescriptionByName(x);
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(x);
         if ( dsd == null && Id.maybeUUID(x)) {
             // No name match - looks like a UUID.
             Id id = Id.parseId(x, null);
             if ( id != null )
-                dsd = dLink.get().getDataSourceDescription(id);
+                dsd = dLink.getDataSourceDescription(id);
         }
         return dsd;
     }

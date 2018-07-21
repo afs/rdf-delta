@@ -167,7 +167,6 @@ public class RDFPatchOps {
         return new PatchHeader(m);
     }
     
-
     /** 
      * Read an {@link RDFPatch} from a file.
      * Throws {@link PatchException} on patch parse error.

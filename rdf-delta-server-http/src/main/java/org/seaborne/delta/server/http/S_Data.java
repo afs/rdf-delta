@@ -25,7 +25,6 @@ import java.nio.file.Files ;
 import java.nio.file.NoSuchFileException ;
 import java.nio.file.Path ;
 import java.nio.file.Paths ;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,13 +38,14 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaNotFoundException ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.local.DataSource;
 import org.slf4j.Logger ;
 
 /** Data over HTTP. */ 
 public class S_Data extends HttpOperationBase {
     static private Logger LOG = Delta.getDeltaLogger("Data") ;
     
-    public S_Data(AtomicReference<DeltaLink> engine) {
+    public S_Data(DeltaLink engine) {
         super(engine);
     }
 

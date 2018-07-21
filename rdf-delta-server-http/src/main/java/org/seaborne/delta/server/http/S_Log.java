@@ -19,7 +19,6 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,7 +35,7 @@ import org.slf4j.Logger;
  */
 public class S_Log extends HttpOperationBase {
     
-    public S_Log(AtomicReference<DeltaLink> engine) {
+    public S_Log(DeltaLink engine) {
         super(engine);
     }
 

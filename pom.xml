@@ -476,6 +476,8 @@
             <exclude>**/.classpath</exclude>
             <exclude>**/README.*</exclude>
             <exclude>**/*.cfg</exclude>
+            <!-- JSON -->
+            <exclude>**/state</exclude>
             <exclude>**/META-INF/services/*</exclude>
             <!--
                 Javadoc add-ons files are required to be simple and our javadoc configuration

@@ -27,7 +27,6 @@ import static org.seaborne.delta.systemtest.Matrix.deltaServerURL2;
 
 import java.util.Arrays;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.*;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
@@ -43,11 +42,6 @@ import org.seaborne.patch.RDFPatchOps;
 // These tests build from simple to complex.
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class TestDeltaZk {
-    
-    // remove when suite ready
-    static { 
-        LogCtl.setJavaLogging("logging-test.properties");
-    }
     
     @BeforeClass public static void beforeClass() { DeltaLinkSwitchable.silentSwitchOver = true; }
     @AfterClass public static void afterClass()   { DeltaLinkSwitchable.silentSwitchOver = false; } 
@@ -129,7 +123,7 @@ public class TestDeltaZk {
         
         assertTrue("Setup - didn't create patch log", dLink1.existsByName(NAME));
 
-        RDFPatch patch_i1 = RDFPatchOps.read("data.rdfp");
+        RDFPatch patch_i1 = RDFPatchOps.read("testing/data.rdfp");
         // XXX Add a RDFPatchOps.patchAfter(RDFPatch patch);
         RDFPatch patch_i2 = RDFPatchOps.withHeader(patch_i1, Id.create().asNode(), patch_i1.getId());
         
@@ -147,8 +141,6 @@ public class TestDeltaZk {
         assertNotNull(patch2);
 
         Version ver2 = dLink.append(logId, patch_i2);
-        
-        
         assertEquals(Version.create(2), ver2);
         
         PatchLogInfo info2 = dLink.getPatchLogInfo(logId);

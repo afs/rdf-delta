@@ -26,7 +26,6 @@ import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.io.PrintStream ;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
@@ -54,7 +53,7 @@ public class S_DRPC extends DeltaServlet {
     private static JsonObject resultTrue = JSONX.buildObject(b -> b.key(F_VALUE).value(true));  
     private static JsonObject resultFalse = JSONX.buildObject(b-> b.key(F_VALUE).value(false));  
     
-    public S_DRPC(AtomicReference<DeltaLink> engine) {
+    public S_DRPC(DeltaLink engine) {
         super(engine) ;
     }
     
