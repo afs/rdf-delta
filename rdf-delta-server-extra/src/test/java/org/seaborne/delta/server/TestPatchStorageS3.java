@@ -21,35 +21,28 @@ package org.seaborne.delta.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.Region;
 
 import io.findify.s3mock.S3Mock;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchStorage;
 import org.seaborne.delta.server.s3.PatchStorageS3;
+import org.seaborne.delta.server.s3.S3;
 
 public class TestPatchStorageS3 extends AbstractTestPatchStorage {
     static { LogCtl.setJavaLogging(); }
     
     private static String testBucketName = "delta";
-    private static String testPrefix = "patches";
+    private static String testPrefix = "patches/";
     
-    private static int port = choosePort();
-    private static String serviceEndpoint = "http://localhost:"+port;
-    private static String signingRegion = Region.US_West.name();
-    private static EndpointConfiguration endpoint = new EndpointConfiguration(serviceEndpoint, signingRegion);
-
-    private AmazonS3 client;
+    private int port = choosePort();
     private S3Mock s3Mock;
+    private String endpoint = "http://localhost:"+port+"/";
     
     /** Choose an unused port for a server to listen on */
     public static int choosePort() {
@@ -63,31 +56,18 @@ public class TestPatchStorageS3 extends AbstractTestPatchStorage {
     @Before public void before() {
         s3Mock = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
         s3Mock.start();
-                
-        /* AWS S3 client setup.
-         *  withPathStyleAccessEnabled(true) trick is required to overcome S3 default 
-         *  DNS-based bucket access scheme
-         *  resulting in attempts to connect to addresses like "bucketname.localhost"
-         *  which requires specific DNS setup.
-         */
-        client = AmazonS3ClientBuilder
-            .standard()
-            .withPathStyleAccessEnabled(true)  
-            .withEndpointConfiguration(endpoint)
-            .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))     
-            .build();
    }
     
     @After public void after() {
-        client.shutdown();
         s3Mock.shutdown();
     }
     
     
     @Override
     protected PatchStorage patchStorage() {
-        return new PatchStorageS3(client, testBucketName, testPrefix);
+        LocalServerConfig config = S3.configZkS3("", testBucketName, "eu-west-1", endpoint);
+        AmazonS3 aws = S3.buildS3(config);
+        S3.ensureBucketExists(aws, testBucketName);
+        return new PatchStorageS3(aws, testBucketName, testPrefix);
     }
-    
-//    @Test 
 }

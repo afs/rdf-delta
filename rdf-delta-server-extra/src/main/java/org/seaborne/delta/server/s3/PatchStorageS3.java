@@ -31,6 +31,7 @@ import com.amazonaws.services.s3.model.*;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
@@ -49,38 +50,8 @@ public class PatchStorageS3 implements PatchStorage {
         if ( ! prefix.endsWith("/") )
             prefix = prefix+"/";
         this.prefix = prefix;
-        init(client, bucketName, prefix);
-    }
-    
-    private static void init(AmazonS3 client, String bucketName, String prefix) {
-        if ( ! bucketExists(client, bucketName) )
-            createBucket(client, bucketName);
-    }
-
-    /** Test whether the bucket exists and is accessible. */  
-    private static boolean bucketExists(AmazonS3 client, String bucketName) {
-        try {
-            HeadBucketRequest request = new HeadBucketRequest(bucketName);
-            HeadBucketResult result = client.headBucket(request);
-            return true;
-        }
-        catch (AmazonServiceException awsEx) {
-            switch (awsEx.getStatusCode()) {
-                case HttpSC.NOT_FOUND_404 :
-                    return false;
-                case HttpSC.FORBIDDEN_403 :
-                    break;
-                case HttpSC.MOVED_PERMANENTLY_301 : { // Moved permanently.
-                    System.err.println("301 Location: " + awsEx.getHttpHeaders().get(HttpNames.hLocation));
-                    break;
-                }
-            }
-            throw awsEx;
-        }
-    }
-    
-    private static void createBucket(AmazonS3 client, String bucketName) {
-        Bucket bucket = client.createBucket(bucketName);
+        if ( ! S3.bucketExists(client, bucketName) )
+            throw new DeltaConfigException("Bucket does not exists or is not accessible"); 
     }
     
     private String idToKey(Id id) {

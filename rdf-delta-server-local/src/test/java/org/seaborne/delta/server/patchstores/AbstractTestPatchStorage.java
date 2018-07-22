@@ -23,16 +23,17 @@ import static org.junit.Assert.*;
 import java.util.List;
 
 import org.apache.jena.atlas.lib.ListUtils;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
+@FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class AbstractTestPatchStorage {
     
     protected abstract PatchStorage patchStorage();
-    
     
     @Test public void patchStorage_1_empty() {
         PatchStorage patchStorage = patchStorage();

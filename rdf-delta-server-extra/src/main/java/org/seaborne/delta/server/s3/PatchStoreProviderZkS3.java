@@ -18,7 +18,15 @@
 
 package org.seaborne.delta.server.s3;
 
+import static org.seaborne.delta.server.s3.S3Const.pBucketName;
+import static org.seaborne.delta.server.s3.S3Const.pPrefix;
+import static org.seaborne.delta.server.s3.S3Const.pRegion;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.util.StringUtils;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -27,18 +35,43 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
+    private static String DEFAULT_PREFIX = "patches/";
+    private Map<String, DetailsS3> access = new ConcurrentHashMap<>();
 
-    private final AmazonS3 s3Client;
-    private static String bucketName = "rdf-delta-bucket";  //DNS name,lower case.
-    private static String prefix = "patches/"; 
-
-    public PatchStoreProviderZkS3(AmazonS3 s3Client) {
-        // XXX Temporary until properties.
-        this.s3Client = s3Client; 
+    static class DetailsS3 {
+        final String prefix;
+        final String bucketName;  //DNS name,lower case.
+        final AmazonS3 client;
+        
+        public DetailsS3(String bucketName, String prefix, AmazonS3 client) {
+            this.prefix = prefix;
+            this.bucketName = bucketName;
+            this.client = client;
+        }
+        
     }
+
+    public PatchStoreProviderZkS3() {}
     
-    //public PatchStoreProviderZkS3() {}
-    
+    private DetailsS3 accessS3(LocalServerConfig configuration) {
+        // Access and checking.
+        String bucketName = configuration.getProperty(pBucketName);
+        if ( StringUtils.isNullOrEmpty(bucketName) )
+            throw new IllegalArgumentException("Missing required property: "+pBucketName);
+        
+        String region = configuration.getProperty(pRegion);
+        if ( StringUtils.isNullOrEmpty(region) )
+            throw new IllegalArgumentException("Missing required property: "+pRegion);
+        
+        String prefixStr = configuration.getProperty(pPrefix);
+        if ( StringUtils.isNullOrEmpty(prefixStr) )
+            prefixStr = DEFAULT_PREFIX;
+        String prefix = (prefixStr!=null) ? prefixStr : DEFAULT_PREFIX;
+        AmazonS3 client = S3.buildS3(configuration);
+        return new DetailsS3(bucketName, prefix, client);
+        //return access.computeIfAbsent(bucketName, n->new DetailsS3(bucketName, prefix, client));
+    }
+
     /** Long name */ 
     @Override
     public String getProviderName() { return super.getProviderName()+"_S3"; }
@@ -49,10 +82,11 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
     
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        String logPrefix = prefix+dsd.getName()+"/";
-        if ( ! s3Client.doesBucketExistV2(logPrefix) ) {
-            s3Client.createBucket(bucketName);
+        DetailsS3 s3 = accessS3(configuration);
+        String logPrefix = s3.prefix+dsd.getName()+"/";
+        if ( ! s3.client.doesBucketExistV2(s3.bucketName) ) {
+            s3.client.createBucket(s3.bucketName);
         }
-        return new PatchStorageS3(s3Client, bucketName, logPrefix);
+        return new PatchStorageS3(s3.client, s3.bucketName, logPrefix);
     }
 }

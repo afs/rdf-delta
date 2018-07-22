@@ -26,7 +26,6 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
     TestPatchStorageS3.class
-    , TestPatchStorageS3_Real.class
     , TestPatchLogZkS3.class
     , TestPatchStoreZkS3.class
 })

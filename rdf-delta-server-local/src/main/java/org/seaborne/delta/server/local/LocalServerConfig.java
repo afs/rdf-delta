@@ -65,7 +65,7 @@ public class LocalServerConfig {
         return configFile ;
     }
 
-    /** Get property */
+    /** Get property, return null for no found. */
     public String getProperty(String key) {
         return properties.getProperty(key);
     }

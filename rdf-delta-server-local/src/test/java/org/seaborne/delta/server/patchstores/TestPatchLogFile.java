@@ -31,16 +31,14 @@ public class TestPatchLogFile extends AbstractTestPatchLog {
     
     private static final String LOG = "target/test";
     private static final LocalServerConfig config = LocalServers.configFile(LOG);
+    private PatchStore patchStore;
+    private PatchLog patchLog;
     
     @Before public void before() {
         FileStore.resetTracked();
         FileOps.ensureDir(LOG);
         FileOps.clearAll(LOG);
     }
-    
-    private PatchStore patchStore;
-    private PatchLog patchLog;
-    
     
     @After public void after() {
         patchLog.release();
@@ -54,5 +52,4 @@ public class TestPatchLogFile extends AbstractTestPatchLog {
         patchLog = patchStore.createLog(dsd);
         return patchLog;
     }
-
 }
