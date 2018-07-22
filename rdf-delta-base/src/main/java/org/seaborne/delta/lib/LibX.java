@@ -32,6 +32,19 @@ import org.apache.jena.tdb.base.file.Location;
 
 public class LibX {
 
+    /** Convert an exception into a {@link RuntimeException} */
+    public static RuntimeException adapt(Exception exception) {
+        if ( exception instanceof RuntimeException )
+            return (RuntimeException)exception;
+        // Wrap: the original is in the "caused by" and there is no stack trace for this method.  
+        return new RuntimeException(exception.getMessage(), exception) {
+            @Override
+            public synchronized Throwable fillInStackTrace() {
+                return this;
+            }
+        };
+    }
+    
     /** Copy an array of bytes.*/
     public static byte[] copy(byte[] bytes) {
         if ( bytes == null )
