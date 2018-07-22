@@ -18,10 +18,13 @@
 
 package org.seaborne.delta.server.local.patchstores.mem;
 
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 public class PatchStoreProviderMem implements PatchStoreProvider {
 
@@ -39,4 +42,16 @@ public class PatchStoreProviderMem implements PatchStoreProvider {
     public String getShortName() {
         return DPS.pspMem;
     }
+
+    @Override
+    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        return new PatchLogIndexMem();
+    }
+
+    @Override
+    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        return new PatchStorageMem();
+    }
 }
+
+

@@ -45,7 +45,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final Object lock = new Object();
     private final CuratorFramework client;
 
-    private /*final*/ int instance;
+    private int instance;
 
     private final DataSourceDescription dsd;
     private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas 

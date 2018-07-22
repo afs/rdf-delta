@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.Registry ;
 import org.seaborne.delta.Id;
@@ -93,6 +94,14 @@ public class DataRegistry extends Registry<Id, DataSource> {
 
     public boolean containsName(String name) {
         return indexByName.containsKey(name);
+    }
+
+    public Stream<String> names() {
+        return indexByName.keySet().stream();
+    }
+    
+    public Stream<DataSource> dataSources() {
+        return indexByName.values().stream();
     }
 
     @Override

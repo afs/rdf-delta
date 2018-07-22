@@ -68,7 +68,7 @@ public class PatchStoreZk extends PatchStore {
     // https://curator.apache.org/curator-framework/schema.html
     
     // Our view of all the patch logs in the store.
-    private Map<String, PatchLogZk> patchLogs = new ConcurrentHashMap<>();
+    private Map<String, PatchLog> patchLogs = new ConcurrentHashMap<>();
 
     /*package*/ PatchStoreZk(PatchStoreProvider psp) {
         this(null, psp);
@@ -76,14 +76,12 @@ public class PatchStoreZk extends PatchStore {
     
     /*package*/ PatchStoreZk(CuratorFramework client, PatchStoreProvider psp) { 
         super(psp);
-        // Null "client" means new one each for patch store.
         this.instance = ++counter; 
         this.client = client;
     }
-
-    public static PatchStore create(int x, LocalServerConfig config) {
-        return new PatchStoreProviderZk(null).create(config);
-    }
+    
+    public CuratorFramework getClient() { return client; }
+    public int getInstance() { return instance; }
 
     private static void formatPatchStore(CuratorFramework client) throws Exception {
         if ( ! zkExists(client, ZkConst.pRoot) )
@@ -144,7 +142,7 @@ public class PatchStoreZk extends PatchStore {
 
         deletedLogs.forEach(name->{
             // Find the dsd via local cache info only.
-            PatchLogZk patchLog = patchLogs.get(name);
+            PatchLog patchLog = patchLogs.get(name);
             if ( patchLog == null )
                 return;
             releasePatchLog(patchLog.getLogId());
@@ -172,7 +170,7 @@ public class PatchStoreZk extends PatchStore {
             LOGZK.error("Failed to initialize from the persistent state: "+ex.getMessage(), ex);
             return Collections.emptyList();
         }
-        return listDataSources();
+        return listDataSourcesZk();
     }
 
     @Override
@@ -190,19 +188,19 @@ public class PatchStoreZk extends PatchStore {
     @Override
     public List<DataSourceDescription> listDataSources() {
         FmtLog.debug(LOGZK, "[%d] listDataSources", instance);
-        return ListUtils.toList(
-            patchLogs.values().stream().map(log->log.getDescription())
-            );
-        
+        return super.listDataSources();
+//        return ListUtils.toList(
+//            patchLogs.values().stream().map(log->log.getDescription())
+//            );
         //return listDataSourcesZk();
     }
     
-    // Guarantee to look in zookeeper, no local caching.
+    // Guaranteed to look in zookeeper, no local caching.
     private List<DataSourceDescription> listDataSourcesZk() {
         return listDataSourcesZkPath(ZkConst.pActiveLogs);
     }
     
-    // Guarantee to look in the logs area, not the active logs, with no local caching.
+    // Guaranteed to look in the logs area, not the active logs, with no local caching.
     private List<DataSourceDescription> listDataSourcesZkAll() {
         return listDataSourcesZkPath(ZkConst.pLogs);
     }
@@ -223,7 +221,6 @@ public class PatchStoreZk extends PatchStore {
         };
         return descriptions;
     }
-
 
     // Compare and contrast.
     private List<DataSourceDescription> listDataSourcesZkPath_alt(String logsPath) {
@@ -247,7 +244,7 @@ public class PatchStoreZk extends PatchStore {
     }
     
     @Override
-    protected PatchLog create(DataSourceDescription dsd) {
+    protected PatchLog newPatchLog(DataSourceDescription dsd) {
         synchronized(storeLock) {
             return create$(dsd);
         }
@@ -293,13 +290,28 @@ public class PatchStoreZk extends PatchStore {
             }, null);
             FmtLog.debug(LOGZK, "[%d] format done", instance);
         } 
-
         // Local storeLock still held.
         // create local the local object.
-        PatchLogZk patchLog = new PatchLogZk(dsd, instance, logPath, client, this);
+        PatchLog patchLog = super.newPatchLogFromProvider(dsd); //new PatchLogZk(dsd, instance, logPath, client, this);
         patchLogs.put(dsName, patchLog);
         return patchLog;
     }
+
+//    // Call back combines
+//    PatchLog createPatchLog(DataSourceDescription dsd, PatchLogIndex index, PatchStorage storage) {
+//        return new PatchLogBase(dsd, index, storage, this); 
+//    }
+//    
+//    //Call back 1.
+//    PatchStorage createPatchStorage(String dsName) {
+//        String logPath = zkPath(ZkConst.pLogs, dsName);
+//        return new PatchStorageZk(client, instance, logPath);
+//    }
+//
+//    //Call back 2.
+//    PatchLogIndex createPatchLogIndex() {
+//        dsd, logPath
+//    }
     
     @Override
     protected void delete(PatchLog patchLog) {

@@ -21,15 +21,15 @@ package org.seaborne.delta.server.local.patchstores.file;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +45,6 @@ public class PatchStoreFile extends PatchStore {
      *          /disabled -- if this file is present, then the datasource is not accessible.  
      */
    
-    private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
-
     private final Path serverRoot;
     
     public PatchStoreFile(String location, PatchStoreProvider provider) {
@@ -65,36 +63,24 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    public List<DataSourceDescription> listDataSources() {
-        return new ArrayList<>(logs.keySet());
-    }
-
-    @Override
-    protected PatchLog create(DataSourceDescription dsd) {
+    protected PatchLog newPatchLog(DataSourceDescription dsd) {
         Path patchLogArea = serverRoot.resolve(dsd.getName());
         if ( ! Files.exists(patchLogArea) ) 
             CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
         Location loc = Location.create(patchLogArea.toString());
         PatchLog pLog = PatchLogFile.attach(dsd, this, loc);
-        logs.put(dsd, pLog);
         return pLog;
     }
 
     @Override
     protected void delete(PatchLog patchLog) {
-        logs.remove(patchLog.getDescription());
         Path p = ((PatchLogFile)patchLog).getFileStore().getPath();
         patchLog.delete();
     }
 
+    @Override
+    protected void releaseStore() { }
 
     @Override
-    protected void releaseStore() {
-        logs.clear();
-    }
-
-    @Override
-    protected void deleteStore() {
-        releaseStore();
-    }
+    protected void deleteStore() { }
 }

@@ -22,10 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.local.patchstores.PatchLogBase;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +71,8 @@ public abstract class PatchStore {
     private final PatchStoreProvider provider;
 
     private DataRegistry dataRegistry = null;
+
+    private LocalServerConfig configuration;
     
     protected PatchStore(PatchStoreProvider provider) {
         this.provider = provider;
@@ -97,6 +103,7 @@ public abstract class PatchStore {
     
     /** 
      * Initialize a {@code PatchStore}.
+     * <p>
      * The {@link DataRegistry} is used to route incoming requests,
      * by name the patch log name, to {@link PatchLog PatchLogs}; this argument may be null
      * for {@code PatchStores} not attached to a server (testing, development cases).  
@@ -105,6 +112,7 @@ public abstract class PatchStore {
      */
     public List<DataSourceDescription> initialize(DataRegistry dataRegistry, LocalServerConfig config) {
         this.dataRegistry = dataRegistry;
+        this.configuration = config;
         List<DataSourceDescription> descr = initialize(config);
         descr.forEach(dsd->createPatchLog(dsd));
         return descr;
@@ -120,21 +128,35 @@ public abstract class PatchStore {
         releaseStore();
     }
     
-    /** All the {@link DataSource} currently managed by the {@code PatchStore}. */
-    public abstract List<DataSourceDescription> listDataSources();
+    /** All the patch logs currently managed by this {@code PatchStore}. */
+    public List<DataSourceDescription> listDataSources() {
+        return ListUtils.toList(dataRegistry.dataSources().map(log->log.getDescription()));
+    }
 
     // XXX Implement getDataSource(String name) : use in PatchStoreZk.
     //public DataSourceDescription getDataSource(String name) { return null; }
 
     /**
-     * Return a new {@link PatchLog}. Checking that there is no registered
-     * {@link PatchLog} for this {@code dsRef} has already been done.
+     * Return a new {@link PatchLog}. Checking that there isn't a patch log for this
+     * {@link DataSourceDescription} has already been done.
      * 
      * @param dsd
-     * @param dsPath : Path to the DataSource area. PatchStore-impl can create local files. May be null.
      * @return PatchLog
      */
-    protected abstract PatchLog create(DataSourceDescription dsd);
+    protected abstract PatchLog newPatchLog(DataSourceDescription dsd);
+    
+    /**
+     * Help to build a {@link PatchLog} from a {@link PatchLogIndex} and
+     * {@link PatchStorage} by calling operation of the {@link PatchStoreProvider}.
+     * 
+     * @param dsd
+     * @return
+     */
+    protected PatchLog newPatchLogFromProvider(DataSourceDescription dsd) {
+        PatchLogIndex patchLogIndex = getProvider().newPatchLogIndex(dsd, this, configuration);
+        PatchStorage patchStorage = getProvider().newPatchStorage(dsd, this, configuration);
+        return new PatchLogBase(dsd, patchLogIndex, patchStorage, this);
+    }
 
     /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
     public PatchLog connectLog(DataSourceDescription dsd) {
@@ -164,7 +186,7 @@ public abstract class PatchStore {
     final
     protected PatchLog createPatchLog(DataSourceDescription dsd) {
         Id dsRef = dsd.getId();
-        PatchLog patchLog = create(dsd);
+        PatchLog patchLog = newPatchLog(dsd);
         logs.put(dsRef, patchLog);
         if ( dataRegistry != null ) {
             DataSource dataSource = new DataSource(dsd, patchLog);

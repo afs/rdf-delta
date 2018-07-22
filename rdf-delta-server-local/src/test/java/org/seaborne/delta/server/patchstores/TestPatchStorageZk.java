@@ -62,5 +62,4 @@ public class TestPatchStorageZk extends AbstractTestPatchStorage {
     protected PatchStorage patchStorage() {
         return new PatchStorageZk(client, 0, patches);
     }
-
 }

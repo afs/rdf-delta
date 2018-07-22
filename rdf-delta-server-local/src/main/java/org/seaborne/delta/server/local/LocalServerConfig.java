@@ -46,7 +46,7 @@ public class LocalServerConfig {
     /** File name of the configuration file (if any - may be null) */
     private final String configFile;
     
-    /** Delta system properties */
+    /** Delta properties */
     private final Properties properties; 
 
     private LocalServerConfig(String logProvider, Properties properties, String configFile) {

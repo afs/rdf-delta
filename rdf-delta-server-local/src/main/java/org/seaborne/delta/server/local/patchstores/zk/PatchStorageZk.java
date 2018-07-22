@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.shared.SharedCount;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
@@ -46,12 +45,10 @@ public class PatchStorageZk implements PatchStorage {
     private static Logger LOG = LoggerFactory.getLogger(PatchStorageZk.class); 
     private final CuratorFramework client;
     private final String patches;
-    private final SharedCount versionCounter;
 
     public PatchStorageZk(CuratorFramework client, int instance, String logPath) {
         this.client = client;
         this.patches = Zk.zkPath(logPath, ZkConst.nPatches);
-        this.versionCounter = null;
         Zk.zkEnsure(client, patches);
     }
     

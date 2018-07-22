@@ -20,40 +20,26 @@ package org.seaborne.delta.server.local.patchstores.mem;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.ext.com.google.common.collect.Lists;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 
+/**
+ * In-memory, ephemeral {@link PatchStore}.
+ * All the work is done in
+ * {@link PatchLogIndexMem} and {@link PatchStorageMem}.
+ */
 public class PatchStoreMem extends PatchStore {
-    private Map<DataSourceDescription, PatchLog> logs = new ConcurrentHashMap<>();
     
     public PatchStoreMem(PatchStoreProvider provider) {
         super(provider);
     }
 
     @Override
-    protected PatchLog create(DataSourceDescription dsd) {
-        PatchLog plog = new PatchLogBase(dsd, new PatchLogIndexMem(), new PatchStorageMem(), this);
-        logs.put(dsd, plog);
-        return plog;
-    }
-
-    @Override
-    protected void delete(PatchLog patchLog) {
-        logs.remove(patchLog.getDescription());
-    }
-
-    @Override
-    public List<DataSourceDescription> listDataSources() {
-        return Lists.newArrayList(logs.keySet());
-    }
+    protected void delete(PatchLog patchLog) {}
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) { 
@@ -61,12 +47,13 @@ public class PatchStoreMem extends PatchStore {
     }
 
     @Override
-    protected void releaseStore() {
-        logs.clear();
-    }
+    protected void releaseStore() {}
 
     @Override
-    protected void deleteStore() {
-        releaseStore();
+    protected void deleteStore() { releaseStore(); }
+
+    @Override
+    protected PatchLog newPatchLog(DataSourceDescription dsd) {
+        return newPatchLogFromProvider(dsd);
     }
 }

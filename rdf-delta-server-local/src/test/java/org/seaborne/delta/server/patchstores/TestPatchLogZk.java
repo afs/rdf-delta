@@ -28,10 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.LocalServerConfig;
-import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.server.local.PatchLog;
-import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class TestPatchLogZk extends AbstractTestPatchLog {
@@ -80,7 +77,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
 
             LocalServerConfig config = LocalServers.configZk(connectString);
             PatchStore ps = new PatchStoreProviderZk().create(config);
-            ps.initialize(null, config);
+            ps.initialize(new DataRegistry("TestPatchLogZk"), config);
 
             DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
             PatchLog patchLog = ps.createLog(dsd);
