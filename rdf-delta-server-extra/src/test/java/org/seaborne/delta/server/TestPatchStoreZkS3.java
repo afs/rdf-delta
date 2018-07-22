@@ -18,21 +18,27 @@
 
 package org.seaborne.delta.server;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.After;
+import org.junit.Before;
+import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.patchstores.AbstractTestPatchStore;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestPatchStorageS3.class
-    , TestPatchStorageS3_Real.class
-    , TestPatchLogZkS3.class
-    , TestPatchStoreZkS3.class
-})
+public class TestPatchStoreZkS3 extends AbstractTestPatchStore {
 
-public class TS_ServerExtra {
-    @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+    private PatchStore patchStore;
+
+    @Before public void beforeZkS3() {
+        patchStore = S3T.setup();
     }
+    @After public void afterZkS3() {
+        patchStore.shutdown();
+        ZkT.clearAll();
+    }
+    
+    @Override
+    protected PatchStore patchStore(DataRegistry dataRegistry) {
+        return patchStore;
+    }
+
 }

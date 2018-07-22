@@ -16,43 +16,34 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.patchstores;
+package org.seaborne.delta.server;
 
-import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
+import org.seaborne.delta.server.ZkT;
+import org.seaborne.delta.server.local.PatchLog;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.patchstores.AbstractTestPatchLog;
 
-public class TestPatchLogFile extends AbstractTestPatchLog {
-    
-    private static final String LOG = "target/test";
-    private static final LocalServerConfig config = LocalServers.configFile(LOG);
-    
-    @Before public void before() {
-        FileStore.resetTracked();
-        FileOps.ensureDir(LOG);
-        FileOps.clearAll(LOG);
-    }
+public class TestPatchLogZkS3 extends AbstractTestPatchLog {
     
     private PatchStore patchStore;
-    private PatchLog patchLog;
+
+    @Before public void beforeZkS3() {
+        patchStore = S3T.setup();
+    }
     
-    
-    @After public void after() {
-        patchLog.release();
+    @After public void afterZkS3() {
+        patchStore.shutdown();
+        ZkT.clearAll();
     }
     
     @Override
     protected PatchLog patchLog() {
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
-        patchStore = new PatchStoreProviderFile().create(config);
-        patchStore.initialize(new DataRegistry("X"), config);
-        patchLog = patchStore.createLog(dsd);
-        return patchLog;
+        return patchStore.createLog(dsd);
     }
 
 }

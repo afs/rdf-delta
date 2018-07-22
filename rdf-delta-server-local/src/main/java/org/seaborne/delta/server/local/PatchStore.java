@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
@@ -92,12 +93,8 @@ public abstract class PatchStore {
         return provider;
     }
     
-    /** Do the {@code PatchStore} logs exist across restarts? */ 
-    public boolean isEphemeral() {
-        return false;
-    }
-
     public DataRegistry getDataRegistry() {
+        checkInitialized();
         return dataRegistry;
     }
     
@@ -118,6 +115,11 @@ public abstract class PatchStore {
         return descr;
     }
     
+    private void checkInitialized() {
+        if ( dataRegistry == null )
+            throw new InternalErrorException("PatchStore not initialized"); 
+    }
+    
     /** 
      * Initialize a patch store and provide a list of existing logs.
     */ 
@@ -130,6 +132,7 @@ public abstract class PatchStore {
     
     /** All the patch logs currently managed by this {@code PatchStore}. */
     public List<DataSourceDescription> listDataSources() {
+        checkInitialized();
         return ListUtils.toList(dataRegistry.dataSources().map(log->log.getDescription()));
     }
 
@@ -161,6 +164,7 @@ public abstract class PatchStore {
     /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
     public PatchLog connectLog(DataSourceDescription dsd) {
         FmtLog.info(LOG, "Connect log: %s", dsd);
+        checkInitialized();
         PatchLog pLog = getLog(dsd.getId());
         if ( pLog == null )
             pLog = createPatchLog(dsd);
@@ -173,6 +177,7 @@ public abstract class PatchStore {
             FmtLog.info(LOG, "Create log[?]: %s", dsd);
         else  
             FmtLog.info(LOG, "Create log[%s]: %s", getProvider().getShortName(), dsd);
+        checkInitialized();
         Id dsRef = dsd.getId();
         if ( logExists(dsRef) )
             throw new DeltaException("Can't create - PatchLog exists");

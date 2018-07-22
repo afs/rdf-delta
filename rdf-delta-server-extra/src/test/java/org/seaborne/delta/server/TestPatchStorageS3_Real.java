@@ -18,21 +18,30 @@
 
 package org.seaborne.delta.server;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import com.amazonaws.services.s3.AmazonS3;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestPatchStorageS3.class
-    , TestPatchStorageS3_Real.class
-    , TestPatchLogZkS3.class
-    , TestPatchStoreZkS3.class
-})
+import org.junit.After;
+import org.junit.Before;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.delta.server.patchstores.AbstractTestPatchStorage;
+import org.seaborne.delta.server.s3.PatchStorageS3;
 
-public class TS_ServerExtra {
-    @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+public class TestPatchStorageS3_Real extends AbstractTestPatchStorage {
+
+    private AmazonS3 client;
+    private String bucketName = "test-bucket";
+    private String prefix = "delta/";
+
+    @Before public void before() {
+        client = S3T.makeMockS3();
+    }
+    
+    @After public void after() {
+        client.shutdown();
+    }
+            
+    @Override
+    protected PatchStorage patchStorage() {
+        return new PatchStorageS3(client, bucketName, prefix);
     }
 }
