@@ -51,6 +51,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private static final Logger LOG = Delta.DELTA_HTTP_LOG;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
     private final ByteArrayOutputStream bytes ;
+    // Count to match up begin-commit.
+    private int txnDepth = 0 ;
     private final Runnable resetAction;
     private final Supplier<String> urlSupplier;
     private final String label ;
@@ -126,24 +128,47 @@ public class RDFChangesHTTP extends RDFChangesWriter {
 
     @Override
     public void txnBegin() {
+        if ( txnDepth != 0 ) { 
+            LOG.warn("Nested transaction begin - ignored");
+            return;
+        }
+        txnDepth++;
         super.txnBegin();
     }
 
     @Override
     public void txnCommit() {
+        if ( txnDepth == 0 ) {
+            LOG.warn("Not in a transaction: commit ignored");
+            return ;
+        }
+        if ( txnDepth > 1 )
+            LOG.warn("Nested transaction error.");
         // This adds the "TC"
         super.txnCommit();
         // This will throw an exception if the patch isn't current.
         // send does reset().
-        // The exception passes up and DatasetGraphCjanges turns the commit into an abort.  
+        // The exception passes up and DatasetGraphChanges turns the commit into an abort.  
         send();
+        //--txnDepth;
+        // No nested transactions.
+        txnDepth = 0 ;
     }
 
     @Override
     public void txnAbort() {
+        if ( txnDepth == 0 ) {
+            LOG.warn("Not in a transaction: abort ignored");
+            return ;
+        }
+        if ( txnDepth > 1 )
+            LOG.warn("Nested transaction error.");
         response = null;
-        reset();
         // Forget everything.
+        reset();
+        //--txnDepth;
+        // No nested transactions.
+        txnDepth = 0 ;
     }
     
     private void reset() {
