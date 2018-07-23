@@ -35,6 +35,10 @@ public class TestDeltaServerConfig {
         test("--port=1064", "--mem");
     }
 
+    @Test public void server_config_mem_3() {
+        test("--jetty=jetty.xml", "--mem");
+    }
+
     @Test public void server_config_zk_1() {
         test("--zk=mem");
     }
@@ -50,6 +54,19 @@ public class TestDeltaServerConfig {
     @Test public void server_config_zk_4() {
         test("--zk=local", "--zkPort=9909", "--zkData=DIR");
     }
+
+    @Test public void server_config_zks3_1() {
+        test("--zk=mem", "--s3bucket=patches");
+    }
+
+    @Test public void server_config_zks3_2() {
+        test("--zk=mem", "--s3bucket=patches", "--s3region=eu-bristol");
+    }
+
+    @Test public void server_config_zks3_3() {
+        test("--zk=mem", "--s3bucket=patches", "--s3region=eu-bristol", "--s3keys=credentials");
+    }
+
 
     @Test public void server_config_file_1() {
         test("--base=target");

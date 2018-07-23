@@ -56,8 +56,15 @@ public class DeltaServerConfig {
     public Integer zkPort = null;
     public String zkData = null;
     public String zkConf = null;
+    
+    // S3 patch storage.
+    public String s3BucketName = null;
+    public String s3Region = null;
+    public String s3Credentials = null;
 
     // ---- JSON field constants
+    private static String fProvider           = "store";
+
     private static String fPort               = "port";
     private static String fJetty              = "jetty";
 
@@ -69,7 +76,11 @@ public class DeltaServerConfig {
     // The File provider
     private static String fFileDirData        = "filestore";
     // The memory provider
-    private static String fProvider           = "store";
+    // -- none
+    // The S3 backend to Zookeeper
+    private static String fS3BucketName       = "bucket";
+    private static String fS3Region           = "region";
+    private static String fS3Credentials      = "aws";
     // ---- JSON field constants
     
     public DeltaServerConfig( ) {} 
@@ -89,6 +100,9 @@ public class DeltaServerConfig {
             if ( x >= 0 )
                 conf.serverPort = x;
         }
+        if ( obj.hasKey(fJetty) )
+            conf.jettyConf = JSONX.getStrOrNull(obj, fJetty);
+        
         if ( obj.hasKey(fZkConnectionString) )
             conf.zkConnectionString = JSONX.getStrOrNull(obj, fZkConnectionString);
         if ( obj.hasKey(fZkConfig) )
@@ -116,6 +130,13 @@ public class DeltaServerConfig {
                 conf.zkMode = ZkMode.EXTERNAL;
         }
         
+        if ( obj.hasKey(fS3BucketName) )
+            conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);
+        if ( obj.hasKey(fS3Region) )
+            conf.s3Region = JSONX.getStrOrNull(obj, fS3Region);
+        if ( obj.hasKey(fS3Credentials) )
+            conf.s3Credentials = JSONX.getStrOrNull(obj, fS3Credentials);
+        
         validate(conf);
         return conf;
     }
@@ -128,6 +149,7 @@ public class DeltaServerConfig {
 
                 if ( serverPort != null )
                     b.pair(fPort, serverPort.intValue());
+                
                 if ( jettyConf != null )
                     b.pair(fJetty, jettyConf);
 
@@ -143,6 +165,15 @@ public class DeltaServerConfig {
                 if ( zkConf != null )
                     b.pair(fZkConfig, zkConf);
 
+                if ( s3BucketName != null )
+                    b.pair(fS3BucketName, s3BucketName);
+                
+                if ( s3Region != null )
+                    b.pair(fS3Region, s3Region);
+                
+                if ( s3Credentials != null )
+                    b.pair(fS3Credentials, s3Credentials);
+                
                 if ( fileBase != null )
                     b.pair(fFileDirData, fileBase);
             });
@@ -161,7 +192,11 @@ public class DeltaServerConfig {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((fileBase == null) ? 0 : fileBase.hashCode());
+        result = prime * result + ((jettyConf == null) ? 0 : jettyConf.hashCode());
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
+        result = prime * result + ((s3BucketName == null) ? 0 : s3BucketName.hashCode());
+        result = prime * result + ((s3Credentials == null) ? 0 : s3Credentials.hashCode());
+        result = prime * result + ((s3Region == null) ? 0 : s3Region.hashCode());
         result = prime * result + ((serverPort == null) ? 0 : serverPort.hashCode());
         result = prime * result + ((zkConf == null) ? 0 : zkConf.hashCode());
         result = prime * result + ((zkConnectionString == null) ? 0 : zkConnectionString.hashCode());
@@ -185,7 +220,27 @@ public class DeltaServerConfig {
                 return false;
         } else if ( !fileBase.equals(other.fileBase) )
             return false;
+        if ( jettyConf == null ) {
+            if ( other.jettyConf != null )
+                return false;
+        } else if ( !jettyConf.equals(other.jettyConf) )
+            return false;
         if ( provider != other.provider )
+            return false;
+        if ( s3BucketName == null ) {
+            if ( other.s3BucketName != null )
+                return false;
+        } else if ( !s3BucketName.equals(other.s3BucketName) )
+            return false;
+        if ( s3Credentials == null ) {
+            if ( other.s3Credentials != null )
+                return false;
+        } else if ( !s3Credentials.equals(other.s3Credentials) )
+            return false;
+        if ( s3Region == null ) {
+            if ( other.s3Region != null )
+                return false;
+        } else if ( !s3Region.equals(other.s3Region) )
             return false;
         if ( serverPort == null ) {
             if ( other.serverPort != null )

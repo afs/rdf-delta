@@ -32,6 +32,7 @@ import java.util.Properties;
 import jena.cmd.ArgDecl;
 import jena.cmd.CmdException;
 import jena.cmd.CmdLineArgs;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.test.TestingServer;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -50,6 +51,8 @@ import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
+import org.seaborne.delta.server.s3.S3;
 import org.seaborne.delta.server.system.DeltaSystem;
 import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
@@ -71,10 +74,16 @@ public class DeltaServer {
     private static ArgDecl argPort     = new ArgDecl(true, "port");
 
     private static ArgDecl argBase     = new ArgDecl(true, "base");
+    private static ArgDecl argMem      = new ArgDecl(false, "mem");
     private static ArgDecl argZk       = new ArgDecl(true, "zk");
     private static ArgDecl argZkPort   = new ArgDecl(true, "zkPort", "zkport");
     private static ArgDecl argZkData   = new ArgDecl(true, "zkData", "zkdata");
-    private static ArgDecl argMem      = new ArgDecl(false, "mem");
+    
+    private static ArgDecl argS3Bucket    = new ArgDecl(true, "s3bucket");
+    private static ArgDecl argS3Region    = new ArgDecl(true, "s3region");
+    private static ArgDecl argS3KeysFile  = new ArgDecl(true, "s3keys");
+    //private static ArgDecl s3Prefix  = new ArgDecl(true, "s3keys");
+    
     private static ArgDecl argJetty    = new ArgDecl(true, "jetty");
     //private static ArgDecl argProvider = new ArgDecl(true, "provider");
 //    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
@@ -101,12 +110,20 @@ public class DeltaServer {
         cla.add(argHelp);
         //cla.add(argVerbose);
         cla.add(argPort);
+        cla.add(argJetty);
+        
         cla.add(argBase);
+        
+        cla.add(argMem);
+        
         cla.add(argZk);
         cla.add(argZkPort);
         cla.add(argZkData);
-        cla.add(argMem);
-        cla.add(argJetty);
+        
+        cla.add(argS3Bucket);
+        cla.add(argS3Region);
+        cla.add(argS3KeysFile);
+        
         //cla.add(argConf);
         cla.process();
         
@@ -128,7 +145,10 @@ public class DeltaServer {
                 ,"    --zkPort            Port for the embedded Zookeeper"
                 ,"    Test Zookeeper"
                 ,"    --zk=mem            Run a single Zookeeper without persistent storage."
-                //,"    S3 patch storage"
+                ,"    S3 patch storage"
+                ,"    --s3bucket          S3 bucket name"
+                ,"    --s3keys            S3 access and secrey access keys file (if not default credentials mechanism)"
+                ,"    --s3region          S3 region"
                 );
             System.err.println(msg);
             return null;
@@ -148,7 +168,11 @@ public class DeltaServer {
             x++ ; provider = FILE;
         }            
         if ( cla.contains(argZk) ) {
-            x++ ; provider = Provider.ZKZK; // And storage?
+            x++ ; 
+            if ( cla.contains(argS3Bucket) )
+                provider = Provider.ZKS3;
+            else
+                provider = Provider.ZKZK;
         }            
         if ( cla.contains(argMem) ) {
             x++; provider = Provider.MEM;
@@ -190,7 +214,9 @@ public class DeltaServer {
                 break;
             }
             case ZKS3 : {
-                throw new NotImplemented("ZKS3");
+                zookeeperArgs(cla, serverConfig);
+                s3Args(cla, serverConfig);
+                break;
             }
             default : {
                 throw new NotImplemented("Provider not recognized: "+provider);
@@ -201,7 +227,6 @@ public class DeltaServer {
     }
 
     
-    // XXX "local" in any position.
     private static void zookeeperArgs(CmdLineArgs cla , DeltaServerConfig serverConfig) {
         String connectionString = cla.getValue(argZk);
         String zkServers[] = connectionString.split(",");
@@ -246,6 +271,23 @@ public class DeltaServer {
         serverConfig.zkConnectionString = connectionString;
     }
 
+    private static void s3Args(CmdLineArgs cla , DeltaServerConfig serverConfig) {
+        String bucketName = cla.getValue(argS3Bucket);
+        if ( StringUtils.isBlank(bucketName) )
+            cmdLineError("No S3 bucket name provided");
+        serverConfig.s3BucketName = bucketName;
+        
+        String credentialsFile = cla.getValue(argS3KeysFile);
+        if ( credentialsFile != null && credentialsFile.isEmpty() )
+            cmdLineError("Empty S3 credentials file");
+        serverConfig.s3Credentials = credentialsFile;
+
+        String region = cla.getValue(argS3Region);
+        if ( region != null && region.isEmpty() )
+            cmdLineError("Empty S3 region name");
+        serverConfig.s3Region = region;
+    }
+    
     private static PatchLogServer run(DeltaServerConfig config) {
         DPS.init();
         
@@ -270,34 +312,19 @@ public class DeltaServer {
                 break;
             case ZKZK :
                 psp = installProvider(new PatchStoreProviderZk());
-                // Allocate zookeeper
-                switch(config.zkMode) {
-                    case NONE : throw new InternalErrorException();
-                    case EMBEDDED :
-                        ZooServer zs = ZkS.runZookeeperServer(config.zkPort, config.zkData);
-                        zs.start();
-                        break;
-                    case EXTERNAL :
-                        break;
-                    case MEM :
-                        config.zkConnectionString = ZkJVM.startZooJVM();
-                        break;
-                    default :
-                        break;
-                }
-                if ( config.zkConnectionString == null ) 
-                    cmdLineError("No connection string for ZooKeeper");
-                localServerConfig = LocalServers.configZk(config.zkConnectionString);
+                localServerConfig = setupZookeeper(config);
                 providerLabel = "zookeeper";
                 break;
             case ZKS3 :
+                psp = installProvider(new PatchStoreProviderZkS3());
+                localServerConfig = setupZookeeper(config);
+                localServerConfig = setupS3(config, localServerConfig);
                 providerLabel = "zookeeper+s3";
-                throw new NotImplemented("Zk+S3");
             default :
-                throw new IllegalArgumentException("Unrcognized provider: "+config.provider);
+                throw new IllegalArgumentException("Unrecognized provider: "+config.provider);
         }
-        LOG.debug("Provider: "+psp.getProviderName());
-        
+        //LOG.debug("Provider: "+psp.getProviderName());
+        LOG.info("Provider: "+providerLabel);
         
         Properties properties = new Properties();
         if ( ! properties.isEmpty() )
@@ -345,6 +372,35 @@ public class DeltaServer {
                 cmdLineError("Port in use: port=%s (defined in '%s')", dps.getPort(), config.jettyConf);
         }
         return dps;
+    }
+
+    private static LocalServerConfig setupZookeeper(DeltaServerConfig config) {
+        // Allocate zookeeper
+        switch(config.zkMode) {
+            case NONE : throw new InternalErrorException();
+            case EMBEDDED :
+                ZooServer zs = ZkS.runZookeeperServer(config.zkPort, config.zkData);
+                zs.start();
+                break;
+            case EXTERNAL :
+                break;
+            case MEM :
+                config.zkConnectionString = ZkJVM.startZooJVM();
+                break;
+            default :
+                break;
+        }
+        if ( config.zkConnectionString == null ) 
+            cmdLineError("No connection string for ZooKeeper");
+        LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString);
+        return localServerConfig;
+    }
+
+    private static LocalServerConfig setupS3(DeltaServerConfig config, LocalServerConfig localServerConfig) {
+        return 
+            S3.configZkS3(config.zkConnectionString ,
+                          config.s3BucketName,
+                          config.s3Region); 
     }
 
     private static PatchStoreProvider installProvider(PatchStoreProvider psp) {

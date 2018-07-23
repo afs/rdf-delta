@@ -38,6 +38,7 @@ rdf-delta-base
 rdf-delta-client
 rdf-delta-server-http
 rdf-delta-server-local
+rdf-delta-server-extra
 rdf-delta-system
 rdf-delta-test
 rdf-patch 
