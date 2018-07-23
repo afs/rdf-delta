@@ -62,7 +62,9 @@ public class Delta {
     public final static Logger DELTA_RPC_LOG    = getDeltaLogger("RPC") ;
     // Configuration.
     public final static Logger DELTA_CONFIG_LOG = getDeltaLogger("Config") ;
-
+    // Low-level server (Jetty etc).
+    public final static Logger DELTA_SERVER_LOG = getDeltaLogger("Server") ;
+    
     /** This is automatically called by the Jena subsystem startup cycle.
      * See {@link InitDelta} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      * (not the {@code DeltaSystem} initialization) 

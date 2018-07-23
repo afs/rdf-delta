@@ -26,10 +26,10 @@ import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
 import org.seaborne.patch.RDFPatch;
 
-/** Operations on a single patch log. This is a pairing of a {@link DeltaLink} (connection to a patch server)
- * and the reference to a specific log 
- * 
- *    */
+/**
+ * Operations on a single patch log. This is a pairing of a {@link DeltaLink} (connection
+ * to a patch server) and the reference to a specific log
+ */
 public class DeltaLog {
     
     private final DeltaLink dLink;

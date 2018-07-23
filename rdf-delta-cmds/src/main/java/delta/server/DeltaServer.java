@@ -75,6 +75,7 @@ public class DeltaServer {
     private static ArgDecl argZkPort   = new ArgDecl(true, "zkPort", "zkport");
     private static ArgDecl argZkData   = new ArgDecl(true, "zkData", "zkdata");
     private static ArgDecl argMem      = new ArgDecl(false, "mem");
+    private static ArgDecl argJetty    = new ArgDecl(true, "jetty");
     //private static ArgDecl argProvider = new ArgDecl(true, "provider");
 //    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
 
@@ -105,14 +106,16 @@ public class DeltaServer {
         cla.add(argZkPort);
         cla.add(argZkData);
         cla.add(argMem);
+        cla.add(argJetty);
         //cla.add(argConf);
         cla.process();
         
         if ( cla.contains(argHelp) ) {
-            System.err.println("Usage: server [--port=NNNN] [--base=DIR] [--mem] [--zk=connectionString [--zkPort=NNN] [--zkData=DIR] ]");
+            System.err.println("Usage: server [--port=NNNN | --jetty=FILE] [--base=DIR] [--mem] [--zk=connectionString [--zkPort=NNN] [--zkData=DIR] ]");
             String msg = StrUtils.strjoinNL
                 ("    --port              Port number for the patch server."
-                ,"    File based patch server only:"
+                ,"    --jetty=FILE        File name of a jetty.xml configuration file."
+                ,"    File based patch server:"
                 ,"    --base=DIR          File system directory"
                 ,"    Simple testing"
                 ,"    --mem               Run a single server with in-memory index and patch storage." 
@@ -123,8 +126,9 @@ public class DeltaServer {
                 ,"    --zk=local,...      Zookeeper connection string; 'local' replaced by the embedded server as 'localhost:port'"
                 ,"    --zkData            Storage for the embedded zookeeper"
                 ,"    --zkPort            Port for the embedded Zookeeper"
-                ,"      Test Zookeeper"
+                ,"    Test Zookeeper"
                 ,"    --zk=mem            Run a single Zookeeper without persistent storage."
+                //,"    S3 patch storage"
                 );
             System.err.println(msg);
             return null;
@@ -159,7 +163,10 @@ public class DeltaServer {
         serverConfig.provider = provider;
         
         // Server.
-        serverConfig.serverPort = chooseServerPort(cla);
+        serverConfig.serverPort = null;
+        serverConfig.jettyConf  = cla.getValue(argJetty);
+        if ( serverConfig.jettyConf == null )
+            serverConfig.serverPort = chooseServerPort(cla);
         
         // Providers
         switch(provider) {
@@ -300,11 +307,16 @@ public class DeltaServer {
         
         // HTTP Server
         
-        int port = config.serverPort;
         DeltaLink link = DeltaLinkLocal.connect(server);
     
-        PatchLogServer dps = PatchLogServer.create(config.serverPort, link) ;
-        FmtLog.info(LOG, "Delta Server port=%d", config.serverPort);
+        PatchLogServer dps;
+        if ( config.jettyConf != null ) {
+            FmtLog.info(LOG, "Delta Server jetty config=%s", config.jettyConf);
+            dps = PatchLogServer.create(config.jettyConf, link);
+        } else {
+            FmtLog.info(LOG, "Delta Server port=%d", config.serverPort);
+            dps = PatchLogServer.create(config.serverPort, link);
+        }
         
         // Information.
         
@@ -326,7 +338,11 @@ public class DeltaServer {
         try { 
             dps.start();
         } catch(BindException ex) {
-            cmdLineError("Address in use: port=%d", port);
+            //ex.printStackTrace(System.out);
+            if ( config.serverPort != null )
+                cmdLineError("Port in use: port=%d", config.serverPort);
+            else
+                cmdLineError("Port in use: port=%s (defined in '%s')", dps.getPort(), config.jettyConf);
         }
         return dps;
     }
@@ -340,7 +356,6 @@ public class DeltaServer {
     private static int parseZookeeperPort(String portStr) {
         if ( portStr == null )
             cmdLineError("No Zookeeper port number: use --%s", argZkPort.getKeyName());
-
         try {
             int port = Integer.parseInt(portStr);
             if ( port == 0 )
@@ -354,7 +369,8 @@ public class DeltaServer {
         }
     }
     
-    private static int chooseServerPort(CmdLineArgs cla) {
+    /** Choose a port number or return null */ 
+    private static Integer chooseServerPort(CmdLineArgs cla) {
         // The port chosen from this ordered list:
         //   Command line
         //   Environment variable
@@ -379,7 +395,7 @@ public class DeltaServer {
             return port;
         } catch (NumberFormatException ex) {
             cmdLineError("Failed to parse the port number: %s", portStr);
-            return -9999;
+            return null;
         }
     }
     
@@ -434,8 +450,9 @@ public class DeltaServer {
     }
 
     private static void cmdLineError(String fmt, Object...args) {
-        if ( ! fmt.endsWith("\n") )
-            fmt = fmt + "\n";
-        throw new CmdException(fmt);
+        if ( fmt.endsWith("\n") )
+            fmt = fmt.trim();
+        String msg = String.format(fmt, args);
+        throw new CmdException(msg);
     }
 }

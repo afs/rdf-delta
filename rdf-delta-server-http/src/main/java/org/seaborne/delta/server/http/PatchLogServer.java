@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.server.http;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.BindException;
 
@@ -30,8 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.fuseki.jetty.FusekiErrorHandler1;
 import org.apache.jena.fuseki.servlets.ServletOps;
-import org.apache.jena.riot.Lang ;
-import org.eclipse.jetty.http.MimeTypes ;
+import org.apache.jena.riot.Lang;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -39,13 +40,16 @@ import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.xml.XmlConfiguration;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
+import org.slf4j.Logger;
 
 /**
  * An HTTP-based server providing patch logs and the admin functions.
@@ -54,51 +58,71 @@ import org.seaborne.delta.server.local.LocalServers;
  */
 public class PatchLogServer {
     
+    private static Logger LOG = Delta.DELTA_SERVER_LOG;
     private final boolean loopback = false;
     private final Server server;
     private final int port;
+    private final String jettyConfigFile;
     // Shared across servlets.
-    private final DeltaLink engine;
+    private final DeltaLink deltaLink;
     
-    /** Create a {@code PatchLogServer} 
-     * @param base */
+    /** Create a {@code PatchLogServer}
+     * @param port
+     * @param base 
+     */
     public static PatchLogServer server(int port, String base) {
         LocalServer server = LocalServers.createFile(base);
         DeltaLink link = DeltaLinkLocal.connect(server);
-        return PatchLogServer.create(port, link) ;
+        return PatchLogServer.create(port, link);
     }
     
-    /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */   
+    /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */
     public static PatchLogServer create(int port, DeltaLink engine) {
-        return new PatchLogServer(port, engine);
+        return new PatchLogServer(null, port, engine);
     }
 
-    private PatchLogServer(int port, DeltaLink engine) {
+    /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */
+    public static PatchLogServer create(String jettyConfig, DeltaLink engine) {
+        return new PatchLogServer(jettyConfig, -1, engine);
+    }
+
+    private PatchLogServer(String jettyConfig, int port, DeltaLink dLink) {
         DPS.init();
-        this.port = port;
-        this.server = jettyServer(port, false);
-        this.engine = engine;
+        
+        // Either ... or ...
+        this.jettyConfigFile = jettyConfig;
+
+        if ( jettyConfigFile != null ) {
+            server = jettyServer(jettyConfigFile);
+            this.port = ((ServerConnector)server.getConnectors()[0]).getPort();
+        } else {
+            server = jettyServer(port, false);
+            this.port = port; 
+        }
+            
+            
+        this.deltaLink = dLink;
         
         ServletContextHandler handler = buildServletContext("/");
         
-        HttpServlet servletRDFPatchLog = new S_Log(engine);
+        HttpServlet servletRDFPatchLog = new S_Log(dLink);
         HttpServlet servletPing = new S_Ping();
         //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
         
         // Filter - this catches RDF Patch Log requests. 
-        addFilter(handler, "/*", new F_PatchFilter(engine,
+        addFilter(handler, "/*", new F_PatchFilter(dLink,
                                                    (req, resp)->servletRDFPatchLog.service(req, resp),
                                                    (req, resp)->servletPing.service(req, resp)
                                                    ));
         
         // Other
-        addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.engine));
+        addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.deltaLink));
         //addServlet(handler, "/restart", new S_Restart());
         
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
         
         // Initial data. "/init-data?datasource=..."
-        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.engine));
+        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.deltaLink));
 
         
         // ---- A default servlet at the end of the chain.
@@ -111,7 +135,7 @@ public class PatchLogServer {
         // -- 404 catch all.
         HttpServlet servlet404 = new Servlet404();
         addServlet(handler, "/*", servlet404);
-        
+        // One line error message
         handler.setErrorHandler(new FusekiErrorHandler1());
         // Wire up.
         server.setHandler(handler);
@@ -128,11 +152,11 @@ public class PatchLogServer {
     /** Build a ServletContextHandler. */
     private static ServletContextHandler buildServletContext(String contextPath) {
         if ( contextPath == null || contextPath.isEmpty() )
-            contextPath = "/" ;
+            contextPath = "/";
         else if ( !contextPath.startsWith("/") )
-            contextPath = "/" + contextPath ;
-        ServletContextHandler context = new ServletContextHandler() ;
-        context.setDisplayName("PatchLogServer") ;
+            contextPath = "/" + contextPath;
+        ServletContextHandler context = new ServletContextHandler();
+        context.setDisplayName("PatchLogServer");
         MimeTypes mt = new MimeTypes();
         addMimeType(mt, Lang.TTL);
         addMimeType(mt, Lang.NT);
@@ -141,8 +165,8 @@ public class PatchLogServer {
         addMimeType(mt, Lang.RDFXML);
         context.setMimeTypes(mt);
         ErrorHandler eh = new HttpErrorHandler();
-        context.setErrorHandler(eh) ;
-        return context ;
+        context.setErrorHandler(eh);
+        return context;
     }
     
     private static void addMimeType(MimeTypes mt, Lang lang) {
@@ -153,22 +177,35 @@ public class PatchLogServer {
 
     /** Build a Jetty server */
     private static Server jettyServer(int port, boolean loopback) {
-        Server server = new Server() ;
-        HttpConnectionFactory f1 = new HttpConnectionFactory() ;
-        // Some people do try very large operations ... really, should use POST.
+        Server server = new Server();
+        HttpConnectionFactory f1 = new HttpConnectionFactory();
         f1.getHttpConfiguration().setRequestHeaderSize(512 * 1024);
-        f1.getHttpConfiguration().setOutputBufferSize(5 * 1024 * 1024) ;
+        f1.getHttpConfiguration().setOutputBufferSize(5 * 1024 * 1024);
         // Do not add "Server: Jetty(....) when not a development system.
         if ( true )
-            f1.getHttpConfiguration().setSendServerVersion(false) ;
-        ServerConnector connector = new ServerConnector(server, f1) ;
-        connector.setPort(port) ;
+            f1.getHttpConfiguration().setSendServerVersion(false);
+        ServerConnector connector = new ServerConnector(server, f1);
+        connector.setPort(port);
         server.addConnector(connector);
         if ( loopback )
             connector.setHost("localhost");
-        return server ;
+        return server;
     }
     
+    /** Build a Jetty server from a Jetty.xml configuration file */
+    private static Server jettyServer(String jettyConfig) {
+        try {
+            LOG.info("Jetty server config file = " + jettyConfig);
+            Server server = new Server();
+            XmlConfiguration configuration = new XmlConfiguration(new FileInputStream(jettyConfig));
+            configuration.configure(server);
+            return server;
+        } catch (Exception ex) {
+            LOG.error("Failed to configure server: " + ex.getMessage(), ex);
+            throw new DeltaConfigException("Failed to configure a server using configuration file '" + jettyConfig + "'");
+        }
+    }
+
     private void addServlet(ServletContextHandler holder, String path, Servlet servlet) {
         holder.addServlet(new ServletHolder(servlet), path);
     }
@@ -177,6 +214,8 @@ public class PatchLogServer {
         holder.addFilter(new FilterHolder(filter), path, null);
     }
 
+    public Integer getPort() { return port ; } 
+    
     public void start() throws BindException {
         try {
             server.start();

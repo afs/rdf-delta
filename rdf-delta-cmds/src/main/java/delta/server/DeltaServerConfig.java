@@ -35,7 +35,10 @@ import org.seaborne.delta.lib.JSONX;
  */
 public class DeltaServerConfig {
     // server level.
+    // Either a port number xor a Jetty configuration file.
+    // If there is a jetty.xml filename, the port is ignored.
     public Integer serverPort = null;
+    public String jettyConf   = null;
     
     // Provider. Assumes necessary classes are on the classpath.
     public Provider provider = Provider.UNSET;
@@ -56,6 +59,7 @@ public class DeltaServerConfig {
 
     // ---- JSON field constants
     private static String fPort               = "port";
+    private static String fJetty              = "jetty";
 
     // The Zookeeper provider
     private static String fZkConnectionString = "zkconnect";
@@ -124,6 +128,8 @@ public class DeltaServerConfig {
 
                 if ( serverPort != null )
                     b.pair(fPort, serverPort.intValue());
+                if ( jettyConf != null )
+                    b.pair(fJetty, jettyConf);
 
                 if ( zkConnectionString != null )
                     b.pair(fZkConnectionString, zkConnectionString);
