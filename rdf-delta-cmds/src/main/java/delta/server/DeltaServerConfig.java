@@ -55,6 +55,7 @@ public class DeltaServerConfig {
     // Zookeeper embedded full server
     public Integer zkPort = null;
     public String zkData = null;
+    // Quorum ensemble
     public String zkConf = null;
     
     // S3 patch storage.
@@ -105,8 +106,10 @@ public class DeltaServerConfig {
         
         if ( obj.hasKey(fZkConnectionString) )
             conf.zkConnectionString = JSONX.getStrOrNull(obj, fZkConnectionString);
+
         if ( obj.hasKey(fZkConfig) )
             conf.zkConf = JSONX.getStrOrNull(obj, fZkConfig);
+        
         if ( obj.hasKey(fZkPort) ) {
             int x = JSONX.getInt(obj, fZkPort, -1);
             if ( x >= 0 )
@@ -114,21 +117,17 @@ public class DeltaServerConfig {
         }
         if ( obj.hasKey(fZkData) )
             conf.zkData = JSONX.getStrOrNull(obj, fZkData);
+        
         if ( obj.hasKey(fFileDirData) )
             conf.fileBase = JSONX.getStrOrNull(obj, fFileDirData);
+        
         if ( obj.hasKey(fProvider) )
             conf.provider = Provider.create(JSONX.getStrOrNull(obj, fProvider));
 
         if ( conf.zkConf != null )
-            conf.zkMode = ZkMode.EXTERNAL;
+            conf.zkMode = ZkMode.QUORUM;
         else if ( "mem".equalsIgnoreCase(conf.zkConnectionString) ) 
             conf.zkMode = ZkMode.MEM;
-        else if ( conf.zkConnectionString != null ) {
-            if ( conf.zkConnectionString.startsWith("local") )  
-                conf.zkMode = ZkMode.EMBEDDED;
-            else
-                conf.zkMode = ZkMode.EXTERNAL;
-        }
         
         if ( obj.hasKey(fS3BucketName) )
             conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);

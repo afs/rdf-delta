@@ -66,7 +66,7 @@ public class TestCmdServer {
     }
 
     @Test public void server3_zkLocal() {
-        String[] args = {"--zk=local", "--zkData="+ZKDIR, "--zkPort=2189"};
+        String[] args = {"--zk=localhost:2189", "--zkData="+ZKDIR, "--zkPort=2189"};
         serverAndVerify(args);
     }
 

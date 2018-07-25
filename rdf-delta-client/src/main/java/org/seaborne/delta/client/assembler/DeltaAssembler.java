@@ -43,6 +43,7 @@ import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Dataset;
@@ -61,7 +62,7 @@ import org.slf4j.LoggerFactory;
 
 /** Assembler for a locally managed dataset with changes set to a remote log */ 
 public class DeltaAssembler extends AssemblerBase implements Assembler {
-    static private Logger log = LoggerFactory.getLogger(DeltaAssembler.class) ;
+    static private Logger LOG = LoggerFactory.getLogger(DeltaAssembler.class) ;
     
     /* 
      * Assembler:
@@ -88,11 +89,12 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
      */
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
-        // delta:changes.
-        if ( ! exactlyOneProperty(root, pDeltaChanges) )
-            throw new AssemblerException(root, "No destination for changes given");
+        // delta:changes ; list or multiple properties.
         List<String> deltaServers = getAsMultiStringValue(root, pDeltaChanges);
-
+        if ( deltaServers.isEmpty() )
+            throw new AssemblerException(root, "No destination for changes given");
+        FmtLog.info(Delta.DELTA_CLIENT, "Delta Patch Log Servers: "+deltaServers) ;
+        
         // delta:zone.
         if ( ! exactlyOneProperty(root, pDeltaZone) )
             throw new AssemblerException(root, "No location for state manangement (zone)") ;
@@ -123,7 +125,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 //        }
         Dataset dataset = setupDataset(root, dsName, zoneLocation, storage, deltaServers);
         
-        //  Poll for changes as well.
+        //  Poll for changes as well. Not implemented (yet).
 //      if ( root.hasProperty(pPollForChanges) ) {
 //          if ( ! exactlyOneProperty(root, pPollForChanges) )
 //              throw new AssemblerException(root, "Multiple places to poll for chnages") ;

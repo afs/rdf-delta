@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 import delta.server.DeltaServer;
 import delta.server.DeltaServerConfig;
+import jena.cmd.CmdException;
+import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.junit.Test;
 
@@ -48,14 +50,15 @@ public class TestDeltaServerConfig {
     }
 
     @Test public void server_config_zk_3() {
-        test("--zk=h:99", "--zkPort=9909", "--zkData=DIR");
+        test("--zk=localhost:9909", "--zkPort=9909", "--zkData=DIR");
     }
 
     @Test public void server_config_zk_4() {
-        test("--zk=local", "--zkPort=9909", "--zkData=DIR");
+        test("--zk=localhost:9909", "--zkConf=zoo.cfg");
     }
 
-    @Test public void server_config_zks3_1() {
+    @Test(expected=CmdException.class)
+    public void server_config_zks3_1() {
         test("--zk=mem", "--s3bucket=patches");
     }
 
@@ -66,7 +69,6 @@ public class TestDeltaServerConfig {
     @Test public void server_config_zks3_3() {
         test("--zk=mem", "--s3bucket=patches", "--s3region=eu-bristol", "--s3keys=credentials");
     }
-
 
     @Test public void server_config_file_1() {
         test("--base=target");
@@ -84,17 +86,17 @@ public class TestDeltaServerConfig {
 
     @Test(expected=RuntimeException.class)
     public void server_config_bad_zk_01() {
-        test("--zk=local");
+        test("--zkConf=zoo.cfg");
     }
 
     @Test(expected=RuntimeException.class)
     public void server_config_bad_zk_02() {
-        test("--zk=local" ,"--zkPort=99");
+        test("--zk=localhost:99" ,"--zkPort=99");
     }
 
     @Test(expected=RuntimeException.class)
     public void server_config_bad_03() {
-        test("--zk=local" ,"--zkData=DIR");
+        test("--zk=localhost:99" ,"--zkData=DIR");
     }
 
     private DeltaServerConfig test(String...args) {
@@ -108,6 +110,10 @@ public class TestDeltaServerConfig {
         DeltaServerConfig c2 = DeltaServerConfig.create(obj);
 //        JSON.write(obj);
 //        JSON.write(c2.asJSON());
+        if ( ! c.equals(c2) ) {
+              JSON.write(obj);
+              JSON.write(c2.asJSON());
+        }
         assertEquals(c, c2);
     }
 }

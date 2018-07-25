@@ -7,8 +7,14 @@
 CP="${CP:-}"
 
 #JENA_CP="$(jena)"
-## If Jena development, this needs to be different.
-JENA_CP="$HOME/jlib/fuseki2/fuseki-server.jar"
+JL="/home/afs/jlib/"
+
+# One big jar!
+M="$HOME/.m2/repo"
+
+#JENA_CP="$JL/fuseki2/fuseki-server.jar"
+JENA_CP="$M/org/apache/jena/jena-fuseki-basic/3.8.0/jena-fuseki-basic-3.8.0-server.jar:\
+$M/org/apache/jena/jena-cmds/3.8.0/jena-cmds-3.8.0.jar"
 
 ## Log4j
 LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
@@ -17,7 +23,6 @@ JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar"
 
 H="$HOME/ASF/rdf-delta"
 
-M="$HOME/.m2/repo"
 
 VER_ZK=3.5.3-beta
 VER_CURATOR=4.0.1
@@ -30,7 +35,13 @@ $M/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:\
 $M/io/netty/3.10.5/netty-3.10.5.jar:\
 $M/com/google/guava/guava/20.0/guava-20.0.jar\
 "
-D="$ZK_CP"
+AWS_CP="$M/com/amazonaws/aws-java-sdk-s3/1.11.359/aws-java-sdk-s3-1.11.359.jar:\
+$M/com/amazonaws/aws-java-sdk-kms/1.11.359/aws-java-sdk-kms-1.11.359.jar:\
+$M/com/amazonaws/aws-java-sdk-core/1.11.359/aws-java-sdk-core-1.11.359.jar:\
+$M/commons-logging/commons-logging/1.1.3/commons-logging-1.1.3.jar:\
+$M/software/amazon/ion/ion-java/1.0.2/ion-java-1.0.2.jar:\
+$M/joda-time/joda-time/2.8.1/joda-time-2.8.1.jar:\
+$M/com/amazonaws/jmespath-java/1.11.359/jmespath-java-1.11.359.jar"
 
 # Delta modules
 read -r -d '' MODULES << EOM
@@ -59,7 +70,8 @@ else
     exit 9
 fi
 
-DELTA_CP="$D"
+# Logging from fuseki jar
+DELTA_CP="$D:$JENA_CP:$ZK_CP:$AWS_CP"
 
 if [[ -e logging.properties ]]
 then
@@ -73,87 +85,98 @@ fi
 
 function usage() {
     echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
-    ##echo "Class path: $DELTA_CP:${JENA_CP}"
+    ##echo "Class path: $DELTA_CP"
     exit
 }
 
 if [[ $# = 0 ]]
 then
     usage
-else
-    CMD="$1"
-    shift
 fi
 
-# Map CMD to class name
-BASE_PKG="org.seaborne.delta"
-DCMD_PKG="${BASE_PKG}.cmds"
+## if [[ $# = 0 ]]
+## then
+##     usage
+## else
+##     CMD="$1"
+##     shift
+## fi
+## 
+## # Map CMD to class name
+## BASE_PKG="org.seaborne.delta"
+## DCMD_PKG="${BASE_PKG}.cmds"
+## 
+## ## @@ To java.
+## # Alternative names.
+## case $CMD in
+##      help|-h|--help)
+## 	usage
+## 	;;
+##     appendpatch|append|add)
+## 	CMD=addpatch ;;
+##     mk)
+## 	CMD=mklog ;;
+##     rm)
+## 	CMD=rmlog ;;
+##     get)
+## 	CMD=getpatch ;;
+##     r2p)
+## 	CMD=rdf2patch ;;
+##     p2r)
+## 	CMD=patch2rdf ;;
+##     parse|validate)
+## 	CMD=patchparse ;;
+##     *) ;;
+## esac
+## 
+## # Map to class name.
+## case $CMD in
+##     "")
+##     ;;
+##     mklog | rmlog | list | addpatch | getpatch )
+## 	CMD_CLS="$DCMD_PKG"."$CMD"
+## 	;;
+##     ls)
+##         CMD_CLS="${DCMD_PKG}.list"
+## 	;;
+##     rdf2patch | patch2rdf | patchparse )
+## 	CMD_CLS="$DCMD_PKG"."$CMD"
+## 	;;
+##     patchserver | server )
+## 	CMD_CLS="delta.server.DeltaServer"
+## 	;;
+##     org.seaborne.delta.* | delta.* )
+## 	## @@ Develpoment feature
+## 	CMD_CLS=$CMD
+## 	;;
+##     tools.*)
+## 	CMD_CLS="${BASE_PKG}"."$CMD"
+## 	;;
+##     path)
+## 	echo "$DELTA_CP"
+## 	exit
+## 	;;
+##     *)
+## 	echo "Unknown command $CMD" 2>&1
+## 	exit 1
+##     ;;
+## 
+## esac
 
-## @@ To java.
-# Alternative names.
-case $CMD in
-     help|-h|--help)
-	usage
-	;;
-    appendpatch|append|add)
-	CMD=addpatch ;;
-    mk)
-	CMD=mklog ;;
-    rm)
-	CMD=rmlog ;;
-    get)
-	CMD=getpatch ;;
-    r2p)
-	CMD=rdf2patch ;;
-    p2r)
-	CMD=patch2rdf ;;
-    parse|validate)
-	CMD=patchparse ;;
-    *) ;;
-esac
-
-# Map to class name.
-case $CMD in
-    "")
-    ;;
-    mklog | rmlog | list | addpatch | getpatch )
-	CMD_CLS="$DCMD_PKG"."$CMD"
-	;;
-    ls)
-        CMD_CLS="${DCMD_PKG}.list"
-	;;
-    rdf2patch | patch2rdf | patchparse )
-	CMD_CLS="$DCMD_PKG"."$CMD"
-	;;
-    patchserver | server )
-	CMD_CLS="delta.server.DeltaServer"
-	;;
-    org.seaborne.delta.* | delta.* )
-	## @@ Develpoment feature
-	CMD_CLS=$CMD
-	;;
-    tools.*)
-	CMD_CLS="${BASE_PKG}"."$CMD"
-	;;
-    path)
-	echo $DELTA_CP:${JENA_CP}
-	exit
-	;;
-    *)
-	echo "Unknown command $CMD" 2>&1
-	exit 1
-    ;;
-
-esac
+if [[ $1 = path ]]
+then
+    echo "$DELTA_CP"
+    exit
+fi
 
 ## echo "DELTA_CP=$DELTA_CP"
 ## echo "JENA_CP=$JENA_CP"
-## echo java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CLASS" "$@"
+## echo java $JVM_ARGS $LOGGING -cp "$DELTA_CP" "$CLASS" "$@"
 
 # Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
 
 ## exec org.seaborne.delta.cmds.dcmd
-exec java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}" "$CMD_CLS" "$@"
+#exec java $JVM_ARGS -cp "$DELTA_CP" $LOGGING "$CMD_CLS" "$@"
 
 ## Becomes:
-#exec java $JVM_ARGS $LOGGING -cp "$DELTA_CP:${JENA_CP}"  org.seaborne.delta.cmds.dcmd "$@"
+exec java $JVM_ARGS -cp "$DELTA_CP"   $LOGGING org.seaborne.delta.cmds.dcmd "$@"

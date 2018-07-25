@@ -18,4 +18,4 @@
 
 package delta.server;
 
-public enum ZkMode { NONE, EXTERNAL, EMBEDDED, MEM }
+public enum ZkMode { NONE, EXTERNAL, SINGLE, QUORUM, MEM }

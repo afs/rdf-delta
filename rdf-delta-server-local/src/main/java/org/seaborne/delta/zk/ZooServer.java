@@ -22,13 +22,12 @@ import java.io.IOException;
 
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.zookeeper.server.ContainerManager;
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.apache.zookeeper.server.ServerConfig;
-import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.jena.dboe.migrate.L;
+import org.apache.zookeeper.server.*;
 import org.apache.zookeeper.server.admin.AdminServer;
 import org.apache.zookeeper.server.admin.AdminServer.AdminServerException;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
+import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +49,18 @@ public class ZooServer {
 
     private ServerConfig config;
 
+    public static void quorumServer(String confFile) {
+        // No join.
+        L.async(() -> QuorumPeerMain.main(new String[] {confFile}) );
+    }
+    
     public ZooServer(ServerConfig config) {
         this.config = config;
     }
+    
+    /* Information: To run QuorumPeerMain
+     * 
+     */
     
     /* Information: To run ZooKeeperServerMain:
       // Usage: ZooKeeperServerMain configfile | port datadir [ticktime] [maxcnxns]
@@ -75,22 +83,13 @@ public class ZooServer {
     */
     
     public void setupFromConfig() {
-            // Note that this thread isn't going to be doing anything else,
-            // so rather than spawning another thread, we will just call
-            // run() in this thread.
-            // create a file logger url from the command line args
-            try {
-                txnLog = new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir());
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-            zkServer = new ZooKeeperServer(txnLog, config.getTickTime(), config.getMinSessionTimeout(), config.getMaxSessionTimeout(), null);
-            // Can't. Not Java visible. zkServer.registerServerShutdownHandler(cls.ca
-//            // Start Admin server
-//            adminServer = AdminServerFactory.createAdminServer();
-//            adminServer.setZooKeeperServer(zkServer);
-//            adminServer.start();
+        try {
+            txnLog = new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        zkServer = new ZooKeeperServer(txnLog, config.getTickTime(), config.getMinSessionTimeout(), config.getMaxSessionTimeout(), null);
     }
     
     public void start() {
@@ -117,7 +116,7 @@ public class ZooServer {
         } catch (IOException e) {
             throw new RuntimeIOException(e); 
         } catch (InterruptedException e) {
-            // Note from ZookpperServerMain: warn, but generally this is ok
+            // Note from ZookeeperServerMain: "warn, but generally this is ok"
             LOG.warn("Server interrupted", e);
         } finally {
             LogCtl.setLevel("org.apache.zookeeper.server.ZooKeeperServer", "WARN");
@@ -130,7 +129,7 @@ public class ZooServer {
                 cnxnFactory.join();
             }
             catch (InterruptedException e) {
-                // Note from ZookpperServerMain: warn, but generally this is ok
+                // Note from ZookeeperServerMain: warn, but generally this is ok
                 LOG.warn("Server join interrupted", e);
             }
         }

@@ -97,7 +97,7 @@ public class PatchStoreZk extends PatchStore {
     }
     
     private void init() throws Exception {
-        List<DataSourceDescription> x = listDataSourcesZk();
+        //List<DataSourceDescription> x = listDataSourcesZk();
         Set<String> names = getWatchLogs();
         updateLogChanges(names);
     }
@@ -155,7 +155,7 @@ public class PatchStoreZk extends PatchStore {
         if ( client == null )
             return Collections.emptyList();
         
-       // Zk.listNodes(client);
+        //Zk.listNodes(client);
         
         boolean isEmpty = zkCalc(()->client.checkExists().forPath(ZkConst.pRoot)==null);
         try {
@@ -209,6 +209,8 @@ public class PatchStoreZk extends PatchStore {
     private List<DataSourceDescription> listDataSourcesZkPath(String logsPath) {
         List<DataSourceDescription> descriptions = new ArrayList<DataSourceDescription>();
         List<String> logNames = Zk.zkSubNodes(client, logsPath);
+        if ( logNames == null )
+            return Collections.emptyList(); 
         for ( String name: logNames) {
             String logDsd = zkPath(ZkConst.pLogs, name, ZkConst.nDsd);
             JsonObject obj = zkFetchJson(client, logDsd);

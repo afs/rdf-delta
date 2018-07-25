@@ -129,7 +129,7 @@ public class S3 {
         public PropertiesBuilder set(String propertyName, String propertyValue) {
             Objects.requireNonNull(propertyName, "propertyName");
             if ( propertyValue == null )
-                throw new DeltaConfigException("Nul value for '"+propertyName+"'");
+                throw new DeltaConfigException("Null value for '"+propertyName+"'");
             properties.setProperty(propertyName, propertyValue);
             return this;
         }

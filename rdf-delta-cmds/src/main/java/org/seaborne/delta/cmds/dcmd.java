@@ -23,6 +23,7 @@ import java.util.Arrays;
 import jena.cmd.CmdException;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
 
 /** Subcommand dispatch.
  *  Usage: "dcmd SUB ARGS...
@@ -62,9 +63,18 @@ public class dcmd {
          ) ;
 
     public static void setLogging() {
-        LogCtl.setCmdLogging(log4Jsetup);
+        if ( systemPropertySet("java.util.logging.config.file")
+           || systemPropertySet("log4j.configuration") ) {
+            // Leave to automatic
+        }
+        //LogCtl.setCmdLogging(log4Jsetup);
+        LogCtl.setJavaLogging();
     }
     
+    private static boolean systemPropertySet(String string) {
+        return System.getProperty(string) != null ;
+    }
+
     static { setLogging(); }
 
     public static void main(String...args) {
@@ -123,6 +133,9 @@ public class dcmd {
             case "patch2rdf":   patch2rdf.main(argsSub); break;
             case "patchserver": 
                 delta.server.DeltaServer.main(argsSub); break;
+            case "fuseki":
+                FusekiBasicCmd.main(argsSub);
+                break;
             default:
                 System.err.println("Failed to find a command match for '"+cmd+"'");
         }

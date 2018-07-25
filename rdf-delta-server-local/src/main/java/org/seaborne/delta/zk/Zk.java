@@ -33,6 +33,7 @@ import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 import org.seaborne.delta.DeltaException;
@@ -138,7 +139,10 @@ public class Zk {
         try {
             return client.getChildren().forPath(path);
         } catch (Exception e) {
-            LOG.error("Failed: zkSubNodes("+path+")",e) ;
+            if ( e instanceof KeeperException.NoNodeException )
+                LOG.error("No such znode: "+path) ;
+            else
+                LOG.error("Failed: zkSubNodes("+path+")",e) ;
             return null;
         }
     }

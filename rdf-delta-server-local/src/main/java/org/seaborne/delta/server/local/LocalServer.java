@@ -99,7 +99,7 @@ public class LocalServer {
     public static LocalServer create(PatchStore ps, LocalServerConfig conf) {
         Objects.requireNonNull(ps, "Null for PatchStore");
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
-        initializePatchStore(ps, dataRegistry, conf);
+        // Done in localServer :: initializePatchStore(ps, dataRegistry, conf);
         return localServer(conf, ps, dataRegistry);
     }
 
@@ -107,7 +107,7 @@ public class LocalServer {
      * Fill a {@link DataRegistry} by initializing the {@link PatchStore PatchStores}
      * that provides the function, call {@code initFromPersistent}.
      */
-    private static void initializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
+    private static void cinitializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
         List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
         FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), descriptions);
     }
