@@ -20,6 +20,7 @@ package org.seaborne.delta.cmds;
 
 import java.io.PrintStream;
 
+import delta.server.DeltaServer;
 import org.apache.jena.atlas.io.NullOutputStream;
 import org.seaborne.delta.lib.LibX;
 
@@ -51,7 +52,10 @@ public class CmdTestLib {
         System.arraycopy(args, 0, cmdLine, serverArgs.length, args.length);
         System.arraycopy(serverArgs, 0, cmdLine, 0, serverArgs.length);
         
+        DeltaServer.server_join = false;
         cmd(cmdLine);
+        DeltaServer.server_join = true;
+        
         return "http://localhost:"+port+"/";
     }
 

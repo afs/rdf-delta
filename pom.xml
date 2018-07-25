@@ -502,7 +502,11 @@
             -->
             <exclude>**/*.txt</exclude>
             <exclude>**/*.md</exclude>
-            
+           
+            <!-- Examples -->
+            <exclude>**/zoo.dynamic</exclude>
+            <exclude>**/ZkData/**</exclude>
+
             <!--
                 META-INF services files can include comments but a license header would be
                 unnecessarily clutter so we exclude these

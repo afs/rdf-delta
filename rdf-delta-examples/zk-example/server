@@ -1,5 +1,8 @@
 #!/bin/bash
-# Run in zk1, zk2 or zk3.
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+## Run a RDF Delta Patch Log Server
+## This is the common script run from within directories zk1, zk2 and zk3.
 
 ID=$(cat ZkData/myid)
 CONNECT="localhost:2181,localhost:2182,localhost:2183"

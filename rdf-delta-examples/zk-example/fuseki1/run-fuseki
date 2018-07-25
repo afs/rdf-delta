@@ -1,3 +1,4 @@
 #!/bin/bash
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 dcmd fuseki --port 3031 --conf config.ttl

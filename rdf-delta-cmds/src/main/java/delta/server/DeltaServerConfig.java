@@ -124,10 +124,15 @@ public class DeltaServerConfig {
         if ( obj.hasKey(fProvider) )
             conf.provider = Provider.create(JSONX.getStrOrNull(obj, fProvider));
 
+        if ( conf.zkConnectionString != null )
+            conf.zkMode = ZkMode.EXTERNAL;
+        
         if ( conf.zkConf != null )
             conf.zkMode = ZkMode.QUORUM;
         else if ( "mem".equalsIgnoreCase(conf.zkConnectionString) ) 
             conf.zkMode = ZkMode.MEM;
+        else if ( conf.zkData != null ) 
+            conf.zkMode = ZkMode.SINGLE;
         
         if ( obj.hasKey(fS3BucketName) )
             conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);

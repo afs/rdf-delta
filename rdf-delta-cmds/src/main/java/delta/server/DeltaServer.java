@@ -78,11 +78,15 @@ public class DeltaServer {
     private static ArgDecl argS3Bucket    = new ArgDecl(true, "s3bucket");
     private static ArgDecl argS3Region    = new ArgDecl(true, "s3region");
     private static ArgDecl argS3KeysFile  = new ArgDecl(true, "s3keys");
-    //private static ArgDecl s3Prefix  = new ArgDecl(true, "s3keys");
     
     private static ArgDecl argJetty    = new ArgDecl(true, "jetty");
-    //private static ArgDecl argProvider = new ArgDecl(true, "provider");
+//    private static ArgDecl argProvider = new ArgDecl(true, "provider");
 //    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
+    
+    // Switch for command line testing to be able to run the server,
+    // know it has started on return, and it is not blocking. 
+    
+    public static boolean server_join = true;  
 
     public static void main(String...args) {
         DeltaSystem.init();
@@ -90,7 +94,8 @@ public class DeltaServer {
             DeltaServerConfig deltaServerConfig = processArgs(args);
             // Run ZooKeepers and Delta Patch Server.
             PatchLogServer dps = run(deltaServerConfig);
-            dps.join();
+            if ( server_join )
+                dps.join();
         } catch (CmdException ex) {
             System.err.println(ex.getMessage());
             return;
@@ -237,29 +242,24 @@ public class DeltaServer {
             serverConfig.zkMode = ZkMode.MEM;
             if ( cla.contains(argZkPort) )
                 serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
+        } else {
+            // Check --zkPort and --zkData present together.
+            if ( cla.contains(argZkPort) || cla.contains(argZkData) ) {
+                // Setting for a single persistent zookeeper in-process with provided port and data areas.
+                if ( ! cla.contains(argZkPort) )
+                    cmdLineError("No ZooKeeper port: need --zkPort=NNNN with --zkData");
+                if ( ! cla.contains(argZkData) )
+                    cmdLineError("No ZooKeeper data folder: need --zkData=DIR with --zkPort");
+                
+                serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
+                serverConfig.zkData = cla.getValue(argZkData);
+                
+                // Make sure port is in the connection string.
+                if ( ! connectionString.contains(Integer.toString(serverConfig.zkPort)) )
+                    cmdLineWarning("WARNING: Local zookeeper not in the connection string. (string=%s, port=%d)", connectionString, serverConfig.zkPort);
+                serverConfig.zkMode = ZkMode.SINGLE;
+            }
         }
-
-        // If zkPort/zkData supported.
-        // add --zkId ?
-//        } else if ( cla.contains(argZkPort) || cla.contains(argZkData) ) {
-//            // Setting for a persistent zookeeper in-process with provided port and data areas.
-//            // This instance can be contacted by other ZooKeeper servers.
-//            // Connection string must include this. 
-//            if ( ! cla.contains(argZkPort) )
-//                cmdLineError("No ZooKeeper port: need --zkPort=NNNN with --zkData");
-//            if ( ! cla.contains(argZkData) )
-//                cmdLineError("No ZooKeeper data folder: need --zkData=DIR with --zkPort");
-//            
-//            serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
-//            serverConfig.zkData = cla.getValue(argZkData);
-//            serverConfig.zkMode = ZkMode.EMBEDDED;
-//            if ( ! connectionString.contains(Integer.toString(serverConfig.zkPort)) )
-//                cmdLineWarning("WARNING: Local zookeeper not in the connection string. (string=%s, port=%d)", connectionString, serverConfig.zkPort);
-//            FmtLog.info(LOG, "Zookeeper port = %d", serverConfig.zkPort); 
-//        }
-//        else
-//            serverConfig.zkMode = EXTERNAL;
-        
         LOG.info("Connection string: "+connectionString);
         serverConfig.zkConnectionString = connectionString;
     }

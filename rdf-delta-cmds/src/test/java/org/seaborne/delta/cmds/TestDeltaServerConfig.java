@@ -108,11 +108,11 @@ public class TestDeltaServerConfig {
     private void roundTrip(DeltaServerConfig c) {
         JsonObject obj = c.asJSON();
         DeltaServerConfig c2 = DeltaServerConfig.create(obj);
-//        JSON.write(obj);
-//        JSON.write(c2.asJSON());
         if ( ! c.equals(c2) ) {
-              JSON.write(obj);
-              JSON.write(c2.asJSON());
+            System.out.println("c  : "+c.zkMode);
+            System.out.println("c2 : "+c2.zkMode);
+            JSON.write(obj);
+            JSON.write(c2.asJSON());
         }
         assertEquals(c, c2);
     }

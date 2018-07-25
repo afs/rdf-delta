@@ -78,7 +78,7 @@ public class TestCmdServer {
     
     public static void serverAndVerify(String[] args) {
         String serverURL = CmdTestLib.server(args);
-        verifyServer(serverURL);;
+        verifyServer(serverURL);
     }
     
     private static void verifyServer(String URL) {
