@@ -92,6 +92,8 @@ public class DeltaServer {
         DeltaSystem.init();
         try {
             DeltaServerConfig deltaServerConfig = processArgs(args);
+            if ( deltaServerConfig == null )
+                return;
             // Run ZooKeepers and Delta Patch Server.
             PatchLogServer dps = run(deltaServerConfig);
             if ( server_join )
@@ -132,25 +134,24 @@ public class DeltaServer {
         if ( cla.contains(argHelp) ) {
             System.err.println("Usage: server [--port=NNNN | --jetty=FILE] [--base=DIR] [--mem] [--zk=connectionString [--zkPort=NNN] [--zkData=DIR] ]");
             String msg = StrUtils.strjoinNL
-                ("    --port              Port number for the patch server."
-                ,"    --jetty=FILE        File name of a jetty.xml configuration file."
-                ,"    File based patch server:"
-                ,"    --base=DIR          File system directory"
-                ,"    Simple testing"
-                ,"    --mem               Run a single server with in-memory index and patch storage." 
-                ,"    Zookeeper index server:"
-                ,"      External zookeeper ensemble"
-                ,"    --zk=               Zookeeper connection string (e.g. \"host1:port1,host2:port2,host3:port3\")"
-                ,"      Embedded Zookeeper server"
-                ,"    --zkConf=FILE       Zookeeper configuration file. Runs a Zookeeper Server as par tof a quorum ensemble. Must be in the connection string."
-                ,"    --zkData            Storage for the embedded zookeeper"
-                ,"    --zkPort            Port for the embedded Zookeeper"
-                ,"    Test Zookeeper"
-                ,"    --zk=mem            Run a single Zookeeper without persistent storage."
-                ,"    S3 patch storage"
-                ,"    --s3bucket          S3 bucket name"
-                ,"    --s3keys            S3 access and secrey access keys file (if not default credentials mechanism)"
-                ,"    --s3region          S3 region"
+                ("        --port              Port number for the patch server."
+                ,"        --jetty=FILE        File name of a jetty.xml configuration file."
+                ,"File based patch server:"
+                ,"        --base=DIR          File system directory"
+                ,"Simple testing"
+                ,"        --mem               Run a single server with in-memory index and patch storage." 
+                ,"Zookeeper index server:"
+                ,"        --zk=               Zookeeper connection string (e.g. \"host1:port1,host2:port2,host3:port3\")"
+                ,"   Embedded Zookeeper server"
+                ,"        --zkConf=FILE       Zookeeper configuration file. Runs a Zookeeper Server as par tof a quorum ensemble. Must be in the connection string."
+                ,"        --zkData            Storage for the embedded zookeeper"
+                ,"        --zkPort            Port for the embedded Zookeeper"
+                ,"   Test Zookeeper"
+                ,"        --zk=mem            Run a single Zookeeper without persistent storage."
+                ,"   S3 patch storage"
+                ,"        --s3bucket          S3 bucket name"
+                ,"        --s3keys            S3 access and secrey access keys file (if not default credentials mechanism)"
+                ,"        --s3region          S3 region"
                 );
             System.err.println(msg);
             return null;
@@ -167,18 +168,21 @@ public class DeltaServer {
         Provider provider = UNSET;
         int x = 0 ;
         if ( cla.contains(argBase) ) {
-            x++ ; provider = FILE;
-        }            
+            x++;
+            provider = FILE;
+        }
         if ( cla.contains(argZk) ) {
-            x++ ; 
+            x++;
             if ( cla.contains(argS3Bucket) )
                 provider = Provider.ZKS3;
             else
                 provider = Provider.ZKZK;
-        }            
-        if ( cla.contains(argMem) ) {
-            x++; provider = Provider.MEM;
         }
+        if ( cla.contains(argMem) ) {
+            x++;
+            provider = Provider.MEM;
+        }
+        
         if ( x < 1 )
             cmdLineError("No provider : one of --mem , --zk or --base  is required"); 
         if ( x > 1 )
