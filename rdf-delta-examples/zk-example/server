@@ -1,0 +1,10 @@
+#!/bin/bash
+# Run in zk1, zk2 or zk3.
+
+ID=$(cat ZkData/myid)
+CONNECT="localhost:2181,localhost:2182,localhost:2183"
+PORT="107${ID}"
+
+echo "Run Delta Patch Server : id = $ID : port = $PORT"
+
+dcmd server --port "$PORT" --zk="$CONNECT" --zkCfg=./zoo.cfg

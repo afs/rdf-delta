@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export JMXDISABLE=true
+
+~/Projects/zookeeper/bin/zkServer.sh --config . start-foreground 

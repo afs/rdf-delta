@@ -1,0 +1,9 @@
+#!/bin/bash
+
+## This script resets the persistent states
+
+## Delete Zookeeper databases.
+rm -rf zk?/ZkData/version-2
+
+## Delete the persistent zone information for Fuseki datasets.
+rm -rf fuseki?/Zone/*

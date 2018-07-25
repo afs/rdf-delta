@@ -1,0 +1,3 @@
+#!/bin/bash
+
+dcmd fuseki --port 3031 --conf config.ttl

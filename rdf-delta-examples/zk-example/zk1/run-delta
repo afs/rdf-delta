@@ -1,0 +1,4 @@
+#!/bin/bash
+
+## The master script looks in data/myid  
+exec ../server
