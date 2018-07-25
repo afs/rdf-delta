@@ -12,7 +12,7 @@ triple store to provide a high availability solution.
 * [Demonstration](#demonstration)
 * [Fuseki Configuration](#fuseki-config)
 
-# Obtain the Software
+# Obtain the Software {#software}
 
 To build a High Availablity Apache Jena Fuseki installation, you need a
 copy of Fuseki with the RDF Delta client code, and an RDF Delta Patch Log
@@ -25,7 +25,7 @@ These are available in a single package from:
 Download the latest version and unpack the zip file: there will be a
 directory `rdf-delta-VER`.
 
-# Demonstration
+# Demonstration {#demonstration}
 
 For demonstration/experimentation purposes, this "getting started" guide
 runs all the servers on the local machine.  In a production enviroment,
@@ -148,7 +148,7 @@ to get
     --------------------------------------------------
 ```
 
-# <a name="fuseki-config"></a>The Fuseki Configuration file
+# The Fuseki Configuration file {#fuseki-config}
 
 This is the file Fuseki configuration file use above, with additonal
 comments.
