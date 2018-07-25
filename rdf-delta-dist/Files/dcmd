@@ -14,9 +14,15 @@ else
     echo "Can't find the jar containing the RDF Delta cmds (delta-patch-server.jar)" 1>&2
     exit 1
 fi
+
 if [[ -e logging.properties ]]
 then
     LOGGING=-Djava.util.logging.config.file=logging.properties
+fi
+# Overrides JUL.
+if [[ -e log4j.properties ]]
+then
+    LOGGING=-Dlog4j.configuration=file:log4j.properties
 fi
 
 function usage() {
@@ -29,64 +35,15 @@ if [[ $# = 0 ]]
 then
     usage
     exit
-else
-    CMD="$1"
-    shift
 fi
 
-# Map CMD to class name
-BASE_PKG="org.seaborne.delta"
-DCMD_PKG="${BASE_PKG}.cmds"
+X="$1"
+if [[ $X = "fuseki" ]]
+then
+    shift
+    exec java $JVM_ARGS $LOGGING -cp "$CP" "org.apache.jena.fuseki.cmds.FusekiBasicCmd" "$@"
+    exit
+fi
 
-# Alternative names.
-case $CMD in
-    help|-h|--help)
-	usage
-	;;
-    appendpatch|append|add)
-	CMD=addpatch ;;
-    mk)
-	CMD=mklog ;;
-    rm)
-	CMD=rmlog ;;
-    get)
-	CMD=getpatch ;;
-    r2p)
-	CMD=rdf2patch ;;
-    p2r)
-	CMD=patch2rdf ;;
-     parse|validate)
-	CMD=patchparse ;;
-    *) ;;
-esac
 
-# Map to class name.
-case $CMD in
-    "")
-    ;;
-    mklog | rmlog | list | addpatch | getpatch )
-	CMD_CLS="$DCMD_PKG"."$CMD"
-	;;
-    ls)
-        CMD_CLS="${DCMD_PKG}.list"
-	;;
-    rdf2patch | patch2rdf)
-	CMD_CLS="$DCMD_PKG"."$CMD"
-	;;
-    patchserver | server )
-	CMD_CLS="delta.server.DeltaServer"
-	;;
-    org.seaborne.delta.* | delta.* )
-	CMD_CLS=$CMD
-	;;
-    tools.*)
-	CMD_CLS="${BASE_PKG}"."$CMD"
-	;;
-    *)
-	echo "Unknown command $CMD" 2>&1
-	exit 1
-    ;;
-
-esac
-
-java $JVM_ARGS $LOGGING -cp "$CP" "$CMD_CLS" "$@"
+exec java $JVM_ARGS $LOGGING -cp "$CP" dcmd "$@"
