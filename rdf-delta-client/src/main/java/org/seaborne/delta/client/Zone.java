@@ -60,17 +60,10 @@ public class Zone {
 
     private static Map<Location, Zone> zones         = new ConcurrentHashMap<>();
 
-    /** Create a zone; connect to an existing one if it exists in the JVM or on-disk
-     * @deprecated Use {@link #connect(String)}
-     */
-    @Deprecated
-    public static Zone create(String area) {
-        return connect(Location.create(area)); 
-    }
-
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
     public static Zone connect(String area) {
-        return connect(Location.create(area)); 
+        Location location = (area == null) ? Location.mem() : Location.create(area);
+        return connect(location); 
     }
     
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
@@ -197,17 +190,20 @@ public class Zone {
         Objects.requireNonNull(name,    "Data source name");
         Objects.requireNonNull(storage, "Storage type");
         
-        // XXX What about Zones with no persistent state? No stateArea?
         
-        // Per data source area.
-        Path conn = stateArea.resolve(name);
-        FileOps.ensureDir(conn.toString());
-        
-        // {zone}/{name}/state
-        // Always write the datastate even if ephemeral.
-        Path statePath = conn.resolve(FN.STATE);
-        // {zone}/{name}/data
-        Path dataPath = storage.isEphemeral() ? null : conn.resolve(FN.DATA);
+        Path statePath = null;
+        Path dataPath = null;
+        if ( stateArea != null ) {
+            // Per data source area.
+            Path conn = stateArea.resolve(name);
+            FileOps.ensureDir(conn.toString());
+            
+            // {zone}/{name}/state
+            // Always write the datastate even if ephemeral.
+            statePath = conn.resolve(FN.STATE);
+            // {zone}/{name}/data
+            dataPath = storage.isEphemeral() ? null : conn.resolve(FN.DATA);
+        }
         
         synchronized (zoneLock) {
             if ( ! INITIALIZED )
@@ -217,6 +213,7 @@ public class Zone {
             if ( dataPath != null )
                 FileOps.ensureDir(dataPath.toString());
             // statePath is null for ephemeral
+            
             DataState dataState = new DataState(this, statePath, storage, dsRef, name, uri, Version.INIT, null);
             register(dataState);
             return dataState;
@@ -228,6 +225,8 @@ public class Zone {
     }
     
     private Path dataPath(DataState dataState) {
+        if ( stateArea == null )
+            return null;
         Path dataPath = stateArea(dataState).resolve(FN.DATA);
         return dataPath;
     }

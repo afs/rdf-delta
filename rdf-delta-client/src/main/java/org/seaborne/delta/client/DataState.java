@@ -76,9 +76,10 @@ public class DataState {
     /*package*/ DataState(Zone zone, Path stateFile, LocalStorageType storage, Id dsRef, String name, String uri, Version version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
-        this.state = null;
-        if ( stateFile != null ) 
+        if ( stateFile != null )
             this.state = new PersistentState(stateFile);
+        else
+            this.state = PersistentState.createEphemeral();
         this.stateStr = state;
         this.version = version;
         this.patchId = patchId;

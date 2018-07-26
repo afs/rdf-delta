@@ -39,6 +39,11 @@ public class PersistentState implements RefLong, RefString {
     
     private byte[] value = null;
     private String valueStr = null;
+
+    public static PersistentState createEphemeral() {
+        return new PersistentState();
+    }
+
     
     public PersistentState(String stateFile) {
         this(Paths.get((stateFile)));
@@ -50,10 +55,16 @@ public class PersistentState implements RefLong, RefString {
         reset();
     }
 
+    // Ephemeral
+    private PersistentState() {
+        pathname = null;
+        reset();
+    }
+    
     public Path getPath() { return pathname; }
     
     public void reset() {
-        if ( Files.exists(pathname) ) {
+        if ( pathname != null && Files.exists(pathname) ) {
             value = readLocation();
             valueStr = null;
         } else {
@@ -109,12 +120,17 @@ public class PersistentState implements RefLong, RefString {
         }
     }
     
+    // The access to on-disk (or not) bytes.
+    
     private byte[] readLocation() {
+        if ( pathname == null )
+            return null; 
         return IOX.readAll(pathname) ;
     }
-
     
     private void writeLocation() {
+        if ( pathname == null )
+            return; 
         // Does not need synchronizing.
         IOX.safeWrite(pathname, out->out.write(value));
     }

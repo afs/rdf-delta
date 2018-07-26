@@ -95,12 +95,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             throw new AssemblerException(root, "No destination for changes given");
         FmtLog.info(Delta.DELTA_CLIENT, "Delta Patch Log Servers: "+deltaServers) ;
         
-        // delta:zone.
-        if ( ! exactlyOneProperty(root, pDeltaZone) )
-            throw new AssemblerException(root, "No location for state manangement (zone)") ;
-        String zoneLocationStr = getAsStringValue(root, pDeltaZone);
-        Location zoneLocation = Location.create(zoneLocationStr);
-
         // Name of the patch log.
         // delta:patchlog
         if ( ! exactlyOneProperty(root, pDeltaPatchLog) )
@@ -109,12 +103,25 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
         // delta:storage
         if ( ! exactlyOneProperty(root, pDeltaStorage) )
-            throw new AssemblerException(root, "No location for state manangement (zone)") ;
+            throw new AssemblerException(root, "No storge type given.") ;
         String storageTypeStr = getAsStringValue(root, pDeltaStorage);
         LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);
         if ( storage == null )
             throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
         
+        // delta:zone.
+        // The zone is ephemeral if the storage is ephemeral. 
+
+        Location zoneLocation;
+        if ( storage.isEphemeral() )
+            zoneLocation = Location.mem();
+        else {
+            if ( !exactlyOneProperty(root, pDeltaZone) )
+                throw new AssemblerException(root, "No location for state manangement (zone)");
+            String zoneLocationStr = getAsStringValue(root, pDeltaZone);
+            zoneLocation = Location.create(zoneLocationStr);
+        }
+
         // Build the RDFChanges: URLs to send each patch log entry. 
         // This would multiplex the changes to all RDFChanges
 //        RDFChanges streamChanges = null ;
@@ -193,6 +200,9 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
                 // dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName); // CRASH
                 deltaClient.register(dsRef, storage, syncPolicy);
             } catch (HttpException ex) {
+                throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage());
+            } catch (Exception ex) {
+                ex.printStackTrace();
                 throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage());
             }
         } else {

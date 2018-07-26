@@ -326,7 +326,7 @@ public class DeltaConnection implements AutoCloseable {
             return;
         // bring up-to-date.
         
-        FmtLog.info(LOG, "Sync: Versions [%d, %d]", localVer, version);
+        FmtLog.info(LOG, "Sync: Versions [%s, %s]", localVer, version);
         playPatches(localVer.value()+1, version.value()) ;
         //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
     }
