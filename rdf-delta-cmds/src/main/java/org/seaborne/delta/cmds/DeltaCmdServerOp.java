@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.cmds;
 
+import java.util.List;
 import java.util.Optional ;
 
 import jena.cmd.CmdException ;
@@ -37,7 +38,7 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        return getCommandName()+" --server URL [--uri=uri] NAME ....";
+        return getCommandName()+" --server=URL NAME ....";
     }
     
 //    @Override
@@ -53,16 +54,24 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
     
     @Override
     protected void execCmd() {
-        // check
-        super.getValues(argLogName).forEach(this::checkCmdName);
-        super.getValues(argDataSourceURI).forEach(this::checkCmdURI);
-        super.getPositional().forEach(this::checkCmdName);
+        List<String> names = super.getValues(argLogName);
+        List<String> uris = super.getValues(argDataSourceURI);
+        List<String> positionals = super.getPositional();
+        
+        if ( names.size() + uris.size() + positionals.size() > 1 )
+            throw new CmdException("Multiple logs specificed: use oen of NAME or '--log=NAME' or '--uri=URI'");
+        
+        // Only one of these will be non-empty, and it will have one item.
+        names.forEach(this::checkCmdName);
+        uris.forEach(this::checkCmdURI);
+        positionals.forEach(this::checkCmdName);
         // execute
-        super.getValues(argLogName).forEach(this::execCmdName);
-        super.getValues(argDataSourceURI).forEach(this::execCmdURI);
-        super.getPositional().forEach(this::execCmdName);
+        names.forEach(this::execCmdName);
+        uris.forEach(this::execCmdURI);
+        positionals.forEach(this::execCmdName);
     }
     
+
     protected abstract void execCmdName(String name);
     protected abstract void execCmdURI(String uriStr);
     

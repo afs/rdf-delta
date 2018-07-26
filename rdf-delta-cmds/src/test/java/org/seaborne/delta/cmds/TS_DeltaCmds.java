@@ -18,7 +18,6 @@
 
 package org.seaborne.delta.cmds;
 
-import delta.server.DeltaServer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -35,9 +34,8 @@ import org.seaborne.delta.lib.LogCtlX;
 
 public class TS_DeltaCmds {
     @BeforeClass public static void beforeClass() {
-        // So it happens once.
-        DeltaServer.setLogging();
-        // Change our mind about logging!
+        // Our choice.
+        System.setProperty("log4j.configuration", "set");
         LogCtlX.setJavaLoggingClasspath("logging-quiet.properties");
     }
 

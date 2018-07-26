@@ -22,6 +22,7 @@ import java.util.List ;
 
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.Version;
 
 /** Create a new log */
 public class list extends DeltaCmd {
@@ -54,13 +55,25 @@ public class list extends DeltaCmd {
         }
         all.forEach(dsd->{
             PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.getId());
-            if ( logInfo != null ) {
-                System.out.print(
-                                 String.format("[%s %s <%s> [%s,%s] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getMinVersion(), logInfo.getMaxVersion(), 
-                                               (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()));
+            if ( logInfo == null ) {
+                // Some thing bad somewhere.
+                System.out.printf("[%s %s <%s> [no info] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri());
+                return;
             }
-            else
-                System.out.println(dsd);
+            if ( Version.INIT.equals(logInfo.getMinVersion()) && Version.INIT.equals(logInfo.getMaxVersion()) ) {
+                if ( logInfo.getLatestPatch() != null )
+                    // Should not happen.
+                    System.out.printf("[%s %s <%s> [empty] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getLatestPatch().toString());
+                else
+                    System.out.printf("[%s %s <%s> [empty]]\n", dsd.getId(), dsd.getName(), dsd.getUri());
+                return;
+            }
+            if ( logInfo.getMinVersion().isValid() ) {
+                System.out.printf("[%s %s <%s> [%s,%s] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(),
+                    logInfo.getMinVersion(), logInfo.getMaxVersion(), 
+                    (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()
+                    );
+            }
         });
     }
 

@@ -4,6 +4,8 @@
 *.war
 hs_err_pid*
 
+delta.classpath
+
 ### Maven ###
 target/
 pom.xml.tag

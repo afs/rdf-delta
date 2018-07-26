@@ -25,26 +25,30 @@ import java.nio.file.Path ;
 import java.nio.file.Paths ;
 
 import jena.cmd.CmdException ;
-import org.apache.jena.graph.Node;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.system.StreamRDF;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.patch.*;
+import org.seaborne.patch.PatchHeader;
+import org.seaborne.patch.RDF2Patch;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.changes.RDFChangesWrapper;
 
 /** Create a new log */
-public class addpatch extends DeltaCmd {
+public class append extends DeltaCmd {
     
     public static void main(String... args) {
-        new addpatch(args).mainRun();
+        new append(args).mainRun();
     }
 
-    public addpatch(String[] argv) {
+    public append(String[] argv) {
         super(argv) ;
         super.add(argLogName);
         super.add(argDataSourceURI);
@@ -52,35 +56,13 @@ public class addpatch extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        return getCommandName()+" --server URL --dsrc NAME PATCH ...";
+        return getCommandName()+" --server URL --log NAME PATCH ...";
     }
     
     @Override
     protected void execCmd() {
+        LogCtl.disable(Delta.DELTA_HTTP_LOG.getName());
         getPositional().forEach(fn->exec1(fn));
-    }
-    
-    // --> RDFPatchOps.
-
-    private RDFPatch cheaders(Id id, Id prev) {
-        RDFChangesCollector c = new RDFChangesCollector();
-        c.header(RDFPatchConst.ID, id.asNode());
-        if ( prev != null )
-            c.header(RDFPatchConst.PREV, prev.asNode());
-        return c.getRDFPatch();
-    }
-    
-    static class RDFChangesWithDfts extends RDFChangesWrapper {
-
-        public RDFChangesWithDfts(PatchHeader dfts, RDFChanges other) {
-            super(other);
-        }
-        
-        @Override
-        public void header(String field, Node value) {
-            get().header(field, value);
-        }
-        
     }
     
     protected void exec1(String fn) {
@@ -94,7 +76,8 @@ public class addpatch extends DeltaCmd {
         RDFPatch patch = RDFPatchOps.withHeader(header, body);
         //RDFPatchOps.write(System.out, patch);
         // Add previous.
-        dLink.append(dsRef, patch);
+        Version version = dLink.append(dsRef, patch);
+        System.out.printf("Version = %s\n", version.value());
     }
 
     protected RDFPatch toPatch(String fn) {

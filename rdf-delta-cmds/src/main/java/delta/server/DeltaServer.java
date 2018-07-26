@@ -55,29 +55,29 @@ import org.seaborne.delta.server.system.DeltaSystem;
 import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
+
 /** Command line run the server. */ 
 public class DeltaServer {
-    public static void setLogging() {
-        dcmd.setLogging();
-    }
     
+    static { dcmd.setLogging(); }
+
     private static Logger LOG = DPS.LOG; 
     
-    private static ArgDecl argHelp     = new ArgDecl(false, "help", "h");
-    private static ArgDecl argVerbose  = new ArgDecl(false, "verbose", "v");
-    //private static ArgDecl argVersion  = new ArgDecl(false, "version");
-    private static ArgDecl argPort     = new ArgDecl(true, "port");
+    private static ArgDecl argHelp       = new ArgDecl(false, "help", "h");
+    private static ArgDecl argVerbose    = new ArgDecl(false, "verbose", "v");
+    //private static ArgDecl argVersion    = new ArgDecl(false, "version");
+    private static ArgDecl argPort       = new ArgDecl(true, "port");
 
-    private static ArgDecl argBase     = new ArgDecl(true, "base");
-    private static ArgDecl argMem      = new ArgDecl(false, "mem");
-    private static ArgDecl argZk       = new ArgDecl(true, "zk");
-    private static ArgDecl argZkPort   = new ArgDecl(true, "zkPort", "zkport");
-    private static ArgDecl argZkData   = new ArgDecl(true, "zkData", "zkdata");
-    private static ArgDecl argZkConf   = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
-    
-    private static ArgDecl argS3Bucket    = new ArgDecl(true, "s3bucket");
-    private static ArgDecl argS3Region    = new ArgDecl(true, "s3region");
-    private static ArgDecl argS3KeysFile  = new ArgDecl(true, "s3keys");
+    private static ArgDecl argBase       = new ArgDecl(true, "base");
+    private static ArgDecl argMem        = new ArgDecl(false, "mem");
+    private static ArgDecl argZk         = new ArgDecl(true, "zk");
+    private static ArgDecl argZkPort     = new ArgDecl(true, "zkPort", "zkport");
+    private static ArgDecl argZkData     = new ArgDecl(true, "zkData", "zkdata");
+    private static ArgDecl argZkConf     = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
+
+    private static ArgDecl argS3Bucket   = new ArgDecl(true, "s3bucket");
+    private static ArgDecl argS3Region   = new ArgDecl(true, "s3region");
+    private static ArgDecl argS3KeysFile = new ArgDecl(true, "s3keys");
     
     private static ArgDecl argJetty    = new ArgDecl(true, "jetty");
 //    private static ArgDecl argProvider = new ArgDecl(true, "provider");

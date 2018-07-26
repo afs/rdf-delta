@@ -21,7 +21,6 @@ package org.seaborne.delta.cmds;
 import java.util.Arrays;
 
 import jena.cmd.CmdException;
-import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
 
@@ -30,52 +29,21 @@ import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
  */
 public class dcmd {
 
-    private static String log4Jsetup = StrUtils.strjoinNL
-        ( "## Command default log4j setup"
-         
-          ,"## Plain output with level, to stderr"
-          ,"log4j.appender.jena.plainlevel=org.apache.log4j.ConsoleAppender"
-          ,"log4j.appender.jena.plainlevel.target=System.err"
-          ,"log4j.appender.jena.plainlevel.layout=org.apache.log4j.PatternLayout"
-          ,"log4j.appender.jena.plainlevel.layout.ConversionPattern=%d{HH:mm:ss} %-5p %-15c{1} :: %m%n"
-
-//          , "## Plain output to stdout, unadorned output format"
-//          ,"log4j.appender.jena.plain=org.apache.log4j.ConsoleAppender"
-//          ,"log4j.appender.jena.plain.target=System.out"
-//          ,"log4j.appender.jena.plain.layout=org.apache.log4j.PatternLayout"
-//          ,"log4j.appender.jena.plain.layout.ConversionPattern=%m%n"
-
-          ,"## Everything"
-          ,"log4j.rootLogger=INFO, jena.plainlevel"
-          ,"log4j.logger.org.apache.jena=WARN"
-          ,"log4j.logger.org.apache.jena.tdb.loader=INFO"
-          ,"log4j.logger.org.eclipse.jetty=WARN"
-          ,"log4j.logger.org.apache.zookeeper=WARN"
-          ,"log4j.logger.org.apache.curator=WARN"
-          ,""
-          ,"log4j.logger.org.seaborne.delta=INFO"
-          ,"log4j.logger.org.seaborne.patch=INFO"
-          ,"log4j.logger.Delta=INFO"
-          ,""
-          ,"## Parser output"
-          ,"log4j.additivity.org.apache.jena.riot=false"
-          ,"log4j.logger.org.apache.jena.riot=INFO, jena.plainlevel"
-         ) ;
+    static { setLogging(); }
 
     public static void setLogging() {
-        if ( systemPropertySet("java.util.logging.config.file")
-           || systemPropertySet("log4j.configuration") ) {
-            // Leave to automatic
-        }
-        //LogCtl.setCmdLogging(log4Jsetup);
+        if ( systemPropertySet("log4j.configuration") )
+            // Not used.
+            // Leave to CmdMain -> LogCtl.setCmdLogging()
+            return;
+        // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging() 
+        System.setProperty("log4j.configuration", "off");
         LogCtl.setJavaLogging();
     }
     
     private static boolean systemPropertySet(String string) {
         return System.getProperty(string) != null ;
     }
-
-    static { setLogging(); }
 
     public static void main(String...args) {
         if ( args.length == 0 ) {
@@ -100,9 +68,8 @@ public class dcmd {
         // Map to full name.
         switch (cmdExec) {
             case "appendpatch" :
-            case "append" :
             case "add" :
-                cmdExec = "addpatch";
+                cmdExec = "append";
                 break;
             case "mk" :
                 cmdExec = "mklog";
@@ -127,7 +94,7 @@ public class dcmd {
             case "mklog":       mklog.main(argsSub); break;
             case "rmlog":       rmlog.main(argsSub); break;
             case "list":        list.main(argsSub); break;
-            case "addpatch":    addpatch.main(argsSub); break;
+            case "append":      append.main(argsSub); break;
             case "getpatch":    getpatch.main(argsSub); break;
             case "rdf2patch":   rdf2patch.main(argsSub); break;
             case "patch2rdf":   patch2rdf.main(argsSub); break;

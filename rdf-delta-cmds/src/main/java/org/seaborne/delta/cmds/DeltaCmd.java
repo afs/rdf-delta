@@ -27,7 +27,6 @@ import jena.cmd.ArgDecl ;
 import jena.cmd.CmdException ;
 import jena.cmd.CmdGeneral ;
 import org.apache.commons.lang3.StringUtils ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.DeltaOps ;
@@ -36,9 +35,7 @@ import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
 
 abstract public class DeltaCmd extends CmdGeneral {
-
-    static { LogCtl.setCmdLogging() ; }
-    
+   
     // Environment variable, for commands, for the remote server to work with.
     public static final String ENV_SERVER_URL =  "DELTA_SERVER_URL";
 

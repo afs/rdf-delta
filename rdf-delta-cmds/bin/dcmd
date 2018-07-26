@@ -5,43 +5,23 @@
 ## Sets up the java enviroment to run a command from RDF Delta.
 
 CP="${CP:-}"
+DELTA_HOME=${DELTA_HOME:-/home/afs/ASF/rdf-delta}
+CP_DIR="$DELTA_HOME/rdf-delta-cmds"
 
-#JENA_CP="$(jena)"
-JL="/home/afs/jlib/"
+CPF="$CP_DIR/delta.classpath"
+if [ ! -e "$CPF" ]; then
+    ## Should not contain log4j.
+    echo "Need to create Delta classpath file"
+    echo "Ensure maven is up to date with the latest snapshots and then run"
+    echo -e "( cd $CP_DIR/ ; \n  mvn dependency:build-classpath -Dmdep.outputFile=delta.classpath )"
+    exit 1
+fi
+DELTA_CP="$(cat $CPF)"
 
-# One big jar!
-M="$HOME/.m2/repo"
-
-#JENA_CP="$JL/fuseki2/fuseki-server.jar"
-JENA_CP="$M/org/apache/jena/jena-fuseki-basic/3.8.0/jena-fuseki-basic-3.8.0-server.jar:\
-$M/org/apache/jena/jena-cmds/3.8.0/jena-cmds-3.8.0.jar"
-
-## Log4j
-LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
-## JUL
-JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar"
-
-H="$HOME/ASF/rdf-delta"
-
-
-VER_ZK=3.5.3-beta
-VER_CURATOR=4.0.1
-ZK_CP="$M/org/apache/curator/curator-recipes/$VER_CURATOR/curator-recipes-$VER_CURATOR.jar:\
-$M/org/apache/curator/curator-framework/$VER_CURATOR/curator-framework-$VER_CURATOR.jar:\
-$M/org/apache/curator/curator-client/$VER_CURATOR/curator-client-$VER_CURATOR.jar:\
-$M/org/apache/curator/curator-test/$VER_CURATOR/curator-test-$VER_CURATOR.jar:\
-$M/org/apache/zookeeper/zookeeper/$VER_ZK/zookeeper-$VER_ZK.jar:\
-$M/commons-cli/commons-cli/1.4/commons-cli-1.4.jar:\
-$M/io/netty/3.10.5/netty-3.10.5.jar:\
-$M/com/google/guava/guava/20.0/guava-20.0.jar\
-"
-AWS_CP="$M/com/amazonaws/aws-java-sdk-s3/1.11.359/aws-java-sdk-s3-1.11.359.jar:\
-$M/com/amazonaws/aws-java-sdk-kms/1.11.359/aws-java-sdk-kms-1.11.359.jar:\
-$M/com/amazonaws/aws-java-sdk-core/1.11.359/aws-java-sdk-core-1.11.359.jar:\
-$M/commons-logging/commons-logging/1.1.3/commons-logging-1.1.3.jar:\
-$M/software/amazon/ion/ion-java/1.0.2/ion-java-1.0.2.jar:\
-$M/joda-time/joda-time/2.8.1/joda-time-2.8.1.jar:\
-$M/com/amazonaws/jmespath-java/1.11.359/jmespath-java-1.11.359.jar"
+## ## Log4j
+## LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
+## ## JUL
+## JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar"
 
 # Delta modules
 read -r -d '' MODULES << EOM
@@ -62,7 +42,7 @@ then
     for X in $MODULES
     do
 	[[ $D = "" ]] || D="$D:"
-	D="${D}$H/$X/target/classes"
+	D="${D}$DELTA_HOME/$X/target/classes"
     done
 else
     ## @@ By artifacts ...
@@ -70,18 +50,18 @@ else
     exit 9
 fi
 
-# Logging from fuseki jar
-DELTA_CP="$D:$JENA_CP:$ZK_CP:$AWS_CP"
+# Prepend target/classes
+DELTA_CP="$D:$DELTA_CP"
 
 if [[ -e logging.properties ]]
 then
     LOGGING=-Djava.util.logging.config.file=logging.properties
 fi
-# Overrides JUL.
-if [[ -e log4j.properties ]]
-then
-    LOGGING=-Dlog4j.configuration=file:log4j.properties
-fi
+## # Overrides JUL.
+## if [[ -e log4j.properties ]]
+## then
+##     LOGGING=-Dlog4j.configuration=file:log4j.properties
+## fi
 
 function usage() {
     echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
