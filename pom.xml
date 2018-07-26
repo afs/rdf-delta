@@ -23,7 +23,7 @@
   <groupId>org.seaborne.rdf-delta</groupId>
   <artifactId>rdf-delta</artifactId>
   <packaging>pom</packaging>
-  <version>0.6.0-SNAPSHOT</version>
+  <version>0.5.1-SNAPSHOT</version>
 
   <name>RDF Delta</name>
   <url>https://afs.github.io/rdf-delta/</url>
