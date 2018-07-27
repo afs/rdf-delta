@@ -39,7 +39,7 @@ public class mklog extends DeltaCmdServerOp {
 
     @Override
     protected void execCmdName(String name) {
-        String uri = "http://base/"+name;
+        String uri = "http://delta/"+name;
         create(name, uri);
     }
 
