@@ -547,7 +547,6 @@
             <exclude>**/ZkData/**</exclude>
             <exclude>**/Zone/**</exclude>
 
-
             <!--
                 META-INF services files can include comments but a license header would be
                 unnecessarily clutter so we exclude these

@@ -19,11 +19,6 @@ if [[ -e logging.properties ]]
 then
     LOGGING=-Djava.util.logging.config.file=logging.properties
 fi
-# Overrides JUL.
-if [[ -e log4j.properties ]]
-then
-    LOGGING=-Dlog4j.configuration=file:log4j.properties
-fi
 
 function usage() {
     echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
@@ -41,7 +36,7 @@ X="$1"
 if [[ $X = "fuseki" ]]
 then
     shift
-    exec java $JVM_ARGS $LOGGING -cp "$CP" "org.apache.jena.fuseki.cmds.FusekiBasicCmd" "$@"
+    exec java $JVM_ARGS $LOGGING -jar "$CP" "$@"
     exit
 fi
 
