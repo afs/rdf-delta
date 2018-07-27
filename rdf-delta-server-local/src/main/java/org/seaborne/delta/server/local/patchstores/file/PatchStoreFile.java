@@ -59,7 +59,7 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        return CfgFile.scanForLogs(serverRoot, this, LOG);
+        return CfgFile.scanForLogs(serverRoot, this);
     }
 
     @Override

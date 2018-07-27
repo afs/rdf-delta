@@ -56,7 +56,7 @@ public class CfgFile {
      * Scan the given area for directories (must have a config file), check they are enabled,
      * and deal with {@code log_type}.
      */
-    public static List<DataSourceDescription> scanForLogs(Path location, PatchStore ps, Logger LOG) {
+    public static List<DataSourceDescription> scanForLogs(Path location, PatchStore ps) {
         // PatchStore's that rely on the scan of local directories and checking the "log_type" field.        
         Pair<List<Path>, List<Path>> pair = scanDirectory(location);
         List<Path> dataSourcePaths = pair.getLeft();
@@ -78,31 +78,7 @@ public class CfgFile {
                     if ( ! Objects.equals(dsName, dsd.getName()) )
                         throw new DeltaConfigException("Names do not match: directory="+dsName+", dsd="+dsd);
 
-                    // XXX Clean up and remove.
-                    // This deals with F_LOG_TYPE - removed.
-//                    // Patch Store provider short name.
-//                    String logType = JSONX.getStrOrNull(sourceObj, F_LOG_TYPE);
-//                    if ( logType != null ) {
-//                        String providerName = PatchStoreMgr.canonical(logType);
-//                        if ( providerName == null ) {
-//                            FmtLog.warn(LOG, "Unknown provider name: %s", providerName);
-//                            return null;
-//                        }
-//                        // **** Variable PatchStores?
-//                        //PatchStore ps = PatchStoreMgr.getPatchStoreByName(providerName);
-//                        if ( !providerName.equals(thisProviderName) ) {
-//                            FmtLog.warn(LOG, "'this' provider != found provider : %s != %s", thisProviderName, providerName);
-//                            return null;
-//                        }
-//                    }
                     return dsd;
-
-                    // If  F_LOG_TYPE  ...
-//                    DataSource ds = DataSource.connect(dsd, ps);
-//                    //FmtLog.info(LOG, "  Found %s for %s", ds, ps.getProviderName());
-//                    if ( LOG.isDebugEnabled() ) 
-//                        FmtLog.debug(LOG, "DataSource: %s [%s], source=%s", ds, ps.getProvider().getProviderName(),p );
-//                    return ds;
                 })
             .filter(Objects::nonNull)
             );
