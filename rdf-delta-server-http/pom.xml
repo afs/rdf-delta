@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.5.1-SNAPSHOT</version>
+    <version>0.5.1</version>
   </parent> 
 
   <dependencies>
@@ -40,7 +40,7 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-local</artifactId> 
-      <version>0.5.1-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
     <!-- The HTTP Server needs Jetty. The easy way to do that is ... -->
