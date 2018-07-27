@@ -305,7 +305,7 @@ public class Zone {
         release(dataState.getDataSourceId());
     }
 
-    /** Release by {@Id DataState}. Do not use the associated {@code DataState} again. */ 
+    /** Release a {@code DataState} by {@code Id}. Do not use the associated {@code DataState} again. */ 
     public void release(Id dsRef) {
         DataState dataState = states.remove(dsRef);
         if ( dataState == null )
