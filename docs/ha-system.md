@@ -55,12 +55,15 @@ The software is available as a single package from:
 Download the latest version and unpack the zip file: there will be a
 directory `rdf-delta-VER`.
 
+Set the environment variable `DELTA_HOME` to this directory. It is used to find
+binaries to run for the command show later.
+
 This includes the scripts and configuration files used in this tutorial
 in the `Tutorial` directory.
 
 The tool to run command and servers on the command line is the script
-`dcmd`. Commands have the form <tt>dcmd <i>SubCmd</i></tt> and support `--help` (`-h`) for a
-brief summary. The page ["Delta - Command Line Tools"](cmds) has more details.
+`dcmd`. Commands have the form <tt>dcmd <i>SubCmd</i></tt> and support `--help` (`-h`)
+for a brief summary. The page ["Delta - Command Line Tools"](cmds) has more details.
 
 The RDF Delta Patch Log Server is in the self-contained jar
 `delta-server.jar`. <br/>
