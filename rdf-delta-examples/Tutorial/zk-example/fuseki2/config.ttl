@@ -29,5 +29,5 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
     ## Name of local directory used for the storage of Jena database and Delta client state.
     delta:zone "Zone";
     ## Choices: "mem", "tdb", "tdb2"
-    delta:storage "mem";
+    delta:storage "tdb";
     .

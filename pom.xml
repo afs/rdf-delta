@@ -541,9 +541,12 @@
             <exclude>**/*.txt</exclude>
             <exclude>**/*.md</exclude>
            
-            <!-- Examples -->
+            <!-- Examples and Tutorial emprory files-->
+            <exclude>**/Tutorial/zk/**</exclude>
             <exclude>**/zoo.dynamic</exclude>
             <exclude>**/ZkData/**</exclude>
+            <exclude>**/Zone/**</exclude>
+
 
             <!--
                 META-INF services files can include comments but a license header would be

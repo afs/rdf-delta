@@ -17,6 +17,9 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 
+rdf-delta-examples/Tutorial/PatchStore
+rdf-delta-examples/Tutorial/zk
+
 ### Gradle ###
 .gradle
 /build/

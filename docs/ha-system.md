@@ -38,10 +38,12 @@ hardware.
 * [Obtaining the Software](#software)
 * [The Delta HA Stack](#ha-stack)
 * [A simple setup](#simple-stack)
-* [Run Two Fuseki Servers](#two-fuseki)
-* [File-based persistent patch storage](#file-backed-patch-store)
-* [Adding High Availability Components](#ha-stack)
+  * [Run a patch log server](#patch-log-server)
+  * [Run Delta commands](#delta-cmds)
+  * [Connect a Fuseki server](#single-fuseki)
 * [Failover Fuseki Configuration](#fuseki-failover)
+* [File based persistent patch storage](#file-patch-store)
+* [Adding High Availability Components](#ha-patch-store)
 * [Using S3 for patch storage](#patch-storage-s3)
 
 ## Obtaining the Software {#software}
@@ -111,7 +113,7 @@ patch log server from the command line.  In the next section, we will run
 two Fuseki servers with in-memory databases. This setup shows changes to the RDF
 datasets being replicated across two Fuseki servers.
 
-### Run a patch log server
+### Run a patch log server {#patch-log-server}
 
 To run the patch log server with a non-persistent in-memory patch store,
 start a separate terminal window, go to the installation directory and run:
@@ -137,7 +139,7 @@ Example output:
 The server is running and accepting request on port 1066. There are no
 logs.
 
-### Run delta commands
+### Run delta commands {#delta-cmds}
 
 There are a number of command line tools for working with server. One is to list the logs:
 ```
@@ -179,7 +181,7 @@ There is one patch, `id:3e9809`. The first `ver` is the minimum version number,
 the second `ver` the head of the log. Because there is only one patch at the moment,
 the log earliest version and log head version are the same.
 
-## Run Fuseki Servers {#two-fuseki}
+### Connect a Fuseki server {#single-fuseki}
 
 If you run fuseki immediately after the previous section, the Fuseki
 server will sync to the log because the Fuseki configuration file names
@@ -229,6 +231,8 @@ Any way to send SPARQL queries over HTTP will work, for example:
 curl -d query='SELECT * {?s ?p ?o}' -d 'output=text' http://localhost:3031/ds
 ```
 
+## Failover Fuseki Configuration {#fuseki-failover}
+
 Now we run a second Fuseki server on a different port:
 ```
 dcmd fuseki --port 4042 --conf fuseki-config.ttl
@@ -236,9 +240,9 @@ dcmd fuseki --port 4042 --conf fuseki-config.ttl
 
 We can update one server and query the other to see the changes:
 
-<pre>
-s-update --service=http://localhost:<b>4042</b>/ds 'INSERT DATA { <urn:x:s> <urn:x:p> <urn:x:o> }'
-s-query --service=http://localhost:<b>3031</b>/ds --output=text 'SELECT * { ?s ?p ?o }'
+```
+s-update --service=http://localhost:4042/ds 'INSERT DATA { <urn:x:s> <urn:x:p> <urn:x:o> }'
+s-query --service=http://localhost:3031/ds --output=text 'SELECT * { ?s ?p ?o }'
 -------------------------------------------------------
 | s                  | p                  | o         |
 =======================================================
@@ -246,7 +250,7 @@ s-query --service=http://localhost:<b>3031</b>/ds --output=text 'SELECT * { ?s ?
 | <http://example/s> | <http://example/q> | _:b0      |
 | <urn:x:s>          | <urn:x:p>          | <urn:x:o> |
 -------------------------------------------------------
-</pre>
+```
 
 The log now has two patches in it:
 ```
@@ -256,48 +260,166 @@ dcmd ls --server http://localhost:1066/
 [id:504b9e ABC <http://base/ABC> [ver:1,ver:2] id:b6cadc]
 ```
 
-## File-based persistent patch storage {#file-backed-patch-store}
+## File-based persistent patch storage {#file-patch-store}
+
+The patch log can be made persistent so that the patch log server can be stopped
+and started using a file-back patch store.
+
+Stop any other patch servers and Fuseki servers running from earlier on.
+
+The directory for the patch store must be create first.
 
 ```
-dcmd server --base DIRECTORY
+mkdir PatchStore
+dcmd server --base PatchStore
 ```
+and the simple patch added:
+```
+dcmd append --server http://localhost:1066/ --log ABC patch.rdfp
+```
+```
+Version = 1
+```
+The patch will be stored in file `PatchStore/ABC/patch-0001`
 
-## Adding High Availability Components {#ha-stack}
+There is only a single copy of the patch store and any file storage may be lost
+so it is better to highly reliable file system where possible.
 
-So far, there has been only one patch log server. Whiel the file-back
-patch store keeps the patches safe, it is not high-availility. The file
-storage may be lost (it is better to use a higly reliabel file system
-than a local server file sytem) and the server may need restarting.
-continuous operation.
+The patch store can be backed up by backing up the `PatchStore` directory.
 
-RDF Delta provides a high-availability, replicated patch log serer
-system using Apache Zookeeper for a high-availablity database.
+## Adding High Availability Components {#ha-patch-store}
 
-We use 3 instances to survive the loss of any one server and also to
-continue operation if the network becomes unreliable. 3 servers means
-that a working system has a majority quorum of 2. With onyl two servers,
-a "split brain" situation is possible where they can not contact each
-other but both are running and belive they are the master quorum
-leader. With 3, network parition means that 2 servers must be in one
-side or the other.  No majority quorum is possible at all, the system
-stops accepting updates.
+So far, there has been only one patch log server. While the file-back
+patch store keeps the patches safe, it is not a high-availability solution.
 
-1. Zookeeper is used to store the patches themselves and Zookeeper only
+RDF Delta provides a high-availability, replicated patch log server
+system using Apache Zookeeper.  There needs to be 3 instances of Zookeeper
+to survive the loss of one server while continuing to
+provide operation if the network becomes unreliable. 3 servers means
+that in a working partition of the system there is a majority quorum of 2.
+If there were only two servers, a "split brain" situation is possible
+where the two servers can not contact each other but both are running
+and believe they are the master quorum leader.
+
+In this tutorial, Zookeeper is used to store the patches themselves and Zookeeper only
 handles small files.  A full production system would use a patch storage
 layer such as AWS S3.
 
-2. The Zookeeper servers are run in the same JVM as the RDF Delta Patch
+The Zookeeper servers are run in the same JVM as the RDF Delta Patch
 Servers as a self-contained Zookeeper ensemble. An external Zookeeper
 ensemble can be used if desired.
 
-## Failover Fuseki Configuration {#fuseki-failover}
+The running Zookeeper servers store their own state to disk.
+First, copy the tutorial configuration into a working area because it will get modified:
+```
+cp -r zk-example zk
+```
+There are 3 sub-directories, `zk/zk1`, `zk/zk2`, `zk/zk3`, one for each server.
 
-The last step is to configure each Fuseki server to failover if it can't
-contact one of th RDF Delta Patch Log Servers.
+In separate separate terminal windows: there is a instance-specific configuration "zoo.cfg",
+a different one in each directory.  Each patch log server runs on a different port,
+ 1071, 1072 and 1073.
 
-This is done by changing the `delta:changes` property to be a list of
-patch servers.  Whenever the Fuseki server fails to contact one of the
-patch servers, it wil switch to using another patch server.
+```
+cd zk1
+dcmd server --port 1071 --zk=localhost:2181,localhost:2182,localhost:2183 --zkCfg=./zoo.cfg
+```
+```
+cd zk2
+dcmd server --port 1072 --zk=localhost:2181,localhost:2182,localhost:2183 --zkCfg=./zoo.cfg
+```
+```
+cd zk3
+dcmd server --port 1073 --zk=localhost:2181,localhost:2182,localhost:2183 --zkCfg=./zoo.cfg
+```
+
+NB Zookeeper logging is quite detailed.  The tutorial setup has a `logging.properties`
+file for each server instance and logging is turned down to a minimal level.
+It may be necessary to increase the logging to diagnose problems.
+
+
+Alternatively, run the script "`../dzk-server`" each of zookeeper server directories.
+It will determine the service instance number.
+
+To reset the system, delete the `zk` directory and copy 'zk-example` again.
+To reset just the zookeeper state, delete the three directories
+`zk{1,2,3}/ZkData/version-2`.
+
+```
+dcmd ls --server http://localhost:1071
+```
+```
+-- No logs --
+```
+Create a log on one server (port 1073):
+```
+dcmd mk --server http://localhost:1073 ABC
+```
+```
+Created [id:de5992, ABC, <http://delta/ABC>]
+```
+and see it is present on another (port=1071):
+```
+dcmd ls --server http://localhost:1071
+```
+```
+[id:de5992 ABC <http://delta/ABC> [empty]]
+```
+
+Now run two Fuseki server on different ports.
+These server have a persistent database, which is described below.
+
+```
+cd ../fuseki1
+dcmd fuseki --port 3033 --conf config.ttl
+[2018-07-27 15:40:49.692] INFO  Delta                : Delta Patch Log Servers: [http://localhost:1071/, http://localhost:1072/, http://localhost:1073/]
+[2018-07-27 15:40:50.403] WARN  Delta                : Sync: Asked for no patches to sync
+[2018-07-27 15:40:50.474] INFO  Server               : Apache Jena Fuseki (basic server) 3.8.0
+[2018-07-27 15:40:50.476] INFO  Server               : Configuration file config.ttl
+[2018-07-27 15:40:50.477] INFO  Server               : Path = /ds; Services = [data, quads, upload, query, sparql, update, get]
+[2018-07-27 15:40:50.479] INFO  Server               :   Memory: 7.8 GiB
+[2018-07-27 15:40:50.480] INFO  Server               :   Java:   10.0.1
+[2018-07-27 15:40:50.480] INFO  Server               :   OS:     Linux 4.15.0-29-generic amd64
+[2018-07-27 15:40:50.480] INFO  Server               :   PID:    19872
+[2018-07-27 15:40:50.500] INFO  Server               : Start Fuseki (port=3033)
+```
+```
+cd ../fuseki2
+dcmd fuseki --port 3055 --conf config.ttl
+[2018-07-27 15:43:12.102] INFO  Delta                : Delta Patch Log Servers: [http://localhost:1071/, http://localhost:1072/, http://localhost:1073/]
+[2018-07-27 15:43:12.112] INFO  Zone                 : Connection : /home/afs/ASF/rdf-delta/rdf-delta-examples/Tutorial/zk/fuseki2/Zone/ABC
+[2018-07-27 15:43:12.122] WARN  DataState            : No version: {  "version" : 0 , "id" : "" , "name" : "ABC" , "datasource" : "de599246-7d17-404a-a57c-23d92deffcb7" , "storage" : "TDB" , "uri" : "http://delta/ABC" }
+[2018-07-27 15:43:12.362] WARN  Delta                : Sync: Asked for no patches to sync
+[2018-07-27 15:43:12.437] INFO  Server               : Apache Jena Fuseki (basic server) 3.8.0
+[2018-07-27 15:43:12.439] INFO  Server               : Configuration file config.ttl
+[2018-07-27 15:43:12.440] INFO  Server               : Path = /ds; Services = [data, quads, upload, query, sparql, update, get]
+[2018-07-27 15:43:12.443] INFO  Server               :   Memory: 7.8 GiB
+[2018-07-27 15:43:12.444] INFO  Server               :   Java:   10.0.1
+[2018-07-27 15:43:12.444] INFO  Server               :   OS:     Linux 4.15.0-29-generic amd64
+[2018-07-27 15:43:12.444] INFO  Server               :   PID:    20098
+[2018-07-27 15:43:12.471] INFO  Server               : Start Fuseki (port=3055)
+```
+
+You can now update one server and see the changes in the other as before or you can send
+a patch to the patch log server ensemble and it will appear in all servers when they
+next sync up.
+
+```
+dcmd append --server http://localhost:1072/ --log ABC patch.rdfp
+```
+or (SPARQL Graph Store Protocol) for some RDF data:
+```
+s-put http://localhost:3033/ds default data.ttl
+```
+or plain HTTP:
+```
+ curl -T data.ttl --header 'Content-type:text/turtle'  http://localhost:3033/ds
+```
+
+The Fuseki configuration in this section above has local persistent database.
+When the Fuseki server starts up it uses this database, together with a note of
+the version of the database and start from there, rather than rebuilding the database
+from scratch each time it starts up.
 
 ```
 ...
@@ -306,6 +428,9 @@ patch servers, it wil switch to using another patch server.
     delta:changes  ("http://localhost:1071/" "http://localhost:1072/"  "http://localhost:1073/") ;
 ...
 ```
+
+Full details of the RDF Delta configuration file for Apache Jena Fuseki
+are given [here](delta-fuseki-config).
 
 ## Using S3 for Patch Storage {#patch-storage-s3}
 
