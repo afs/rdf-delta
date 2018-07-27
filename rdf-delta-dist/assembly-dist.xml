@@ -82,6 +82,10 @@
       <directory>Files</directory>
     </fileSet>
     <fileSet>
+      <outputDirectory>Tutorial</outputDirectory>
+      <directory>../rdf-delta-examples/Tutorial</directory>
+    </fileSet>
+    <fileSet>
       <outputDirectory></outputDirectory>
       <includes>
         <include>README*</include>

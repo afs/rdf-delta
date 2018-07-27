@@ -1,8 +1,5 @@
 ## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
-## Example RDF Delta + Fuseki configuration.
-## Server 2.
-
 PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -14,7 +11,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
    .
 
 <#service1> rdf:type fuseki:Service ;
-    fuseki:name                        "ds" ;
+    fuseki:name                        "ds1" ;
     fuseki:serviceQuery                "sparql" ;
     fuseki:serviceQuery                "query" ;
     fuseki:serviceUpdate               "update" ;
@@ -25,7 +22,8 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
     .
     
 <#dataset> rdf:type delta:DeltaDataset ;
-    delta:changes  "http://localhost:1066/" ;
+    delta:changes  "http://localhost:1069/" ;
     delta:patchlog "ABC";
+    delta:zone "Zone1";
     delta:storage "mem";
     .
