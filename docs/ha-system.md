@@ -1,15 +1,15 @@
 ---
 layout: doc
 title: High Availability RDF Delta System
-nav_text: HA Tutorial
-###section: 6
+nav_text: High Availability System
+section: 5
 ---
-This tutorial covers setting up RDF Delta to provide high availability
+This section covers setting up RDF Delta to provide high availability
 for  [Apache Jena
 Fuseki](https://jena.apache.org/documentation/fuseki2/index.html) and
 ensuring the RDF Delta system is itself highly available.
 
-The tutorial starts with setting up a simple, not fault tolerant, setup
+The tutorial starts with setting up a simple, not fault tolerant, system
 and proceeds in stages to upgrade the components to make them reliable
 in the presence of failures.
 

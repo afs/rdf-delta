@@ -2,7 +2,7 @@
 layout: doc
 title: High Availablity Apache Jena Fuseki
 nav_text: HA Fuseki
-section: 5
+##section: 5
 ---
 This section describes a packaging of RDF Delta with the
 [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/index.html)

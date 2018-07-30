@@ -73,8 +73,7 @@
 
 .sidebar-nav li a {
     display: block;
-    /*text-decoration: none;*/
-    text-decoration: underline;
+    text-decoration: none;
     color: #666 ;
     border-left: 2px solid #EEE ;
 }
