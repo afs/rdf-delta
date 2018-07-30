@@ -1,4 +1,4 @@
-# The Fuseki Configuration file {#fuseki-config}
+# The Fuseki Configuration file
 
 This is the file Fuseki configuration file used in the tutorial, with additonal
 comments.

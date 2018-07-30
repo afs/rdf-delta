@@ -131,6 +131,9 @@ public class DeltaServer {
         //cla.add(argConf);
         cla.process();
         
+        if ( cla.hasPositional() )
+            cmdLineWarning("Warning: ignoring positional arguments");
+        
         if ( cla.contains(argHelp) ) {
             System.err.println("Usage: server [--port=NNNN | --jetty=FILE] [--base=DIR] [--mem] [--zk=connectionString [--zkPort=NNN] [--zkData=DIR] ]");
             String msg = StrUtils.strjoinNL

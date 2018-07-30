@@ -43,11 +43,9 @@ import org.slf4j.LoggerFactory;
 public class LocalServer {
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
-    static {
-        DeltaSystem.init();
-    }
+    static { DeltaSystem.init(); }
     
-    // Track the LocalServers, - mainly so testing are clear them all. 
+    // Track the LocalServers, - mainly so testing can clear them all. 
     private static List<LocalServer> servers = new ArrayList<>();
     
     private final DataRegistry dataRegistry;
@@ -61,19 +59,13 @@ public class LocalServer {
 
     private final PatchStore patchStore;
     
-    /** Create a {@code LocalServer} with default setup. */ 
-    public static LocalServer create() {
-        LocalServerConfig conf = LocalServerConfig.create().build();
-        return create(conf);
-    }
-    
-    /** Create a {@code LocalServer} using the given configuration file. */
-    public static LocalServer create(String confFile) {
-        LocalServerConfig conf = LocalServerConfig.create()
-            .parse(confFile)
-            .build();
-        return create(conf);
-    }
+//    /** Create a {@code LocalServer} using the given configuration file. */
+//    public static LocalServer create(String confFile) {
+//        LocalServerConfig conf = LocalServerConfig.create()
+//            .parse(confFile)
+//            .build();
+//        return create(conf);
+//    }
 
     /** Create a {@code LocalServer} based on a configuration. */
     public static LocalServer create(LocalServerConfig conf) {
@@ -99,19 +91,10 @@ public class LocalServer {
     public static LocalServer create(PatchStore ps, LocalServerConfig conf) {
         Objects.requireNonNull(ps, "Null for PatchStore");
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
-        // Done in localServer :: initializePatchStore(ps, dataRegistry, conf);
-        return localServer(conf, ps, dataRegistry);
+        return newLocalServer(conf, ps, dataRegistry);
     }
 
-    /**
-     * Fill a {@link DataRegistry} by initializing the {@link PatchStore PatchStores}
-     * that provides the function, call {@code initFromPersistent}.
-     */
-    private static void cinitializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
-        List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
-        FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getProviderName(), descriptions);
-    }
-
+    /** Convert {@code DataSource} to {@code Id}. */
     private static Set<Id> ids(Collection<DataSource> sources) {
         return sources.stream().map(DataSource::getId).collect(Collectors.toSet());
     }
@@ -128,11 +111,17 @@ public class LocalServer {
         servers.clear();
     }
     
-    private static LocalServer localServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
-        patchStore.initialize(dataRegistry, config);
+    /** Make a LocalServer; this includes initializing the patch store */
+    private static LocalServer newLocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
+        initializePatchStore(patchStore, dataRegistry, config);
         LocalServer lServer = new LocalServer(config, patchStore, dataRegistry);
         servers.add(lServer);
         return lServer ;
+    }
+
+    private static void initializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
+        List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
+        FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getShortName(), descriptions);
     }
 
     private LocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {

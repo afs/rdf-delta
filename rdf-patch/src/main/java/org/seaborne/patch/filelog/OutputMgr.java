@@ -27,7 +27,7 @@ import org.seaborne.patch.filelog.rotate.ManagedOutput;
 import org.seaborne.patch.filelog.rotate.OutputFixed;
 import org.seaborne.patch.filelog.rotate.OutputManagedFile;
 
-/** Create a managed output steram handler for a file. */
+/** Create a managed output stream handler for a file. */
 public class OutputMgr {
 
     /** Create a {@link ManagedOutput managed output stream} handler for a file.

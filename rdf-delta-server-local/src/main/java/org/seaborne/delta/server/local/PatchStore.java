@@ -161,7 +161,7 @@ public abstract class PatchStore {
         return new PatchLogBase(dsd, patchLogIndex, patchStorage, this);
     }
 
-    /** Return a new {@link PatchLog}, which must already exist and be registered. */ 
+    /** Return a new {@link PatchLog}, which must already exist and be registered. */
     public PatchLog connectLog(DataSourceDescription dsd) {
         FmtLog.info(LOG, "Connect log: %s", dsd);
         checkInitialized();

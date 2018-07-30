@@ -99,10 +99,8 @@ public class PatchLogServer {
             server = jettyServer(port, false);
             this.port = port; 
         }
-            
-            
+
         this.deltaLink = dLink;
-        
         ServletContextHandler handler = buildServletContext("/");
         
         HttpServlet servletRDFPatchLog = new S_Log(dLink);

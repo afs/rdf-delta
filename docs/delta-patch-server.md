@@ -33,13 +33,13 @@ operation called.
 
 | Operation                |      |
 | ------------------------ | -------------------------- |
-| `"list_datasource"`        | List datasource ids        |
-| `"list_descriptions"`      | List datasource with details such as the log.|
-| `"describe_datasource"`    | Describe a datasource, fixed information only      |
-| `"describe_log"`           | Describe a log, including the current latest patch |
-| `"create_datasource"`      | Create a log for a dataset |
-| `"remove_datasource"`      | Remove a log for a dataset |
-| `"ping"`                   | Ping operation for checking reachability of the DPS. |
+| `list_datasource`        | List datasource ids        |
+| `list_descriptions`      | List datasource with details such as the log.|
+| `describe_datasource`    | Describe a datasource, fixed information only      |
+| `describe_log`           | Describe a log, including the current latest patch |
+| `create_datasource`      | Create a log for a dataset |
+| `remove_datasource`      | Remove a log for a dataset |
+| `ping`                   | Ping operation for checking reachability of the DPS. |
 
 ### API
 
@@ -68,7 +68,7 @@ try ( DeltaConnection dConn = DeltaConnection.connect(zone, clientId, null, null
         dsg.add(quad);
     });
 
-    int version2 = dConn.getRemoteVersionLatest();
+    Version version2 = dConn.getRemoteVersionLatest();
     System.out.println("Version = "+version2);
 }
 ```

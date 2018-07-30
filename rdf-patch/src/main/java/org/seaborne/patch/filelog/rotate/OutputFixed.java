@@ -25,7 +25,7 @@ import java.util.concurrent.Semaphore;
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
 
-/** Fixed OutputStream */
+/** Fixed OutputStream; one writer via {@code output()} at a time.  */
 public class OutputFixed implements ManagedOutput {
     
     private final OutputStream outputStream;

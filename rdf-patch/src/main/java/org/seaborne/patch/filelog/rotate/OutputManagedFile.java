@@ -30,7 +30,7 @@ import org.seaborne.patch.filelog.FilePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** File-based {@link ManagedOutput} with various {@link FilePolicy} for file rotation. */ 
+/** File-based {@link ManagedOutput} with various {@link FilePolicy FilePolicys} for file rotation. */ 
 public class OutputManagedFile implements ManagedOutput {
     private static Logger LOG = LoggerFactory.getLogger(OutputManagedFile.class); 
     

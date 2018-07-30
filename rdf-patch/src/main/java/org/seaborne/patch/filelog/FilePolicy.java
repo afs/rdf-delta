@@ -23,7 +23,7 @@ import java.util.Objects;
 import org.seaborne.patch.filelog.rotate.FileRotateException;
 import org.seaborne.patch.filelog.rotate.ManagedOutput;
 
-/** File naming strategies.*/
+/** File naming strategies for rotating files. */
 public enum FilePolicy {
     /**
      * Date based - "filename-yyyy-mm-dd", with nightly rollover.

@@ -19,18 +19,17 @@ The server jar file also contains the comands
 
 | Sub command | Long Name | Usage | Action |
 | :-----  | :-----        |  |  |
-| `ls`    | `list`        | `dcmd ls --server URL`            | List logs on the server |
-| `mk`    | `mklog`       | `dcmd mklog --server URL NAME`    | Create a new patch log |
-| `rm`    | `rmlog`       | `dcmd rmlog --server URL NAME`    | Delete a patch log |
+| `ls`    | `list`        | `dcmd ls --server=URL`            | List logs on the server |
+| `mk`    | `mklog`       | `dcmd mklog --server=URL NAME`    | Create a new patch log |
+| `rm`    | `rmlog`       | `dcmd rmlog --server=URL NAME`    | Delete a patch log |
 | | | | |
-| `get`   | `getpatch`    | `dcmd get --server URL id`        | Get a patch |
-| `add`   | `addpatch`    | `dcmd get --server URL id FILE`   | Add a patch |
+| `get`   | `getpatch`    | `dcmd get --server=URL id`        | Get a patch |
+| `append`   | `addpatch`    | `dcmd get --server=URL id FILE`   | Add a patch |
 | | | | |
 | `r2p`   | `rdf2patch`   | `dcmd r2p FILE`                   | Convert RDF to an addition patch |
 | `p2r`   | `patch2rdf`   | `dcmd p2r --data QUADS FILE ...`  | Apply patches to RDF data |
 | | | | |
 | `server` | `patchserver` | `dcmd server --base DIR`         | Run a patch log server |
-
 
 ## `ls` 
 
