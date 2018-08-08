@@ -296,17 +296,26 @@ So far, there has been only one patch log server. While the file-back
 patch store keeps the patches safe, it is not a high-availability solution.
 
 RDF Delta provides a high-availability, replicated patch log server
-system using Apache Zookeeper.  There needs to be 3 instances of Zookeeper
-to survive the loss of one server while continuing to
-provide operation if the network becomes unreliable. 3 servers means
-that in a working partition of the system there is a majority quorum of 2.
-If there were only two servers, a "split brain" situation is possible
-where the two servers can not contact each other but both are running
-and believe they are the master quorum leader.
+system using Apache Zookeeper.  There needs to be 3 instances of
+Zookeeper configured into the Zookeeper ensemble to survive the loss of
+one server while continuing to provide operation if the network becomes
+unreliable. 
 
-In this tutorial, Zookeeper is used to store the patches themselves and Zookeeper only
-handles small files.  A full production system would use a patch storage
-layer such as AWS S3.
+A configuration of 3 servers means that in a working partition of the
+system there is a majority quorum of 2.  If there were only 2 servers
+configured for Zookeeper, a "split brain" situation woudl be possible
+where the servers can not contact each other, resulting in two
+partitions of one server each, but both are running and risk believing
+they are the master quorum leader. In fact, Zookeeper does not operate
+when a partition does not have an absolute majority of servers, so a
+configuration two servers can not even survive the lost of one server. A
+configuration of three servers is the minimum to survive a single
+partition or loss of one server, two of which must be running and able
+to contact each other at all times.
+
+In this tutorial, Zookeeper is used to store the patches themselves and
+Zookeeper only handles small files.  A full production system would use
+a patch storage layer such as AWS S3.
 
 The Zookeeper servers are run in the same JVM as the RDF Delta Patch
 Servers as a self-contained Zookeeper ensemble. An external Zookeeper
