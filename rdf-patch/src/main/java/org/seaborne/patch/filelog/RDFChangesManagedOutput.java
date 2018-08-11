@@ -22,8 +22,11 @@ import java.io.OutputStream;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.graph.Node;
+import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.filelog.rotate.ManagedOutput;
+import org.seaborne.patch.system.N;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 
@@ -34,6 +37,7 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
     
     private final ManagedOutput managedOutput;
     private OutputStream currentStream = null;
+    private Node previous = null;
 
     public RDFChangesManagedOutput(ManagedOutput output) {
         super(null);
@@ -61,7 +65,6 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
     @Override
     public void segment() {
         super.segment();
-        //??
     }
     
     private void startOutput() {
@@ -72,6 +75,11 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
         currentStream = managedOutput.output();
         TokenWriter tokenWriter = new TokenWriterText(currentStream);
         super.tok = tokenWriter;
+        Node id = N.unique();
+        header(RDFPatchConst.ID, id);
+        if ( previous != null )
+            header(RDFPatchConst.PREV, previous);
+        previous = id;
     }
     
     private void finishOutput() {

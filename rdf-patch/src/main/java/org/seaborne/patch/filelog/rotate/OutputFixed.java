@@ -27,7 +27,7 @@ import org.apache.jena.atlas.io.IO;
 
 /** Fixed OutputStream; one writer via {@code output()} at a time.  */
 public class OutputFixed implements ManagedOutput {
-    
+    private boolean valid = false; 
     private final OutputStream outputStream;
     private final Semaphore sema = new Semaphore(1);
     private OutputStreamManaged currentOutput = null;
@@ -48,8 +48,13 @@ public class OutputFixed implements ManagedOutput {
     }
     
     @Override
+    public String latestFilename() {
+        return null;
+    }
+
+    @Override
     public OutputStream currentOutput() {
-        return currentOutput;
+        return null;
     }
 
     @Override

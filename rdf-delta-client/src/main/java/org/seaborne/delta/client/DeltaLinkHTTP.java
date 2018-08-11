@@ -125,8 +125,7 @@ public class DeltaLinkHTTP implements DeltaLink {
     private RDFChangesHTTP createRDFChanges(Id dsRef) {
         Objects.requireNonNull(dsRef);
         checkLink();
-        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"), 
-                                  ()->calcChangesURL(dsRef));
+        return new RDFChangesHTTP(dsRef.toSchemeString("ds:"), calcChangesURL(dsRef));
     }
     
     /** Calculate the patch log URL */ 

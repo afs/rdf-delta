@@ -24,7 +24,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.Consumer;
 
-/** An {@link OutputStream} that returns to a pool when closed */  
+/**
+ *  An {@link OutputStream} that implements {@link #close} as call a {@code Consumer<OutputStream>},
+ * for example, returns itself to a pool when closed.
+ */  
 class OutputStreamManaged extends FilterOutputStream implements Closeable {
     
     private Consumer<OutputStream> onClose;

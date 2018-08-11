@@ -42,6 +42,23 @@ import org.seaborne.patch.filelog.rotate.ManagedOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Assembler for a dataset that wraps another and provides change logging to a file.
+ * <pre>
+ *     <#dataset> rdf:type patch:LoggedDataset ;
+ *         patch:logFile "Dir/BaseFilename";
+ *         patch:logPolicy "
+ *           
+ * </pre>
+ * Policies: "date", "timestamp", "index", "rotate", "shift", "fixed" and "none".
+ * <ul>
+ * <li>"date" - add the date to the base name, rotate at midnight. 
+ * <li>"timestamp" - add a timestamp, rotate on every file.
+ * <li>"index" - add a counter, rotate on every file. Highest numbered file is latest written.
+ * <li>"rotate" or "shift"- move indexed files up one; write the baseFilename. Highest numbered file is the oldest written.
+ * <li>"fixed" or "none" - only the base file name is used.
+ * </ul>
+ */
 public class AssemblerFileLog extends AssemblerBase {
     private static Logger LOG = LoggerFactory.getLogger(AssemblerFileLog.class);
     

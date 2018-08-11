@@ -217,8 +217,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             }
             deltaClient.connect(dsRef, syncPolicy);
         }
-//        // OLD Local client.
-//        Id dsRef = setup(deltaClient, dsName, "delta:"+dsName, storage);
         
         DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
         DatasetGraph dsg = deltaConnection.getDatasetGraph();

@@ -55,7 +55,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private int txnDepth = 0 ;
     private final Runnable resetAction;
     private final Supplier<String> urlSupplier;
-    private final String label ;
+    private final String destLabel ;
     // Used to coordinate with reading patches in.
     private final Object syncObject;
     private StatusLine statusLine       = null;
@@ -75,7 +75,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     // resetAction (on 401) not currently enabled.
     
     /** Send changes to a supplied URL, with an action a specific action  */
-    public RDFChangesHTTP(String label, Supplier<String> urlSupplier) {
+    /* unused outside */ private RDFChangesHTTP(String label, Supplier<String> urlSupplier) {
         this(label, urlSupplier, null);
     }
 
@@ -94,7 +94,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         this.syncObject = (syncObject!=null) ? syncObject : new Object();
         this.resetAction = resetAction;
         this.urlSupplier = urlSupplier;
-        this.label = label;
+        this.destLabel = label;
         this.bytes = out;
         reset();
     }
@@ -244,7 +244,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
             idStr = Id.str(patchId);
         else
             idStr = Long.toString(number);
-        FmtLog.info(LOG, "Send patch %s (%d bytes) -> %s", idStr, bytes.length, label);
+        FmtLog.info(LOG, "Send patch %s (%d bytes) -> %s", idStr, bytes.length, destLabel);
         
         if ( false ) {
             if ( LOG.isDebugEnabled() ) {

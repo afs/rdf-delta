@@ -18,6 +18,10 @@
 
 package org.seaborne.delta;
 
+import static org.seaborne.patch.system.N.SchemeUrnUuid;
+import static org.seaborne.patch.system.N.SchemeUuid;
+import static org.seaborne.patch.system.N.genUUID;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID ;
@@ -27,8 +31,6 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.impl.Util;
-import org.apache.jena.shared.uuid.UUIDFactory ;
-import org.apache.jena.shared.uuid.UUID_V4_Gen;
 
 /**
  * An identifier. When encoded, the {@code Id} can be a URI or string literal.
@@ -41,16 +43,10 @@ import org.apache.jena.shared.uuid.UUID_V4_Gen;
  * </ul>
  * where {@code ...} is a UUID as a string.
  * <p>
- * If anything else is encounted, the lexical form or URI string is used.
+ * If anything else is encountered, the lexical form or URI string is used.
  */
 public final class Id {
-    /**
-     * Move to rdf-patch?
-     */
-    private static final String schemeUuid = "uuid:" ;
-    private static final String schemeUrnUuid = "urn:uuid:" ;
     private static final String SCHEME = "id:";
-    // private static final UUID nilUUID = new UUID(0, 0); 
     // All zeros : https://tools.ietf.org/html/rfc4122#page-9
     private static final String nilStr = "00000000-0000-0000-0000-000000000000";
     private static final Id nilId = Id.fromUUID(UUID.fromString(nilStr));
@@ -118,10 +114,10 @@ public final class Id {
     public static Id fromUUID(UUID uuid) { return new Id(uuid) ; } 
     
     private static Id fromString$(String str) {
-        if ( str.startsWith(schemeUuid) )
-            str = str.substring(schemeUuid.length()) ;
-        else if ( str.startsWith(schemeUrnUuid) )
-            str = str.substring(schemeUrnUuid.length()) ;
+        if ( str.startsWith(SchemeUuid) )
+            str = str.substring(SchemeUuid.length()) ;
+        else if ( str.startsWith(SchemeUrnUuid) )
+            str = str.substring(SchemeUrnUuid.length()) ;
         return fromString(str) ;
     }
     
@@ -162,16 +158,6 @@ public final class Id {
             return dft;
         }
     }
-
-    // Version 1 are guessable.
-    // Version 4 are not.
-    private static UUIDFactory uuidFactory = new UUID_V4_Gen() ;
-
-    /** {@link UUID}s are used to identify many things in Delta - the RDF Dataset being managed,
-     * the patches applied (the UUID naming forms the history), registrations and channels,
-     * amongst other things.
-     */
-    public static UUID genUUID() { return uuidFactory.generate().asUUID() ; }
 
     private final UUID uuid ;
     private final String string ;
@@ -233,7 +219,7 @@ public final class Id {
     /** Convert to a Node, as a URI or as a plain string. */ 
     public Node asNode() {
         if ( uuid != null ) 
-            return NodeFactory.createURI(schemeUuid+uuid.toString());
+            return NodeFactory.createURI(SchemeUuid+uuid.toString());
         return NodeFactory.createLiteral(string);
     }
 
@@ -242,7 +228,7 @@ public final class Id {
         return toSchemeString(SCHEME);
     }
 
-    /** For labeling with the type of thing id'ed. eg  "ds:abcdef" */  
+    /** For labelling with the type of thing id'ed. eg  "ds:abcdef" */  
     public String toSchemeString(String scheme) {
         if ( this == nilId  )
             return "id:nil";

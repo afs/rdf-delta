@@ -20,7 +20,9 @@ package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /** Roller where the files are "base" , "base.001", "base.002", ...
  * the current output file is always "base" and the files are 
@@ -30,7 +32,8 @@ class RollerShifter implements Roller {
     private boolean valid = false;
     private final Path directory;
     private final String baseFilename;
-    private final String filename;
+    private final Path filename;
+    private Path currentFilename;
     
     /** Match an incremental file (does not match the base file name). **/
     private static Pattern patternIncremental = FileMgr.patternIncremental;
@@ -43,9 +46,26 @@ class RollerShifter implements Roller {
     RollerShifter(Path directory, String baseFilename, String format) {
         this.directory = directory;
         this.baseFilename = baseFilename;
-        this.filename = directory.resolve(baseFilename).toString();
+        this.filename = directory.resolve(baseFilename);
+        init(directory, baseFilename);
     }
     
+    private void init(Path directory, String baseFilename) {
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternIncremental);
+        if ( filenames.isEmpty() ) {
+            currentFilename = null;
+        } else {
+            currentFilename = filename;
+            //Filename max = Collections.max(filenames, cmpNumericModifier);
+        }
+    }
+
+    @Override
+    public Stream<Filename> files() {
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternIncremental);
+        return filenames.stream().sorted(cmpNumericModifier);
+    }
+
     @Override
     public Path directory() {
         return directory;
@@ -57,6 +77,11 @@ class RollerShifter implements Roller {
     @Override
     public void finishSection() {}
     
+    @Override
+    public String latestFilename() {
+        return currentFilename == null ? null : currentFilename.toString();
+    }
+
     @Override
     public void rotate() {
         valid = false;
@@ -71,13 +96,7 @@ class RollerShifter implements Roller {
     public String nextFilename() {
         valid = true;
         FileMgr.shiftFiles(directory, baseFilename, 1, "%03d");
-        return filename; 
-    }
-    
-    @Override
-    public Filename toFilename(String filename) {
-        if ( filename.equals(baseFilename))
-            return new Filename(directory, filename, null,  null,  null);
-        return FileMgr.fromPath(directory, filename, patternIncremental);
+        currentFilename = filename;
+        return filename.toString(); 
     }
 }

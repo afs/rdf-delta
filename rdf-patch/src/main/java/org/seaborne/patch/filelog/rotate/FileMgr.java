@@ -40,7 +40,7 @@ public class FileMgr {
     
     private static final int IDX_TRIES = 1000;
     
-    public static String freshFilename(Path directory, String filename) {
+    public static Path freshFilename(Path directory, String filename) {
         return freshFilename(directory, filename, 0, INC_SEP, "%d"); 
     }
     
@@ -55,12 +55,12 @@ public class FileMgr {
      * @param format String format of the number as modifier e.g. "%03d"
      */
   
-    public static String freshFilename(Path directory, String filename, int startingFrom, String sep, String format) {
+    public static Path freshFilename(Path directory, String filename, int startingFrom, String sep, String format) {
         for ( int idx = startingFrom; idx < IDX_TRIES+startingFrom; idx++ ) {
             String fn = ( idx == 0 ) ? filename : basename(filename, idx, sep, format);
             Path p = directory.resolve(fn);
             if ( ! Files.exists(p) )
-                return p.toString();
+                return p;
         }
         FmtLog.warn(LOG, "Failed to find a unique file extension name for "+filename);
         return null;
@@ -115,9 +115,9 @@ public class FileMgr {
 
     /** Create a {@link FileName} */ 
     private static Filename fromPath(Path directory, Path filepath, Pattern pattern) {
-            filepath = directory.resolve(filepath).getFileName();
-            directory = directory.resolve(filepath).getParent();
-            return fromPath(directory, filepath.getFileName().toString(), pattern);
+        filepath = directory.resolve(filepath).getFileName();
+        directory = directory.resolve(filepath).getParent();
+        return fromPath(directory, filepath.getFileName().toString(), pattern);
     }
     
     /** Create a {@link Filename} */ 
@@ -153,6 +153,7 @@ public class FileMgr {
     /*package*/ static Pattern patternIncremental = Pattern.compile("(.*)(\\.)(\\d+)");
     
     /*package*/ static final String INC_SEP = ".";
+    /** Compare, and it there is no modifier, put in 0 */
     /*package*/ static Comparator<Filename> cmpNumericModifier = (x,y)->{
         long vx = indexFromFilename(x);
         long vy = indexFromFilename(y);
@@ -181,7 +182,7 @@ public class FileMgr {
      */
     public static void shiftFiles(Path directory, String filename, int increment, String format) {
         if ( increment <= 0 )
-            throw new IllegalArgumentException("increment must be positive: got "+increment);
+            throw new IllegalArgumentException("Increment must be positive: got "+increment);
         
         // Move files of the form "NAME" and "NAME.num" up  s
         List<Filename> files = scanForIncrement(directory, filename);
@@ -201,6 +202,7 @@ public class FileMgr {
         // Pass 2 : do it.
         
         for ( Filename fn : files ) {
+            Path src1 = fn.absolute();
             Path src = directory.resolve(fn.asFilenameString());
             if ( ! Files.exists(src) )
                 throw new FileRotateException("Does not exist: "+src);

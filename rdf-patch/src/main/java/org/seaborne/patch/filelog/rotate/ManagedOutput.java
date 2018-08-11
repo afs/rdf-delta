@@ -37,8 +37,11 @@ public interface ManagedOutput {
     /** Current output stream, or null if theer hasn't been one yet */  
     public OutputStream currentOutput();
     
-    /** The most recent output file name, or null if there hasn't been one yet */
+    /** The most recent output file name, only valid during an output section, else null. */
     public String currentFilename();
+
+    /** The latest output file name, or null if there hasn't been one yet */
+    public String latestFilename();
 
     /** Request file rotation */ 
     public void rotate();

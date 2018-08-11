@@ -88,7 +88,12 @@ public class OutputManagedFile implements ManagedOutput {
 
     @Override
     public String currentFilename() {
-        return currentFilename;
+        return currentOutput != null ? currentFilename : null;
+    }
+
+    @Override
+    public String latestFilename() {
+        return roller.latestFilename();
     }
     
     @Override

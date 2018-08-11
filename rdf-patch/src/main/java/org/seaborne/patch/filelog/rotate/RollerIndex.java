@@ -22,7 +22,9 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Roller where the files are "0001", "0002", "0003", The files are not moved ; the next
@@ -35,16 +37,18 @@ class RollerIndex implements Roller {
     private final Path directory;
     private final String baseFilename;
     private final String indexFormat;
-
-    public static Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
-
+    private Path lastFilename;
     
-    private final Pattern patternFilename = Pattern.compile("(.*)(-)(\\d)*");
+    public static Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
+    
+    private final Pattern patternFilenameIndex = Pattern.compile("(.*)("+Pattern.quote(FileMgr.INC_SEP)+")(\\d+)");
     private final String  fmtModifer = "%04d";
     private static final String INC_SEP = FileMgr.INC_SEP;
     
     private Long currentId = null;
-    private boolean valid = false;
+    // Are we in a section?
+    // If not, the file needs to rotate on next access.
+    private boolean inSection = false;
     
     RollerIndex(Path directory, String baseFilename, String indexFormat) {
         this.directory = directory;
@@ -54,37 +58,55 @@ class RollerIndex implements Roller {
     }
     
     private void init(Path directory, String baseFilename) {
-        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilename);
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameIndex);
         if ( ! filenames.isEmpty() ) {
-            Filename max = Collections.max(filenames, cmpNumericModifier.reversed());
+            Filename max = Collections.max(filenames, cmpNumericModifier);
             currentId = Long.parseLong(max.modifier);
+            lastFilename = filename(currentId);
         }
-        else
+        else {
+            // Before the start.
             currentId = 0L ;
+            lastFilename = null;
+        }
     }
     
+    @Override
+    public Stream<Filename> files() {
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameIndex);
+        return filenames.stream().sorted(cmpNumericModifier);
+    }
+
     @Override
     public Path directory() {
         return directory;
     }
 
     @Override
-    public void startSection() {}
+    public void startSection() {
+        inSection = true;
+    }
 
     @Override
     public void finishSection() {
         // Each section is in its own file
-        //valid = false;
+        inSection = false;
     }
     
     @Override
+    public String latestFilename() {
+        return lastFilename == null ? null : lastFilename.toString();
+    }
+
+    @Override
     public void rotate() {
-        valid = false;
+        // Always rotates on nextFilename.
     }
     
     @Override
     public boolean hasExpired() {
-        return !valid;
+     // Always rotates on nextFilename.
+        return true;
     }
     
     private long nextIndex() {
@@ -93,14 +115,16 @@ class RollerIndex implements Roller {
     
     @Override
     public String nextFilename() {
-        valid = true;
         long idx = nextIndex();
-        String fn = FileMgr.freshFilename(directory, baseFilename, (int)idx, INC_SEP, fmtModifer);
-        return fn; 
+        currentId = idx;
+        // XXX FileMgr.freshFilename(directory, baseFilename, (int)idx, INC_SEP, fmtModifer);
+        lastFilename = filename(currentId);
+        return lastFilename.toString();
     }
     
-    @Override
-    public Filename toFilename(String filename) {
-        return FileMgr.fromPath(directory, filename, patternFilename);
+    private Path filename(Long idx) {
+        Objects.requireNonNull(idx);
+        String fn = FileMgr.basename(baseFilename, idx, INC_SEP, fmtModifer);
+        return directory.resolve(fn); 
     }
 }

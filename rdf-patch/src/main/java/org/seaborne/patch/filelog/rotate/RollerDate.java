@@ -21,22 +21,29 @@ package org.seaborne.patch.filelog.rotate;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Filename policy where files are "filebase-yyyy-mm-dd" */  
+/** 
+ * Filename policy where files are "filebase-yyyy-mm-dd".
+ * Rollover happens at the first new section written after local midnight. 
+ * ("local" means "system default").
+ */  
 class RollerDate implements Roller {
     private static final Logger LOG = LoggerFactory.getLogger(RollerDate.class);
     // Date-based roll over
     private final Path directory;
     private final String baseFilename;
+    private Path latestFilename = null;
     private LocalDate current = LocalDate.now();
     
     /** Match a date-appended filename */ 
@@ -61,7 +68,9 @@ class RollerDate implements Roller {
     
     private void init(Path directory, String baseFilename) {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDate);
-        if ( ! filenames.isEmpty() ) {
+        if ( filenames.isEmpty() )
+            latestFilename = null;
+        else {
             LocalDate dateLast = filenameToDate(Collections.max(filenames, cmpDate));
             LocalDate dateFirst = filenameToDate(Collections.min(filenames, cmpDate));
             int problems = 0 ;
@@ -75,8 +84,16 @@ class RollerDate implements Roller {
             }
             if ( problems > 0 )
                 throw new FileRotateException("Existing files dated into the future"); 
+            latestFilename = filename(dateLast);
         }
     }
+    
+    @Override
+    public Stream<Filename> files() {
+        List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDate);
+        return filenames.stream().sorted(cmpDate);
+    }
+
     
     @Override
     public Path directory() {
@@ -89,9 +106,17 @@ class RollerDate implements Roller {
     @Override
     public void finishSection() {}
 
+    private ZoneId zoneId = ZoneId.systemDefault();
+    //private ZoneId zoneId = ZoneId.of("UTC");
+    
+    @Override
+    public String latestFilename() {
+        return latestFilename == null ? null : latestFilename.toString();
+    }
+
     @Override
     public boolean hasExpired() {
-        return ( LocalDate.now().isAfter(current) ) ;
+        return ( LocalDate.now(zoneId).isAfter(current) ) ;
     }
     
     @Override
@@ -101,17 +126,20 @@ class RollerDate implements Roller {
     
     @Override
     public String nextFilename() {
-        LocalDate nextCurrent = LocalDate.now();
-        String fn = baseFilename + DATE_SEP + nextCurrent.format(fmtDate);
+        LocalDate nextCurrent = LocalDate.now(zoneId);
+        // Same date.
+        if ( nextCurrent.equals(current) ) { }
         current = nextCurrent;
+        latestFilename = filename(nextCurrent); 
+        return latestFilename.toString();
+    }
+    
+    // LocalDate to filename.
+    private Path filename(LocalDate timepoint) {
+        String fn = baseFilename + DATE_SEP + timepoint.format(fmtDate);
         Path path = directory.resolve(fn);
         if ( Files.exists(path) )
             FmtLog.warn(LOG, "Using existing file: "+fn); 
-        return path.toString();
-    }
-
-    @Override
-    public Filename toFilename(String filename) {
-        return FileMgr.fromPath(directory, filename, patternFilenameDate);
+        return path;
     }
 }

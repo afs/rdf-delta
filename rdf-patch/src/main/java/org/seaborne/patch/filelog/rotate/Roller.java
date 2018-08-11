@@ -19,12 +19,13 @@
 package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import org.seaborne.patch.filelog.OutputMgr;
 
 /**
  * Interface to a policy for rotating files. Writing to files is in "sections" - a section
- * always goes into a singel file; multiple sections may go into one file or several.
+ * always goes into a single file; multiple sections may go into one file or several.
  * Rollover only happens between sections.
  * <p>
  * {@code startSection}, {@code finishSection} bracket
@@ -32,7 +33,7 @@ import org.seaborne.patch.filelog.OutputMgr;
  * 
  * @see OutputMgr
  */
-interface Roller {
+public interface Roller {
 
     /** Directory under management. */
     public Path directory(); 
@@ -43,15 +44,20 @@ interface Roller {
     /** Finished an output section. */
     public void finishSection();
     
-    /** Policy says that any previous the setup is no longer valid for a new section. */  
+    /** Latest filename; includes any directory name to the file. 
+     * Returns null if there isn't one (nothing written at this location).
+     */ 
+    public String latestFilename();
+
+    /** Policy says that the setup is no longer valid for a new (next) section. */  
     public boolean hasExpired();
     
     /** Move files on (if appropriate) **/
     public void rotate();
     
-    /** Generate the next filename; incldues any directory name to the file. */ 
+    /** Generate the next filename; includes any directory name to the file. */ 
     public String nextFilename();
     
-    /** Create a {@link Filename} if and only if it matches the pattern managed by this policy. */
-    public Filename toFilename(String filename);
+    /** Stream of all files, sorted into reverse order, newest to oldest. */
+    public Stream<Filename> files();
 }

@@ -18,21 +18,28 @@
 
 package org.seaborne.patch.filelog.rotate;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /** {@link Roller} that is a fixed file. */
 class RollerFixed implements Roller {
     private final Path directory;
     private final String baseFilename;
-    private String filename = null; 
+    private Path filename = null; 
     
 
     RollerFixed(Path directory, String baseFilename) {
         this.directory = directory;
         this.baseFilename = baseFilename;
-        this.filename = directory.resolve(baseFilename).toString();
+        this.filename = directory.resolve(baseFilename);
     }
 
+    @Override
+    public Stream<Filename> files() {
+        return Stream.of(new Filename(directory, baseFilename, null, null, null));
+    }
+    
     @Override
     public Path directory() {
         return directory;
@@ -53,12 +60,11 @@ class RollerFixed implements Roller {
     public void rotate() {}
 
     @Override
-    public String nextFilename() {
-        return filename;
+    public String latestFilename() {
+        return Files.exists(filename) ? filename.toString() : null ;
     }
-
     @Override
-    public Filename toFilename(String filename) {
-        return null;
+    public String nextFilename() {
+        return filename.toString();
     }
 }

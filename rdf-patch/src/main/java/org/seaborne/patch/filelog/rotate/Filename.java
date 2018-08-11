@@ -19,18 +19,29 @@
 package org.seaborne.patch.filelog.rotate;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 import org.apache.jena.atlas.logging.FmtLog;
 
-/** Filename: (directory, basename, separator, modifier, compression) */
+/**
+ * A Structured filename with components: (directory, basename, separator, modifier, compression)
+ * some of which may be null.
+ * {@code separator} is between basename and modifier.
+ * compression is "gz", bz2" etc.
+ */
 public class Filename {
     public final Path directory;
     public final String basename;
     public final String separator;
     public final String modifier;
     public final String compression;
+    private Path absolute;
+    
+    private static String SEP = ".";
     
     public Filename(Path directory, String basename, String separator, String modifier, String compression) {
+        Objects.requireNonNull(directory, "directory");
+        Objects.requireNonNull(basename, "basename");
         this.directory = directory;
         this.basename = basename;
         
@@ -42,33 +53,53 @@ public class Filename {
         
         this.separator = separator;
         this.modifier = modifier;
+        if ( compression != null && compression.startsWith(SEP) )
+            compression.substring(SEP.length());
         this.compression = compression;
+        this.absolute = null;
     }
     
+    private Path toAbsolutePath() {
+        String fn = asFilenameString();
+        return directory.resolve(fn).toAbsolutePath();
+    }
+
     public boolean isBasename() {
-        // 
         return modifier==null || separator==null;
     }
     
     public boolean isCompressed() {
-        return compression==null;
+        return compression != null;
     }
 
     /** As a filename, without directory. */
     public String asFilenameString() {
-        if ( isBasename() )
-            return basename;
-        return basename+separator+modifier;
+        String fn = basename;
+        if ( ! isBasename() )
+            fn = fn+separator+modifier;
+        if ( isCompressed() )
+            fn = fn+SEP+compression;
+        return fn;
+    }
+    
+    /** As a absolute file system filename. */
+    public Path absolute() {
+        if ( absolute == null )
+            absolute = toAbsolutePath();
+        return absolute;
     }
     
     // display version.
     @Override
     public String toString() {
-        String fn = directory+"|"+basename;
+        //String fn = directory+"  "+basename;
+        String fn = basename;
+        //String MARK = "|";
+        String MARK = "";
         if ( ! isBasename() )
-            fn = fn + "|"+separator+"|"+modifier;
+            fn = fn + MARK + separator + MARK + modifier;
         if ( isCompressed() )
-            fn = fn + "|"+compression;
+            fn = fn + MARK +compression;
         return fn;
     }
     
