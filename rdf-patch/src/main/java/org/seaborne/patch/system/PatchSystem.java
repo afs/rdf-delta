@@ -19,6 +19,7 @@
 package org.seaborne.patch.system;
 
 import org.apache.jena.sys.JenaSystem;
+import org.seaborne.patch.filelog.VocabPatch;
 
 public class PatchSystem {
 
@@ -40,7 +41,7 @@ public class PatchSystem {
             }
             initialized = true ;
             JenaSystem.logLifecycle("Patch.init - start") ;
-            // -- Nothing here at the moment -- 
+            VocabPatch.init();
             JenaSystem.logLifecycle("Patch.init - finish") ;
         }
     }

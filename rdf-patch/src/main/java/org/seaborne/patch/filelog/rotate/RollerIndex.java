@@ -94,8 +94,8 @@ class RollerIndex implements Roller {
     }
     
     @Override
-    public String latestFilename() {
-        return lastFilename == null ? null : lastFilename.toString();
+    public Path latestFilename() {
+        return lastFilename;
     }
 
     @Override
@@ -114,12 +114,12 @@ class RollerIndex implements Roller {
     }
     
     @Override
-    public String nextFilename() {
+    public Path nextFilename() {
         long idx = nextIndex();
         currentId = idx;
         // XXX FileMgr.freshFilename(directory, baseFilename, (int)idx, INC_SEP, fmtModifer);
         lastFilename = filename(currentId);
-        return lastFilename.toString();
+        return lastFilename;
     }
     
     private Path filename(Long idx) {

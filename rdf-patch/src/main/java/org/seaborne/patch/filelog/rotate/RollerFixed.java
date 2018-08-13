@@ -60,11 +60,11 @@ class RollerFixed implements Roller {
     public void rotate() {}
 
     @Override
-    public String latestFilename() {
-        return Files.exists(filename) ? filename.toString() : null ;
+    public Path latestFilename() {
+        return Files.exists(filename) ? filename : null ;
     }
     @Override
-    public String nextFilename() {
-        return filename.toString();
+    public Path nextFilename() {
+        return filename;
     }
 }

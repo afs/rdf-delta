@@ -73,6 +73,8 @@ public class OutputMgr {
     public static ManagedOutput create(String pathName, FilePolicy strategy) {
         Objects.requireNonNull(pathName);
         Objects.requireNonNull(strategy);
+        if ( pathName.equals("-") )
+            return new OutputFixed(System.out);
         Path p = Paths.get(pathName).toAbsolutePath();
         return new OutputManagedFile(p.getParent(), p.getFileName().toString(), strategy);
     }

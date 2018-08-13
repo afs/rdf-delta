@@ -108,8 +108,8 @@ class RollerTimestamp implements Roller {
     public void finishSection() {}
 
     @Override
-    public String latestFilename() {
-        return lastAllocatedPath != null ? lastAllocatedPath.toString() : null;
+    public Path latestFilename() {
+        return lastAllocatedPath;
     }
 
     @Override
@@ -124,7 +124,7 @@ class RollerTimestamp implements Roller {
     }
     
     @Override
-    public String nextFilename() {
+    public Path nextFilename() {
         for ( int i = 1 ; ; i++ ) { 
             // This "must" be unique unless it is the same time as last time 
             // because time moves forward and we checked for future files in init().
@@ -135,7 +135,7 @@ class RollerTimestamp implements Roller {
                 valid = true;
                 lastTimestamp = timestamp;
                 lastAllocatedPath = path;
-                return lastAllocatedPath.toString();
+                return lastAllocatedPath;
             }
             // Try again.
             if ( i == RETRIES)

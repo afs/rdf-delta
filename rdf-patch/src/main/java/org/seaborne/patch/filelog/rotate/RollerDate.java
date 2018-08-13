@@ -110,8 +110,8 @@ class RollerDate implements Roller {
     //private ZoneId zoneId = ZoneId.of("UTC");
     
     @Override
-    public String latestFilename() {
-        return latestFilename == null ? null : latestFilename.toString();
+    public Path latestFilename() {
+        return latestFilename;
     }
 
     @Override
@@ -125,13 +125,13 @@ class RollerDate implements Roller {
     }
     
     @Override
-    public String nextFilename() {
+    public Path nextFilename() {
         LocalDate nextCurrent = LocalDate.now(zoneId);
         // Same date.
         if ( nextCurrent.equals(current) ) { }
         current = nextCurrent;
         latestFilename = filename(nextCurrent); 
-        return latestFilename.toString();
+        return latestFilename;
     }
     
     // LocalDate to filename.

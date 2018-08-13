@@ -20,6 +20,7 @@ package org.seaborne.patch.filelog.rotate;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 
 import org.apache.jena.atlas.RuntimeIOException;
@@ -43,12 +44,12 @@ public class OutputFixed implements ManagedOutput {
     }
     
     @Override
-    public String currentFilename() {
+    public Path currentFilename() {
         return null;
     }
     
     @Override
-    public String latestFilename() {
+    public Path latestFilename() {
         return null;
     }
 

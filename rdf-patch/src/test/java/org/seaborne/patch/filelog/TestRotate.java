@@ -111,25 +111,23 @@ public class TestRotate
         String FN = "fileA-"+policy.name();
         ManagedOutput mout = OutputMgr.create(DIR, FN, policy);
         try ( OutputStream out = mout.output() ) {
-            String cfn = mout.currentFilename();
             PrintStream ps = new PrintStream(out, true, StandardCharsets.UTF_8.name()); 
             ps.print("abcdef");
         }
-        String x = mout.latestFilename();
         assertNotNull(mout.latestFilename());
-        assertExists(mout.latestFilename());
+        assertExists(mout.latestFilename().toString());
     }
 
-    @Test public void t2_rotateFile() throws IOException {
+    @Test
+    public void t2_rotateFile() throws IOException {
         String FN = "fileB-"+policy.name();
         ManagedOutput mout = OutputMgr.create(DIR, FN, policy);
         try ( OutputStream out = mout.output() ) { }
-        String x1 = mout.latestFilename();
+        assertNotNull(mout.latestFilename());
         mout.rotate();
         try ( OutputStream out = mout.output() ) { }
-        String x2 = mout.latestFilename();
+        assertNotNull(mout.latestFilename());
+        String x2 = mout.latestFilename().toString();
         assertExists(x2);
     }
-
-    
 }

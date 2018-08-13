@@ -44,10 +44,11 @@ public interface Roller {
     /** Finished an output section. */
     public void finishSection();
     
-    /** Latest filename; includes any directory name to the file. 
-     * Returns null if there isn't one (nothing written at this location).
+    /** Latest filename, either curently being written or the last one written. 
+     *  The path includes the directory name to the file. 
+     *  Returns null if there isn't one (nothing written at this location).
      */ 
-    public String latestFilename();
+    public Path latestFilename();
 
     /** Policy says that the setup is no longer valid for a new (next) section. */  
     public boolean hasExpired();
@@ -56,7 +57,7 @@ public interface Roller {
     public void rotate();
     
     /** Generate the next filename; includes any directory name to the file. */ 
-    public String nextFilename();
+    public Path nextFilename();
     
     /** Stream of all files, sorted into reverse order, newest to oldest. */
     public Stream<Filename> files();

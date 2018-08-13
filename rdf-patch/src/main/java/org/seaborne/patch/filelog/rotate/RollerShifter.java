@@ -78,8 +78,8 @@ class RollerShifter implements Roller {
     public void finishSection() {}
     
     @Override
-    public String latestFilename() {
-        return currentFilename == null ? null : currentFilename.toString();
+    public Path latestFilename() {
+        return currentFilename;
     }
 
     @Override
@@ -93,10 +93,10 @@ class RollerShifter implements Roller {
     }
     
     @Override
-    public String nextFilename() {
+    public Path nextFilename() {
         valid = true;
         FileMgr.shiftFiles(directory, baseFilename, 1, "%03d");
         currentFilename = filename;
-        return filename.toString(); 
+        return filename; 
     }
 }

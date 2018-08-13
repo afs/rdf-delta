@@ -159,13 +159,18 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             // For the sync, we have to assume it will write.
             // Any potential write causes a write-sync to be done in "begin".
             txnSyncHandler.accept(ReadWrite.WRITE);
+            super.begin(); 
             if ( transactionMode() == ReadWrite.WRITE )
                 monitor.txnBegin();
         } finally {
             insideBegin.set(false);
         }
+        internalBegin();
     }
     
+    /** Called after begin and sync has occurred. */
+    protected void internalBegin() {}
+
     @Override
     public void begin(TxnType txnType) {
         if ( insideBegin.get() ) {
@@ -184,6 +189,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         } finally {
             insideBegin.set(false);
         }
+        internalBegin();
     }
 
     @Override
@@ -201,6 +207,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         } finally {
             insideBegin.set(false);
         } 
+        internalBegin();
     }
     
     @Override

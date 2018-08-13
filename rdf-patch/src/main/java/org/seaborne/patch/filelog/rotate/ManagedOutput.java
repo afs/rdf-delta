@@ -19,6 +19,7 @@
 package org.seaborne.patch.filelog.rotate;
 
 import java.io.OutputStream;
+import java.nio.file.Path;
 
 import org.seaborne.patch.filelog.FilePolicy;
 import org.seaborne.patch.filelog.OutputMgr;
@@ -38,10 +39,10 @@ public interface ManagedOutput {
     public OutputStream currentOutput();
     
     /** The most recent output file name, only valid during an output section, else null. */
-    public String currentFilename();
+    public Path currentFilename();
 
     /** The latest output file name, or null if there hasn't been one yet */
-    public String latestFilename();
+    public Path latestFilename();
 
     /** Request file rotation */ 
     public void rotate();

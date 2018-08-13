@@ -38,7 +38,7 @@ public class OutputManagedFile implements ManagedOutput {
     private final Path directory;
     private final String filebase;
     // Current active file, full path name.
-    private String currentFilename = null;
+    private Path currentFilename = null;
     
     // One writer at a time.
     private final Semaphore sema = new Semaphore(1);
@@ -87,12 +87,12 @@ public class OutputManagedFile implements ManagedOutput {
 
 
     @Override
-    public String currentFilename() {
+    public Path currentFilename() {
         return currentOutput != null ? currentFilename : null;
     }
 
     @Override
-    public String latestFilename() {
+    public Path latestFilename() {
         return roller.latestFilename();
     }
     
@@ -174,7 +174,7 @@ public class OutputManagedFile implements ManagedOutput {
             currentFilename = roller.nextFilename();
             FmtLog.debug(LOG, "Setup: %s", currentFilename);
             // Must be a FileOutputStream so that getFD().sync is available.
-            fileOutput = new FileOutputStream(currentFilename, true);
+            fileOutput = new FileOutputStream(currentFilename.toString(), true);
             output = new BufferedOutputStream(fileOutput);
             //[gz]
         } catch (FileNotFoundException ex) {

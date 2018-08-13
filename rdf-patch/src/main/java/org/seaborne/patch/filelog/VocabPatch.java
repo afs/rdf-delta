@@ -34,7 +34,7 @@ public class VocabPatch {
     public static final Resource tLoggedDataset = Vocab.type(getURI(), "LoggedDataset") ;
 
     // Add feature to another (sub) dataset.
-    // Thsi is ja:dataset.
+    // This is ja:dataset.
     public static final Property pDataset       = Vocab.property(DatasetAssemblerVocab.getURI(), "dataset") ;
 
     // Name of the patch log. 

@@ -62,6 +62,8 @@ import org.slf4j.LoggerFactory;
 public class AssemblerFileLog extends AssemblerBase {
     private static Logger LOG = LoggerFactory.getLogger(AssemblerFileLog.class);
     
+    public AssemblerFileLog() {}
+    
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
         if ( !exactlyOneProperty(root, VocabPatch.pDataset) )
@@ -73,7 +75,7 @@ public class AssemblerFileLog extends AssemblerBase {
         List<String> destLogs =  GraphUtils.multiValueAsString(root, VocabPatch.pLogFile);
         
         String logPolicy = GraphUtils.getStringValue(root, VocabPatch.pLogPolicy);
-        FilePolicy policy = logPolicy == null ? FilePolicy.INDEX : FilePolicy.policy(logPolicy);
+        FilePolicy policy = logPolicy == null ? FilePolicy.FIXED : FilePolicy.policy(logPolicy);
         
         DatasetGraph dsgBase;;
         try { 
@@ -84,21 +86,15 @@ public class AssemblerFileLog extends AssemblerBase {
             throw ex;
         }
         
-//        RDFChanges streamChanges = null ;
-//        for ( String dest : xs ) {
-//            FmtLog.info(log, "Destination: '%s'", dest) ;
-//            RDFChanges sc = DeltaLib.destination(dest); << relies on file:
-//            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
-//        }
-        
         RDFChanges changes = null ;
-        
-        
+
+        // It would be better if each file had a policy.
+        //   patch:logFile [ patch:filename ; patch:policy ];
+        //   patch:logFile ("FILE" "FIXED"); 
         for ( String x : destLogs ) {
             FmtLog.info(LOG, "Log file: '%s'", x);
             if ( x.startsWith("file:") )
                 x = IRILib.IRIToFilename(x);
-            FmtLog.info(LOG, "Log file: '%s'", x);
             
             ManagedOutput output = OutputMgr.create(x, policy);
             // --------------
