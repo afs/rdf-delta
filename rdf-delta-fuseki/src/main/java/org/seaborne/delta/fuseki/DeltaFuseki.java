@@ -28,7 +28,6 @@ import org.seaborne.patch.RDFPatchOps ;
 /** Library of operations. */
 public class DeltaFuseki {
     public static FusekiServer fuseki(int port, String config) {
-
         return FusekiServer.create().setPort(port).parseConfigFile(config).build().start();
     }
 

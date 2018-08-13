@@ -110,7 +110,7 @@ public class JSONX {
     }
     
     /** Create a builder from a {@link JsonValue}.
-     *  <p>If the argument is an object or array, use it to initailize the builder.
+     *  <p>If the argument is an object or array, use it to initialize the builder.
      *  <p>If the argument is a JSON primitive (string, number, boolean or null),
      *  <p>Otherwise thrown {@link IllegalArgumentException}.
      */

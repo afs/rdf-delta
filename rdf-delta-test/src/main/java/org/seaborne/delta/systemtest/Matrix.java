@@ -186,7 +186,6 @@ public class Matrix {
         //System.out.println("Server1 ...");
         ZkS.runZookeeperServer("./../zk/zk1/zoo.cfg");
         
-        
         L.async(()->QuorumPeerMain.main(args1));
         //System.out.println("Server2 ...");
         L.async(()->QuorumPeerMain.main(args2));

@@ -86,23 +86,38 @@ public class DeltaServer {
     // Switch for command line testing to be able to run the server,
     // know it has started on return, and it is not blocking. 
     
-    public static boolean server_join = true;  
-
     public static void main(String...args) {
+        PatchLogServer dps = build(args);
+        if ( dps == null ) {
+            System.err.println("Failed to run the server");
+            System.exit(1);
+        }
+
+        // And away we go.
+        try { 
+            dps.start();
+            dps.join();
+            System.exit(0);
+        } catch(BindException ex) {
+            cmdLineError("Port in use: port=%d", dps.getPort());
+        }
+    }
+    
+    public static PatchLogServer build(String...args) {
         DeltaSystem.init();
         try {
             DeltaServerConfig deltaServerConfig = processArgs(args);
             if ( deltaServerConfig == null )
-                return;
+                return null;
             // Run ZooKeepers and Delta Patch Server.
             PatchLogServer dps = run(deltaServerConfig);
-            if ( server_join )
-                dps.join();
+            return dps;
         } catch (CmdException ex) {
             System.err.println(ex.getMessage());
-            return;
+            return null;
         } catch (Throwable th) {
             th.printStackTrace();
+            return null;
        }
     }
 
@@ -360,17 +375,6 @@ public class DeltaServer {
                 PatchLogInfo info = ds.getPatchLog().getInfo();
                 FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s]", info.getDataSourceDescr(), verString(info.getMinVersion()), verString(info.getMaxVersion()) );
             });
-        }
-    
-        // And away we go.
-        try { 
-            dps.start();
-        } catch(BindException ex) {
-            //ex.printStackTrace(System.out);
-            if ( config.serverPort != null )
-                cmdLineError("Port in use: port=%d", config.serverPort);
-            else
-                cmdLineError("Port in use: port=%s (defined in '%s')", dps.getPort(), config.jettyConf);
         }
         return dps;
     }

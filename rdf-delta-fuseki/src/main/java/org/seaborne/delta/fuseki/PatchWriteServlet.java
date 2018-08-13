@@ -25,51 +25,86 @@ import static org.seaborne.delta.DeltaConst.ctPatchText;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Paths;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.web.ContentType;
+import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.server.CounterName;
+import org.apache.jena.fuseki.servlets.ActionBase;
 import org.apache.jena.fuseki.servlets.ActionErrorException ;
-import org.apache.jena.fuseki.servlets.ActionREST;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
+import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.WebContent;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.web.HttpNames;
-import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.changes.RDFChangesApply;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesWrapper;
-import org.seaborne.patch.text.RDFPatchReaderText ;
+import org.seaborne.patch.filelog.FilePolicy;
+import org.seaborne.patch.filelog.OutputMgr;
+import org.seaborne.patch.filelog.rotate.ManagedOutput;
 
-/** A Fuseki service to receive and apply a patch. */
-public class PatchApplyService extends ActionREST {
-    static CounterName counterPatches     = CounterName.register("RDFpatch-apply", "rdf-patch.apply.requests");
-    static CounterName counterPatchesGood = CounterName.register("RDFpatch-apply", "rdf-patch.apply.good");
-    static CounterName counterPatchesBad  = CounterName.register("RDFpatch-apply", "rdf-patch.apply.bad");
+/** A Fuseki servlet to receive a patch and write it out. */
+public class PatchWriteServlet extends ActionBase {
+    static CounterName counterPatches     = CounterName.register("RDFpatch-write", "rdf-patch.write.requests");
+    static CounterName counterPatchesGood = CounterName.register("RDFpatch-write", "rdf-patch.write.good");
+    static CounterName counterPatchesBad  = CounterName.register("RDFpatch-write", "rdf-patch.write.bad");
+    private ManagedOutput output;
     
-    // It's an ActionREST because it accepts POST/PATCH with a content body.  
+    public PatchWriteServlet(String dir, String fn, FilePolicy policy) {
+        super(Fuseki.actionLog);
+        this.output = OutputMgr.create(Paths.get(dir), fn , policy);
+    }
     
-    public PatchApplyService() {
-        // Counters: the standard ActionREST counters per operation are enough.
+    public PatchWriteServlet(String filename, FilePolicy policy) {
+        super(Fuseki.actionLog);
+        // Counters: the standard ActionREST counters per operation are enough?
+        this.output = OutputMgr.create(filename, policy);
+    }
+    
+    // ---- POST or OPTIONS
+        
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        doCommon(request, response);
     }
     
     @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) {
+        setCommonHeadersForOptions(response);
+        response.setHeader(HttpNames.hAllow, "OPTIONS,POST");
+        response.setHeader(HttpNames.hContentLengh, "0");
+    }
+
+    @Override
+    protected void execCommonWorker(HttpAction action) {
+        validate(action);
+        operation(action);
+    }
+
+    //@Override
     protected void validate(HttpAction action) {
         String method = action.getRequest().getMethod();
         switch(method) {
             case HttpNames.METHOD_POST:
-            case HttpNames.METHOD_PATCH:
                 break;
             default:
-                ServletOps.errorMethodNotAllowed(method+" : Patch must use POST or PATCH");
+                ServletOps.errorMethodNotAllowed(method+" : Patch must use POST");
         }
         String ctStr = action.request.getContentType();
         // Must be UTF-8 or unset. But this is wrong so often,
         // it is less trouble to just force UTF-8.
         String charset = action.request.getCharacterEncoding();
         if ( charset != null && ! WebContent.charsetUTF8.equals(charset) )
-            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or UTF-8, not "+charset); 
+            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or must be UTF-8, not "+charset); 
 
         // If no header Content-type - assume patch-text.
         ContentType contentType = ( ctStr != null ) ? ContentType.create(ctStr) : ctPatchText;
@@ -80,44 +115,43 @@ public class PatchApplyService extends ActionREST {
     }
     
     protected void operation(HttpAction action) {
-        incCounter(action.getEndpoint(), counterPatches);
+        //incCounter(action.getEndpoint(), counterPatches);
         try {
             operation$(action);
-            incCounter(action.getEndpoint(), counterPatchesGood) ;
+            //incCounter(action.getEndpoint(), counterPatchesGood) ;
         } catch ( ActionErrorException ex ) {
-            incCounter(action.getEndpoint(), counterPatchesBad) ;
+            //incCounter(action.getEndpoint(), counterPatchesBad) ;
             throw ex ;
         }
     }
     
     private void operation$(HttpAction action) {
-        action.log.info(format("[%d] RDF Patch", action.id));
-        action.beginWrite();
-        // Add patch handler to suppress TX-TC in the patch but allow TA. 
+        //action.log.info(format("[%d] RDF Patch Write", action.id));
         try { 
-            applyRDFPatch(action);
-            action.commit();
+            actOnRDFPatch(action);
         } catch (Exception ex) {
-            action.abort();
             throw ex;
-        } finally { action.endWrite(); }
+        }
         ServletOps.success(action);
     }
 
-    private void applyRDFPatch(HttpAction action) {
+    private void actOnRDFPatch(HttpAction action) {
         try {
             String ct = action.getRequest().getContentType();
-            // If triples or quads, maybe POST. 
-            
             InputStream input = action.request.getInputStream();
-            DatasetGraph dsg = action.getDataset();
             
-            RDFPatchReaderText pr = new RDFPatchReaderText(input);
-            RDFChanges changes = new RDFChangesApply(dsg);
-            // External transaction. Suppress patch recorded TX and TC.
-            changes = new RDFChangesNoTxn(changes);
-            
-            pr.apply(changes);
+            RDFPatch patch = RDFPatchOps.read(input);
+            try ( OutputStream out = output.output() ) {
+                String fn = output.currentFilename().getFileName().toString();
+                if ( action.verbose ) {
+                    Node id = patch.getId();
+                    String idStr = id == null ? "<unset>" : NodeFmtLib.str(id);
+                    action.log.info(format("[%d] Log: %s ==>> %s", action.id, idStr, fn));
+                } else {
+                    action.log.info(format("[%d] Log: %s", action.id, fn));
+                }
+                RDFPatchOps.write(out, patch);
+            }
             ServletOps.success(action);
         }
         catch (RiotException ex) {
@@ -145,35 +179,4 @@ public class PatchApplyService extends ActionREST {
         @Override
         public void segment() {}
     }
-
-    // ---- POST or PATCH or OPTIONS
-    
-    @Override
-    protected void doPost(HttpAction action) {
-        operation(action);
-    }
-
-    @Override
-    protected void doPatch(HttpAction action) {
-        operation(action);
-    }
-
-    @Override
-    protected void doOptions(HttpAction action) {
-        setCommonHeadersForOptions(action.response);
-        action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST,PATCH");
-        action.response.setHeader(HttpNames.hContentLengh, "0");
-    }
-
-    @Override
-    protected void doHead(HttpAction action) { ServletOps.errorMethodNotAllowed("HEAD"); }
-
-    @Override
-    protected void doPut(HttpAction action) { ServletOps.errorMethodNotAllowed("PUT"); }
-
-    @Override
-    protected void doDelete(HttpAction action) { ServletOps.errorMethodNotAllowed("DELETE"); }
-
-    @Override
-    protected void doGet(HttpAction action) { ServletOps.errorMethodNotAllowed("GET"); }
 }
