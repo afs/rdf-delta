@@ -18,34 +18,48 @@
 
 package org.seaborne.delta.fuseki.cmd;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.servlet.Filter;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.fuseki.Fuseki;
-import org.apache.jena.fuseki.FusekiException;
-import org.apache.jena.fuseki.jetty.FusekiErrorHandler1;
 import org.apache.jena.fuseki.server.DataAccessPointRegistry;
 import org.apache.jena.fuseki.servlets.FusekiFilter;
 import org.apache.jena.fuseki.servlets.ServiceDispatchRegistry;
 import org.apache.jena.riot.WebContent;
+import org.apache.jena.riot.web.HttpNames;
+import org.apache.jena.web.HttpSC;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.security.SecurityHandler;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** 
+ * Jetty server for servlets, including being able to run Fuseki ActionBase derived servlets.
+ * Static RDF types by file extension are enabled.
+ */ 
 public class JettyServer {
+    // Use this for the super class of FusekiServer or as implementation inheritance.
+    // Caution there are small differences e.g. in building where order matters. 
     
     private static Logger LOG = LoggerFactory.getLogger("HTTP");
 
@@ -87,7 +101,7 @@ public class JettyServer {
      */
     public JettyServer start() { 
         try { server.start(); }
-        catch (Exception e) { throw new FusekiException(e); }
+        catch (Exception e) { throw new RuntimeException(e); }
         if ( port == 0 )
             port = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
         LOG.info("Start (port="+port+")");
@@ -98,53 +112,93 @@ public class JettyServer {
     public void stop() { 
         LOG.info("Stop (port="+port+")");
         try { server.stop(); }
-        catch (Exception e) { throw new FusekiException(e); }
+        catch (Exception e) { throw new RuntimeException(e); }
     }
     
     /** Wait for the server to exit. This call is blocking. */
     public void join() {
         try { server.join(); }
-        catch (Exception e) { throw new FusekiException(e); }
+        catch (Exception e) { throw new RuntimeException(e); }
     }
+    
+    /** One line error handler */
+    public static class PlainErrorHandler extends ErrorHandler {
+        // c.f. FusekiErrorHandler1
+        public PlainErrorHandler() {}
+        
+        @Override
+        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException
+        {
+            String method = request.getMethod();
+         
+            if ( !method.equals(HttpMethod.GET.asString())
+                 && !method.equals(HttpMethod.POST.asString())
+                 && !method.equals(HttpMethod.HEAD.asString()) )
+                return ;
+            
+            response.setContentType(MimeTypes.Type.TEXT_PLAIN_UTF_8.asString()) ;
+            response.setHeader(HttpNames.hCacheControl, "must-revalidate,no-cache,no-store");
+            response.setHeader(HttpNames.hPragma, "no-cache");
+            int code = response.getStatus() ;
+            String message=(response instanceof Response)?((Response)response).getReason(): HttpSC.getMessage(code) ;
+            response.getOutputStream().print(format("Error %d: %s\n", code, message)) ;
+        }
+    }
+
 
     
     public static class Builder {
-        private int                      port               = 3330;
+        private int                      port               = -1;
         private boolean                  loopback           = false;
         private boolean                  withStats          = false;
         private boolean                  verbose            = false;
         // Other servlets to add.
-        private List<Pair<String, HttpServlet>> other       = new ArrayList<>();
+        private List<Pair<String, HttpServlet>> servlets    = new ArrayList<>();
+        private List<Pair<String, Filter>> filters          = new ArrayList<>();
         
         private String                   contextPath        = "/";
+        private String                   servletContextName = "Jetty";
         private String                   staticContentDir   = null;
         private SecurityHandler          securityHandler    = null;
+        private ErrorHandler             errorHandler       = new PlainErrorHandler();
+        private Map<String, Object>      servletAttr        = new HashMap<>();
 
         /** Set the port to run on. */ 
-        public Builder setPort(int port) {
+        public Builder port(int port) {
             if ( port < 0 )
                 throw new IllegalArgumentException("Illegal port="+port+" : Port must be greater than or equal to zero.");
             this.port = port;
             return this;
         }
         
-        /** Context path to Fuseki.  If it's "/" then Fuseki URL look like
-         * "http://host:port/dataset/query" else "http://host:port/path/dataset/query" 
+        /**
+         * Context path.  If it's "/" then Server URL will look like
+         * "http://host:port/" else "http://host:port/path/" 
+         * (or no port if :80). 
          */
-        public Builder setContextPath(String path) {
+        public Builder contextPath(String path) {
             requireNonNull(path, "path");
             this.contextPath = path;
             return this;
         }
         
+        /** 
+         * ServletContextName. 
+         */
+        public Builder servletContextName(String name) {
+            requireNonNull(name, "name");
+            this.servletContextName = name;
+            return this;
+        }
+        
         /** Restrict the server to only responding to the localhost interface. */ 
-        public Builder setLoopback(boolean loopback) {
+        public Builder loopback(boolean loopback) {
             this.loopback = loopback;
             return this;
         }
 
         /** Set the location (filing system directory) to serve static file from. */ 
-        public Builder setStaticFileBase(String directory) {
+        public Builder staticFileBase(String directory) {
             requireNonNull(directory, "directory");
             this.staticContentDir = directory;
             return this;
@@ -158,27 +212,60 @@ public class JettyServer {
          *  and a defensive reverse proxy (e.g. Apache httpd) in front of the Jetty server
          *  can also be used, which provides a wide varity of proven security options.   
          */
-        public Builder setSecurityHandler(SecurityHandler securityHandler) {
+        public Builder securityHandler(SecurityHandler securityHandler) {
             requireNonNull(securityHandler, "securityHandler");
             this.securityHandler = securityHandler;
             return this;
         }
         
+        /** Set an {@link ErrorHandler}.
+         * <p>
+         *  By default, the server runs with error handle that prints the code and message.   
+         */
+        public Builder errorHandler(ErrorHandler errorHandler) {
+            requireNonNull(errorHandler, "securityHandler");
+            this.errorHandler = errorHandler;
+            return this;
+        }
+        
         /** Set verbose logging */
-        public Builder setVerbose(boolean verbose) {
+        public Builder verbose(boolean verbose) {
             this.verbose = verbose;
             return this;
         }
 
         /**
          * Add the given servlet with the pathSpec. These are added so that they are
-         * checked after the Fuseki filter for datasets and before the static content
-         * handler (which is the last servlet) used for {@link #setStaticFileBase(String)}.
+         * before the static content handler (which is the last servlet) 
+         * used for {@link #staticFileBase(String)}.
          */
         public Builder addServlet(String pathSpec, HttpServlet servlet) {
             requireNonNull(pathSpec, "pathSpec");
             requireNonNull(servlet, "servlet");
-            other.add(Pair.create(pathSpec, servlet));
+            servlets.add(Pair.create(pathSpec, servlet));
+            return this;
+        }
+        
+        /**
+         * Add a servlet attribute. Pass a value of null to remove any existing binding.
+         */
+        public Builder addServletAttribute(String attrName, Object value) {
+            requireNonNull(attrName, "attrName");
+            if ( value != null )
+                servletAttr.put(attrName, value);
+            else
+                servletAttr.remove(attrName);
+            return this;
+        }
+        
+        /**
+         * Add the given filter with the pathSpec.
+         * It is applied to all dispatch types.
+         */
+        public Builder addFilter(String pathSpec, Filter filter) {
+            requireNonNull(pathSpec, "pathSpec");
+            requireNonNull(filter, "filter");
+            filters.add(Pair.create(pathSpec, filter));
             return this;
         }
         
@@ -188,17 +275,26 @@ public class JettyServer {
         public JettyServer build() {
             ServletContextHandler handler = buildServletContext(contextPath);
             ServletContext cxt = handler.getServletContext();
-            
-            // For Fuseki servers added directly.
-            Fuseki.setVerbose(cxt, verbose);
-            ServiceDispatchRegistry.set(cxt, new ServiceDispatchRegistry(false));
-            DataAccessPointRegistry.set(cxt, new DataAccessPointRegistry());
-            
+            adjustForFuseki(cxt);
+            servletAttr.forEach((n,v)->cxt.setAttribute(n, v));
             servlets(handler);
             
             Server server = jettyServer(port, loopback);
             server.setHandler(handler);
             return new JettyServer(port, server);
+        }
+        
+        private void adjustForFuseki(ServletContext cxt) {
+            // For Fuseki servlets added directly.
+            // This enables servlets inheriting from {@link ActionBase} to work in the
+            // plain Jetty server, e.g. to use Fuseki logging.
+            try {
+                Fuseki.setVerbose(cxt, verbose);
+                ServiceDispatchRegistry.set(cxt, new ServiceDispatchRegistry(false));
+                DataAccessPointRegistry.set(cxt, new DataAccessPointRegistry());
+            } catch (NoClassDefFoundError err) {
+                LOG.info("Fuseki classes not found");
+            }
         }
 
         /** Build a ServletContextHandler with the Fuseki router : {@link FusekiFilter} */
@@ -208,9 +304,8 @@ public class JettyServer {
             else if ( !contextPath.startsWith("/") )
                 contextPath = "/" + contextPath;
             ServletContextHandler context = new ServletContextHandler();
-            // XXX Make settable.
-            context.setDisplayName("Jetty");
-            context.setErrorHandler(new FusekiErrorHandler1());
+            context.setDisplayName(servletContextName);
+            context.setErrorHandler(errorHandler);
             context.setContextPath(contextPath);
             if ( securityHandler != null )
                 context.setSecurityHandler(securityHandler);
@@ -248,11 +343,8 @@ public class JettyServer {
         }
 
         private void servlets(ServletContextHandler context) {
-//            FusekiFilter ff = new FusekiFilter();
-//            FilterHolder h = new FilterHolder(ff);
-//            context.addFilter(h, "/*", null);
-
-            other.forEach(p->addServlet(context, p.getLeft(), p.getRight()));
+            servlets.forEach(p-> addServlet(context, p.getLeft(), p.getRight()) );
+            filters.forEach (p-> addFilter (context, p.getLeft(), p.getRight()) );
             
             if ( staticContentDir != null ) {
                 DefaultServlet staticServlet = new DefaultServlet();
@@ -267,16 +359,19 @@ public class JettyServer {
             context.addServlet(sh, pathspec);
         }
 
+        private void addFilter(ServletContextHandler context, String pathspec, Filter filter) {
+            FilterHolder h = new FilterHolder(filter);
+            context.addFilter(h, pathspec, null);
+        }
+
         /** Jetty server */
         private static Server jettyServer(int port, boolean loopback) {
             Server server = new Server();
             HttpConnectionFactory f1 = new HttpConnectionFactory();
-            // Some people do try very large operations ... really, should use POST.
-            f1.getHttpConfiguration().setRequestHeaderSize(512 * 1024);
-            f1.getHttpConfiguration().setOutputBufferSize(1024 * 1024);
-            // Do not add "Server: Jetty(....) when not a development system.
-            if ( ! Fuseki.outputJettyServerHeader )
-                f1.getHttpConfiguration().setSendServerVersion(false);
+            
+            //f1.getHttpConfiguration().setRequestHeaderSize(512 * 1024);
+            //f1.getHttpConfiguration().setOutputBufferSize(1024 * 1024);
+            f1.getHttpConfiguration().setSendServerVersion(false);
             ServerConnector connector = new ServerConnector(server, f1);
             connector.setPort(port);
             server.addConnector(connector);
