@@ -21,7 +21,7 @@ then
 fi
 
 function usage() {
-    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
+    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r, fuseki" 1>&2
     ##echo "Class path: $DELTA_CP:${JENA_CP}"
     exit
 }
@@ -31,14 +31,5 @@ then
     usage
     exit
 fi
-
-X="$1"
-if [[ $X = "fuseki" ]]
-then
-    shift
-    exec java $JVM_ARGS $LOGGING -jar "$CP" "$@"
-    exit
-fi
-
 
 exec java $JVM_ARGS $LOGGING -cp "$CP" dcmd "$@"
