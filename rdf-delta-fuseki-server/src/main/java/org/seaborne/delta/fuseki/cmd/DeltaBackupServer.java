@@ -52,7 +52,7 @@ public class DeltaBackupServer {
         new Inner(args).mainRun();
     }
     
-    public static JettyServer run(String...args) {
+    public static JettyServer build(String...args) {
         Delta.init();
         Inner inner = new Inner(args);
         inner.process() ;
@@ -150,7 +150,7 @@ public class DeltaBackupServer {
             
             //writeConf(cfg);
             
-            JettyServer.Builder builder = JettyServer.create().setPort(cfg.port).setVerbose(isVerbose());
+            JettyServer.Builder builder = JettyServer.create().port(cfg.port).verbose(isVerbose());
             cfg.logs.forEach(a->{
                 // More Path-ness
                 LOG.info(format("Backup area: (area=%s, dir='%s', file='%s')", a.name, a.dir, a.file));

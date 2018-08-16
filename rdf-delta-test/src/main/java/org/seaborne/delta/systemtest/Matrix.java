@@ -183,9 +183,11 @@ public class Matrix {
         String [] args1 = {"./../zk/zk1/zoo.cfg"};
         String [] args2 = {"./../zk/zk2/zoo.cfg"};
         String [] args3 = {"./../zk/zk3/zoo.cfg"};
-        //System.out.println("Server1 ...");
-        ZkS.runZookeeperServer("./../zk/zk1/zoo.cfg");
+
+        // Port 2180
+        //ZkS.runZookeeperServer("./../zk/single/zoo.cfg");
         
+        //System.out.println("Server1 ...");
         L.async(()->QuorumPeerMain.main(args1));
         //System.out.println("Server2 ...");
         L.async(()->QuorumPeerMain.main(args2));

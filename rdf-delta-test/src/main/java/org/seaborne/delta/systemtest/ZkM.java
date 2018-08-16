@@ -44,7 +44,7 @@ public class ZkM {
     }
 
     /** ZooKeeper server {@code i} */
-    private static void server(int i, int basePort, String dataDir) {
+    private static void server(int i, int basePort, String rootDir) {
         /*
 tickTime=2000
 initLimit=5
@@ -88,6 +88,8 @@ server.3=localhost:2283:3383
         int baseSysPort = 2280;
         int baseElectionPort = 2380;
         String dir = "zk/zk"+i;
+        if ( rootDir != null )
+            dir = rootDir+"/"+dir;
         
         Properties staticProperties = new Properties();
         Properties dynamicProperties = new Properties();
