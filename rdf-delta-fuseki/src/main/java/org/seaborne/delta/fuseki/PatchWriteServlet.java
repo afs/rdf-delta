@@ -58,25 +58,24 @@ public class PatchWriteServlet extends ActionBase {
     static CounterName counterPatchesGood = CounterName.register("RDFpatch-write", "rdf-patch.write.good");
     static CounterName counterPatchesBad  = CounterName.register("RDFpatch-write", "rdf-patch.write.bad");
     private ManagedOutput output;
-    
+
     public PatchWriteServlet(String dir, String fn, FilePolicy policy) {
         super(Fuseki.actionLog);
         this.output = OutputMgr.create(Paths.get(dir), fn , policy);
     }
-    
+
     public PatchWriteServlet(String filename, FilePolicy policy) {
         super(Fuseki.actionLog);
-        // Counters: the standard ActionREST counters per operation are enough?
         this.output = OutputMgr.create(filename, policy);
     }
-    
+
     // ---- POST or OPTIONS
-        
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         doCommon(request, response);
     }
-    
+
     @Override
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) {
         setCommonHeadersForOptions(response);
@@ -104,16 +103,16 @@ public class PatchWriteServlet extends ActionBase {
         // it is less trouble to just force UTF-8.
         String charset = action.request.getCharacterEncoding();
         if ( charset != null && ! WebContent.charsetUTF8.equals(charset) )
-            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or must be UTF-8, not "+charset); 
+            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or must be UTF-8, not "+charset);
 
         // If no header Content-type - assume patch-text.
         ContentType contentType = ( ctStr != null ) ? ContentType.create(ctStr) : ctPatchText;
-        if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) ) 
-            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr); 
+        if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) )
+            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr);
         if ( ctPatchBinary.equals(contentType) )
             ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, contentTypePatchBinary+" not supported yet");
     }
-    
+
     protected void operation(HttpAction action) {
         //incCounter(action.getEndpoint(), counterPatches);
         try {
@@ -124,10 +123,10 @@ public class PatchWriteServlet extends ActionBase {
             throw ex ;
         }
     }
-    
+
     private void operation$(HttpAction action) {
         //action.log.info(format("[%d] RDF Patch Write", action.id));
-        try { 
+        try {
             actOnRDFPatch(action);
         } catch (Exception ex) {
             throw ex;
@@ -139,7 +138,7 @@ public class PatchWriteServlet extends ActionBase {
         try {
             String ct = action.getRequest().getContentType();
             InputStream input = action.request.getInputStream();
-            
+
             RDFPatch patch = RDFPatchOps.read(input);
             try ( OutputStream out = output.output() ) {
                 String fn = output.currentFilename().getFileName().toString();
@@ -161,21 +160,21 @@ public class PatchWriteServlet extends ActionBase {
             ServletOps.errorBadRequest("IOException: "+ex.getMessage());
         }
     }
-    
+
     // Counting?
     static class RDFChangesNoTxn extends RDFChangesWrapper {
         public RDFChangesNoTxn(RDFChanges other) {
             super(other);
         }
         // Ignore so external control can be applied - but allow abort.
-        // Combine so multi-txn works AND   
-        
+        // Combine so multi-txn works AND
+
         @Override
         public void txnBegin() {}
-        
+
         @Override
         public void txnCommit() {}
-        
+
         @Override
         public void segment() {}
     }

@@ -34,17 +34,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.lib.Pair;
-import org.apache.jena.fuseki.Fuseki;
-import org.apache.jena.fuseki.server.DataAccessPointRegistry;
-import org.apache.jena.fuseki.servlets.FusekiFilter;
-import org.apache.jena.fuseki.servlets.ServiceDispatchRegistry;
 import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.security.SecurityHandler;
-import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -53,53 +53,59 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 
+/**
  * Jetty server for servlets, including being able to run Fuseki ActionBase derived servlets.
  * Static RDF types by file extension are enabled.
- */ 
+ */
 public class JettyServer {
-    // Use this for the super class of FusekiServer or as implementation inheritance.
-    // Caution there are small differences e.g. in building where order matters. 
-    
+    // It would be nice to use this for FusekiServer.
+    //
+    // Server + the Builder pattern conflicts (can't add chaining operations that are specific to
+    // Fuseki to the builder for FusekiServer).
+    // Maybe the Builder only can be inherited. No - can't chain inherited and added operations.
+    //
+    // We could use implementation inheritance for builder - there isn't a huge amount of saving though
+    // and we still want JettyServer to work for Fuseki servlets.
+
     private static Logger LOG = LoggerFactory.getLogger("HTTP");
 
     public final Server server;
     private int port;
-    
+
     public static Builder create() {
         return new Builder();
     }
-    
+
     private JettyServer(int port, Server server) {
         this.server = server;
         this.port = port;
     }
-    
-    /** 
-     * Return the port begin used.  
+
+    /**
+     * Return the port begin used.
      * This will be the give port, which defaults to 3330, or
      * the one actually allocated if the port was 0 ("choose a free port").
      */
     public int getPort() {
-        return port; 
+        return port;
     }
 
-    /** Get the underlying Jetty server which has also been set up. */ 
+    /** Get the underlying Jetty server which has also been set up. */
     public Server getJettyServer() {
-        return server; 
+        return server;
     }
-    
+
     /** Get the {@link ServletContext}.
      * Adding new servlets is possible with care.
-     */ 
+     */
     public ServletContext getServletContext() {
         return ((ServletContextHandler)server.getHandler()).getServletContext();
     }
 
     /** Start the server - the server continues to run after this call returns.
-     *  To synchronise with the server stopping, call {@link #join}.  
+     *  To synchronise with the server stopping, call {@link #join}.
      */
-    public JettyServer start() { 
+    public JettyServer start() {
         try { server.start(); }
         catch (Exception e) { throw new RuntimeException(e); }
         if ( port == 0 )
@@ -109,125 +115,124 @@ public class JettyServer {
     }
 
     /** Stop the server. */
-    public void stop() { 
+    public void stop() {
         LOG.info("Stop (port="+port+")");
         try { server.stop(); }
         catch (Exception e) { throw new RuntimeException(e); }
     }
-    
+
     /** Wait for the server to exit. This call is blocking. */
     public void join() {
         try { server.join(); }
         catch (Exception e) { throw new RuntimeException(e); }
     }
-    
+
     /** One line error handler */
     public static class PlainErrorHandler extends ErrorHandler {
         // c.f. FusekiErrorHandler1
         public PlainErrorHandler() {}
-        
+
         @Override
         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException
         {
             String method = request.getMethod();
-         
+
             if ( !method.equals(HttpMethod.GET.asString())
                  && !method.equals(HttpMethod.POST.asString())
                  && !method.equals(HttpMethod.HEAD.asString()) )
-                return ;
-            
-            response.setContentType(MimeTypes.Type.TEXT_PLAIN_UTF_8.asString()) ;
+                return;
+
+            response.setContentType(MimeTypes.Type.TEXT_PLAIN_UTF_8.asString());
             response.setHeader(HttpNames.hCacheControl, "must-revalidate,no-cache,no-store");
             response.setHeader(HttpNames.hPragma, "no-cache");
-            int code = response.getStatus() ;
-            String message=(response instanceof Response)?((Response)response).getReason(): HttpSC.getMessage(code) ;
-            response.getOutputStream().print(format("Error %d: %s\n", code, message)) ;
+            int code = response.getStatus();
+            String message=(response instanceof Response)?((Response)response).getReason(): HttpSC.getMessage(code);
+            response.getOutputStream().print(format("Error %d: %s\n", code, message));
         }
     }
 
-
-    
     public static class Builder {
-        private int                      port               = -1;
-        private boolean                  loopback           = false;
-        private boolean                  withStats          = false;
-        private boolean                  verbose            = false;
+        private int                             port               = -1;
+        private boolean                         loopback           = false;
+        private boolean                         withStats          = false;
+        private boolean                         verbose            = false;
+        private boolean                         enableRDFFileTypes = false;
         // Other servlets to add.
-        private List<Pair<String, HttpServlet>> servlets    = new ArrayList<>();
-        private List<Pair<String, Filter>> filters          = new ArrayList<>();
-        
-        private String                   contextPath        = "/";
-        private String                   servletContextName = "Jetty";
-        private String                   staticContentDir   = null;
-        private SecurityHandler          securityHandler    = null;
-        private ErrorHandler             errorHandler       = new PlainErrorHandler();
-        private Map<String, Object>      servletAttr        = new HashMap<>();
+        private List<Pair<String, HttpServlet>> servlets           = new ArrayList<>();
+        private List<Pair<String, Filter>>      filters            = new ArrayList<>();
 
-        /** Set the port to run on. */ 
+        private String                          contextPath        = "/";
+        private String                          servletContextName = "Jetty";
+        private String                          staticContentDir   = null;
+        private SecurityHandler                 securityHandler    = null;
+        private ErrorHandler                    errorHandler       = new PlainErrorHandler();
+        private Map<String, Object>             servletAttr        = new HashMap<>();
+
+        /** Set the port to run on. */
         public Builder port(int port) {
             if ( port < 0 )
                 throw new IllegalArgumentException("Illegal port="+port+" : Port must be greater than or equal to zero.");
             this.port = port;
             return this;
         }
-        
+
         /**
          * Context path.  If it's "/" then Server URL will look like
-         * "http://host:port/" else "http://host:port/path/" 
-         * (or no port if :80). 
+         * "http://host:port/" else "http://host:port/path/"
+         * (or no port if :80).
          */
         public Builder contextPath(String path) {
             requireNonNull(path, "path");
             this.contextPath = path;
             return this;
         }
-        
-        /** 
-         * ServletContextName. 
+
+        /**
+         * ServletContextName.
          */
         public Builder servletContextName(String name) {
             requireNonNull(name, "name");
             this.servletContextName = name;
             return this;
         }
-        
-        /** Restrict the server to only responding to the localhost interface. */ 
+
+        /** Restrict the server to only responding to the localhost interface. */
         public Builder loopback(boolean loopback) {
             this.loopback = loopback;
             return this;
         }
 
-        /** Set the location (filing system directory) to serve static file from. */ 
+        /** Set the location (filing system directory) to serve static file from. */
         public Builder staticFileBase(String directory) {
             requireNonNull(directory, "directory");
             this.staticContentDir = directory;
             return this;
         }
-        
+
         /** Set a Jetty SecurityHandler.
          * <p>
          *  By default, the server runs with no security.
          *  This is more for using the basic server for testing.
          *  The full Fuseki server provides security with Apache Shiro
          *  and a defensive reverse proxy (e.g. Apache httpd) in front of the Jetty server
-         *  can also be used, which provides a wide varity of proven security options.   
+         *  can also be used, which provides a wide varity of proven security options.
          */
         public Builder securityHandler(SecurityHandler securityHandler) {
             requireNonNull(securityHandler, "securityHandler");
             this.securityHandler = securityHandler;
             return this;
         }
-        
+
         /** Set an {@link ErrorHandler}.
          * <p>
-         *  By default, the server runs with error handle that prints the code and message.   
+         *  By default, the server runs with error handle that prints the code and message.
          */
         public Builder errorHandler(ErrorHandler errorHandler) {
             requireNonNull(errorHandler, "securityHandler");
             this.errorHandler = errorHandler;
             return this;
         }
-        
+
         /** Set verbose logging */
         public Builder verbose(boolean verbose) {
             this.verbose = verbose;
@@ -235,8 +240,17 @@ public class JettyServer {
         }
 
         /**
+         * Include the MIME types for RDF and SPARQL related formats e.g. ".ttl" for
+         * "text/turtle
+         */
+        public Builder enableRDFFileType(boolean enableRDFFileTypes) {
+            this.enableRDFFileTypes = enableRDFFileTypes;
+            return this;
+        }
+
+        /**
          * Add the given servlet with the pathSpec. These are added so that they are
-         * before the static content handler (which is the last servlet) 
+         * before the static content handler (which is the last servlet)
          * used for {@link #staticFileBase(String)}.
          */
         public Builder addServlet(String pathSpec, HttpServlet servlet) {
@@ -245,7 +259,7 @@ public class JettyServer {
             servlets.add(Pair.create(pathSpec, servlet));
             return this;
         }
-        
+
         /**
          * Add a servlet attribute. Pass a value of null to remove any existing binding.
          */
@@ -257,7 +271,7 @@ public class JettyServer {
                 servletAttr.remove(attrName);
             return this;
         }
-        
+
         /**
          * Add the given filter with the pathSpec.
          * It is applied to all dispatch types.
@@ -268,36 +282,30 @@ public class JettyServer {
             filters.add(Pair.create(pathSpec, filter));
             return this;
         }
-        
+
         /**
          * Build a server according to the current description.
          */
         public JettyServer build() {
-            ServletContextHandler handler = buildServletContext(contextPath);
-            ServletContext cxt = handler.getServletContext();
-            adjustForFuseki(cxt);
-            servletAttr.forEach((n,v)->cxt.setAttribute(n, v));
-            servlets(handler);
-            
+            ServletContextHandler handler = buildServletContext();
+            if ( enableRDFFileTypes )
+                setMimeTypes(handler);
+            // Use HandlerCollection for several ServletContextHandlers and thus several ServletContext.
             Server server = jettyServer(port, loopback);
             server.setHandler(handler);
             return new JettyServer(port, server);
         }
-        
-        private void adjustForFuseki(ServletContext cxt) {
-            // For Fuseki servlets added directly.
-            // This enables servlets inheriting from {@link ActionBase} to work in the
-            // plain Jetty server, e.g. to use Fuseki logging.
-            try {
-                Fuseki.setVerbose(cxt, verbose);
-                ServiceDispatchRegistry.set(cxt, new ServiceDispatchRegistry(false));
-                DataAccessPointRegistry.set(cxt, new DataAccessPointRegistry());
-            } catch (NoClassDefFoundError err) {
-                LOG.info("Fuseki classes not found");
-            }
+
+        /** Build a ServletContextHandler : one servlet context */
+        private ServletContextHandler buildServletContext() {
+            ServletContextHandler handler = buildServletContext(contextPath);
+            ServletContext cxt = handler.getServletContext();
+            servletAttr.forEach((n,v)->cxt.setAttribute(n, v));
+            servlets(handler);
+            return handler;
         }
 
-        /** Build a ServletContextHandler with the Fuseki router : {@link FusekiFilter} */
+        /** Build a ServletContextHandler. */
         private ServletContextHandler buildServletContext(String contextPath) {
             if ( contextPath == null || contextPath.isEmpty() )
                 contextPath = "/";
@@ -309,10 +317,9 @@ public class JettyServer {
             context.setContextPath(contextPath);
             if ( securityHandler != null )
                 context.setSecurityHandler(securityHandler);
-            
             return context;
         }
-        
+
         private static void setMimeTypes(ServletContextHandler context) {
             MimeTypes mimeTypes = new MimeTypes();
             // RDF syntax
@@ -342,10 +349,11 @@ public class JettyServer {
             context.setMimeTypes(mimeTypes);
         }
 
+        /** Add servlets and servlet filters */
         private void servlets(ServletContextHandler context) {
             servlets.forEach(p-> addServlet(context, p.getLeft(), p.getRight()) );
             filters.forEach (p-> addFilter (context, p.getLeft(), p.getRight()) );
-            
+
             if ( staticContentDir != null ) {
                 DefaultServlet staticServlet = new DefaultServlet();
                 ServletHolder staticContent = new ServletHolder(staticServlet);
@@ -368,7 +376,7 @@ public class JettyServer {
         private static Server jettyServer(int port, boolean loopback) {
             Server server = new Server();
             HttpConnectionFactory f1 = new HttpConnectionFactory();
-            
+
             //f1.getHttpConfiguration().setRequestHeaderSize(512 * 1024);
             //f1.getHttpConfiguration().setOutputBufferSize(1024 * 1024);
             f1.getHttpConfiguration().setSendServerVersion(false);

@@ -33,6 +33,7 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.fuseki.embedded.FusekiServer;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.PatchWriteServlet;
 import org.seaborne.delta.lib.JSONX;
@@ -41,7 +42,7 @@ import  org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DeltaBackupServer {
-    
+
     private static Logger LOG = LoggerFactory.getLogger("Backup");
 
     public static void main(String... args) {
@@ -51,14 +52,14 @@ public class DeltaBackupServer {
         Delta.init();
         new Inner(args).mainRun();
     }
-    
-    public static JettyServer build(String...args) {
+
+    public static FusekiServer build(String...args) {
         Delta.init();
         Inner inner = new Inner(args);
         inner.process() ;
         return inner.build() ;
     }
-    
+
     static class BackupArea {
         final String name;
         final String dir;
@@ -69,19 +70,19 @@ public class DeltaBackupServer {
             this.file = file;
         }
     }
-    
+
     static class BackupConfig {
         int port;
-        List<BackupArea> logs =  new ArrayList<>();    
+        List<BackupArea> logs =  new ArrayList<>();
     }
-    
+
     static class Inner extends CmdGeneral {
         private final ArgDecl argPort     = new ArgDecl(true, "port");
         private final ArgDecl argConf     = new ArgDecl(true, "config", "cfg");
         private final ArgDecl argDir      = new ArgDecl(true, "dir");
         private final ArgDecl argFile     = new ArgDecl(true, "file");
         private final ArgDecl argName     = new ArgDecl(true, "name");
-        
+
         protected Inner(String[] argv) {
             super(argv);
             super.add(argConf);
@@ -103,19 +104,23 @@ public class DeltaBackupServer {
 
         @Override
         protected void exec() {
-            JettyServer server = build();
+            FusekiServer server = build();
             try {
                 server.start();
-            } 
+            }
             catch (Exception ex) {
                 throw new CmdException("Failed to start: "+ex.getMessage(), ex);
             }
             server.join();
         }
-        
-        protected JettyServer build() {
+
+        /**
+         * Build a web server - a Fuseki server with no datasets - it will then support
+         * general Fuseki servlets.
+         */
+        protected FusekiServer build() {
             BackupConfig cfg = new BackupConfig();
-            
+
             int port = 1096;
             String portStr = getValue(argPort);
             if ( portStr != null ) {
@@ -129,28 +134,29 @@ public class DeltaBackupServer {
                 }
             }
             cfg.port = port;
-            
+
             if ( contains(argConf) ) {
                 if ( ! getValue(argName).isEmpty() || ! getValues(argDir).isEmpty() || getValues(argFile).isEmpty() ) {
-                    throw new CmdException("Can't have command line specified log area and also a configuration file");  
+                    throw new CmdException("Can't have command line specified log area and also a configuration file");
                 }
                 parseConf(cfg, getValue(argConf));
             } else {
                 // no --conf
                 if ( getValues(argName).isEmpty() || getValues(argDir).isEmpty() || getValues(argFile).isEmpty() )
-                    throw new CmdException("Must provide either a configuration file with --conf or provide --name, --dir and --file arguments");  
+                    throw new CmdException("Must provide either a configuration file with --conf or provide --name, --dir and --file arguments");
                 if ( getValues(argName).size() != 1 || getValues(argDir).size() != 1 || getValues(argFile).size() != 1 )
                     throw new CmdException("Must have exactly one each of --name, --dir and --file");
-                
+
                 String name = getValue(argName);
                 String dir = getValue(argDir);
                 String file = getValue(argFile);
                 cfg.logs.add(new BackupArea(name, dir, file));
             }
-            
+
             //writeConf(cfg);
-            
-            JettyServer.Builder builder = JettyServer.create().port(cfg.port).verbose(isVerbose());
+
+            //JettyServer.Builder builder = JettyServer.create().port(cfg.port).verbose(isVerbose());
+            FusekiServer.Builder builder = FusekiServer.create().setPort(cfg.port).setVerbose(isVerbose());
             cfg.logs.forEach(a->{
                 // More Path-ness
                 LOG.info(format("Backup area: (area=%s, dir='%s', file='%s')", a.name, a.dir, a.file));
@@ -161,12 +167,12 @@ public class DeltaBackupServer {
                     x = "/"+a.name;
                 builder.addServlet(x, handler);
             });
-            JettyServer server = builder.build();
+            FusekiServer server = builder.build();
             return server;
         }
-        
+
         // Configuration I/O.
-        
+
         /*
          * {
          *    "logs": [
@@ -174,42 +180,40 @@ public class DeltaBackupServer {
          *    ]
          * }
          */
-        
-        private static final String jPort = "port" ;
-        private static final String jLogs = "logs" ;
-        private static final String jName = "names" ;
-        private static final String jDir = "dir" ;
-        private static final String jFile = "file" ;
 
-        
+        private static final String jPort = "port";
+        private static final String jLogs = "logs";
+        private static final String jName = "names";
+        private static final String jDir  = "dir";
+        private static final String jFile = "file";
+
         private void parseConf(BackupConfig cfg, String cfgFile) {
             try {
                 JsonObject obj = JSON.read(cfgFile);
                 cfg.port = obj.get(jPort).getAsNumber().value().intValue();
                 JsonArray a = obj.get(jLogs).getAsArray();
                 a.forEach(elt-> {
-                    BackupArea area = parseOne(cfg, elt);
+                    BackupArea area = parseLogObject(cfg, elt);
                     cfg.logs.add(area);
                 });
             } catch (Exception ex) {
-                throw new CmdException("Failed to process configuration file: "+ex.getMessage()); 
+                throw new CmdException("Failed to process configuration file: "+ex.getMessage());
             }
         }
 
-        private BackupArea parseOne(BackupConfig cfg, JsonValue elt) {
+        private BackupArea parseLogObject(BackupConfig cfg, JsonValue elt) {
             String name = elt.getAsObject().get(jName).getAsString().value();
             String dir = elt.getAsObject().get(jDir).getAsString().value();
             String file = elt.getAsObject().get(jFile).getAsString().value();
             if ( name == null || dir == null || file == null )
-                throw new CmdException("Required: \""+jName+", \""+jDir+"\" and \""+jFile+"\""); 
+                throw new CmdException("Required: \""+jName+", \""+jDir+"\" and \""+jFile+"\"");
             return new BackupArea(name, dir, file);
         }
-        
+
         private void writeConf(BackupConfig cfg) {
             JsonObject obj = JSONX.buildObject(b->{
-                b.pair(jPort, cfg.port);
-                b.key(jLogs);
-                b.startArray();
+                b   .pair(jPort, cfg.port)
+                    .key(jLogs).startArray();
                 cfg.logs.forEach(a->
                     b.startObject().pair(jName, a.name).pair(jDir, a.dir).pair(jFile, a.file).finishObject()
                     );
