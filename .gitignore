@@ -30,6 +30,10 @@ gradle-app.setting
 # Cache of project
 .gradletasknamecache
 
+### Intellij Idea ###
+.idea
+*.iml
+
 ### Eclipse ###
 .classpath
 .project

@@ -336,6 +336,7 @@ public class DeltaServer {
                 localServerConfig = runZookeeper(config);
                 localServerConfig = setupS3(config, localServerConfig);
                 providerLabel = "zookeeper+s3";
+                break;
             default :
                 throw new IllegalArgumentException("Unrecognized provider: "+config.provider);
         }
