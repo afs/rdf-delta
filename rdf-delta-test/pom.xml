@@ -27,20 +27,20 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.5.3-SNAPSHOT</version>
+    <version>0.5.3</version>
   </parent> 
 
   <dependencies>
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-local</artifactId>
-      <version>0.5.3-SNAPSHOT</version>
+      <version>0.5.3</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-local</artifactId>
-      <version>0.5.3-SNAPSHOT</version>
+      <version>0.5.3</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
@@ -53,13 +53,13 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-http</artifactId>
-      <version>0.5.3-SNAPSHOT</version>
+      <version>0.5.3</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-client</artifactId>
-      <version>0.5.3-SNAPSHOT</version>
+      <version>0.5.3</version>
     </dependency>
 
     <dependency>
