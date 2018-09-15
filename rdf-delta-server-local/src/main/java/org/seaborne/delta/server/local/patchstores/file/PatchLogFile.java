@@ -58,13 +58,13 @@ import org.slf4j.LoggerFactory;
 public class PatchLogFile implements PatchLog {
     // Predates PatchStorage/PatchLogIndex.
     // Could do with converting.
-    
+
     private static final boolean CHECKING = true ;
 
     // Centralized logger for regular lifecycle reporting.
     private static Logger  LOG     = LoggerFactory.getLogger(PatchLogFile.class);
 
-    // Currently, id of the DataSource 
+    // Currently, id of the DataSource
     private final Id logId;
     private final DataSourceDescription dsd;
     private final PatchStore      patchStore;
@@ -72,17 +72,17 @@ public class PatchLogFile implements PatchLog {
 
     // Forward, backwards chain?
     // c.g. HistoryEntry
-    private BiMap<Id, Version> idToVersion =  Maps.synchronizedBiMap(HashBiMap.create()); 
+    private BiMap<Id, Version> idToVersion =  Maps.synchronizedBiMap(HashBiMap.create());
     private Map<Id, PatchHeader> headers = new ConcurrentHashMap<>();
-    
+
     private Id latestId = null;
     private Version latestVersion = Version.UNSET;
-    
+
     /** Attached to an existing {@code PatchLog}. */
     public static PatchLogFile attach(DataSourceDescription dsd, PatchStore patchStore, Location location) {
         return new PatchLogFile(dsd, patchStore, location);
     }
-    
+
     private PatchLogFile(DataSourceDescription dsd, PatchStore patchStore, Location location) {
         this.dsd = dsd;
         this.logId = dsd.getId();
@@ -90,12 +90,12 @@ public class PatchLogFile implements PatchLog {
         this.patchStore = patchStore;
         initFromFileStore();
     }
-    
+
     @Override
     public Id getLogId() {
         return logId;
     }
-    
+
     private void initFromFileStore() {
         Iterator<Long> iter = fileStore.getIndexes().iterator();
         PatchHeader previous = null;
@@ -117,7 +117,7 @@ public class PatchLogFile implements PatchLog {
                         FmtLog.error(LOG, "Duplicate: idx=%d: id=%s", idx, id);
                     }
                 }
-                    
+
                 Id prev = Id.fromNode(patchHeader.getPrevious());
                 if ( prev != null ) {
                     // We process entries in order so we should have seen previous by now.
@@ -171,46 +171,46 @@ public class PatchLogFile implements PatchLog {
                 // latestVersion = -1 (UNSET) and getCurrentIndex==0 (INIT) is OK
                 if ( latestVersion == Version.UNSET && x == VERSION_INIT )
                     return ;
-                FmtLog.error(LOG, "Out of sync(1): latestVersion=%s, fileStore=%s", latestVersion, x);
+                FmtLog.error(LOG, "Out of sync: latestVersion=%s, fileStore=%s", latestVersion, x);
             }
         }
     }
-    
+
     @Override
     public PatchLogInfo getInfo() {
         // AbstractPatchLog
         return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
     }
-    
+
     @Override
     public DataSourceDescription getDescription() {
-        return dsd; 
+        return dsd;
     }
 
     @Override
     public boolean isEmpty() {
         return fileStore.isEmpty();
     }
-    
+
     @Override
     public void delete() {
         CfgFile.retire(fileStore.getPath());
         release();
     }
-    
+
     @Override
     public void release() {
         fileStore.release();
     }
-    
+
     /** Validate a patch for this {@code PatchLog} */
     private boolean validate(RDFPatch patch) {
         return PatchValidation.validate(patch, this);
     }
-    
+
     /**
      * Add a patch to the PatchLog.
-     * This operation does not store the patch; 
+     * This operation does not store the patch;
      * it is expected to be already persisted.
      * Only the {@code PatchLog} in-memory metadata is updated.
      * @param patch
@@ -223,10 +223,10 @@ public class PatchLogFile implements PatchLog {
 
         Id patchId = Id.fromNode(patch.getId());
         Id previousId = Id.fromNode(patch.getPrevious());
-        
+
         // Is it a reply of the last patch?
         if ( ! isEmpty() && getLatestId().equals(patchId) ) {
-            return getLatestVersion(); 
+            return getLatestVersion();
         }
 
         if ( LOG.isDebugEnabled() )
@@ -240,15 +240,15 @@ public class PatchLogFile implements PatchLog {
             // Does not point to right previous version.
             throw new DeltaBadPatchException(msg);
         }
-        
-        // ** Commit point for a patch, 
+
+        // ** Commit point for a patch,
         // specifically at the atomic "move file" in FileStore::writeNewFile.
         FileEntry entry = fileStore.writeNewFile(out -> {
             TokenWriter tw = new TokenWriterText(out) ;
             RDFChangesWriter dest = new RDFChangesWriter(tw) ;
             patch.apply(dest);
         });
-        
+
         Version version = Version.create(entry.version);
         validateVersionNotInUse(version);
         idToVersion.put(patchId, version);
@@ -256,7 +256,7 @@ public class PatchLogFile implements PatchLog {
         latestId = patchId;
         latestVersion = version;
         validateLatest();
-        return version; 
+        return version;
     }
 
     private void validateVersionNotInUse(Version version) {
@@ -264,27 +264,27 @@ public class PatchLogFile implements PatchLog {
             // Internal consistency error. FleStore was supposed to make it unique.
             throw new InternalErrorException("Version already in-use: "+version);
     }
-    
+
     @Override
     public Stream<RDFPatch> range(Id start, Id finish) {
         Version startVersion = idToVersion.get(start);
         Version finishVersion = idToVersion.get(finish);
         if ( startVersion == null ) {}
         if ( finishVersion == null ) {}
-        // Isolation not necessary. Patch files are immutable once written. 
+        // Isolation not necessary. Patch files are immutable once written.
         return
             LongStream
                 .rangeClosed(startVersion.value(), finishVersion.value())
                 .mapToObj(v->fetch(fileStore, v));
     }
-    
+
     @Override
     public Stream<RDFPatch> range(Version start, Version finish) {
         if ( ! Version.isValid(start) )
             throw new DeltaException("Bad start version : "+start);
         if ( ! Version.isValid(finish) )
             throw new DeltaException("Bad finish version : "+finish);
-        // Isolation not necessary. Patch files are immutable once written. 
+        // Isolation not necessary. Patch files are immutable once written.
         return range$(start, finish);
     }
 
@@ -294,7 +294,7 @@ public class PatchLogFile implements PatchLog {
                 .rangeClosed(startVersion.value(), finishVersion.value())
                 .mapToObj(v->fetch(fileStore, v));
     }
-    
+
     public FileStore getFileStore() {
         return fileStore;
     }
@@ -319,23 +319,23 @@ public class PatchLogFile implements PatchLog {
 
     @Override
     public RDFPatch fetch(Version version) {
-        return fetch(fileStore, version.value()); 
+        return fetch(fileStore, version.value());
     }
-    
+
     private RDFPatch fetch(FileStore fileStore, long version) {
         if ( version < getEarliestVersion().value() )
             return null;
         if ( version > getLatestVersion().value() )
             return null;
-        
+
         try ( InputStream in = fileStore.open((int)version) ) {
             RDFPatch patch = RDFPatchOps.read(in) ;
             return patch;
         }
         catch ( DeltaNotFoundException ex)  // Our internal 404.
         { return null; }
-        catch (IOException ex) { 
-            throw IOX.exception(ex); 
+        catch (IOException ex) {
+            throw IOX.exception(ex);
         }
     }
 
@@ -346,12 +346,12 @@ public class PatchLogFile implements PatchLog {
             return Version.UNSET;
         return x;
     }
-    
+
     @Override
     public Id find(Version version) {
         return idToVersion.inverse().get(version);
     }
-    
+
     @Override
     public String toString() {
         return String.format("PatchLog [%s, ver=%d head=%s]", dsd.getName(), getLatestVersion(), getLatestId());

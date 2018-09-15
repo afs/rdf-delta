@@ -47,29 +47,28 @@ import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.PatchStore;
 import org.slf4j.Logger;
 
-/** Various configuration utilities; file-based server. */ 
+/** Various configuration utilities; file-based server. */
 public class CfgFile {
 
-    /** 
+    /**
      * Look for {@link DataSource DataSources} in a disk area given by {@code location}.
-     * <p>   
+     * <p>
      * Scan the given area for directories (must have a config file), check they are enabled,
      * and deal with {@code log_type}.
      */
     public static List<DataSourceDescription> scanForLogs(Path location, PatchStore ps) {
-        // PatchStore's that rely on the scan of local directories and checking the "log_type" field.        
+        // PatchStore's that rely on the scan of local directories and checking the "log_type" field.
         Pair<List<Path>, List<Path>> pair = scanDirectory(location);
         List<Path> dataSourcePaths = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();
-        String thisProviderName = ps.getProvider().getProviderName();
-        
+
         //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
         disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
-        
+
         List<DataSourceDescription> descriptions = ListUtils.toList
             (dataSourcePaths.stream()
                 .map(p->{
-                    // Extract name from disk name. 
+                    // Extract name from disk name.
                     String dsName = p.getFileName().toString();
                     // read config file.
                     JsonObject sourceObj = JSON.read(p.resolve(FileNames.DS_CONFIG).toString());
@@ -85,7 +84,7 @@ public class CfgFile {
         return descriptions;
     }
 
-    /** 
+    /**
      * Scan a directory for DataSource areas.
      * These must have a file called source.cfg.
      */
@@ -121,18 +120,18 @@ public class CfgFile {
      * Checks it is a directory and has a configuration files.
      */
     /*package*/ static boolean isMinimalDataSource(Path path) {
-        if ( ! Files.isDirectory(path) ) 
+        if ( ! Files.isDirectory(path) )
             return false ;
         Path cfg = path.resolve(FileNames.DS_CONFIG);
         if ( ! Files.exists(cfg) )
             return false ;
-        if ( ! Files.isRegularFile(cfg) ) 
+        if ( ! Files.isRegularFile(cfg) )
             FmtLog.warn(Delta.DELTA_LOG, "Data source configuration file name exists but is not a file: %s", cfg);
         if ( ! Files.isReadable(cfg) )
             FmtLog.warn(Delta.DELTA_LOG, "Data source configuration file exists but is not readable: %s", cfg);
         return true ;
     }
-    
+
     /** Test for a valid data source - does not check "disabled" */
     private static boolean isFormattedDataSource(Path path) {
         if ( ! CfgFile.isMinimalDataSource(path) )
@@ -147,23 +146,23 @@ public class CfgFile {
 //          return false;
         return true ;
     }
-    
+
     private static Logger LOG = Delta.DELTA_LOG;
-    /** 
-     * Set up a disk file area for the data source 
+    /**
+     * Set up a disk file area for the data source
      * @param patchStore
      */
     /*package*/ static Path setupDataSourceByFile(Path root, PatchStore patchStore, DataSourceDescription dsd) {
         // Disk file setup.
-        // Eventually this fixed code needs to move to PatchStoreFile or a library and be invoked from PatchStoreFile. 
-        
+        // Eventually this fixed code needs to move to PatchStoreFile or a library and be invoked from PatchStoreFile.
+
         Path sourcePath = root.resolve(dsd.getName());
 
         if ( patchStore.logExists(dsd.getId()) )
             throw new DeltaBadRequestException("DataSource area already exists and is active at: "+sourcePath);
-        
+
         // Checking.
-        // The area can exist, but it must not be formatted for a DataSource 
+        // The area can exist, but it must not be formatted for a DataSource
         //        if ( sourceArea.exists() )
         //            throw new DeltaException("Area already exists");
 
@@ -178,11 +177,11 @@ public class CfgFile {
         catch (IOException e) {
             throw new DeltaBadRequestException("Failed to create DataSource area: "+sourcePath);
         }
-        
+
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
-        if ( ! DPS.pspFile.equals(patchStore.getProvider().getShortName()) )  
-            // Not file - explicitly set the provider. 
+        if ( ! DPS.pspFile.equals(patchStore.getProvider().getShortName()) )
+            // Not file - explicitly set the provider.
             obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
         LOG.info(JSON.toStringFlat(obj));
         try (OutputStream out = Files.newOutputStream(sourcePath.resolve(FileNames.DS_CONFIG))) {
@@ -190,15 +189,15 @@ public class CfgFile {
         } catch (IOException ex)  { throw IOX.exception(ex); }
         return sourcePath;
     }
-    
+
     private static final String DELETE_MARKER = "-deleted";
 
-    /** Retire an on-disk log file area */ 
+    /** Retire an on-disk log file area */
     /*package*/ static void retire(Path pathLog) {
 //        if ( true ) {
 //            // Mark unavailable.
 //            Path disabled = pathLog.resolve(ConstDISABLED);
-//            try { Files.createFile(disabled); } 
+//            try { Files.createFile(disabled); }
 //            catch (IOException ex) { throw IOX.exception(ex); }
 //        }
 //        if ( true ) {
@@ -212,7 +211,7 @@ public class CfgFile {
             // Destroy.
             try {
                 Files.walk(pathLog)
-                    // So a directory path itself is after its entries. 
+                    // So a directory path itself is after its entries.
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
@@ -224,5 +223,5 @@ public class CfgFile {
         }
 
     }
- 
+
 }
