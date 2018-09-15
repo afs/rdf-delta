@@ -19,6 +19,7 @@
 package org.seaborne.delta.fuseki;
 
 import org.apache.jena.fuseki.embedded.FusekiServer ;
+import org.apache.jena.fuseki.mgt.ActionPing;
 import org.apache.jena.fuseki.server.Operation ;
 import org.apache.jena.fuseki.servlets.ActionService ;
 import org.apache.jena.sparql.core.DatasetGraph ;
@@ -31,10 +32,15 @@ public class DeltaFuseki {
         return FusekiServer.create().setPort(port).parseConfigFile(config).build().start();
     }
 
-    /** Build a Fuseki server whose dataset is a changes dataset wrapping the base */  
+    /** Build a Fuseki server whose dataset is a changes dataset wrapping the base */
     public static FusekiServer deltaFuseki(int port, String name, DatasetGraph dsgBase, RDFChanges changes) {
         DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changes);
-        return FusekiServer.create().setPort(port).add(name, dsg).build();
+        return
+            FusekiServer.create().setPort(port)
+                .add(name, dsg)
+                // [Jena 3.9.0] - .enablePing(true)
+                .addServlet("/$/ping", new ActionPing())
+                .build();
     }
 
     public static Operation patchOp = Operation.register("Patch", "Patch Service");
