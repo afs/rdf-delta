@@ -20,7 +20,11 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,12 +36,12 @@ import org.seaborne.delta.link.DeltaLink;
 
 /** Filter that catches requests for the form /{name} and /{id}
  * where the {name} or {id} is registered with the DeltaLink and
- * directs teh request to the given servlet. 
+ * directs teh request to the given servlet.
  * Otherwise it passes the request down the filter chain.
- */ 
+ */
 public class F_PatchFilter implements javax.servlet.Filter {
     public interface Dispatch { void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException ; }
-    
+
     private final DeltaLink dLink;
     private final Dispatch servlet;
     private final Dispatch rootPathServlet;
@@ -47,7 +51,7 @@ public class F_PatchFilter implements javax.servlet.Filter {
         this.servlet = servlet;
         this.rootPathServlet = rootPathServlet;
     }
-    
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = null;
@@ -55,19 +59,19 @@ public class F_PatchFilter implements javax.servlet.Filter {
         try {
             request = (HttpServletRequest)req ;
             response = (HttpServletResponse)resp ;
-            
+
             //request.getContextPath();
             String servletPath = request.getServletPath() ;
             String uri = request.getRequestURI() ;
-            
-            // Special case : this is otherwise the "default servlet" 
+
+            // Special case : this is otherwise the "default servlet"
             // because routing on "/" is special.
-            
+
             if ( uri.isEmpty() || uri.equals("/") ) {
                 rootPathServlet.dispatch(request, response);
                 return;
             }
-            
+
             if ( uri.startsWith("/$") ) {
                 // Direct servlets.
                 chain.doFilter(request, response);
@@ -78,7 +82,7 @@ public class F_PatchFilter implements javax.servlet.Filter {
                 chain.doFilter(request, response);
                 return;
             }
-            
+
             int idx1 = 1;
             if ( servletPath.isEmpty() ) {
                 // Dispatched as "/*"
@@ -94,7 +98,7 @@ public class F_PatchFilter implements javax.servlet.Filter {
             String trailing;
             if ( idx2 > idx1 ) {
                 dsName = uri.substring(idx1, idx2);
-                trailing = uri.substring(idx2+1); 
+                trailing = uri.substring(idx2+1);
             }
             else {
                 try {
@@ -107,25 +111,29 @@ public class F_PatchFilter implements javax.servlet.Filter {
             }
 
             DataSourceDescription dsd = lookup(dsName);
-            
+
             if ( dsd == null ) {
                 // No match - let server routing take care of it.
                 chain.doFilter(request, response);
                 return ;
             }
-            
+
 //            System.err.println("uri      = "+uri);
 //            System.err.println("dsName   = "+dsName);
 //            System.err.println("trailing = "+trailing);
-            
+
             // To the servlet for matches of "/{name}"
             // Or a direct function call.
             // function(dsd, dsName,trailing);
-            
+
             servlet.dispatch(request, response);
-            
+
         } catch (ActionErrorException ex) {
-            Delta.DELTA_LOG.error("HTTP exception: "+ex.getRC()+" -- "+ex.getMessage());
+            if ( ex.getRC() >= 400 && ex.getRC() < 500 )
+                Delta.DELTA_LOG.info("HTTP : "+ex.getRC()+" -- "+ex.getMessage());
+            else
+                Delta.DELTA_LOG.error("HTTP exception: "+ex.getRC()+" -- "+ex.getMessage());
+
             try { response.sendError(ex.getRC(), ex.getMessage()) ; } catch (IOException ex2) {}
         }
         catch (Exception ex) {

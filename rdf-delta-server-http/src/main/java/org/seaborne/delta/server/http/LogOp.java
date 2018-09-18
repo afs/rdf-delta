@@ -35,39 +35,46 @@ import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
 import org.eclipse.jetty.io.RuntimeIOException;
-import org.seaborne.delta.*;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaBadPatchException;
+import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DeltaNotFoundException;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.Version;
 import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.slf4j.Logger ;
 
+/** Patch Log operations */
 public class LogOp {
     static private Logger LOG = Delta.getDeltaLogger("Patch") ;
-    
-    /** Execute an append, assuming the action has been verified that it is an append operation */ 
+
+    /** Execute an append, assuming the action has been verified that it is an append operation */
     public static void append(DeltaAction action) throws IOException {
         Id dsRef = idForDatasource(action);
         if ( dsRef == null )
             throw new DeltaNotFoundException("No such datasource: '"+action.httpArgs.datasourceName+"'");
-        
+
         RDFPatch patch;
         try {
-            patch = readPatch(action.request);
+            patch = readPatch(action);
         } catch (IOException ex) {
-            FmtLog.error(LOG, ex, "Patch:append ds:%s patch:failed: %s", dsRef.toString(), ex.getMessage());
+            FmtLog.error(LOG, ex, "[%d] Patch:append ds:%s patch:failed: %s", action.id, dsRef.toString(), ex.getMessage());
             throw new RuntimeIOException(ex);
         } catch (PatchException ex) {
-            FmtLog.warn(LOG, ex, "Patch:append ds:%s patch:syntax error: %s", dsRef.toString(), ex.getMessage());
+            FmtLog.warn(LOG, ex, "[%d] Patch:append ds:%s patch:syntax error: %s", action.id, dsRef.toString(), ex.getMessage());
             throw ex;
         }
-        
+
         Node patchId = patch.getId();
         if ( false )
             RDFPatchOps.write(System.out, patch);
 
         try {
             Version version = action.dLink.append(dsRef, patch);
-            
+
             // Location of patch in "container/patch/id" form.
             //String location = action.request.getRequestURI()+"/patch/"+ref.asPlainString();
             String location = action.request.getRequestURI()+"?version="+version;
@@ -79,32 +86,32 @@ public class LogOp {
                 .finishObject()
                 .build();
 
-            FmtLog.info(LOG, "Patch:append ds:%s patch:%s => ver=%s", dsRef.toString(), Id.str(patchId), version);
-            
+            FmtLog.info(LOG, "[%d] Patch:append ds:%s patch:%s => ver=%s", action.id, dsRef.toString(), Id.str(patchId), version);
+
             OutputStream out = action.response.getOutputStream();
             action.response.setContentType(WebContent.contentTypeJSON);
             action.response.setStatus(HttpSC.OK_200);
             action.response.setHeader(HttpNames.hLocation, location);
-            
+
             JSON.write(out, rslt);
             out.flush();
         } catch (DeltaBadPatchException ex) {
-            FmtLog.warn(LOG, ex, "Patch:append ds:%s patch:%s => %s", dsRef.toString(), Id.str(patchId), ex.getMessage());
+            FmtLog.warn(LOG, ex, "[%d] Patch:append ds:%s patch:%s => %s", action.id, dsRef.toString(), Id.str(patchId), ex.getMessage());
             throw ex;
         } catch (IOException ex) {
-            FmtLog.error(LOG, ex, "Patch:append ds:%s patch:%s => %s", dsRef.toString(), Id.str(patchId), ex.getMessage());
+            FmtLog.error(LOG, ex, "[%d] Patch:append ds:%s patch:%s => %s", action.id, dsRef.toString(), Id.str(patchId), ex.getMessage());
             throw ex;
         }
-
     }
-    
-    private static RDFPatch readPatch(HttpServletRequest request) throws IOException {
+
+    private static RDFPatch readPatch(DeltaAction action) throws IOException {
+        HttpServletRequest request = action.request;
         long byteLength = request.getContentLengthLong();
         try ( CountingInputStream in = new CountingInputStream(request.getInputStream()); ) {
             RDFPatch patch = RDFPatchOps.read(in);
             if ( byteLength != -1L ) {
                 if ( in.getByteCount() != byteLength )
-                    FmtLog.warn(LOG, "Length mismatch: Read: %d : Content-Length: %d",in.getByteCount(),  byteLength);  
+                    FmtLog.warn(LOG, "[%d] Length mismatch: Read: %d : Content-Length: %d", action.id, in.getByteCount(),  byteLength);
             }
             return patch;
         }
@@ -114,11 +121,11 @@ public class LogOp {
         String datasourceName = action.httpArgs.datasourceName;
         if ( Id.maybeUUID(datasourceName) ) {
             // Looks like an Id
-            try { 
+            try {
                 UUID uuid = UUID.fromString(datasourceName);
                 Id id = Id.fromUUID(uuid);
                 DataSourceDescription dsd = action.dLink.getDataSourceDescription(id);
-                return dsd != null ? id : null; 
+                return dsd != null ? id : null;
             } catch (IllegalArgumentException ex) { /* Not a UUID: drop through to try-by-name */ }
         }
         // Not a UUID.
@@ -132,7 +139,7 @@ public class LogOp {
         if ( dsRef == null )
             throw new DeltaNotFoundException("No such datasource: '"+action.httpArgs.datasourceName+"'");
         RDFPatch patch;
-        
+
         if ( action.httpArgs.patchId != null ) {
             Id patchId = action.httpArgs.patchId;
             patch = action.dLink.fetch(dsRef, patchId);
@@ -147,11 +154,11 @@ public class LogOp {
             DeltaAction.errorBadRequest("No id and no version in patch fetch request");
             patch = null;
         }
-        
+
         OutputStream out = action.response.getOutputStream();
         //action.response.setCharacterEncoding(WebContent.charsetUTF8);
         action.response.setStatus(HttpSC.OK_200);
-        action.response.setContentType(DeltaConst.contentTypePatchText); 
+        action.response.setContentType(DeltaConst.contentTypePatchText);
         RDFPatchOps.write(out, patch);
         // Not "close".
         IO.flush(out);

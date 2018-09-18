@@ -179,6 +179,12 @@
         <version>${ver.slf4j}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${ver.slf4j}</version>
+      </dependency>
+
       <!-- Either this ... -->
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -198,6 +204,7 @@
         <artifactId>log4j</artifactId>
         <version>${ver.log4j}</version>
       </dependency> 
+      <!-- -->
 
       <dependency>
         <groupId>org.apache.curator</groupId>
@@ -241,6 +248,12 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${ver.aws-s3}</version>
+         <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency> 
 
       <!-- Control the version of com.amazonaws:aws-java-sdk-s3 -->

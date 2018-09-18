@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.server.http;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,40 +28,54 @@ import org.seaborne.delta.DeltaBadRequestException ;
 import org.seaborne.delta.link.DeltaLink;
 
 public class DeltaAction {
+
+    private static AtomicLong     requestIdAlloc = new AtomicLong(0) ;
+    protected static long allocRequestId(HttpServletRequest request, HttpServletResponse response) {
+        long id = requestIdAlloc.incrementAndGet() ;
+        //response.addHeader("RDF-Delta-Request-ID", Long.toString(id)) ;
+        return id ;
+    }
+
+    /*package*/ final long id;
+
     public final HttpServletRequest request;
     public final HttpServletResponse response;
     public final DeltaLink dLink;
-    // Some marker sent by the client to help end-to-end tracking.  Usually not used. 
+    // Some marker sent by the client to help end-to-end tracking.  Usually not used.
     public final String token;
     public final String opName;
-    
+
     // Should subclass but that then needs casting.
-    
+
     // For RPC.
     public final JsonObject rpcArg;
     public final JsonObject requestObject;
     // For HTTP
     public final Args httpArgs;
-    
+
     /** HTTP action */
-    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
+    // HttpOperationBase.parseRequest
+    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response,
                                      DeltaLink deltaLink, String token,
                                      String opName, String opId, Args args) {
         return new DeltaAction(request, response, deltaLink, token, opName, opId, null, null, args);
     }
-        
+
     /** DRPC action */
-    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response, 
+    // S_DRPC.parseRequest
+    public static DeltaAction create(HttpServletRequest request, HttpServletResponse response,
                                      DeltaLink deltaLink, String token,
                                      String opName, String opId, JsonObject arg, JsonObject requestObject) {
         return new DeltaAction(request, response, deltaLink, token, opName, opId, arg, requestObject, null);
     }
-    
+
     /** DRPC action */
-    private DeltaAction(HttpServletRequest request, HttpServletResponse response, 
-                        DeltaLink deltaLink, String token, 
-                        String opName, String opId, JsonObject arg, JsonObject requestObject, 
+    private DeltaAction(HttpServletRequest request, HttpServletResponse response,
+                        DeltaLink deltaLink, String token,
+                        String opName, String opId, JsonObject arg, JsonObject requestObject,
                         Args args) {
+        // Either rpcArg/requestObject (RPC) or args (HTTP request) is set but not both.
+        this.id = allocRequestId(request, response);
         this.request = request;
         this.response = response;
         this.dLink = deltaLink;
@@ -76,9 +92,9 @@ public class DeltaAction {
         String queryString = request.getQueryString();
         if ( queryString != null )
             sBuff.append('?').append(queryString);
-        return sBuff.toString(); 
+        return sBuff.toString();
     }
-    
+
     public static void errorBadRequest(String msg) {
         throw new DeltaBadRequestException(msg);
     }

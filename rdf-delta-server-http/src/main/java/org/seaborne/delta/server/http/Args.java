@@ -33,20 +33,20 @@ import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id;
 
-/** Parsed arguments for Patch and Fetch. 
+/** Parsed arguments for Patch and Fetch.
  * <p>
  * The query string is used for arguments.
  *  <ul>
- *  <li><tt>dataset</tt> &ndash; Id or URI for the datasource 
- *  <li><tt>patch</tt> &ndash; patch id (for fetch) 
+ *  <li><tt>dataset</tt> &ndash; Id or URI for the datasource
+ *  <li><tt>patch</tt> &ndash; patch id (for fetch)
  *  <li><tt>version</tt> &ndash; version number
  *  <li><tt>ref</tt> &ndash; pointer to predefined arguments [Not Implemented]
- *  <li><tt>zone</tt> &ndash; pointer to predefined arguments [Not Implemented] 
+ *  <li><tt>zone</tt> &ndash; pointer to predefined arguments [Not Implemented]
  *  </ul>
  */
 public class Args {
-    
-    private static Map<String, Args> registration = new ConcurrentHashMap<>(); 
+
+    private static Map<String, Args> registration = new ConcurrentHashMap<>();
 
     public static Args argsParams(HttpServletRequest request) {
         String ref = request.getParameter(DeltaConst.paramRef);
@@ -56,19 +56,19 @@ public class Args {
         String patchIdStr   = request.getParameter(DeltaConst.paramPatch);
         String versionStr   = request.getParameter(DeltaConst.paramVersion);
         String clientIdStr  = request.getParameter(DeltaConst.paramClient);
-        String tokenStr     = request.getParameter(DeltaConst.paramToken);  
+        String tokenStr     = request.getParameter(DeltaConst.paramToken);
 
         if ( datasourceName != null ) {
             if ( ! DeltaOps.isValidName(datasourceName) )
                 throw new DeltaBadRequestException("Bad name for a data source: "+datasourceName);
         }
-        
-        Id patchId = patchIdStr == null ? null : Id.fromString(patchIdStr);
-        Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
-        Long version = versionStr == null ?null : new Long(versionStr);
+
+        Id patchId =    Id.fromStringOrNull(patchIdStr);
+        Id clientId =   Id.fromStringOrNull(clientIdStr);
+        Long version =  (versionStr == null)  ? null : new Long(versionStr);
         return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
     }
-    
+
     /** Process an HTTP request to extract the arguments.
      * Two styles are supported: the preferred RESTful coatainer style:
      *      * <ul>
@@ -78,11 +78,11 @@ public class Args {
      * but also the same information using query string parameters:
      * <ul>
      * <li>Append patch: {@code POST} to <tt>/{srvName}?datasource={name}</tt>
-     * <li>Get patch:    {@code GET} from <tt>/{srvName}?datasource={name}&amp;id={id}</tt> or <tt>/{srcName}?datasource={name}&amp;version={version}</tt>.  
+     * <li>Get patch:    {@code GET} from <tt>/{srvName}?datasource={name}&amp;id={id}</tt> or <tt>/{srcName}?datasource={name}&amp;version={version}</tt>.
      * </ul>
      * where <tt>{srvName}</tt> is the service name.
      * <p>
-     * The registration token is always a query string parameter.  
+     * The registration token is always a query string parameter.
      */
     public static Args pathArgs(HttpServletRequest request) {
         // Process, arguments for any operation.
@@ -90,37 +90,37 @@ public class Args {
         String datasourceName = request.getParameter(DeltaConst.paramDatasource);
         String patchIdStr = request.getParameter(DeltaConst.paramPatch);
         String versionStr = request.getParameter(DeltaConst.paramVersion);
-        
+
         // Should be null.
         String clientIdStr = request.getParameter(DeltaConst.paramClient);
         // Marker carried by requests. Optional.
-        String tokenStr = request.getParameter(DeltaConst.paramToken);  
+        String tokenStr = request.getParameter(DeltaConst.paramToken);
 
         Id patchId = patchIdStr == null ? null : Id.fromString(patchIdStr);
         Id clientId = clientIdStr == null ? null : Id.fromString(clientIdStr);
-        
+
         Long version = null ;
         if ( versionStr != null ) {
             try { version = Long.parseLong(versionStr); }
-            catch (NumberFormatException ex) { errorBadRequest("Can't parse version: "+versionStr) ; }  
+            catch (NumberFormatException ex) { errorBadRequest("Can't parse version: "+versionStr) ; }
         }
-        
-        /* Now the preferred URI: 
+
+        /* Now the preferred URI:
          *     /servlet/{name}/
          *     /servlet/{name}/patch/{version}
          *     /servlet/{name}/patch/{id}
          */
-        
+
         String uri = request.getRequestURI();
         String x = getTrailing(request);
         if ( x.isEmpty() ) {
             // No name.
             return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
         }
-        
+
         if ( ! x.startsWith("/") )
-            errorBadRequest("Bad URI: "+uri); 
-            
+            errorBadRequest("Bad URI: "+uri);
+
 //        int idxStart = 1;
 //        int idxFinish = x.indexOf('/', idxStart);
 //        if ( idxFinish > 0 )
@@ -131,9 +131,9 @@ public class Args {
         // z[0] is always empty because x starts with "/"
         String[] z = x.split("/");
         String msg="";
-        
+
         // Cant happen?
-        if ( z.length == 0 ) throw new IllegalArgumentException("zero length URI split array") ; 
+        if ( z.length == 0 ) throw new IllegalArgumentException("zero length URI split array") ;
         if ( z.length == 1 ) errorBadRequest("No name given");
         if ( z.length > 3 )
             errorBadRequest("URI path has too many components.");
@@ -141,7 +141,7 @@ public class Args {
         datasourceName = z[1];
         if ( z.length == 3 ) {
             String patchStr = z[2];
-            
+
             if ( patchStr.isEmpty() )
                 errorBadRequest("Patch ref empty");
             if ( Id.maybeUUID(patchStr) ) {
@@ -154,9 +154,9 @@ public class Args {
         }
         return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
     }
-    
+
     private static UUID parseUUID(String patchStr, UUID dft) {
-        try { 
+        try {
             return UUID.fromString(patchStr);
         } catch (IllegalArgumentException ex) {
             return dft;
@@ -169,17 +169,17 @@ public class Args {
         // Numbers only.
         if ( intStr.startsWith("+") || intStr.startsWith("-") )
             return dft;
-        try {  
+        try {
             return new Long(intStr);
         } catch (NumberFormatException ex) {
             return dft;
         }
     }
-    
+
     /**
      * Get the trailing part of a request URI.
-     * The URI is assumed to be in the form "/context/servlet/trailing". 
-     * @return The trailing part or   
+     * The URI is assumed to be in the form "/context/servlet/trailing".
+     * @return The trailing part or
      */
     private static String getTrailing(HttpServletRequest request) {
 //        Log.info(this, "URI                     = '"+request.getRequestURI()) ;
@@ -189,17 +189,17 @@ public class Args {
 //        ServletContext cxt = this.getServletContext() ;
 //        Log.info(this, "ServletContext path     = '"+cxt.getContextPath()+"'") ;
 
-        // URL naming version ; URI is "context/servletname/   
+        // URL naming version ; URI is "context/servletname/
         String servletPath = request.getServletPath() ;
         String uri = request.getRequestURI() ;
         String x = uri ;
         if ( uri.equals(servletPath) )
-            // Dispatch by servlet filter 
+            // Dispatch by servlet filter
             return x;
         if ( uri.startsWith(servletPath) )
             x = uri.substring(servletPath.length()) ;
         return x ;
-    } 
+    }
 
     public final String url;
     public final String method;
@@ -221,7 +221,7 @@ public class Args {
             default:
                 throw new IllegalArgumentException("Wrong method: "+method);
         }
-        
+
         this.datasourceName = datasourceName;
         this.patchId = patchId;
         this.version = verStr;
