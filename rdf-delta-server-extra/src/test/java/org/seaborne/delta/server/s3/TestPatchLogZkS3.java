@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.s3;
 
 import org.junit.After;
 import org.junit.Before;

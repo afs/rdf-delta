@@ -33,16 +33,13 @@ import org.slf4j.LoggerFactory;
  * otherwise specificed.
  */
 public class PatchStoreMgr {
-    protected static Logger LOG = LoggerFactory.getLogger(PatchStoreMgr.class); 
-    
+    protected static Logger LOG = LoggerFactory.getLogger(PatchStoreMgr.class);
+
     private static Map<String, PatchStoreProvider> providers = new HashMap<>();
-    
-    // Default PatchStore.
-    private static PatchStoreProvider dxftPatchStoreProvider;
 
     // ---- Short name / long name.
     private static BiMap<String, String> shortName2LongName = HashBiMap.create();
-    
+
     public static void registerShortName(String shortName, String providerName) {
         shortName2LongName.put(shortName, providerName);
     }
@@ -55,12 +52,12 @@ public class PatchStoreMgr {
             return null;
         return shortName2LongName.get(shortName);
     }
-    
+
     public static String longName2ShortName(String providerName) {
         return shortName2LongName.inverse().get(providerName);
     }
     // ----
-    
+
     public static Collection<PatchStoreProvider> registered() {
         return new HashSet<>(providers.values());
     }
@@ -68,37 +65,38 @@ public class PatchStoreMgr {
     public static boolean isRegistered(String providerName) {
         return providers.containsKey(providerName);
     }
-    
+
     /**
      * Add a {@link PatchStore} using the given {@link PatchStoreProvider} for details and
      * to create the {@code PatchStore}
      */
     public static void register(PatchStoreProvider provider) {
-      registerShortName(provider.getShortName(), provider.getProviderName());
-      providers.put(provider.getProviderName(), provider);
+        String name = provider.getProviderName();
+        registerShortName(provider.getShortName(), name);
+        providers.put(name, provider);
     }
-    
-    /** Unregister by provider name */ 
+
+    /** Unregister by provider name */
     public static void unregister(String providerName) {
         FmtLog.info(LOG, "Unregister patch store: %s", providerName);
         if ( ! providers.containsKey(providerName) )
             Log.warn(PatchStore.class, "Not registered: "+providerName);
         PatchStoreProvider psp = providers.remove(providerName);
     }
-    
+
     /**
      * Get the {@code PatchStoreProvider} by name.
      */
     public static PatchStoreProvider getPatchStoreProvider(String providerName) {
         String name = key(providerName);
-        return providers.get(name); 
+        return providers.get(name);
     }
-    
-    /** Return the preferred name */
+
+    /** Return the preferred name, which must be a registered provider. */
     public static String canonical(String name) {
         return key(name);
     }
-        
+
     private static String key(String name) {
         if ( isRegistered(name) )
             return name;

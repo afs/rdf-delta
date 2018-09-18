@@ -29,12 +29,19 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.util.StringUtils;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
+    public static String convertProviderName(String logProvider) {
+        return logProvider+"_S3";
+    }
+
+    public static final String ProviderName = convertProviderName(DPS.PatchStoreZkProvider);
+
     private static String DEFAULT_PREFIX = "patches/";
     private Map<String, DetailsS3> access = new ConcurrentHashMap<>();
 
@@ -42,27 +49,26 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
         final String prefix;
         final String bucketName;  //DNS name,lower case.
         final AmazonS3 client;
-        
+
         public DetailsS3(String bucketName, String prefix, AmazonS3 client) {
             this.prefix = prefix;
             this.bucketName = bucketName;
             this.client = client;
         }
-        
     }
 
     public PatchStoreProviderZkS3() {}
-    
+
     private DetailsS3 accessS3(LocalServerConfig configuration) {
         // Access and checking.
         String bucketName = configuration.getProperty(pBucketName);
         if ( StringUtils.isNullOrEmpty(bucketName) )
             throw new IllegalArgumentException("Missing required property: "+pBucketName);
-        
+
         String region = configuration.getProperty(pRegion);
         if ( StringUtils.isNullOrEmpty(region) )
             throw new IllegalArgumentException("Missing required property: "+pRegion);
-        
+
         String prefixStr = configuration.getProperty(pPrefix);
         if ( StringUtils.isNullOrEmpty(prefixStr) )
             prefixStr = DEFAULT_PREFIX;
@@ -72,14 +78,18 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
         //return access.computeIfAbsent(bucketName, n->new DetailsS3(bucketName, prefix, client));
     }
 
-    /** Long name */ 
+    /** Long name */
     @Override
-    public String getProviderName() { return super.getProviderName()+"_S3"; }
-    
-    /** Short name used in server configuration files to set the default provider via "log_type" */ 
+    public String getProviderName() {
+        return ProviderName;
+    }
+
+    /** Short name used in server configuration files to set the default provider via "log_type" */
     @Override
-    public String getShortName() { return super.getShortName()+"s3"; }
-    
+    public String getShortName() {
+        return super.getShortName() + "s3";
+    }
+
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         DetailsS3 s3 = accessS3(configuration);

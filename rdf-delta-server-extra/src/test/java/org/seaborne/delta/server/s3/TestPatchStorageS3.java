@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.s3;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -36,14 +36,14 @@ import org.seaborne.delta.server.s3.S3;
 
 public class TestPatchStorageS3 extends AbstractTestPatchStorage {
     static { LogCtl.setJavaLogging(); }
-    
+
     private static String testBucketName = "delta";
     private static String testPrefix = "patches/";
-    
+
     private int port = choosePort();
     private S3Mock s3Mock;
     private String endpoint = "http://localhost:"+port+"/";
-    
+
     /** Choose an unused port for a server to listen on */
     public static int choosePort() {
         try (ServerSocket s = new ServerSocket(0)) {
@@ -52,17 +52,16 @@ public class TestPatchStorageS3 extends AbstractTestPatchStorage {
             throw new DeltaException("Failed to find a port");
         }
     }
-    
+
     @Before public void before() {
         s3Mock = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
         s3Mock.start();
    }
-    
+
     @After public void after() {
         s3Mock.shutdown();
     }
-    
-    
+
     @Override
     protected PatchStorage patchStorage() {
         LocalServerConfig config = S3.configZkS3("", testBucketName, "eu-west-1", endpoint);

@@ -16,22 +16,18 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.cmds;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.apache.jena.atlas.lib.Lib;
+import org.seaborne.delta.server.s3.S3T;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestPatchStorageS3.class
-    , TestPatchLogZkS3.class
-    , TestPatchStoreZkS3.class
-})
-
-public class TS_ServerExtra {
-    @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+/** Run a mock S3 using io.findify */
+public class MockS3 {
+    public static void main(String... args) {
+        int PORT = 1357;
+        S3T.makeMockS3(PORT);
+        while(true) {
+            Lib.sleep(1000);
+        }
     }
 }

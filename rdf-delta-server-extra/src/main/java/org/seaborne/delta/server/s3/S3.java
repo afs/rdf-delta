@@ -19,6 +19,8 @@
 package org.seaborne.delta.server.s3;
 
 
+import static org.seaborne.delta.server.s3.S3Const.*;
+
 import java.util.Objects;
 import java.util.Properties;
 
@@ -31,8 +33,6 @@ import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.HeadBucketResult;
 
-import static org.seaborne.delta.server.s3.S3Const.*;
-
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.DeltaConfigException;
@@ -40,32 +40,47 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
 
 public class S3 {
-    
+
     /**
-     * Create {@link LocalServerConfig} for Zookeeper and S3 based patch log server.
+     * Create a {@link LocalServerConfig} for Zookeeper+S3 by connection string.
      */
-    public static LocalServerConfig configZkS3(String zkConnectionString,
-                                               String bucketName,
-                                               String region) {
+    public static LocalServerConfig configZkS3(String zkConnectionString, String bucketName, String region) {
         return configZkS3(zkConnectionString, bucketName, region, null);
     }
-    
+
     /**
-     * Create {@link LocalServerConfig} for Zookeeper and S3 based patch log server,
+     * Create {@link LocalServerConfig} for a Zookeeper and S3 based patch log server,
      * allowing the service endpoint to be set (e.g. for testing).
      */
-    public static LocalServerConfig configZkS3(String zkConnectionString,
-                                               String bucketName,
-                                               String region,
-                                               String endpoint) {
+    public static LocalServerConfig configZkS3(String zkConnectionString, String bucketName, String region, String endpoint) {
+        LocalServerConfig c = LocalServers.configZk(zkConnectionString);
+        return configZkS3(c, bucketName, region, endpoint);
+    }
+
+    /**
+     * Create {@link LocalServerConfig} for a S3 based patch log server,
+     * starting with the LocalServerConfig for the index server
+     * allowing the service endpoint to be set (e.g. for testing).
+     */
+    public static LocalServerConfig configZkS3(LocalServerConfig c, String bucketName, String region) {
+        return configZkS3(c, bucketName, region, null);
+    }
+
+    /**
+     * Create {@link LocalServerConfig} for a S3 based patch log server,
+     * starting with the LocalServerConfig for the index server
+     * allowing the service endpoint to be set (e.g. for testing).
+     */
+    public static LocalServerConfig configZkS3(LocalServerConfig c, String bucketName, String region, String endpoint) {
         Properties properties = PropertiesBuilder.create()
             .set(pBucketName, bucketName)
             .set(pRegion, region)
             .option(pEndpoint, endpoint)
             .build();
-        LocalServerConfig c = LocalServers.configZk(zkConnectionString);
-        c = LocalServerConfig.create(c).setProperties(properties).build();
-        return c;
+        return LocalServerConfig.create(c)
+            .setLogProvider(PatchStoreProviderZkS3.ProviderName)
+            .setProperties(properties)
+            .build();
     }
 
     public static AmazonS3 buildS3(LocalServerConfig configuration) {
@@ -93,7 +108,7 @@ public class S3 {
             createBucket(client, bucketName);
     }
 
-    
+
     /** Test whether the bucket exists and is accessible. */
     public static boolean bucketExists(AmazonS3 client, String bucketName) {
         try {
@@ -115,17 +130,17 @@ public class S3 {
             throw awsEx;
         }
     }
-    
+
     public static void createBucket(AmazonS3 client, String bucketName) {
         Bucket bucket = client.createBucket(bucketName);
     }
 
     private static class PropertiesBuilder {
-        
-        public static PropertiesBuilder create() { return new PropertiesBuilder(); } 
-        
+
+        public static PropertiesBuilder create() { return new PropertiesBuilder(); }
+
         private Properties properties = new Properties();
-    
+
         public PropertiesBuilder set(String propertyName, String propertyValue) {
             Objects.requireNonNull(propertyName, "propertyName");
             if ( propertyValue == null )
@@ -133,18 +148,18 @@ public class S3 {
             properties.setProperty(propertyName, propertyValue);
             return this;
         }
-        
+
         public PropertiesBuilder option(String propertyName, String propertyValue) {
             Objects.requireNonNull(propertyName, "propertyName");
             if ( propertyValue != null )
                 properties.setProperty(propertyName, propertyValue);
             return this;
         }
-        
-        public Properties build() { 
+
+        public Properties build() {
             return properties;
         }
     }
-    
+
 
 }

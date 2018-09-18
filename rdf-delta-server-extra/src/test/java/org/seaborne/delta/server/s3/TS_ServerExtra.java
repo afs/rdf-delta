@@ -16,29 +16,22 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.cmds;
+package org.seaborne.delta.server.s3;
 
-import org.junit.AfterClass;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-import org.seaborne.delta.lib.LogCtlX;
 
 @RunWith(Suite.class)
-@SuiteClasses( {
-    TestDeltaServerConfig.class
-    , TestCmds.class
-    , TestCmdServer.class
-    , TestCmdServerZkS3.class
+@Suite.SuiteClasses( {
+    TestPatchStorageS3.class
+    , TestPatchLogZkS3.class
+    , TestPatchStoreZkS3.class
 })
 
-public class TS_DeltaCmds {
+public class TS_ServerExtra {
     @BeforeClass public static void beforeClass() {
-        // Our choice.
-        System.setProperty("log4j.configuration", "set");
-        LogCtlX.setJavaLoggingClasspath("logging-quiet.properties");
+        LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-
-    @AfterClass public static void afterClass() {}
 }

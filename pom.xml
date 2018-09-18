@@ -92,7 +92,6 @@
 
     <module>rdf-delta-cmds</module>
     <module>rdf-delta-examples</module>
-
     <module>rdf-delta-dist</module>
   </modules>
 
@@ -244,11 +243,18 @@
         <version>${ver.aws-s3}</version>
       </dependency> 
 
+      <!-- Control the version of com.amazonaws:aws-java-sdk-s3 -->
       <dependency>
         <groupId>io.findify</groupId>
         <artifactId>s3mock_2.12</artifactId>
-        <version>${ver.s3mock}</version>
-      </dependency> 
+        <version>${ver.s3mock}</version> 
+        <exclusions>
+          <exclusion>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
 
     </dependencies>
       

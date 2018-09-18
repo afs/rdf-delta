@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server;
+package org.seaborne.delta.server.s3;
 
 import org.junit.After;
 import org.junit.Before;
+import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.local.DataRegistry;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchStore;
