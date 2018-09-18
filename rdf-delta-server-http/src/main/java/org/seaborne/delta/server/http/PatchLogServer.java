@@ -57,7 +57,7 @@ import org.slf4j.Logger;
  * Implemented as a packaging of Jetty with the necessary servlets for Delta.
  */
 public class PatchLogServer {
-    
+
     private static Logger LOG = Delta.DELTA_SERVER_LOG;
     private final boolean loopback = false;
     private final Server server;
@@ -65,17 +65,17 @@ public class PatchLogServer {
     private final String jettyConfigFile;
     // Shared across servlets.
     private final DeltaLink deltaLink;
-    
+
     /** Create a {@code PatchLogServer}
      * @param port
-     * @param base 
+     * @param base
      */
     public static PatchLogServer server(int port, String base) {
         LocalServer server = LocalServers.createFile(base);
         DeltaLink link = DeltaLinkLocal.connect(server);
         return PatchLogServer.create(port, link);
     }
-    
+
     /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */
     public static PatchLogServer create(int port, DeltaLink engine) {
         return new PatchLogServer(null, port, engine);
@@ -88,7 +88,7 @@ public class PatchLogServer {
 
     private PatchLogServer(String jettyConfig, int port, DeltaLink dLink) {
         DPS.init();
-        
+
         // Either ... or ...
         this.jettyConfigFile = jettyConfig;
 
@@ -97,39 +97,39 @@ public class PatchLogServer {
             this.port = ((ServerConnector)server.getConnectors()[0]).getPort();
         } else {
             server = jettyServer(port, false);
-            this.port = port; 
+            this.port = port;
         }
 
         this.deltaLink = dLink;
         ServletContextHandler handler = buildServletContext("/");
-        
+
         HttpServlet servletRDFPatchLog = new S_Log(dLink);
         HttpServlet servletPing = new S_Ping();
         //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
-        
-        // Filter - this catches RDF Patch Log requests. 
+
+        // Filter - this catches RDF Patch Log requests.
         addFilter(handler, "/*", new F_PatchFilter(dLink,
                                                    (req, resp)->servletRDFPatchLog.service(req, resp),
                                                    (req, resp)->servletPing.service(req, resp)
                                                    ));
-        
+
         // Other
         addServlet(handler, "/"+DeltaConst.EP_RPC, new S_DRPC(this.deltaLink));
         //addServlet(handler, "/restart", new S_Restart());
-        
+
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
-        
+
         // Initial data. "/init-data?datasource=..."
         addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.deltaLink));
 
-        
+
         // ---- A default servlet at the end of the chain.
-//        // -- Jetty default, including static content. 
+//        // -- Jetty default, including static content.
 //        DefaultServlet servletContent = new DefaultServlet();
 //        ServletHolder servletHolder = new ServletHolder(servletContent);
 //        //servletHolder.setInitParameter("resourceBase", "somewhere");
 //        handler.addServlet(servletHolder, "/*");
-        
+
         // -- 404 catch all.
         HttpServlet servlet404 = new Servlet404();
         addServlet(handler, "/*", servlet404);
@@ -138,7 +138,7 @@ public class PatchLogServer {
         // Wire up.
         server.setHandler(handler);
     }
-    
+
     static class Servlet404 extends HttpServlet {
         @Override
         protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -146,7 +146,7 @@ public class PatchLogServer {
             //resp.sendError(HttpSC.NOT_FOUND_404, "Not found");
         }
     }
-    
+
     /** Build a ServletContextHandler. */
     private static ServletContextHandler buildServletContext(String contextPath) {
         if ( contextPath == null || contextPath.isEmpty() )
@@ -166,7 +166,7 @@ public class PatchLogServer {
         context.setErrorHandler(eh);
         return context;
     }
-    
+
     private static void addMimeType(MimeTypes mt, Lang lang) {
         lang.getFileExtensions().forEach(ext->
             mt.addMimeMapping(ext, lang.getContentType().getContentType())
@@ -189,7 +189,7 @@ public class PatchLogServer {
             connector.setHost("localhost");
         return server;
     }
-    
+
     /** Build a Jetty server from a Jetty.xml configuration file */
     private static Server jettyServer(String jettyConfig) {
         try {
@@ -207,27 +207,29 @@ public class PatchLogServer {
     private void addServlet(ServletContextHandler holder, String path, Servlet servlet) {
         holder.addServlet(new ServletHolder(servlet), path);
     }
-    
+
     private void addFilter(ServletContextHandler holder, String path, Filter filter) {
         holder.addFilter(new FilterHolder(filter), path, null);
     }
 
-    public Integer getPort() { return port ; } 
-    
-    public void start() throws BindException {
+    public Integer getPort() { return port ; }
+
+    public PatchLogServer start() throws BindException {
         try {
             server.start();
             //server.dumpStdErr();
             Delta.DELTA_LOG.info("DeltaServer starting");
+            return this;
         }
         catch (BindException ex) {
             throw ex;
         }
         catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
-    
+
     public void stop() {
         try {
             //Delta.DELTA_LOG.info("DeltaServer stopping");
@@ -237,7 +239,7 @@ public class PatchLogServer {
             e.printStackTrace();
         }
     }
-    
+
 
     public void join() {
         try {

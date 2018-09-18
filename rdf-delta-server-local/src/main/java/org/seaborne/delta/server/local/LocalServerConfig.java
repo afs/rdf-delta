@@ -37,24 +37,25 @@ import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {
-    
-    public static LocalServerConfig basic() { return LocalServerConfig.create().build(); }  
 
-    /** Name of the default PatchStore provider */ 
+    public static LocalServerConfig basic() { return LocalServerConfig.create().build(); }
+
+    /** Name of the default PatchStore provider */
     private final String logProvider;
-    
+
     /** File name of the configuration file (if any - may be null) */
     private final String configFile;
-    
+
     /** Delta properties */
-    private final Properties properties; 
+    private final Properties properties;
 
     private LocalServerConfig(String logProvider, Properties properties, String configFile) {
+        //Objects.requireNonNull(logProvider);
         this.logProvider = logProvider;
         this.configFile = configFile;
-        this.properties = properties; 
+        this.properties = properties;
     }
-    
+
     /** Name of the default PatchStore provider */
     public String getLogProvider() {
         return logProvider ;
@@ -99,19 +100,18 @@ public class LocalServerConfig {
 
     public static Builder create(LocalServerConfig other) { return new Builder(other); }
 
-    
     /** Configuration builder.
      *  Call "parse" or ("setPort" and "setLocation").
-     *  Can call "parse" and then modify 
+     *  Can call "parse" and then modify
      */
     static public class Builder {
         private static Logger LOG = Delta.DELTA_CONFIG_LOG;
         private String configFile = null;
         private String logProvider = null;
-        private final Properties properties = new Properties(); 
-    
+        private final Properties properties = new Properties();
+
         public Builder() {}
-        
+
         public Builder(LocalServerConfig other) {
             this.configFile = other.configFile;
             this.logProvider = other.logProvider;
@@ -123,22 +123,22 @@ public class LocalServerConfig {
             this.logProvider = logProvider;
             return this;
         }
-        
+
         public Builder setProperty(String key, String value) {
             properties.setProperty(key, value);
             return this;
         }
-        
+
         public Builder setProperties(Properties properties) {
             copyPropertiesInto(properties, this.properties);
             return this;
         }
-    
+
         /** Copy properties from {@code src} to {@code dest}. */
         private static void copyPropertiesInto(Properties src, Properties dest) {
             src.forEach((k,v)->dest.setProperty((String)k, (String)v));
         }
-        
+
         /** Parse a configuration file. */
         public Builder parse(String configFile) {
             Path path = Paths.get(configFile);
@@ -153,9 +153,9 @@ public class LocalServerConfig {
             }
             if ( version != SYSTEM_VERSION )
                 throw new DeltaConfigException("Version number for LocalServer must be "+DeltaConst.SYSTEM_VERSION+".");
-            
+
             this.configFile = configFile;
-    
+
             // -- log provider
             logProvider = DPS.PatchStoreFileProvider;
             String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
@@ -168,7 +168,7 @@ public class LocalServerConfig {
             setProperty(DeltaConst.pDeltaFile, path.getParent().toString());
             return this;
         }
-        
+
         public LocalServerConfig build() {
             String provider = null;
             if ( logProvider != null )
@@ -176,5 +176,5 @@ public class LocalServerConfig {
             return new LocalServerConfig(provider, properties, configFile);
         }
     }
-    
+
 }

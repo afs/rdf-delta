@@ -38,11 +38,11 @@ import org.seaborne.delta.link.DeltaLog;
 
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class TestCmdServer {
-    private static String ZKDIR     = "target/ZKD"; 
+    private static String ZKDIR     = "target/ZKD";
     private static String FILEDIR   = "target/FileStore";
 
     public TestCmdServer() { }
-    
+
     @BeforeClass static public void beforeClass() {
         FileOps.ensureDir(ZKDIR);
         FileOps.ensureDir(FILEDIR);
@@ -52,16 +52,16 @@ public class TestCmdServer {
         FileOps.clearDirectory(ZKDIR);
         FileOps.ensureDir(FILEDIR);
     }
-    
+
     // Not parameterized - easier to run individual cases.
-    
+
     @Test public void server2_mem() {
         String[] args = {"--mem"};
         serverAndVerify(args);
     }
-    
+
     @Test public void server2_zkMem() {
-        String[] args = {"--zk=mem",   "--zkPort=2188"}; 
+        String[] args = {"--zk=mem",   "--zkPort=2188"};
         serverAndVerify(args);
     }
 
@@ -75,17 +75,16 @@ public class TestCmdServer {
         serverAndVerify(args);
     }
 
-    
     public static void serverAndVerify(String[] args) {
         String serverURL = CmdTestLib.server(args);
         verifyServer(serverURL);
     }
-    
+
     private static void verifyServer(String URL) {
         DeltaLink dLink = DeltaLinkHTTP.connect(URL);
-        
+
         cmdq("mk", "--server="+URL, "ABC");
-        
+
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName("ABC");
         assertNotNull(dsd);
 
@@ -93,7 +92,7 @@ public class TestCmdServer {
         DeltaLog log = new DeltaLog(dLink, dsd.getId());
         PatchLogInfo info = log.info();
         assertEquals(1, log.getCurrentVersion().value());
-        
+
         cmdq("fetch", "--server="+URL, "--log=ABC", "1");
 
         cmdq("rm", "--server="+URL, "ABC");

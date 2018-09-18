@@ -36,7 +36,7 @@ public class LibX {
     public static RuntimeException adapt(Exception exception) {
         if ( exception instanceof RuntimeException )
             return (RuntimeException)exception;
-        // Wrap: the original is in the "caused by" and there is no stack trace for this method.  
+        // Wrap: the original is in the "caused by" and there is no stack trace for this method.
         return new RuntimeException(exception.getMessage(), exception) {
             @Override
             public synchronized Throwable fillInStackTrace() {
@@ -44,15 +44,15 @@ public class LibX {
             }
         };
     }
-    
+
     /** Copy an array of bytes.*/
     public static byte[] copy(byte[] bytes) {
         if ( bytes == null )
             return null ;
         return Arrays.copyOf(bytes, bytes.length) ;
     }
-    
-    /** Copy the contents of an {@link InputStream} so it can be closed. */ 
+
+    /** Copy the contents of an {@link InputStream} so it can be closed. */
     public static InputStream copy(InputStream inputStream) {
         if ( inputStream == null )
             return null ;
@@ -60,7 +60,7 @@ public class LibX {
         InputStream x = new ByteArrayInputStream(b) ;
         return x ;
     }
-    
+
     /**
      * Resolve a Location and file path: Location.getPath only handles file names withing
      * the location, not paths.
@@ -78,16 +78,16 @@ public class LibX {
     public static boolean exactNumNull(int N, Object... objs) {
         return N == countNull(objs);
     }
-    
+
     public static int countNull(Object... objs) {
         int x = 0;
         for ( Object obj : objs ) {
             if ( obj == null )
-                x++; 
+                x++;
         }
         return x ;
     }
-    
+
     public static int countNonNulls(Object ... objects) {
         int x = 0;
         for ( Object obj : objects ) {
@@ -96,16 +96,17 @@ public class LibX {
         }
         return x;
     }
-    
+
     public static boolean allNonNull(Object ... objects) {
         return countNonNulls(objects) == objects.length;
     }
-    
+
     public static boolean exactlyOneNotNull(Object ... objects) {
         return countNonNulls(objects) == 1;
     }
-    
+
     public static int choosePort() {
+        // [Jena 3.9.0] - WebLib.choosePort
         try (ServerSocket s = new ServerSocket(0)) {
             return s.getLocalPort();
         } catch (IOException ex) {

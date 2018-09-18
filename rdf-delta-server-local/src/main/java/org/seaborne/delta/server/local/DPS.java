@@ -30,12 +30,12 @@ import org.seaborne.delta.server.system.DeltaSystem;
 import org.slf4j.Logger ;
 
 public class DPS {
-    
+
     public static Logger LOG = Delta.DELTA_LOG ;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
-    
+
     private static volatile boolean initialized = false ;
-    
+
     public static String PatchStoreFileProvider = "PatchStore/File";
     public static String PatchStoreMemProvider  = "PatchStore/Mem";
     public static String PatchStoreZkProvider  = "PatchStore/Zk";
@@ -45,12 +45,12 @@ public class DPS {
     public static String pspMem  = "mem";
     public static String pspZk   = "zk";
 
-    
-    public static void init() { 
-        if ( initialized ) 
+
+    public static void init() {
+        if ( initialized )
             return ;
         synchronized(DPS.class) {
-            if ( initialized ) 
+            if ( initialized )
                 return ;
             initialized = true ;
             initPatchStoreProviders() ;
@@ -58,9 +58,9 @@ public class DPS {
     }
 
     /**
-     * For testing. This code knows where all the global state is 
+     * For testing. This code knows where all the global state is
      * and reset the system to the default after init() called.
-     * There default PatchStoreProvider is retained. 
+     * There default PatchStoreProvider is retained.
      */
     public static void resetSystem() {
         DeltaSystem.init();
@@ -71,17 +71,17 @@ public class DPS {
         PatchStoreMgr.reset();
         initPatchStoreProviders();
     }
-    
+
     // Things to do once.
     private static void initPatchStoreProviders() {
         // Find PatchStoreProviders.
         List<PatchStoreProvider> providers = new ArrayList<>();
-        
+
         // Hard code the discovery for now.
         providers.add(new PatchStoreProviderFile());
         providers.add(new PatchStoreProviderMem());
         providers.add(new PatchStoreProviderZk());
-        
+
         providers.forEach(psp->{
             LOG.debug("Provider: "+psp.getProviderName());
             PatchStoreMgr.register(psp);

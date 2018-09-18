@@ -39,13 +39,13 @@ public class DeltaServerConfig {
     // If there is a jetty.xml filename, the port is ignored.
     public Integer serverPort = null;
     public String jettyConf   = null;
-    
+
     // Provider. Assumes necessary classes are on the classpath.
     public Provider provider = Provider.UNSET;
-    
+
     // File provider
     public String fileBase = null ;
-    
+
     // Zookeeper provider
     public String zkConnectionString = null ;
 
@@ -57,11 +57,12 @@ public class DeltaServerConfig {
     public String zkData = null;
     // Quorum ensemble
     public String zkConf = null;
-    
+
     // S3 patch storage.
     public String s3BucketName = null;
     public String s3Region = null;
     public String s3Credentials = null;
+    public String s3Endpoint = null;
 
     // ---- JSON field constants
     private static String fProvider           = "store";
@@ -70,29 +71,31 @@ public class DeltaServerConfig {
     private static String fJetty              = "jetty";
 
     // The Zookeeper provider
-    private static String fZkConnectionString = "zkconnect";
-    private static String fZkConfig           = "zkconfig";
-    private static String fZkPort             = "zkport";
-    private static String fZkData             = "zkdata";
+    private static String fZkConnectionString = "zk.connect";
+    private static String fZkConfig           = "zk.config";
+    private static String fZkPort             = "zk.port";
+    private static String fZkData             = "zk.data";
     // The File provider
     private static String fFileDirData        = "filestore";
     // The memory provider
     // -- none
     // The S3 backend to Zookeeper
-    private static String fS3BucketName       = "bucket";
-    private static String fS3Region           = "region";
-    private static String fS3Credentials      = "aws";
+    private static String fS3BucketName       = "s3.bucket";
+    private static String fS3Region           = "s3.region";
+    private static String fS3Credentials      = "s3.aws";
+    private static String fS3Endpoint         = "s3.endpoint";
+
     // ---- JSON field constants
-    
-    public DeltaServerConfig( ) {} 
-    
+
+    public DeltaServerConfig( ) {}
+
     public static DeltaServerConfig read(String file) {
         JsonObject obj = JSON.read(file);
         return create(obj);
     }
-    
+
     private static void validate(DeltaServerConfig conf) {}
-    
+
     /** Recreate a {@code DeltaServerConfig} from JSON */
     public static DeltaServerConfig create(JsonObject obj) {
         DeltaServerConfig conf = new DeltaServerConfig();
@@ -103,13 +106,13 @@ public class DeltaServerConfig {
         }
         if ( obj.hasKey(fJetty) )
             conf.jettyConf = JSONX.getStrOrNull(obj, fJetty);
-        
+
         if ( obj.hasKey(fZkConnectionString) )
             conf.zkConnectionString = JSONX.getStrOrNull(obj, fZkConnectionString);
 
         if ( obj.hasKey(fZkConfig) )
             conf.zkConf = JSONX.getStrOrNull(obj, fZkConfig);
-        
+
         if ( obj.hasKey(fZkPort) ) {
             int x = JSONX.getInt(obj, fZkPort, -1);
             if ( x >= 0 )
@@ -117,43 +120,45 @@ public class DeltaServerConfig {
         }
         if ( obj.hasKey(fZkData) )
             conf.zkData = JSONX.getStrOrNull(obj, fZkData);
-        
+
         if ( obj.hasKey(fFileDirData) )
             conf.fileBase = JSONX.getStrOrNull(obj, fFileDirData);
-        
+
         if ( obj.hasKey(fProvider) )
             conf.provider = Provider.create(JSONX.getStrOrNull(obj, fProvider));
 
         if ( conf.zkConnectionString != null )
             conf.zkMode = ZkMode.EXTERNAL;
-        
+
         if ( conf.zkConf != null )
             conf.zkMode = ZkMode.QUORUM;
-        else if ( "mem".equalsIgnoreCase(conf.zkConnectionString) ) 
+        else if ( "mem".equalsIgnoreCase(conf.zkConnectionString) )
             conf.zkMode = ZkMode.MEM;
-        else if ( conf.zkData != null ) 
+        else if ( conf.zkData != null )
             conf.zkMode = ZkMode.SINGLE;
-        
+
         if ( obj.hasKey(fS3BucketName) )
             conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);
         if ( obj.hasKey(fS3Region) )
             conf.s3Region = JSONX.getStrOrNull(obj, fS3Region);
         if ( obj.hasKey(fS3Credentials) )
             conf.s3Credentials = JSONX.getStrOrNull(obj, fS3Credentials);
-        
+        if ( obj.hasKey(fS3Endpoint) )
+            conf.s3Endpoint = JSONX.getStrOrNull(obj, fS3Endpoint);
+
         validate(conf);
         return conf;
     }
-    
+
     public JsonObject asJSON() {
-        return 
+        return
             JSONX.buildObject(b->{
                 if ( provider != null && provider != Provider.UNSET )
                     b.pair(fProvider, provider.name());
 
                 if ( serverPort != null )
                     b.pair(fPort, serverPort.intValue());
-                
+
                 if ( jettyConf != null )
                     b.pair(fJetty, jettyConf);
 
@@ -171,13 +176,16 @@ public class DeltaServerConfig {
 
                 if ( s3BucketName != null )
                     b.pair(fS3BucketName, s3BucketName);
-                
+
                 if ( s3Region != null )
                     b.pair(fS3Region, s3Region);
-                
+
                 if ( s3Credentials != null )
                     b.pair(fS3Credentials, s3Credentials);
-                
+
+                if ( s3Endpoint != null )
+                    b.pair(fS3Endpoint, s3Endpoint);
+
                 if ( fileBase != null )
                     b.pair(fFileDirData, fileBase);
             });
@@ -200,6 +208,7 @@ public class DeltaServerConfig {
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
         result = prime * result + ((s3BucketName == null) ? 0 : s3BucketName.hashCode());
         result = prime * result + ((s3Credentials == null) ? 0 : s3Credentials.hashCode());
+        result = prime * result + ((s3Endpoint == null) ? 0 : s3Endpoint.hashCode());
         result = prime * result + ((s3Region == null) ? 0 : s3Region.hashCode());
         result = prime * result + ((serverPort == null) ? 0 : serverPort.hashCode());
         result = prime * result + ((zkConf == null) ? 0 : zkConf.hashCode());
@@ -240,6 +249,11 @@ public class DeltaServerConfig {
             if ( other.s3Credentials != null )
                 return false;
         } else if ( !s3Credentials.equals(other.s3Credentials) )
+            return false;
+        if ( s3Endpoint == null ) {
+            if ( other.s3Endpoint != null )
+                return false;
+        } else if ( !s3Endpoint.equals(other.s3Endpoint) )
             return false;
         if ( s3Region == null ) {
             if ( other.s3Region != null )
