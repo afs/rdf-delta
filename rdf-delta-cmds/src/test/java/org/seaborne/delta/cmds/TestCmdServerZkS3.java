@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.cmds;
 
+import java.io.PrintStream;
+import java.net.BindException;
 import java.util.function.Consumer;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -26,11 +28,14 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 
 import delta.server.DeltaServer;
 import io.findify.s3mock.S3Mock;
+import org.apache.jena.atlas.io.NullOutputStream;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.riot.web.HttpOp;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.http.PatchLogServer;
 
@@ -55,50 +60,79 @@ public class TestCmdServerZkS3 {
         endpointURL = null;
     }
 
-    @Test public void deltaZkS3_1() throws Exception {
+    @Test public void deltaZkS3_1() {
+        runDevNull(()->
         runtest(
             (serverEp)->delta.dcmd.main("ls", "--server="+serverEp, "ACE"),
-            endpointURL);
+            endpointURL)
+        );
     }
 
-    @Test public void deltaZkS3_2() throws Exception {
+    @Test public void deltaZkS3_2() {
         runtest(
-            (endpoint)->
-                HttpOp.execHttpGet(endpoint+"$/ping"),
+            (endpoint)->HttpOp.execHttpGet(endpoint+"$/ping"),
             endpointURL);
     }
 
     @Test(expected=HttpException.class)
-    public void deltaZkS3_3() throws Exception {
+    public void deltaZkS3_3() {
         runtest(
-            (endpoint)->HttpOp.execHttpGet(endpoint+"$/noSuch"),
+            (endpoint)-> {
+                //LogCtl.disable(Delta.DELTA_LOG.getName());
+                try {
+                    // Would cause a 404 log message.
+                    HttpOp.execHttpGet(endpoint+"$/noSuch");
+                } finally {
+                    LogCtl.setLevel(Delta.DELTA_LOG.getName(), "WARN");
+                }
+            },
             endpointURL);
     }
 
     @Test public void deltaZkS3_4() throws Exception {
-        runtest(
-            (serverEp)->{
-                delta.dcmd.main("mk",  "--server="+serverEp,  "ACE");
-                delta.dcmd.main("add", "--server="+serverEp,  "--log=ACE", "testing/data.rdfp");
-                delta.dcmd.main("ls",  "--server="+serverEp,  "ACE");
-            }, endpointURL);
+        runDevNull(()->
+            runtest(
+                (serverEp)->{
+                    delta.dcmd.main("mk",  "--server="+serverEp,  "ACE");
+                    delta.dcmd.main("add", "--server="+serverEp,  "--log=ACE", "testing/data.rdfp");
+                    delta.dcmd.main("ls",  "--server="+serverEp,  "ACE");
+                }, endpointURL)
+            );
     }
 
-    private static void runtest(Consumer<String> action,  String s3EndpointURL) throws Exception {
+    // Run sending System.out to /dev/null
+    // Note: this is unliely to affect logging - System.out wil have been read and stored internally.
+    private static void runDevNull(Runnable action) {
+        PrintStream nullOutput = new PrintStream(new NullOutputStream());
+        PrintStream ps = System.out;
+        System.setOut(nullOutput);
+        try {
+            action.run();
+        } finally {
+            System.setOut(ps);
+        }
+    }
+
+    private static void runtest(Consumer<String> action,  String s3EndpointURL) {
         int port = LibX.choosePort();
         // Imperfect port choice but in practice pretty good.
         int zkPort = LibX.choosePort();
 
-        PatchLogServer server =
-            DeltaServer.build(
-                "--port="+port,
-                "--zk=mem",
-                "--zkPort="+zkPort,
-                "--s3bucket=afs-delta-1",
-                "--s3region="+REGION,
-                "--s3endpoint="+s3EndpointURL
-                )
-            .start();
+        PatchLogServer server;
+        try {
+            server =
+                DeltaServer.build(
+                    "--port="+port,
+                    "--zk=mem",
+                    "--zkPort="+zkPort,
+                    "--s3bucket=afs-delta-1",
+                    "--s3region="+REGION,
+                    "--s3endpoint="+s3EndpointURL
+                    )
+                .start();
+        } catch (BindException ex) {
+            throw new RuntimeException(ex);
+        }
 
         int serverPort = server.getPort();
         String deltaEndpoint = "http://localhost:"+serverPort+"/";
