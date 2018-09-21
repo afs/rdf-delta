@@ -38,12 +38,12 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
     public PatchStoreProviderZk() { }
-    
+
     private static CuratorFramework makeClient(String connectString) {
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
         if ( connectString == null || connectString.isEmpty() )
             return null;
-        
+
         try {
           CuratorFramework client = CuratorFrameworkFactory.newClient(connectString, policy);
 
@@ -61,14 +61,21 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
             throw new DeltaConfigException("Failed to setup zookeeper backed PatchStore", ex);
         }
     }
-    
+
     @Override
     public PatchStore create(LocalServerConfig config) {
+        // #create is overridden in PatchStoreProviderZkS3 to return PatchStoreZkS3
+        CuratorFramework client = curator(config);
+        return new PatchStoreZk(client, this);
+    }
+
+    /** Build a {@link CuratorFramework} from the {@link LocalServerConfig}. */
+    protected CuratorFramework curator(LocalServerConfig config) {
         String connectionString = config.getProperty(DeltaConst.pDeltaZk);
         if ( connectionString == null )
-            Log.error(PatchStoreProviderZk.class, "No connection string in configuration"); 
+            Log.error(this, "No connection string in configuration");
         CuratorFramework client = makeClient(connectionString);
-        return new PatchStoreZk(client, this); 
+        return client;
     }
 
     @Override
@@ -89,7 +96,7 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     public String getProviderName() {
         return DPS.PatchStoreZkProvider;
     }
-    
+
     @Override
     public String getShortName() {
         return DPS.pspZk;

@@ -22,13 +22,13 @@ import static org.seaborne.delta.server.s3.S3Const.pBucketName;
 import static org.seaborne.delta.server.s3.S3Const.pPrefix;
 import static org.seaborne.delta.server.s3.S3Const.pRegion;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.util.StringUtils;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -43,7 +43,6 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
     public static final String ProviderName = convertProviderName(DPS.PatchStoreZkProvider);
 
     private static String DEFAULT_PREFIX = "patches/";
-    private Map<String, DetailsS3> access = new ConcurrentHashMap<>();
 
     static class DetailsS3 {
         final String prefix;
@@ -59,7 +58,20 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
 
     public PatchStoreProviderZkS3() {}
 
-    private DetailsS3 accessS3(LocalServerConfig configuration) {
+    @Override
+    public PatchStore create(LocalServerConfig config) {
+        // Early create.
+        DetailsS3 s3 = accessS3(config);
+        if ( ! s3.client.doesBucketExistV2(s3.bucketName) ) {
+            FmtLog.info(Delta.DELTA_LOG, "Creating bucket %s", s3.bucketName);
+            s3.client.createBucket(s3.bucketName);
+        }
+        // The usual PatchStoreZk for the index, but remembering DetailsS3
+        CuratorFramework client = curator(config);
+        return new PatchStoreZkS3(client, this, s3);
+    }
+
+    private static DetailsS3 accessS3(LocalServerConfig configuration) {
         // Access and checking.
         String bucketName = configuration.getProperty(pBucketName);
         if ( StringUtils.isNullOrEmpty(bucketName) )
@@ -92,11 +104,8 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
 
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        DetailsS3 s3 = accessS3(configuration);
+        DetailsS3 s3 = ((PatchStoreZkS3)patchStore).access();
         String logPrefix = s3.prefix+dsd.getName()+"/";
-        if ( ! s3.client.doesBucketExistV2(s3.bucketName) ) {
-            s3.client.createBucket(s3.bucketName);
-        }
         return new PatchStorageS3(s3.client, s3.bucketName, logPrefix);
     }
 }

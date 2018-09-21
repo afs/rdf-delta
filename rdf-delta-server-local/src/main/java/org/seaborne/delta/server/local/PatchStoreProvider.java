@@ -24,28 +24,30 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 /** The provider (factory) of {@link PatchStore} implementations.
  * These are added to {@link PatchStoreMgr}.
- * There will be only one object of each {@code PatchStoreProvider}.  
+ * There will be only one object of each {@code PatchStoreProvider}.
  */
 public interface PatchStoreProvider {
 
-    /** 
+    /**
      * Create the {@link PatchStore} object for this process.
-     * Return null to signal the implementation is not available. 
-     * This should boot itself to be able to report existing {@link PatchLog PatchLogs}. 
+     * Return null to signal the implementation is not available.
+     * This should boot itself to be able to report existing {@link PatchLog PatchLogs}.
      */
     public PatchStore create(LocalServerConfig config);
-    
-    /** Long name */ 
+
+    /** Long name */
     public String getProviderName();
-    
-    /** Short name used in server configuration files to set the default provider via "log_type" */ 
+
+    /** Short name used in server configuration files to set the default provider via "log_type" */
     public String getShortName();
 
     // These provide the policies for the choice of PatchLogIndex and PatchStorage.
-    
+
     /** Create a new {@link PatchLogIndex} for the given {@link DataSourceDescription}. */
     public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration);
-    
+
     /** Create a new {@link PatchStorage} for the given {@link DataSourceDescription}. */
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration);
+
+    //default public void shutdownProvider() {}
 }

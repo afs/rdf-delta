@@ -18,8 +18,6 @@
 
 package org.seaborne.delta.server.s3;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 
 import io.findify.s3mock.S3Mock;
@@ -42,16 +40,21 @@ public class S3T {
         String connectString = "localhost:" + server.getPort();
         int port = LibX.choosePort();
 
-        EndpointConfiguration endpointCfg = new EndpointConfiguration("http://localhost:"+port, REGION);
-        AWSCredentials credentials = new AnonymousAWSCredentials();
         S3Mock api = new S3Mock.Builder()
             .withPort(port)
-//            .withPathStyleAccessEnabled(true)
-//            .withEndpointConfiguration(endpointCfg)
             .withInMemoryBackend().build();
+        // Must start so provider.create works.
+        api.start();
 
+//      AWSCredentials credentials = new AnonymousAWSCredentials();
+//      AmazonS3ClientBuilder
+//          .standard()
+//          .withPathStyleAccessEnabled(true)
+//          .withEndpointConfiguration(endpoint)
+//          .withCredentials(new AWSStaticCredentialsProvider(credentials))
+//          .build();
 
-
+        EndpointConfiguration endpointCfg = new EndpointConfiguration("http://localhost:"+port+"/", REGION);
         String endpoint = endpointCfg.getServiceEndpoint();
 
         S3Config cfg = S3Config.create()
@@ -66,26 +69,5 @@ public class S3T {
         patchStore.initialize(new DataRegistry("X"), config);
         return Pair.create(patchStore, api);
     }
-
-//    public static String makeMockS3(int port) {
-//        return makeMockS3(port, null);
-//    }
-//
-//    public static String xmakeMockS3(int port, String region) {
-//        if ( region == null )
-//            region = REGION;
-////        AWSCredentials credentials = new AnonymousAWSCredentials();
-////        EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:"+port, region);
-//        S3Mock api = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
-//        api.start();
-//        return endpoint.getServiceEndpoint();
-
-//        return AmazonS3ClientBuilder
-//            .standard()
-//            .withPathStyleAccessEnabled(true)
-//            .withEndpointConfiguration(endpoint)
-//            .withCredentials(new AWSStaticCredentialsProvider(credentials))
-//            .build();
-//    }
 
 }

@@ -38,8 +38,6 @@ public class TestPatchLogZkS3 extends AbstractTestPatchLog {
         Pair<PatchStore, S3Mock> pair = S3T.setup();
         patchStore = pair.getLeft();
         s3Mock = pair.getRight();
-        if ( s3Mock != null )
-            s3Mock.start();
     }
 
     @After public void afterZkS3() {

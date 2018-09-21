@@ -170,14 +170,15 @@ public class DeltaServer {
                 ,"   Embedded Zookeeper server"
                 ,"        --zkConf=FILE       Zookeeper configuration file. Runs a Zookeeper Server as part of a quorum ensemble. Must be in the connection string."
                 ,"        --zkData            Storage for the embedded zookeeper"
-                ,"        --zkPort            Port for the embedded Zookeeper"
+                ,"        --zkPort            Port for the embedded Zookeeper."
                 ,"   Test Zookeeper"
                 ,"        --zk=mem            Run a single Zookeeper without persistent storage."
                 ,"   S3 patch storage"
                 ,"        --s3bucket          S3 bucket name"
-                ,"        --s3keys            S3 access and secrey access keys file (if not default credentials mechanism)"
                 ,"        --s3region          S3 region"
-                ,"        --s3endpoint        S3 alternative endpoint (e.g. a store that provides the s3 API)"
+                ,"        --s3keys            S3 access and secret access keys file (if not set, use default credentials mechanism)"
+                ,"        --s3profile         S3 keys file profile"
+                ,"        --s3endpoint        S3 alternative endpoint e.g. a store that provides the s3 API"
                 );
             System.err.println(msg);
             return null;
