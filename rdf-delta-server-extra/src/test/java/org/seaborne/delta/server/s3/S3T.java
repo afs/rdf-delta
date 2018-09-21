@@ -24,42 +24,61 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 
 import io.findify.s3mock.S3Mock;
 import org.apache.curator.test.TestingServer;
+import org.apache.jena.atlas.lib.Pair;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.ZkT;
-import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
-import org.seaborne.delta.server.s3.S3;
+import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 
 public class S3T {
 
-    private static String BUCKET_NAME = "some-bucket";
+    static String REGION = "eu-bristol-1";
+    static String BUCKET_NAME = "some-bucket";
 
-    public static PatchStore setup() {
+    public static Pair<PatchStore, S3Mock> setup() {
         TestingServer server = ZkT.localServer();
         String connectString = "localhost:" + server.getPort();
         int port = LibX.choosePort();
-        String endpoint = S3T.makeMockS3(port, "eu-west-2");
-        LocalServerConfig config = S3.configZkS3(connectString, BUCKET_NAME, "eu-west-2", endpoint);
+
+        EndpointConfiguration endpointCfg = new EndpointConfiguration("http://localhost:"+port, REGION);
+        AWSCredentials credentials = new AnonymousAWSCredentials();
+        S3Mock api = new S3Mock.Builder()
+            .withPort(port)
+//            .withPathStyleAccessEnabled(true)
+//            .withEndpointConfiguration(endpointCfg)
+            .withInMemoryBackend().build();
+
+
+
+        String endpoint = endpointCfg.getServiceEndpoint();
+
+        S3Config cfg = S3Config.create()
+            .bucketName(BUCKET_NAME)
+            .region(REGION)
+            .endpoint(endpoint)
+            .build();
+        LocalServerConfig config = S3.configZkS3(connectString, cfg);
 
         PatchStoreProvider provider = new PatchStoreProviderZkS3();
         PatchStore patchStore = provider.create(config);
         patchStore.initialize(new DataRegistry("X"), config);
-        return patchStore;
+        return Pair.create(patchStore, api);
     }
 
-    public static String makeMockS3(int port) {
-        return makeMockS3(port, null);
-    }
-
-    public static String makeMockS3(int port, String region) {
-        if ( region == null )
-            region = "eu-west-2";
-        AWSCredentials credentials = new AnonymousAWSCredentials();
-        EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:"+port, region);
-
-        S3Mock api = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
-        api.start();
-        return endpoint.getServiceEndpoint();
+//    public static String makeMockS3(int port) {
+//        return makeMockS3(port, null);
+//    }
+//
+//    public static String xmakeMockS3(int port, String region) {
+//        if ( region == null )
+//            region = REGION;
+////        AWSCredentials credentials = new AnonymousAWSCredentials();
+////        EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:"+port, region);
+//        S3Mock api = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
+//        api.start();
+//        return endpoint.getServiceEndpoint();
 
 //        return AmazonS3ClientBuilder
 //            .standard()
@@ -67,6 +86,6 @@ public class S3T {
 //            .withEndpointConfiguration(endpoint)
 //            .withCredentials(new AWSStaticCredentialsProvider(credentials))
 //            .build();
-    }
+//    }
 
 }

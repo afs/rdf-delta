@@ -18,6 +18,8 @@
 
 package org.seaborne.delta.server.s3;
 
+import io.findify.s3mock.S3Mock;
+import org.apache.jena.atlas.lib.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
@@ -28,18 +30,25 @@ import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchLog;
 
 public class TestPatchLogZkS3 extends AbstractTestPatchLog {
-    
+
     private PatchStore patchStore;
+    private S3Mock s3Mock ;
 
     @Before public void beforeZkS3() {
-        patchStore = S3T.setup();
+        Pair<PatchStore, S3Mock> pair = S3T.setup();
+        patchStore = pair.getLeft();
+        s3Mock = pair.getRight();
+        if ( s3Mock != null )
+            s3Mock.start();
     }
-    
+
     @After public void afterZkS3() {
         patchStore.shutdown();
+        if ( s3Mock != null )
+            s3Mock.shutdown();
         ZkT.clearAll();
     }
-    
+
     @Override
     protected PatchLog patchLog() {
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");

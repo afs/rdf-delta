@@ -57,7 +57,11 @@
       <artifactId>aws-java-sdk-s3</artifactId>
     </dependency>
 
-    <!-- Control the version of com.amazonaws:aws-java-sdk-s3 -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.findify</groupId>
       <artifactId>s3mock_2.12</artifactId>

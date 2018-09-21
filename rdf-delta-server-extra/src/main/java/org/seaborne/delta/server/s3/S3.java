@@ -25,6 +25,9 @@ import java.util.Objects;
 import java.util.Properties;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
@@ -39,49 +42,40 @@ import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
 
+/** Library of fucntiosn relating to S3 */
 public class S3 {
-
     /**
-     * Create a {@link LocalServerConfig} for Zookeeper+S3 by connection string.
+     * Create {@link LocalServerConfig} for a Zookeeper and S3 based patch log server.
      */
-    public static LocalServerConfig configZkS3(String zkConnectionString, String bucketName, String region) {
-        return configZkS3(zkConnectionString, bucketName, region, null);
-    }
-
-    /**
-     * Create {@link LocalServerConfig} for a Zookeeper and S3 based patch log server,
-     * allowing the service endpoint to be set (e.g. for testing).
-     */
-    public static LocalServerConfig configZkS3(String zkConnectionString, String bucketName, String region, String endpoint) {
+    public static LocalServerConfig configZkS3(String zkConnectionString, S3Config s3Cfg) {
         LocalServerConfig c = LocalServers.configZk(zkConnectionString);
-        return configZkS3(c, bucketName, region, endpoint);
+        return configZkS3(c, s3Cfg);
     }
 
     /**
      * Create {@link LocalServerConfig} for a S3 based patch log server,
-     * starting with the LocalServerConfig for the index server
-     * allowing the service endpoint to be set (e.g. for testing).
+     * starting with the LocalServerConfig for the index server.
      */
-    public static LocalServerConfig configZkS3(LocalServerConfig c, String bucketName, String region) {
-        return configZkS3(c, bucketName, region, null);
-    }
-
-    /**
-     * Create {@link LocalServerConfig} for a S3 based patch log server,
-     * starting with the LocalServerConfig for the index server
-     * allowing the service endpoint to be set (e.g. for testing).
-     */
-    public static LocalServerConfig configZkS3(LocalServerConfig c, String bucketName, String region, String endpoint) {
-        Properties properties = PropertiesBuilder.create()
-            .set(pBucketName, bucketName)
-            .set(pRegion, region)
-            .option(pEndpoint, endpoint)
-            .build();
+    public static LocalServerConfig configZkS3(LocalServerConfig c, S3Config s3Cfg) {
+        Properties properties = cfg2properties(s3Cfg);
         return LocalServerConfig.create(c)
             .setLogProvider(PatchStoreProviderZkS3.ProviderName)
             .setProperties(properties)
             .build();
     }
+
+    private static  Properties cfg2properties(S3Config s3Cfg) {
+        return PropertiesBuilder.create()
+            .set(pBucketName, s3Cfg.s3BucketName)
+            .set(pRegion, s3Cfg.s3Region)
+            .option(pEndpoint, s3Cfg.s3Endpoint)
+            .option(pCredentialFile, s3Cfg.s3CredentialsFile)
+            .option(pCredentialProfile, s3Cfg.s3CredentialsProfile)
+            .build();
+    }
+
+    // Anon credentials and provider - used in S3Mock to ensure non default AWS credentials mechanism is used in tests.
+    private static AWSCredentialsProvider anon = new AWSStaticCredentialsProvider(new AnonymousAWSCredentials());
 
     public static AmazonS3 buildS3(LocalServerConfig configuration) {
         String region = configuration.getProperty(pRegion);
@@ -96,6 +90,7 @@ public class S3 {
             // Needed for S3mock
             builder.withPathStyleAccessEnabled(true);
             builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region));
+            builder.withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()));
         }
         if ( credentialsFile != null )
             builder.withCredentials(new ProfileCredentialsProvider(credentialsFile, credentialsProfile));
@@ -107,7 +102,6 @@ public class S3 {
         if ( ! bucketExists(client, bucketName) )
             createBucket(client, bucketName);
     }
-
 
     /** Test whether the bucket exists and is accessible. */
     public static boolean bucketExists(AmazonS3 client, String bucketName) {
@@ -160,6 +154,4 @@ public class S3 {
             return properties;
         }
     }
-
-
 }

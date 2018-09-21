@@ -37,6 +37,7 @@ import org.seaborne.delta.server.s3.S3;
 public class TestPatchStorageS3 extends AbstractTestPatchStorage {
     static { LogCtl.setJavaLogging(); }
 
+    private static String testRegion = "uk-bristol-1";
     private static String testBucketName = "delta";
     private static String testPrefix = "patches/";
 
@@ -64,7 +65,13 @@ public class TestPatchStorageS3 extends AbstractTestPatchStorage {
 
     @Override
     protected PatchStorage patchStorage() {
-        LocalServerConfig config = S3.configZkS3("", testBucketName, "eu-west-1", endpoint);
+        S3Config cfg = S3Config.create()
+            .bucketName(testBucketName)
+            .region(testRegion)
+            .endpoint(endpoint)
+            .build();
+
+        LocalServerConfig config = S3.configZkS3("", cfg);
         AmazonS3 aws = S3.buildS3(config);
         S3.ensureBucketExists(aws, testBucketName);
         return new PatchStorageS3(aws, testBucketName, testPrefix);

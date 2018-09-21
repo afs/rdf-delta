@@ -39,11 +39,11 @@ import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
 public class PatchStorageS3 implements PatchStorage {
-    
+
     private final AmazonS3 client;
     private String bucketName;
     private String prefix;
-    
+
     public PatchStorageS3(AmazonS3 client, String bucketName, String prefix) {
         this.client = client;
         this.bucketName = bucketName;
@@ -51,9 +51,9 @@ public class PatchStorageS3 implements PatchStorage {
             prefix = prefix+"/";
         this.prefix = prefix;
         if ( ! S3.bucketExists(client, bucketName) )
-            throw new DeltaConfigException("Bucket does not exists or is not accessible"); 
+            throw new DeltaConfigException("Bucket does not exist or is not accessible");
     }
-    
+
     private String idToKey(Id id) {
         return prefix+id.asParam();
     }
@@ -74,8 +74,8 @@ public class PatchStorageS3 implements PatchStorage {
             return null;
         }
         String x = awsKey.substring(prefix.length());
-        try { 
-            return Id.fromString(x); 
+        try {
+            return Id.fromString(x);
         } catch ( IllegalArgumentException ex ) {
             Log.warn(this, "Not a S3 key for a patch id: "+awsKey);
             return null;
@@ -85,7 +85,7 @@ public class PatchStorageS3 implements PatchStorage {
     @Override
     public void store(Id key, RDFPatch value) {
         String s3Key = idToKey(key);
-        ByteArrayOutputStream out = new ByteArrayOutputStream(10*1024); 
+        ByteArrayOutputStream out = new ByteArrayOutputStream(10*1024);
         RDFPatchOps.write(out, value);
         byte[] bytes = out.toByteArray();
         InputStream in = new ByteArrayInputStream(bytes);
