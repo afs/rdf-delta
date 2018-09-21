@@ -18,14 +18,19 @@
 
 package org.seaborne.delta.cmds;
 
+import io.findify.s3mock.S3Mock;
 import org.apache.jena.atlas.lib.Lib;
-import org.seaborne.delta.server.s3.S3T;
 
 /** Run a mock S3 using io.findify */
 public class MockS3 {
     public static void main(String... args) {
         int PORT = 1357;
-        S3T.makeMockS3(PORT);
+        String region = "eu-bristol-1";
+////      AWSCredentials credentials = new AnonymousAWSCredentials();
+////      EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:"+port, region);
+        S3Mock api = new S3Mock.Builder().withPort(PORT).withInMemoryBackend().build();
+        api.start();
+        System.out.println("MockS3 running");
         while(true) {
             Lib.sleep(1000);
         }

@@ -22,24 +22,20 @@ import java.io.PrintStream;
 import java.net.BindException;
 import java.util.function.Consumer;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 
 import delta.server.DeltaServer;
 import io.findify.s3mock.S3Mock;
 import org.apache.jena.atlas.io.NullOutputStream;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.riot.web.HttpOp;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.seaborne.delta.Delta;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.http.PatchLogServer;
 
-/** Test running the server command with an in-meoery Zk and S3 mock up */
+/** Test running the server command with an in-memory Zk and S3 mock up */
 public class TestCmdServerZkS3 {
     private final static String REGION = "uk-bristol-1";
     private S3Mock api;
@@ -47,9 +43,7 @@ public class TestCmdServerZkS3 {
 
     @Before public void before() {
         int port = LibX.choosePort();
-        AWSCredentials credentials = new AnonymousAWSCredentials();
         EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:"+port, REGION);
-
         api = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
         api.start();
         endpointURL = endpoint.getServiceEndpoint();
@@ -78,13 +72,9 @@ public class TestCmdServerZkS3 {
     public void deltaZkS3_3() {
         runtest(
             (endpoint)-> {
-                //LogCtl.disable(Delta.DELTA_LOG.getName());
-                try {
-                    // Would cause a 404 log message.
-                    HttpOp.execHttpGet(endpoint+"$/noSuch");
-                } finally {
-                    LogCtl.setLevel(Delta.DELTA_LOG.getName(), "WARN");
-                }
+                // Would cause a 404 log message.
+                // Hidden by the logging configuration.
+                HttpOp.execHttpGet(endpoint+"$/noSuch");
             },
             endpointURL);
     }

@@ -34,7 +34,7 @@ import org.seaborne.delta.lib.JSONX;
  * assumed to be correct and consistent without further checking.
  */
 public class DeltaServerConfig {
-    // server level.
+    // Server level.
     // Either a port number xor a Jetty configuration file.
     // If there is a jetty.xml filename, the port is ignored.
     public Integer serverPort = null;
@@ -61,7 +61,8 @@ public class DeltaServerConfig {
     // S3 patch storage.
     public String s3BucketName = null;
     public String s3Region = null;
-    public String s3Credentials = null;
+    public String s3CredentialsFile = null;
+    public String s3CredentialsProfile = null;
     public String s3Endpoint = null;
 
     // ---- JSON field constants
@@ -82,7 +83,8 @@ public class DeltaServerConfig {
     // The S3 backend to Zookeeper
     private static String fS3BucketName       = "s3.bucket";
     private static String fS3Region           = "s3.region";
-    private static String fS3Credentials      = "s3.aws";
+    private static String fS3CredsFile        = "s3.keys.file";
+    private static String fS3CredsProfile     = "s3.keys.profile";
     private static String fS3Endpoint         = "s3.endpoint";
 
     // ---- JSON field constants
@@ -141,8 +143,10 @@ public class DeltaServerConfig {
             conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);
         if ( obj.hasKey(fS3Region) )
             conf.s3Region = JSONX.getStrOrNull(obj, fS3Region);
-        if ( obj.hasKey(fS3Credentials) )
-            conf.s3Credentials = JSONX.getStrOrNull(obj, fS3Credentials);
+        if ( obj.hasKey(fS3CredsFile) )
+            conf.s3CredentialsFile = JSONX.getStrOrNull(obj, fS3CredsFile);
+        if ( obj.hasKey(fS3CredsProfile) )
+            conf.s3CredentialsProfile = JSONX.getStrOrNull(obj, fS3CredsProfile);
         if ( obj.hasKey(fS3Endpoint) )
             conf.s3Endpoint = JSONX.getStrOrNull(obj, fS3Endpoint);
 
@@ -180,8 +184,11 @@ public class DeltaServerConfig {
                 if ( s3Region != null )
                     b.pair(fS3Region, s3Region);
 
-                if ( s3Credentials != null )
-                    b.pair(fS3Credentials, s3Credentials);
+                if ( s3CredentialsFile != null )
+                    b.pair(fS3CredsFile, s3CredentialsFile);
+
+                if ( s3CredentialsProfile != null )
+                    b.pair(fS3CredsProfile, s3CredentialsProfile);
 
                 if ( s3Endpoint != null )
                     b.pair(fS3Endpoint, s3Endpoint);
@@ -207,7 +214,8 @@ public class DeltaServerConfig {
         result = prime * result + ((jettyConf == null) ? 0 : jettyConf.hashCode());
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
         result = prime * result + ((s3BucketName == null) ? 0 : s3BucketName.hashCode());
-        result = prime * result + ((s3Credentials == null) ? 0 : s3Credentials.hashCode());
+        result = prime * result + ((s3CredentialsFile == null) ? 0 : s3CredentialsFile.hashCode());
+        result = prime * result + ((s3CredentialsProfile == null) ? 0 : s3CredentialsProfile.hashCode());
         result = prime * result + ((s3Endpoint == null) ? 0 : s3Endpoint.hashCode());
         result = prime * result + ((s3Region == null) ? 0 : s3Region.hashCode());
         result = prime * result + ((serverPort == null) ? 0 : serverPort.hashCode());
@@ -245,10 +253,15 @@ public class DeltaServerConfig {
                 return false;
         } else if ( !s3BucketName.equals(other.s3BucketName) )
             return false;
-        if ( s3Credentials == null ) {
-            if ( other.s3Credentials != null )
+        if ( s3CredentialsFile == null ) {
+            if ( other.s3CredentialsFile != null )
                 return false;
-        } else if ( !s3Credentials.equals(other.s3Credentials) )
+        } else if ( !s3CredentialsFile.equals(other.s3CredentialsFile) )
+            return false;
+        if ( s3CredentialsProfile == null ) {
+            if ( other.s3CredentialsProfile != null )
+                return false;
+        } else if ( !s3CredentialsProfile.equals(other.s3CredentialsProfile) )
             return false;
         if ( s3Endpoint == null ) {
             if ( other.s3Endpoint != null )

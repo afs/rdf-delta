@@ -49,6 +49,7 @@ import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.server.s3.S3Config;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
 import org.seaborne.delta.server.s3.S3;
 import org.seaborne.delta.server.system.DeltaSystem;
@@ -63,25 +64,27 @@ public class DeltaServer {
 
     private static Logger LOG = DPS.LOG;
 
-    private static ArgDecl argHelp       = new ArgDecl(false, "help", "h");
-    private static ArgDecl argVerbose    = new ArgDecl(false, "verbose", "v");
+    private static ArgDecl argHelp              = new ArgDecl(false, "help", "h");
+    private static ArgDecl argVerbose           = new ArgDecl(false, "verbose", "v");
     //private static ArgDecl argVersion    = new ArgDecl(false, "version");
-    private static ArgDecl argPort       = new ArgDecl(true, "port");
+    private static ArgDecl argPort              = new ArgDecl(true, "port");
 
-    private static ArgDecl argBase       = new ArgDecl(true, "base");
-    private static ArgDecl argMem        = new ArgDecl(false, "mem");
-    private static ArgDecl argZk         = new ArgDecl(true, "zk");
-    private static ArgDecl argZkPort     = new ArgDecl(true, "zkPort", "zkport");
-    private static ArgDecl argZkData     = new ArgDecl(true, "zkData", "zkdata");
-    private static ArgDecl argZkConf     = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
+    private static ArgDecl argBase              = new ArgDecl(true, "base");
+    private static ArgDecl argMem               = new ArgDecl(false, "mem");
+    private static ArgDecl argZk                = new ArgDecl(true, "zk");
+    private static ArgDecl argZkPort            = new ArgDecl(true, "zkPort", "zkport");
+    private static ArgDecl argZkData            = new ArgDecl(true, "zkData", "zkdata");
+    private static ArgDecl argZkConf            = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
 
-    private static ArgDecl argS3Bucket   = new ArgDecl(true, "s3bucket");
-    private static ArgDecl argS3Region   = new ArgDecl(true, "s3region");
-    private static ArgDecl argS3KeysFile = new ArgDecl(true, "s3keys");
+    private static ArgDecl argS3Bucket          = new ArgDecl(true, "s3bucket");
+    private static ArgDecl argS3Region          = new ArgDecl(true, "s3region");
+    private static ArgDecl argS3KeysFile        = new ArgDecl(true, "s3keys");
+    private static ArgDecl argS3KeysProfile     = new ArgDecl(true, "s3profile");
     // Allow alternative endpoints (e.g. a mock S3 store)
-    private static ArgDecl argS3Endpoint = new ArgDecl(true, "s3endpoint");
+    private static ArgDecl argS3Endpoint        = new ArgDecl(true, "s3endpoint");
 
-    private static ArgDecl argJetty    = new ArgDecl(true, "jetty");
+    private static ArgDecl argJetty             = new ArgDecl(true, "jetty");
+
 //    private static ArgDecl argProvider = new ArgDecl(true, "provider");
 //    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
 
@@ -144,6 +147,7 @@ public class DeltaServer {
         cla.add(argS3Bucket);
         cla.add(argS3Region);
         cla.add(argS3KeysFile);
+        cla.add(argS3KeysProfile);
         cla.add(argS3Endpoint);
 
         //cla.add(argConf);
@@ -300,7 +304,10 @@ public class DeltaServer {
         String credentialsFile = cla.getValue(argS3KeysFile);
         if ( credentialsFile != null && credentialsFile.isEmpty() )
             cmdLineError("Empty S3 credentials file");
-        serverConfig.s3Credentials = credentialsFile;
+        serverConfig.s3CredentialsFile = credentialsFile;
+
+        String credentialsProfile = cla.getValue(argS3KeysProfile);
+        serverConfig.s3CredentialsProfile = credentialsProfile;
 
         String region = cla.getValue(argS3Region);
         if ( StringUtils.isBlank(region) )
@@ -422,13 +429,16 @@ public class DeltaServer {
     }
 
     private static LocalServerConfig setupS3(DeltaServerConfig config, LocalServerConfig localServerConfig) {
-        // Take the provided Zookeeper LocalServerConfig and create a new one that is same index
-        // provider with S3 as the storage.
-        return
-            S3.configZkS3(localServerConfig,
-                          config.s3BucketName,
-                          config.s3Region,
-                          config.s3Endpoint);
+        // Take the provided Zookeeper LocalServerConfig and create a new one that is same
+        // zookeeper index provider with S3 as the storage.
+        S3Config cfg = S3Config.create()
+          .bucketName(config.s3BucketName)
+          .region(config.s3Region)
+          .endpoint(config.s3Endpoint)
+          .credentialsFile(config.s3CredentialsFile)
+          .credentialsProfile(config.s3CredentialsProfile)
+          .build();
+        return S3.configZkS3(localServerConfig, cfg);
     }
 
     private static PatchStoreProvider installProvider(PatchStoreProvider psp) {

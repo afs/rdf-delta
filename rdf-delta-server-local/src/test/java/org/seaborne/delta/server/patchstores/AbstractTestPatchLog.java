@@ -34,43 +34,43 @@ import org.seaborne.patch.RDFPatchOps;
  */
 
 public abstract class AbstractTestPatchLog {
-    
+
     private static Version version_1 = Version.create(1);
     private static Version version_2 = Version.create(2);
     private static Version version_3 = Version.create(3);
-    
+
     protected abstract PatchLog patchLog();
-    
+
     @Test
     public void patchLog_1_empty() {
         PatchLog patchLog = patchLog();
-        
+
         boolean b = patchLog.isEmpty();
         assertTrue(patchLog.isEmpty());
-        
+
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(null, x.getLatestPatch());
         assertEquals(Version.INIT, x.getMaxVersion());
         assertEquals(Version.INIT, x.getMinVersion());
     }
-    
+
     @Test public void patchLog_2_singlePatch() {
         PatchLog patchLog = patchLog();
         assertTrue(patchLog.isEmpty());
-        
+
         RDFPatch patch = RDFPatchOps.emptyPatch();
         Version v = patchLog.append(patch);
         assertEquals(version_1, v);
         assertFalse(patchLog.isEmpty());
-        
+
         RDFPatch patch1 = patchLog.fetch(version_1);
         assertNotNull(patch1);
-        
+
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(patch.getId(), x.getLatestPatch().asNode());
-        
+
         x.getMaxVersion();
-        
+
         assertEquals(Version.FIRST, x.getMaxVersion());
         assertEquals(Version.FIRST, x.getMinVersion());
 
@@ -84,16 +84,16 @@ public abstract class AbstractTestPatchLog {
         RDFPatch patchAdd1 = RDFPatchOps.emptyPatch();
         Version v1 = patchLog.append(patchAdd1);
         assertEquals(version_1, v1);
-        
+
         // Does not exist
         RDFPatch patch_missing = patchLog.fetch(version_2);
         assertNull(patch_missing);
-        
+
         RDFPatch patchFetch1 = patchLog.fetch(version_1);
         assertNotNull(patchFetch1);
-        
+
         RDFPatch patchAdd2 = RDFPatchOps.withHeader(patchAdd1, Id.create().asNode(), patchAdd1.getId());
-        
+
         Version v2 = patchLog.append(patchAdd2);
         assertEquals(version_2, v2);
 
@@ -102,11 +102,10 @@ public abstract class AbstractTestPatchLog {
 
         RDFPatch patchFetch2 = patchLog.fetch(version_2);
         assertNotNull(patchFetch2);
-        
+
         PatchLogInfo x = patchLog.getInfo();
         assertEquals(patchFetch2.getId(), x.getLatestPatch().asNode());
         assertEquals(version_2, x.getMaxVersion());
         assertEquals(Version.FIRST, x.getMinVersion());
     }
-    
 }
