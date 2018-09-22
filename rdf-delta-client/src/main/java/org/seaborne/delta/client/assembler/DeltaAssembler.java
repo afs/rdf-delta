@@ -60,32 +60,32 @@ import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Assembler for a locally managed dataset with changes set to a remote log */ 
+/** Assembler for a locally managed dataset with changes set to a remote log */
 public class DeltaAssembler extends AssemblerBase implements Assembler {
     static private Logger LOG = LoggerFactory.getLogger(DeltaAssembler.class) ;
-    
-    /* 
+
+    /*
      * Assembler:
      * Type 1 : changes sender.
-     * 
+     *
      * Type 2: Managed (inc version).
-     * 
-     * 
+     *
+     *
      * <#dataset> rdf:type delta:DeltaDataset ;
      *     delta:changes  "http://localhost:1066/" ;
      *     delta:patchlog "ABC"
      *     delta:zone "file path"
      *
      *  and
-     *     delta:storage "mem", "file", "tdb" zone info. 
+     *     delta:storage "mem", "file", "tdb" zone info.
      *     TDB(false, "TDB"), TDB2(false, "TDB2"), FILE(false, "file"), MEM(true, "mem"), EXTERNAL(false, "external"), NONE(true, "none");
-     *     
+     *
      *     (not implemented)
      *  or
      *     delta:dataset <#datasetOther>, for external.
      *
      * If delta:change is a list with more than one element, then that is used to build a
-     * switchable DelatLink to replicated delta servers. 
+     * switchable DelatLink to replicated delta servers.
      */
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
@@ -94,7 +94,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         if ( deltaServers.isEmpty() )
             throw new AssemblerException(root, "No destination for changes given");
         FmtLog.info(Delta.DELTA_CLIENT, "Delta Patch Log Servers: "+deltaServers) ;
-        
+
         // Name of the patch log.
         // delta:patchlog
         if ( ! exactlyOneProperty(root, pDeltaPatchLog) )
@@ -108,9 +108,9 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);
         if ( storage == null )
             throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
-        
+
         // delta:zone.
-        // The zone is ephemeral if the storage is ephemeral. 
+        // The zone is ephemeral if the storage is ephemeral.
 
         Location zoneLocation;
         if ( storage.isEphemeral() )
@@ -122,7 +122,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             zoneLocation = Location.create(zoneLocationStr);
         }
 
-        // Build the RDFChanges: URLs to send each patch log entry. 
+        // Build the RDFChanges: URLs to send each patch log entry.
         // This would multiplex the changes to all RDFChanges
 //        RDFChanges streamChanges = null ;
 //        for ( String dest : deltaServers ) {
@@ -131,7 +131,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 //            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
 //        }
         Dataset dataset = setupDataset(root, dsName, zoneLocation, storage, deltaServers);
-        
+
         //  Poll for changes as well. Not implemented (yet).
 //      if ( root.hasProperty(pPollForChanges) ) {
 //          if ( ! exactlyOneProperty(root, pPollForChanges) )
@@ -139,10 +139,10 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 //          String source = getStringValue(root, pPollForChanges) ;
 //          forkUpdateFetcher(source, dsgSub) ;
 //      }
-        
+
         return dataset;
     }
-    
+
     private List<String> getAsMultiStringValue(Resource r, Property p) {
         Statement stmt = r.getProperty(p) ;
         if ( stmt == null )
@@ -152,7 +152,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             return Arrays.asList(obj.asLiteral().getLexicalForm());
         if ( obj.isURIResource() )
             return Arrays.asList(obj.asResource().getURI());
-        
+
         RDFList rdfList = obj.asResource().as( RDFList.class );
         List<RDFNode> x = rdfList.asJavaList();
         List<String> xs = ListUtils.toList(x.stream().map(n->{
@@ -168,7 +168,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     static Dataset setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, List<String> destURLs) {
         // Link to log server.
         DeltaLink deltaLink;
-        if ( destURLs.size() == 1 ) 
+        if ( destURLs.size() == 1 )
             deltaLink = DeltaLinkHTTP.connect(destURLs.get(0));
         else {
             List<DeltaLink> links = new ArrayList<>(destURLs.size());
@@ -176,7 +176,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
                 links.add(DeltaLinkHTTP.connect(destURL));
             deltaLink = new DeltaLinkSwitchable(links);
         }
-        
+
         Zone zone = Zone.connect(zoneLocation);
         DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
         SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
@@ -188,22 +188,19 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         }
 
         Id dsRef = zone.getIdForName(dsName);
-        
+
         if ( dsRef == null ) {
-            try { 
+            try {
                 DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
                 if ( dsd == null )
-                    dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName); // CRASH
+                    dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName);
                 else
-                    dsRef = dsd.getId();  
-                //Id dsRef0 = deltaClient.connect(dsName, syncPolicy);
-                // dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName); // CRASH
+                    dsRef = dsd.getId();
                 deltaClient.register(dsRef, storage, syncPolicy);
             } catch (HttpException ex) {
-                throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage());
+                throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage(), ex);
             } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage());
+                throw new AssemblerException(root, "Can't create the dataset with the patch log server: exception: "+ex.getMessage(), ex);
             }
         } else {
             try {
@@ -217,11 +214,11 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             }
             deltaClient.connect(dsRef, syncPolicy);
         }
-        
+
         DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
         DatasetGraph dsg = deltaConnection.getDatasetGraph();
 
-        // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation. 
+        // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation.
         // And someday tap into services to add a "sync before operation" step.
 
        // Put state into dsg Context "for the record".
@@ -229,10 +226,10 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
        cxt.set(symDeltaClient, deltaClient);
        cxt.set(symDeltaConnection, deltaConnection);
        cxt.set(symDeltaZone, zone);
-        
+
        return DatasetFactory.wrap(dsg);
     }
-    
+
     private InputStream openChangesSrc(String x) {
         // May change to cope with remote source
         return IO.openFile(x) ;
@@ -249,7 +246,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         DeltaConnection client = null;
         Runnable r = ()->{
             try { client.sync(); }
-            catch (Exception ex) { 
+            catch (Exception ex) {
                 Delta.DELTA_LOG.warn("Failed to sync with the change server: "+ex.getMessage()) ;
 //                // Delay this task ; extra 3s + the time interval of 2s.
 //                Dones not work as expected.
