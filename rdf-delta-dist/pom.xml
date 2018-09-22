@@ -27,26 +27,26 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.5.5-SNAPSHOT</version>
+    <version>0.5.5</version>
   </parent> 
 
   <dependencies>
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server</artifactId>
-      <version>0.5.5-SNAPSHOT</version>
+      <version>0.5.5</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-fuseki-server</artifactId>
-      <version>0.5.5-SNAPSHOT</version>
+      <version>0.5.5</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-cmds</artifactId>
-      <version>0.5.5-SNAPSHOT</version>
+      <version>0.5.5</version>
     </dependency>
 
   </dependencies>
