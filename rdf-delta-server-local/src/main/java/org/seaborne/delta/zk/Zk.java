@@ -41,23 +41,23 @@ import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 
+/**
  * Zookeeper and Curator client operations.
  * @see ZkS
  */
 public class Zk {
     private final static Logger LOG = LoggerFactory.getLogger(Zk.class);
-    
+
     private static void zkException(String caller, String path, Exception ex) {
         String msg = String.format("%s[%s] ZooKeeper exception: %s", caller, path, ex.getMessage(), ex);
         LOG.warn(msg, ex);
     }
-    
+
     /** Connect a curator client to a running ZooKepper server. */
     public static CuratorFramework curator(String connectString) {
         try {
             RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
-            CuratorFramework client = 
+            CuratorFramework client =
                 CuratorFrameworkFactory.newClient(connectString, 10000, 10000, policy);
 //                CuratorFrameworkFactory.builder()
 //                //.namespace("delta")
@@ -73,11 +73,12 @@ public class Zk {
             throw new RuntimeException(ex);
         }
     }
-    
+
     private static void zkException(Exception ex) {
         LOG.warn("ZooKeeper exception: "+ex.getMessage(), ex);
     }
 
+    /** Create the string for a path from the root, with first child and optional more children */
     public static String zkPath(String root, String c, String...components) {
         return ZKPaths.makePath(root, c, components);
     }
@@ -85,7 +86,7 @@ public class Zk {
     public static boolean zkExists(CuratorFramework client, String path) {
         return zkCalc(()->client.checkExists().forPath(path)!=null);
     }
-    
+
     public static String zkEnsure(CuratorFramework client, String path) {
         try {
             ZKPaths.mkdirs(client.getZookeeperClient().getZooKeeper(), path, true);
@@ -95,14 +96,14 @@ public class Zk {
             return null;
         }
     }
-    
+
     public static String zkFetchStr(CuratorFramework client, String path) {
         byte[] x = zkFetch(client, path);
         if ( x == null )
             return null;
         return StrUtils.fromUTF8bytes(x);
     }
-    
+
     public static JsonObject zkFetchJson(CuratorFramework client, String path) {
         return zkFetchJson(client, null, path);
     }
@@ -119,7 +120,7 @@ public class Zk {
     public static byte[] zkFetch(CuratorFramework client,  String path) {
         return zkFetch(client, null, path);
     }
-    
+
     public static byte[] zkFetch(CuratorFramework client, Watcher watcher, String path) {
         try {
             GetDataBuilder b = client.getData();
@@ -133,8 +134,8 @@ public class Zk {
             return null;
         }
     }
-    
-    /** Return a list of the children of the node - the names are the sub zNode names, not paths */  
+
+    /** Return a list of the children of the node - the names are the sub zNode names, not paths */
     public static List<String> zkSubNodes(CuratorFramework client, String path) {
         try {
             return client.getChildren().forPath(path);
@@ -155,7 +156,7 @@ public class Zk {
         zkCreate(client, path, CreateMode.PERSISTENT);
     }
 
-    private static void zkCreate(CuratorFramework client, String path, CreateMode mode) {
+    public static void zkCreate(CuratorFramework client, String path, CreateMode mode) {
         zkCreateSet(client, path, new byte[0]);
     }
 
@@ -170,10 +171,10 @@ public class Zk {
         InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
         try {
             lock.acquire();
-            if ( ! lock.isAcquiredInThisProcess() ) 
+            if ( ! lock.isAcquiredInThisProcess() )
                 LOG.warn("zkLock: lock.isAcquiredInThisProcess() is false");
             action.run();
-        } 
+        }
         catch (DeltaException ex) { throw ex; }
         catch (Exception ex) {
             zkException("zkLock", nLock, ex);
@@ -181,19 +182,19 @@ public class Zk {
             try { lock.release(); } catch (Exception ex) {}
         }
     }
-    
+
     public static <X> X zkLockRtn(CuratorFramework client, String nLock, Supplier<X> action) {
         InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
         try {
             lock.acquire();
-            if ( ! lock.isAcquiredInThisProcess() ) 
+            if ( ! lock.isAcquiredInThisProcess() )
                 LOG.warn("zkLockRtn: lock.isAcquiredInThisProcess() is false");
             return action.get();
         }
         catch (DeltaException ex) { throw ex; }
         catch (Exception ex) {
             zkException("zkLock", nLock, ex);
-            return null; 
+            return null;
         } finally {
             try { lock.release(); } catch (Exception ex) {}
         }
@@ -201,13 +202,13 @@ public class Zk {
 
 
     // XXX Do we need these?
-    
+
     @FunctionalInterface
     public interface ZkRunnable { public void run() throws Exception; }
-    
+
     @FunctionalInterface
     public interface ZkSupplier<X> { public X run() throws Exception; }
-    
+
     public static void zkRun(ZkRunnable action) {
         try {
             action.run();
@@ -215,7 +216,7 @@ public class Zk {
             zkException(ex);
         }
     }
-    
+
     public static <X> X zkCalc(ZkSupplier<X> action) {
         try {
             return action.run();
@@ -224,7 +225,7 @@ public class Zk {
             return null;
         }
     }
-    
+
     /** Set an existing zNode to the the bytes for the JSON object */
     public static void zkSetJson(CuratorFramework client, String statePath, JsonObject x) {
         byte[] bytes = JSONX.asBytes(x);
@@ -238,7 +239,7 @@ public class Zk {
     }
 
     public static void zkSet(CuratorFramework client, String p, byte[] b) {
-        zkRun(()-> { 
+        zkRun(()-> {
             Stat stat = client.setData().forPath(p, b);
             if ( stat == null )
                 LOG.warn("Did not set: "+p);
@@ -248,14 +249,14 @@ public class Zk {
     public static void listNodes(CuratorFramework client) {
         listNodes(client, "/");
     }
-    
+
     public static void listNodes(CuratorFramework client, String path) {
         String initial = path.equals("/") ? "" : path;
         System.out.printf(">> Path=%s\n", path);
         zkRun(()->recurse(client, path, initial, 1));
         System.out.printf("<< Path=%s\n", path);
     }
-    
+
     private static void recurse(CuratorFramework client, String path, String initial, int depth) {
         try {
             client.getChildren().forPath(path).forEach(p->{
@@ -273,6 +274,6 @@ public class Zk {
         }
         catch (Exception ex) { return ; }
     }
-    
+
 
 }

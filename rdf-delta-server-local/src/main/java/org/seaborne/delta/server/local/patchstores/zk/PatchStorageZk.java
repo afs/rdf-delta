@@ -34,15 +34,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Patch storage in Apache ZooKeeper. 
+ * Patch storage in Apache ZooKeeper.
  * <p>
  * <b>Note</b> Apache ZooKeeper is <a href="https://zookeeper.apache.org/doc/r3.4.12/zookeeperProgrammers.html#Data+Access"
- * >not designed for storing large objects</a>. 
- * The default maximum is 1M and most data for znodes should be much less that that. 
+ * >not designed for storing large objects</a>.
+ * The default maximum is 1M and most data for znodes should be much less that that.
  * They can cause slow startup because ZooKeeper keeps the database in-memory.
  */
 public class PatchStorageZk implements PatchStorage {
-    private static Logger LOG = LoggerFactory.getLogger(PatchStorageZk.class); 
+    private static Logger LOG = LoggerFactory.getLogger(PatchStorageZk.class);
     private final CuratorFramework client;
     private final String patches;
 
@@ -51,7 +51,7 @@ public class PatchStorageZk implements PatchStorage {
         this.patches = Zk.zkPath(logPath, ZkConst.nPatches);
         Zk.zkEnsure(client, patches);
     }
-    
+
     @Override
     public Stream<Id> find() {
         List<String> x = Zk.zkSubNodes(client, patches);
@@ -79,14 +79,13 @@ public class PatchStorageZk implements PatchStorage {
     }
 
     @Override
-    public void delete(Id id) { 
-        String p = Zk.zkPath(patches, id.asPlainString());    
+    public void delete(Id id) {
+        String p = Zk.zkPath(patches, id.asPlainString());
         Zk.zkRun(()->client.delete().forPath(p));
     }
 
-    
     @Override
-    public void release() { 
+    public void release() {
         find().forEach(this::delete);
     }
 }

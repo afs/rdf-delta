@@ -45,13 +45,20 @@ import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.cmds.dcmd;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer ;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DataSource;
+import org.seaborne.delta.server.local.DeltaLinkLocal;
+import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.LocalServers;
+import org.seaborne.delta.server.local.PatchStoreMgr;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
-import org.seaborne.delta.server.s3.S3Config;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
 import org.seaborne.delta.server.s3.S3;
+import org.seaborne.delta.server.s3.S3Config;
 import org.seaborne.delta.server.system.DeltaSystem;
 import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
@@ -114,8 +121,8 @@ public class DeltaServer {
             DeltaServerConfig deltaServerConfig = processArgs(args);
             if ( deltaServerConfig == null )
                 return null;
-            // Run ZooKeepers and Delta Patch Server.
-            PatchLogServer dps = run(deltaServerConfig);
+            // Run ZooKeepers
+            PatchLogServer dps = runProvider(deltaServerConfig);
             return dps;
         } catch (CmdException ex) {
             System.err.println(ex.getMessage());
@@ -319,7 +326,7 @@ public class DeltaServer {
         serverConfig.s3Endpoint = endpoint;
     }
 
-    private static PatchLogServer run(DeltaServerConfig config) {
+    private static PatchLogServer runProvider(DeltaServerConfig config) {
         DPS.init();
 
         // Verbose.
@@ -413,6 +420,7 @@ public class DeltaServer {
                 if ( config.zkConf == null )
                     throw new InternalErrorException("config.zkConf == null");
                 ZooServer.quorumServer(config.zkConf);
+                //ZkS.runZookeeperServer(config.zkConf).start();
                 break;
             }
             case MEM :

@@ -76,19 +76,22 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
+      <optional>true</optional>
     </dependency>
 
   </dependencies>
 
   <build>
     <plugins>
-       <!-- No artifacts -->
+      <!-- No artifacts -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-install-plugin</artifactId>
+        <!--Install for dev work.
         <configuration>
           <skip>true</skip>
         </configuration>
+        -->
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

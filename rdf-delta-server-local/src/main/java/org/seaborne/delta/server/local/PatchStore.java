@@ -44,68 +44,59 @@ import org.slf4j.LoggerFactory;
  * not a requirement.
  */
 public abstract class PatchStore {
-    private static Logger LOG = LoggerFactory.getLogger(PatchStore.class); 
-    
+    private static Logger LOG = LoggerFactory.getLogger(PatchStore.class);
+
     // ---- PatchStore.Provider
 
     // -------- Global
     // DataRegistry? That is all of the LocalServer i.e. all patch stores.
     private Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
 
-    /** Return the {@link PatchLog}, which must already exist. */ 
-    public PatchLog getLog(Id dsRef) { 
+    /** Return the {@link PatchLog}, which must already exist. */
+    public PatchLog getLog(Id dsRef) {
         return logs.get(dsRef);
     }
-    
+
     public boolean logExists(Id dsRef) {
         return logs.containsKey(dsRef);
     }
-    
+
     /** Clear the internal mapping from Log (by Id) to its PatchLog. Used for testing. */
     public void clearLogIdCache() {
         logs.clear();
     }
-    
+
     // ---- /Global
-    
+
     // -------- Instance
     private final PatchStoreProvider provider;
 
     private DataRegistry dataRegistry = null;
 
     private LocalServerConfig configuration;
-    
+
     protected PatchStore(PatchStoreProvider provider) {
         this.provider = provider;
     }
-    
-//    // Do not used - only for injecting classes for testing. 
-//    protected PatchStore() {
-//        this.provider = new PatchStoreProvider() {
-//            @Override public PatchStore create()        { return PatchStore.this; }
-//            @Override public String getProviderName()   { return "PatchStoreProviderUnknown"; }
-//            @Override public String getShortName()      { return "unknown"; }
-//        };
-//    }
 
-    /** Return the provider implementation. */ 
-    public PatchStoreProvider getProvider() { 
+    /** Return the provider implementation. */
+    public PatchStoreProvider getProvider() {
         return provider;
     }
-    
+
     public DataRegistry getDataRegistry() {
         checkInitialized();
         return dataRegistry;
     }
-    
-    /** 
+
+    /**
      * Initialize a {@code PatchStore}.
      * <p>
      * The {@link DataRegistry} is used to route incoming requests,
      * by name the patch log name, to {@link PatchLog PatchLogs}; this argument may be null
-     * for {@code PatchStores} not attached to a server (testing, development cases).  
+     * for {@code PatchStores} not attached to a server (testing, development cases).
      * Only {@link DataSource DataSources} that are compatible with the {@code PatchStore} provider called
-     * should be included in the returned list.  
+     * should be included in the returned list.
      */
     public List<DataSourceDescription> initialize(DataRegistry dataRegistry, LocalServerConfig config) {
         this.dataRegistry = dataRegistry;
@@ -114,22 +105,22 @@ public abstract class PatchStore {
         descr.forEach(dsd->createPatchLog(dsd));
         return descr;
     }
-    
+
     private void checkInitialized() {
         if ( dataRegistry == null )
-            throw new InternalErrorException("PatchStore not initialized"); 
+            throw new InternalErrorException("PatchStore not initialized");
     }
-    
-    /** 
+
+    /**
      * Initialize a patch store and provide a list of existing logs.
-    */ 
+    */
     protected abstract List<DataSourceDescription> initialize(LocalServerConfig config);
-    
+
     final
     public void shutdown() {
         releaseStore();
     }
-    
+
     /** All the patch logs currently managed by this {@code PatchStore}. */
     public List<DataSourceDescription> listDataSources() {
         checkInitialized();
@@ -142,16 +133,16 @@ public abstract class PatchStore {
     /**
      * Return a new {@link PatchLog}. Checking that there isn't a patch log for this
      * {@link DataSourceDescription} has already been done.
-     * 
+     *
      * @param dsd
      * @return PatchLog
      */
     protected abstract PatchLog newPatchLog(DataSourceDescription dsd);
-    
+
     /**
      * Help to build a {@link PatchLog} from a {@link PatchLogIndex} and
      * {@link PatchStorage} by calling operation of the {@link PatchStoreProvider}.
-     * 
+     *
      * @param dsd
      * @return
      */
@@ -170,12 +161,12 @@ public abstract class PatchStore {
             pLog = createPatchLog(dsd);
         return pLog;
     }
-    
-    /** Return a new {@link PatchLog}, which must not already exist. */ 
+
+    /** Return a new {@link PatchLog}, which must not already exist. */
     public PatchLog createLog(DataSourceDescription dsd) {
         if ( getProvider() == null )
             FmtLog.info(LOG, "Create log[?]: %s", dsd);
-        else  
+        else
             FmtLog.info(LOG, "Create log[%s]: %s", getProvider().getShortName(), dsd);
         checkInitialized();
         Id dsRef = dsd.getId();
@@ -183,11 +174,12 @@ public abstract class PatchStore {
             throw new DeltaException("Can't create - PatchLog exists");
         return createPatchLog(dsd);
     }
-    
+
     /** Create and properly register a new {@link PatchLog}.
      *  Call this to add new patch logs including remote changes.
      *  This method calls {@link #create} provided by the subclass.
-     */  
+     *  This method called by PatchStoreZk when a new log appears.
+     */
     final
     protected PatchLog createPatchLog(DataSourceDescription dsd) {
         Id dsRef = dsd.getId();
@@ -204,7 +196,7 @@ public abstract class PatchStore {
     // XXX Sort out/verify the responsibility and call order for crate/release, all paths.
     // LocalServer/PatchStore on its own/Zk async update.
     // Single place to release, including call from LocalServer.
-    
+
     /**
      * Release ("delete") the {@link PatchLog}.
      * Called from (1) LocalServer/client request and (2) releasePatchLog, cluster change.
@@ -222,10 +214,10 @@ public abstract class PatchStore {
         delete(patchLog);
     }
 
-    /** 
-     * Remove and properly de-register a {@link PatchLog}. 
+    /**
+     * Remove and properly de-register a {@link PatchLog}.
      * Call this from subclasses notifying the deletion of a patch log elsewhere.
-     */  
+     */
     final
     protected void releasePatchLog(Id dsRef) {
         DataSource ds = dataRegistry.get(dsRef);
@@ -233,13 +225,13 @@ public abstract class PatchStore {
             return ;
         release(ds.getPatchLog());
     }
-    
+
     /**
      * Delete a {@link PatchLog}.
      * @param patchLog
      */
     protected abstract void delete(PatchLog patchLog);
-    
+
     /** Stop using this {@code PatchStore} - subclasses release resources. */
     protected abstract void releaseStore();
 

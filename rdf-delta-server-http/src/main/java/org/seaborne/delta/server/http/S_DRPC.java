@@ -145,7 +145,7 @@ public class S_DRPC extends DeltaServlet {
                     rslt = listPatchLogInfo(action);
                     break ;
                 case OP_LIST_DSD:
-                    rslt = describeAllDataSources(action);
+                    rslt = listDataSourcesDescriptions(action);
                     break ;
                 case OP_CREATE_DS:
                     rslt = createDataSource(action);
@@ -273,7 +273,7 @@ public class S_DRPC extends DeltaServlet {
         });
     }
 
-    private JsonValue describeAllDataSources(DeltaAction action) {
+    private JsonValue listDataSourcesDescriptions(DeltaAction action) {
         List<DataSourceDescription> x = action.dLink.listDescriptions();
         return JSONX.buildObject(b->{
             b.key(F_ARRAY);

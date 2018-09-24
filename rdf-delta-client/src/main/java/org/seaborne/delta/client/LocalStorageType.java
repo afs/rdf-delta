@@ -21,13 +21,13 @@ package org.seaborne.delta.client;
 /**
  * Type of data persistence for a {@link Zone} managed dataset.
  * If a {@code DataSource} is "ephemeral" it disappears when the JVM ends.
- * It has no state across JVM instances.  
+ * It has no state across JVM instances.
  */
 
 public enum LocalStorageType {
     /** TDB storage */
-    TDB(false, "TDB"), 
-    TDB2(false, "TDB2"), 
+    TDB(false, "TDB"),
+    TDB2(false, "TDB2"),
     //FILE(false, "file"),
     /** In-memory and ephemeral */
     MEM(true, "mem"),
@@ -38,12 +38,12 @@ public enum LocalStorageType {
     ;
     private final boolean ephemeral ;
     private String typeName ;
-    
+
     private LocalStorageType(boolean ephemeral, String typeName) {
         this.ephemeral = ephemeral;
         this.typeName = typeName;
     }
-    
+
     public static LocalStorageType fromString(String string) {
         if ( string == null ) return null;
         if ( string.equalsIgnoreCase(TDB.typeName())) return TDB;
@@ -52,11 +52,10 @@ public enum LocalStorageType {
         if ( string.equalsIgnoreCase(EXTERNAL.typeName())) return EXTERNAL;
         if ( string.equalsIgnoreCase(NONE.typeName())) return NONE;
         return null;
-        //throw new DeltaException("No storage type constant for '"+string+"'"); 
+        //throw new DeltaException("No storage type constant for '"+string+"'");
     }
-    
+
     public boolean isEphemeral() { return ephemeral; }
     public String typeName() { return typeName; }
 }
 
-    

@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * areas using a {@link DataRegistry}.
  * {@code LocalServer} is responsible for server-wide configuration and
  * for the {@link DataSource} lifecycle of create and delete.
- * 
+ *
  * @see LocalServers
  * @see DeltaLinkLocal
  * @see DataSource
@@ -44,10 +44,10 @@ public class LocalServer {
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
     static { DeltaSystem.init(); }
-    
-    // Track the LocalServers, - mainly so testing can clear them all. 
+
+    // Track the LocalServers, - mainly so testing can clear them all.
     private static List<LocalServer> servers = new ArrayList<>();
-    
+
     private final DataRegistry dataRegistry;
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
@@ -58,7 +58,7 @@ public class LocalServer {
     private Object serverLock = new Object();
 
     private final PatchStore patchStore;
-    
+
 //    /** Create a {@code LocalServer} using the given configuration file. */
 //    public static LocalServer create(String confFile) {
 //        LocalServerConfig conf = LocalServerConfig.create()
@@ -73,7 +73,7 @@ public class LocalServer {
         PatchStore ps = createPatchStore(conf);
         return create(ps, conf);
     }
-    
+
     private static PatchStore createPatchStore(LocalServerConfig config) {
         String providerName = config.getLogProvider();
         if ( providerName == null )
@@ -98,7 +98,7 @@ public class LocalServer {
     private static Set<Id> ids(Collection<DataSource> sources) {
         return sources.stream().map(DataSource::getId).collect(Collectors.toSet());
     }
-    
+
     /** Finish using this {@code LocalServer} */
     public static void release(LocalServer localServer) {
         localServer.shutdown$();
@@ -110,7 +110,7 @@ public class LocalServer {
         servers.forEach(server->server.shutdown$());
         servers.clear();
     }
-    
+
     /** Make a LocalServer; this includes initializing the patch store */
     private static LocalServer newLocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
         initializePatchStore(patchStore, dataRegistry, config);
@@ -128,9 +128,9 @@ public class LocalServer {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.patchStore = patchStore;
-        
+
     }
-    
+
     public void shutdown() {
         LocalServer.release(this);
     }
@@ -143,11 +143,11 @@ public class LocalServer {
     public DataRegistry getDataRegistry() {
         return dataRegistry;
     }
-    
+
     public PatchStore getPatchStore() {
         return patchStore;
     }
-    
+
     public DataSource getDataSource(Id dsRef) {
         DataSource ds = dataRegistry.get(dsRef);
         return dataSource(ds);
@@ -157,7 +157,7 @@ public class LocalServer {
         DataSource ds = dataRegistry.getByName(name);
         return dataSource(ds);
     }
-    
+
     public DataSource getDataSourceByURI(String uri) {
         DataSource ds = dataRegistry.getByURI(uri);
         return dataSource(ds);
@@ -170,7 +170,7 @@ public class LocalServer {
             return null;
         return ds;
     }
-    
+
     /** Get the LocalServerConfig use for this server */
     public LocalServerConfig getConfig() {
         return serverConfig;
@@ -179,7 +179,7 @@ public class LocalServer {
     public List<Id> listDataSourcesIds() {
         return new ArrayList<>(dataRegistry.keys());
     }
-    
+
     public List<DataSource> listDataSources() {
         List<DataSource> x = new ArrayList<>();
         dataRegistry.forEach((id, ds)-> x.add(ds));
@@ -187,7 +187,7 @@ public class LocalServer {
     }
 
     public List<PatchLogInfo> listPatchLogInfo() {
-        // Important enough to have it's own cut-through method. 
+        // Important enough to have it's own cut-through method.
         List<PatchLogInfo> x = new ArrayList<>();
         dataRegistry.forEach((id, ds)-> x.add(ds.getPatchLog().getInfo()));
         return x;
@@ -197,7 +197,7 @@ public class LocalServer {
         DataSource dataSource = dataRegistry.get(dsRef);
         return descriptor(dataSource);
     }
-    
+
     private DataSourceDescription descriptor(DataSource dataSource) {
         DataSourceDescription descr = new DataSourceDescription
             (dataSource.getId(),
@@ -205,7 +205,7 @@ public class LocalServer {
              dataSource.getName());
         return descr;
     }
-    
+
     /**
      * Create a new data source in the default {@link PatchStore}. This can not
      * be one that has been removed (i.e disabled) whose files must be cleaned
@@ -214,7 +214,7 @@ public class LocalServer {
     public Id createDataSource(String name, String baseURI) {
         return createDataSource(patchStore, name, baseURI);
     }
-    
+
     /**
      * Create a new data source in the specified {@link PatchStore}. This can
      * not be one that has been removed (i.e. disabled) whose files must be
@@ -226,14 +226,14 @@ public class LocalServer {
         Id dsRef = Id.create();
         DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
         DataSource dataSource = createDataSource$(patchStore, dsd);
-        return dataSource.getId(); 
+        return dataSource.getId();
     }
-    
+
     /** Remove from active use.*/
     public void removeDataSource(Id dsRef) {
         removeDataSource$(dsRef);
     }
-    
+
     private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(serverLock) {
             PatchLog patchLog = patchStore.createLog(dsd);
@@ -243,12 +243,12 @@ public class LocalServer {
             return newDataSource;
         }
     }
-    
+
    private void removeDataSource$(Id dsRef) {
         DataSource datasource1 = getDataSource(dsRef);
         if ( datasource1 == null )
             return;
-        
+
         // Lock with create.
         synchronized(serverLock) {
             DataSource datasource = getDataSource(dsRef);

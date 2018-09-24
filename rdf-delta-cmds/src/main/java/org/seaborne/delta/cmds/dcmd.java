@@ -29,18 +29,24 @@ import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
  */
 public class dcmd {
 
-    static { setLogging(); }
+    static {
+        setLogging();
+    }
 
     public static void setLogging() {
+        if ( System.getProperty("java.util.logging.configuration") != null )
+            return;
         if ( systemPropertySet("log4j.configuration") )
             // Not used.
             // Leave to CmdMain -> LogCtl.setCmdLogging()
             return;
-        // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging() 
+        // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging()
         System.setProperty("log4j.configuration", "off");
         LogCtl.setJavaLogging();
+        // [Jena 3.9.0] Can be dropped.s
+        System.setProperty("java.util.logging.configuration", "set");
     }
-    
+
     private static boolean systemPropertySet(String string) {
         return System.getProperty(string) != null ;
     }
@@ -50,7 +56,7 @@ public class dcmd {
             System.err.println("Usage: dcmd SUB ARGS...");
             throw new CmdException("Usage: dcmd SUB ARGS...");
         }
-        
+
         String cmd = args[0];
         String[] argsSub = Arrays.copyOfRange(args, 1, args.length);
         String cmdExec = cmd;
@@ -64,7 +70,7 @@ public class dcmd {
                 System.err.println("Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r");
                 return;
         }
-        
+
         // Map to full name.
         switch (cmdExec) {
             case "appendpatch" :
@@ -88,7 +94,7 @@ public class dcmd {
                 cmdExec = "patchserver";
                 break;
         }
-       
+
         // Execute sub-command
         switch (cmdExec) {
             case "mklog":       mklog.main(argsSub); break;
@@ -98,7 +104,7 @@ public class dcmd {
             case "getpatch":    getpatch.main(argsSub); break;
             case "rdf2patch":   rdf2patch.main(argsSub); break;
             case "patch2rdf":   patch2rdf.main(argsSub); break;
-            case "patchserver": 
+            case "patchserver":
                 delta.server.DeltaServer.main(argsSub); break;
             case "fuseki":
                 FusekiBasicCmd.main(argsSub);

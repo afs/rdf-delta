@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ZooKeeper server for running a zookeeper server asynchronously.
+ * ZooKeeper server for running a <b>standalone</b> zookeeper server asynchronously.
  * @implNote
  * Based on ZooKeeperServerMain which runs the server synchronously.
  */
@@ -44,24 +44,27 @@ public class ZooServer {
     private ContainerManager containerManager;
 
     private ZooKeeperServer zkServer;
-    private FileTxnSnapLog txnLog; 
+    private FileTxnSnapLog txnLog;
     private AdminServer adminServer;
 
     private ServerConfig config;
 
+    // See ZkS
+//    /** @deprecated Use {@link ZkS#runZookeeperServer(String)} */
+//    @Deprecated
     public static void quorumServer(String confFile) {
         // No join.
         L.async(() -> QuorumPeerMain.main(new String[] {confFile}) );
     }
-    
+
     public ZooServer(ServerConfig config) {
         this.config = config;
     }
-    
+
     /* Information: To run QuorumPeerMain
-     * 
+     *
      */
-    
+
     /* Information: To run ZooKeeperServerMain:
       // Usage: ZooKeeperServerMain configfile | port datadir [ticktime] [maxcnxns]
       String[] a = {Integer.toString(port), dataDir};
@@ -81,7 +84,7 @@ public class ZooServer {
       // Better (?) : use ZooKeeperServer
       Lib.sleep(500);
     */
-    
+
     public void setupFromConfig() {
         try {
             txnLog = new FileTxnSnapLog(config.getDataLogDir(), config.getDataDir());
@@ -91,12 +94,13 @@ public class ZooServer {
         }
         zkServer = new ZooKeeperServer(txnLog, config.getTickTime(), config.getMinSessionTimeout(), config.getMaxSessionTimeout(), null);
     }
-    
+
     public void start() {
+        // See ZooKeeperServerMain.runFromConfig
         LOG.info("Starting server");
         boolean needStartZKServer = true;
         LogCtl.disable("org.apache.zookeeper.server.ZooKeeperServer");
-        // ZooKeeperServer logs an error because ZooKeeperServerShutdownHandler not set but that is not an accessible class. 
+        // ZooKeeperServer logs an error because ZooKeeperServerShutdownHandler not set but that is not an accessible class.
         try {
             if (config.getClientPortAddress() != null) {
                 cnxnFactory = ServerCnxnFactory.createFactory();
@@ -114,7 +118,7 @@ public class ZooServer {
             if ( needStartZKServer )
                 zkServer.startup();
         } catch (IOException e) {
-            throw new RuntimeIOException(e); 
+            throw new RuntimeIOException(e);
         } catch (InterruptedException e) {
             // Note from ZookeeperServerMain: "warn, but generally this is ok"
             LOG.warn("Server interrupted", e);
@@ -122,7 +126,7 @@ public class ZooServer {
             LogCtl.setLevel("org.apache.zookeeper.server.ZooKeeperServer", "WARN");
         }
     }
-    
+
     public void join() {
         if (cnxnFactory != null) {
             try {
@@ -134,7 +138,12 @@ public class ZooServer {
             }
         }
     }
-    
+
+
+    public void stop() {
+        // Tail of ZooKeeperServerMain.runFromConfig
+        shutdown();
+    }
     /**
      * Shutdown the serving instance
      */

@@ -80,7 +80,7 @@ public class PatchStoreZk extends PatchStore {
         if ( ! zkExists(client, ZkConst.pRoot) )
             zkCreate(client, ZkConst.pRoot);
         zkEnsure(client, ZkConst.pStoreLock);
-        // It does not matter if this multiple operations - it happens rarely.
+        // It does not matter if this holds up multiple log stores - it happens rarely.
         Zk.zkLock(client, ZkConst.pStoreLock, ()->{
             if ( ! zkExists(client, ZkConst.pLogs) )
                 zkCreate(client, ZkConst.pLogs);
@@ -111,6 +111,7 @@ public class PatchStoreZk extends PatchStore {
 //    private Set<DataSourceDescription> scanForLogChanges() {
 //        Set<DataSourceDescription> nowSeen = new HashSet<>(listDataSources());
 
+    // Update based on a list of active logs.
     private void updateLogChanges(Set<String> names) {
         Set<String> lastSeenLocal = patchLogs.keySet();
         Set<String> newLogs = SetUtils.difference(names, lastSeenLocal);
@@ -181,10 +182,18 @@ public class PatchStoreZk extends PatchStore {
     @Override
     public List<DataSourceDescription> listDataSources() {
         FmtLog.debug(LOGZK, "[%d] listDataSources", instance);
-        return super.listDataSources();
+        List<DataSourceDescription> sources = listDataSourcesZk();
+        // XXX Atomically set super.listDataSources().
+        return sources;
+
+        // Rely on local cache.
+        // This does not work - watchers can be quite unreliable.
+//        return super.listDataSources();
+//
 //        return ListUtils.toList(
 //            patchLogs.values().stream().map(log->log.getDescription())
 //            );
+
         //return listDataSourcesZk();
     }
 

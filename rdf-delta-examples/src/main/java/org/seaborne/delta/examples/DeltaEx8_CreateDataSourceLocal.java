@@ -26,29 +26,29 @@ import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
 
-/** Locally, create a new DataSource, remove it. */ 
+/** Locally, create a new DataSource, remove it. */
 public class DeltaEx8_CreateDataSourceLocal {
-    
+
     public static void main(String... args) {
         Location loc = Location.create("DeltaServer");
         // LocalServer is the engine part of the patch log server.
         LocalServer server = LocalServers.createFile(loc.getDirectoryPath());
         state(server.listDataSources());
         System.out.println();
-        
+
         // Correctly fails if exists
         Id newId = server.createDataSource("XYZ", "http://example/xyz");
-        DataSource dSrc = server.getDataRegistry().get(newId);
+        DataSource dSrc = server.getDataSource(newId);
         List<DataSource> x = server.listDataSources();
         state(server.listDataSources());
         System.out.println();
-        
+
         server.removeDataSource(newId);
         state(server.listDataSources());
         // Can not create again "remove" means "disable".
         System.out.println("DONE");
     }
-    
+
     public static void state(List<DataSource> x) {
         x.forEach((ds)->{
             System.out.println(ds);

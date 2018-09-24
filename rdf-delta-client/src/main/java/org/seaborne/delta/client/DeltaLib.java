@@ -28,7 +28,7 @@ import org.seaborne.patch.text.TokenWriter ;
 import org.seaborne.patch.text.TokenWriterText ;
 
 public class DeltaLib {
-    
+
     /** Connect to a destination for changes */
     public static RDFChanges destination(String dest) {
         // TODO text vs binary
@@ -38,27 +38,28 @@ public class DeltaLib {
             RDFChanges sc = new RDFChangesWriter(tokenWriter) ;
             return sc ;
         }
-        
+
         if ( dest.startsWith("delta:") ) { // TCP connection delta:HOST:PORT
-            throw new NotImplemented(dest) ; 
+            throw new NotImplemented(dest) ;
         }
-        
+
         if ( dest.startsWith("http:") || dest.startsWith("https:") ) {
             // Triggered on each transaction.
             return new RDFChangesHTTP(dest, dest) ;
         }
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }
-    
-    public static String makeURL(String url, String paramName1, Object paramValue1) {
-        return String.format("%s?%s=%s", url, paramName1, paramValue1);
-    }
-    
-    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
-        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
-    }
-    
-    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2, String paramName3, Object paramValue3) {
-        return String.format("%s?%s=%s&%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2, paramName3, paramValue3);
-    }
+
+//    Currently copied to DeltaLibHTTP.initialState
+//    public static String makeURL(String url, String paramName1, Object paramValue1) {
+//        return String.format("%s?%s=%s", url, paramName1, paramValue1);
+//    }
+//
+//    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2) {
+//        return String.format("%s?%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2);
+//    }
+//
+//    public static String makeURL(String url, String paramName1, Object paramValue1, String paramName2, Object paramValue2, String paramName3, Object paramValue3) {
+//        return String.format("%s?%s=%s&%s=%s&%s=%s", url, paramName1, paramValue1, paramName2, paramValue2, paramName3, paramValue3);
+//    }
 }
