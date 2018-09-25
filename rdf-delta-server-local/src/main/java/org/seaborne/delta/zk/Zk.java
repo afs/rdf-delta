@@ -92,7 +92,7 @@ public class Zk {
             ZKPaths.mkdirs(client.getZookeeperClient().getZooKeeper(), path, true);
             return path;
         } catch (Exception e) {
-            LOG.error("Failed: mkdirs("+path+")",e) ;
+            LOG.error("Failed: mkdirs("+path+")",e);
             return null;
         }
     }
@@ -141,9 +141,9 @@ public class Zk {
             return client.getChildren().forPath(path);
         } catch (Exception e) {
             if ( e instanceof KeeperException.NoNodeException )
-                LOG.error("No such znode: "+path) ;
+                LOG.error("No such znode: "+path);
             else
-                LOG.error("Failed: zkSubNodes("+path+")",e) ;
+                LOG.error("Failed: zkSubNodes("+path+")",e);
             return null;
         }
     }
@@ -272,7 +272,7 @@ public class Zk {
                 recurse(client, x, initial, depth+1);
             });
         }
-        catch (Exception ex) { return ; }
+        catch (Exception ex) { return; }
     }
 
 

@@ -18,12 +18,22 @@
 
 package org.seaborne.delta.server.local;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors ;
 
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.*;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,7 +151,27 @@ public class LocalServer {
     }
 
     public DataRegistry getDataRegistry() {
+        // Not sync'ed.
         return dataRegistry;
+    }
+
+    private DataRegistry syncedDataRegistry() {
+        syncPatchStore();
+        return dataRegistry;
+    }
+
+    /** Try an action; if it returns null, sync the patch store and try again */
+    private <T> T actionSyncPatchStore(Supplier<T> action) {
+        T x = action.get();
+        if ( x == null ) {
+            syncPatchStore();
+            x = action.get();
+        }
+        return x;
+    }
+
+    private void syncPatchStore() {
+        patchStore.sync();
     }
 
     public PatchStore getPatchStore() {
@@ -149,17 +179,17 @@ public class LocalServer {
     }
 
     public DataSource getDataSource(Id dsRef) {
-        DataSource ds = dataRegistry.get(dsRef);
+        DataSource ds = actionSyncPatchStore(()->dataRegistry.get(dsRef));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByName(String name) {
-        DataSource ds = dataRegistry.getByName(name);
+        DataSource ds = actionSyncPatchStore(()->dataRegistry.getByName(name));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByURI(String uri) {
-        DataSource ds = dataRegistry.getByURI(uri);
+        DataSource ds = actionSyncPatchStore(()->dataRegistry.getByURI(uri));
         return dataSource(ds);
     }
 
@@ -171,30 +201,8 @@ public class LocalServer {
         return ds;
     }
 
-    /** Get the LocalServerConfig use for this server */
-    public LocalServerConfig getConfig() {
-        return serverConfig;
-    }
-
-    public List<Id> listDataSourcesIds() {
-        return new ArrayList<>(dataRegistry.keys());
-    }
-
-    public List<DataSource> listDataSources() {
-        List<DataSource> x = new ArrayList<>();
-        dataRegistry.forEach((id, ds)-> x.add(ds));
-        return x;
-    }
-
-    public List<PatchLogInfo> listPatchLogInfo() {
-        // Important enough to have it's own cut-through method.
-        List<PatchLogInfo> x = new ArrayList<>();
-        dataRegistry.forEach((id, ds)-> x.add(ds.getPatchLog().getInfo()));
-        return x;
-      }
-
     public DataSourceDescription getDescriptor(Id dsRef) {
-        DataSource dataSource = dataRegistry.get(dsRef);
+        DataSource dataSource = actionSyncPatchStore(()->dataRegistry.get(dsRef));
         return descriptor(dataSource);
     }
 
@@ -205,6 +213,28 @@ public class LocalServer {
              dataSource.getName());
         return descr;
     }
+
+    /** Get the LocalServerConfig use for this server */
+    public LocalServerConfig getConfig() {
+        return serverConfig;
+    }
+
+    public List<Id> listDataSourcesIds() {
+        return new ArrayList<>(syncedDataRegistry().keys());
+    }
+
+    public List<DataSource> listDataSources() {
+        List<DataSource> x = new ArrayList<>();
+        syncedDataRegistry().forEach((id, ds)-> x.add(ds));
+        return x;
+    }
+
+    public List<PatchLogInfo> listPatchLogInfo() {
+        // Important enough to have it's own cut-through method.
+        List<PatchLogInfo> x = new ArrayList<>();
+        syncedDataRegistry().forEach((id, ds)-> x.add(ds.getPatchLog().getInfo()));
+        return x;
+      }
 
     /**
      * Create a new data source in the default {@link PatchStore}. This can not
@@ -221,7 +251,7 @@ public class LocalServer {
      * cleaned up manually.
      */
     public Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
-        if ( dataRegistry.containsName(name) )
+        if ( syncedDataRegistry().containsName(name) )
             throw new DeltaBadRequestException("DataSource with name '"+name+"' already exists");
         Id dsRef = Id.create();
         DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
@@ -236,10 +266,11 @@ public class LocalServer {
 
     private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(serverLock) {
+            DataRegistry reg = syncedDataRegistry();
             PatchLog patchLog = patchStore.createLog(dsd);
             DataSource newDataSource = new DataSource(dsd, patchLog);
             // XXX Isn't this done in PatchStore.createPatchLog as well?
-            dataRegistry.put(dsd.getId(), newDataSource);
+            reg.put(dsd.getId(), newDataSource);
             return newDataSource;
         }
     }

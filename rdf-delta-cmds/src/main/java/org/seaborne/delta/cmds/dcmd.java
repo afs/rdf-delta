@@ -43,7 +43,7 @@ public class dcmd {
         // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging()
         System.setProperty("log4j.configuration", "off");
         LogCtl.setJavaLogging();
-        // [Jena 3.9.0] Can be dropped.s
+        // [Jena 3.9.0] Can be dropped.
         System.setProperty("java.util.logging.configuration", "set");
     }
 

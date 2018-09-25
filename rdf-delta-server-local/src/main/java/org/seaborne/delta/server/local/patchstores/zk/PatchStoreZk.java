@@ -37,6 +37,7 @@ import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.SetUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
@@ -77,10 +78,9 @@ public class PatchStoreZk extends PatchStore {
     public int getInstance() { return instance; }
 
     private static void formatPatchStore(CuratorFramework client) throws Exception {
-        if ( ! zkExists(client, ZkConst.pRoot) )
-            zkCreate(client, ZkConst.pRoot);
+        zkEnsure(client, ZkConst.pRoot);
         zkEnsure(client, ZkConst.pStoreLock);
-        // It does not matter if this holds up multiple log stores - it happens rarely.
+        // It does not matter if this holds up multiple log stores then they all run - it happens rarely.
         Zk.zkLock(client, ZkConst.pStoreLock, ()->{
             if ( ! zkExists(client, ZkConst.pLogs) )
                 zkCreate(client, ZkConst.pLogs);
@@ -89,30 +89,54 @@ public class PatchStoreZk extends PatchStore {
         });
     }
 
-    private void init() throws Exception {
-        //List<DataSourceDescription> x = listDataSourcesZk();
-        Set<String> names = getWatchLogs();
+    private void init() {
+        // Also sets watcher.
+        List<String> names = getWatchLogs();
         updateLogChanges(names);
     }
 
     private Watcher patchLogWatcher = (event)->{
         synchronized(storeLock) {
             // get names.
-            Set<String> names = getWatchLogs();
+            List<String> names = getWatchLogs();
             updateLogChanges(names);
         }
     };
 
-    private Set<String> getWatchLogs() {
-        List<String> logNames = zkCalc(() -> client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pActiveLogs) );
-        return new HashSet<>(logNames);
+    private List<String> getWatchLogs() {
+        // This can happen too early when /delta/activeLogs is beging setup.
+        // Just ignore than ans sync later.
+        try {
+            return client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pActiveLogs);
+        }
+        catch (KeeperException.NoNodeException ex) {}
+        catch (KeeperException ex) {}
+        catch (Exception ex) {}
+        return null;
+
     }
 
 //    private Set<DataSourceDescription> scanForLogChanges() {
 //        Set<DataSourceDescription> nowSeen = new HashSet<>(listDataSources());
 
-    // Update based on a list of active logs.
+    private void updateLogChanges(List<String> namesList) {
+        if ( namesList == null ) {
+            LOGZK.info("updateLogChanges -> null");
+            return;
+        }
+        Set<String> x = new HashSet<>(namesList);
+        updateLogChanges(x);
+    }
+
+    // Update based on a set of active logs.
     private void updateLogChanges(Set<String> names) {
+        // XXX Better could be to queue all request, have one worker do the updates then
+        // release all waiting threads.  However, logs don't get created and deleted very often
+        // so the work here is usually calculating empty sets.
+
+        // Overlapping actions, and any inconsistency they generate, don'tmatter too much because
+        // as the system settles down, the correct view will in-place.
+
         Set<String> lastSeenLocal = patchLogs.keySet();
         Set<String> newLogs = SetUtils.difference(names, lastSeenLocal);
         Set<String> deletedLogs = SetUtils.difference(lastSeenLocal, names);
@@ -143,6 +167,14 @@ public class PatchStoreZk extends PatchStore {
         });
     }
     // ---- Watching for logs
+
+    @Override
+    protected void sync() {
+        try {
+            List<String> logNames = client.getChildren().forPath(ZkConst.pActiveLogs);
+            updateLogChanges(logNames);
+        } catch (Exception ex) {}
+    }
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
@@ -182,19 +214,11 @@ public class PatchStoreZk extends PatchStore {
     @Override
     public List<DataSourceDescription> listDataSources() {
         FmtLog.debug(LOGZK, "[%d] listDataSources", instance);
-        List<DataSourceDescription> sources = listDataSourcesZk();
-        // XXX Atomically set super.listDataSources().
-        return sources;
-
-        // Rely on local cache.
-        // This does not work - watchers can be quite unreliable.
-//        return super.listDataSources();
-//
-//        return ListUtils.toList(
-//            patchLogs.values().stream().map(log->log.getDescription())
-//            );
-
-        //return listDataSourcesZk();
+        sync();
+        return super.listDataSources();
+//        List<DataSourceDescription> sources = listDataSourcesZk();
+//        // Would need to atomically set the data registry.
+//        return sources;
     }
 
     // Guaranteed to look in zookeeper, no local caching.

@@ -84,6 +84,9 @@ public abstract class PatchStore {
         return provider;
     }
 
+    /** For subclasses of {@link PatchStore} to override - some don't need to do anything, Zookeeper ones do. */
+    protected void sync() {}
+
     public DataRegistry getDataRegistry() {
         checkInitialized();
         return dataRegistry;
