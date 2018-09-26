@@ -113,4 +113,10 @@ public class LibX {
             throw new RuntimeIOException("Failed to find a port");
         }
     }
+
+    public static RuntimeException wrap(Throwable th) { return new WrappedException(th); }
+    private static class WrappedException extends RuntimeException {
+        public WrappedException(Throwable th) { super(th); }
+        @Override public synchronized Throwable fillInStackTrace() { return this; }
+    }
 }

@@ -26,7 +26,6 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
@@ -165,17 +164,37 @@ public abstract class PatchStore {
         return pLog;
     }
 
+    private static Object lock = new Object();
     /** Return a new {@link PatchLog}, which must not already exist. */
     public PatchLog createLog(DataSourceDescription dsd) {
-        if ( getProvider() == null )
-            FmtLog.info(LOG, "Create log[?]: %s", dsd);
-        else
-            FmtLog.info(LOG, "Create log[%s]: %s", getProvider().getShortName(), dsd);
-        checkInitialized();
-        Id dsRef = dsd.getId();
-        if ( logExists(dsRef) )
-            throw new DeltaException("Can't create - PatchLog exists");
-        return createPatchLog(dsd);
+        synchronized(lock) {
+            if ( getProvider() == null )
+                FmtLog.info(LOG, "Create log[?]: %s", dsd);
+            else
+                FmtLog.info(LOG, "Create log[%s]: %s", getProvider().getShortName(), dsd);
+            checkInitialized();
+            Id dsRef = dsd.getId();
+            sync();
+            if ( logExists(dsRef) ) {
+                FmtLog.info(LOG, "Create (exists)");
+                // Still not perfect,.
+                PatchLog plog = logs.get(dsRef);
+                return plog;
+                //throw new DeltaException("Can't create - PatchLog exists");
+            }
+            if ( dataRegistry.containsName(dsd.getName()) ) {
+                DataSource ds = dataRegistry.getByName(dsd.getName());
+                FmtLog.info(LOG, "Create (name exists): "+dsd);
+                return ds.getPatchLog();
+            }
+
+            FmtLog.info(LOG, "Create (for real)");
+            PatchLog plog =  createPatchLog(dsd);
+            if ( ! logExists(dsRef) ) {
+                FmtLog.info(LOG, "Create (invisible)");
+            }
+            return plog;
+        }
     }
 
     /** Create and properly register a new {@link PatchLog}.

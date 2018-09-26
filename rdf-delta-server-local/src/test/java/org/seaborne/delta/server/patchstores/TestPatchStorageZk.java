@@ -30,12 +30,12 @@ import org.seaborne.delta.zk.Zk;
 
 public class TestPatchStorageZk extends AbstractTestPatchStorage {
     static { LogCtl.setJavaLogging(); }
-    
+
      private static int counter = 0 ;
      private TestingServer server = null;
      private CuratorFramework client = null;
      private String patches = "/patches-"+(counter++);
-     
+
      @Before public void before() {
         try {
             server = ZkT.localServer();
@@ -47,7 +47,7 @@ public class TestPatchStorageZk extends AbstractTestPatchStorage {
         String connectionString = "localhost:"+server.getPort();
         client = Zk.curator(connectionString);
     }
-    
+
     @After public void after() {
         client.close();
         try {
@@ -57,9 +57,9 @@ public class TestPatchStorageZk extends AbstractTestPatchStorage {
             throw new RuntimeException(ex);
         }
     }
-    
+
     @Override
     protected PatchStorage patchStorage() {
-        return new PatchStorageZk(client, 0, patches);
+        return new PatchStorageZk(client, "0", patches);
     }
 }

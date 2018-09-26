@@ -41,36 +41,36 @@ import org.slf4j.LoggerFactory;
 /** State control for a {@link PatchStore} */
 public class PatchLogIndexZk implements PatchLogIndex {
     private static Logger LOG = LoggerFactory.getLogger(PatchLogIndexZk.class);
-    
+
     private final Object lock = new Object();
     private final CuratorFramework client;
 
-    private int instance;
+    private /*final*/ String instance;
 
     private final DataSourceDescription dsd;
-    private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas 
+    private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas
     private final String statePath;
     private final String lockPath;
     private final String versionsPath;
     private final String headersPath;
-    
+
     /* Keep head info - the (version, id, prev) is saved in /headers/<id> when a patch is stored in addition to the
      * /versions/NNNN which as just id.
-     * This isn't necessary for operation. 
+     * This isn't necessary for operation.
      * It can be used to check the patch store.
      */
     private final boolean keepHeaderInfo = true;
-    
+
     /*
      * Verification can only happen if basic header information is stored.
      * Requires header information to have been kept.
      */
-    // Could write a verifier that went to the PatchStorage to get header info.   
+    // Could write a verifier that went to the PatchStorage to get header info.
     private final boolean startupVerification = false && keepHeaderInfo ;
-    
+
     private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
-    
+
     // Set by newState
     private volatile long version = Version.UNSET.value();
     private volatile Id current = null;
@@ -84,10 +84,10 @@ public class PatchLogIndexZk implements PatchLogIndex {
      * <ul>
      * <li>{@code statePath} - where the patches are stored.
      * <li>{@code versionsPath} - directory where the meta data JSON object is stored as name "%08d"
-     * </ul> 
+     * </ul>
      */
-    
-    public PatchLogIndexZk(CuratorFramework client, int instance, DataSourceDescription dsd, String logPath) {
+
+    public PatchLogIndexZk(CuratorFramework client, String instance, DataSourceDescription dsd, String logPath) {
         this.client = client ;
         this.instance = instance;
         this.dsd = dsd;
@@ -114,17 +114,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
         earliestId = versionToId(earliestVersion);
         // Initialize, start watching
         stateOrInit();
-        
+
         if ( startupVerification ) {
             if ( ! keepHeaderInfo )
-                FmtLog.warn(LOG, "Not keeping header information. Verification may fail if any previous runs also did not keep header information."); 
+                FmtLog.warn(LOG, "Not keeping header information. Verification may fail if any previous runs also did not keep header information.");
             verify(client, x);
         }
     }
 
     private void verify(CuratorFramework client, List<String> versions) {
         List<String> headers = Zk.zkSubNodes(client, headersPath);
-        
+
         if ( versions.isEmpty() ) {
             if ( ! headers.isEmpty() ) { /*msg*/ }
             if ( version != Version.INIT.value() ) { /*msg*/ }
@@ -136,14 +136,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
         Map<Id, Id> mapIdToPrev = new HashMap<>();
         Map<Id, Id> mapPrevToId = new HashMap<>();
         Map<Long, Id> mapLongToId = new HashMap<>();
-        
+
         headers.forEach(idStr->{
             Id id = Id.fromString(idStr);
             String path = zkPath(headersPath, idStr);
             JsonObject obj = Zk.zkFetchJson(client, path);
             Id patchId = getIdOrNull(obj, fId);
             if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
-            
+
             Id prevId = getIdOrNull(obj, fPrevious);
             long ver = JSONX.getLong(obj, fVersion, -99);
             if ( patchId == null ) {
@@ -152,13 +152,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
             }
             if ( mapIdToPrev.containsKey(patchId) )
                 FmtLog.error(LOG, "Duplicate for %s: was %s : now %s", patchId, mapIdToPrev.get(patchId), prevId);
-            
+
             mapIdToPrev.put(patchId, prevId);
             mapPrevToId.put(prevId, patchId);
             mapLongToId.put(ver, patchId);
         });
-        
-        // Find all the ids with no prev. 
+
+        // Find all the ids with no prev.
         List<Id> firsts = ListUtils.toList(mapIdToPrev.entrySet().stream().filter(e->e.getValue()==null).map(e->e.getKey()));
         if ( firsts.isEmpty() ) {
             FmtLog.error(LOG, "No initial patch found");
@@ -169,11 +169,11 @@ public class PatchLogIndexZk implements PatchLogIndex {
             return;
         }
         // Off by one!
-        List<Id> versionsCalc = new ArrayList<>(); 
+        List<Id> versionsCalc = new ArrayList<>();
         Id initialId = firsts.get(0);
         Id id = initialId;
         long count = 0;
-        
+
         for(;;) {
             versionsCalc.add(id);
             Id next = mapPrevToId.get(id);
@@ -181,13 +181,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 break;
             id = next;
         }
-        
+
         if ( versionsCalc.size() != versions.size() ) { /*msg*/ }
         if ( versionsCalc.size()+1 != version ) { /*msg*/ }
-        
+
         Id mostRecent = versionsCalc.get(versionsCalc.size()-1);
         if ( ! mostRecent.equals(current) ) { /*msg*/ }
-        
+
         if ( previous != null ) {
             if ( versionsCalc.size() == 1 ) {}
             Id mostRecentPrev = versionsCalc.get(versionsCalc.size()-2);
@@ -197,17 +197,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
         }
     }
 
-    
+
 
     // ---- Zookeeper index state watching.
-    
+
     @Override
     public void refresh() {
         //loadState(false);
     }
-    
+
     // ---- Zookeeper index state watching.
-    
+
     @Override
     public void delete() {
         // Don't actually delete the state.
@@ -232,7 +232,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     // ---- Zookeeper index state watching.
-    
+
     private void newState(long newVersion, Id patch, Id prev) {
         synchronized(lock) {
             FmtLog.debug(LOG, "newVersion %d->%d", version, newVersion);
@@ -243,7 +243,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 }
                 return ;
             }
-            
+
             //FmtLog.debug(LOG, "-- [%d] State: [%s] (%s, %s, %s)", instance, dsd.getName(), version, current, previous);
             if ( newVersion == DeltaConst.VERSION_FIRST && ! earliestVersion.isValid() ) {
                 // If going no patch -> patch, set the start.
@@ -268,7 +268,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         byte[] bytes = JSONX.asBytes(x);
         if ( patch != null ) {
             // [META]
-            // Record the basic header - (version, id, prev) - for validation.   
+            // Record the basic header - (version, id, prev) - for validation.
             if ( keepHeaderInfo )
                 Zk.zkCreateSet(client, headerPath(patch), bytes);
             // Write version->id mapping.
@@ -279,7 +279,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     private Watcher logStateWatcher = (event)->{
         synchronized(lock) {
-            FmtLog.debug(LOG, "++ [%d:%s] Log watcher", instance, logName);
+            FmtLog.debug(LOG, "++ [%s:%s] Log watcher", instance, logName);
             syncState();
         }
     };
@@ -318,14 +318,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
         });
     }
 
-    /** The initial state object of a patch log */ 
+    /** The initial state object of a patch log */
     /*package*/ static JsonObject initialStateJson() {
         FmtLog.debug(LOG, "initialStateJson");
         return JSONX.buildObject(b->{
             b.pair(fVersion, DeltaConst.VERSION_INIT);
-        }); 
+        });
     }
-    
+
     private static JsonObject stateToJson(long version, Id patch, Id prev) {
         FmtLog.debug(LOG, "stateToJson ver=%d", version);
         return JSONX.buildObject(b->{
@@ -334,9 +334,9 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 b.pair(fId, patch.asPlainString());
             if ( prev != null )
                 b.pair(fPrevious, patch.asPlainString());
-        }); 
+        });
     }
-    
+
     private void jsonSetState(JsonObject obj) {
         try {
             FmtLog.debug(LOG, "jsonToState %s",JSON.toStringFlat(obj));
@@ -404,7 +404,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private String versionPath(Version ver) { return versionPath(ver.value()) ; }
     private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
     private String headerPath(Id id) { return Zk.zkPath(headersPath, id.asPlainString()); }
-    
+
     private long versionFromName(String name) {
         try {
             return Long.parseLong(name);
@@ -427,7 +427,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
             Zk.zkLock(client, lockPath, ()->{
                 try {
                     action.run();
-                } 
+                }
                 catch(DeltaException ex) { throw ex; }
                 catch(RuntimeException ex) {
                     FmtLog.warn(LOG, "RuntimeException in runWithLock");
@@ -437,14 +437,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
             });
         }
     }
-    
+
     @Override
     public <X> X runWithLockRtn(Supplier<X> action) {
         synchronized(lock) {
             return Zk.zkLockRtn(client, lockPath, ()->{
                 try {
                     return action.get();
-                } 
+                }
                 catch(DeltaException ex) { throw ex; }
                 catch(RuntimeException ex) {
                     FmtLog.warn(LOG, "RuntimeException in runWithLock");

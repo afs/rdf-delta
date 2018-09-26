@@ -29,27 +29,29 @@ import org.junit.runners.Suite.SuiteClasses;
     TestLocalLinkMem.class ,
     TestLocalLinkFile.class ,
     //TestLocalLinkZk.class ,
-    
+
     TestLocalConnectionMem.class ,
     TestLocalConnectionFile.class ,
     TestLocalConnectionZk.class ,
     TestLocalClient.class ,
-    
+
     TestRemoteLink.class ,
     TestRemoteConnection.class ,
     TestRemoteClient.class ,
 
     TestZone.class ,
     TestRestart.class ,
-    
+
     // Includes assembler tests.
     TestDeltaFusekiGood.class ,
-    TestDeltaFusekiBad.class
-    
+    TestDeltaFusekiBad.class ,
+
+    TestReleaseSetup.class
+
 })
 
 public class TS_Delta {
-    @BeforeClass public static void setForTesting() { 
+    @BeforeClass public static void setForTesting() {
         //LogCtl.setLog4j();
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }

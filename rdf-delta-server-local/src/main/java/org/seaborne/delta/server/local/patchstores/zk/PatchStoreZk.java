@@ -24,6 +24,7 @@ import static org.seaborne.delta.zk.Zk.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -61,21 +62,21 @@ public class PatchStoreZk extends PatchStore {
     // ---- Watching for logs
     private final Object storeLock = new Object();
 
-    private static int counter = 0;
+    private static AtomicInteger counter = new AtomicInteger(1);
     private final CuratorFramework client;
-    private final int instance;
+    private final String instance;
 
     // Our view of all the patch logs in the store.
     private Map<String, PatchLog> patchLogs = new ConcurrentHashMap<>();
 
     protected PatchStoreZk(CuratorFramework client, PatchStoreProvider psp) {
         super(psp);
-        this.instance = ++counter;
+        this.instance = "zk-"+(counter.getAndIncrement());
         this.client = client;
     }
 
     public CuratorFramework getClient() { return client; }
-    public int getInstance() { return instance; }
+    public String getInstance() { return instance; }
 
     private static void formatPatchStore(CuratorFramework client) throws Exception {
         zkEnsure(client, ZkConst.pRoot);
@@ -92,39 +93,26 @@ public class PatchStoreZk extends PatchStore {
     private void init() {
         // Also sets watcher.
         List<String> names = getWatchLogs();
-        updateLogChanges(names);
+        updateLogChanges(names, false);
     }
 
+    public static final boolean actionsInWatcher = true;
     private Watcher patchLogWatcher = (event)->{
         synchronized(storeLock) {
-            // get names.
             List<String> names = getWatchLogs();
-            updateLogChanges(names);
+            if ( actionsInWatcher )
+                updateLogChanges(names, true);
         }
     };
 
-    private List<String> getWatchLogs() {
-        // This can happen too early when /delta/activeLogs is beging setup.
-        // Just ignore than ans sync later.
-        try {
-            return client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pActiveLogs);
-        }
-        catch (KeeperException.NoNodeException ex) {}
-        catch (KeeperException ex) {}
-        catch (Exception ex) {}
-        return null;
-
-    }
-
-//    private Set<DataSourceDescription> scanForLogChanges() {
-//        Set<DataSourceDescription> nowSeen = new HashSet<>(listDataSources());
-
-    private void updateLogChanges(List<String> namesList) {
+    private void updateLogChanges(List<String> namesList, boolean watcher) {
+        String label = (watcher?"watcher":"inline");
         if ( namesList == null ) {
-            LOGZK.info("updateLogChanges -> null");
+            FmtLog.info(LOGZK, "[%s] updateLogChanges[%s] -> null", instance, label);
             return;
         }
         Set<String> x = new HashSet<>(namesList);
+        FmtLog.info(LOGZK, "[%s] updateLogChanges[%s] -> %s", instance, label, x);
         updateLogChanges(x);
     }
 
@@ -141,16 +129,20 @@ public class PatchStoreZk extends PatchStore {
         Set<String> newLogs = SetUtils.difference(names, lastSeenLocal);
         Set<String> deletedLogs = SetUtils.difference(lastSeenLocal, names);
 
+//        System.out.printf("[%s] Last=%s Now=%s\n", instance, lastSeenLocal, names);
+//        System.out.printf("[%s] New=%s : Deleted=%s\n", instance, newLogs, deletedLogs);
+
         if ( newLogs.isEmpty() && deletedLogs.isEmpty() )
             return;
-        FmtLog.debug(LOGZK, "[%d] New=%s : Deleted=%s", instance, newLogs, deletedLogs);
+        FmtLog.debug(LOGZK, "[%s] New=%s : Deleted=%s", instance, newLogs, deletedLogs);
+        //FmtLog.info(LOGZK, "[%s] New=%s : Deleted=%s", instance, newLogs, deletedLogs);
 
         newLogs.forEach(name->{
             // Read DSD.
             String newLogPath = zkPath(ZkConst.pActiveLogs, name);
             JsonObject obj = Zk.zkFetchJson(client, newLogPath);
             if ( obj == null ) {
-                FmtLog.info(LOGZK, "[%d] New=%s : DSD not found", instance, name);
+                FmtLog.info(LOGZK, "[%s] New=%s : DSD not found", instance, name);
                 return;
             }
             // Create local.
@@ -168,12 +160,38 @@ public class PatchStoreZk extends PatchStore {
     }
     // ---- Watching for logs
 
+    private List<String> getWatchLogs() {
+        // This can happen too early when /delta/activeLogs is beging setup.
+        // Just ignore that and sync later.
+        try {
+            return client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pActiveLogs);
+        }
+        catch (KeeperException.NoNodeException ex) {}
+        catch (KeeperException ex) {}
+        catch (Exception ex) {}
+        return null;
+    }
+
+    private List<String> activeLogs() {
+        try {
+            // No "usingWatcher"
+            return client.getChildren().forPath(ZkConst.pActiveLogs);
+        }  catch (KeeperException.NoNodeException ex) {}
+        catch (KeeperException ex) {}
+        catch (Exception ex) {}
+        return null;
+    }
+
     @Override
     protected void sync() {
+        //FmtLog.debug(LOGZK, "[%s] Store sync", instance);
         try {
-            List<String> logNames = client.getChildren().forPath(ZkConst.pActiveLogs);
-            updateLogChanges(logNames);
-        } catch (Exception ex) {}
+            List<String> logNames = activeLogs();
+            //FmtLog.debug(LOGZK, "[%s] Store sync : %s", instance, logNames);
+            updateLogChanges(logNames, false);
+        } catch (Exception ex) {
+            FmtLog.warn(LOGZK, "Exception in sync: "+ex.getClass().getSimpleName()+" "+ex.getMessage());
+        }
     }
 
     @Override
@@ -181,12 +199,10 @@ public class PatchStoreZk extends PatchStore {
         if ( client == null )
             return Collections.emptyList();
 
-        //Zk.listNodes(client);
-
         boolean isEmpty = zkCalc(()->client.checkExists().forPath(ZkConst.pRoot)==null);
         try {
             if ( isEmpty ) {
-                FmtLog.debug(LOGZK, "[%d] No PatchStore - format new one", instance);
+                FmtLog.info(LOGZK, "[%s] Format new PatchStoreZk", instance);
                 formatPatchStore(client);
             } else
                 init();
@@ -281,7 +297,12 @@ public class PatchStoreZk extends PatchStore {
     private PatchLog create$(DataSourceDescription dsd) {
         // This is called to create a log when the application asks but also when the
         // store watcher sees a new log elsewhere appearing.
-        FmtLog.debug(LOGZK,  "[%d] create patch log '%s'", instance, dsd.getName());
+        //
+        // If the log does not exists, it creates it in Zookeeper.
+        //
+        // It implements "new DataSourceDescription"
+
+        // XXX Split the roles, or add a flag.
 
         if ( patchLogs.containsKey(dsd.getName()) ) {
             FmtLog.debug(LOGZK, "[%d] Found to exist", instance);
@@ -300,6 +321,7 @@ public class PatchStoreZk extends PatchStore {
         if ( ! zkExists(client, logPath) ) {
             FmtLog.debug(LOGZK, "[%d] Does not exist: format", instance);
             clusterLock(()->{
+
                 // Someone else got in.
                 if ( zkExists(client, logPath) ) {
                     FmtLog.debug(LOGZK, "[%d] exists: skip format", instance);
@@ -315,31 +337,15 @@ public class PatchStoreZk extends PatchStore {
                 String zkActiveLog = zkPath(ZkConst.pActiveLogs, dsName);
                 JsonObject dsdJson = dsd.asJson();
                 zkCreateSetJson(client, zkActiveLog, dsdJson);
+                //FmtLog.debug(LOGZK, "[%d] format done", instance);
             }, null);
-            FmtLog.debug(LOGZK, "[%d] format done", instance);
         }
         // Local storeLock still held.
         // create local the local object.
-        PatchLog patchLog = super.newPatchLogFromProvider(dsd); //new PatchLogZk(dsd, instance, logPath, client, this);
+        PatchLog patchLog = super.newPatchLogFromProvider(dsd);
         patchLogs.put(dsName, patchLog);
         return patchLog;
     }
-
-//    // Call back combines
-//    PatchLog createPatchLog(DataSourceDescription dsd, PatchLogIndex index, PatchStorage storage) {
-//        return new PatchLogBase(dsd, index, storage, this);
-//    }
-//
-//    //Call back 1.
-//    PatchStorage createPatchStorage(String dsName) {
-//        String logPath = zkPath(ZkConst.pLogs, dsName);
-//        return new PatchStorageZk(client, instance, logPath);
-//    }
-//
-//    //Call back 2.
-//    PatchLogIndex createPatchLogIndex() {
-//        dsd, logPath
-//    }
 
     @Override
     protected void delete(PatchLog patchLog) {
@@ -347,12 +353,15 @@ public class PatchStoreZk extends PatchStore {
             String dsName = patchLog.getDescription().getName();
             PatchLog patchLog2 = patchLogs.remove(dsName);
             if ( patchLog2 == null )
+                // Already gone.
                 return;
+            FmtLog.info(LOGZK,  "[%s] delete patch log '%s'", instance, dsName);
             // Remove from activeLogs, leave in the "logs" area.
             // This triggers watchers.
             String zkActiveLog = zkPath(ZkConst.pActiveLogs, dsName);
-            if ( zkExists(client, zkActiveLog) )
+            if ( zkExists(client, zkActiveLog) ) {
                 zkDelete(client, zkActiveLog);
+            }
             String logPath = zkPath(ZkConst.pLogs, dsName);
             // Clear up.
             zkDelete(client, logPath);
@@ -374,9 +383,9 @@ public class PatchStoreZk extends PatchStore {
      * </pre>
      * is created.
      */
-    private static void formatPatchLog(CuratorFramework client, DataSourceDescription dsd, String logPath) {
+    private void formatPatchLog(CuratorFramework client, DataSourceDescription dsd, String logPath) {
         // Called inside cluster lock and the patch store Java lock.
-
+        FmtLog.info(LOGZK,  "[%s] create patch log '%s'", instance, dsd.getName());
         // The JSON objects.
         JsonObject dsdJson = dsd.asJson();
         JsonObject initialState = PatchLogIndexZk.initialStateJson();

@@ -134,11 +134,14 @@ public class LocalServer {
         FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getShortName(), descriptions);
     }
 
+    private static AtomicInteger instancecounter = new AtomicInteger(0);
+    private final String label;
+
     private LocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.patchStore = patchStore;
-
+        this.label = "ls-"+instancecounter.incrementAndGet();
     }
 
     public void shutdown() {
@@ -160,12 +163,19 @@ public class LocalServer {
         return dataRegistry;
     }
 
+    public static boolean alwaysSyncPatchStore = false;
     /** Try an action; if it returns null, sync the patch store and try again */
     private <T> T actionSyncPatchStore(Supplier<T> action) {
+        if ( alwaysSyncPatchStore )
+            syncPatchStore();
         T x = action.get();
         if ( x == null ) {
+            //FmtLog.debug(LOG, "[%s] actionSyncPatchStore : sync", label);
             syncPatchStore();
             x = action.get();
+            //FmtLog.debug(LOG, "[%s] actionSyncPatchStore : sync -> %s", label, x);
+        } else {
+            //FmtLog.info(LOG, "[%s] actionSyncPatchStore : cache : %s", label, x);
         }
         return x;
     }
@@ -179,16 +189,19 @@ public class LocalServer {
     }
 
     public DataSource getDataSource(Id dsRef) {
+        FmtLog.info(LOG, "[%s] getDataSource(%s)", label, dsRef);
         DataSource ds = actionSyncPatchStore(()->dataRegistry.get(dsRef));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByName(String name) {
+        FmtLog.info(LOG, "[%s] getDataSourceByName(%s)", label, name);
         DataSource ds = actionSyncPatchStore(()->dataRegistry.getByName(name));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByURI(String uri) {
+        FmtLog.info(LOG, "[%s] getDataSourceByURI(%s)", label, uri);
         DataSource ds = actionSyncPatchStore(()->dataRegistry.getByURI(uri));
         return dataSource(ds);
     }
@@ -245,29 +258,55 @@ public class LocalServer {
         return createDataSource(patchStore, name, baseURI);
     }
 
+    private static AtomicInteger createCounter = new AtomicInteger(0);
     /**
      * Create a new data source in the specified {@link PatchStore}. This can
      * not be one that has been removed (i.e. disabled) whose files must be
      * cleaned up manually.
      */
     public Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
+        int C = createCounter.incrementAndGet();
         if ( syncedDataRegistry().containsName(name) )
             throw new DeltaBadRequestException("DataSource with name '"+name+"' already exists");
+        // Proposed id, only becomes permanent if the create actually does a create and
+        // does not find someone else has (with a different id);
+        // XXX Delay id allocation until create-for-real. Create does not take a DSD.
         Id dsRef = Id.create();
+        FmtLog.info(LOG, "[%s](%d) createDataSource/start: %s", label, C, dsRef);
         DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
-        DataSource dataSource = createDataSource$(patchStore, dsd);
+        DataSource dataSource = createDataSource$(C, patchStore, dsd);
+        FmtLog.info(LOG, "[%s](%d) createDataSource/finish: %s %s", label, C, dsRef, dataSource.getDescription());
+        // dsRef is not invalid if it was not used.
+        dsRef = null;
         return dataSource.getId();
     }
 
-    /** Remove from active use.*/
-    public void removeDataSource(Id dsRef) {
-        removeDataSource$(dsRef);
-    }
-
-    private DataSource createDataSource$(PatchStore patchStore, DataSourceDescription dsd) {
+    private DataSource createDataSource$(int C, PatchStore patchStore, DataSourceDescription dsd) {
         synchronized(serverLock) {
+            // Server lock, not cluster lock.
+
             DataRegistry reg = syncedDataRegistry();
+            if ( reg.containsName(dsd.getName()) ) {
+                FmtLog.info(LOG, "(%d) Existing: %s", C, dsd);
+                DataSource ds = reg.getByName(dsd.getName());
+                return ds;
+            }
+
             PatchLog patchLog = patchStore.createLog(dsd);
+            // -- DEV
+            // May not be id in DSD - the prev test was not in a cluster lock but patchStore.createLog is atomic ("createOrGet")
+            if ( ! patchLog.getLogId().equals(dsd.getId()) ) {
+                if ( reg.containsName(dsd.getName()) ) {
+                    FmtLog.info(LOG, "(%d) Existing1: %s -> %s", C, dsd, patchLog.getDescription());
+                    DataSource ds = reg.getByName(dsd.getName());
+                    FmtLog.info(LOG, "(%d) Existing2: %s -> %s", C, dsd, ds.getDescription());
+                    return ds;
+                }
+                LOG.error("Existing but not found again: "+dsd+" : patch ="+patchLog.getDescription());
+            }
+            // -- DEV
+
+            FmtLog.info(LOG, "(%d) New: %s", C, dsd);
             DataSource newDataSource = new DataSource(dsd, patchLog);
             // XXX Isn't this done in PatchStore.createPatchLog as well?
             reg.put(dsd.getId(), newDataSource);
@@ -275,7 +314,12 @@ public class LocalServer {
         }
     }
 
-   private void removeDataSource$(Id dsRef) {
+   /** Remove from active use.*/
+    public void removeDataSource(Id dsRef) {
+        removeDataSource$(dsRef);
+    }
+
+private void removeDataSource$(Id dsRef) {
         DataSource datasource1 = getDataSource(dsRef);
         if ( datasource1 == null )
             return;

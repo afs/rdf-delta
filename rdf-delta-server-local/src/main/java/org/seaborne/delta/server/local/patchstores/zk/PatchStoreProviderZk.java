@@ -64,7 +64,6 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
 
     @Override
     public PatchStore create(LocalServerConfig config) {
-        // #create is overridden in PatchStoreProviderZkS3 to return PatchStoreZkS3
         CuratorFramework client = curator(config);
         return new PatchStoreZk(client, this);
     }
