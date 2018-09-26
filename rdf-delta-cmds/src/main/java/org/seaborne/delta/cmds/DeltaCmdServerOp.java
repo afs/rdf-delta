@@ -26,7 +26,7 @@ import org.seaborne.delta.Id ;
 
 /** Base for operations of the form:
  *   cmd --server= ds1 ds2 ds3
- *   cmd --server= --uri uri1 --uri uri2 
+ *   cmd --server= --uri uri1 --uri uri2
  */
 public abstract class DeltaCmdServerOp extends DeltaCmd {
 
@@ -40,7 +40,7 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
     protected String getSummary() {
         return getCommandName()+" --server=URL NAME ....";
     }
-    
+
 //    @Override
 //    protected void execCmd() {
 //        hide(super.dataSourceName, super.dataSourceURI);
@@ -48,19 +48,19 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
 
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argLogName) && !contains(argDataSourceURI) && getPositional().isEmpty() ) 
+        if ( !contains(argLogName) && !contains(argDataSourceURI) && getPositional().isEmpty() )
             throw new CmdException("Nothing to act on: "+getSummary());
     }
-    
+
     @Override
     protected void execCmd() {
         List<String> names = super.getValues(argLogName);
         List<String> uris = super.getValues(argDataSourceURI);
         List<String> positionals = super.getPositional();
-        
+
         if ( names.size() + uris.size() + positionals.size() > 1 )
             throw new CmdException("Multiple logs specificed: use oen of NAME or '--log=NAME' or '--uri=URI'");
-        
+
         // Only one of these will be non-empty, and it will have one item.
         names.forEach(this::checkCmdName);
         uris.forEach(this::checkCmdURI);
@@ -70,22 +70,22 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
         uris.forEach(this::execCmdURI);
         positionals.forEach(this::execCmdName);
     }
-    
+
 
     protected abstract void execCmdName(String name);
     protected abstract void execCmdURI(String uriStr);
-    
-    // default implementation - check exists. 
-    
+
+    // default implementation - check exists.
+
     protected void checkCmdName(String name) {
         Optional<Id> opt = findByName(name);
         if ( ! opt.isPresent() )
-            throw new CmdException("Source '"+name+"' does not exist"); 
+            throw new CmdException("Source '"+name+"' does not exist");
     }
-    
+
     protected void checkCmdURI(String uriStr) {
         Optional<Id> opt = findByURI(uriStr);
         if ( ! opt.isPresent() )
-            throw new CmdException("Source <"+uriStr+"> does not exist"); 
+            throw new CmdException("Source <"+uriStr+"> does not exist");
     }
 }

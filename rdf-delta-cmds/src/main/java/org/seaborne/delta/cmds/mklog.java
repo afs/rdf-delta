@@ -28,7 +28,7 @@ import org.seaborne.delta.Id ;
 
 /** Create a new log */
 public class mklog extends DeltaCmdServerOp {
-    
+
     public static void main(String... args) {
         new mklog(args).mainRun();
     }
@@ -59,7 +59,7 @@ public class mklog extends DeltaCmdServerOp {
     protected void create(String name, String url) {
         Objects.requireNonNull(name);
         Objects.requireNonNull(url);
-        
+
         List <DataSourceDescription> all = dLink.listDescriptions();
         boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.getName(), name));
         if ( b )
@@ -68,18 +68,18 @@ public class mklog extends DeltaCmdServerOp {
         DataSourceDescription dsd = dLink.getDataSourceDescription(id);
         System.out.println("Created "+dsd);
     }
-    
+
     @Override
     protected void checkCmdName(String name) {
         Optional<Id> opt = findByName(name);
         if ( opt.isPresent() )
-            throw new CmdException("Source '"+name+"' already exists"); 
+            throw new CmdException("Source '"+name+"' already exists");
     }
-    
+
     @Override
     protected void checkCmdURI(String uriStr) {
         Optional<Id> opt = findByURI(uriStr);
         if ( opt.isPresent() )
-            throw new CmdException("Source <"+uriStr+"> already exists"); 
+            throw new CmdException("Source <"+uriStr+"> already exists");
     }
 }

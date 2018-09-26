@@ -25,7 +25,7 @@ import org.seaborne.patch.RDFPatchOps ;
 
 /** Create a new log */
 public class getpatch extends DeltaCmd {
-    
+
     public static void main(String... args) {
         new getpatch(args).mainRun();
     }
@@ -40,7 +40,7 @@ public class getpatch extends DeltaCmd {
     protected String getSummary() {
         return getCommandName()+" --server URL --dsrc NAME id";
     }
-    
+
     @Override
     protected void execCmd() {
         if ( getPositional().isEmpty() ) {
@@ -52,7 +52,7 @@ public class getpatch extends DeltaCmd {
             exec1(logInfo.getMaxVersion());
             return ;
         }
-        
+
         getPositional().forEach(v->{
             long patchVersion;
             try {
@@ -62,12 +62,12 @@ public class getpatch extends DeltaCmd {
             }
             exec1(Version.create(patchVersion));
         });
-                    
+
     }
 
     protected void exec1(Version patchVersion) {
         Id patchId = null;
-        
+
         Id dsRef = getDescription().getId();
 
         RDFPatch patch;
@@ -85,7 +85,7 @@ public class getpatch extends DeltaCmd {
 
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argLogName) && ! contains(argDataSourceURI) ) 
+        if ( !contains(argLogName) && ! contains(argDataSourceURI) )
             throw new CmdException("Required: one of --"+argLogName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
     }
 }

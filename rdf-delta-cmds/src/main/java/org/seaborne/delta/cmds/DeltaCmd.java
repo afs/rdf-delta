@@ -35,41 +35,41 @@ import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
 
 abstract public class DeltaCmd extends CmdGeneral {
-   
+
     // Environment variable, for commands, for the remote server to work with.
     public static final String ENV_SERVER_URL =  "DELTA_SERVER_URL";
 
     static ArgDecl argServer            = new ArgDecl(true, "server");
     static ArgDecl argLogName           = new ArgDecl(true, "log", "dsrc", "dataset");
     static ArgDecl argDataSourceURI     = new ArgDecl(true, "uri", "dsrcuri");
-    
+
     public DeltaCmd(String[] argv) {
         super(argv) ;
         super.add(argServer);
     }
-    
+
     @Override
     final
     protected void processModulesAndArgs() {
-        
+
         // Set a default for serverURL
         serverURL = System.getenv(ENV_SERVER_URL);
-        
+
         super.processModulesAndArgs();
-        
+
         if ( serverURL == null && ! contains(argServer) )
             throw new CmdException("Required: --server URL");
         checkForMandatoryArgs();
-        
+
         if ( contains(argServer) ) {
             serverURL = getValue(argServer);
         }
         if ( contains(argLogName) ) {
             dataSourceName = getValue(argLogName);
-            
+
             if ( dataSourceName.isEmpty() )
                 throw new CmdException("Empty string for data source name");
-            
+
             if ( StringUtils.containsAny(dataSourceName, "/ ?#") ) {
                 // First bad character:
                 int idx = StringUtils.indexOfAny(serverURL, dataSourceName);
@@ -78,7 +78,7 @@ abstract public class DeltaCmd extends CmdGeneral {
             }
             if ( ! DeltaOps.isValidName(dataSourceName) )
                 throw new CmdException("Not a valid data source name: '"+dataSourceName+"'");
-            
+
             String s = serverURL;
             if ( ! s.endsWith("/") )
                 s = s+"/";
@@ -91,7 +91,7 @@ abstract public class DeltaCmd extends CmdGeneral {
         }
         dLink = DeltaLinkHTTP.connect(serverURL);
     }
-    
+
     protected abstract void checkForMandatoryArgs();
 
     protected String    serverURL           = null ;
@@ -99,12 +99,12 @@ abstract public class DeltaCmd extends CmdGeneral {
     protected String    dataSourceURI       = null ;
     protected DeltaLink dLink               = null ;
     protected Id clientId                   = Id.create() ;
-    protected List<DataSourceDescription> descriptions = null ; 
+    protected List<DataSourceDescription> descriptions = null ;
     protected DataSourceDescription       description = null ;
-    
+
     @Override
     protected void exec() {
-        try { 
+        try {
             execCmd();
         }
         catch (HttpException ex) { throw new CmdException(messageFromHttpException(ex)) ; }
@@ -119,7 +119,7 @@ abstract public class DeltaCmd extends CmdGeneral {
         }
         return name;
     }
-    
+
     protected abstract void execCmd();
 
     protected List<DataSourceDescription> getDescriptions() {
@@ -127,10 +127,10 @@ abstract public class DeltaCmd extends CmdGeneral {
             descriptions = dLink.listDescriptions();
         return descriptions;
     }
-    
+
     protected DataSourceDescription getDescription() {
         if ( description == null ) {
-            description = 
+            description =
                 getDescriptions().stream()
                     .filter(dsd-> Objects.equals(dsd.getName(), dataSourceName) || Objects.equals(dsd.getUri(), dataSourceURI))
                     .findFirst().orElse(null);
@@ -139,19 +139,19 @@ abstract public class DeltaCmd extends CmdGeneral {
         }
         return description;
     }
-    
+
 //    protected void ping() {
 //        try {
 //            dLink.ping();
 //        } catch (HttpException ex) {
 //            throw new CmdException(messageFromHttpException(ex));
 //        } catch (JsonException ex) {
-//            throw new CmdException("Not an RDF Patch server"); 
+//            throw new CmdException("Not an RDF Patch server");
 //        }
 //    }
-//    
+//
 //    // Library of operations on the DeltaLink.
-//    
+//
 //    protected void list() {
 //        List <DataSourceDescription> all = getDescriptions();
 //        if ( all.isEmpty()) {
@@ -162,15 +162,15 @@ abstract public class DeltaCmd extends CmdGeneral {
 //            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
 //            if ( logInfo != null ) {
 //                System.out.print(
-//                    String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion, 
+//                    String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion,
 //                                  (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString()));
 //            }
 //            else
 //                System.out.println(dsd);
-//            
+//
 //        });
 //    }
-//    
+//
     protected String messageFromHttpException(HttpException ex) {
         Throwable ex2 = ex;
         if ( ex.getCause() != null )
@@ -185,18 +185,18 @@ abstract public class DeltaCmd extends CmdGeneral {
             return findByName(url);
         throw new CmdException("No name or URI for the source");
     }
-    
+
     protected Optional<Id> findByURI(String uri) {
         return find(dsd-> Objects.equals(dsd.getName(), uri)) ;
     }
-    
+
     protected Optional<Id> findByName(String name) {
         return find(dsd-> Objects.equals(dsd.getName(), name)) ;
     }
 
     protected Optional<Id> find(Predicate<DataSourceDescription> predicate) {
         List <DataSourceDescription> all = dLink.listDescriptions();
-        return 
+        return
             all.stream()
                .filter(predicate)
                .findFirst()

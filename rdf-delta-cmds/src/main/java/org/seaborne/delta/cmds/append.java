@@ -43,7 +43,7 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 /** Create a new log */
 public class append extends DeltaCmd {
-    
+
     public static void main(String... args) {
         new append(args).mainRun();
     }
@@ -58,13 +58,13 @@ public class append extends DeltaCmd {
     protected String getSummary() {
         return getCommandName()+" --server URL --log NAME PATCH ...";
     }
-    
+
     @Override
     protected void execCmd() {
         LogCtl.disable(Delta.DELTA_HTTP_LOG.getName());
         getPositional().forEach(fn->exec1(fn));
     }
-    
+
     protected void exec1(String fn) {
         Id dsRef = getDescription().getId();
         PatchLogInfo info = dLink.getPatchLogInfo(dsRef);
@@ -90,7 +90,7 @@ public class append extends DeltaCmd {
             RDFDataMgr.parse(dest, fn);
             return x.getRDFPatch();
         }
-        
+
         // Not RDF - assume a text patch.
 //        String ext = FileOps.extension(fn);
 //        switch(ext) {
@@ -101,19 +101,19 @@ public class append extends DeltaCmd {
 //            default:
 //                Log.warn(addpatch.class, "Conventionally, patches have file extension ."+RDFPatchConst.EXT);
 //        }
-        
+
         Path path = Paths.get(fn);
         try(InputStream in = Files.newInputStream(path) ) {
             return RDFPatchOps.read(in);
         } catch (IOException ex ) { throw IOX.exception(ex); }
     }
-    
+
     @Override
     protected void checkForMandatoryArgs() {
-        if ( !contains(argLogName) && ! contains(argDataSourceURI) ) 
+        if ( !contains(argLogName) && ! contains(argDataSourceURI) )
             throw new CmdException("Required: one of --"+argLogName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
         if ( getPositional().isEmpty() ) {
-            throw new CmdException(getCommandName()+" : No patch files"); 
+            throw new CmdException(getCommandName()+" : No patch files");
         }
     }
 }

@@ -38,10 +38,10 @@ class DCmds {
             Throwable ex2 = ex;
             if ( ex.getCause() != null )
                 ex2 = ex.getCause();
-            
+
             throw new CmdException(ex2.getMessage());
         } catch (JsonException ex) {
-            throw new CmdException("Not an RDF Patch server"); 
+            throw new CmdException("Not an RDF Patch server");
         }
     }
 
@@ -50,7 +50,7 @@ class DCmds {
         List <DataSourceDescription> all = dLink.listDescriptions();
         if ( all.isEmpty())
             System.out.println("No logs currently");
-        else    
+        else
             all.forEach(System.out::println);
     }
 
@@ -58,7 +58,7 @@ class DCmds {
         Objects.requireNonNull(dLink);
         Objects.requireNonNull(name);
         Objects.requireNonNull(url);
-        
+
         List <DataSourceDescription> all = dLink.listDescriptions();
         boolean b = all.stream().anyMatch(dsd-> Objects.equals(dsd.getName(), name));
         if ( b )
@@ -72,16 +72,16 @@ class DCmds {
         Optional<Id> opt = find(dLink, name);
         if ( ! opt.isPresent() )
             throw new CmdException("Source '"+name+"' does not exist");
-        Id dsRef = opt.get(); 
+        Id dsRef = opt.get();
         dLink.removeDataSource(dsRef);
     }
 
     static Optional<Id> find(DeltaLink dLink, String name) {
         Objects.requireNonNull(dLink);
         Objects.requireNonNull(name);
-        
+
         List <DataSourceDescription> all = dLink.listDescriptions();
-        return 
+        return
             all.stream()
                .filter(dsd-> Objects.equals(dsd.getName(), name))
                .findFirst()

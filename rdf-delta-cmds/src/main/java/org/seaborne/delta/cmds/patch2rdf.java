@@ -39,7 +39,7 @@ import org.seaborne.patch.RDFPatchOps;
 public class patch2rdf extends CmdGeneral
 {
     static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
-    
+
     protected ModDatasetAssembler modDataset  =   new ModDatasetAssembler();
     protected ArgDecl dataDecl                = new ArgDecl(ArgDecl.HasValue, "data") ;
 
@@ -63,15 +63,15 @@ public class patch2rdf extends CmdGeneral
         super.processModulesAndArgs();
         if ( modDataset.getAssemblerFile() != null && super.hasArg(dataDecl) )
             throw new CmdException("Both an assembler file and a data file specificed");
-        
+
     }
-    
+
     @Override
     protected void exec() {
         DatasetGraph dsg;
-        
+
         boolean writeOnFinish = false;
-        
+
         // Data.
         if ( modDataset.getAssemblerFile() != null )
             dsg = modDataset.getDatasetGraph();
@@ -84,7 +84,7 @@ public class patch2rdf extends CmdGeneral
             }
             writeOnFinish = true;
         }
-        
+
         // Patches
         if ( getPositional().isEmpty() )
             execOne(System.in);
@@ -100,11 +100,11 @@ public class patch2rdf extends CmdGeneral
             }
             apply(dsg, patch);
         });
-        
+
         if ( writeOnFinish )
             Txn.executeRead(dsg, ()->RDFDataMgr.write(System.out, dsg, Lang.TRIG));
     }
-    
+
     private void apply(DatasetGraph dsg, RDFPatch patch) {
         RDFPatchOps.applyChange(dsg, patch);
     }
@@ -112,10 +112,10 @@ public class patch2rdf extends CmdGeneral
     private void execOne(InputStream input) {
         throw new CmdException("From InputStream (inc stdin) not yet supported");
     }
-    
+
     @Override
     protected String getCommandName() {
         return "patch2rdf";
     }
-    
+
 }

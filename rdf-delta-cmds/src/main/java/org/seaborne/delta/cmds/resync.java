@@ -24,7 +24,7 @@ import org.apache.jena.atlas.logging.LogCtl ;
 public class resync extends DeltaCmd {
 
 static { LogCtl.setCmdLogging() ; }
-    
+
     public static void main(String... args) {
         new resync(args).mainRun();
     }
@@ -39,14 +39,14 @@ static { LogCtl.setCmdLogging() ; }
     protected String getSummary() {
         return getCommandName()+" --server URL";
     }
-    
+
     @Override
     protected void execCmd() {
     }
 
     @Override
     protected void checkForMandatoryArgs() {
-//        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) ) 
+//        if ( !contains(argDataSourceName) && ! contains(argDataSourceURI) )
 //            throw new CmdException("Required: one of --"+argDataSourceName.getKeyName()+" or --"+argDataSourceURI.getKeyName());
     }
 }

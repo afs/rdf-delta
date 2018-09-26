@@ -41,7 +41,7 @@ public class list extends DeltaCmd {
     protected String getSummary() {
         return getCommandName()+" --server URL";
     }
-    
+
     @Override
     protected void execCmd() {
         execList();
@@ -70,7 +70,7 @@ public class list extends DeltaCmd {
             }
             if ( logInfo.getMinVersion().isValid() ) {
                 System.out.printf("[%s %s <%s> [%s,%s] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(),
-                    logInfo.getMinVersion(), logInfo.getMaxVersion(), 
+                    logInfo.getMinVersion(), logInfo.getMaxVersion(),
                     (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()
                     );
             }

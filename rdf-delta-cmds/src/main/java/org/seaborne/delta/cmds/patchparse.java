@@ -33,7 +33,7 @@ import org.seaborne.patch.changes.RDFChangesCounter;
 public class patchparse extends CmdPatch
 {
     static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
-    
+
     public static void main(String... args) {
         new patchparse(args).mainRun();
     }
@@ -41,7 +41,7 @@ public class patchparse extends CmdPatch
     public patchparse(String[] argv) {
         super(argv) ;
     }
-    
+
     @Override
     protected String getCommandName() {
         return "patchparse";
@@ -53,12 +53,12 @@ public class patchparse extends CmdPatch
         RDFPatch patch = RDFPatchOps.read(input);
 //        if ( patch.getId() == null )
 //            System.err.printf("No patch source=%s\n", source);
-        
+
         //RDFChanges changes = RDFPatchOps.changesPrinter();
         RDFChanges changes = RDFPatchOps.textWriter(System.out);
         patch.apply(changes);
         System.out.flush();
-        
+
         if ( isVerbose() ) {
             System.err.printf("# Patch id=%s", Id.str(patch.getId()));
             if ( patch.getPrevious() != null )

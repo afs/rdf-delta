@@ -38,8 +38,8 @@ public class rmlog extends DeltaCmdServerOp {
     protected void execCmdName(String name) {
         Optional<Id> opt = findByName(name);
         if ( ! opt.isPresent() )
-            throw new CmdException("Source '"+name+"' does not exist"); 
-        Id dsRef = opt.get(); 
+            throw new CmdException("Source '"+name+"' does not exist");
+        Id dsRef = opt.get();
         dLink.removeDataSource(dsRef);
     }
 
@@ -47,8 +47,8 @@ public class rmlog extends DeltaCmdServerOp {
     protected void execCmdURI(String uriStr) {
         Optional<Id> opt = findByURI(uriStr);
         if ( ! opt.isPresent() )
-            throw new CmdException("Source <"+uriStr+"> does not exist"); 
-        Id dsRef = opt.get(); 
+            throw new CmdException("Source <"+uriStr+"> does not exist");
+        Id dsRef = opt.get();
         dLink.removeDataSource(dsRef);
     }
 }

@@ -29,6 +29,7 @@ import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
  */
 public class dcmd {
 
+    private static Object lock = new Object();
     static {
         setLogging();
     }
@@ -36,15 +37,19 @@ public class dcmd {
     public static void setLogging() {
         if ( System.getProperty("java.util.logging.configuration") != null )
             return;
-        if ( systemPropertySet("log4j.configuration") )
-            // Not used.
-            // Leave to CmdMain -> LogCtl.setCmdLogging()
-            return;
-        // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging()
-        System.setProperty("log4j.configuration", "off");
-        LogCtl.setJavaLogging();
-        // [Jena 3.9.0] Can be dropped.
-        System.setProperty("java.util.logging.configuration", "set");
+        synchronized(lock) {
+            if ( System.getProperty("java.util.logging.configuration") != null )
+                return;
+            if ( systemPropertySet("log4j.configuration") )
+                // Not used.
+                // Leave to CmdMain -> LogCtl.setCmdLogging()
+                return;
+            // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging()
+            System.setProperty("log4j.configuration", "off");
+            LogCtl.setJavaLogging();
+            // [Jena 3.9.0] Can be dropped.
+            System.setProperty("java.util.logging.configuration", "set");
+        }
     }
 
     private static boolean systemPropertySet(String string) {

@@ -44,7 +44,7 @@ public abstract class CmdPatch extends CmdGeneral
     protected void processModulesAndArgs() {
         super.processModulesAndArgs();
     }
-    
+
     @Override
     protected void exec() {
         execStart();
@@ -61,7 +61,7 @@ public abstract class CmdPatch extends CmdGeneral
             }
         } finally { execFinish(); }
     }
-    
+
     protected void execStart() {}
     protected abstract void execOne(String source, InputStream input);
     protected void execFinish() {}

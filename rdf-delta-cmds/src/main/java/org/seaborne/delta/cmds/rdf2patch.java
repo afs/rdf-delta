@@ -31,7 +31,7 @@ import org.seaborne.patch.StreamPatch ;
 public class rdf2patch extends CmdGeneral
 {
     static { LogCtl.setCmdLogging() ; }
-    
+
     public static void main(String... args) {
         new rdf2patch(args).mainRun();
     }
@@ -49,15 +49,15 @@ public class rdf2patch extends CmdGeneral
     protected void processModulesAndArgs() {
         super.processModulesAndArgs();
     }
-    
+
     // System.in not working yet.
     // Extend "riot"?
-    
+
     @Override
     protected void exec() {
         StreamRDF dest  = new StreamPatch(System.out);
         dest.start();
-        
+
         if ( getPositional().isEmpty() )
             execOne(System.in);
         getPositional().forEach(fn->{
@@ -72,10 +72,10 @@ public class rdf2patch extends CmdGeneral
     private void execOne(InputStream input) {
         throw new CmdException("Reading from stdin not implemented");
     }
-    
+
     @Override
     protected String getCommandName() {
         return null ;
     }
-    
+
 }

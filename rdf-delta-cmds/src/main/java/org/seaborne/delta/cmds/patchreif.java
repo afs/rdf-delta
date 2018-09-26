@@ -35,7 +35,7 @@ import org.seaborne.patch.changes.RDFChangesBase;
 /*public*/ class patchreif extends CmdPatch
 {
     static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
-    
+
     public static void main(String... args) {
         new patchreif(args).mainRun();
     }
@@ -43,27 +43,27 @@ import org.seaborne.patch.changes.RDFChangesBase;
     public patchreif(String[] argv) {
         super(argv) ;
     }
-    
+
     @Override
     protected String getCommandName() {
         return "patchparse";
     }
 
     // Whether to directly write or accumulate in a graph.
-    private Graph graph = GraphFactory.createDefaultGraph(); 
-    
+    private Graph graph = GraphFactory.createDefaultGraph();
+
     @Override
     protected void execStart() { }
-    
+
     @Override
     protected void execFinish() {}
-    
+
     @Override
     protected void execOne(String source, InputStream input) {
         RDFPatch patch = RDFPatchOps.read(input);
-        
+
         PatchHeader header = patch.header();
-        
+
         RDFChanges c = new RDFChangesBase() {
             @Override
             public void add(Node g, Node s, Node p, Node o) {}
@@ -71,7 +71,7 @@ import org.seaborne.patch.changes.RDFChangesBase;
             @Override
             public void delete(Node g, Node s, Node p, Node o) { }
         };
-        
+
         patch.apply(c);
     }
 }
