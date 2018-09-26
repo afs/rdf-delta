@@ -27,14 +27,14 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.5.7-SNAPSHOT</version>
+    <version>0.5.7</version>
   </parent> 
 
   <dependencies>
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-base</artifactId>
-      <version>0.5.7-SNAPSHOT</version>
+      <version>0.5.7</version>
     </dependency>
 
     <dependency>
