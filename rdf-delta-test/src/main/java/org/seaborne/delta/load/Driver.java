@@ -29,10 +29,10 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.Fuseki;
-import org.apache.jena.fuseki.FusekiLib;
+import org.apache.jena.fuseki.main.FusekiLib;
 import org.apache.jena.fuseki.build.FusekiConfig;
-import org.apache.jena.fuseki.embedded.FusekiServer;
-import org.apache.jena.fuseki.embedded.FusekiServer.Builder;
+import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.main.FusekiServer.Builder;
 import org.apache.jena.fuseki.server.DataAccessPoint;
 import org.apache.jena.fuseki.server.FusekiVocab;
 import org.apache.jena.query.QueryExecution;
@@ -52,39 +52,39 @@ import org.seaborne.delta.server.http.PatchLogServer;
 /** Drive updates and reads */
 public class Driver {
     protected static final Path DIR = Paths.get("target/loadtest");
-    static { 
+    static {
         FileOps.ensureDir("target");
         FileOps.ensureDir(DIR.toString());
     }
-    
+
     protected static int DELTA_PORT = FusekiLib.choosePort();
     protected static String DELTA_DIR = DIR.resolve("DeltaBase").toString();
     protected static String PATCH_LOG_NAME = "ABC";
-    
+
     protected static int F1_PORT = FusekiLib.choosePort();
     protected static int F2_PORT = FusekiLib.choosePort();
     protected static String DS_NAME = "/DS";
     protected static Path ZONE1 = DIR.resolve("Zone1");
     protected static Path ZONE2 = DIR.resolve("Zone2");
-    
+
     protected static String DS1_NAME = "/DS1";
     protected static String DS2_NAME = "/DS2";
-    
+
     protected static FusekiServer server1;
     protected static FusekiServer server2;
     protected static PatchLogServer  patchLogServer;
     private static HttpClient dftStdHttpClient = null;
 
     static { LogCtl.setJavaLogging(); }
-    
+
     public static void main(String[] args) throws InterruptedException {
         // Fix up fuseki config files.
         // DELTA_PORT => value.
 
         // This is a template that needs updating,
         // Server 1.
-        
-        Model model = RDFDataMgr.loadModel("fuseki-config.ttl"); 
+
+        Model model = RDFDataMgr.loadModel("fuseki-config.ttl");
         //  fuseki:name    "%DS_NAME%"
         //  delta:changes  "%LOG_URL%"
         //  delta:patchlog "%LOG_NAME%"
@@ -93,12 +93,12 @@ public class Driver {
         String LOG_URL = "http://localhost:"+DELTA_PORT+"/";
         update(model, "%LOG_URL%", LOG_URL);
         update(model, "%LOG_NAME%", PATCH_LOG_NAME);
-        
+
         String zone1 = ZONE1.toString();
         String zone2 = ZONE2.toString();
-        
+
         update(model, "%ZONE_NAME%", zone1);
-        
+
         // --- Reset state.
         if ( true ) {
             FileOps.ensureDir(DELTA_DIR);
@@ -108,9 +108,9 @@ public class Driver {
             FileOps.ensureDir(zone2);
             FileOps.clearAll(zone2);
         }
-        
+
         PatchLogServer logServer = patchLogServer(DELTA_PORT, DELTA_DIR);
-        
+
         try {
             logServer.start();
         }
@@ -119,16 +119,16 @@ public class Driver {
             System.exit(0);
         }
 
-        
+
 //        RDFDataMgr.write(System.out,  model, Lang.TTL);
 //        System.out.flush();
         FusekiServer server1 = fuseki(F1_PORT, model);
         server1.start();
         //FusekiServer server2 = fuseki2();
-        
+
         int numClients = 10;
         int clientLoops = 10;
-        
+
         CountDownLatch cdl1 = new CountDownLatch(numClients);
         CountDownLatch cdl2 = new CountDownLatch(numClients);
         for (int i = 0 ; i < numClients ; i++ ) {
@@ -139,10 +139,10 @@ public class Driver {
         System.out.println("DONE");
         System.exit(0);
     }
-    
+
     static void client(int loops, CountDownLatch cdlStart, CountDownLatch cdlFinish) {
         //conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+DS_NAME) ;
-        
+
         Runnable r = ()->{
             RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+DS_NAME) ;
             try {
@@ -153,14 +153,14 @@ public class Driver {
                 e.printStackTrace(System.err);
                 return ;
             }
-            
+
             try (RDFConnection conn = conn1) {
                 for ( int i = 0 ; i < loops ; i++ ) {
                     String now = DateTimeUtils.nowAsXSDDateTimeString()+"-"+i;
                     try {
-                        // This can abort and the update is then lost 
+                        // This can abort and the update is then lost
                         conn.update("INSERT DATA { <x:s> <x:p> '"+now+"' }");
-                        
+
                     } catch (DeltaException ex) {
                         System.out.flush();
                         System.err.println("\nSystem abort\n");
@@ -174,10 +174,10 @@ public class Driver {
             }
             cdlFinish.countDown();
         };
-        
+
         new Thread(r).start();
     }
-    
+
     static void update(Model model, String param, String value) {
         String us = "DELETE { ?s ?p '%1%' } INSERT { ?s ?p '%2%' } WHERE { ?s ?p '%1%' }";
         us = us.replace("%1%", param);
@@ -185,27 +185,27 @@ public class Driver {
         //System.out.println(us);
         UpdateAction.parseExecute(us, model);
     }
-    
+
     protected static FusekiServer fuseki(int port, Model assembler) {
-        Builder builder = 
+        Builder builder =
             FusekiServer.create()
-                .setPort(port);
+                .port(port);
       // Process server context
       Resource server = GraphUtils.getResourceByType(assembler, FusekiVocab.tServer);
       if ( server != null )
           AssemblerUtils.setContext(server, Fuseki.getContext()) ;
-      // Process services, whether via server ja:services or, if absent, by finding by type. 
+      // Process services, whether via server ja:services or, if absent, by finding by type.
       List<DataAccessPoint> x = FusekiConfig.servicesAndDatasets(assembler);
       // Unbundle so that they accumulate.
       x.forEach(dap->builder.add(dap.getName(), dap.getDataService()));
       return builder.build();
     }
-    
+
     protected static PatchLogServer patchLogServer(int port, String base) {
         PatchLogServer dps = PatchLogServer.server(port, base);
-        try { 
+        try {
             dps.start();
-            return dps; 
+            return dps;
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             return null;

@@ -18,22 +18,28 @@
 
 package org.seaborne.delta ;
 
+import static org.seaborne.delta.BaseTestDeltaFuseki.Start.CLEAN;
+
 import org.apache.http.client.HttpClient ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.fuseki.embedded.FusekiServer ;
+import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
 import org.apache.jena.rdfconnection.RDFConnectionFactory ;
 import org.apache.jena.riot.web.HttpOp ;
-import org.junit.* ;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.seaborne.delta.server.http.PatchLogServer ;
-import static org.seaborne.delta.BaseTestDeltaFuseki.Start.*;
 
 /**
  * Tests for Fuseki with Delta integration when things are going well.
- * 
+ *
  * @see TestDeltaFusekiBad
  */
 public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
@@ -41,35 +47,35 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     protected static FusekiServer server1;
     protected static FusekiServer server2;
     protected static PatchLogServer  patchLogServer;
-    protected static RDFConnection conn1; 
+    protected static RDFConnection conn1;
     protected static RDFConnection conn2;
     protected static String URL_DPS;
     private static HttpClient dftStdHttpClient = null;
-    
+
     @BeforeClass
     public static void beforeClass() {
         try {
-        
+
         dftStdHttpClient = HttpOp.getDefaultHttpClient();
-        
+
         HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
-        
+
         patchLogServer = patchLogServer(CLEAN);
-        
+
         // This needs testing.
         server1 = fuseki1(CLEAN);
         server2 = fuseki2(CLEAN); // Can not create!
-        
+
         URL_DPS = "http://localhost:"+D_PORT+"/";
-        
+
         conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
         conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
-        
+
         } catch (Throwable th) {
             th.printStackTrace();
         }
     }
-    
+
     @AfterClass
     public static void afterClass() {
         if ( server1 != null )
@@ -84,13 +90,13 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     @Before public void before() {}
     @After  public void after()  {}
 
-    @Test 
+    @Test
     //@Ignore
     public void basic_1() {
         conn1.query("ASK{}");
         conn2.query("ASK{}");
     }
-    
+
     @Test
     public void update_1() {
         // Do an update on one server ...
@@ -100,14 +106,14 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
             Assert.assertEquals(true, qExec.execAsk());
         }
     }
-    
+
     @Test
     public void update_2() {
         // Do an update on one server ...
         conn1.update(PREFIX+"INSERT DATA { :s :p 'update_2_A' }");
         // And on the other server ...
         conn2.update(PREFIX+"INSERT DATA { :s :p 'update_2_B' }");
-        
+
         // Ask each server ...
         try ( QueryExecution qExec = conn2.query(PREFIX+"ASK { :s :p 'update_2_A', 'update_2_B' }") ) {
             Assert.assertEquals(true, qExec.execAsk());

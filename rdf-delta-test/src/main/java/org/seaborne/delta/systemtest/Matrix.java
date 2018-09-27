@@ -38,16 +38,26 @@ import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.dboe.migrate.L;
-import org.apache.jena.fuseki.embedded.FusekiServer;
+import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 import org.awaitility.Awaitility;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.client.*;
+import org.seaborne.delta.client.DeltaClient;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.client.DeltaLinkSwitchable;
+import org.seaborne.delta.client.LocalStorageType;
+import org.seaborne.delta.client.SyncPolicy;
+import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.PatchLogServer;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DeltaLinkLocal;
+import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.LocalServers;
 import org.seaborne.delta.zk.Zk;
 import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
@@ -55,21 +65,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Matrix {
-    
+
     static Logger LOG = LoggerFactory.getLogger("Matrix");
-    
+
     static List<Integer> ports = new ArrayList<>();
 
     private static TestingServer zkServer = null;
 
-    public static String zookeeperConnectionString = null;  
-    
+    public static String zookeeperConnectionString = null;
+
     public static int deltaPort1 = -1;
     public static int deltaPort2 = -1;
 
     public static PatchLogServer deltaServer1 = null;
     public static PatchLogServer deltaServer2 = null;
-    
+
     public static String deltaServerURL1 = null;
     public static String deltaServerURL2 = null;
 
@@ -86,24 +96,24 @@ public class Matrix {
 //      String connectionString = startZoo("ZkData");
 //      // External zookeeper.
 //      String connectionString = "localhost:2181,localhost:2182,localhost:2183";
-      
+
       // In process 3-server ensemble.
 //      String connectionString = startZooQ();
-      
+
       // Start Delta servers
       // Replace with a start-stop helper.
-        
+
         deltaPort1 = choosePort();
         deltaServerURL1 = "http://localhost:"+deltaPort1+"/";
         Pair<DeltaLink, PatchLogServer> p1 = startDeltaServer(deltaPort1, zookeeperConnectionString);
         deltaServerLink1 = p1.getLeft() ;
         deltaServer1 = p1.getRight();
-        
+
         Lib.sleep(500);
         // Race condition on formatting!
         deltaPort2 = choosePort();
         deltaServerURL2 = "http://localhost:"+deltaPort2+"/";
-        
+
         Pair<DeltaLink, PatchLogServer> p2 = startDeltaServer(deltaPort2, zookeeperConnectionString);
         deltaServerLink2 = p2.getLeft() ;
         deltaServer2 = p2.getRight();
@@ -120,7 +130,7 @@ public class Matrix {
         if ( deltaServer2 != null )
             deltaServer2.stop();
         if ( zkServer != null )
-            try { zkServer.close(); } catch (IOException ex) { } 
+            try { zkServer.close(); } catch (IOException ex) { }
         deltaServer1 = null;
         deltaServer2 = null;
         deltaPort1 = -1;
@@ -131,7 +141,7 @@ public class Matrix {
         deltaServerLink2 = null;
         zkServer = null;
     }
-    
+
     public static void zk(Consumer<CuratorFramework> action) {
         CuratorFramework client = Zk.curator(zookeeperConnectionString);
         curatorClients.add(client);
@@ -143,7 +153,7 @@ public class Matrix {
         return startDeltaServer(port, config);
         //L.async(()->DeltaServer.main("--port="+port, "--zk="+connectionString));
     }
-    
+
     public static Pair<DeltaLink, PatchLogServer> startDeltaServer(int port, LocalServerConfig config) {
         LocalServer server = LocalServer.create(config);
         localServers.add(server);
@@ -156,7 +166,7 @@ public class Matrix {
         //dps.join();
         return Pair.create(link,  dps);
     }
-    
+
     private static String startZoo(String dataDir) {
         ZkS.zkSystemProps();
         int zkPort1 = choosePort();
@@ -164,7 +174,7 @@ public class Matrix {
         zk1.start();
         return "localhost:"+zkPort1;
     }
-    
+
     public static String startZooJVM() {
         try {
             zkServer = new TestingServer();
@@ -186,7 +196,7 @@ public class Matrix {
 
         // Port 2180
         //ZkS.runZookeeperServer("./../zk/single/zoo.cfg");
-        
+
         //System.out.println("Server1 ...");
         L.async(()->QuorumPeerMain.main(args1));
         //System.out.println("Server2 ...");
@@ -195,7 +205,7 @@ public class Matrix {
         L.async(()->QuorumPeerMain.main(args3));
         return connectionString;
     }
-    
+
     /** One external zoo keeper */
     public static String startZooQ_single(boolean clean) {
         ZkS.zkSystemProps();
@@ -212,7 +222,7 @@ public class Matrix {
             System.err.println("setupFuseki: no deltaServers");
             System.exit(1);
         }
-        
+
         List<DeltaLink> links = new ArrayList<>(deltaServers.length);
         for ( String destURL  : deltaServers ) {
             //System.out.printf("Fuseki server: port=%d, link=%s\n", fusekiPort, destURL);
@@ -223,38 +233,38 @@ public class Matrix {
         setupFuseki(fusekiPort, dsName, zoneDir, deltaLink);
         return deltaLink;
     }
-    
+
     private static void setupFuseki(int fusekiPort, String dsName, String zoneDir, DeltaLink deltaLink) {
         //deltaLink.register(Id.create());
         FileOps.ensureDir(zoneDir);
         FileOps.clearAll(zoneDir);
-        
+
         DeltaClient dClient = setup_dataset(dsName, zoneDir, deltaLink);
         Zone zone = dClient.getZone();
         DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
         Id dsRef = dsd.getId();
         SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
-        
-        
+
+
         LocalStorageType storage = LocalStorageType.MEM;
         dClient.register(dsRef, storage, syncPolicy);
         DeltaConnection deltaConnection = dClient.getLocal(dsRef);
         DatasetGraph dsg = deltaConnection.getDatasetGraph();
-        
-        FusekiServer server = 
+
+        FusekiServer server =
             FusekiServer.create()
-                .setPort(fusekiPort)
+                .port(fusekiPort)
                 .add(dsName, dsg)
                 .build();
         server.start();
     }
 
-    // From ex7. 
+    // From ex7.
     private static DeltaClient setup_dataset(String dsName, String zoneDir, String patchLogServerURL) {
         DeltaLink dLink = DeltaLinkHTTP.connect(patchLogServerURL);
         return setup_dataset(dsName, zoneDir, dLink);
     }
-    
+
     private static DeltaClient setup_dataset(String dsName, String zoneDir, DeltaLink dLink) {
         // Probe to see if it exists.
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(dsName);
@@ -267,23 +277,23 @@ public class Matrix {
 //        DataState dataState = zone.create(dsd.getId(), "", null, LocalStorageType.MEM);
         DeltaClient dClient = DeltaClient.create(zone, dLink);
         return dClient;
-        
+
 //        FileOps.exists(zoneDir);
 //        FileOps.clearAll(zoneDir);
 //        Zone zone = Zone.connect(zoneDir);
 //        DeltaClient dClient = DeltaClient.create(zone, dLink);
-//        
+//
 //        // Get the Id.
 //        Id dsRef;
 //        if ( dsd == null )
 //            dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
-//        else 
-//            dsRef = dsd.getId(); 
+//        else
+//            dsRef = dsd.getId();
 //        // Create and setup locally.
 //        dClient.register(dsRef, LocalStorageType.TDB, SyncPolicy.TXN_RW);
 //        return dClient;
     }
-    
+
     private static void cleanDirectory(String dir) {
         FileOps.ensureDir(dir);
         FileOps.clearAll(dir);
@@ -308,12 +318,12 @@ public class Matrix {
         }
         throw new RuntimeException("Failed to find a fresh port");
     }
-    
+
     /** General "wait for propagation" */
     public static void await(Callable<Boolean> action) {
         Awaitility.await().pollInterval(250,  MILLISECONDS).atMost(5,  SECONDS).until(action);
     }
-    
+
     public static <X> X retry(Supplier<X> action, int numRetries) {
         X rtn = null;
         int attempt = 0 ;

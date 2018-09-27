@@ -19,7 +19,7 @@
 package org.seaborne.delta.fuseki.cmd;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
+import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
 
 public class DeltaFusekiServerCmd {
 
@@ -27,6 +27,6 @@ public class DeltaFusekiServerCmd {
         // Stop Fuseki trying to initialize logging using log4j.
         System.setProperty("log4j.configuration", "delta");
         LogCtl.setJavaLogging();
-        FusekiBasicCmd.main(args);
+        FusekiMainCmd.main(args);
     }
 }

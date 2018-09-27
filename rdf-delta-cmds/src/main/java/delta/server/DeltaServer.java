@@ -38,7 +38,7 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.fuseki.FusekiLib;
+import org.apache.jena.fuseki.main.FusekiLib;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.PatchLogInfo;

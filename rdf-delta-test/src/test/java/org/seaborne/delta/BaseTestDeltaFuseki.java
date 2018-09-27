@@ -22,8 +22,8 @@ import java.net.BindException ;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.FusekiLib;
-import org.apache.jena.fuseki.embedded.FusekiServer;
+import org.apache.jena.fuseki.main.FusekiLib;
+import org.apache.jena.fuseki.main.FusekiServer;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.server.http.PatchLogServer ;
@@ -31,26 +31,26 @@ import org.seaborne.delta.server.local.DPS;
 
 /**
  * Base for tests for Fuseki with Delta integration
- * 
+ *
  * @see TestDeltaFusekiGood
  * @see TestDeltaFusekiBad
  */
 public class BaseTestDeltaFuseki {
-    @BeforeClass public static void setForTesting() { 
+    @BeforeClass public static void setForTesting() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-    
+
     protected static int F1_PORT  =    FusekiLib.choosePort();
     protected static int F2_PORT  =    FusekiLib.choosePort();
     // Needs to be fixed - it's in the Fuseki config files.
     protected static int D_PORT   =    1068;
-    
-    protected static String fuseki_conf1 = "testing/fuseki_conf_1.ttl"; 
+
+    protected static String fuseki_conf1 = "testing/fuseki_conf_1.ttl";
     protected static String fuseki_conf2 = "testing/fuseki_conf_2.ttl";
     protected static String ds1          = "/ds1";
     protected static String ds2          = "/ds2";
     protected static String deltaServerBase = "target/DeltaServerFuseki";
-    
+
     protected static String PREFIX = "PREFIX : <http://example/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n";
 
     protected static PatchLogServer patchLogServer() {
@@ -60,7 +60,7 @@ public class BaseTestDeltaFuseki {
     protected static PatchLogServer patchLogServer(Start state) {
         return patchLogServer(state, D_PORT, deltaServerBase);
     }
-    
+
     protected static PatchLogServer patchLogServer(Start state, int port, String base) {
         switch (state) {
             case CLEAN : {
@@ -73,9 +73,9 @@ public class BaseTestDeltaFuseki {
                 break;
         }
         PatchLogServer dps = PatchLogServer.server(port, base);
-        try { 
+        try {
             dps.start();
-            return dps; 
+            return dps;
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             return null;
@@ -83,11 +83,11 @@ public class BaseTestDeltaFuseki {
     }
 
     protected enum Start { CLEAN, RESTART };
-    
+
     protected static FusekiServer fuseki1() {
         return fuseki1(Start.CLEAN);
     }
-    
+
     protected static FusekiServer fuseki2() {
         return fuseki2(Start.CLEAN);
     }
@@ -95,11 +95,11 @@ public class BaseTestDeltaFuseki {
     protected static FusekiServer fuseki1(Start state) {
         return fuseki(state, F1_PORT, fuseki_conf1, "target/Zone1");
     }
-    
+
     protected static FusekiServer fuseki2(Start state) {
         return fuseki(state, F2_PORT, fuseki_conf2, "target/Zone2");
     }
-    
+
     private static FusekiServer fuseki(Start state, int port, String config, String zone) {
         switch (state) {
             case CLEAN : {
@@ -110,7 +110,7 @@ public class BaseTestDeltaFuseki {
             case RESTART :
                 break;
         }
-        return FusekiServer.create().setPort(port).parseConfigFile(config).build().start();
+        return FusekiServer.create().port(port).parseConfigFile(config).build().start();
     }
-    
+
 }

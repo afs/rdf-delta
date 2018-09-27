@@ -34,7 +34,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.lib.Pair;
-import org.apache.jena.riot.WebContent;
+import org.apache.jena.fuseki.Fuseki;
+import org.apache.jena.fuseki.server.DataAccessPointRegistry;
+import org.apache.jena.fuseki.servlets.ActionBase;
+import org.apache.jena.fuseki.servlets.ServiceDispatchRegistry;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
 import org.eclipse.jetty.http.HttpMethod;
@@ -53,30 +56,26 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// COPY because Jena JettyServer.Builder not public.
+
 /**
- * Jetty server for servlets, including being able to run Fuseki ActionBase derived servlets.
- * Static RDF types by file extension are enabled.
+ * Jetty server for servlets, including being able to run Fuseki {@link ActionBase} derived servlets.
+ * Static RDF types by file extension can be enabled.
  */
 public class JettyServer {
-    // It would be nice to use this for FusekiServer.
-    //
-    // Server + the Builder pattern conflicts (can't add chaining operations that are specific to
-    // Fuseki to the builder for FusekiServer).
-    // Maybe the Builder only can be inherited. No - can't chain inherited and added operations.
-    //
-    // We could use implementation inheritance for builder - there isn't a huge amount of saving though
-    // and we still want JettyServer to work for Fuseki servlets.
+    // Use this for the super class of FusekiServer or as implementation inheritance.
+    // Caution : there are small differences e.g. in building where order matters.
 
     private static Logger LOG = LoggerFactory.getLogger("HTTP");
 
-    public final Server server;
-    private int port;
+    protected final Server server;
+    protected int port;
 
     public static Builder create() {
         return new Builder();
     }
 
-    private JettyServer(int port, Server server) {
+    protected JettyServer(int port, Server server) {
         this.server = server;
         this.port = port;
     }
@@ -110,15 +109,23 @@ public class JettyServer {
         catch (Exception e) { throw new RuntimeException(e); }
         if ( port == 0 )
             port = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
-        LOG.info("Start (port="+port+")");
+        logStart();
         return this;
+    }
+
+    protected void logStart() {
+        LOG.info("Start (port="+port+")");
     }
 
     /** Stop the server. */
     public void stop() {
-        LOG.info("Stop (port="+port+")");
+        logStop();
         try { server.stop(); }
         catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    protected void logStop() {
+        LOG.info("Stop (port="+port+")");
     }
 
     /** Wait for the server to exit. This call is blocking. */
@@ -140,33 +147,31 @@ public class JettyServer {
             if ( !method.equals(HttpMethod.GET.asString())
                  && !method.equals(HttpMethod.POST.asString())
                  && !method.equals(HttpMethod.HEAD.asString()) )
-                return;
+                return ;
 
-            response.setContentType(MimeTypes.Type.TEXT_PLAIN_UTF_8.asString());
+            response.setContentType(MimeTypes.Type.TEXT_PLAIN_UTF_8.asString()) ;
             response.setHeader(HttpNames.hCacheControl, "must-revalidate,no-cache,no-store");
             response.setHeader(HttpNames.hPragma, "no-cache");
-            int code = response.getStatus();
-            String message=(response instanceof Response)?((Response)response).getReason(): HttpSC.getMessage(code);
-            response.getOutputStream().print(format("Error %d: %s\n", code, message));
+            int code = response.getStatus() ;
+            String message=(response instanceof Response)?((Response)response).getReason(): HttpSC.getMessage(code) ;
+            response.getOutputStream().print(format("Error %d: %s\n", code, message)) ;
         }
     }
 
     public static class Builder {
-        private int                             port               = -1;
-        private boolean                         loopback           = false;
-        private boolean                         withStats          = false;
-        private boolean                         verbose            = false;
-        private boolean                         enableRDFFileTypes = false;
+        private int                      port               = -1;
+        private boolean                  loopback           = false;
+        protected boolean                verbose            = false;
         // Other servlets to add.
-        private List<Pair<String, HttpServlet>> servlets           = new ArrayList<>();
-        private List<Pair<String, Filter>>      filters            = new ArrayList<>();
+        private List<Pair<String, HttpServlet>> servlets    = new ArrayList<>();
+        private List<Pair<String, Filter>> filters          = new ArrayList<>();
 
-        private String                          contextPath        = "/";
-        private String                          servletContextName = "Jetty";
-        private String                          staticContentDir   = null;
-        private SecurityHandler                 securityHandler    = null;
-        private ErrorHandler                    errorHandler       = new PlainErrorHandler();
-        private Map<String, Object>             servletAttr        = new HashMap<>();
+        private String                   contextPath        = "/";
+        private String                   servletContextName = "Jetty";
+        private String                   staticContentDir   = null;
+        private SecurityHandler          securityHandler    = null;
+        private ErrorHandler             errorHandler       = new PlainErrorHandler();
+        private Map<String, Object>      servletAttr        = new HashMap<>();
 
         /** Set the port to run on. */
         public Builder port(int port) {
@@ -240,15 +245,6 @@ public class JettyServer {
         }
 
         /**
-         * Include the MIME types for RDF and SPARQL related formats e.g. ".ttl" for
-         * "text/turtle
-         */
-        public Builder enableRDFFileType(boolean enableRDFFileTypes) {
-            this.enableRDFFileTypes = enableRDFFileTypes;
-            return this;
-        }
-
-        /**
          * Add the given servlet with the pathSpec. These are added so that they are
          * before the static content handler (which is the last servlet)
          * used for {@link #staticFileBase(String)}.
@@ -288,8 +284,6 @@ public class JettyServer {
          */
         public JettyServer build() {
             ServletContextHandler handler = buildServletContext();
-            if ( enableRDFFileTypes )
-                setMimeTypes(handler);
             // Use HandlerCollection for several ServletContextHandlers and thus several ServletContext.
             Server server = jettyServer(port, loopback);
             server.setHandler(handler);
@@ -300,9 +294,23 @@ public class JettyServer {
         private ServletContextHandler buildServletContext() {
             ServletContextHandler handler = buildServletContext(contextPath);
             ServletContext cxt = handler.getServletContext();
+            adjustForFuseki(cxt);
             servletAttr.forEach((n,v)->cxt.setAttribute(n, v));
-            servlets(handler);
+            servletsAndFilters(handler);
             return handler;
+        }
+
+        private void adjustForFuseki(ServletContext cxt) {
+            // For Fuseki servlets added directly.
+            // This enables servlets inheriting from {@link ActionBase} to work in the
+            // plain Jetty server, e.g. to use Fuseki logging.
+            try {
+                Fuseki.setVerbose(cxt, verbose);
+                ServiceDispatchRegistry.set(cxt, new ServiceDispatchRegistry(false));
+                DataAccessPointRegistry.set(cxt, new DataAccessPointRegistry());
+            } catch (NoClassDefFoundError err) {
+                LOG.info("Fuseki classes not found");
+            }
         }
 
         /** Build a ServletContextHandler. */
@@ -317,40 +325,12 @@ public class JettyServer {
             context.setContextPath(contextPath);
             if ( securityHandler != null )
                 context.setSecurityHandler(securityHandler);
+
             return context;
         }
 
-        private static void setMimeTypes(ServletContextHandler context) {
-            MimeTypes mimeTypes = new MimeTypes();
-            // RDF syntax
-            mimeTypes.addMimeMapping("nt",      WebContent.contentTypeNTriples);
-            mimeTypes.addMimeMapping("nq",      WebContent.contentTypeNQuads);
-            mimeTypes.addMimeMapping("ttl",     WebContent.contentTypeTurtle+";charset=utf-8");
-            mimeTypes.addMimeMapping("trig",    WebContent.contentTypeTriG+";charset=utf-8");
-            mimeTypes.addMimeMapping("rdfxml",  WebContent.contentTypeRDFXML);
-            mimeTypes.addMimeMapping("jsonld",  WebContent.contentTypeJSONLD);
-            mimeTypes.addMimeMapping("rj",      WebContent.contentTypeRDFJSON);
-            mimeTypes.addMimeMapping("rt",      WebContent.contentTypeRDFThrift);
-            mimeTypes.addMimeMapping("trdf",    WebContent.contentTypeRDFThrift);
-
-            // SPARQL syntax
-            mimeTypes.addMimeMapping("rq",      WebContent.contentTypeSPARQLQuery);
-            mimeTypes.addMimeMapping("ru",      WebContent.contentTypeSPARQLUpdate);
-
-            // SPARQL Result set
-            mimeTypes.addMimeMapping("rsj",     WebContent.contentTypeResultsJSON);
-            mimeTypes.addMimeMapping("rsx",     WebContent.contentTypeResultsXML);
-            mimeTypes.addMimeMapping("srt",     WebContent.contentTypeResultsThrift);
-
-            // Other
-            mimeTypes.addMimeMapping("txt",     WebContent.contentTypeTextPlain);
-            mimeTypes.addMimeMapping("csv",     WebContent.contentTypeTextCSV);
-            mimeTypes.addMimeMapping("tsv",     WebContent.contentTypeTextTSV);
-            context.setMimeTypes(mimeTypes);
-        }
-
         /** Add servlets and servlet filters */
-        private void servlets(ServletContextHandler context) {
+        private void servletsAndFilters(ServletContextHandler context) {
             servlets.forEach(p-> addServlet(context, p.getLeft(), p.getRight()) );
             filters.forEach (p-> addFilter (context, p.getLeft(), p.getRight()) );
 
@@ -362,12 +342,12 @@ public class JettyServer {
             }
         }
 
-        private static void addServlet(ServletContextHandler context, String pathspec, HttpServlet httpServlet) {
+        protected static void addServlet(ServletContextHandler context, String pathspec, HttpServlet httpServlet) {
             ServletHolder sh = new ServletHolder(httpServlet);
             context.addServlet(sh, pathspec);
         }
 
-        private void addFilter(ServletContextHandler context, String pathspec, Filter filter) {
+        protected void addFilter(ServletContextHandler context, String pathspec, Filter filter) {
             FilterHolder h = new FilterHolder(filter);
             context.addFilter(h, pathspec, null);
         }
@@ -387,7 +367,5 @@ public class JettyServer {
                 connector.setHost("localhost");
             return server;
         }
-
-
     }
 }

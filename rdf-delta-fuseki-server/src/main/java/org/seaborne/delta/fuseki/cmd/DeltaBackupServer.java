@@ -33,7 +33,6 @@ import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.fuseki.embedded.FusekiServer;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.PatchWriteServlet;
 import org.seaborne.delta.lib.JSONX;
@@ -49,11 +48,10 @@ public class DeltaBackupServer {
         // Stop Fuseki trying to initialize logging using log4j.
         System.setProperty("log4j.configuration", "delta");
         LogCtl.setJavaLogging();
-        Delta.init();
         new Inner(args).mainRun();
     }
 
-    public static FusekiServer build(String...args) {
+    public static JettyServer build(String...args) {
         Delta.init();
         Inner inner = new Inner(args);
         inner.process() ;
@@ -104,7 +102,7 @@ public class DeltaBackupServer {
 
         @Override
         protected void exec() {
-            FusekiServer server = build();
+            JettyServer server = build();
             try {
                 server.start();
             }
@@ -118,7 +116,7 @@ public class DeltaBackupServer {
          * Build a web server - a Fuseki server with no datasets - it will then support
          * general Fuseki servlets.
          */
-        protected FusekiServer build() {
+        protected JettyServer build() {
             BackupConfig cfg = new BackupConfig();
 
             int port = 1096;
@@ -155,8 +153,7 @@ public class DeltaBackupServer {
 
             //writeConf(cfg);
 
-            //JettyServer.Builder builder = JettyServer.create().port(cfg.port).verbose(isVerbose());
-            FusekiServer.Builder builder = FusekiServer.create().setPort(cfg.port).setVerbose(isVerbose());
+            JettyServer.Builder builder = JettyServer.create().port(cfg.port).verbose(isVerbose());
             cfg.logs.forEach(a->{
                 // More Path-ness
                 LOG.info(format("Backup area: (area=%s, dir='%s', file='%s')", a.name, a.dir, a.file));
@@ -167,7 +164,7 @@ public class DeltaBackupServer {
                     x = "/"+a.name;
                 builder.addServlet(x, handler);
             });
-            FusekiServer server = builder.build();
+            JettyServer server = builder.build();
             return server;
         }
 

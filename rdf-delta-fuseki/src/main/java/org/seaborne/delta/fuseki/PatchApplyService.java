@@ -47,13 +47,13 @@ public class PatchApplyService extends ActionREST {
     static CounterName counterPatches     = CounterName.register("RDFpatch-apply", "rdf-patch.apply.requests");
     static CounterName counterPatchesGood = CounterName.register("RDFpatch-apply", "rdf-patch.apply.good");
     static CounterName counterPatchesBad  = CounterName.register("RDFpatch-apply", "rdf-patch.apply.bad");
-    
-    // It's an ActionREST because it accepts POST/PATCH with a content body.  
-    
+
+    // It's an ActionREST because it accepts POST/PATCH with a content body.
+
     public PatchApplyService() {
         // Counters: the standard ActionREST counters per operation are enough.
     }
-    
+
     @Override
     protected void validate(HttpAction action) {
         String method = action.getRequest().getMethod();
@@ -69,16 +69,16 @@ public class PatchApplyService extends ActionREST {
         // it is less trouble to just force UTF-8.
         String charset = action.request.getCharacterEncoding();
         if ( charset != null && ! WebContent.charsetUTF8.equals(charset) )
-            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or UTF-8, not "+charset); 
+            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or UTF-8, not "+charset);
 
         // If no header Content-type - assume patch-text.
         ContentType contentType = ( ctStr != null ) ? ContentType.create(ctStr) : ctPatchText;
-        if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) ) 
-            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr); 
+        if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) )
+            ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr);
         if ( ctPatchBinary.equals(contentType) )
             ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, contentTypePatchBinary+" not supported yet");
     }
-    
+
     protected void operation(HttpAction action) {
         incCounter(action.getEndpoint(), counterPatches);
         try {
@@ -89,34 +89,34 @@ public class PatchApplyService extends ActionREST {
             throw ex ;
         }
     }
-    
+
     private void operation$(HttpAction action) {
         action.log.info(format("[%d] RDF Patch", action.id));
         action.beginWrite();
-        // Add patch handler to suppress TX-TC in the patch but allow TA. 
-        try { 
+        // Add patch handler to suppress TX-TC in the patch but allow TA.
+        try {
             applyRDFPatch(action);
             action.commit();
         } catch (Exception ex) {
             action.abort();
             throw ex;
-        } finally { action.endWrite(); }
+        } finally { action.end(); }
         ServletOps.success(action);
     }
 
     private void applyRDFPatch(HttpAction action) {
         try {
             String ct = action.getRequest().getContentType();
-            // If triples or quads, maybe POST. 
-            
+            // If triples or quads, maybe POST.
+
             InputStream input = action.request.getInputStream();
             DatasetGraph dsg = action.getDataset();
-            
+
             RDFPatchReaderText pr = new RDFPatchReaderText(input);
             RDFChanges changes = new RDFChangesApply(dsg);
             // External transaction. Suppress patch recorded TX and TC.
             changes = new RDFChangesNoTxn(changes);
-            
+
             pr.apply(changes);
             ServletOps.success(action);
         }
@@ -127,27 +127,27 @@ public class PatchApplyService extends ActionREST {
             ServletOps.errorBadRequest("IOException: "+ex.getMessage());
         }
     }
-    
+
     // Counting?
     static class RDFChangesNoTxn extends RDFChangesWrapper {
         public RDFChangesNoTxn(RDFChanges other) {
             super(other);
         }
         // Ignore so external control can be applied - but allow abort.
-        // Combine so multi-txn works AND   
-        
+        // Combine so multi-txn works AND
+
         @Override
         public void txnBegin() {}
-        
+
         @Override
         public void txnCommit() {}
-        
+
         @Override
         public void segment() {}
     }
 
     // ---- POST or PATCH or OPTIONS
-    
+
     @Override
     protected void doPost(HttpAction action) {
         operation(action);

@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 import jena.cmd.CmdException;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.fuseki.cmds.FusekiBasicCmd;
+import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
 
 /** Subcommand dispatch.
  *  Usage: "dcmd SUB ARGS...
@@ -112,7 +112,7 @@ public class dcmd {
             case "patchserver":
                 delta.server.DeltaServer.main(argsSub); break;
             case "fuseki":
-                FusekiBasicCmd.main(argsSub);
+                FusekiMainCmd.main(argsSub);
                 break;
             default:
                 System.err.println("Failed to find a command match for '"+cmd+"'");

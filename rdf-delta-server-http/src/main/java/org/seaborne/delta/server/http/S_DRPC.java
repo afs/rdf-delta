@@ -161,8 +161,10 @@ public class S_DRPC extends DeltaServlet {
         }
         catch (Exception ex) { recordOp = null; throw ex ; }
         finally {
-            lastOpName = recordOp;
+            if ( infoLogThisRPC )
+                lastOpName = recordOp;
         }
+
         if ( infoLogThisRPC )
             FmtLog.info(LOG, "[%d] %s %s => %s", action.id, action.opName, JSON.toStringFlat(arg), JSON.toStringFlat(rslt)) ;
         else
@@ -192,10 +194,10 @@ public class S_DRPC extends DeltaServlet {
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
-    static class DRPPEception extends RuntimeException {
+    static class DRPCException extends RuntimeException {
         private int code;
 
-        public DRPPEception(int code, String message) {
+        public DRPCException(int code, String message) {
             super(message);
             this.code = code ;
         }
