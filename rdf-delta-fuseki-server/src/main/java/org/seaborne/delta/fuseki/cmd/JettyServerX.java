@@ -56,13 +56,14 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// COPY because Jena JettyServer.Builder not public.
+// [Jena 3.10.0]
+// COPY because Jena JettyServer.Builder not public in Jena3.9.0.
 
 /**
  * Jetty server for servlets, including being able to run Fuseki {@link ActionBase} derived servlets.
  * Static RDF types by file extension can be enabled.
  */
-public class JettyServer {
+public class JettyServerX {
     // Use this for the super class of FusekiServer or as implementation inheritance.
     // Caution : there are small differences e.g. in building where order matters.
 
@@ -75,7 +76,7 @@ public class JettyServer {
         return new Builder();
     }
 
-    protected JettyServer(int port, Server server) {
+    protected JettyServerX(int port, Server server) {
         this.server = server;
         this.port = port;
     }
@@ -104,7 +105,7 @@ public class JettyServer {
     /** Start the server - the server continues to run after this call returns.
      *  To synchronise with the server stopping, call {@link #join}.
      */
-    public JettyServer start() {
+    public JettyServerX start() {
         try { server.start(); }
         catch (Exception e) { throw new RuntimeException(e); }
         if ( port == 0 )
@@ -282,12 +283,12 @@ public class JettyServer {
         /**
          * Build a server according to the current description.
          */
-        public JettyServer build() {
+        public JettyServerX build() {
             ServletContextHandler handler = buildServletContext();
             // Use HandlerCollection for several ServletContextHandlers and thus several ServletContext.
             Server server = jettyServer(port, loopback);
             server.setHandler(handler);
-            return new JettyServer(port, server);
+            return new JettyServerX(port, server);
         }
 
         /** Build a ServletContextHandler : one servlet context */

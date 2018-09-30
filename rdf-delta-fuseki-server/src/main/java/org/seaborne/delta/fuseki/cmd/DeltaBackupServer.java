@@ -51,7 +51,7 @@ public class DeltaBackupServer {
         new Inner(args).mainRun();
     }
 
-    public static JettyServer build(String...args) {
+    public static JettyServerX build(String...args) {
         Delta.init();
         Inner inner = new Inner(args);
         inner.process() ;
@@ -102,7 +102,7 @@ public class DeltaBackupServer {
 
         @Override
         protected void exec() {
-            JettyServer server = build();
+            JettyServerX server = build();
             try {
                 server.start();
             }
@@ -116,7 +116,7 @@ public class DeltaBackupServer {
          * Build a web server - a Fuseki server with no datasets - it will then support
          * general Fuseki servlets.
          */
-        protected JettyServer build() {
+        protected JettyServerX build() {
             BackupConfig cfg = new BackupConfig();
 
             int port = 1096;
@@ -153,7 +153,7 @@ public class DeltaBackupServer {
 
             //writeConf(cfg);
 
-            JettyServer.Builder builder = JettyServer.create().port(cfg.port).verbose(isVerbose());
+            JettyServerX.Builder builder = JettyServerX.create().port(cfg.port).verbose(isVerbose());
             cfg.logs.forEach(a->{
                 // More Path-ness
                 LOG.info(format("Backup area: (area=%s, dir='%s', file='%s')", a.name, a.dir, a.file));
@@ -164,7 +164,7 @@ public class DeltaBackupServer {
                     x = "/"+a.name;
                 builder.addServlet(x, handler);
             });
-            JettyServer server = builder.build();
+            JettyServerX server = builder.build();
             return server;
         }
 

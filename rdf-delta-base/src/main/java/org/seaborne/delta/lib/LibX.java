@@ -19,15 +19,13 @@
 package org.seaborne.delta.lib;
 
 import java.io.ByteArrayInputStream ;
-import java.io.IOException;
 import java.io.InputStream ;
-import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays ;
 
-import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.tdb.base.file.Location;
 
 public class LibX {
@@ -106,12 +104,7 @@ public class LibX {
     }
 
     public static int choosePort() {
-        // [Jena 3.9.0] - WebLib.choosePort
-        try (ServerSocket s = new ServerSocket(0)) {
-            return s.getLocalPort();
-        } catch (IOException ex) {
-            throw new RuntimeIOException("Failed to find a port");
-        }
+        return WebLib.choosePort();
     }
 
     public static RuntimeException wrap(Throwable th) { return new WrappedException(th); }

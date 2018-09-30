@@ -18,6 +18,7 @@
 
 package org.seaborne.delta.server.http;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.BindException;
 
@@ -39,6 +40,7 @@ import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.xml.XmlConfiguration;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
@@ -193,8 +195,8 @@ public class PatchLogServer {
         try {
             LOG.info("Jetty server config file = " + jettyConfig);
             Server server = new Server();
-//            XmlConfiguration configuration = new XmlConfiguration(new FileInputStream(jettyConfig));
-//            configuration.configure(server);
+            XmlConfiguration configuration = new XmlConfiguration(new FileInputStream(jettyConfig));
+            configuration.configure(server);
             return server;
         } catch (Exception ex) {
             LOG.error("Failed to configure server: " + ex.getMessage(), ex);

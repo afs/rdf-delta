@@ -49,6 +49,19 @@
       <artifactId>jena-fuseki-main</artifactId>
     </dependency>
 
+    <!-- Jetty XML configuration -->
+    <!--
+        Jena (jena-fuseki-main) may acquire this feature and
+        dependency making this redundant.
+
+        The jetty version (in the parent) must be in-step with
+        Jena's dependency on Jetty.
+    -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-xml</artifactId>
+    </dependency>
+
     <!-- LOGGING : Require a logging implementation for tests -->
     <dependency>
       <groupId>org.slf4j</groupId>

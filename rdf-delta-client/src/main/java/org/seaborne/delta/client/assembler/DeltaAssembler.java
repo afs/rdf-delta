@@ -130,7 +130,8 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 //            RDFChanges sc = DeltaLib.destination(dest);
 //            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
 //        }
-        Dataset dataset = setupDataset(root, dsName, zoneLocation, storage, deltaServers);
+        DatasetGraph dsg = setupDataset(root, dsName, zoneLocation, storage, deltaServers);
+        Dataset dataset = DatasetFactory.wrap(dsg);
 
         //  Poll for changes as well. Not implemented (yet).
 //      if ( root.hasProperty(pPollForChanges) ) {
@@ -165,7 +166,8 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         return xs;
     }
 
-    static Dataset setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, List<String> destURLs) {
+    // XXX Lib somewhere?
+    static DatasetGraph setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, List<String> destURLs) {
         // Link to log server.
         DeltaLink deltaLink;
         if ( destURLs.size() == 1 )
@@ -227,7 +229,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
        cxt.set(symDeltaConnection, deltaConnection);
        cxt.set(symDeltaZone, zone);
 
-       return DatasetFactory.wrap(dsg);
+       return dsg;
     }
 
     private InputStream openChangesSrc(String x) {

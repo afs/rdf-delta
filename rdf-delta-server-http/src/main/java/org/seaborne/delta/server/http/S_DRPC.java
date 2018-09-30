@@ -127,6 +127,7 @@ public class S_DRPC extends DeltaServlet {
         try {
             switch(action.opName) {
                 case OP_PING:
+                    infoLogThisRPC = false;
                     rslt = ping(action);
                     break ;
                 case OP_LIST_DS:
@@ -194,10 +195,10 @@ public class S_DRPC extends DeltaServlet {
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
-    static class DRPCException extends RuntimeException {
+    static class DRPPEception extends RuntimeException {
         private int code;
 
-        public DRPCException(int code, String message) {
+        public DRPPEception(int code, String message) {
             super(message);
             this.code = code ;
         }
