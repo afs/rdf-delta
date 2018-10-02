@@ -68,6 +68,7 @@
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <ver.jena>3.9.0</ver.jena>
+    <ver.jetty>9.4.12.v20180830</ver.jetty> <!-- Keep in step with Jena -->
     <ver.junit>4.12</ver.junit>
     <ver.slf4j>1.7.25</ver.slf4j>
     <ver.log4j>1.2.17</ver.log4j>
@@ -128,6 +129,12 @@
         </exclusions>
       </dependency>
 
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-xml</artifactId>
+        <version>${ver.jetty}</version>
+      </dependency>
+      
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-cmds</artifactId>
@@ -639,22 +646,6 @@
       </snapshots>
     </repository>
     
-    <repository>
-      <id>apache.public</id>
-      <name>ASF epository</name>
-      <url>https://repository.apache.org/content/repositories/orgapachejena-1025</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-    
-    
-
     <!-- Only needed for Jena snapshots - - >
     <repository>
       <id>apache.snapshots</id>
