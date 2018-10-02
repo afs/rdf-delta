@@ -70,12 +70,14 @@ public class Zone {
     private static Map<Location, Zone> zones         = new ConcurrentHashMap<>();
 
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
+    // XXX Rename
     public static Zone connect(String area) {
         Location location = (area == null) ? Location.mem() : Location.create(area);
         return connect(location);
     }
 
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
+    // XXX Rename
     public static Zone connect(Location area) {
         synchronized(zones) {
             if ( zones.containsKey(area) )
@@ -107,11 +109,17 @@ public class Zone {
         return zones.getOrDefault(area, null);
     }
 
-    public void reset() {
+    /** Clear the cache - for testing */
+    public static void clearZoneCache() {
+        zones.clear();
+    }
+
+    private void reset() {
         states.clear();
         datasets.clear();
         external.clear();
         names.clear();
+        // Rescan?
     }
 
     /**
@@ -189,8 +197,25 @@ public class Zone {
 
     /** Is there an area already? */
     public boolean exists(Id dsRef) {
-        // Reame as registered?
+        // Rename as registered?
         return states.containsKey(dsRef);
+    }
+
+    public DataState getExisting(String name) {
+        Id id = getIdForName(name);
+
+        if ( id == null ) {
+            // look on disk.
+            Path dsState = stateArea.resolve(name);
+            if ( Files.exists(dsState) ) {
+                DataState state = readDataState(dsState);
+                return state;
+                // see scanForDataState
+            }
+            return null;
+        } else {
+            return states.get(id);
+        }
     }
 
     /** Initialize a new area. */
@@ -198,7 +223,6 @@ public class Zone {
         Objects.requireNonNull(dsRef,   "Data source reference");
         Objects.requireNonNull(name,    "Data source name");
         Objects.requireNonNull(storage, "Storage type");
-
 
         Path statePath = null;
         Path dataPath = null;

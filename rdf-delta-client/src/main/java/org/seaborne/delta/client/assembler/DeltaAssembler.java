@@ -20,9 +20,6 @@ package org.seaborne.delta.client.assembler;
 
 import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
-import static org.seaborne.delta.DeltaConst.symDeltaClient;
-import static org.seaborne.delta.DeltaConst.symDeltaConnection;
-import static org.seaborne.delta.DeltaConst.symDeltaZone;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaPatchLog;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage;
@@ -48,14 +45,21 @@ import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.util.Context;
 import org.apache.jena.tdb.base.file.Location;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.client.*;
+import org.seaborne.delta.client.DeltaClient;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.client.DeltaLinkSwitchable;
+import org.seaborne.delta.client.LocalStorageType;
+import org.seaborne.delta.client.SyncPolicy;
+import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,53 +188,92 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
         try { deltaLink.ping(); }
         catch (HttpException ex) {
-            // rc < 0 : failed to connect - ignore.
+            // rc < 0 : failed to connect - ignore?
             if ( ex.getResponseCode() > 0 )
                 throw ex;
         }
 
-        Id dsRef = zone.getIdForName(dsName);
+        DatasetGraph dsg = ManagedDatasetBuilder.create()
+            .deltaLink(deltaLink)
+            .logName(dsName)
+            .zone(zone)
+            .syncPolicy(syncPolicy)
+            .storageType(storage)
+            .build();
 
-        if ( dsRef == null ) {
-            try {
-                DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
-                if ( dsd == null )
-                    dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName);
-                else
-                    dsRef = dsd.getId();
-                deltaClient.register(dsRef, storage, syncPolicy);
-            } catch (HttpException ex) {
-                throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage(), ex);
-            } catch (Exception ex) {
-                throw new AssemblerException(root, "Can't create the dataset with the patch log server: exception: "+ex.getMessage(), ex);
-            }
-        } else {
-            try {
-                DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
-                if ( dsd == null )
-                    throw new AssemblerException(root, "Local dataset has no patch log: "+dsName);
-                if ( ! dsd.getId().equals(dsRef) )
-                    throw new AssemblerException(root, "Local dataset does not match remote patch log: "+dsName);
-            } catch (HttpException ex) {
-                // Ignore
-            }
-            deltaClient.connect(dsRef, syncPolicy);
-        }
+        return dsg;
+     }
 
-        DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
-        DatasetGraph dsg = deltaConnection.getDatasetGraph();
 
-        // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation.
-        // And someday tap into services to add a "sync before operation" step.
-
-       // Put state into dsg Context "for the record".
-       Context cxt = dsg.getContext();
-       cxt.set(symDeltaClient, deltaClient);
-       cxt.set(symDeltaConnection, deltaConnection);
-       cxt.set(symDeltaZone, zone);
-
-       return dsg;
-    }
+//        Id dsRef = zone.getIdForName(dsName);
+//        // Given a Id, setup
+//        dsRef = setupDeltaClient(root, deltaClient, dsName, dsRef, storage, syncPolicy);
+//
+//        DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
+//        DatasetGraph dsg = deltaConnection.getDatasetGraph();
+//
+//        // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation.
+//        // And someday tap into services to add a "sync before operation" step.
+//
+//       // Put state into dsg Context "for the record".
+//       Context cxt = dsg.getContext();
+//       cxt.set(symDeltaClient, deltaClient);
+//       cxt.set(symDeltaConnection, deltaConnection);
+//       cxt.set(symDeltaZone, zone);
+//
+//       return dsg;
+//    }
+//
+//    private static Id setupDeltaClient(Resource root, DeltaClient deltaClient, String dsName, Id dsRef, LocalStorageType storage, SyncPolicy syncPolicy) {
+//        // Given a Id, setup the client.
+//        DeltaLink deltaLink = deltaClient.getLink();
+//        if ( dsRef == null )
+//            dsRef = localNew(root, deltaClient, dsName, storage, syncPolicy);
+//        else {
+//            localExisting(root, deltaClient, dsName, dsRef, syncPolicy);
+//        }
+//        return dsRef;
+//    }
+//
+//    /** Does not exists locally - may be new remote o an existing remote patch log */
+//    private static Id localNew(Resource root, DeltaClient deltaClient, String dsName, LocalStorageType storage, SyncPolicy syncPolicy) {
+//        DeltaLink deltaLink = deltaClient.getLink();
+//        // new - not in local zone.
+//        try {
+//
+//            DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
+//            Id dsRef;
+//            if ( dsd == null )
+//                // new remote
+//                dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName);
+//            else
+//                // Exists remote
+//                dsRef = dsd.getId();
+//            deltaClient.register(dsRef, storage, syncPolicy);
+//            return dsRef;
+//        } catch (HttpException ex) {
+//            throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage(), ex);
+//        } catch (Exception ex) {
+//            throw new AssemblerException(root, "Can't create the dataset with the patch log server: exception: "+ex.getMessage(), ex);
+//        }
+//    }
+//
+//    /** Exists locally - should exist remotely */
+//    private static void localExisting(Resource root, DeltaClient deltaClient, String dsName, Id dsRef, SyncPolicy syncPolicy) {
+//        // Existing
+//        DeltaLink deltaLink = deltaClient.getLink();
+//        try {
+//            DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
+//            if ( dsd == null )
+//                throw new AssemblerException(root, "Local dataset has no patch log: "+dsName);
+//            if ( ! dsd.getId().equals(dsRef) )
+//                throw new AssemblerException(root, "Local dataset does not match remote patch log: "+dsName);
+//        } catch (HttpException ex) {
+//            // Ignore
+//        }
+//        deltaClient.connect(dsRef, syncPolicy);
+//
+//    }
 
     private InputStream openChangesSrc(String x) {
         // May change to cope with remote source

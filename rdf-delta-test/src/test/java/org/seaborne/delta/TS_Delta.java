@@ -42,6 +42,10 @@ import org.junit.runners.Suite.SuiteClasses;
     TestZone.class ,
     TestRestart.class ,
 
+    TestManagedDatasetBuilder.class,
+    TestManagedDatasetBuilder2.class,
+    TestDeltaAssembler.class,
+
     // Includes assembler tests.
     TestDeltaFusekiGood.class ,
     TestDeltaFusekiBad.class ,

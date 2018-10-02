@@ -1,0 +1,14 @@
+# Delta Assembler file
+
+PREFIX :        <#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX delta:   <http://jena.apache.org/rdf-delta#>
+
+<#dataset> rdf:type delta:DeltaDataset ;
+    delta:changes  "http://localhost:1068/" ;
+    delta:patchlog "A-tdb1";
+    delta:zone "target/Zone3";
+    delta:storage "TDB";
+    .

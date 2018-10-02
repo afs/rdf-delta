@@ -103,7 +103,7 @@ public class BaseTestDeltaFuseki {
     private static FusekiServer fuseki(Start state, int port, String config, String zone) {
         switch (state) {
             case CLEAN : {
-                Zone.connect(zone).reset();
+                Zone.clearZoneCache();
                 FileOps.clearDirectory(zone);
                 break;
             }
