@@ -25,46 +25,51 @@ import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.delta.client.* ;
+import org.seaborne.delta.client.DeltaClient;
+import org.seaborne.delta.client.DeltaConnection;
+import org.seaborne.delta.client.DeltaLinkHTTP;
+import org.seaborne.delta.client.LocalStorageType;
+import org.seaborne.delta.client.SyncPolicy;
+import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
 
-/** Connect to an HTTP server, create a new DataSource, remove it. */ 
+/** Connect to an HTTP server, create a new DataSource, remove it. */
 public class DeltaEx9_CreateDataSourceHTTP {
-    
+
     public static Quad quad = SSE.parseQuad("(:g :s :p :o)");
-    
+
     public static void main(String... args) {
-        try { 
+        try {
             main2(args);
         } finally {
             // Explicitly exit - the server is still running.
             System.exit(0); }
     }
-    
+
     public static void main2(String... args) {
         // The local state of the server.
         Location loc = Location.create("DeltaServer");
         LocalServer localServer = LocalServers.createFile(loc.getDirectoryPath());
         DeltaLink serverState = DeltaLinkLocal.connect(localServer);
-        PatchLogServer server = PatchLogServer.create(1066, serverState);
+        DeltaServer server = DeltaServer.create(1066, serverState);
         // --------
         // Connect to a server
         DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
         // One one zone supported currently.
         Zone zone = Zone.connect("Zone");
         Id clientId = Id.create();
-        
+
         // Create a new patch log.
         dLink.newDataSource("TEST", "http://example/test");
-        
-        // Put it under client management. 
+
+        // Put it under client management.
         DeltaClient dClient = DeltaClient.create(zone, dLink);
         Id dsRef = dClient.register("TEST", LocalStorageType.MEM, SyncPolicy.TXN_RW);
-        
+
         // and now connect to it
         try ( DeltaConnection dConn = dClient.get(dsRef) ) {
             Version version1 = dConn.getRemoteVersionLatest();
@@ -75,12 +80,12 @@ public class DeltaEx9_CreateDataSourceHTTP {
             Txn.executeWrite(dsg, ()->{
                 dsg.add(quad);
             });
-            
+
             Version version2 = dConn.getRemoteVersionLatest();
             System.out.println("Version = "+version2);
         }
 
         System.out.println("DONE");
     }
-    
+
 }

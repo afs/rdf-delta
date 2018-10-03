@@ -46,9 +46,6 @@ import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.LocalServers;
 import org.slf4j.Logger;
 
 /**
@@ -56,8 +53,8 @@ import org.slf4j.Logger;
  * <p>
  * Implemented as a packaging of Jetty with the necessary servlets for Delta.
  */
-public class PatchLogServer {
 
+/*package*/ class PatchLogServer {
     private static Logger LOG = Delta.DELTA_SERVER_LOG;
     private final boolean loopback = false;
     private final Server server;
@@ -66,27 +63,7 @@ public class PatchLogServer {
     // Shared across servlets.
     private final DeltaLink deltaLink;
 
-    /** Create a {@code PatchLogServer}
-     * @param port
-     * @param base
-     */
-    public static PatchLogServer server(int port, String base) {
-        LocalServer server = LocalServers.createFile(base);
-        DeltaLink link = DeltaLinkLocal.connect(server);
-        return PatchLogServer.create(port, link);
-    }
-
-    /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */
-    public static PatchLogServer create(int port, DeltaLink engine) {
-        return new PatchLogServer(null, port, engine);
-    }
-
-    /** Create a patch log server that uses the given local {@link DeltaLink} for its state. */
-    public static PatchLogServer create(String jettyConfig, DeltaLink engine) {
-        return new PatchLogServer(jettyConfig, -1, engine);
-    }
-
-    private PatchLogServer(String jettyConfig, int port, DeltaLink dLink) {
+    /*package*/ PatchLogServer(String jettyConfig, int port, DeltaLink dLink) {
         DPS.init();
 
         // Either ... or ...
@@ -212,13 +189,14 @@ public class PatchLogServer {
         holder.addFilter(new FilterHolder(filter), path, null);
     }
 
-    public Integer getPort() { return port ; }
+    // To be called via DeltaServer.
 
-    public PatchLogServer start() throws BindException {
+    /*package*/ Integer getPort() { return port ; }
+
+    /*package*/ PatchLogServer start() throws BindException {
         try {
+            deltaLink.start();
             server.start();
-            //server.dumpStdErr();
-            Delta.DELTA_LOG.info("DeltaServer starting");
             return this;
         }
         catch (BindException ex) {
@@ -230,18 +208,17 @@ public class PatchLogServer {
         }
     }
 
-    public void stop() {
+    /*package*/ void stop() {
         try {
-            //Delta.DELTA_LOG.info("DeltaServer stopping");
             server.stop();
             Delta.DELTA_LOG.info("DeltaServer stopped");
+            deltaLink.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
-    public void join() {
+    /*package*/ void join() {
         try {
             server.join();
         }

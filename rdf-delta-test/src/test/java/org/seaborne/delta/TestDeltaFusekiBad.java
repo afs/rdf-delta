@@ -40,7 +40,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.http.DeltaServer ;
 
 /**
  * Tests for Fuseki with Delta integration when things are not going well.
@@ -71,7 +71,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 
     @Test(expected=QueryExceptionHTTP.class)
     public void fuseki_stop() {
-        PatchLogServer patchLogServer = patchLogServer(CLEAN);
+        DeltaServer deltaServer = deltaServer(CLEAN);
         FusekiServer server1 = fuseki1(CLEAN);
         try {
             server1.stop();
@@ -79,14 +79,14 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
             QueryExecution qExec = conn1.query("ASK{}");
             qExec.execAsk();
         } finally {
-            patchLogServer.stop();
+            deltaServer.stop();
         }
     }
 
     @Test(expected=AssemblerException.class)
     public void fuseki_start() {
-        // No PatchLogServer running.
-        //PatchLogServer patchLogServer = patchLogServer();
+        // No DeltaServer running.
+        //DeltaServer deltaServer = deltaServer();
 
         // AssemblerException -> HttpException -> NoHttpResponseException
 
@@ -97,7 +97,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 
     @Test
     public void fuseki_stop_start() {
-        PatchLogServer patchLogServer = patchLogServer();
+        DeltaServer deltaServer = deltaServer();
         FusekiServer server1 = fuseki1();
         try {
             server1.stop();
@@ -111,17 +111,17 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
             qExec1.execAsk();
         } finally {
             server1.stop();
-            patchLogServer.stop();
+            deltaServer.stop();
         }
     }
 
     @Test
     public void patchserver_stop_start() {
-        PatchLogServer patchLogServer = patchLogServer();
+        DeltaServer deltaServer = deltaServer();
         FusekiServer server1 = fuseki1();
         try {
-            patchLogServer.stop();
-            patchLogServer = null;
+            deltaServer.stop();
+            deltaServer = null;
 
             // Should fail
             try (RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ) {
@@ -133,7 +133,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
                 //assertTrue(ex.getResponseCode()>= 500);
             }
 
-            patchLogServer = patchLogServer(Start.RESTART);
+            deltaServer = deltaServer(Start.RESTART);
 
             try (RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1)) {
                 conn1.query("ASK{}").execAsk();
@@ -145,8 +145,8 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
             }
         } finally {
             server1.stop();
-            if ( patchLogServer != null )
-                patchLogServer.stop();
+            if ( deltaServer != null )
+                deltaServer.stop();
         }
     }
 }

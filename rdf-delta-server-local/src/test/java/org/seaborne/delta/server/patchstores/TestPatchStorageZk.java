@@ -46,6 +46,11 @@ public class TestPatchStorageZk extends AbstractTestPatchStorage {
         }
         String connectionString = "localhost:"+server.getPort();
         client = Zk.curator(connectionString);
+        try {
+            client.blockUntilConnected();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @After public void after() {

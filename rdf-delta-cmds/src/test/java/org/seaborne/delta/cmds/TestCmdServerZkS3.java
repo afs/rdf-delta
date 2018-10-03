@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 
-import delta.server.DeltaServer;
+import delta.server.DeltaServerCmd;
 import io.findify.s3mock.S3Mock;
 import org.apache.jena.atlas.io.NullOutputStream;
 import org.apache.jena.atlas.web.HttpException;
@@ -33,7 +33,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.seaborne.delta.lib.LibX;
-import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.http.DeltaServer;
 
 /** Test running the server command with an in-memory Zk and S3 mock up */
 public class TestCmdServerZkS3 {
@@ -108,10 +108,10 @@ public class TestCmdServerZkS3 {
         // Imperfect port choice but in practice pretty good.
         int zkPort = LibX.choosePort();
 
-        PatchLogServer server;
+        DeltaServer server;
         try {
             server =
-                DeltaServer.build(
+                DeltaServerCmd.build(
                     "--port="+port,
                     "--zk=mem",
                     "--zkPort="+zkPort,

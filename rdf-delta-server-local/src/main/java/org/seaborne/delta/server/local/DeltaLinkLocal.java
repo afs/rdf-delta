@@ -38,7 +38,7 @@ public class DeltaLinkLocal implements DeltaLink {
     private static Logger     LOG      = LoggerFactory.getLogger(DeltaLinkLocal.class);
 
     private final LocalServer localServer;
-    private boolean           linkOpen = false;
+    private volatile boolean  linkOpen = false;
 
     public static DeltaLink connect(LocalServer localServer) {
         return new DeltaLinkLocal(localServer);
@@ -55,6 +55,13 @@ public class DeltaLinkLocal implements DeltaLink {
         if ( !DeltaOps.isValidName(name) )
             throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
         return localServer.createDataSource(name, baseURI);
+    }
+
+    @Override
+    public void start() {
+        localServer.start();
+        localServer.logDetails();
+        linkOpen = true;
     }
 
     @Override

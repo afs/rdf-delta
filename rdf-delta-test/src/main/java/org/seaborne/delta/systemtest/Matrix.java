@@ -52,7 +52,7 @@ import org.seaborne.delta.client.LocalStorageType;
 import org.seaborne.delta.client.SyncPolicy;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
@@ -77,8 +77,8 @@ public class Matrix {
     public static int deltaPort1 = -1;
     public static int deltaPort2 = -1;
 
-    public static PatchLogServer deltaServer1 = null;
-    public static PatchLogServer deltaServer2 = null;
+    public static DeltaServer deltaServer1 = null;
+    public static DeltaServer deltaServer2 = null;
 
     public static String deltaServerURL1 = null;
     public static String deltaServerURL2 = null;
@@ -105,7 +105,7 @@ public class Matrix {
 
         deltaPort1 = choosePort();
         deltaServerURL1 = "http://localhost:"+deltaPort1+"/";
-        Pair<DeltaLink, PatchLogServer> p1 = startDeltaServer(deltaPort1, zookeeperConnectionString);
+        Pair<DeltaLink, DeltaServer> p1 = startDeltaServer(deltaPort1, zookeeperConnectionString);
         deltaServerLink1 = p1.getLeft() ;
         deltaServer1 = p1.getRight();
 
@@ -114,7 +114,7 @@ public class Matrix {
         deltaPort2 = choosePort();
         deltaServerURL2 = "http://localhost:"+deltaPort2+"/";
 
-        Pair<DeltaLink, PatchLogServer> p2 = startDeltaServer(deltaPort2, zookeeperConnectionString);
+        Pair<DeltaLink, DeltaServer> p2 = startDeltaServer(deltaPort2, zookeeperConnectionString);
         deltaServerLink2 = p2.getLeft() ;
         deltaServer2 = p2.getRight();
     }
@@ -148,23 +148,23 @@ public class Matrix {
         Zk.zkRun(()->action.accept(client));
     }
 
-    public static Pair<DeltaLink, PatchLogServer> startDeltaServer(int port, String connectionString) {
+    public static Pair<DeltaLink, DeltaServer> startDeltaServer(int port, String connectionString) {
         LocalServerConfig config = LocalServers.configZk(connectionString);
         return startDeltaServer(port, config);
         //L.async(()->DeltaServer.main("--port="+port, "--zk="+connectionString));
     }
 
-    public static Pair<DeltaLink, PatchLogServer> startDeltaServer(int port, LocalServerConfig config) {
+    public static Pair<DeltaLink, DeltaServer> startDeltaServer(int port, LocalServerConfig config) {
         LocalServer server = LocalServer.create(config);
         localServers.add(server);
         DeltaLink link = DeltaLinkLocal.connect(server);
-        PatchLogServer dps = PatchLogServer.create(port, link) ;
-        try { dps.start(); }
+        DeltaServer deltaServer = DeltaServer.create(port, link) ;
+        try { deltaServer.start(); }
         catch(BindException ex) {
             FmtLog.error(LOG, "Address in use: port=%d", port);
         }
         //dps.join();
-        return Pair.create(link,  dps);
+        return Pair.create(link,  deltaServer);
     }
 
     private static String startZoo(String dataDir) {
@@ -260,8 +260,8 @@ public class Matrix {
     }
 
     // From ex7.
-    private static DeltaClient setup_dataset(String dsName, String zoneDir, String patchLogServerURL) {
-        DeltaLink dLink = DeltaLinkHTTP.connect(patchLogServerURL);
+    private static DeltaClient setup_dataset(String dsName, String zoneDir, String deltaServerURL) {
+        DeltaLink dLink = DeltaLinkHTTP.connect(deltaServerURL);
         return setup_dataset(dsName, zoneDir, dLink);
     }
 

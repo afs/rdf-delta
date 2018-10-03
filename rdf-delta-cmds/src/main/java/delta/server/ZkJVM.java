@@ -21,18 +21,18 @@ package delta.server;
 import org.apache.curator.test.TestingServer;
 
 class ZkJVM {
-    public static TestingServer buildZooJVM() {
+    private static TestingServer buildZooJVM(int port) {
         try {
-            TestingServer zkServer = new TestingServer();
+            TestingServer zkServer = new TestingServer(port);
             return zkServer;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public static String startZooJVM() {
+    public static String startZooJVM(int port) {
         try {
-            TestingServer zkServer = buildZooJVM();
+            TestingServer zkServer = buildZooJVM(port);
             zkServer.start();
             return "localhost:" + zkServer.getPort();
         } catch (Exception ex) {

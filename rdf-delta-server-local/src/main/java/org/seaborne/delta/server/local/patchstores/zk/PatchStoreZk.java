@@ -24,6 +24,7 @@ import static org.seaborne.delta.zk.Zk.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -42,6 +43,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
@@ -196,8 +198,11 @@ public class PatchStoreZk extends PatchStore {
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        if ( client == null )
+        if ( client == null ) {
+            FmtLog.warn(LOGZK, "[%s] Format new PatchStoreZk", instance);
             return Collections.emptyList();
+        }
+        connectToZookeeper();
 
         boolean isEmpty = zkCalc(()->client.checkExists().forPath(ZkConst.pRoot)==null);
         try {
@@ -215,8 +220,25 @@ public class PatchStoreZk extends PatchStore {
         return listDataSourcesZk();
     }
 
+    private void connectToZookeeper() {
+        try {
+            LOGZK.info("Connecting to zookeeper");
+            boolean succeeded = client.blockUntilConnected(0, TimeUnit.SECONDS); // 0 is "indefinitely"
+            if ( ! succeeded ) {
+                LOGZK.error("Failed to connect to Zookeeper");
+                throw new DeltaException("Failed to connect to Zookeeper");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     @Override
-    protected void releaseStore() {
+    protected void startStore() {}
+
+    @Override
+    protected void closeStore() {
         if ( client != null )
             client.close();
     }
@@ -224,7 +246,7 @@ public class PatchStoreZk extends PatchStore {
     @Override
     protected void deleteStore() {
         // currently, do not delete persistent state.
-        releaseStore();
+        closeStore();
     }
 
     @Override

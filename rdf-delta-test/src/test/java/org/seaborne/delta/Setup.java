@@ -30,8 +30,15 @@ import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.ZkT;
-import org.seaborne.delta.server.http.PatchLogServer;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.http.DeltaServer;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.DeltaLinkLocal;
+import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.LocalServers;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreMgr;
 
 public class Setup {
     static { DPS.init(); }
@@ -43,7 +50,7 @@ public class Setup {
         public void afterClass();
         public void beforeTest();
         public void afterTest();
-        
+
         public void relink();       // Same server, new link.
         public void restart();      // Different server, same state.
 
@@ -51,26 +58,26 @@ public class Setup {
         public DeltaLink createLink();  // New link every time.
         public boolean restartable();
     }
-    
+
     public static class LocalSetup implements LinkSetup {
         protected LocalServer lserver = null;
         protected DeltaLink dlink = null;
         private final Creator<LocalServer> builder;
         private final boolean restartable;
-        
+
         private LocalSetup(Creator<LocalServer> builder, boolean restartable) {
             this.builder = builder;
             this.restartable = restartable;
         }
-        
+
         public static LinkSetup createMem() {
             return new LocalSetup(()->LocalServers.createMem(), false);
         }
-        
+
         public static LinkSetup createFile() {
             return new LocalSetup(()->DeltaTestLib.createEmptyTestServer(), true);
         }
-        
+
         public static LinkSetup createZkMem() {
             return new LocalSetup(()->{
                 TestingServer server = ZkT.localServer();
@@ -83,7 +90,7 @@ public class Setup {
                 return localServer;
             }, false);
         }
-        
+
         @Override
         public void beforeClass() { DPS.init(); }
 
@@ -94,18 +101,18 @@ public class Setup {
         public DeltaLink getLink() {
             return dlink;
         }
-        
+
         @Override
         public DeltaLink createLink() {
-            return DeltaLinkLocal.connect(lserver); 
+            return DeltaLinkLocal.connect(lserver);
         }
-        
+
         @Override
         public void beforeTest() {
             lserver = builder.create();
             dlink = createLink();
         }
-        
+
         @Override
         public void afterTest() {
             if ( lserver != null )
@@ -116,7 +123,7 @@ public class Setup {
         public void relink() {
             dlink =  DeltaLinkLocal.connect(lserver);
         }
-        
+
         @Override
         public void restart() {
             if ( lserver == null )
@@ -136,17 +143,17 @@ public class Setup {
     }
 
     public static class RemoteSetup implements LinkSetup {
-        
+
         // Local server of the patch server.
         private LocalServer localServer = null;
-        private PatchLogServer server = null;
+        private DeltaServer server = null;
         private DeltaLink dlink = null;
         private int testPort = -999;
 
         @Override
         public void beforeClass() {
         }
-        
+
         @Override
         public void afterClass() {
         }
@@ -157,7 +164,7 @@ public class Setup {
             testPort = LibX.choosePort();
             localServer = DeltaTestLib.createEmptyTestServer();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
-            server = PatchLogServer.create(testPort, localLink);
+            server = DeltaServer.create(testPort, localLink);
             try {
                 server.start();
             } catch (BindException e) {
@@ -173,14 +180,14 @@ public class Setup {
             dlink = null;
             testPort = -999;
         }
-        
+
         @Override
         public void relink() {
             resetDefaultHttpClient();
             dlink = createLink();
         }
-        
-        
+
+
         @Override
         public void restart() {
             server.stop();
@@ -190,7 +197,7 @@ public class Setup {
             localServer = LocalServer.create(config);
             resetDefaultHttpClient();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
-            server = PatchLogServer.create(testPort, localLink);
+            server = DeltaServer.create(testPort, localLink);
             try {
                 server.start();
             } catch (BindException e) {
@@ -198,7 +205,7 @@ public class Setup {
             }
             relink();
         }
-        
+
         @Override
         public boolean restartable() {
             return true;
@@ -208,7 +215,7 @@ public class Setup {
         public DeltaLink getLink() {
             return dlink;
         }
-        
+
         @Override
         public DeltaLink createLink() {
             return DeltaLinkHTTP.connect("http://localhost:"+testPort+"/");
@@ -217,7 +224,7 @@ public class Setup {
         private static void resetDefaultHttpClient() {
             setHttpClient(HttpOp.createDefaultHttpClient());
         }
-        
+
         /** Set the HttpClient - close the old one if appropriate */
         /*package*/ static void setHttpClient(HttpClient newHttpClient) {
             HttpClient hc = HttpOp.getDefaultHttpClient() ;

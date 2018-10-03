@@ -31,7 +31,7 @@ import org.apache.jena.rdfconnection.RDFConnection ;
 import org.apache.jena.rdfconnection.RDFConnectionFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
-import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.http.DeltaServer;
 
 /**
  * Create two Fuseki servers, each with a dataset. These dataset are kept in step as
@@ -78,7 +78,7 @@ public class DeltaEx_FusekiHighAvailability {
         FileOps.exists(PLOG_DIR);
         FileOps.clearAll(PLOG_DIR);
 
-        PatchLogServer patchLogServer = PatchLogServer.server(PLOG_PORT, PLOG_DIR);
+        DeltaServer patchLogServer = DeltaServer.server(PLOG_PORT, PLOG_DIR);
         try { patchLogServer.start(); }
         catch (BindException ex) {
             System.err.println("Can't start the patch log server: "+ex.getMessage());

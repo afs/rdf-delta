@@ -42,7 +42,7 @@ import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.client.assembler.ManagedDatasetBuilder;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -58,7 +58,7 @@ public class TestDeltaAssembler {
             LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
 
-    private static PatchLogServer patchLogServer = null;
+    private static DeltaServer deltaServer = null;
 
     @BeforeClass public static void beforeSetupDirs()  {
         FileOps.ensureDir("target/Zone1");
@@ -73,12 +73,12 @@ public class TestDeltaAssembler {
         LocalServerConfig config = LocalServers.configMem();
         LocalServer localServer = LocalServer.create(config);
         DeltaLink deltaLink = DeltaLinkLocal.connect(localServer);
-        patchLogServer = PatchLogServer.create(1068, deltaLink);
-        patchLogServer.start();
+        deltaServer = DeltaServer.create(1068, deltaLink);
+        deltaServer.start();
     }
 
     @After public void after() {
-        patchLogServer.stop();
+        deltaServer.stop();
     }
 
     @Test public void assembler_delta_1() {
@@ -131,7 +131,6 @@ public class TestDeltaAssembler {
                 Txn.executeRead(conn.getDatasetGraph(), ()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
         }
-
     }
 
     private static DeltaConnection connection(Dataset dataset) {

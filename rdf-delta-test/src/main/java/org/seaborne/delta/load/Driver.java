@@ -29,8 +29,8 @@ import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.Fuseki;
-import org.apache.jena.fuseki.main.FusekiLib;
 import org.apache.jena.fuseki.build.FusekiConfig;
+import org.apache.jena.fuseki.main.FusekiLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.main.FusekiServer.Builder;
 import org.apache.jena.fuseki.server.DataAccessPoint;
@@ -47,7 +47,7 @@ import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.update.UpdateAction;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.http.DeltaServer;
 
 /** Drive updates and reads */
 public class Driver {
@@ -72,7 +72,6 @@ public class Driver {
 
     protected static FusekiServer server1;
     protected static FusekiServer server2;
-    protected static PatchLogServer  patchLogServer;
     private static HttpClient dftStdHttpClient = null;
 
     static { LogCtl.setJavaLogging(); }
@@ -109,7 +108,7 @@ public class Driver {
             FileOps.clearAll(zone2);
         }
 
-        PatchLogServer logServer = patchLogServer(DELTA_PORT, DELTA_DIR);
+        DeltaServer logServer = deltaServer(DELTA_PORT, DELTA_DIR);
 
         try {
             logServer.start();
@@ -201,11 +200,11 @@ public class Driver {
       return builder.build();
     }
 
-    protected static PatchLogServer patchLogServer(int port, String base) {
-        PatchLogServer dps = PatchLogServer.server(port, base);
+    protected static DeltaServer deltaServer(int port, String base) {
+        DeltaServer deltaServer = DeltaServer.server(port, base);
         try {
-            dps.start();
-            return dps;
+            deltaServer.start();
+            return deltaServer;
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             return null;

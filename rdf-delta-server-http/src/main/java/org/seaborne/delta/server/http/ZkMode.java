@@ -16,6 +16,6 @@
  * limitations under the License.
  */
 
-package delta.server;
+package org.seaborne.delta.server.http;
 
 public enum ZkMode { NONE, EXTERNAL, SINGLE, QUORUM, MEM }

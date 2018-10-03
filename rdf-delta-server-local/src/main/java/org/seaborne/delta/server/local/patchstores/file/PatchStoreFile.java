@@ -35,26 +35,26 @@ import org.slf4j.LoggerFactory;
 
 public class PatchStoreFile extends PatchStore {
     private static Logger LOG = LoggerFactory.getLogger(PatchStoreFile.class);
-    
+
     /*   Server Root
      *      delta.cfg
      *      /NAME ... per DataSource.
      *          /source.cfg
      *          /Log -- patch on disk (optional)
      *          /data -- TDB database (optional)
-     *          /disabled -- if this file is present, then the datasource is not accessible.  
+     *          /disabled -- if this file is present, then the datasource is not accessible.
      */
-   
+
     private final Path serverRoot;
-    
+
     public PatchStoreFile(String location, PatchStoreProvider provider) {
         this(Paths.get(location), provider);
     }
-    
+
     public PatchStoreFile(Path location, PatchStoreProvider provider) {
         super(provider);
         IOX.ensureDirectory(location);
-        this.serverRoot = location; 
+        this.serverRoot = location;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class PatchStoreFile extends PatchStore {
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
         Path patchLogArea = serverRoot.resolve(dsd.getName());
-        if ( ! Files.exists(patchLogArea) ) 
+        if ( ! Files.exists(patchLogArea) )
             CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
         Location loc = Location.create(patchLogArea.toString());
         PatchLog pLog = PatchLogFile.attach(dsd, this, loc);
@@ -79,7 +79,10 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    protected void releaseStore() { }
+    protected void startStore() {}
+
+    @Override
+    protected void closeStore() { }
 
     @Override
     protected void deleteStore() { }

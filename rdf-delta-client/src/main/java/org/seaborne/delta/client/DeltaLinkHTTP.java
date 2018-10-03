@@ -63,7 +63,9 @@ public class DeltaLinkHTTP implements DeltaLink {
         Objects.requireNonNull(serverURL, "DelatLinkHTTP: Null URL for the server");
         if ( ! serverURL.startsWith("http://") && ! serverURL.startsWith("https://") )
             throw new IllegalArgumentException("Bad server URL: '"+serverURL+"'");
-        return new DeltaLinkHTTP(serverURL);
+        DeltaLink link = new DeltaLinkHTTP(serverURL);
+        link.start();
+        return link;
     }
 
     private DeltaLinkHTTP(String serverURL) {
@@ -71,8 +73,6 @@ public class DeltaLinkHTTP implements DeltaLink {
             serverURL= serverURL+"/";
 
         this.remoteServer = serverURL;
-        this.linkOpen = true;
-
         // One URL
         this.remoteSend     = serverURL+"{"+DeltaConst.paramDatasource+"}";
         this.remoteReceive  = serverURL+"{"+DeltaConst.paramDatasource+"}";
@@ -80,6 +80,11 @@ public class DeltaLinkHTTP implements DeltaLink {
 //        // Separate URLs
 //        this.remoteSend = serverURL+DPConst.EP_Append;
 //        this.remoteReceive = serverURL+DPConst.EP_Fetch;
+    }
+
+    @Override
+    public void start() {
+        linkOpen = true;
     }
 
     @Override

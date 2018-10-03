@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package delta.server;
+package org.seaborne.delta.server.http;
 
 public enum Provider {
     UNSET, MEM, FILE, ZKS3, ZKZK;

@@ -26,7 +26,7 @@ import org.apache.jena.fuseki.main.FusekiLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
-import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
 
 /**
@@ -53,15 +53,15 @@ public class BaseTestDeltaFuseki {
 
     protected static String PREFIX = "PREFIX : <http://example/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n";
 
-    protected static PatchLogServer patchLogServer() {
-        return patchLogServer(Start.CLEAN);
+    protected static DeltaServer deltaServer() {
+        return deltaServer(Start.CLEAN);
     }
 
-    protected static PatchLogServer patchLogServer(Start state) {
-        return patchLogServer(state, D_PORT, deltaServerBase);
+    protected static DeltaServer deltaServer(Start state) {
+        return deltaServer(state, D_PORT, deltaServerBase);
     }
 
-    protected static PatchLogServer patchLogServer(Start state, int port, String base) {
+    protected static DeltaServer deltaServer(Start state, int port, String base) {
         switch (state) {
             case CLEAN : {
                 DPS.resetSystem();
@@ -72,10 +72,10 @@ public class BaseTestDeltaFuseki {
             case RESTART :
                 break;
         }
-        PatchLogServer dps = PatchLogServer.server(port, base);
+        DeltaServer server = DeltaServer.server(port, base);
         try {
-            dps.start();
-            return dps;
+            server.start();
+            return server;
         } catch(BindException ex) {
             Delta.DELTA_LOG.error("Address in use: port="+port);
             return null;

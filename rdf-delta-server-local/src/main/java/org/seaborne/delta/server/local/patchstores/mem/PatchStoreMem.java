@@ -33,7 +33,7 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
  * {@link PatchLogIndexMem} and {@link PatchStorageMem}.
  */
 public class PatchStoreMem extends PatchStore {
-    
+
     public PatchStoreMem(PatchStoreProvider provider) {
         super(provider);
     }
@@ -42,15 +42,18 @@ public class PatchStoreMem extends PatchStore {
     protected void delete(PatchLog patchLog) {}
 
     @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) { 
+    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
         return Collections.emptyList();
     }
 
     @Override
-    protected void releaseStore() {}
+    protected void startStore() {}
 
     @Override
-    protected void deleteStore() { releaseStore(); }
+    protected void closeStore() {}
+
+    @Override
+    protected void deleteStore() { closeStore(); }
 
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {

@@ -18,15 +18,13 @@
 
 package delta.server;
 
-import static delta.server.Provider.FILE;
-import static delta.server.Provider.UNSET;
-import static org.seaborne.delta.DeltaOps.verString;
+import static org.seaborne.delta.server.http.Provider.FILE;
+import static org.seaborne.delta.server.http.Provider.UNSET;
 
 import java.net.BindException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List ;
 import java.util.Properties;
 
 import jena.cmd.ArgDecl;
@@ -38,15 +36,18 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiLib;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.cmds.dcmd;
+import org.seaborne.delta.lib.SystemInfo;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.http.DeltaServer;
+import org.seaborne.delta.server.http.DeltaServerConfig;
+import org.seaborne.delta.server.http.Provider;
+import org.seaborne.delta.server.http.ZkMode;
 import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -65,7 +66,7 @@ import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
 
 /** Command line run the server. */
-public class DeltaServer {
+public class DeltaServerCmd {
 
     static { dcmd.setLogging(); }
 
@@ -99,31 +100,39 @@ public class DeltaServer {
     // know it has started on return, and it is not blocking.
 
     public static void main(String...args) {
-        PatchLogServer dps = build(args);
-        if ( dps == null ) {
+        DeltaServer deltaServer = build(args);
+        if ( deltaServer == null ) {
             System.err.println("Failed to run the server");
             System.exit(1);
         }
 
         // And away we go.
         try {
-            dps.start();
-            dps.join();
+            deltaServer.start();
+            deltaServer.join();
             System.exit(0);
         } catch(BindException ex) {
-            cmdLineError("Port in use: port=%d", dps.getPort());
+            cmdLineError("Port in use: port=%d", deltaServer.getPort());
         }
     }
 
-    public static PatchLogServer build(String...args) {
+    public static DeltaServer build(String...args) {
         DeltaSystem.init();
+        FmtLog.info(Delta.DELTA_LOG, "%s %s %s", SystemInfo.systemName(), SystemInfo.version(), SystemInfo.buildDate());
         try {
             DeltaServerConfig deltaServerConfig = processArgs(args);
             if ( deltaServerConfig == null )
                 return null;
-            // Run ZooKeepers
-            PatchLogServer dps = runProvider(deltaServerConfig);
-            return dps;
+            LocalServerConfig localServerConfig = setupLocalServer(deltaServerConfig);
+            // Curator needs ZK running.
+            //   PatchStoreZk use Curator
+            //
+            // Early start - to be removed - move into start/run together with Zk start,
+            if ( isZookeeper(deltaServerConfig) )
+                runZookeeper(deltaServerConfig);
+            DeltaServer deltaServer = buildServer(deltaServerConfig.serverPort, localServerConfig); // Creates LocalServer
+
+            return deltaServer;
         } catch (CmdException ex) {
             System.err.println(ex.getMessage());
             return null;
@@ -217,8 +226,12 @@ public class DeltaServer {
             provider = Provider.MEM;
         }
 
-        if ( x < 1 )
-            cmdLineError("No provider : one of --mem , --zk or --base  is required");
+        if ( x < 1 ) {
+            if ( args.length == 0 )
+                cmdLineError("No arguments : one of --mem , --zk or --base  is required");
+            else
+                cmdLineError("No provider : one of --mem , --zk or --base  is required");
+        }
         if ( x > 1 )
             cmdLineError("Exactly one of --mem , --zk or --base is required");
 
@@ -302,7 +315,6 @@ public class DeltaServer {
         serverConfig.zkConnectionString = connectionString;
     }
 
-
     private static void s3Args(CmdLineArgs cla , DeltaServerConfig serverConfig) {
         String bucketName = cla.getValue(argS3Bucket);
         if ( StringUtils.isBlank(bucketName) )
@@ -326,7 +338,7 @@ public class DeltaServer {
         serverConfig.s3Endpoint = endpoint;
     }
 
-    private static PatchLogServer runProvider(DeltaServerConfig config) {
+    private static LocalServerConfig setupLocalServer(DeltaServerConfig deltaServerConfig) {
         DPS.init();
 
         // Verbose.
@@ -337,11 +349,11 @@ public class DeltaServer {
         LocalServerConfig localServerConfig;
         String providerLabel = "";
 
-        switch (config.provider) {
+        switch (deltaServerConfig.provider) {
             case FILE :
                 psp = installProvider(new PatchStoreProviderFile());
-                localServerConfig = LocalServers.configFile(config.fileBase);
-                providerLabel = "file["+config.fileBase+"]";
+                localServerConfig = LocalServers.configFile(deltaServerConfig.fileBase);
+                providerLabel = "file["+deltaServerConfig.fileBase+"]";
                 break;
             case MEM :
                 psp = installProvider(new PatchStoreProviderMem());
@@ -350,64 +362,51 @@ public class DeltaServer {
                 break;
             case ZKZK :
                 psp = installProvider(new PatchStoreProviderZk());
-                localServerConfig = runZookeeper(config);
+                localServerConfig = serverConfigZookeeper(deltaServerConfig);
                 providerLabel = "zookeeper";
                 break;
             case ZKS3 :
                 psp = installProvider(new PatchStoreProviderZkS3());
-                localServerConfig = runZookeeper(config);
-                localServerConfig = setupS3(config, localServerConfig);
+                localServerConfig = serverConfigZookeeper(deltaServerConfig);
+                localServerConfig = setupS3(deltaServerConfig, localServerConfig);
                 providerLabel = "zookeeper+s3";
                 break;
             default :
-                throw new IllegalArgumentException("Unrecognized provider: "+config.provider);
+                throw new IllegalArgumentException("Unrecognized provider: "+deltaServerConfig.provider);
         }
         //LOG.debug("Provider: "+psp.getProviderName());
         LOG.debug("Provider: "+providerLabel);
 
+        localServerConfig.jettyConf = deltaServerConfig.jettyConf;
+        return localServerConfig;
+    }
+
+    private static DeltaServer buildServer(int port, LocalServerConfig localServerConfig) {
         Properties properties = new Properties();
         if ( ! properties.isEmpty() )
             localServerConfig = LocalServerConfig.create(localServerConfig).setProperties(properties).build();
 
         LocalServer server = LocalServer.create(localServerConfig);
-
-        // HTTP Server
-
         DeltaLink link = DeltaLinkLocal.connect(server);
 
-        PatchLogServer dps;
-        if ( config.jettyConf != null ) {
-            FmtLog.info(LOG, "Delta Server jetty config=%s", config.jettyConf);
-            dps = PatchLogServer.create(config.jettyConf, link);
+        DeltaServer deltaServer;
+        if ( localServerConfig.jettyConf != null ) {
+            FmtLog.info(LOG, "Delta Server jetty config=%s", localServerConfig.jettyConf);
+            deltaServer = DeltaServer.create(localServerConfig.jettyConf, link);
         } else {
-            FmtLog.info(LOG, "Delta Server port=%d", config.serverPort);
-            dps = PatchLogServer.create(config.serverPort, link);
+            FmtLog.info(LOG, "Delta Server port=%d", port);
+            deltaServer = DeltaServer.create(port, link);
         }
-
-        // Information.
-
-        List<DataSource> sources = server.listDataSources();
-
-        if ( sources.isEmpty() )
-            FmtLog.info(LOG, "  No data sources");
-        else {
-            //descriptions.forEach(dsd->FmtLog.info(LOG, "   Data source : %s", dsd));
-            // Print nicely.
-            sources.sort( (ds1, ds2)-> ds1.getName().compareTo(ds2.getName()) );
-            sources.forEach(ds->{
-                PatchLogInfo info = ds.getPatchLog().getInfo();
-                FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s]", info.getDataSourceDescr(), verString(info.getMinVersion()), verString(info.getMaxVersion()) );
-            });
-        }
-        return dps;
+        return deltaServer;
     }
 
-    private static LocalServerConfig runZookeeper(DeltaServerConfig config) {
-        // Allocate zookeeper
-        if ( config.zkConnectionString == null )
-            throw new InternalErrorException();
+    private static boolean isZookeeper(DeltaServerConfig config) {
+        return config.provider == Provider.ZKZK || config.provider == Provider.ZKS3;
+    }
 
-        String connectionString = config.zkConnectionString;
+    private static void runZookeeper(DeltaServerConfig config) {
+        if ( !isZookeeper(config) )
+            return ;
 
         switch(config.zkMode) {
             case NONE : throw new InternalErrorException();
@@ -420,20 +419,35 @@ public class DeltaServer {
                 if ( config.zkConf == null )
                     throw new InternalErrorException("config.zkConf == null");
                 ZooServer.quorumServer(config.zkConf);
-                //ZkS.runZookeeperServer(config.zkConf).start();
                 break;
             }
-            case MEM :
-                connectionString = ZkJVM.startZooJVM();
+            case MEM : {
+                String connectionString = ZkJVM.startZooJVM(config.zkPort);
+                if ( ! connectionString.equals(config.zkConnectionString) )
+                    FmtLog.warn(LOG, "Connection string has changed: %s -> %s", config.zkConnectionString, connectionString);
                 break;
+            }
             default :
                 break;
         }
+    }
 
-        if ( connectionString == null )
+    /** Return a {@link LocalServerConfig} for zookeeper usage */
+    private static LocalServerConfig serverConfigZookeeper(DeltaServerConfig config) {
+        // Allocate zookeeper
+        if ( config.zkConnectionString == null )
+            throw new InternalErrorException();
+
+        if ( config.zkMode == ZkMode.MEM ) {
+            if ( config.zkPort == null )
+                config.zkPort = WebLib.choosePort();
+            config.zkConnectionString = "localhost:"+config.zkPort;
+        }
+
+        if ( config.zkConnectionString == null )
             cmdLineError("No connection string for ZooKeeper");
         // If zk+S3, there isn't a provider name set yet.
-        LocalServerConfig localServerConfig = LocalServers.configZk(connectionString);
+        LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString);
         return localServerConfig;
     }
 

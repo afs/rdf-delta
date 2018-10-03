@@ -86,6 +86,12 @@ public abstract class PatchStore {
     /** For subclasses of {@link PatchStore} to override - some don't need to do anything, Zookeeper ones do. */
     protected void sync() {}
 
+    /** Start this {@code PatchStore} - notification the {@link LocalServer} starting. */
+    protected abstract void startStore();
+
+    /** Stop using this {@code PatchStore} - notification the {@link LocalServer} is stopping and subclasses can release resources. */
+    protected abstract void closeStore();
+
     public DataRegistry getDataRegistry() {
         checkInitialized();
         return dataRegistry;
@@ -120,7 +126,7 @@ public abstract class PatchStore {
 
     final
     public void shutdown() {
-        releaseStore();
+        closeStore();
     }
 
     /** All the patch logs currently managed by this {@code PatchStore}. */
@@ -254,10 +260,6 @@ public abstract class PatchStore {
      */
     protected abstract void delete(PatchLog patchLog);
 
-    /** Stop using this {@code PatchStore} - subclasses release resources. */
-    protected abstract void releaseStore();
-
     /** Delete this {@code PatchStore}. */
     protected abstract void deleteStore();
-
 }

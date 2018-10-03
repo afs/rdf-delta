@@ -110,7 +110,7 @@ public class dcmd {
             case "rdf2patch":   rdf2patch.main(argsSub); break;
             case "patch2rdf":   patch2rdf.main(argsSub); break;
             case "patchserver":
-                delta.server.DeltaServer.main(argsSub); break;
+                delta.server.DeltaServerCmd.main(argsSub); break;
             case "fuseki":
                 FusekiMainCmd.main(argsSub);
                 break;

@@ -35,7 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.server.http.PatchLogServer ;
+import org.seaborne.delta.server.http.DeltaServer;
 
 /**
  * Tests for Fuseki with Delta integration when things are going well.
@@ -46,7 +46,7 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     // May leak a few TIME_WAIT connections.
     protected static FusekiServer server1;
     protected static FusekiServer server2;
-    protected static PatchLogServer  patchLogServer;
+    protected static DeltaServer  deltaServer;
     protected static RDFConnection conn1;
     protected static RDFConnection conn2;
     protected static String URL_DPS;
@@ -60,7 +60,7 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
 
         HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
 
-        patchLogServer = patchLogServer(CLEAN);
+        deltaServer = deltaServer(CLEAN);
 
         // This needs testing.
         server1 = fuseki1(CLEAN);
@@ -82,7 +82,7 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
             server1.stop();
         if ( server2 != null )
             server2.stop();
-        patchLogServer.stop();
+        deltaServer.stop();
         IO.close( ((CloseableHttpClient)HttpOp.getDefaultHttpClient()) );
         HttpOp.setDefaultHttpClient(dftStdHttpClient);
     }

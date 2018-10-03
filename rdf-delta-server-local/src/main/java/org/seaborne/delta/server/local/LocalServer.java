@@ -18,20 +18,25 @@
 
 package org.seaborne.delta.server.local;
 
+import static org.seaborne.delta.DeltaOps.verString;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors ;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.server.system.DeltaSystem ;
@@ -54,6 +59,8 @@ public class LocalServer {
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
     static { DeltaSystem.init(); }
+
+    private AtomicBoolean active = new AtomicBoolean(false);
 
     // Track the LocalServers, - mainly so testing can clear them all.
     private static List<LocalServer> servers = new ArrayList<>();
@@ -100,6 +107,10 @@ public class LocalServer {
     /** Create a {@code LocalServer} with a specific {@link PatchStore}. */
     public static LocalServer create(PatchStore ps, LocalServerConfig conf) {
         Objects.requireNonNull(ps, "Null for PatchStore");
+        return buildLocalServer(ps, conf).start();
+    }
+
+    private static LocalServer buildLocalServer(PatchStore ps, LocalServerConfig conf) {
         DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
         return newLocalServer(conf, ps, dataRegistry);
     }
@@ -131,7 +142,7 @@ public class LocalServer {
 
     private static void initializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
         List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
-        FmtLog.info(LOG, "DataSources: %s : %s", ps.getProvider().getShortName(), descriptions);
+        FmtLog.info(Delta.DELTA_LOG, "DataSources: %s : %s", ps.getProvider().getShortName(), descriptions);
     }
 
     private static AtomicInteger instancecounter = new AtomicInteger(0);
@@ -144,8 +155,38 @@ public class LocalServer {
         this.label = "ls-"+instancecounter.incrementAndGet();
     }
 
+    public void logDetails() {
+        // Information.
+        List<DataSource> sources = listDataSources();
+
+        if ( sources.isEmpty() )
+            FmtLog.info(LOG, "  No data sources");
+        else {
+            //descriptions.forEach(dsd->FmtLog.info(LOG, "   Data source : %s", dsd));
+            // Print nicely.
+            sources.sort( (ds1, ds2)-> ds1.getName().compareTo(ds2.getName()) );
+            sources.forEach(ds->{
+                PatchLogInfo info = ds.getPatchLog().getInfo();
+                FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s]", info.getDataSourceDescr(), verString(info.getMinVersion()), verString(info.getMaxVersion()) );
+            });
+        }
+    }
+
+    public LocalServer start() {
+        patchStore.startStore();
+        active.set(true);
+        return this;
+    }
+
     public void shutdown() {
+        active.set(false);
+        patchStore.closeStore();
         LocalServer.release(this);
+    }
+
+    private void checkActive() {
+        if ( ! active.get() )
+            throw new DeltaException("LocalServer not active");
     }
 
     private void shutdown$() {
@@ -190,18 +231,21 @@ public class LocalServer {
 
     public DataSource getDataSource(Id dsRef) {
         FmtLog.info(LOG, "[%s] getDataSource(%s)", label, dsRef);
+        checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.get(dsRef));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByName(String name) {
         FmtLog.info(LOG, "[%s] getDataSourceByName(%s)", label, name);
+        checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.getByName(name));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByURI(String uri) {
         FmtLog.info(LOG, "[%s] getDataSourceByURI(%s)", label, uri);
+        checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.getByURI(uri));
         return dataSource(ds);
     }
@@ -215,6 +259,7 @@ public class LocalServer {
     }
 
     public DataSourceDescription getDescriptor(Id dsRef) {
+        checkActive();
         DataSource dataSource = actionSyncPatchStore(()->dataRegistry.get(dsRef));
         return descriptor(dataSource);
     }
@@ -233,16 +278,19 @@ public class LocalServer {
     }
 
     public List<Id> listDataSourcesIds() {
+        checkActive();
         return new ArrayList<>(syncedDataRegistry().keys());
     }
 
     public List<DataSource> listDataSources() {
+        checkActive();
         List<DataSource> x = new ArrayList<>();
         syncedDataRegistry().forEach((id, ds)-> x.add(ds));
         return x;
     }
 
     public List<PatchLogInfo> listPatchLogInfo() {
+        checkActive();
         // Important enough to have it's own cut-through method.
         List<PatchLogInfo> x = new ArrayList<>();
         syncedDataRegistry().forEach((id, ds)-> x.add(ds.getPatchLog().getInfo()));
@@ -265,6 +313,7 @@ public class LocalServer {
      * cleaned up manually.
      */
     public Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
+        checkActive();
         int C = createCounter.incrementAndGet();
         if ( syncedDataRegistry().containsName(name) )
             throw new DeltaBadRequestException("DataSource with name '"+name+"' already exists");
@@ -316,6 +365,7 @@ public class LocalServer {
 
    /** Remove from active use.*/
     public void removeDataSource(Id dsRef) {
+        checkActive();
         removeDataSource$(dsRef);
     }
 

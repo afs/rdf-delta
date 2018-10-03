@@ -21,10 +21,9 @@ package org.seaborne.delta.cmds;
 import java.io.PrintStream;
 import java.net.BindException;
 
-import delta.server.DeltaServer;
+import delta.server.DeltaServerCmd;
 import org.apache.jena.atlas.io.NullOutputStream;
 import org.seaborne.delta.lib.LibX;
-import org.seaborne.delta.server.http.PatchLogServer;
 
 public class CmdTestLib {
 
@@ -47,17 +46,16 @@ public class CmdTestLib {
     }
 
     public static String server(String... args) {
-        int port = LibX.choosePort(); 
+        int port = LibX.choosePort();
         String[] serverArgs = {"--port="+port};
-        
+
         String[] cmdLine = new String[args.length+serverArgs.length];
         System.arraycopy(args, 0, cmdLine, serverArgs.length, args.length);
         System.arraycopy(serverArgs, 0, cmdLine, 0, serverArgs.length);
-        PatchLogServer dps = DeltaServer.build(cmdLine);
         try {
-            dps.start();
+            DeltaServerCmd.build(cmdLine).start();
         } catch (BindException e) {
-            throw new RuntimeException(e); 
+            throw new RuntimeException(e);
         }
         return "http://localhost:"+port+"/";
     }

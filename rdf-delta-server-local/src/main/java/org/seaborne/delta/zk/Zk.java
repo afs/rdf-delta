@@ -67,7 +67,7 @@ public class Zk {
 //                .build();
             client.start();
             //client.getConnectionStateListenable().addListener((c, newState)->System.out.println("** STATE CHANGED TO : " + newState));
-            client.blockUntilConnected();
+            //client.blockUntilConnected(); // Done in PatchStoreZk.initialize
             return client;
         } catch (Exception ex) {
             throw new RuntimeException(ex);

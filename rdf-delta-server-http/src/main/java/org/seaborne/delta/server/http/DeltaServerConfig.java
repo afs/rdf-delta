@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package delta.server;
+package org.seaborne.delta.server.http;
 
 import java.io.OutputStream;
 import java.nio.file.Files;

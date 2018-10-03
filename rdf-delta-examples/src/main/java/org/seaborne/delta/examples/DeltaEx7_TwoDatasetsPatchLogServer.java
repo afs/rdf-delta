@@ -36,7 +36,7 @@ import org.seaborne.delta.client.LocalStorageType ;
 import org.seaborne.delta.client.SyncPolicy ;
 import org.seaborne.delta.client.Zone ;
 import org.seaborne.delta.link.DeltaLink ;
-import org.seaborne.delta.server.http.PatchLogServer;
+import org.seaborne.delta.server.http.DeltaServer;
 
 /**
  * This example shows changes to one dataset being sent to a patch log server
@@ -46,10 +46,10 @@ import org.seaborne.delta.server.http.PatchLogServer;
  */
 public class DeltaEx7_TwoDatasetsPatchLogServer {
     static { LogCtl.setJavaLogging(); }
-    
+
     final static int PLOG_PORT = 1066;
     final static String PLOG_DIR = "DeltaServer";
-    
+
     // Log name.
     final static String DS_NAME = "ABCD";
 
@@ -61,15 +61,15 @@ public class DeltaEx7_TwoDatasetsPatchLogServer {
         try { main2(args) ; }
         finally { System.exit(0); }
     }
-        
+
     public static void main2(String ...args) {
         //-- Setup a PatchLogServer
         // Ensure its work area exists and is empty.
         FileOps.exists(PLOG_DIR);
         FileOps.clearAll(PLOG_DIR);
-        
-        PatchLogServer patchLogServer = PatchLogServer.server(PLOG_PORT, PLOG_DIR);
-        try { patchLogServer.start(); }
+
+        DeltaServer server = DeltaServer.server(PLOG_PORT, PLOG_DIR);
+        try { server.start(); }
         catch (BindException ex) {
             System.err.println("Can't start the patch log server: "+ex.getMessage());
             System.exit(1);
@@ -77,7 +77,7 @@ public class DeltaEx7_TwoDatasetsPatchLogServer {
 
         // -- Setup 2 datasets.
         String patchLogServerURL = "http://localhost:"+PLOG_PORT+"/";
-        
+
         DeltaClient dClient1 = setup_dataset(DS_NAME, ZONE1_DIR, patchLogServerURL);
         DeltaClient dClient2 = setup_dataset(DS_NAME, ZONE2_DIR, patchLogServerURL);
 
@@ -85,9 +85,9 @@ public class DeltaEx7_TwoDatasetsPatchLogServer {
         Id dsRef = dClient2.getLink().getDataSourceDescriptionByName(DS_NAME).getId();
 
         // "register" is these two steps:
-        // dClient.attach(dsRef, LocalStorageType.TDB); 
+        // dClient.attach(dsRef, LocalStorageType.TDB);
         // dClient.connect(dsRef, TxnSyncPolicy.TXN_RW);
-        
+
         // -- Use the dataset via a DeltaConnection.
 
         try( DeltaConnection dConn1 = dClient1.get(dsRef) ) {
@@ -103,27 +103,27 @@ public class DeltaEx7_TwoDatasetsPatchLogServer {
             Txn.executeRead(ds, ()->RDFDataMgr.write(System.out, ds, Lang.TRIG) );
         }
 
-        patchLogServer.stop();
+        server.stop();
         System.exit(0);
     }
-    
+
     private static DeltaClient setup_dataset(String dsName, String zoneDir, String patchLogServerURL) {
-        DeltaLink dLink = DeltaLinkHTTP.connect(patchLogServerURL); 
-        
+        DeltaLink dLink = DeltaLinkHTTP.connect(patchLogServerURL);
+
         // Probe to see if it exists.
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(dsName);
-        
+
         FileOps.exists(zoneDir);
         FileOps.clearAll(zoneDir);
         Zone zone = Zone.connect(zoneDir);
         DeltaClient dClient = DeltaClient.create(zone, dLink);
-        
+
         // Get the Id.
         Id dsRef;
         if ( dsd == null )
             dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
-        else 
-            dsRef = dsd.getId(); 
+        else
+            dsRef = dsd.getId();
         // Create and setup locally.
         dClient.register(dsRef, LocalStorageType.TDB, SyncPolicy.TXN_RW);
         return dClient;
