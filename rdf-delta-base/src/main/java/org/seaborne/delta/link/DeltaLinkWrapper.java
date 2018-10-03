@@ -29,11 +29,11 @@ import org.seaborne.patch.RDFPatch ;
 
 /** Wrapper for {@link DeltaLink} which can be subclassed to provide
  *  the other {@code DeltaLink} dynamically (see protected operation {@link #get})
- *  and have retry strategies (see protected operations {@link #exec} and {@link #execRtn}).  
- *  
+ *  and have retry strategies (see protected operations {@link #exec} and {@link #execRtn}).
+ *
  */
 public class DeltaLinkWrapper implements DeltaLink {
-    
+
     private DeltaLink other;
 
     public DeltaLinkWrapper(DeltaLink other) {
@@ -47,14 +47,14 @@ public class DeltaLinkWrapper implements DeltaLink {
     // Note: DeltalLink operations are "retryable"
     protected <T> T execRtn(Supplier<T> action) { return action.get(); }
     protected void exec(Runnable action) { action.run(); }
-    
+
     @Override
     public Id newDataSource(String name, String uri) {
         return execRtn(()->get().newDataSource(name, uri));
     }
 
     @Override
-    public void removeDataSource(Id dsRef) { 
+    public void removeDataSource(Id dsRef) {
         exec(()->get().removeDataSource(dsRef));
     }
 
@@ -117,6 +117,9 @@ public class DeltaLinkWrapper implements DeltaLink {
     public void ping() { exec(()->get().ping()); }
 
     @Override
+    public void start() { exec(()->get().start()); }
+
+    @Override
     public void close() { exec(()->get().close()); }
-    
+
 }
