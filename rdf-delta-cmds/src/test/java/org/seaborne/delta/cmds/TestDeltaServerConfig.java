@@ -21,11 +21,11 @@ package org.seaborne.delta.cmds;
 import static org.junit.Assert.assertEquals;
 
 import delta.server.DeltaServerCmd;
+import delta.server.DeltaServerConfig;
 import jena.cmd.CmdException;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.junit.Test;
-import org.seaborne.delta.server.http.DeltaServerConfig;
 
 public class TestDeltaServerConfig {
 

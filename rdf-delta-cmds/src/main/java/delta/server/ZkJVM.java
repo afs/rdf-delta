@@ -30,9 +30,10 @@ class ZkJVM {
         }
     }
 
-    public static String startZooJVM(int port) {
+    public static String startZooJVM() {
         try {
-            TestingServer zkServer = buildZooJVM(port);
+            @SuppressWarnings("resource")
+            TestingServer zkServer = new TestingServer();
             zkServer.start();
             return "localhost:" + zkServer.getPort();
         } catch (Exception ex) {

@@ -55,24 +55,43 @@ public class Zk {
 
     /** Connect a curator client to a running ZooKepper server. */
     public static CuratorFramework curator(String connectString) {
-        try {
-            RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
-            CuratorFramework client =
-                CuratorFrameworkFactory.newClient(connectString, 10000, 10000, policy);
+        CuratorFramework client = createCuratorClient(connectString);
+        connect(client);
+        return client;
+    }
+
+    /** Connect a curator client to a running ZooKepper server. */
+    public static CuratorFramework createCuratorClient(String connectString) {
+        RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
+        CuratorFramework client =
+            CuratorFrameworkFactory.newClient(connectString, 10000, 10000, policy);
 //                CuratorFrameworkFactory.builder()
 //                //.namespace("delta")
 //                .connectString(connectString)
 //                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
 //                .retryPolicy(policy)
 //                .build();
-            client.start();
-            //client.getConnectionStateListenable().addListener((c, newState)->System.out.println("** STATE CHANGED TO : " + newState));
-            //client.blockUntilConnected(); // Done in PatchStoreZk.initialize
-            return client;
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        return client;
+    }
+
+    /** Connect a curator client to a running ZooKepper server. */
+    public static void connect(CuratorFramework client) {
+        switch(client.getState()) {
+            case LATENT :
+                client.start();
+                try { client.blockUntilConnected(); }
+                catch (InterruptedException ex) { throw new RuntimeException(ex); }
+                return;
+            case STARTED :
+                //LOG.warn("CuratorFramework already started");
+                return ;
+            case STOPPED :
+                throw new DeltaException("CuratorFramework closed");
+            default :
+                break;
         }
     }
+
 
     private static void zkException(Exception ex) {
         LOG.warn("ZooKeeper exception: "+ex.getMessage(), ex);

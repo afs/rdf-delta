@@ -20,7 +20,6 @@ package org.seaborne.delta.server.http;
 
 import java.net.BindException;
 
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.link.DeltaLink;
@@ -37,25 +36,34 @@ import org.seaborne.delta.server.local.LocalServers;
 public class DeltaServer {
     private final PatchLogServer patchLogServer ;
 
-    public static DeltaServer create(LocalServerConfig localServerConfig) {
-        // XXX Create link.
-        int port = -1;
-        DeltaLink dLink = null;
-
-        if ( true ) throw new NotImplemented();
+    /** Create a {@code DeltaServer}. */
+    public static DeltaServer create(int port, LocalServerConfig localServerConfig) {
+        LocalServer server = LocalServer.create(localServerConfig);
+        DeltaLink dLink = DeltaLinkLocal.connect(server);
         return create(port, dLink);
     }
 
-    /** Create a {@code PatchLogServer} for a file-provider using the {@code base} area. */
+    /** Create a {@code DeltaServer}, with custom Jetty configuration. */
+    public static DeltaServer create(String jettyConfig, LocalServerConfig localServerConfig) {
+        LocalServer server = LocalServer.create(localServerConfig);
+        DeltaLink dLink = DeltaLinkLocal.connect(server);
+        return create(jettyConfig, dLink);
+    }
+
+    /** Create a {@code DeltaServer} for a file-provider using the {@code base} area.
+     * @deprecated Use {@link #create(String, LocalServerConfig)}, using {@link LocalServers#createFile}.
+     */
+    @Deprecated
     public static DeltaServer server(int port, String base) {
+        // To library?
         LocalServer server = LocalServers.createFile(base);
         DeltaLink link = DeltaLinkLocal.connect(server);
         return DeltaServer.create(port, link);
     }
 
     /**
-     * Create a patch log server that uses the given local {@link DeltaLink} for its
-     * state.
+     * Create a patch log server that uses the given {@link DeltaLink},
+     * which is usually a {@link DeltaLinkLocal}.
      */
     public static DeltaServer create(int port, DeltaLink engine) {
         PatchLogServer pls = new PatchLogServer(null, port, engine);
@@ -71,7 +79,9 @@ public class DeltaServer {
         return new DeltaServer(pls);
     }
 
-    public static Builder create() { return new Builder(); }
+    // XXX Remove
+    @Deprecated
+    public static DeltaServer build(PatchLogServer patchLogServer) { return new DeltaServer(patchLogServer); }
 
     private DeltaServer(PatchLogServer patchLogServer) {
         this.patchLogServer = patchLogServer;
@@ -82,7 +92,7 @@ public class DeltaServer {
     }
 
     public DeltaServer start() throws BindException {
-        FmtLog.info(Delta.DELTA_LOG, "Server start: port=%d", getPort());
+        FmtLog.debug(Delta.DELTA_LOG, "Server start: port=%d", getPort());
         patchLogServer.start();
         return this;
     }
@@ -93,34 +103,5 @@ public class DeltaServer {
 
     public void join() {
         patchLogServer.join();
-    }
-
-    // XXX Improve so that a DeltaServerConfig is build internally.
-    public static class Builder {
-        private Integer port = null;
-        private String base;
-        private LocalServer localServer;
-        private DeltaServerConfig config;
-
-        public Builder port(int port) {
-            this.port = port;
-            return this;
-        }
-
-        public Builder config(DeltaServerConfig config) {
-            this.config = config;
-            return this;
-        }
-
-        public DeltaServer build() {
-            if ( port != null && port < 0 )
-                throw new IllegalArgumentException("Port number is negative: "+port);
-            if ( config.serverPort == null || config.serverPort < 0 )
-                throw new IllegalArgumentException("Bad port number: "+config.serverPort);
-
-            PatchLogServer patchLogServer = null;
-            DeltaServer deltaServer = new DeltaServer(patchLogServer);
-            return deltaServer;
-        }
     }
 }

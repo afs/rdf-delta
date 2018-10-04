@@ -53,7 +53,7 @@ public class CmdTestLib {
         System.arraycopy(args, 0, cmdLine, serverArgs.length, args.length);
         System.arraycopy(serverArgs, 0, cmdLine, 0, serverArgs.length);
         try {
-            DeltaServerCmd.build(cmdLine).start();
+            DeltaServerCmd.server(cmdLine).start();
         } catch (BindException e) {
             throw new RuntimeException(e);
         }

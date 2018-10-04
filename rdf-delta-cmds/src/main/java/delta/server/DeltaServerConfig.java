@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.http;
+package delta.server;
 
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -26,6 +26,8 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.server.http.Provider;
+import org.seaborne.delta.server.http.ZkMode;
 
 /**
  * DeltaServer configuration.

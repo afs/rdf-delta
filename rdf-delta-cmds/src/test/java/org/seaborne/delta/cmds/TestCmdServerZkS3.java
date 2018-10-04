@@ -111,7 +111,7 @@ public class TestCmdServerZkS3 {
         DeltaServer server;
         try {
             server =
-                DeltaServerCmd.build(
+                DeltaServerCmd.server(
                     "--port="+port,
                     "--zk=mem",
                     "--zkPort="+zkPort,

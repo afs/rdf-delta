@@ -21,20 +21,20 @@ package org.seaborne.delta.server.local;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.seaborne.delta.Delta ;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.system.DeltaSystem;
-import org.slf4j.Logger ;
+import org.slf4j.Logger;
 
 public class DPS {
 
-    public static Logger LOG = Delta.DELTA_LOG ;
-    public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG ;
+    public static Logger LOG = Delta.DELTA_LOG;
+    public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG;
 
-    private static volatile boolean initialized = false ;
+    private static volatile boolean initialized = false;
 
     public static String PatchStoreFileProvider = "PatchStore/File";
     public static String PatchStoreMemProvider  = "PatchStore/Mem";
@@ -48,12 +48,12 @@ public class DPS {
 
     public static void init() {
         if ( initialized )
-            return ;
+            return;
         synchronized(DPS.class) {
             if ( initialized )
-                return ;
-            initialized = true ;
-            initPatchStoreProviders() ;
+                return;
+            initialized = true;
+            initPatchStoreProviders();
         }
     }
 

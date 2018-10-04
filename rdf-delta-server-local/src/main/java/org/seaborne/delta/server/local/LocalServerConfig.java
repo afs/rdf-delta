@@ -111,7 +111,6 @@ public class LocalServerConfig {
         private String configFile = null;
         private String logProvider = null;
         private final Properties properties = new Properties();
-        public String jettyConf = null;
 
         public Builder() {}
 
@@ -141,13 +140,6 @@ public class LocalServerConfig {
         private static void copyPropertiesInto(Properties src, Properties dest) {
             src.forEach((k,v)->dest.setProperty((String)k, (String)v));
         }
-
-        /** Set the Jetty XML configuration file to use to build the Jetty engine. */
-        public Builder jettyConfig(String jettyConfigFile) {
-            jettyConf = jettyConfigFile;
-            return this;
-        }
-
         /** Parse a configuration file. */
         public Builder parse(String configFile) {
             Path path = Paths.get(configFile);
