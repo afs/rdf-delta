@@ -154,13 +154,10 @@ public class PatchLogBase implements PatchLog {
                 return getLatestVersion();
             }
 
-            Version version = logIndex.nextVersion();
-
             PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
-
             patchStorage.store(thisId, patch);
-
-            // This is the commit point.
+            Version version = logIndex.nextVersion();
+            // This is the commit point. Indeside the log lock.
             logIndex.save(version, thisId, prevId);
             return version;
         });
@@ -203,7 +200,12 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public Id find(Version version) {
-        return logIndex.versionToId(version);
+        Id id = logIndex.versionToId(version);
+        if ( id == null ) {
+            logIndex.syncVersionInfo();
+            id = logIndex.versionToId(version);
+        }
+        return id;
     }
 
     @Override

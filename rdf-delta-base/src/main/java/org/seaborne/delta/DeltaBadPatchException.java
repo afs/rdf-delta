@@ -18,7 +18,12 @@
 
 package org.seaborne.delta;
 
-/** Exception to throw when a bad patch is found */ 
+/** Exception to throw when a bad patch is found */
 public class DeltaBadPatchException extends DeltaBadRequestException {
     public DeltaBadPatchException(String msg) { super(msg) ; }
+
+//    @Override
+//    public Throwable fillInStackTrace() {
+//        return this ;
+//    }
 }

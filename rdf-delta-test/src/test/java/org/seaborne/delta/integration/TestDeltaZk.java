@@ -45,10 +45,13 @@ import org.seaborne.delta.systemtest.Matrix;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
-
 // These tests build from simple to complex.
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class TestDeltaZk {
+
+//    @BeforeClass public static void beforeClassLogging() {
+//        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+//    }
 
     @BeforeClass public static void beforeClass() { DeltaLinkSwitchable.silentSwitchOver = true; }
     @AfterClass public static void afterClass()   { DeltaLinkSwitchable.silentSwitchOver = false; }
@@ -72,7 +75,6 @@ public class TestDeltaZk {
         Matrix.await(()->dLink1.existsByName(NAME));
 
         assertTrue("Setup - didn't create patch log (1)", dLink1.existsByName(NAME));
-        // XXX Retry?
         assertTrue("Setup - didn't create patch log (2)", dLink2.existsByName(NAME));
     }
 
@@ -156,11 +158,17 @@ public class TestDeltaZk {
         // Manual force.
         //dLink.switchover();
 
-        RDFPatch patch2 = dLink.fetch(logId, ver1);
-        assertNotNull(patch2);
+        RDFPatch patch1a = dLink.fetch(logId, ver1);
+        assertNotNull(patch1a);
+
+        // This is unnecessary. It causes a syncVersionInfo on the index.
+        //dLink.listPatchLogInfo();
 
         Version ver2 = dLink.append(logId, patch_i2);
         assertEquals(Version.create(2), ver2);
+
+        RDFPatch patch2a = dLink.fetch(logId, ver2);
+        assertNotNull(patch2a);
 
         PatchLogInfo info2 = dLink.getPatchLogInfo(logId);
         assertEquals(Version.create(2), info2.getMaxVersion());

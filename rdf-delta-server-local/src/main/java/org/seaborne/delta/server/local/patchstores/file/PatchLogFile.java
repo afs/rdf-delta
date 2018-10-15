@@ -238,7 +238,7 @@ public class PatchLogFile implements PatchLog {
             String msg = String.format("Patch previous not log head: patch previous = %s ; log head = %s",
                                        previousId, this.latestId);
             // Does not point to right previous version.
-            throw new DeltaBadPatchException(msg);
+            throw new DeltaBadRequestException(msg);
         }
 
         // ** Commit point for a patch,

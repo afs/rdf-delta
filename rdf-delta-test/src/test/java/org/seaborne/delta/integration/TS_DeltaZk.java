@@ -23,7 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
-/** System integration tests of the whole system. */  
+/** System integration tests of the whole system. */
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
     TestDeltaZk.class
@@ -34,5 +34,4 @@ public class TS_DeltaZk {
     @BeforeClass public static void beforeClass() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-    
 }

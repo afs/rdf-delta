@@ -268,6 +268,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
         Zk.zkSet(client, statePath, bytes);
     }
 
+    // null => no watching.
+    //private Watcher logStateWatcher = null;
     private Watcher logStateWatcher = (event)->{
         synchronized(lock) {
             FmtLog.debug(LOG, "++ [%s:%s] Log watcher", instance, logName);
@@ -282,8 +284,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     private JsonObject getWatchedState() {
-        //return Zk.zkFetchJson(client, logStateWatcher, statePath);
-        return Zk.zkFetchJson(client, null, statePath);
+        return Zk.zkFetchJson(client, logStateWatcher, statePath);
     }
 
     @Override
@@ -420,6 +421,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     public void runWithLock(Runnable action) {
         synchronized(lock) {
             Zk.zkLock(client, lockPath, ()->{
+                syncVersionInfo();
                 try {
                     action.run();
                 }
@@ -437,6 +439,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     public <X> X runWithLockRtn(Supplier<X> action) {
         synchronized(lock) {
             return Zk.zkLockRtn(client, lockPath, ()->{
+                syncVersionInfo();
                 try {
                     return action.get();
                 }
