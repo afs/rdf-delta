@@ -51,11 +51,14 @@ public class DeltaServer {
     }
 
     /** Create a {@code DeltaServer} for a file-provider using the {@code base} area.
-     * @deprecated Use {@link #create(String, LocalServerConfig)}, using {@link LocalServers#createFile}.
+     *  Convenience operation for:
+     *  <pre>
+        LocalServer server = LocalServers.createFile(base);
+        DeltaLink link = DeltaLinkLocal.connect(server);
+        DeltaServer.create(port, link);
+     *  </pre>
      */
-    @Deprecated
     public static DeltaServer server(int port, String base) {
-        // To library?
         LocalServer server = LocalServers.createFile(base);
         DeltaLink link = DeltaLinkLocal.connect(server);
         return DeltaServer.create(port, link);
@@ -78,10 +81,6 @@ public class DeltaServer {
         PatchLogServer pls = new PatchLogServer(jettyConfig, -1, engine);
         return new DeltaServer(pls);
     }
-
-    // XXX Remove
-    @Deprecated
-    public static DeltaServer build(PatchLogServer patchLogServer) { return new DeltaServer(patchLogServer); }
 
     private DeltaServer(PatchLogServer patchLogServer) {
         this.patchLogServer = patchLogServer;

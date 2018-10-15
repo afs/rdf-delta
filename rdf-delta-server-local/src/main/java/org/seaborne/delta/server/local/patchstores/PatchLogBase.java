@@ -41,21 +41,21 @@ import org.slf4j.LoggerFactory;
  * The {@code PatchStorage} is updated first so may be ahead of the official log state.
  * <p>
  * ... except for eventually consistent stores, where the viewed {@code PatchStorage} may be behind,
- * in which case the only alternative is to poll/wait for the patch to show up. 
+ * in which case the only alternative is to poll/wait for the patch to show up.
  */
 
 public class PatchLogBase implements PatchLog {
     private final static Logger LOG = LoggerFactory.getLogger(PatchLogBase.class);
-    
+
     private final DataSourceDescription dsd;
     private final Id logId;
     private final PatchLogIndex logIndex;
     private final PatchStore patchStore;
 
     private final PatchStorage patchStorage;
-    
+
     // Use one-way linked list from latest to earliest.
-    // it is a cache of the patch log details.   
+    // it is a cache of the patch log details.
     // May be truncated - the earliest entry points to a patch not in the list - need to get from the storage an look fo rthe previous patch.
 
     public PatchLogBase(DataSourceDescription dsd,
@@ -65,19 +65,19 @@ public class PatchLogBase implements PatchLog {
         this.dsd = dsd;
         // Currently, the log id is the id of the DataSource.
         this.logId = dsd.getId();
-        
+
         this.logIndex = logIndex;
         this.patchStorage = patchStorage;
         this.patchStore = patchStore;
         initFromStorage();
     }
-    
+
     // Set earliestId, earliestVersion
     private void initFromStorage() {
         Version latest = logIndex.getCurrentVersion();
         Id latestId = logIndex.getCurrentId();
     }
-    
+
     @Override
     public Id getEarliestId() {
         return logIndex.getEarliestId();
@@ -101,15 +101,19 @@ public class PatchLogBase implements PatchLog {
             return getEarliestVersion();
         return logIndex.getCurrentVersion();
     }
-    
+
     @Override
     public PatchLogInfo getInfo() {
-        return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
+        // Called when polling for changes during dataset sync.
+        synchronized(this) {
+            logIndex.syncVersionInfo();
+            return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
+        }
     }
 
     @Override
     public DataSourceDescription getDescription() {
-        return dsd; 
+        return dsd;
     }
 
     @Override
@@ -138,24 +142,24 @@ public class PatchLogBase implements PatchLog {
 //        System.err.println(">>append");
 //        RDFPatchOps.write(System.err, patch);
 //        System.err.println("<<append");
-        
+
         return patchLogLockRtn(()->{
             Id thisId = Id.fromNode(patch.getId());
-            Id prevId = Id.fromNode(patch.getPrevious());        
+            Id prevId = Id.fromNode(patch.getPrevious());
 
             // Is it a reply of the last patch?
             if ( ! isEmpty() && getLatestId().equals(thisId) ) {
                 if ( Objects.equals(prevId, logIndex.getPreviousId()) )
-                    FmtLog.warn(LOG, "Patch id matches log head, but patch previous does not match log previous id");   
+                    FmtLog.warn(LOG, "Patch id matches log head, but patch previous does not match log previous id");
                 return getLatestVersion();
             }
 
             Version version = logIndex.nextVersion();
-            
+
             PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
 
             patchStorage.store(thisId, patch);
-            
+
             // This is the commit point.
             logIndex.save(version, thisId, prevId);
             return version;
@@ -165,7 +169,7 @@ public class PatchLogBase implements PatchLog {
     protected void patchLogLock(Runnable action) {
         logIndex.runWithLock(action);
     }
-    
+
     protected <X> X patchLogLockRtn(Supplier<X> action) {
         return logIndex.runWithLockRtn(action);
     }
@@ -208,7 +212,7 @@ public class PatchLogBase implements PatchLog {
         FmtLog.warn(LOG, "Not implemented (yet). find(Id)");
         return Version.UNSET;
     }
-    
+
     @Override
     public void delete() {
         logIndex.delete();

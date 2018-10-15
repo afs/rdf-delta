@@ -34,21 +34,21 @@ public class PatchLogIndexMem implements PatchLogIndex {
     // Only needs to be a Map unless we need Id->Version.
     private Map<Version, Id> versions = new ConcurrentHashMap<>();
     private Map<Id, PatchInfo> patchHeaders = new ConcurrentHashMap<>();
-    
+
     private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
-    
+
     private Version version = Version.UNSET;
     private Id current = null;
     private Id prev = null;
-    
+
     public PatchLogIndexMem() {
         version = Version.INIT;
         earliestVersion = Version.INIT;
         current = null;
         prev = null;
     }
-    
+
     @Override
     public boolean isEmpty() {
         //return version == DeltaConst.VERSION_UNSET || DeltaConst.VERSION_INIT;
@@ -59,7 +59,7 @@ public class PatchLogIndexMem implements PatchLogIndex {
     public Version nextVersion() {
         return getCurrentVersion().inc();
     }
-    
+
     @Override
     public void save(Version version, Id patch, Id prev) {
         this.version = version;
@@ -69,13 +69,10 @@ public class PatchLogIndexMem implements PatchLogIndex {
             earliestVersion = version;
             earliestId = patch;
         }
-        
+
         versions.put(version, patch);
         patchHeaders.put(patch, new PatchInfo(current, version, prev));
     }
-    
-    @Override
-    public void refresh() {}
 
     @Override
     public Version getCurrentVersion() {
@@ -119,23 +116,26 @@ public class PatchLogIndexMem implements PatchLogIndex {
     public void delete() {
         release();
     }
-    
+
     @Override
     public void runWithLock(Runnable action) {
         synchronized(lock) {
             action.run();
         }
     }
-    
+
     @Override
     public <X> X runWithLockRtn(Supplier<X> action) {
         synchronized(lock) {
             return action.get();
         }
     }
-    
+
     @Override
     public PatchInfo getPatchInfo(Id id) {
         return patchHeaders.get(id);
     }
+
+    @Override
+    public void syncVersionInfo() {}
 }

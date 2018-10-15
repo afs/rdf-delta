@@ -39,12 +39,28 @@ public class list extends DeltaCmd {
 
     @Override
     protected String getSummary() {
-        return getCommandName()+" --server URL";
+        return getCommandName()+" --server URL [--log=NAME]";
     }
 
     @Override
     protected void execCmd() {
+        if ( dataSourceName != null ) {
+            execOneName(dataSourceName);
+        }
+        else if ( super.dataSourceURI != null ) {}
+        else {
         execList();
+        }
+    }
+
+    private void execOneName(String name) {
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(name);
+        detailsByDSD(dsd);
+    }
+
+    private void execOneURI(String uriStr) {
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI(uriStr);
+        detailsByDSD(dsd);
     }
 
     protected void execList() {
@@ -53,28 +69,31 @@ public class list extends DeltaCmd {
             System.out.println("-- No logs --");
             return ;
         }
-        all.forEach(dsd->{
-            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.getId());
-            if ( logInfo == null ) {
-                // Some thing bad somewhere.
-                System.out.printf("[%s %s <%s> [no info] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri());
-                return;
-            }
-            if ( Version.INIT.equals(logInfo.getMinVersion()) && Version.INIT.equals(logInfo.getMaxVersion()) ) {
-                if ( logInfo.getLatestPatch() != null )
-                    // Should not happen.
-                    System.out.printf("[%s %s <%s> [empty] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getLatestPatch().toString());
-                else
-                    System.out.printf("[%s %s <%s> [empty]]\n", dsd.getId(), dsd.getName(), dsd.getUri());
-                return;
-            }
-            if ( logInfo.getMinVersion().isValid() ) {
-                System.out.printf("[%s %s <%s> [%s,%s] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(),
-                    logInfo.getMinVersion(), logInfo.getMaxVersion(),
-                    (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()
-                    );
-            }
-        });
+        all.forEach(this::detailsByDSD);
+    }
+
+    private void detailsByDSD(DataSourceDescription dsd) {
+        PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.getId());
+        if ( logInfo == null ) {
+            // Some thing bad somewhere.
+            System.out.printf("[%s %s <%s> [no info] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri());
+            return;
+        }
+        if ( Version.INIT.equals(logInfo.getMinVersion()) && Version.INIT.equals(logInfo.getMaxVersion()) ) {
+            if ( logInfo.getLatestPatch() != null )
+                // Should not happen.
+                System.out.printf("[%s %s <%s> [empty] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(), logInfo.getLatestPatch().toString());
+            else
+                System.out.printf("[%s %s <%s> [empty]]\n", dsd.getId(), dsd.getName(), dsd.getUri());
+            return;
+        }
+        if ( logInfo.getMinVersion().isValid() ) {
+            System.out.printf("[%s %s <%s> [%s,%s] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri(),
+                logInfo.getMinVersion(), logInfo.getMaxVersion(),
+                (logInfo.getLatestPatch()==null)?"<no patches>":logInfo.getLatestPatch().toString()
+                );
+        }
+
     }
 
     @Override

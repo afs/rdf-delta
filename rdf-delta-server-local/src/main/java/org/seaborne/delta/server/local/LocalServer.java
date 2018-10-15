@@ -230,6 +230,7 @@ public class LocalServer {
     }
 
     public DataSource getDataSource(Id dsRef) {
+        // Called to poll for a logs version changes.
         FmtLog.info(LOG, "[%s] getDataSource(%s)", label, dsRef);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.get(dsRef));
@@ -290,8 +291,8 @@ public class LocalServer {
     }
 
     public List<PatchLogInfo> listPatchLogInfo() {
+        // Called to poll for patch log create/delete
         checkActive();
-        // Important enough to have it's own cut-through method.
         List<PatchLogInfo> x = new ArrayList<>();
         syncedDataRegistry().forEach((id, ds)-> x.add(ds.getPatchLog().getInfo()));
         return x;

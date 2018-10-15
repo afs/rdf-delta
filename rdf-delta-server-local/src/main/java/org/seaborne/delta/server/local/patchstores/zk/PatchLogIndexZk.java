@@ -197,17 +197,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
         }
     }
 
-
-
-    // ---- Zookeeper index state watching.
-
-    @Override
-    public void refresh() {
-        //loadState(false);
-    }
-
-    // ---- Zookeeper index state watching.
-
     @Override
     public void delete() {
         // Don't actually delete the state.
@@ -235,7 +224,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     private void newState(long newVersion, Id patch, Id prev) {
         synchronized(lock) {
-            FmtLog.debug(LOG, "newVersion %d->%d", version, newVersion);
+            FmtLog.debug(LOG, "newVersion %d -> %d", version, newVersion);
+            //FmtLog.info(LOG, "[%s] newState %s -> %s", instance,  Version.str(version), Version.str(newVersion));
             if ( newVersion <= version ) {
                 if ( newVersion == version ) {
                     if ( ! Objects.equals(patch, current) || ! Objects.equals(prev,previous) )
@@ -250,6 +240,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 earliestVersion = Version.FIRST;
                 earliestId = patch;
             }
+            // newVersion > version
             this.version = newVersion;
             this.current = patch;
             this.previous = prev;
@@ -291,10 +282,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     private JsonObject getWatchedState() {
-        return Zk.zkFetchJson(client, logStateWatcher, statePath);
+        //return Zk.zkFetchJson(client, logStateWatcher, statePath);
+        return Zk.zkFetchJson(client, null, statePath);
     }
 
-    // ---- Zookeeper index state watching.
+    @Override
+    public void syncVersionInfo() {
+        syncState();
+    }
 
     private void stateOrInit() {
         synchronized(lock) {

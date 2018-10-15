@@ -32,22 +32,32 @@ public class Version {
     public static Version UNSET = new Version(DeltaConst.VERSION_UNSET, "<unset>");
     public static Version INIT  = new Version(DeltaConst.VERSION_INIT, "<init>");
     public static Version FIRST = Version.create(DeltaConst.VERSION_FIRST);
-    
+
     private final long version;
     private final String display;
 
     public static Version fromJson(JsonObject obj, String field, Version dftValue) {
         long ver = JSONX.getLong(obj, field, dftValue.version) ;
-        return create(ver);  
+        return create(ver);
     }
-    
+
     public static Version fromJson(JsonObject obj, String field) {
         long ver = JSONX.getLong(obj, field, -99) ;
         if ( ver < -1 )
             throw new DeltaException("Bad version number: '"+JSON.toStringFlat(obj.get(field))+"'");
-        return create(ver);  
+        return create(ver);
     }
-    
+
+    /** Display name for a version (as long) */
+    public static String str(long version) {
+        if ( version == DeltaConst.VERSION_UNSET )
+            return "unset";
+        if ( version == DeltaConst.VERSION_INIT )
+            return "init";
+        return Long.toString(version);
+    }
+
+
     public static Version create(JsonValue version) {
         Objects.requireNonNull(version, "version");
         if ( version.isNumber() ) {
@@ -56,7 +66,7 @@ public class Version {
                 throw new DeltaException("Bad version number: '"+JSON.toStringFlat(version)+"'");
             return create(ver);
         }
-        
+
         if ( version.isString() ) {
             try {
                 String s = version.getAsString().value();
@@ -68,7 +78,7 @@ public class Version {
         }
         throw new DeltaException("Unrecognized JSON version: '"+JSON.toStringFlat(version)+"'");
     }
-    
+
     public static Version create(long version) {
         // Versions count from 1 or use a constant,
         if ( version == UNSET.value() )
@@ -79,24 +89,24 @@ public class Version {
             throw new DeltaException();
         return new Version(version, null);
     }
-    
+
     private Version(long version, String display) {
         this.version = version;
         this.display = display;
     }
-    
+
     public long value() {
         return version;
     }
 
     public Version inc() {
         if ( this == INIT )
-            return FIRST; 
+            return FIRST;
         if ( ! isValid() )
             throw new DeltaException("Attempt to get inc version on a non-version number: "+this);
         return Version.create(version+1);
     }
-    
+
 
 
     /** Is this version a possible version? (i.e. not a marker) */
@@ -120,13 +130,13 @@ public class Version {
     public JsonValue asJson() {
         return JsonNumber.value(version) ;
     }
-    
+
     public String asParam() {
         return Long.toString(version) ;
     }
 
     // Does not use display for equality.
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -153,6 +163,6 @@ public class Version {
     public String toString() {
         if ( display != null )
             return display;
-        return "ver:"+Long.toString(version); 
+        return "ver:"+Long.toString(version);
     }
 }

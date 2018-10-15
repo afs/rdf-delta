@@ -29,12 +29,12 @@ public class DeltaConst {
     // Can't start with a "-" or "."
     public static final String  DataSourceRegexStr = "^[\\w_\\$][\\w-\\._\\$]*$";
     public static final Pattern DataSourceRegex    = Pattern.compile(DataSourceRegexStr);
-    
+
     // Endpoints.
 //    public static final String EP_PatchLog     = "patch-log";
 //    public static final String EP_Fetch        = "fetch";
 //    public static final String EP_Append       = "patch";
-    
+
     public static final String EP_InitData     = "init-data";
     public static final String EP_Ping         = "$/ping";
     public static final String EP_RPC          = "$/rpc";
@@ -58,12 +58,12 @@ public class DeltaConst {
     public static final String F_TOKEN         = "token";
     // For tracking.
     public static final String F_OP_ID         = "opid";
-    
+
     // Used as an alternative to "name" - now consolidated on "name"
     // May need to reuse field at sometime.
     @Deprecated
     public static final String F_BASE          = "base";
-    
+
     public static final String F_SOURCES       = "sources";
     public static final String F_ID            = "id";
     public static final String F_VERSION       = "version";
@@ -76,24 +76,24 @@ public class DeltaConst {
     public static final String F_URI           = "uri";
     public static final String F_LOG_TYPE      = "log_type";
     // Some atomic JSON value.
-    public static final String F_VALUE         = "value";   
+    public static final String F_VALUE         = "value";
     // Some JSON array
-    public static final String F_ARRAY         = "array";   
+    public static final String F_ARRAY         = "array";
 
     /** Default choice of port */
     public static final int    PORT            = 1066;
-    public static final int    SYSTEM_VERSION  = 1; 
-    
+    public static final int    SYSTEM_VERSION  = 1;
+
     // Short names of log providers. Lowercase.
     public static final String LOG_FILE        = "file";
     public static final String LOG_MEM         = "mem";
     public static final String LOG_SQL         = "sql";
     public static final String LOG_S3          = "s3";
 
-    // Properties used to define patch store providers. 
+    // Properties used to define patch store providers.
     public static final String pDeltaFile      = "delta.file";
     public static final String pDeltaZk        = "delta.zk";
-    
+
     // HTTP query string.
     // Registration
     public static final String paramRef        = "ref";
@@ -103,15 +103,15 @@ public class DeltaConst {
     public static final String paramPatch      = "patch";
     public static final String paramDatasource = F_DATASOURCE;
     public static final String paramVersion    = "version";
-    
+
     // Symbols used to store information, e.g. in a dataset context.
-    
-    public static final String symBase              = "delta:"; //"http://jena.apache.org/delta#"; 
+
+    public static final String symBase              = "delta:"; //"http://jena.apache.org/delta#";
     public static final Symbol symDeltaClient       =  Symbol.create(symBase+"client");
     public static final Symbol symDeltaConnection   =  Symbol.create(symBase+"connection");
     public static final Symbol symDeltaZone         =  Symbol.create(symBase+"zone");
 
-    // Content type constants for RDF Patch. 
+    // Content type constants for RDF Patch.
     public static final String contentTypePatchText     = "application/rdf-patch";
     public static final String contentTypePatchTextAlt  = "text/rdf-patch";
     public static final String contentTypePatchBinary   = "application/rdf-patch+thrift";
@@ -119,7 +119,7 @@ public class DeltaConst {
     // Preferred form.
     public static final ContentType ctPatchText         = ContentType.create(contentTypePatchText);
     public static final ContentType ctPatchBinary       = ContentType.create(contentTypePatchBinary);
-    
+
     public static final AcceptList rsOfferPatch         = AcceptList.create(contentTypePatchText,
                                                                             contentTypePatchTextAlt,
                                                                             contentTypePatchBinary);
@@ -135,13 +135,13 @@ public class DeltaConst {
 
     /** The size of the server-wide LRU cache */
     public static final int PATCH_CACHE_SIZE   = 1000;
-    
+
     /** The version number when not set */
     public static long VERSION_UNSET    = -1;
-    
+
     /** The version number when there are no patches */
     public static long VERSION_INIT     = 0;
-    
+
     /** The version number of the first patch */
     public static long VERSION_FIRST    = 1;
 }

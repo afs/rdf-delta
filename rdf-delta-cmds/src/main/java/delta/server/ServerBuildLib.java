@@ -44,7 +44,7 @@ import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
 
-/*package*/ class ServerBuildLib {
+public /*package*/ class ServerBuildLib {
 
     private static Logger LOG = Delta.DELTA_CONFIG_LOG;
 
