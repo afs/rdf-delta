@@ -30,6 +30,7 @@ import org.apache.jena.web.HttpSC;
 import org.junit.BeforeClass ;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaLinkCounter;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
@@ -40,14 +41,14 @@ public abstract class AbstractTestDeltaLink {
     private static Version version_2 = Version.create(2);
     private static Version version_3 = Version.create(3);
     private static Version version_4 = Version.create(4);
-    
-    @BeforeClass public static void setForTesting() { 
+
+    @BeforeClass public static void setForTesting() {
         LogCtl.setLog4j();
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
 
     protected static final String FILES_DIR = DeltaTestLib.TDIR+"test_dlink/";
-    
+
     public abstract Setup.LinkSetup getSetup();
     public DeltaLink getLink() { return getSetup().getLink(); }
 
@@ -56,18 +57,18 @@ public abstract class AbstractTestDeltaLink {
         DeltaLink dLink = getLink();
         dLink.ping();
     }
-    
+
     //---- Patches that are bad in some way.
-    
+
     @Test(expected=DeltaException.class)
     public void patch_bad_01()  { patch_bad("patch_bad_1.rdfp"); }
-    
+
     @Test(expected=DeltaException.class)
     public void patch_bad_02()  { patch_bad("patch_bad_2.rdfp"); }
-    
+
     @Test(expected=DeltaException.class)
     public void patch_bad_03()  { patch_bad("patch_bad_3.rdfp"); }
-    
+
     private void patch_bad(String filename) {
         DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource(filename, "http://example/");
@@ -76,22 +77,22 @@ public abstract class AbstractTestDeltaLink {
         fail("Should not get here");
     }
 
-    // Patch at the link level. 
+    // Patch at the link level.
     @Test
     public void patch_append_1() {
         DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_append_1", "http://example/");
-        
+
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
 
         Version version = dLink.getCurrentVersion(dsRef); // 0
         Version version1 = dLink.append(dsRef, patch);    // Should be 1
         assertNotEquals(version, version1);
         assertEquals(version_1, version1);
-        
+
         Version version2 = dLink.getCurrentVersion(dsRef);
         assertEquals(version1, version2);
-        
+
         RDFPatch patch1 = dLink.fetch(dsRef, version1) ;
         assertNotNull(patch1);
         assertTrue(equals(patch1, patch));
@@ -104,7 +105,7 @@ public abstract class AbstractTestDeltaLink {
     public void patch_append_2() {
         DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_append_2", "http://example/");
-        
+
         RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
         assertEquals(patch1.getId(), patch2.getPrevious());
@@ -122,7 +123,7 @@ public abstract class AbstractTestDeltaLink {
     public void patch_append_3() {
         DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("patch_append_2", "http://example/");
-        
+
         RDFPatch patch1 = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         RDFPatch patch2 = RDFPatchOps.read(FILES_DIR+"/patch2.rdfp");
         assertEquals(patch1.getId(), patch2.getPrevious());
@@ -137,12 +138,12 @@ public abstract class AbstractTestDeltaLink {
 
         Version version2 = dLink.append(dsRef, patch2);
         assertEquals(version_2, version2);
-        
+
         Version version2a = dLink.append(dsRef, patch2);
         assertEquals(version2, version2a);
-        
+
         // Can't send patch1 now.
-        try { 
+        try {
             Version version1b = dLink.append(dsRef, patch1);
             fail("Managed to resend earlier patch");
             //assertEquals(-1, version1b);
@@ -150,7 +151,7 @@ public abstract class AbstractTestDeltaLink {
             assertEquals(HttpSC.BAD_REQUEST_400, ex.getStatusCode());
         }
     }
-    
+
     @Test
     public void patch_add_add() {
         // patch1 then patch2, checking the versions advance as expected.
@@ -166,18 +167,18 @@ public abstract class AbstractTestDeltaLink {
 
         Version version1 = dLink.append(dsRef, patch1);
         assertEquals(version_1, version1);
-        
+
         PatchLogInfo logInfo1 = dLink.getPatchLogInfo(dsRef);
         assertEquals(version_1, logInfo1.getMaxVersion());
         assertEquals(version_1, logInfo1.getMinVersion());
-        
+
         Version version2 = dLink.append(dsRef, patch2);
         assertEquals(version_2, version2);
         PatchLogInfo logInfo2 = dLink.getPatchLogInfo(dsRef);
         assertEquals(version_2, logInfo2.getMaxVersion());
         assertEquals(version_1, logInfo2.getMinVersion());
     }
-    
+
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_01() {
         // No such patch.
@@ -186,7 +187,7 @@ public abstract class AbstractTestDeltaLink {
         RDFPatch patch = dLink.fetch(dsRef, Version.create(99));
         assertNull(patch);
     }
-    
+
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_02() {
         // Patches start at 1.
@@ -194,7 +195,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_404_2", "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         Version version1 = dLink.append(dsRef, patch);
-        
+
         RDFPatch patch0 = dLink.fetch(dsRef, Version.INIT);
         assertNull(patch0);
         RDFPatch patch1 = dLink.fetch(dsRef, Version.create(1));
@@ -202,7 +203,7 @@ public abstract class AbstractTestDeltaLink {
         RDFPatch patch2 = dLink.fetch(dsRef, Version.UNSET);
         assertNull(patch2);
     }
-    
+
     @Test//(expected=DeltaNotFoundException.class)
     public void patch_http404_03() {
         // Patches start at 1.
@@ -211,7 +212,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_404_2", "http://example/");
         RDFPatch patch = RDFPatchOps.read(FILES_DIR+"/patch1.rdfp");
         Version version1 = dLink.append(dsRef, patch);
-        
+
         RDFPatch patch0 = dLink.fetch(dsRef, Version.INIT);
         assertNull(patch0);
         RDFPatch patch1 = dLink.fetch(dsRef, Version.create(1));
@@ -224,7 +225,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("patch_seq_"+(counter++), "http://example/");
         patch_send(dsRef, filenames);
     }
-    
+
     private void patch_send(Id dsRef, String...filenames) {
         DeltaLink dLink = getLink();
         for ( String fn : filenames ) {
@@ -232,22 +233,22 @@ public abstract class AbstractTestDeltaLink {
             dLink.append(dsRef, patch);
         }
     }
-    
+
     public void patch_seq_01() {
         patch_seq("patch1.rdfp", "patch2.rdfp", "patch3.rdfp");
     }
-    
+
     public void patch_seq_02() {
         // patch1 then patch1 again -> Ok.
         patch_seq("patch1.rdfp", "patch1.rdfp");
     }
-    
+
     @Test(expected=DeltaException.class)
     public void patch_seq_bad_03() {
         // patch1 then patch3 (non-existent previous)
         patch_seq("patch1.rdfp", "patch3.rdfp");
     }
-    
+
     @Test
     public void patch_seq_bad_04() {
         // patch1 then patch2 then patch2 again -> OK
@@ -256,11 +257,11 @@ public abstract class AbstractTestDeltaLink {
 
     @Test(expected=DeltaException.class)
     public void patch_seq_bad_05() {
-        // patch1 then patch2 then patch1 again -> bad. 
+        // patch1 then patch2 then patch1 again -> bad.
         patch_seq("patch1.rdfp", "patch2.rdfp", "patch1.rdfp");
     }
     // Link test, connection test.
-    
+
     @Test
     public void datasource_create_01() {
         DeltaLink dLink = getLink();
@@ -268,7 +269,7 @@ public abstract class AbstractTestDeltaLink {
         Id dsRef = dLink.newDataSource("datasource_create_01", "http://example/uri");
         assertFalse(dLink.listDatasets().isEmpty());
         assertEquals(1, dLink.listDatasets().size());
-        
+
         Version version = dLink.getCurrentVersion(dsRef);
         PatchLogInfo info = dLink.getPatchLogInfo(dsRef);
 
@@ -276,7 +277,7 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(Version.INIT, info.getMinVersion());
         assertEquals(Version.INIT, info.getMaxVersion());
     }
-        
+
     @Test
     public void datasource_create_02() {
         DeltaLink dLink = getLink();
@@ -288,7 +289,7 @@ public abstract class AbstractTestDeltaLink {
 
         assertEquals(1, dLink.listDatasets().size());
         assertEquals(dsRef, dLink.listDatasets().get(0));
-        
+
         Version version = dLink.getCurrentVersion(dsRef);
         assertEquals(Version.INIT, version);
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
@@ -311,7 +312,7 @@ public abstract class AbstractTestDeltaLink {
 
         assertEquals(dsRef, dLink.listDatasets().get(0));
         assertEquals(dsRef, dLink.listDescriptions().stream().findFirst().get().getId());
-        
+
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI(uri);
         assertNotNull(dsd);
         assertEquals(uri, dsd.getUri());
@@ -328,13 +329,13 @@ public abstract class AbstractTestDeltaLink {
         assertNotEquals(dsRef1, dsRef2);
         assertEquals(2, dLink.listDatasets().size());
     }
-    
+
     @Test
     public void datasource_create_05() {
         DeltaLink dLink = getLink();
         assertTrue(dLink.listDatasets().isEmpty());
         Id dsRef1 = dLink.newDataSource("datasource_create_05", "http://example/uri");
-    
+
         try {
             // Check where the exception occurs.
             // Name already exists : URI is not a factor.
@@ -342,7 +343,7 @@ public abstract class AbstractTestDeltaLink {
             fail("Managed to create twice");
         } catch (DeltaException ex) {}
     }
-    
+
     @Test
     public void datasource_list_01() {
         DeltaLink dLink = getLink();
@@ -372,7 +373,7 @@ public abstract class AbstractTestDeltaLink {
         boolean b = all.stream().anyMatch(dsd->dsd.getUri().equals("http://example/uri16"));
         assertTrue(b);
     }
-    
+
     @Test
     public void datasource_listLog_04() {
         DeltaLink dLink = getLink();
@@ -385,7 +386,7 @@ public abstract class AbstractTestDeltaLink {
         assertEquals(dsRef, logInfo1.getDataSourceId());
         assertEquals(logInfo1, logInfo2);
     }
-    
+
     @Test
     public void datasource_listLog_05() {
         DeltaLink dLink = getLink();
@@ -426,7 +427,7 @@ public abstract class AbstractTestDeltaLink {
         // Again.
         dLink.removeDataSource(dsRef);
     }
-    
+
     @Test
     public void datasource_not_found_01() {
         DeltaLink dLink = getLink();
@@ -436,7 +437,7 @@ public abstract class AbstractTestDeltaLink {
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef1);
         assertNull(dsd);
     }
-    
+
     @Test
     public void datasource_not_found_02() {
         DeltaLink dLink = getLink();
@@ -467,20 +468,20 @@ public abstract class AbstractTestDeltaLink {
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
         assertNull(dsd);
     }
-    
+
     @Test
     public void create_delete_create_dLink_1() {
         DeltaLink dLink = getLink();
 
         Id dsRef = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
         dLink.removeDataSource(dsRef);
-        
+
         DataSourceDescription dsd = dLink.getDataSourceDescription(dsRef);
         assertNull(dsd);
 
         // Need to remove from disk for this to pass.
-        // Marking "disabled" in-place will fail. 
-        
+        // Marking "disabled" in-place will fail.
+
         Id dsRef2 = dLink.newDataSource("create_delete_create_1", "http://example/cdc");
         assertNotEquals(dsRef,  dsRef2);
     }
@@ -492,7 +493,7 @@ public abstract class AbstractTestDeltaLink {
 
         // Add a patch
         patch_send(dsRef, "patch-empty.rdfp");
-        
+
         // Delete
         dLink.removeDataSource(dsRef);
         // remake
@@ -500,16 +501,55 @@ public abstract class AbstractTestDeltaLink {
         assertNotEquals(dsRef,  dsRef2);
     }
 
+    @Test
+    public void events_dLink_1() {
+        DeltaLink dLink = getLink();
+        DeltaLinkCounter listener = new DeltaLinkCounter();
+        dLink.addListener(listener);
+
+        assertEquals(0, listener.countCreated());
+        Id dsRef = dLink.newDataSource("events_dLink_1", "http://example/cde1");
+        assertEquals(1, listener.countCreated());
+
+        assertEquals(0, listener.countRemoved());
+        dLink.removeDataSource(dsRef);
+        assertEquals(1, listener.countRemoved());
+    }
+
+    @Test
+    public void events_dLink_2() {
+        DeltaLink dLink = getLink();
+        Id dsRef = dLink.newDataSource("events_dLink_2", "http://example/cde2");
+
+        DeltaLinkCounter listener = new DeltaLinkCounter();
+        dLink.addListener(listener);
+
+        assertEquals(0, listener.countFetch());
+        RDFPatch p0 = dLink.fetch(dsRef, Version.create(1));
+        assertEquals(1, listener.countFetch());
+
+        assertEquals(0, listener.countAppend());
+        patch_send(dsRef, "patch-empty.rdfp");
+        assertEquals(1, listener.countAppend());
+
+        assertEquals(1, listener.countFetch());
+        RDFPatch p1 = dLink.fetch(dsRef, Version.create(1));
+        assertEquals(2, listener.countFetch());
+
+        assertEquals(2, listener.countFetch());
+        RDFPatch p1a = dLink.fetch(dsRef, Id.fromNode(p1.getId()));
+        assertEquals(3, listener.countFetch());
+    }
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
         RDFChangesCollector c1 = new RDFChangesCollector();
         patch1.apply(c1);
         // The getRDFPatch is a RDFPatchStored which supports hashCode and equals.
         RDFChangesCollector.RDFPatchStored p1 = (RDFChangesCollector.RDFPatchStored)c1.getRDFPatch();
-        
+
         RDFChangesCollector c2 = new RDFChangesCollector();
         patch2.apply(c2);
         RDFChangesCollector.RDFPatchStored p2 = (RDFChangesCollector.RDFPatchStored)c2.getRDFPatch();
-        
+
         return Objects.equal(p1, p2);
     }
 }

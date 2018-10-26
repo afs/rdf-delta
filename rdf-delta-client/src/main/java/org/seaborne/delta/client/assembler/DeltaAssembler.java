@@ -26,7 +26,6 @@ import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -42,7 +41,6 @@ import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
-import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Property;
@@ -53,13 +51,9 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
-import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.client.DeltaLinkSwitchable;
 import org.seaborne.delta.client.LocalStorageType;
-import org.seaborne.delta.client.SyncPolicy;
-import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,7 +128,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 //            RDFChanges sc = DeltaLib.destination(dest);
 //            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
 //        }
-        DatasetGraph dsg = setupDataset(root, dsName, zoneLocation, storage, deltaServers);
+        DatasetGraph dsg = LibBuildDC.setupDataset(dsName, zoneLocation, storage, deltaServers);
         Dataset dataset = DatasetFactory.wrap(dsg);
 
         //  Poll for changes as well. Not implemented (yet).
@@ -169,41 +163,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         }));
         return xs;
     }
-
-    // XXX Lib somewhere?
-    static DatasetGraph setupDataset(Resource root, String dsName, Location zoneLocation, LocalStorageType storage, List<String> destURLs) {
-        // Link to log server.
-        DeltaLink deltaLink;
-        if ( destURLs.size() == 1 )
-            deltaLink = DeltaLinkHTTP.connect(destURLs.get(0));
-        else {
-            List<DeltaLink> links = new ArrayList<>(destURLs.size());
-            for ( String destURL  : destURLs )
-                links.add(DeltaLinkHTTP.connect(destURL));
-            deltaLink = new DeltaLinkSwitchable(links);
-        }
-
-        Zone zone = Zone.connect(zoneLocation);
-        DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
-        SyncPolicy syncPolicy = SyncPolicy.TXN_RW;
-        try { deltaLink.ping(); }
-        catch (HttpException ex) {
-            // rc < 0 : failed to connect - ignore?
-            if ( ex.getResponseCode() > 0 )
-                throw ex;
-        }
-
-        DatasetGraph dsg = ManagedDatasetBuilder.create()
-            .deltaLink(deltaLink)
-            .logName(dsName)
-            .zone(zone)
-            .syncPolicy(syncPolicy)
-            .storageType(storage)
-            .build();
-
-        return dsg;
-     }
-
 
 //        Id dsRef = zone.getIdForName(dsName);
 //        // Given a Id, setup

@@ -22,10 +22,19 @@ import static org.apache.jena.atlas.lib.ListUtils.toList;
 import static org.seaborne.delta.Id.str;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.*;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaNotFoundException;
+import org.seaborne.delta.DeltaOps;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.delta.link.DeltaNotConnectedException;
 import org.seaborne.patch.RDFPatch;
 import org.slf4j.Logger;
@@ -39,6 +48,8 @@ public class DeltaLinkLocal implements DeltaLink {
 
     private final LocalServer localServer;
     private volatile boolean  linkOpen = false;
+
+    private Set<DeltaLinkListener> listeners = ConcurrentHashMap.newKeySet();
 
     public static DeltaLink connect(LocalServer localServer) {
         return new DeltaLinkLocal(localServer);
@@ -54,7 +65,10 @@ public class DeltaLinkLocal implements DeltaLink {
         checkLink();
         if ( !DeltaOps.isValidName(name) )
             throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
-        return localServer.createDataSource(name, baseURI);
+
+        Id dsRef = localServer.createDataSource(name, baseURI);
+        event(listener->listener.newDataSource(dsRef, name));
+        return dsRef;
     }
 
     @Override
@@ -86,6 +100,7 @@ public class DeltaLinkLocal implements DeltaLink {
     public void removeDataSource(Id dsRef) {
         checkLink();
         localServer.removeDataSource(dsRef);
+        event(listener->listener.removeDataSource(dsRef));
     }
 
     @Override
@@ -159,6 +174,7 @@ public class DeltaLinkLocal implements DeltaLink {
 
             long t2 = System.currentTimeMillis();
             afterWrite(source, rdfPatch, version, (t2 - t1));
+            event(listener-> listener.append(dsRef, version, rdfPatch));
             return version;
         }
         catch (RuntimeException ex) {
@@ -211,8 +227,10 @@ public class DeltaLinkLocal implements DeltaLink {
             return null;
         RDFPatch patch = source.getPatchLog().fetch(patchId);
         if ( patch == null )
-            throw new DeltaNotFoundException("No such patch: " + patchId);
+            return null;
+            //throw new DeltaNotFoundException("No such patch: " + patchId);
         FmtLog.info(LOG, "fetch: Dest=%s, Patch=%s", source, patchId);
+        event(listener->listener.fetchById(dsRef, patchId, patch));
         return patch;
     }
 
@@ -232,6 +250,25 @@ public class DeltaLinkLocal implements DeltaLink {
                 FmtLog.info(LOG, "fetch: Dest=%s, %s, Patch=%s", source, version, id);
             }
         }
+        event(listener->listener.fetchByVersion(dsRef, version, patch));
+        return patch;
+    }
+
+    private RDFPatch fetchCommon(Id dsRef, Id patchId, Version version) {
+        checkLink();
+        DataSource source = getDataSourceOrNull(dsRef);
+        if ( source == null )
+            return null;
+        RDFPatch patch = source.getPatchLog().fetch(version);
+        if ( LOG.isInfoEnabled() ) {
+            if ( patch == null ) {
+                FmtLog.info(LOG, "fetch: Dest=%s, %s, Not found", source, version);
+            } else {
+                Id id = Id.fromNode(patch.getId());
+                FmtLog.info(LOG, "fetch: Dest=%s, %s, Patch=%s", source, version, id);
+            }
+        }
+        event(listener->listener.fetchById(dsRef, patchId, patch));
         return patch;
     }
 
@@ -239,5 +276,19 @@ public class DeltaLinkLocal implements DeltaLink {
     public String initialState(Id dsRef) {
         // Not implemented.
         return null;
+    }
+
+    private <X> void event(Consumer<DeltaLinkListener> action) {
+        listeners.forEach(action);
+    }
+
+    @Override
+    public void addListener(DeltaLinkListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(DeltaLinkListener listener) {
+        listeners.remove(listener);
     }
 }

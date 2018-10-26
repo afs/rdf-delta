@@ -145,6 +145,11 @@ public interface DeltaLink {
      */
     public String initialState(Id dsRef) ;
 
+    /** Add a {@link DeltaLinkListener} listener. */
+    public void addListener(DeltaLinkListener listener) ;
+    /** Remove a {@link DeltaLinkListener} listener. */
+    public void removeListener(DeltaLinkListener listener) ;
+
     /** No-op end-to-end operation. This operation succeeds or throws an exception.
      *  This operation makes one attempt only to perform the ping even if the {@code DeltaLink}
      *  has some level of retry policy.

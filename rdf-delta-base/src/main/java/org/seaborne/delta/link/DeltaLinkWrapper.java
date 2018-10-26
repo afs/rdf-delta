@@ -122,4 +122,13 @@ public class DeltaLinkWrapper implements DeltaLink {
     @Override
     public void close() { exec(()->get().close()); }
 
+    @Override
+    public void addListener(DeltaLinkListener listener) {
+        other.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(DeltaLinkListener listener) {
+        other.removeListener(listener);
+    }
 }

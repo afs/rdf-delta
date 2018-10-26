@@ -23,6 +23,9 @@ import static java.lang.String.format;
 import java.io.InputStream ;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier ;
 import java.util.stream.Collectors;
 
@@ -34,9 +37,17 @@ import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.*;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Delta;
+import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.DeltaOps;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.delta.link.DeltaNotConnectedException ;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.changes.RDFChangesCollector ;
@@ -56,6 +67,8 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     private Id clientId = null;
     private boolean linkOpen = false;
+
+    private Set<DeltaLinkListener> listeners = ConcurrentHashMap.newKeySet();
 
     private final static JsonObject emptyObject = new JsonObject();
 
@@ -158,6 +171,7 @@ public class DeltaLinkHTTP implements DeltaLink {
             try {
                 JsonObject obj = JSON.parse(str);
                 Version version = Version.fromJson(obj, DeltaConst.F_VERSION);
+                event(listener->listener.append(dsRef, version, patch));
                 return version;
             } catch (Exception ex) {
                 FmtLog.warn(this.getClass(), "[%s] Error in response body : %s", dsRef, ex.getMessage());
@@ -166,6 +180,7 @@ public class DeltaLinkHTTP implements DeltaLink {
             FmtLog.warn(this.getClass(), "[%s] No response body", dsRef);
         }
         // No response body or syntax error.
+        event(listener->listener.append(dsRef, Version.UNSET, patch));
         return Version.UNSET;
     }
 
@@ -173,12 +188,16 @@ public class DeltaLinkHTTP implements DeltaLink {
     public RDFPatch fetch(Id dsRef, Version version) {
         if ( !Version.isValid(version) )
             return null;
-        return fetchCommon(dsRef, DeltaConst.paramVersion, version.asParam());
+        RDFPatch patch = fetchCommon(dsRef, DeltaConst.paramVersion, version.asParam());
+        event(listener->listener.fetchByVersion(dsRef, version, patch));
+        return patch;
     }
 
     @Override
     public RDFPatch fetch(Id dsRef, Id patchId) {
-        return fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam());
+        RDFPatch patch = fetchCommon(dsRef, DeltaConst.paramPatch, patchId.asParam());
+        event(listener->listener.fetchById(dsRef, patchId, patch));
+        return patch;
     }
 
     private RDFPatch fetchCommon(Id dsRef, String param, String paramStr) {
@@ -190,7 +209,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         final String s = url;
         FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, paramStr, url);
         try {
-            return retry(()->{
+            RDFPatch patch =  retry(()->{
                 // [NET] Network point
                 InputStream in = HttpOp.execHttpGet(s) ;
                 if ( in == null )
@@ -200,10 +219,12 @@ public class DeltaLinkHTTP implements DeltaLink {
                 pr.apply(collector);
                 return collector.getRDFPatch();
             }, ()->true, ()->"Retry fetch patch.", ()->"Failed to fetch patch.");
+            return patch;
         }
         catch ( HttpException ex) {
-            if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 )
+            if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 ) {
                 return null ; //throw new DeltaNotFoundException(ex.getMessage());
+            }
             throw ex;
         }
     }
@@ -284,6 +305,7 @@ public class DeltaLinkHTTP implements DeltaLink {
 
         String idStr = obj.get(DeltaConst.F_ID).getAsString().value();
         Id dsRef = Id.fromString(idStr);
+        listeners.forEach(listener->listener.newDataSource(dsRef, name));
         return dsRef;
     }
 
@@ -293,6 +315,7 @@ public class DeltaLinkHTTP implements DeltaLink {
             b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
         });
         JsonObject obj = rpc(DeltaConst.OP_REMOVE_DS, arg);
+        listeners.forEach(listener->listener.removeDataSource(dsRef));
     }
 
     @Override
@@ -371,6 +394,21 @@ public class DeltaLinkHTTP implements DeltaLink {
         // [NET] Network point
         return DRPC.rpc(remoteServer + DeltaConst.EP_RPC, opName, argx);
     }
+
+    private <X> void event(Consumer<DeltaLinkListener> action) {
+        listeners.forEach(action);
+    }
+
+    @Override
+    public void addListener(DeltaLinkListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(DeltaLinkListener listener) {
+        listeners.remove(listener);
+    }
+
 
     @Override
     public String toString() {

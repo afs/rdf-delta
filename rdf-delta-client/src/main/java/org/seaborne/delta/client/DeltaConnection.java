@@ -36,6 +36,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchConst;
@@ -498,6 +499,15 @@ public class DeltaConnection implements AutoCloseable {
     public DatasetGraph getStorage() {
         return base;
     }
+
+    public void addListener(DeltaLinkListener listener) {
+        dLink.addListener(listener);
+    }
+
+    public void removeListener(DeltaLinkListener listener) {
+        dLink.removeListener(listener);
+    }
+
 
     @Override
     public String toString() {
