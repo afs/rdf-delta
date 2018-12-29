@@ -25,9 +25,9 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 import org.seaborne.patch.RDFChanges ;
 
-/** Apply chanages to a {@link DatasetGraph} */ 
+/** Apply changes to a {@link DatasetGraph} */
 public class RDFChangesApply implements RDFChanges {
-    
+
     private DatasetGraph dsg ;
 
     public RDFChangesApply(DatasetGraph dsg) {
@@ -52,36 +52,36 @@ public class RDFChangesApply implements RDFChanges {
             g = Quad.defaultGraphNodeGenerated ;
         dsg.add(g, s, p, o);
     }
-    
+
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         if ( g == null )
             g = Quad.defaultGraphNodeGenerated ;
         dsg.delete(g, s, p, o);
     }
-    
+
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
         Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn) ;
         g.getPrefixMapping().setNsPrefix(prefix, uriStr) ;
     }
-    
+
     @Override
     public void deletePrefix(Node gn, String prefix) {
         Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn) ;
         g.getPrefixMapping().removeNsPrefix(prefix) ;
     }
-    
+
     @Override
     public void txnBegin() {
         dsg.begin(ReadWrite.WRITE);
     }
-    
+
     @Override
     public void txnCommit() {
         dsg.commit();
     }
-    
+
     @Override
     public void txnAbort() {
         dsg.abort();
