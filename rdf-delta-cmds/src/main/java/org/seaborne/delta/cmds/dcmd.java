@@ -72,7 +72,7 @@ public class dcmd {
             case "-h" :
             case "-help" :
             case "--help" :
-                System.err.println("Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r");
+                System.err.println("Commands: server, ls, mk, rm, list, get, add, parse, r2p, p2r");
                 return;
         }
 
@@ -95,6 +95,15 @@ public class dcmd {
             case "fetch" :
                 cmdExec = "getpatch";
                 break;
+            case "p": case "parse":
+                cmdExec = "parse";
+                break;
+            case "r2p":
+                cmdExec = "rdf2patch";
+                break;
+            case "p2r":
+                cmdExec = "patch2rdf";
+                break;
             case "server" :
                 cmdExec = "patchserver";
                 break;
@@ -109,6 +118,7 @@ public class dcmd {
             case "getpatch":    getpatch.main(argsSub); break;
             case "rdf2patch":   rdf2patch.main(argsSub); break;
             case "patch2rdf":   patch2rdf.main(argsSub); break;
+            case "parse":       patchparse.main(argsSub); break;
             case "patchserver":
                 delta.server.DeltaServerCmd.main(argsSub); break;
             case "fuseki":
