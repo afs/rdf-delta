@@ -22,7 +22,7 @@ import java.net.BindException ;
 
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.fuseki.main.FusekiLib;
+import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
@@ -40,8 +40,8 @@ public class BaseTestDeltaFuseki {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
 
-    protected static int F1_PORT  =    FusekiLib.choosePort();
-    protected static int F2_PORT  =    FusekiLib.choosePort();
+    protected static int F1_PORT  =    WebLib.choosePort();
+    protected static int F2_PORT  =    WebLib.choosePort();
     // Needs to be fixed - it's in the Fuseki config files.
     protected static int D_PORT   =    1068;
 

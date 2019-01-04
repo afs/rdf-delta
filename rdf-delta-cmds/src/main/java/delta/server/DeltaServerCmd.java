@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.fuseki.main.FusekiLib;
+import org.apache.jena.atlas.web.WebLib;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
@@ -339,7 +339,7 @@ public class DeltaServerCmd {
         try {
             int port = Integer.parseInt(portStr);
             if ( port == 0 )
-                return FusekiLib.choosePort();
+                return WebLib.choosePort();
             if ( port < 0 )
                 throw new NumberFormatException();
             return port;

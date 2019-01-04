@@ -21,67 +21,67 @@ package org.seaborne.patch;
 import org.apache.jena.graph.Node ;
 import org.apache.jena.sparql.core.Quad;
 
-/** Interface for receiving a stream of changes to an RDF Dataset or RDF Graph. */  
+/** Interface for receiving a stream of changes to an RDF Dataset or RDF Graph. */
 public interface RDFChanges {
     // Changes lifecycle.
     // Must not span txn boundaries.
     public void start() ;
     public void finish() ;
-    
+
     /** Header field */
-    public void header(String field, Node value) ; 
+    public void header(String field, Node value) ;
 
     /**
      * Notification that a quad or triple is added.
-     * A stream of Triples outside a dataset will have null for the graph name. 
+     * A stream of Triples outside a dataset will have null for the graph name.
      * Inside an RDF Dataset, it may be more natural to use "urn:x-arq:DefaultGraph" or "urn:x-arq:DefaultGraphNode"
      * in which case test with {@link Quad#isDefaultGraph(Node)}.
      * <p>
-     * It is not defined whether the add happenes before or after this notification all.
+     * It is not defined whether the add happens before or after this notification all.
      */
     public void add(Node g, Node s, Node p, Node o) ;
 
     /**
      * Notification that a quad or triple is deleted.
-     * A stream of Triples outside a dataset will have null for the graph name. 
+     * A stream of Triples outside a dataset will have null for the graph name.
      * Inside an RDF Dataset, it may be more natural to use "urn:x-arq:DefaultGraph" or "urn:x-arq:DefaultGraphNode"
      * in which case test with {@link Quad#isDefaultGraph(Node)}.
      * <p>
      * It is not defined whether the delete happenes before or after this notification all.
      */
     public void delete(Node g, Node s, Node p, Node o) ;
-    
-    /**
-     * Add a prefix.  The graph name follws the same rules as {@link #add}.
-     */
-    public void addPrefix(Node gn, String prefix, String uriStr) ; 
 
     /**
-     * Delete a prefix.  The graph name follws the same rules as {@link #add}.
+     * Add a prefix.  The graph name follows the same rules as {@link #add}.
+     */
+    public void addPrefix(Node gn, String prefix, String uriStr) ;
+
+    /**
+     * Delete a prefix.  The graph name follows the same rules as {@link #add}.
      */
     public void deletePrefix(Node gn, String prefix) ;
-    
+
     /** Indicator that a transaction begins, or becomes a write transaction. */
     public void txnBegin() ;
-    
+
     /** Indicator that a transaction commits.
-     *  If this throws an exception, the transaction will be aborted locally and not commit after all. 
+     *  If this throws an exception, the transaction will be aborted locally and not commit after all.
      */
     public void txnCommit() ;
-    
+
     /** Indicator that a transaction aborts */
     public void txnAbort() ;
-    
+
     /** Segment marker.
      * <p>
      * A segment is a number of transactions; the grouping rationale is not defined by RDF Patch.
      * <p>
-     * It might be used to indicate a logical collection of change transactions in a long stream of transactions.       
+     * It might be used to indicate a logical collection of change transactions in a long stream of transactions.
      * <p>
      * There is no guarantee it will be used.
      * <p>
      * Segments must contain complete transactions.
-     * Segments must not span start-finish pairs. 
+     * Segments must not span start-finish pairs.
      */
     public void segment() ;
 }

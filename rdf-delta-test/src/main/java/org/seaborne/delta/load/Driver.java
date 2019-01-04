@@ -28,9 +28,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.build.FusekiConfig;
-import org.apache.jena.fuseki.main.FusekiLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.main.FusekiServer.Builder;
 import org.apache.jena.fuseki.server.DataAccessPoint;
@@ -57,12 +57,12 @@ public class Driver {
         FileOps.ensureDir(DIR.toString());
     }
 
-    protected static int DELTA_PORT = FusekiLib.choosePort();
+    protected static int DELTA_PORT = WebLib.choosePort();
     protected static String DELTA_DIR = DIR.resolve("DeltaBase").toString();
     protected static String PATCH_LOG_NAME = "ABC";
 
-    protected static int F1_PORT = FusekiLib.choosePort();
-    protected static int F2_PORT = FusekiLib.choosePort();
+    protected static int F1_PORT = WebLib.choosePort();
+    protected static int F2_PORT = WebLib.choosePort();
     protected static String DS_NAME = "/DS";
     protected static Path ZONE1 = DIR.resolve("Zone1");
     protected static Path ZONE2 = DIR.resolve("Zone2");
