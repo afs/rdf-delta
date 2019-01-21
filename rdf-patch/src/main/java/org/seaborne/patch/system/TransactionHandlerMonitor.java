@@ -32,7 +32,7 @@ class TransactionHandlerMonitor extends TransactionHandlerBase {
         this.handler = handler;
         this.changes = changes;
     }
-    
+
     @Override
     public boolean transactionsSupported() {
         return handler.transactionsSupported();

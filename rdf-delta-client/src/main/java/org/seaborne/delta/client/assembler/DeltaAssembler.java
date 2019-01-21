@@ -64,29 +64,17 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
     /*
      * Assembler:
-     * Type 1 : changes sender.
-     *
-     * Type 2: Managed (inc version).
-     *
-     *
      * <#dataset> rdf:type delta:DeltaDataset ;
      *     delta:changes  "http://localhost:1066/" ;
      *     delta:patchlog "ABC"
      *     delta:zone "file path"
-     *
-     *  and
      *     delta:storage "mem", "file", "tdb" zone info.
-     *     TDB(false, "TDB"), TDB2(false, "TDB2"), FILE(false, "file"), MEM(true, "mem"), EXTERNAL(false, "external"), NONE(true, "none");
      *
-     *     (not implemented)
-     *  or
-     *     delta:dataset <#datasetOther>, for external.
-     *
-     * If delta:change is a list with more than one element, then that is used to build a
+     * If delta:changes is a list with more than one element, then that is used to build a
      * switchable DelatLink to replicated delta servers.
      */
     @Override
-    public Object open(Assembler a, Resource root, Mode mode) {
+    public Dataset open(Assembler a, Resource root, Mode mode) {
         // delta:changes ; list or multiple properties.
         List<String> deltaServers = getAsMultiStringValue(root, pDeltaChanges);
         if ( deltaServers.isEmpty() )
@@ -120,14 +108,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             zoneLocation = Location.create(zoneLocationStr);
         }
 
-        // Build the RDFChanges: URLs to send each patch log entry.
-        // This would multiplex the changes to all RDFChanges
-//        RDFChanges streamChanges = null ;
-//        for ( String dest : deltaServers ) {
-//            FmtLog.info(log, "Destination: %s", dest) ;
-//            RDFChanges sc = DeltaLib.destination(dest);
-//            streamChanges = RDFChangesN.multi(streamChanges, sc) ;
-//        }
+        // Build.
         DatasetGraph dsg = LibBuildDC.setupDataset(dsName, zoneLocation, storage, deltaServers);
         Dataset dataset = DatasetFactory.wrap(dsg);
 
@@ -163,76 +144,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         }));
         return xs;
     }
-
-//        Id dsRef = zone.getIdForName(dsName);
-//        // Given a Id, setup
-//        dsRef = setupDeltaClient(root, deltaClient, dsName, dsRef, storage, syncPolicy);
-//
-//        DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);
-//        DatasetGraph dsg = deltaConnection.getDatasetGraph();
-//
-//        // This DatasetGraph syncs on transaction so it happens, and assumes, a transaction for any Fuseki operation.
-//        // And someday tap into services to add a "sync before operation" step.
-//
-//       // Put state into dsg Context "for the record".
-//       Context cxt = dsg.getContext();
-//       cxt.set(symDeltaClient, deltaClient);
-//       cxt.set(symDeltaConnection, deltaConnection);
-//       cxt.set(symDeltaZone, zone);
-//
-//       return dsg;
-//    }
-//
-//    private static Id setupDeltaClient(Resource root, DeltaClient deltaClient, String dsName, Id dsRef, LocalStorageType storage, SyncPolicy syncPolicy) {
-//        // Given a Id, setup the client.
-//        DeltaLink deltaLink = deltaClient.getLink();
-//        if ( dsRef == null )
-//            dsRef = localNew(root, deltaClient, dsName, storage, syncPolicy);
-//        else {
-//            localExisting(root, deltaClient, dsName, dsRef, syncPolicy);
-//        }
-//        return dsRef;
-//    }
-//
-//    /** Does not exists locally - may be new remote o an existing remote patch log */
-//    private static Id localNew(Resource root, DeltaClient deltaClient, String dsName, LocalStorageType storage, SyncPolicy syncPolicy) {
-//        DeltaLink deltaLink = deltaClient.getLink();
-//        // new - not in local zone.
-//        try {
-//
-//            DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
-//            Id dsRef;
-//            if ( dsd == null )
-//                // new remote
-//                dsRef = deltaClient.newDataSource(dsName, "delta:"+dsName);
-//            else
-//                // Exists remote
-//                dsRef = dsd.getId();
-//            deltaClient.register(dsRef, storage, syncPolicy);
-//            return dsRef;
-//        } catch (HttpException ex) {
-//            throw new AssemblerException(root, "Can't create the dataset with the patch log server: "+ex.getMessage(), ex);
-//        } catch (Exception ex) {
-//            throw new AssemblerException(root, "Can't create the dataset with the patch log server: exception: "+ex.getMessage(), ex);
-//        }
-//    }
-//
-//    /** Exists locally - should exist remotely */
-//    private static void localExisting(Resource root, DeltaClient deltaClient, String dsName, Id dsRef, SyncPolicy syncPolicy) {
-//        // Existing
-//        DeltaLink deltaLink = deltaClient.getLink();
-//        try {
-//            DataSourceDescription dsd = deltaLink.getDataSourceDescriptionByName(dsName);
-//            if ( dsd == null )
-//                throw new AssemblerException(root, "Local dataset has no patch log: "+dsName);
-//            if ( ! dsd.getId().equals(dsRef) )
-//                throw new AssemblerException(root, "Local dataset does not match remote patch log: "+dsName);
-//        } catch (HttpException ex) {
-//            // Ignore
-//        }
-//        deltaClient.connect(dsRef, syncPolicy);
-//
-//    }
 
     private InputStream openChangesSrc(String x) {
         // May change to cope with remote source

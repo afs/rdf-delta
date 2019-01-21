@@ -18,15 +18,15 @@
 
 package org.seaborne.patch.items;
 
-import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.Node;
 
 public class DeletePrefix extends ChangeItem {
-    public final Node gn ;
-    public final String prefix ;
+    public final Node gn;
+    public final String prefix;
 
     public DeletePrefix(Node gn, String prefix) {
-        this.gn = gn ;
-        this.prefix = prefix ;
+        this.gn = gn;
+        this.prefix = prefix;
     }
 
     @Override

@@ -18,28 +18,28 @@
 
 package org.seaborne.patch.changes;
 
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChanges;
 
 /** An {@link RDFChanges} that adds callbacks on start/finish. */
 public class RDFChangesOnStartFinish extends RDFChangesWrapper {
-    private Runnable onStart ;
-    private Runnable onFinish ;
+    private Runnable onStart;
+    private Runnable onFinish;
 
     public RDFChangesOnStartFinish(RDFChanges changes, Runnable onStart, Runnable onFinish) {
-        super(changes) ;
-        this.onStart = onStart ;
-        this.onFinish = onFinish ;
+        super(changes);
+        this.onStart = onStart;
+        this.onFinish = onFinish;
     }
-    
+
     @Override
     public void start() {
         if ( onStart != null )
-            onStart.run() ;
+            onStart.run();
     }
 
     @Override
     public void finish() {
         if ( onFinish != null )
-            onFinish.run() ;
+            onFinish.run();
     }
 }

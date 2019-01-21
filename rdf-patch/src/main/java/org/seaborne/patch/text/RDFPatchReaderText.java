@@ -48,34 +48,33 @@ import org.seaborne.patch.PatchProcessor;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.PatchCodes;
 
-// Replaces RDFPatchReaderText
-// This reader direct consumes the token stream, not create tuples. 
+/** RDF Patch reader for text format. */
 public class RDFPatchReaderText implements PatchProcessor {
     private final Tokenizer tokenizer;
-    
+
     // Return true on end of transaction.
     private static void read(Tokenizer tokenizer, RDFChanges changes) {
         while( tokenizer.hasNext() ) {
             apply1(tokenizer, changes);
         }
     }
-    
+
     public RDFPatchReaderText(InputStream input) {
         tokenizer = TokenizerFactory.makeTokenizerUTF8(input);
     }
-    
+
     @Override
     public void apply(RDFChanges processor) {
         read(tokenizer, processor);
     }
 
-    /** 
+    /**
      * Execute one tuple, skipping blanks and comments.
      * Return true if there is the possibility of more.
      */
     private static boolean apply1(Tokenizer input, RDFChanges sink) {
-        boolean oneTransaction = true;  
-        long lineNumber = 0 ;
+        boolean oneTransaction = true;
+        long lineNumber = 0;
         while(input.hasNext()) {
             try {
                 lineNumber++;
@@ -90,7 +89,7 @@ public class RDFPatchReaderText implements PatchProcessor {
         }
         return false;
     }
-    
+
     // Return true for "end transaction".
     private static boolean doOneLine(Tokenizer tokenizer, RDFChanges sink) {
         if ( !tokenizer.hasNext() )
@@ -100,7 +99,7 @@ public class RDFPatchReaderText implements PatchProcessor {
             throw exception(tokCode, "Empty line");
         if ( ! tokCode.isWord() )
             throw exception(tokCode, "Expected keyword at start of patch record");
-        
+
         String code = tokCode.getImage();
         switch (code) {
             case HEADER: {
@@ -127,12 +126,12 @@ public class RDFPatchReaderText implements PatchProcessor {
                 return false;
             }
             case ADD_PREFIX: {
-                Token tokPrefix = nextToken(tokenizer); 
+                Token tokPrefix = nextToken(tokenizer);
                 if ( tokPrefix == null )
                     throw new PatchException("["+tokCode.getLine()+"] Prefix add tuple too short");
                 String prefix = tokPrefix.asString();
                 if ( prefix == null )
-                    throw exception(tokPrefix, "Prefix is not a string: %s", tokPrefix); 
+                    throw exception(tokPrefix, "Prefix is not a string: %s", tokPrefix);
                 String uriStr;
                 Token tokURI = nextToken(tokenizer);
                 if ( tokURI.isIRI() )
@@ -147,18 +146,18 @@ public class RDFPatchReaderText implements PatchProcessor {
                 return false;
             }
             case DEL_PREFIX: {
-                Token tokPrefix = nextToken(tokenizer); 
+                Token tokPrefix = nextToken(tokenizer);
                 if ( tokPrefix == null )
                     throw new PatchException("["+tokCode.getLine()+"] Prefix delete tuple too short");
                 String prefix = tokPrefix.asString();
                 if ( prefix == null )
-                    throw exception(tokPrefix, "Prefix is not a string: %s", tokPrefix); 
+                    throw exception(tokPrefix, "Prefix is not a string: %s", tokPrefix);
                 Node gn = nextNodeMaybe(tokenizer);
                 skip(tokenizer, DOT);
                 sink.deletePrefix(gn, prefix);
                 return false;
             }
-            case TXN_BEGIN: 
+            case TXN_BEGIN:
                 // Alternative name:
             case "TB": {
                 skip(tokenizer, DOT);
@@ -185,7 +184,7 @@ public class RDFPatchReaderText implements PatchProcessor {
             }
         }
     }
-        
+
     private final static String bNodeLabelStart = "_:";
     private static Node tokenToNode(Token token) {
         if ( token.isIRI() )
@@ -197,11 +196,11 @@ public class RDFPatchReaderText implements PatchProcessor {
             return NodeFactory.createBlankNode(label);
         }
         Node node = token.asNode();
-        if ( node == null ) 
+        if ( node == null )
             throw exception(token, "Expect a Node, got %s",token);
         return node;
     }
-    
+
     /** Read patch header. */
     public static PatchHeader readerHeader(InputStream input) {
         Tokenizer tokenizer = TokenizerFactory.makeTokenizerUTF8(input);
@@ -221,19 +220,19 @@ public class RDFPatchReaderText implements PatchProcessor {
       }
       return new PatchHeader(header);
     }
-    
+
     /** Known-to-be-header line */
     private static void readHeaderLine(Tokenizer tokenizer, BiConsumer<String, Node> action) {
         Token token2 = nextToken(tokenizer);
         if ( ! token2.isWord() && ! token2.isString() )
             throw new PatchException("["+token2.getLine()+"] Header does not have a key that is a word: "+token2);
-        String field = token2.getImage(); 
+        String field = token2.getImage();
         Node v = nextNode(tokenizer);
         skip(tokenizer, DOT);
         action.accept(field, v);
     }
 
-    
+
     private static void skip(Tokenizer tokenizer, TokenType tokenType ) {
         Token tok = tokenizer.next();
         if ( ! tok.hasType(tokenType) )
@@ -257,16 +256,16 @@ public class RDFPatchReaderText implements PatchProcessor {
         if ( tok.isEOF() )
             throw new PatchException("Input truncated: no DOT seen on last line");
         return tok;
-    } 
-    
+    }
+
     private static Node nextNode(Tokenizer tokenizer) {
         return tokenToNode(nextToken(tokenizer));
     }
-    
+
     private static PatchException exception(Token token, String fmt, Object... args) {
         String msg = String.format(fmt, args);
         if ( token != null )
-            msg = SysRIOT.fmtMessage(msg, token.getLine(), token.getColumn());    
+            msg = SysRIOT.fmtMessage(msg, token.getLine(), token.getColumn());
         return new PatchException(msg);
    }
 }

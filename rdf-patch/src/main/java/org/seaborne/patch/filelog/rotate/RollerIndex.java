@@ -33,30 +33,30 @@ import java.util.stream.Stream;
  */
 class RollerIndex implements Roller {
     // Explicit rollover.
-    
+
     private final Path directory;
     private final String baseFilename;
     private final String indexFormat;
     private Path lastFilename;
-    
+
     public static Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
-    
+
     private final Pattern patternFilenameIndex = Pattern.compile("(.*)("+Pattern.quote(FileMgr.INC_SEP)+")(\\d+)");
     private final String  fmtModifer = "%04d";
     private static final String INC_SEP = FileMgr.INC_SEP;
-    
+
     private Long currentId = null;
     // Are we in a section?
     // If not, the file needs to rotate on next access.
     private boolean inSection = false;
-    
+
     RollerIndex(Path directory, String baseFilename, String indexFormat) {
         this.directory = directory;
         this.baseFilename = baseFilename;
         this.indexFormat = indexFormat;
         init(directory,baseFilename);
     }
-    
+
     private void init(Path directory, String baseFilename) {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameIndex);
         if ( ! filenames.isEmpty() ) {
@@ -66,11 +66,11 @@ class RollerIndex implements Roller {
         }
         else {
             // Before the start.
-            currentId = 0L ;
+            currentId = 0L;
             lastFilename = null;
         }
     }
-    
+
     @Override
     public Stream<Filename> files() {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameIndex);
@@ -92,7 +92,7 @@ class RollerIndex implements Roller {
         // Each section is in its own file
         inSection = false;
     }
-    
+
     @Override
     public Path latestFilename() {
         return lastFilename;
@@ -102,17 +102,17 @@ class RollerIndex implements Roller {
     public void rotate() {
         // Always rotates on nextFilename.
     }
-    
+
     @Override
     public boolean hasExpired() {
      // Always rotates on nextFilename.
         return true;
     }
-    
+
     private long nextIndex() {
         return currentId+1;
     }
-    
+
     @Override
     public Path nextFilename() {
         long idx = nextIndex();
@@ -121,10 +121,10 @@ class RollerIndex implements Roller {
         lastFilename = filename(currentId);
         return lastFilename;
     }
-    
+
     private Path filename(Long idx) {
         Objects.requireNonNull(idx);
         String fn = FileMgr.basename(baseFilename, idx, INC_SEP, fmtModifer);
-        return directory.resolve(fn); 
+        return directory.resolve(fn);
     }
 }

@@ -46,8 +46,8 @@ import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.system.GraphChanges;
-import org.seaborne.patch.text.TokenWriter ;
-import org.seaborne.patch.text.TokenWriterText ;
+import org.seaborne.patch.text.TokenWriter;
+import org.seaborne.patch.text.TokenWriterText;
 
 public class TestRDFChangesGraph {
 
@@ -70,34 +70,34 @@ public class TestRDFChangesGraph {
 //      };
         return g;
     }
-    
+
     private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)");
     private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)");
-    
+
     // -- RDFPatchOps
     public static Graph changesGraph(Graph graph, OutputStream out) {
         TokenWriter tokenWriter = new TokenWriterText(out);
         RDFChanges changeLog = new RDFChangesWriter(tokenWriter);
         return changesGraph(graph, changeLog);
     }
-    
+
     public static Graph changesGraph(Graph graph, RDFChanges changes) {
         return new GraphChanges(graph, changes);
     }
-    
+
     // Bytes for changes
     private ByteArrayOutputStream bout;
     // The underlying graph
     private Graph baseGraph;
-    // The graph with changes wrapper. 
+    // The graph with changes wrapper.
     private Graph graph;
-    
+
     // ----
-    // Replay a changes byte stream into a completely fresh graph 
+    // Replay a changes byte stream into a completely fresh graph
     private Graph replay() {
         IO.close(bout);
         final boolean DEBUG = false;
-        
+
         if ( DEBUG ) {
             System.out.println("== Graph ==");
             RDFDataMgr.write(System.out, baseGraph, Lang.NQ);
@@ -106,10 +106,10 @@ public class TestRDFChangesGraph {
             System.out.print(x);
             System.out.println("== ==");
         }
-        
+
         // A completely separate graph (different dataset)
         Graph graph2 = txnGraph();
-        
+
         try(ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray())) {
             RDFPatchOps.applyChange(graph2, bin);
             if ( DEBUG ) {
@@ -120,54 +120,54 @@ public class TestRDFChangesGraph {
             return graph2;
         } catch (IOException ex) { IO.exception(ex); return null; }
     }
-    
+
     private static void check(Graph graph, Triple...quads) {
         if ( quads.length == 0 ) {
             assertTrue(graph.isEmpty());
             return;
         }
-        List<Triple> listExpected = Arrays.asList(quads); 
+        List<Triple> listExpected = Arrays.asList(quads);
         List<Triple> listActual = Iter.toList(graph.find());
         assertEquals(listActual.size(), listExpected.size());
         assertTrue(ListUtils.equalsUnordered(listExpected, listActual));
     }
-    
+
     private static void txn(Graph graph, Runnable action) {
         graph.getTransactionHandler().execute(action);
     }
-    
+
     // ----
-    
+
     private void setup() {
         this.bout = new ByteArrayOutputStream();
         this.baseGraph = txnGraph();
         this.graph = changesGraph(baseGraph, bout);
     }
-    
+
     private void setup(String graphName) {
         this.bout = new ByteArrayOutputStream();
         this.baseGraph = txnGraph(graphName);
         this.graph = changesGraph(baseGraph, bout);
     }
-    
+
     @Test public void record_00() {
         setup();
-        
+
         Graph graph2 = replay();
         check(graph2);
     }
-    
+
     @Test public void record_add() {
         setup();
-        
+
         txn(graph, ()->graph.add(triple1));
         Graph g2 = replay();
         check(g2, triple1);
     }
-    
+
     @Test public void record_add_add_1() {
         setup();
-        
+
         txn(graph, ()-> {
             graph.add(triple1);
             graph.add(triple2);
@@ -188,7 +188,7 @@ public class TestRDFChangesGraph {
         check(g2);
     }
 
-    
+
     @Test public void record_add_abort_2() {
         setup();
         TransactionHandler h = graph.getTransactionHandler();
@@ -198,7 +198,7 @@ public class TestRDFChangesGraph {
         Graph g2 = replay();
         check(g2);
     }
-    
+
     @Test public void record_add_abort_1() {
         setup();
         try {
@@ -210,7 +210,7 @@ public class TestRDFChangesGraph {
         Graph g2 = replay();
         check(g2);
     }
-    
+
     @Test public void record_named_graph_1() {
         setup("http://example/graph");
         txn(graph, ()->graph.add(triple1));

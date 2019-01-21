@@ -20,13 +20,13 @@ package org.seaborne.patch.changes;
 
 import java.util.*;
 
-import org.apache.jena.atlas.lib.Lib ;
+import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.Node;
 import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.items.* ;
+import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.items.*;
 
 /** Capture a stream of changes, then play it to another {@link RDFChanges} */
 public class RDFChangesCollector implements RDFChanges {
@@ -34,16 +34,16 @@ public class RDFChangesCollector implements RDFChanges {
     // This is intentional so headers can be set after the patch log starts.
     // But use with care.
     private static final boolean RECORD_HEADER = false;
-    private Map<String, Node> header = new LinkedHashMap<>() ;
-    private List<ChangeItem> actions = new LinkedList<>() ;
-    
+    private Map<String, Node> header = new LinkedHashMap<>();
+    private List<ChangeItem> actions = new LinkedList<>();
+
     public static class RDFPatchStored implements RDFPatch {
-        private final PatchHeader header ; 
-        private final List<ChangeItem> actions ;
+        private final PatchHeader header ;
+        private final List<ChangeItem> actions;
 
         public RDFPatchStored(Map<String, Node> header, List<ChangeItem> actions) {
-            this.header = new PatchHeader(header) ;
-            this.actions = actions ;
+            this.header = new PatchHeader(header);
+            this.actions = actions;
         }
 
         @Override
@@ -55,7 +55,7 @@ public class RDFChangesCollector implements RDFChanges {
         public void apply(RDFChanges changes) {
             if ( ! RECORD_HEADER )
                 header.apply(changes);
-            actions.forEach(a -> enact(a, changes)) ;
+            actions.forEach(a -> enact(a, changes));
         }
 
         @Override
@@ -96,48 +96,48 @@ public class RDFChangesCollector implements RDFChanges {
             } else if ( !header.equals(other.header) )
                 return false;
             return true;
-        } ;
+        };
     }
 
     public RDFChangesCollector() { }
 
     public RDFPatch getRDFPatch() {
-        return new RDFPatchStored(new HashMap<>(header), new ArrayList<>(actions)) ;
-    }        
+        return new RDFPatchStored(new HashMap<>(header), new ArrayList<>(actions));
+    }
 
 //    /** Play backwards, swapping adds for deletes and delete for adds */
 //    public void playReverse(RDFChanges target) {
-//        System.err.println("playReverse: Partially implemented") ;
-//        // More complicated - turn into transaction chunks then ... 
-//        
-//        ListIteratorReverse.reverse(actions.listIterator()).forEachRemaining(a-> enactFlip(a, target)) ;
+//        System.err.println("playReverse: Partially implemented");
+//        // More complicated - turn into transaction chunks then ...
+//
+//        ListIteratorReverse.reverse(actions.listIterator()).forEachRemaining(a-> enactFlip(a, target));
 //    }
-                            
+
     private void enactFlip(ChangeItem a, RDFChanges target) {
         if ( a instanceof AddQuad ) {
-            AddQuad a2 = (AddQuad)a ;
-            target.delete/*add*/(a2.g, a2.s, a2.p, a2.o) ;
-            return ;
+            AddQuad a2 = (AddQuad)a;
+            target.delete/*add*/(a2.g, a2.s, a2.p, a2.o);
+            return;
         }
         if ( a instanceof DeleteQuad ) {
-            DeleteQuad a2 = (DeleteQuad)a ;
-            target.add/*delete*/(a2.g, a2.s, a2.p, a2.o) ;
-            return ;
+            DeleteQuad a2 = (DeleteQuad)a;
+            target.add/*delete*/(a2.g, a2.s, a2.p, a2.o);
+            return;
         }
 //        if ( a instanceof AddPrefix ) {
-//            AddPrefix a2 = (AddPrefix)a ;
-//            target.deletePrefix(a2.gn, a2.prefix, a2.uriStr); 
-//            return ;
+//            AddPrefix a2 = (AddPrefix)a;
+//            target.deletePrefix(a2.gn, a2.prefix, a2.uriStr);
+//            return;
 //        }
 //        if ( a instanceof DeletePrefix ) {
-//            DeletePrefix a2 = (DeletePrefix)a ;
-//            target.addPrefix(a2.gn, a2.prefix); 
-//            return ;
+//            DeletePrefix a2 = (DeletePrefix)a;
+//            target.addPrefix(a2.gn, a2.prefix);
+//            return;
 //        }
         // Transaction.
-        enact(a, target) ;
+        enact(a, target);
     }
-    
+
     private static void enact(ChangeItem item, RDFChanges target) {
         if ( item instanceof HeaderItem ) {
             HeaderItem h = (HeaderItem)item;
@@ -145,50 +145,50 @@ public class RDFChangesCollector implements RDFChanges {
             return;
         }
         if ( item instanceof AddQuad ) {
-            AddQuad a2 = (AddQuad)item ;
-            target.add(a2.g, a2.s, a2.p, a2.o) ;
-            return ;
+            AddQuad a2 = (AddQuad)item;
+            target.add(a2.g, a2.s, a2.p, a2.o);
+            return;
         }
         if ( item instanceof DeleteQuad ) {
-            DeleteQuad a2 = (DeleteQuad)item ;
-            target.delete(a2.g, a2.s, a2.p, a2.o) ;
-            return ;
+            DeleteQuad a2 = (DeleteQuad)item;
+            target.delete(a2.g, a2.s, a2.p, a2.o);
+            return;
         }
         if ( item instanceof AddPrefix ) {
-            AddPrefix a2 = (AddPrefix)item ;
-            target.addPrefix(a2.gn, a2.prefix, a2.uriStr); 
-            return ;
+            AddPrefix a2 = (AddPrefix)item;
+            target.addPrefix(a2.gn, a2.prefix, a2.uriStr);
+            return;
         }
         if ( item instanceof DeletePrefix ) {
-            DeletePrefix a2 = (DeletePrefix)item ;
-            target.deletePrefix(a2.gn, a2.prefix); 
-            return ;
+            DeletePrefix a2 = (DeletePrefix)item;
+            target.deletePrefix(a2.gn, a2.prefix);
+            return;
         }
         if ( item instanceof TxnBegin ) {
-            target.txnBegin() ;
-            return ;
+            target.txnBegin();
+            return;
         }
         if ( item instanceof TxnCommit ) {
             target.txnCommit();
-            return ;
+            return;
         }
         if ( item instanceof TxnAbort ) {
             target.txnAbort();
-            return ;
+            return;
         }
         if ( item instanceof Segment ) {
             target.segment();
-            return ;
+            return;
         }
-        FmtLog.warn(RDFChangesCollector.class,  "Unrecognized action: %s : %s", Lib.className(item), item) ;
+        FmtLog.warn(RDFChangesCollector.class,  "Unrecognized action: %s : %s", Lib.className(item), item);
     }
-    
-    private void collect(ChangeItem object) { 
-        actions.add(object) ;
+
+    private void collect(ChangeItem object) {
+        actions.add(object);
     }
 
     @Override
-    public void start() { 
+    public void start() {
         internalReset();
     }
 
@@ -211,51 +211,51 @@ public class RDFChangesCollector implements RDFChanges {
         header.clear();
         actions.clear();
     }
-    
+
     @Override
     public void header(String field, Node value) {
         if ( RECORD_HEADER )
             collect(new HeaderItem(field, value));
         // And keep a copy.
-        header.put(field, value) ;
+        header.put(field, value);
     }
 
     protected Node header(String field) {
-        return header.get(field) ;
+        return header.get(field);
     }
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        collect(new AddQuad(g, s, p, o)) ;
+        collect(new AddQuad(g, s, p, o));
     }
-    
+
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        collect(new DeleteQuad(g, s, p, o)) ;
+        collect(new DeleteQuad(g, s, p, o));
     }
-    
+
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
-        collect(new AddPrefix(gn, prefix, uriStr)) ;
+        collect(new AddPrefix(gn, prefix, uriStr));
     }
-    
+
     @Override
     public void deletePrefix(Node gn, String prefix) {
-        collect(new DeletePrefix(gn, prefix)) ;    
+        collect(new DeletePrefix(gn, prefix)) ;
     }
-    
+
     @Override
     public void txnBegin() {
-        collect(new TxnBegin()) ;
+        collect(new TxnBegin());
     }
-    
+
     @Override
     public void txnCommit() {
-        collect(new TxnCommit()) ;
+        collect(new TxnCommit());
     }
-    
+
     @Override
     public void txnAbort() {
-        collect(new TxnAbort()) ;
+        collect(new TxnAbort());
     }
 }

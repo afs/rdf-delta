@@ -21,10 +21,10 @@ package org.seaborne.patch.items;
 import org.apache.jena.graph.Node;
 
 public class HeaderItem extends ChangeItem {
-    
+
     public final String field;
     public final Node   value;
-    
+
     public HeaderItem(String field, Node value) {
         this.field = field;
         this.value = value;

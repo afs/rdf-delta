@@ -23,6 +23,6 @@ public enum CompressionPolicy {
     NONE,
     /** Compressed output stream */
     OUTPUT,
-    /** Compress when finished writing */  
+    /** Compress when finished writing */
     ROTATE
 }

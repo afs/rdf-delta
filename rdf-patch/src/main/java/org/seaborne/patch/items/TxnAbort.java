@@ -28,5 +28,5 @@ public class TxnAbort extends ChangeItem {
     @Override
     public boolean equals(Object other) {
         return other instanceof TxnAbort;
-    } 
+    }
 }

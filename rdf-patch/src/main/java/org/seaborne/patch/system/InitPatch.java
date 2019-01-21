@@ -18,21 +18,21 @@
 
 package org.seaborne.patch.system;
 
-import org.apache.jena.sys.JenaSubsystemLifecycle ;
+import org.apache.jena.sys.JenaSubsystemLifecycle;
 import org.apache.jena.sys.JenaSystem;
 
 /** Patch initialization using Jena system initialization
  * <p>
  * <a href="https://jena.apache.org/documentation/notes/system-initialization.html">Jena system initialization</a>
  */
-public class InitPatch implements JenaSubsystemLifecycle { 
+public class InitPatch implements JenaSubsystemLifecycle {
     public static int level = 60;
 
     @Override
     public void start() {
-        JenaSystem.logLifecycle("Patch.init - start") ;
+        JenaSystem.logLifecycle("Patch.init - start");
         PatchSystem.init();
-        JenaSystem.logLifecycle("Patch.init - finish") ;
+        JenaSystem.logLifecycle("Patch.init - finish");
     }
 
     @Override

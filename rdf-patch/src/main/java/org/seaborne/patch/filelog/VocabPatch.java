@@ -18,44 +18,44 @@
 
 package org.seaborne.patch.filelog;
 
-import org.apache.jena.rdf.model.Property ;
-import org.apache.jena.rdf.model.Resource ;
-import org.apache.jena.sparql.core.assembler.AssemblerUtils ;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 import org.apache.jena.sparql.core.assembler.DatasetAssemblerVocab;
-import org.apache.jena.tdb.assembler.Vocab ;
+import org.apache.jena.tdb.assembler.Vocab;
 
 public class VocabPatch {
 
     private static final String NS = "http://jena.apache.org/rdf-patch#";
-    
-    public static String getURI() { return NS ; } 
+
+    public static String getURI() { return NS ; }
 
     // Type
-    public static final Resource tLoggedDataset = Vocab.type(getURI(), "LoggedDataset") ;
+    public static final Resource tLoggedDataset = Vocab.type(getURI(), "LoggedDataset");
 
     // Add feature to another (sub) dataset.
     // This is ja:dataset.
-    public static final Property pDataset       = Vocab.property(DatasetAssemblerVocab.getURI(), "dataset") ;
+    public static final Property pDataset       = Vocab.property(DatasetAssemblerVocab.getURI(), "dataset");
 
-    // Name of the patch log. 
-    public static final Property pPatchLog      = Vocab.property(getURI(), "patchlog") ;
-    
+    // Name of the patch log.
+    public static final Property pPatchLog      = Vocab.property(getURI(), "patchlog");
+
     /** Name of a file to append change logs to. */
-    public static final Property pLogFile       = Vocab.property(getURI(), "log") ;
+    public static final Property pLogFile       = Vocab.property(getURI(), "log");
 
     /** Name of a file rotation policy . */
-    public static final Property pLogPolicy     = Vocab.property(getURI(), "logPolicy") ;
-    
-    private static volatile boolean initialized = false ; 
-    
+    public static final Property pLogPolicy     = Vocab.property(getURI(), "logPolicy");
+
+    private static volatile boolean initialized = false ;
+
     static { init() ; }
-    
+
     static synchronized public void init() {
         if ( initialized )
             return;
         initialized = true;
     }
-    
+
     static {
         AssemblerUtils.registerDataset(tLoggedDataset, new AssemblerFileLog());
     }

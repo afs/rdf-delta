@@ -18,93 +18,93 @@
 
 package org.seaborne.patch.changes;
 
-import java.util.ArrayList ;
-import java.util.List ;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.jena.graph.Node ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Node;
+import org.seaborne.patch.RDFChanges;
 
 /**
- *  An {@link RDFChanges} that replicates the stream of changes to N other {@link RDFChanges} streams.  
+ *  An {@link RDFChanges} that replicates the stream of changes to N other {@link RDFChanges} streams.
  */
 public class RDFChangesN implements RDFChanges
 {
     /** Create a 2-way {@code RDFChangesN} */
     public static RDFChanges multi(RDFChanges sc1, RDFChanges sc2) {
         if ( sc1 == null )
-            return sc2 ;
+            return sc2;
         if ( sc2 == null )
-            return sc1 ;
+            return sc1;
         if ( sc1 instanceof RDFChangesN ) {
-            ((RDFChangesN)sc1).add(sc2) ;
-            return sc1 ;
+            ((RDFChangesN)sc1).add(sc2);
+            return sc1;
         } else {
-            return new RDFChangesN(sc1, sc2) ; 
+            return new RDFChangesN(sc1, sc2) ;
         }
     }
-    
-    private final List<RDFChanges> changes = new ArrayList<>() ;
+
+    private final List<RDFChanges> changes = new ArrayList<>();
     public RDFChangesN(RDFChanges... changes) {
         for ( RDFChanges sc : changes ) {
-            add(sc) ;
+            add(sc);
         }
     }
-    
+
     public RDFChangesN(List<RDFChanges> changes) {
         for ( RDFChanges sc : changes ) {
-            add(sc) ;
+            add(sc);
         }
     }
 
     private void add(RDFChanges sc) {
-        changes.add(sc) ;
+        changes.add(sc);
     }
 
     @Override
     public void start() {
-        changes.forEach(RDFChanges::start) ;
+        changes.forEach(RDFChanges::start);
     }
-    
+
     @Override
     public void finish() {
-        changes.forEach(RDFChanges::finish) ;
+        changes.forEach(RDFChanges::finish);
     }
 
     @Override
     public void header(String field, Node value) {
-        changes.forEach(c->c.header(field, value)) ;
+        changes.forEach(c->c.header(field, value));
     }
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        changes.forEach(sc->sc.add(g,s,p,o)) ;
+        changes.forEach(sc->sc.add(g,s,p,o));
     }
 
     @Override
-    public void delete(Node g, Node s, Node p, Node o) { 
-        changes.forEach(sc->sc.delete(g,s,p,o)) ;
+    public void delete(Node g, Node s, Node p, Node o) {
+        changes.forEach(sc->sc.delete(g,s,p,o));
     }
-    
+
     @Override
     public void addPrefix(Node graph, String prefix, String uriStr) {
-        changes.forEach(sc->sc.addPrefix(graph, prefix, uriStr)) ;
-    } 
-    
+        changes.forEach(sc->sc.addPrefix(graph, prefix, uriStr));
+    }
+
     @Override
     public void deletePrefix(Node graph, String prefix) {
         changes.forEach(sc->sc.deletePrefix(graph, prefix));
     }
-    
+
     @Override
     public void txnBegin() {
         changes.forEach(sc->sc.txnBegin());
     }
-    
+
     @Override
     public void txnCommit() {
         changes.forEach(RDFChanges::txnCommit);
     }
-    
+
     @Override
     public void txnAbort() {
         changes.forEach(RDFChanges::txnAbort);

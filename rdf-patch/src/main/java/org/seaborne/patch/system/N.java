@@ -27,17 +27,17 @@ import org.apache.jena.shared.uuid.UUID_V4_Gen;
 
 /** Some functions to do with {@link Node Nodes}. */
 public class N {
-    public static final String SchemeUuid = "uuid:" ;
-    public static final String SchemeUrnUuid = "urn:uuid:" ;
-    
-    private static final String SCHEME = SchemeUuid ;
+    public static final String SchemeUuid = "uuid:";
+    public static final String SchemeUrnUuid = "urn:uuid:";
+
+    private static final String SCHEME = SchemeUuid;
     // Version 1 are guessable.
     // Version 4 are not.
-    private static UUIDFactory uuidFactory = new UUID_V4_Gen() ;
+    private static UUIDFactory uuidFactory = new UUID_V4_Gen();
 
-    /** Generate a UUID */ 
+    /** Generate a UUID */
     public static UUID genUUID() { return uuidFactory.generate().asUUID() ; }
-    
+
     /**
      * This is <i>not</i> a function!
      * It returns a fresh UUID URI on every call.

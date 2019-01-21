@@ -18,27 +18,27 @@
 
 package org.seaborne.patch.changes;
 
-import org.apache.jena.atlas.io.AWriter ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.riot.out.NodeFmtLib ;
-import org.apache.jena.riot.out.NodeFormatter ;
-import org.apache.jena.riot.out.NodeFormatterNT ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.atlas.io.AWriter;
+import org.apache.jena.graph.Node;
+import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.riot.out.NodeFormatter;
+import org.apache.jena.riot.out.NodeFormatterNT;
+import org.seaborne.patch.RDFChanges;
 
 /** Write data changes as SPARQL Update.
  * This is just data - no prefixes.
- */  
+ */
 public class RDFChangesWriteUpdate implements RDFChanges {
 
-    private final AWriter out ;
+    private final AWriter out;
 
     public RDFChangesWriteUpdate(AWriter out) {
-        this.out = out ;
+        this.out = out;
     }
 
     @Override
     public void start() { }
-    
+
     @Override
     public void finish() { }
 
@@ -48,50 +48,50 @@ public class RDFChangesWriteUpdate implements RDFChanges {
         out.print("# ");
         out.print(field);
         out.print(" ");
-        outputNode(out, value) ;
+        outputNode(out, value);
         out.println();
     }
- 
-    private boolean doingHeader = false ;
-    private boolean adding = false ;
-    private boolean deleting = false ;
-    
-    // Later : blocks for INSERT DATA, DELETE DATA and blocks for GRAPH 
-    
+
+    private boolean doingHeader = false;
+    private boolean adding = false;
+    private boolean deleting = false;
+
+    // Later : blocks for INSERT DATA, DELETE DATA and blocks for GRAPH
+
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         notHeader();
-        out.print("INSERT DATA ") ;
+        out.print("INSERT DATA ");
         outputData(g, s, p, o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         notHeader();
-        out.print("DELETE DATA ") ;
+        out.print("DELETE DATA ");
         outputData(g, s, p, o);
     }
-    
+
     private void outputData(Node g, Node s, Node p, Node o) {
-        out.write("{ ") ;
-        boolean writeGraph = ( g != null ) ;
-        
+        out.write("{ ");
+        boolean writeGraph = ( g != null );
+
         if ( writeGraph ) {
             out.write("GRAPH ");
-            outputNode(out, g) ;
+            outputNode(out, g);
             out.write(" { ");
         }
-        outputNode(out, s) ;
+        outputNode(out, s);
         out.write(" ");
-        outputNode(out, p) ;
+        outputNode(out, p);
         out.write(" ");
-        outputNode(out, o) ;
+        outputNode(out, o);
         out.write(" ");
         if ( writeGraph )
-            out.print("} ") ;
-        out.println(" } ;") ;
+            out.print("} ");
+        out.println(" } ;");
     }
-    
+
     private void notHeader() {
         if ( doingHeader ) {
             out.println();
@@ -115,12 +115,12 @@ public class RDFChangesWriteUpdate implements RDFChanges {
             w.print(lab);
             w.print(">");
         }
-    } ;
-    
+    };
+
     private static void outputNode(AWriter out, Node node) {
         formatter.format(out, node);
     }
-    
+
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
         notHeader();
@@ -135,7 +135,7 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     }
 
     @Override
-    public void deletePrefix(Node gn, String prefix) { 
+    public void deletePrefix(Node gn, String prefix) {
         notHeader();
         out.print("# DelPrefix ");
         outputNode(out, gn);
@@ -147,24 +147,24 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     @Override
     public void txnBegin() {
         notHeader();
-        out.println("# Begin") ;
+        out.println("# Begin");
     }
 
     @Override
     public void txnCommit() {
         notHeader();
-        out.println("# Commit") ;
+        out.println("# Commit");
     }
 
     @Override
     public void txnAbort() {
         notHeader();
-        out.println("# Abort") ;
+        out.println("# Abort");
     }
 
     @Override
     public void segment() {
         notHeader();
-        out.println("# Segment") ;
+        out.println("# Segment");
     }
 }

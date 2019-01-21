@@ -27,16 +27,16 @@ import java.util.function.Consumer;
 /**
  *  An {@link OutputStream} that implements {@link #close} as call a {@code Consumer<OutputStream>},
  * for example, returns itself to a pool when closed.
- */  
+ */
 class OutputStreamManaged extends FilterOutputStream implements Closeable {
-    
+
     private Consumer<OutputStream> onClose;
 
     OutputStreamManaged(OutputStream output, Consumer<OutputStream> onClose) {
         super(output);
         this.onClose = onClose;
    }
-    
+
     @Override
     public void close() throws IOException {
         onClose.accept(super.out);

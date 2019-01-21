@@ -18,17 +18,17 @@
 
 package org.seaborne.patch.items;
 
-import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.Node;
 
 public class AddPrefix extends ChangeItem {
-    public final Node gn ;
-    public final String prefix ;
-    public final String uriStr ;
+    public final Node gn;
+    public final String prefix;
+    public final String uriStr;
 
     public AddPrefix(Node gn, String prefix, String uriStr) {
-        this.gn = gn ;
-        this.prefix = prefix ;
-        this.uriStr = uriStr ;
+        this.gn = gn;
+        this.prefix = prefix;
+        this.uriStr = uriStr;
     }
 
     @Override

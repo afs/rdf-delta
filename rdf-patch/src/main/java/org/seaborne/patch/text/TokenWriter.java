@@ -18,24 +18,24 @@
 
 package org.seaborne.patch.text;
 
-import org.apache.jena.graph.Node ;
-import org.apache.jena.riot.tokens.Token ;
+import org.apache.jena.graph.Node;
+import org.apache.jena.riot.tokens.Token;
 
 public interface TokenWriter {
-    public void sendToken(Token token) ;
-    
-    // Fast-track common cases
-    public void sendNode(Node node) ;
-    public void sendString(String string) ;
-    public void sendWord(String word) ;
-    public void sendControl(char character) ;
-    public void sendNumber(long number) ;
+    public void sendToken(Token token);
 
-    public void startTuple() ;
-    public void endTuple() ;
-    
-    public void flush() ;
-    public void close() ;
-    
+    // Fast-track common cases
+    public void sendNode(Node node);
+    public void sendString(String string);
+    public void sendWord(String word);
+    public void sendControl(char character);
+    public void sendNumber(long number);
+
+    public void startTuple();
+    public void endTuple();
+
+    public void flush();
+    public void close();
+
 }
 

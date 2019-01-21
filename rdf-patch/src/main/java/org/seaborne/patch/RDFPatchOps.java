@@ -18,9 +18,9 @@
 
 package org.seaborne.patch;
 
-import java.io.IOException ;
-import java.io.InputStream ;
-import java.io.OutputStream ;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -28,13 +28,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.uuid.JenaUUID;
-import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.patch.changes.PatchSummary;
 import org.seaborne.patch.changes.RDFChangesApply;
 import org.seaborne.patch.changes.RDFChangesApplyGraph;
@@ -42,19 +42,20 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.changes.RDFChangesCounter;
 import org.seaborne.patch.changes.RDFChangesLog;
 import org.seaborne.patch.changes.RDFChangesWriter;
-import org.seaborne.patch.system.DatasetGraphChanges ;
+import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.GraphChanges;
-import org.seaborne.patch.text.RDFPatchReaderText ;
-import org.seaborne.patch.text.TokenWriter ;
-import org.seaborne.patch.text.TokenWriterText ;
+import org.seaborne.patch.system.RDFPatchAltHeader;
+import org.seaborne.patch.text.RDFPatchReaderText;
+import org.seaborne.patch.text.TokenWriter;
+import org.seaborne.patch.text.TokenWriterText;
 
 public class RDFPatchOps {
-    public static String namespace = "http://jena.apache.org/rdf-patch/" ;
+    public static String namespace = "http://jena.apache.org/rdf-patch/";
 
     /** Read an {@link RDFPatch} from a file. */
     public static RDFPatch fileToPatch(String filename) {
-        InputStream in = IO.openFile(filename) ;
-        return read(in) ;
+        InputStream in = IO.openFile(filename);
+        return read(in);
     }
 
     private static class RDFPatchNull implements RDFPatch {
@@ -170,10 +171,10 @@ public class RDFPatchOps {
      * Throws {@link PatchException} on patch parse error.
      */
     public static RDFPatch read(InputStream input) {
-        RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
-        RDFChangesCollector c = new RDFChangesCollector() ;
+        RDFPatchReaderText pr = new RDFPatchReaderText(input);
+        RDFChangesCollector c = new RDFChangesCollector();
         pr.apply(c);
-        return c.getRDFPatch() ;
+        return c.getRDFPatch();
     }
 
     /** Read an {@link RDFPatch} from a file. */
@@ -190,33 +191,33 @@ public class RDFPatchOps {
 
     /** Apply changes from a {@link RDFPatch} to a {@link DatasetGraph} */
     public static void applyChange(DatasetGraph dsg, RDFPatch patch) {
-        RDFChanges changes = new RDFChangesApply(dsg) ;
+        RDFChanges changes = new RDFChangesApply(dsg);
         patch.apply(changes);
     }
 
     /** Apply changes from a text format input stream to a {@link DatasetGraph} */
     public static void applyChange(DatasetGraph dsg, InputStream input) {
-        RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
-        RDFChanges changes = new RDFChangesApply(dsg) ;
+        RDFPatchReaderText pr = new RDFPatchReaderText(input);
+        RDFChanges changes = new RDFChangesApply(dsg);
         pr.apply(changes);
     }
 
     /** Apply changes from a {@link RDFPatch} to a {@link Graph} */
     public static void applyChange(Graph graph, RDFPatch patch) {
-        RDFChanges changes = new RDFChangesApplyGraph(graph) ;
+        RDFChanges changes = new RDFChangesApplyGraph(graph);
         patch.apply(changes);
     }
 
     /** Apply changes from a text format input stream to a {@link Graph} */
     public static void applyChange(Graph graph, InputStream input) {
-        RDFPatchReaderText pr = new RDFPatchReaderText(input) ;
-        RDFChanges changes = new RDFChangesApplyGraph(graph) ;
+        RDFPatchReaderText pr = new RDFPatchReaderText(input);
+        RDFChanges changes = new RDFChangesApplyGraph(graph);
         pr.apply(changes);
     }
 
     /** Create a {@link DatasetGraph} that sends changes to a {@link RDFChanges} stream */
     public static DatasetGraph changes(DatasetGraph dsgBase, RDFChanges changes) {
-        return new DatasetGraphChanges(dsgBase, changes) ;
+        return new DatasetGraphChanges(dsgBase, changes);
     }
 
     private static void printer(PrintStream out, String fmt, Object... args) {
@@ -233,13 +234,13 @@ public class RDFPatchOps {
     /** An {@link RDFChanges} that prints RDFPatch syntax to an {@code OutputStream} in text format. */
     public static RDFChanges textWriter(OutputStream output) {
         TokenWriter tokenWriter = new TokenWriterText(output);
-        RDFChanges changes = new RDFChangesWriter(tokenWriter) ;
+        RDFChanges changes = new RDFChangesWriter(tokenWriter);
         return changes;
     }
 
     /** Create a {@link Graph} that sends changes to a {@link RDFChanges} stream */
     public static Graph changes(Graph graphBase, RDFChanges changes) {
-        return new GraphChanges(graphBase, changes) ;
+        return new GraphChanges(graphBase, changes);
     }
 
     /** Create a {@link DatasetGraph} that writes changes to an {@link OutputStream} in text format.
@@ -247,20 +248,20 @@ public class RDFPatchOps {
      */
     public static DatasetGraph textWriter(DatasetGraph dsgBase, OutputStream out) {
         RDFChanges changeLog = textWriter(out);
-        return changes(dsgBase, changeLog) ;
+        return changes(dsgBase, changeLog);
     }
 
     public static void write(OutputStream out, RDFPatch patch) {
-        TokenWriter tw = new TokenWriterText(out) ;
-        RDFChanges c = new RDFChangesWriter(tw) ;
+        TokenWriter tw = new TokenWriterText(out);
+        RDFChanges c = new RDFChangesWriter(tw);
         patch.apply(c);
         tw.flush();
     }
 
     public static String str(RDFPatch patch) {
         StringWriter sw = new StringWriter();
-        TokenWriter tw = new TokenWriterText(sw) ;
-        RDFChanges c = new RDFChangesWriter(tw) ;
+        TokenWriter tw = new TokenWriterText(sw);
+        RDFChanges c = new RDFChangesWriter(tw);
         patch.apply(c);
         tw.flush();
         return sw.toString();

@@ -18,38 +18,38 @@
 
 package org.seaborne.patch;
 
-import java.io.OutputStream ;
-import java.util.UUID ;
+import java.io.OutputStream;
+import java.util.UUID;
 
-import org.apache.jena.graph.Node ;
-import org.apache.jena.graph.NodeFactory ;
-import org.apache.jena.graph.Triple ;
-import org.apache.jena.riot.system.StreamRDF ;
-import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.patch.text.TokenWriter ;
-import org.seaborne.patch.text.TokenWriterText ;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.riot.system.StreamRDF;
+import org.apache.jena.sparql.core.Quad;
+import org.seaborne.patch.changes.RDFChangesWriter;
+import org.seaborne.patch.text.TokenWriter;
+import org.seaborne.patch.text.TokenWriterText;
 
 /** Convert a {@link StreamRDF} to a {@code RDF Patch}.
  *  {@link StreamRDF#start} and {@link StreamRDF#finish}
- *  must be called; these bracket the patch in transaction markers 
- *  {@code TX} and {@code TC}.  
+ *  must be called; these bracket the patch in transaction markers
+ *  {@code TX} and {@code TC}.
  */
 public class StreamPatch implements StreamRDF {
 
     private int depth = 0;
-    private OutputStream out ;
+    private OutputStream out;
     private RDFChanges c;
-    
+
     public StreamPatch(OutputStream out) {
         this.out = out;
         TokenWriter t = new TokenWriterText(out);
         this.c = new RDFChangesWriter(t);
     }
-    
+
     @Override
     public void start() {
-        depth++ ;
+        depth++;
         if ( depth == 1 ) {
             // Header
             // Node n = NodeFactory.createURI(JenaUUID.getFactory().generate().asURI());
@@ -58,7 +58,7 @@ public class StreamPatch implements StreamRDF {
             c.txnBegin();
         }
     }
-    
+
 
     @Override
     public void triple(Triple triple) {
@@ -82,6 +82,6 @@ public class StreamPatch implements StreamRDF {
     public void finish() {
         if ( depth == 1 )
             c.txnCommit();
-        --depth ;
+        --depth;
     }
 }

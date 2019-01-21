@@ -18,18 +18,18 @@
 
 package org.seaborne.patch;
 
-import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Quad;
 
 /** Interface for receiving a stream of changes to an RDF Dataset or RDF Graph. */
 public interface RDFChanges {
     // Changes lifecycle.
     // Must not span txn boundaries.
-    public void start() ;
-    public void finish() ;
+    public void start();
+    public void finish();
 
     /** Header field */
-    public void header(String field, Node value) ;
+    public void header(String field, Node value);
 
     /**
      * Notification that a quad or triple is added.
@@ -39,7 +39,7 @@ public interface RDFChanges {
      * <p>
      * It is not defined whether the add happens before or after this notification all.
      */
-    public void add(Node g, Node s, Node p, Node o) ;
+    public void add(Node g, Node s, Node p, Node o);
 
     /**
      * Notification that a quad or triple is deleted.
@@ -49,28 +49,28 @@ public interface RDFChanges {
      * <p>
      * It is not defined whether the delete happenes before or after this notification all.
      */
-    public void delete(Node g, Node s, Node p, Node o) ;
+    public void delete(Node g, Node s, Node p, Node o);
 
     /**
      * Add a prefix.  The graph name follows the same rules as {@link #add}.
      */
-    public void addPrefix(Node gn, String prefix, String uriStr) ;
+    public void addPrefix(Node gn, String prefix, String uriStr);
 
     /**
      * Delete a prefix.  The graph name follows the same rules as {@link #add}.
      */
-    public void deletePrefix(Node gn, String prefix) ;
+    public void deletePrefix(Node gn, String prefix);
 
     /** Indicator that a transaction begins, or becomes a write transaction. */
-    public void txnBegin() ;
+    public void txnBegin();
 
     /** Indicator that a transaction commits.
      *  If this throws an exception, the transaction will be aborted locally and not commit after all.
      */
-    public void txnCommit() ;
+    public void txnCommit();
 
     /** Indicator that a transaction aborts */
-    public void txnAbort() ;
+    public void txnAbort();
 
     /** Segment marker.
      * <p>
@@ -83,5 +83,5 @@ public interface RDFChanges {
      * Segments must contain complete transactions.
      * Segments must not span start-finish pairs.
      */
-    public void segment() ;
+    public void segment();
 }

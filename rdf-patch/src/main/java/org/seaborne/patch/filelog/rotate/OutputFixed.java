@@ -28,26 +28,26 @@ import org.apache.jena.atlas.io.IO;
 
 /** Fixed OutputStream; one writer via {@code output()} at a time.  */
 public class OutputFixed implements ManagedOutput {
-    private boolean valid = false; 
+    private boolean valid = false;
     private final OutputStream outputStream;
     private final Semaphore sema = new Semaphore(1);
     private OutputStreamManaged currentOutput = null;
-    
+
     public OutputFixed(OutputStream output) {
         this.outputStream = output;
     }
-    
+
     /** Get rotation engine */
     @Override
     public Roller roller() {
         return null;
     }
-    
+
     @Override
     public Path currentFilename() {
         return null;
     }
-    
+
     @Override
     public Path latestFilename() {
         return null;
@@ -69,7 +69,7 @@ public class OutputFixed implements ManagedOutput {
         currentOutput = new OutputStreamManaged(outputStream, (x)->this.finish());
         return currentOutput;
     }
-    
+
     private void finish() {
         try {
             outputStream.flush();

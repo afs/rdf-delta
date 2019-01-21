@@ -22,107 +22,107 @@ import java.util.Map;
 
 import org.apache.jena.shared.PrefixMapping;
 
-/** 
- * An implementation of {@link PrefixMapping} that is a wrapper for another PrefixMapping 
+/**
+ * An implementation of {@link PrefixMapping} that is a wrapper for another PrefixMapping
  * and also decomposes all changes to set/remove operations.
  */
 public class PrefixMappingMonitor implements PrefixMapping {
-    
-    private final PrefixMapping pmap ;
+
+    private final PrefixMapping pmap;
 
     public PrefixMappingMonitor(PrefixMapping pmap) { this.pmap = pmap ; }
 
     protected PrefixMapping get() { return pmap ; }
-    
-    // The two change operations 
+
+    // The two change operations
     protected void set(String prefix, String uri) { }
 
 //    protected String get(String prefix) { }
 
     protected void remove(String prefix) { }
-    
+
     @Override
     public PrefixMapping setNsPrefix(String prefix, String uri) {
-        set(prefix, uri) ;
-        get().setNsPrefix(prefix, uri) ;
+        set(prefix, uri);
+        get().setNsPrefix(prefix, uri);
         return this;
     }
 
     @Override
     public PrefixMapping removeNsPrefix(String prefix) {
-        remove(prefix); 
-        get().removeNsPrefix(prefix) ;
+        remove(prefix);
+        get().removeNsPrefix(prefix);
         return this;
     }
 
     @Override
     public PrefixMapping clearNsPrefixMap() {
-        get().getNsPrefixMap().forEach((prefix,uri)->remove(prefix)) ;
-        get().clearNsPrefixMap() ;
+        get().getNsPrefixMap().forEach((prefix,uri)->remove(prefix));
+        get().clearNsPrefixMap();
         return this;
     }
 
     @Override
     public PrefixMapping setNsPrefixes(PrefixMapping other) {
-        other.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
-        get().setNsPrefixes(other) ;
+        other.getNsPrefixMap().forEach((p,u) -> set(p,u));
+        get().setNsPrefixes(other);
         return this;
     }
 
     @Override
     public PrefixMapping setNsPrefixes(Map<String, String> map) {
-        map.forEach((p,u) -> set(p,u)) ;
-        get().setNsPrefixes(map) ;
+        map.forEach((p,u) -> set(p,u));
+        get().setNsPrefixes(map);
         return this;
     }
 
     @Override
     public PrefixMapping withDefaultMappings(PrefixMapping map) {
         // fake
-        map.getNsPrefixMap().forEach((p,u) -> set(p,u)) ;
-        get().withDefaultMappings(map) ;
+        map.getNsPrefixMap().forEach((p,u) -> set(p,u));
+        get().withDefaultMappings(map);
         return this;
     }
 
     @Override
     public String getNsPrefixURI(String prefix) {
-        return get().getNsPrefixURI(prefix) ;
+        return get().getNsPrefixURI(prefix);
     }
 
     @Override
     public String getNsURIPrefix(String uri) {
-        return get().getNsURIPrefix(uri) ;
+        return get().getNsURIPrefix(uri);
     }
 
     @Override
     public Map<String, String> getNsPrefixMap() {
-        return get().getNsPrefixMap() ;
+        return get().getNsPrefixMap();
     }
 
     @Override
     public String expandPrefix(String prefixed) {
-        return get().expandPrefix(prefixed) ;
+        return get().expandPrefix(prefixed);
     }
 
     @Override
     public String shortForm(String uri) {
-        return get().shortForm(uri) ;
+        return get().shortForm(uri);
     }
 
     @Override
     public String qnameFor(String uri) {
-        return get().qnameFor(uri) ;
+        return get().qnameFor(uri);
     }
 
     @Override
     public PrefixMapping lock() {
-        get().lock() ;
+        get().lock();
         return this;
     }
-    
+
     @Override
     public boolean hasNoMappings() {
-        return get().hasNoMappings() ;
+        return get().hasNoMappings();
     }
 
     @Override
@@ -132,6 +132,6 @@ public class PrefixMappingMonitor implements PrefixMapping {
 
     @Override
     public boolean samePrefixMappingAs(PrefixMapping other) {
-        return get().samePrefixMappingAs(other) ;
+        return get().samePrefixMappingAs(other);
     }
 }

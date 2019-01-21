@@ -18,20 +18,20 @@
 
 package org.seaborne.patch.changes;
 
-import org.apache.jena.graph.Graph ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.Quad;
+import org.seaborne.patch.RDFChanges;
 
 /** Apply changes to a {@link DatasetGraph} */
 public class RDFChangesApply implements RDFChanges {
 
-    private DatasetGraph dsg ;
+    private DatasetGraph dsg;
 
     public RDFChangesApply(DatasetGraph dsg) {
-        this.dsg = dsg ;
+        this.dsg = dsg;
     }
 
     @Override
@@ -49,27 +49,27 @@ public class RDFChangesApply implements RDFChanges {
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         if ( g == null )
-            g = Quad.defaultGraphNodeGenerated ;
+            g = Quad.defaultGraphNodeGenerated;
         dsg.add(g, s, p, o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         if ( g == null )
-            g = Quad.defaultGraphNodeGenerated ;
+            g = Quad.defaultGraphNodeGenerated;
         dsg.delete(g, s, p, o);
     }
 
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
-        Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn) ;
-        g.getPrefixMapping().setNsPrefix(prefix, uriStr) ;
+        Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn);
+        g.getPrefixMapping().setNsPrefix(prefix, uriStr);
     }
 
     @Override
     public void deletePrefix(Node gn, String prefix) {
-        Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn) ;
-        g.getPrefixMapping().removeNsPrefix(prefix) ;
+        Graph g = ( gn == null ) ? dsg.getDefaultGraph() : dsg.getGraph(gn);
+        g.getPrefixMapping().removeNsPrefix(prefix);
     }
 
     @Override

@@ -30,16 +30,16 @@ public class VocabDelta {
     //    VocabDelta
     //      touches Jena
     //      causes JenaSystem.init
-    //    but we are now class initializing so 
+    //    but we are now class initializing so
     //  VocabDelta.init sees nulls in AssemblerUtils.registerDataset
     // Solution:
     //   Put AssemblerUtils.registerDataset in a static initializer separate from init()
 
-    
+
     // Delta.namespace causes circular initialization.
     private static final String NS = "http://jena.apache.org/rdf-delta#";
-    
-    public static String getURI() { return NS ; } 
+
+    public static String getURI() { return NS ; }
 
     // Add feature to another (sub) dataset.
     // Thsi is ja:dataset.
@@ -47,29 +47,29 @@ public class VocabDelta {
 
     //---- Sync'ed dataset.
     // DeltaAssembler
-    
+
     // Type
     public static final Resource tDatasetDelta          = Vocab.type(getURI(), "DeltaDataset") ;
-    
+
     // URL of patch log server
     public static final Property pDeltaChanges          = Vocab.property(getURI(), "changes") ;
-    
+
     // Storage type("mem", tdb", "tdb2", "external").
     public static final Property pDeltaStorage          = Vocab.property(getURI(), "storage") ;
-    
-    // Whether and how often to poll for changes. 
+
+    // Whether and how often to poll for changes.
     //public static final Property pPollForChanges        = Vocab.property(NS, "poll") ;
-    
+
     // Zone location for local copy.
     public static final Property pDeltaZone             = Vocab.property(getURI(), "zone") ;
-    
-    // Name of the patch log. 
+
+    // Name of the patch log.
     public static final Property pDeltaPatchLog         = Vocab.property(getURI(), "patchlog") ;
-    
-    private static volatile boolean initialized = false ; 
-    
+
+    private static volatile boolean initialized = false ;
+
     static { init() ; }
-    
+
     static synchronized public void init() {
         if ( initialized )
             return;
@@ -78,7 +78,7 @@ public class VocabDelta {
         // pDeltaDataset (first) triggers jena initialization, which calls into VocalDelta.init
         // while pDeltaDataset still null.
     }
-    
+
     static {
         AssemblerUtils.registerDataset(tDatasetDelta, new DeltaAssembler());
     }

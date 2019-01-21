@@ -233,7 +233,7 @@ public class RDF_ANY implements org.apache.thrift.TBase<RDF_ANY, RDF_ANY._Fields
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {

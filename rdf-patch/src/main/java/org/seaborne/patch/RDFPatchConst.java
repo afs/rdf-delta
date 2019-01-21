@@ -20,12 +20,12 @@ package org.seaborne.patch;
 
 public class RDFPatchConst {
     /** RDF Patch file extension for text format */
-    public static final String EXT      = "rdfp" ;
+    public static final String EXT      = "rdfp";
 
     /** RDF Patch file extension for binary (Thrift-based) format */
-    public static final String EXT_B    = "trp" ;
+    public static final String EXT_B    = "trp";
 
-    public static final String ID       = "id" ;
+    public static final String ID       = "id";
 
-    public static final String PREV     = "prev" ;
+    public static final String PREV     = "prev";
 }

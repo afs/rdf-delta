@@ -19,10 +19,10 @@
 package org.seaborne.patch.items;
 
 public class SetBase extends ChangeItem {
-    public final String uriStr ;
+    public final String uriStr;
 
     public SetBase(String uriStr) {
-        this.uriStr = uriStr ;
+        this.uriStr = uriStr;
     }
 
     @Override

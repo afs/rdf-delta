@@ -108,7 +108,7 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_VAR.class, metaDataMap);
@@ -318,7 +318,7 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -326,7 +326,7 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.name = iprot.readString();
               struct.setNameIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;

@@ -48,7 +48,7 @@ import org.seaborne.patch.filelog.rotate.ManagedOutput;
 public class TestRotate
 {
     static { LogCtl.setJavaLogging(); }
-    
+
     @Parameters(name="Policy={0}")
     public static Collection<Object[]> data()
     {
@@ -62,9 +62,9 @@ public class TestRotate
 
     private final FilePolicy policy;
     private final boolean includesBaseName;
-    
+
     private static Path DIR = Paths.get("target/filelog");
-    
+
     @BeforeClass
     public static void beforeClass() {
         FileOps.ensureDir(DIR.toString());
@@ -81,14 +81,14 @@ public class TestRotate
             }
         }
     }
-    
-    // Test for file existance : pass the full filename. 
+
+    // Test for file existance : pass the full filename.
     private static void assertExists(String filename) {
         Path p = Paths.get(filename);
         boolean b = Files.exists(p);
         assertTrue("File does not exist: "+p, b);
     }
-    
+
     private static void assertNotExists(String filename) {
         Path p = Paths.get(filename);
         boolean b = Files.exists(p);
@@ -111,7 +111,7 @@ public class TestRotate
         String FN = "fileA-"+policy.name();
         ManagedOutput mout = OutputMgr.create(DIR, FN, policy);
         try ( OutputStream out = mout.output() ) {
-            PrintStream ps = new PrintStream(out, true, StandardCharsets.UTF_8.name()); 
+            PrintStream ps = new PrintStream(out, true, StandardCharsets.UTF_8.name());
             ps.print("abcdef");
         }
         assertNotNull(mout.latestFilename());

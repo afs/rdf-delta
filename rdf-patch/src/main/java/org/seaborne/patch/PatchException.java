@@ -15,11 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.seaborne.patch;
-
-import org.apache.jena.riot.RiotException ;
-
+import org.apache.jena.riot.RiotException;
 public class PatchException extends RiotException {
     public PatchException()                          { super() ; }
     public PatchException(String msg)                { super(msg) ; }

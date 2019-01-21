@@ -25,8 +25,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /** Roller where the files are "base" , "base.001", "base.002", ...
- * the current output file is always "base" and the files are 
- * shifted up on a rotate.    
+ * the current output file is always "base" and the files are
+ * shifted up on a rotate.
  */
 class RollerShifter implements Roller {
     private boolean valid = false;
@@ -34,7 +34,7 @@ class RollerShifter implements Roller {
     private final String baseFilename;
     private final Path filename;
     private Path currentFilename;
-    
+
     /** Match an incremental file (does not match the base file name). **/
     private static Pattern patternIncremental = FileMgr.patternIncremental;
     private static final String INC_SEP = FileMgr.INC_SEP;
@@ -42,14 +42,14 @@ class RollerShifter implements Roller {
     private static final String numFmt = "%d";
     private static final Comparator<Filename> cmpNumericModifier = FileMgr.cmpNumericModifier;
 
-    
+
     RollerShifter(Path directory, String baseFilename, String format) {
         this.directory = directory;
         this.baseFilename = baseFilename;
         this.filename = directory.resolve(baseFilename);
         init(directory, baseFilename);
     }
-    
+
     private void init(Path directory, String baseFilename) {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternIncremental);
         if ( filenames.isEmpty() ) {
@@ -76,7 +76,7 @@ class RollerShifter implements Roller {
 
     @Override
     public void finishSection() {}
-    
+
     @Override
     public Path latestFilename() {
         return currentFilename;
@@ -86,17 +86,17 @@ class RollerShifter implements Roller {
     public void rotate() {
         valid = false;
     }
-    
+
     @Override
     public boolean hasExpired() {
         return !valid;
     }
-    
+
     @Override
     public Path nextFilename() {
         valid = true;
         FileMgr.shiftFiles(directory, baseFilename, 1, "%03d");
         currentFilename = filename;
-        return filename; 
+        return filename;
     }
 }

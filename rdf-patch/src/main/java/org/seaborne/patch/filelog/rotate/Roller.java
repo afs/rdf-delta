@@ -30,35 +30,35 @@ import org.seaborne.patch.filelog.OutputMgr;
  * <p>
  * {@code startSection}, {@code finishSection} bracket
  * each use of a {@link ManagedOutput} object.
- * 
+ *
  * @see OutputMgr
  */
 public interface Roller {
 
     /** Directory under management. */
-    public Path directory(); 
-    
+    public Path directory();
+
     /** Starting an output section. */
     public void startSection();
 
     /** Finished an output section. */
     public void finishSection();
-    
-    /** Latest filename, either curently being written or the last one written. 
-     *  The path includes the directory name to the file. 
+
+    /** Latest filename, either curently being written or the last one written.
+     *  The path includes the directory name to the file.
      *  Returns null if there isn't one (nothing written at this location).
-     */ 
+     */
     public Path latestFilename();
 
-    /** Policy says that the setup is no longer valid for a new (next) section. */  
+    /** Policy says that the setup is no longer valid for a new (next) section. */
     public boolean hasExpired();
-    
+
     /** Move files on (if appropriate) **/
     public void rotate();
-    
-    /** Generate the next filename; includes any directory name to the file. */ 
+
+    /** Generate the next filename; includes any directory name to the file. */
     public Path nextFilename();
-    
+
     /** Stream of all files, sorted into reverse order, newest to oldest. */
     public Stream<Filename> files();
 }

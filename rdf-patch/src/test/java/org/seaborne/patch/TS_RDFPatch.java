@@ -19,8 +19,8 @@
 package org.seaborne.patch;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.runner.RunWith ;
-import org.junit.runners.Suite ;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 import org.seaborne.patch.filelog.TestAssemblerFileLog;
 import org.seaborne.patch.filelog.TestRotate;
 
@@ -34,6 +34,6 @@ import org.seaborne.patch.filelog.TestRotate;
     , TestAssemblerFileLog.class
 })
 
-public class TS_RDFPatch { 
+public class TS_RDFPatch {
     static { LogCtl.setJavaLogging(); }
 }

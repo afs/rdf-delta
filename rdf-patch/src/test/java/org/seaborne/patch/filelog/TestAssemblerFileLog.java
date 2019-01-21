@@ -43,12 +43,12 @@ public class TestAssemblerFileLog {
         LogCtl.setJavaLogging();
         JenaSystem.init();
     }
-    
+
     private static String ADIR = "testing/filelog";
-    
+
 //    @Rule
 //    public TemporaryFolder tempFolder = new TemporaryFolder();
-    
+
     // We want to leave the evidence around on test failures.
     private static Path DIR = Paths.get("target/filelog");
 
@@ -57,7 +57,7 @@ public class TestAssemblerFileLog {
         FileOps.ensureDir(DIR.toString());
         FileOps.clearAll(DIR.toString());
     }
-    
+
     @Test public void assem() {
         Dataset ds = (Dataset)AssemblerUtils.build(ADIR+"/assem-logged.ttl", VocabPatch.tLoggedDataset);
     }
@@ -65,7 +65,7 @@ public class TestAssemblerFileLog {
     @Test public void assemData() {
         Dataset ds = (Dataset)AssemblerUtils.build(ADIR+"/assem-logged.ttl", VocabPatch.tLoggedDataset);
         Txn.executeWrite(ds, ()->RDFDataMgr.read(ds, ADIR+"/data.ttl"));
-        
+
         String patchfile = "target/filelog/log.rdfp.0001";
         assertTrue("Patch file does not exist: "+patchfile, FileOps.exists(patchfile));
         RDFPatch patch = RDFPatchOps.read(patchfile);
@@ -75,5 +75,5 @@ public class TestAssemblerFileLog {
         boolean b = IsoMatcher.isomorphic(ds.asDatasetGraph(), dsg1);
         assertTrue(b);
     }
-    
+
 }

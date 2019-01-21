@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch;
+package org.seaborne.patch.system;
 
 import org.apache.jena.graph.Node;
+import org.seaborne.patch.PatchHeader;
+import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.changes.RDFChangesWrapper;
 
 /**
@@ -29,17 +32,17 @@ public class RDFPatchAltHeader implements RDFPatch {
 
     private final RDFPatch body;
     private final PatchHeader header;
-    
+
     public RDFPatchAltHeader(PatchHeader header, RDFPatch body) {
         this.body = body;
         this.header = header;
     }
-    
+
     @Override
     public PatchHeader header() {
         return header;
     }
-    
+
     @Override
     public void apply(RDFChanges changes) {
         // Ignore the header.
@@ -49,7 +52,7 @@ public class RDFPatchAltHeader implements RDFPatch {
         header.apply(changes);
         body.apply(x);
     }
-    
+
     @Override
     public boolean repeatable() {
         return body.repeatable();

@@ -113,9 +113,9 @@ public class RDF_PrefixName implements org.apache.thrift.TBase<RDF_PrefixName, R
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.LOCAL_NAME, new org.apache.thrift.meta_data.FieldMetaData("localName", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.LOCAL_NAME, new org.apache.thrift.meta_data.FieldMetaData("localName", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_PrefixName.class, metaDataMap);
@@ -398,7 +398,7 @@ public class RDF_PrefixName implements org.apache.thrift.TBase<RDF_PrefixName, R
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -406,7 +406,7 @@ public class RDF_PrefixName implements org.apache.thrift.TBase<RDF_PrefixName, R
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.prefix = iprot.readString();
               struct.setPrefixIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -414,7 +414,7 @@ public class RDF_PrefixName implements org.apache.thrift.TBase<RDF_PrefixName, R
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.localName = iprot.readString();
               struct.setLocalNameIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;

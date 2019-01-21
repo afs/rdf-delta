@@ -30,11 +30,11 @@ import org.seaborne.patch.system.N;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 
-/** Log changes to a {@link ManagedOutput}. 
- * {@link ManagedOutput} sections 
- * */ 
+/** Log changes to a {@link ManagedOutput}.
+ * {@link ManagedOutput} sections
+ * */
 public class RDFChangesManagedOutput extends RDFChangesWriter {
-    
+
     private final ManagedOutput managedOutput;
     private OutputStream currentStream = null;
     private Node previous = null;
@@ -43,7 +43,7 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
         super(null);
         this.managedOutput = output;
     }
-    
+
     @Override
     public void txnBegin() {
         startOutput();
@@ -61,17 +61,17 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
         super.txnAbort();
         finishOutput();
     }
-    
+
     @Override
     public void segment() {
         super.segment();
     }
-    
+
     private void startOutput() {
         if ( currentStream != null ) {
             Log.warn(this, "Already writing");
             return;
-        }        
+        }
         currentStream = managedOutput.output();
         TokenWriter tokenWriter = new TokenWriterText(currentStream);
         super.tok = tokenWriter;
@@ -81,7 +81,7 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
             header(RDFPatchConst.PREV, previous);
         previous = id;
     }
-    
+
     private void finishOutput() {
         super.tok.flush();
         IO.close(currentStream);

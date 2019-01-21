@@ -16,239 +16,239 @@
  * limitations under the License.
  */
 
-package org.seaborne.patch.text ;
+package org.seaborne.patch.text;
 
-import java.io.IOException ;
-import java.io.OutputStream ;
-import java.io.Writer ;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
 
-import org.apache.jena.atlas.io.AWriter ;
-import org.apache.jena.atlas.io.BufferingWriter ;
-import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.lib.Chars ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.riot.RiotException ;
-import org.apache.jena.riot.out.NodeFormatter ;
-import org.apache.jena.riot.out.NodeFormatterTTL ;
-import org.apache.jena.riot.system.PrefixMapFactory ;
-import org.apache.jena.riot.tokens.Token ;
-import org.apache.jena.riot.tokens.TokenizerText ;
-import org.apache.jena.sparql.util.FmtUtils ;
+import org.apache.jena.atlas.io.AWriter;
+import org.apache.jena.atlas.io.BufferingWriter;
+import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.lib.Chars;
+import org.apache.jena.graph.Node;
+import org.apache.jena.riot.RiotException;
+import org.apache.jena.riot.out.NodeFormatter;
+import org.apache.jena.riot.out.NodeFormatterTTL;
+import org.apache.jena.riot.system.PrefixMapFactory;
+import org.apache.jena.riot.tokens.Token;
+import org.apache.jena.riot.tokens.TokenizerText;
+import org.apache.jena.sparql.util.FmtUtils;
 
 public class TokenWriterText implements TokenWriter {
     // Whether to space out the tuples a bit for readability.
-    private static final boolean GAPS      = true ;
+    private static final boolean GAPS      = true;
 
-    private final AWriter        out ;
-    private boolean              inTuple   = false ;
-    private boolean              inSection = false ;
+    private final AWriter        out;
+    private boolean              inTuple   = false;
+    private boolean              inSection = false;
 
-    private final NodeFormatter  fmt ;
+    private final NodeFormatter  fmt;
 
-    private String               label ;
+    private String               label;
 
     /**
      * Create a TokenOutputStreamWriter going to a OutputStream.
-     * 
+     *
      * @param out
      */
     public TokenWriterText(OutputStream out) {
-        this(writer(out)) ;
+        this(writer(out));
     }
 
     private static Writer writer(OutputStream out) {
         // IO.wrap(out) -- need buffering version,
-        Writer w1 = IO.asBufferedUTF8(out) ;
-        Writer w2 = new BufferingWriter(w1, 1024 * 1024) ;
-        return w2 ;
+        Writer w1 = IO.asBufferedUTF8(out);
+        Writer w2 = new BufferingWriter(w1, 1024 * 1024);
+        return w2;
     }
 
     /**
      * Create a TokenOutputStreamWriter going to a Writer, ideally one that
      * buffers (e.g. {@linkplain BufferingWriter}).
-     * 
+     *
      * @param out
      */
     public TokenWriterText(Writer out) {
-        this(null, null, out) ;
+        this(null, null, out);
     }
 
     /**
      * Create a TokenOutputStreamWriter going to a Writer, ideally one that
      * buffers (e.g. {@linkplain BufferingWriter}).
-     * 
+     *
      * @param out
      */
     public TokenWriterText(AWriter out) {
-        this(null, null, out) ;
+        this(null, null, out);
     }
 
     /**
      * Create a TokenOutputStreamWriter going to a Writer, with a given
      * NodeFormatter policy ideally one that buffers (e.g.
      * {@linkplain BufferingWriter}).
-     * 
+     *
      * @param out
      */
     public TokenWriterText(NodeFormatter formatter, Writer out) {
-        this(null, formatter, out) ;
+        this(null, formatter, out);
     }
 
     /**
      * Create a TokenOutputStreamWriter going to a Writer, with a given
      * NodeFormatter policy ideally one that buffers (e.g.
      * {@linkplain BufferingWriter}).
-     * 
+     *
      * @param out
      */
     public TokenWriterText(NodeFormatter formatter, AWriter out) {
-        this(null, formatter, out) ;
+        this(null, formatter, out);
     }
 
     public TokenWriterText(String label, NodeFormatter formatter, Writer out) {
-        this(label, formatter, IO.wrap(out)) ;
+        this(label, formatter, IO.wrap(out));
     }
 
     public TokenWriterText(String label, NodeFormatter formatter, AWriter out) {
         if ( formatter == null )
             // For the number abbreviations.
-            formatter = new NodeFormatterTTL(null, PrefixMapFactory.emptyPrefixMap()) ;
+            formatter = new NodeFormatterTTL(null, PrefixMapFactory.emptyPrefixMap());
         // Must write bNodes as <_:....>
-        formatter = new NodeFormatterBNode(formatter) ;
-        this.fmt = formatter ;
-        this.out = out ;
-        this.label = label ;
+        formatter = new NodeFormatterBNode(formatter);
+        this.fmt = formatter;
+        this.out = out;
+        this.label = label;
     }
 
     static class NodeFormatterBNode extends NodeFormatterWrapper {
         public NodeFormatterBNode(NodeFormatter other) {
-            super(other) ;
+            super(other);
         }
 
         @Override
         public void format(AWriter w, Node n) {
             if ( n.isBlank() )
-                formatBNode(w, n) ;
+                formatBNode(w, n);
             else
-                super.format(w, n) ;
+                super.format(w, n);
         }
 
         @Override
         public void formatBNode(AWriter w, Node n) {
-            formatBNode(w, n.getBlankNodeLabel()) ;
+            formatBNode(w, n.getBlankNodeLabel());
         }
 
         @Override
         public void formatBNode(AWriter w, String label) {
-            w.print("<_:") ;
-            w.print(label) ;
-            w.print(">") ;
+            w.print("<_:");
+            w.print(label);
+            w.print(">");
         }
     }
 
     static class NodeFormatterWrapper implements NodeFormatter {
-        private final NodeFormatter fmt ;
+        private final NodeFormatter fmt;
 
         public NodeFormatterWrapper(NodeFormatter other) {
-            this.fmt = other ;
+            this.fmt = other;
         }
 
         @Override
         public void format(AWriter w, Node n) {
-            fmt.format(w, n) ;
+            fmt.format(w, n);
         }
 
         @Override
         public void formatURI(AWriter w, Node n) {
-            fmt.formatURI(w, n) ;
+            fmt.formatURI(w, n);
         }
 
         @Override
         public void formatURI(AWriter w, String uriStr) {
-            fmt.formatURI(w, uriStr) ;
+            fmt.formatURI(w, uriStr);
         }
 
         @Override
         public void formatVar(AWriter w, Node n) {
-            fmt.formatVar(w, n) ;
+            fmt.formatVar(w, n);
         }
 
         @Override
         public void formatVar(AWriter w, String name) {
-            fmt.formatVar(w, name) ;
+            fmt.formatVar(w, name);
         }
 
         @Override
         public void formatBNode(AWriter w, Node n) {
-            fmt.formatBNode(w, n) ;
+            fmt.formatBNode(w, n);
         }
 
         @Override
         public void formatBNode(AWriter w, String label) {
-            fmt.formatBNode(w, label) ;
+            fmt.formatBNode(w, label);
         }
 
         @Override
         public void formatLiteral(AWriter w, Node n) {
-            fmt.formatLiteral(w, n) ;
+            fmt.formatLiteral(w, n);
         }
 
         @Override
         public void formatLitString(AWriter w, String lex) {
-            fmt.formatLitString(w, lex) ;
+            fmt.formatLitString(w, lex);
         }
 
         @Override
         public void formatLitLang(AWriter w, String lex, String langTag) {
-            fmt.formatLitLang(w, lex, langTag) ;
+            fmt.formatLitLang(w, lex, langTag);
         }
 
         @Override
         public void formatLitDT(AWriter w, String lex, String datatypeURI) {
-            fmt.formatLitDT(w, lex, datatypeURI) ;
+            fmt.formatLitDT(w, lex, datatypeURI);
         }
     }
 
     @Override
     public void sendToken(Token token) {
-        String string = tokenToString(token) ;
-        write(string) ;
-        gap(true) ;
+        String string = tokenToString(token);
+        write(string);
+        gap(true);
     }
 
     @Override
     public void sendNode(Node node) {
-        fmt.format(out, node) ;
-        gap(false) ;
+        fmt.format(out, node);
+        gap(false);
     }
 
     @Override
     public void sendString(String string) {
-        fmt.formatLitString(out, string) ;
-        gap(false) ;
+        fmt.formatLitString(out, string);
+        gap(false);
     }
 
     @Override
     public void sendWord(String string) {
         write(string) ; // no escapes, no quotes
-        gap(true) ;
+        gap(true);
     }
 
     private static String cntrlAsString(char cntrl) {
-        return Character.toString((char)TokenizerText.CTRL_CHAR) + Character.toString(cntrl) ;
+        return Character.toString((char)TokenizerText.CTRL_CHAR) + Character.toString(cntrl);
     }
 
     @Override
     public void sendControl(char controlChar) {
-        String x = cntrlAsString(controlChar) ;
-        write(x) ;
-        gap(false) ;
+        String x = cntrlAsString(controlChar);
+        write(x);
+        gap(false);
     }
 
     @Override
     public void sendNumber(long number) {
-        write(Long.toString(number)) ;
-        gap(true) ;
+        write(Long.toString(number));
+        gap(true);
     }
 
     @Override
@@ -257,21 +257,21 @@ public class TokenWriterText implements TokenWriter {
     @Override
     public void endTuple() {
         if ( !inTuple )
-            return ;
-        out.write(Chars.CH_DOT) ;
-        out.write("\n") ;
-        inTuple = false ;
+            return;
+        out.write(Chars.CH_DOT);
+        out.write("\n");
+        inTuple = false;
     }
 
     @Override
     public void close() {
         if ( inTuple ) {}
-        IO.close(out) ;
+        IO.close(out);
     }
 
     @Override
     public void flush() {
-        out.flush() ;
+        out.flush();
     }
 
     // --------
@@ -280,84 +280,84 @@ public class TokenWriterText implements TokenWriter {
         switch (token.getType()) {
             // superclass case NODE:
             case IRI :
-                return "<" + token.getImage() + ">" ;
+                return "<" + token.getImage() + ">";
             case PREFIXED_NAME :
-                notImplemented(token) ;
-                return null ;
+                notImplemented(token);
+                return null;
             case BNODE :
-                return "_:" + token.getImage() ;
+                return "_:" + token.getImage();
             //case BOOLEAN:
             case STRING :
-                return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"" ;
+                return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"";
             case LITERAL_LANG :
-                return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"@" + token.getImage2() ;
+                return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"@" + token.getImage2();
             case LITERAL_DT :
-                return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"^^" + tokenToString(token.getSubToken2()) ;
+                return "\"" + FmtUtils.stringEsc(token.getImage()) + "\"^^" + tokenToString(token.getSubToken2());
             case INTEGER :
             case DECIMAL :
             case DOUBLE :
-                return token.getImage() ;
+                return token.getImage();
 
             // Not RDF
             case KEYWORD :
-                return token.getImage() ;
+                return token.getImage();
             case DOT :
-                return Chars.S_DOT ;
+                return Chars.S_DOT;
             case VAR :
-                return "?" + token.getImage() ;
+                return "?" + token.getImage();
             case COMMA :
-                return Chars.S_COMMA ;
+                return Chars.S_COMMA;
             case SEMICOLON :
-                return Chars.S_SEMICOLON ;
+                return Chars.S_SEMICOLON;
             case COLON :
-                return Chars.S_COLON ;
+                return Chars.S_COLON;
             case LT :
-                return Chars.S_LT ;
+                return Chars.S_LT;
             case GT :
-                return Chars.S_GT ;
+                return Chars.S_GT;
             case LE :
-                return Chars.S_LE ;
+                return Chars.S_LE;
             case GE :
-                return Chars.S_GE ;
+                return Chars.S_GE;
             case UNDERSCORE :
-                return Chars.S_UNDERSCORE ;
+                return Chars.S_UNDERSCORE;
             case LBRACE :
-                return Chars.S_LBRACE ;
+                return Chars.S_LBRACE;
             case RBRACE :
-                return Chars.S_RBRACE ;
+                return Chars.S_RBRACE;
             case LPAREN :
-                return Chars.S_LPAREN ;
+                return Chars.S_LPAREN;
             case RPAREN :
-                return Chars.S_RPAREN ;
+                return Chars.S_RPAREN;
             case LBRACKET :
-                return Chars.S_LBRACKET ;
+                return Chars.S_LBRACKET;
             case RBRACKET :
-                return Chars.S_RBRACKET ;
+                return Chars.S_RBRACKET;
             case PLUS :
-                return Chars.S_PLUS ;
+                return Chars.S_PLUS;
             case MINUS :
-                return Chars.S_MINUS ;
+                return Chars.S_MINUS;
             case STAR :
-                return Chars.S_STAR ;
+                return Chars.S_STAR;
             case SLASH :
-                return Chars.S_SLASH ;
+                return Chars.S_SLASH;
             case RSLASH :
-                return Chars.S_RSLASH ;
+                return Chars.S_RSLASH;
             case HEX :
-                return "0x" + token.getImage() ;
+                return "0x" + token.getImage();
             // Syntax
             // COLON is only visible if prefix names are not being processed.
             case DIRECTIVE :
-                return "@" + token.getImage() ;
+                return "@" + token.getImage();
             case VBAR :
-                return Chars.S_VBAR ;
+                return Chars.S_VBAR;
             case AMPHERSAND :
-                return Chars.S_AMPHERSAND ;
+                return Chars.S_AMPHERSAND;
             case EQUALS :
-                return Chars.S_EQUALS ;
+                return Chars.S_EQUALS;
             default :
-                notImplemented(token) ;
-                return null ;
+                notImplemented(token);
+                return null;
 
             // case EOF:
 
@@ -381,20 +381,20 @@ public class TokenWriterText implements TokenWriter {
     // quoted string then quoted string does not require a gap.
     private void gap(boolean required) {
         if ( required || GAPS )
-            write(" ") ;
+            write(" ");
     }
 
     // Beware of multiple stringing.
     private void write(String string) {
-        inTuple = true ;
-        out.write(string) ;
+        inTuple = true;
+        out.write(string);
     }
 
     private static void exception(IOException ex) {
-        throw new RiotException(ex) ;
+        throw new RiotException(ex);
     }
 
     private void notImplemented(Token token) {
-        throw new RiotException("Unencodable token: " + token) ;
+        throw new RiotException("Unencodable token: " + token);
     }
 }

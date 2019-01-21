@@ -20,5 +20,5 @@ package org.seaborne.patch.system;
 
 @FunctionalInterface
 public interface Printer {
-    void print(String fmt, Object... args) ;
+    void print(String fmt, Object... args);
 }

@@ -18,34 +18,34 @@
 
 package org.seaborne.patch.changes;
 
-import static org.seaborne.patch.changes.PatchCodes.ADD_DATA ;
-import static org.seaborne.patch.changes.PatchCodes.ADD_PREFIX ;
-import static org.seaborne.patch.changes.PatchCodes.DEL_DATA ;
-import static org.seaborne.patch.changes.PatchCodes.DEL_PREFIX ;
-import static org.seaborne.patch.changes.PatchCodes.SEGMENT ;
-import static org.seaborne.patch.changes.PatchCodes.TXN_ABORT ;
-import static org.seaborne.patch.changes.PatchCodes.TXN_BEGIN ;
-import static org.seaborne.patch.changes.PatchCodes.TXN_COMMIT ;
+import static org.seaborne.patch.changes.PatchCodes.ADD_DATA;
+import static org.seaborne.patch.changes.PatchCodes.ADD_PREFIX;
+import static org.seaborne.patch.changes.PatchCodes.DEL_DATA;
+import static org.seaborne.patch.changes.PatchCodes.DEL_PREFIX;
+import static org.seaborne.patch.changes.PatchCodes.SEGMENT;
+import static org.seaborne.patch.changes.PatchCodes.TXN_ABORT;
+import static org.seaborne.patch.changes.PatchCodes.TXN_BEGIN;
+import static org.seaborne.patch.changes.PatchCodes.TXN_COMMIT;
 
-import org.apache.jena.graph.Node ;
-import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.text.TokenWriter ;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Quad;
+import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.text.TokenWriter;
 
 /**
  * Write out a changes as a stream of syntax tokens.
- * The provided {@link TokenWriter} determines the concrete syntax - binary or text. 
+ * The provided {@link TokenWriter} determines the concrete syntax - binary or text.
  */
 public class RDFChangesWriter implements RDFChanges {
-    protected TokenWriter tok ;
+    protected TokenWriter tok;
 
     public RDFChangesWriter(TokenWriter out) {
-        this.tok = out ;
+        this.tok = out;
     }
-    
+
     @Override
     public void start() { }
-    
+
     @Override
     public void finish() { }
 
@@ -57,34 +57,34 @@ public class RDFChangesWriter implements RDFChanges {
         output(value);
         tok.endTuple();
     }
-    
+
     public void flush() {
-        tok.flush(); 
+        tok.flush();
     }
-    
+
     public void close() {
-        tok.close(); 
+        tok.close();
     }
-    
+
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        output(ADD_DATA, g, s, p, o) ;
+        output(ADD_DATA, g, s, p, o);
     }
-    
+
     private void output(String code, Node g, Node s, Node p, Node o) {
         tok.startTuple();
-        outputWord(code) ;
-        output(s) ;
-        output(p) ;
-        output(o) ;
+        outputWord(code);
+        output(s);
+        output(p);
+        output(o);
         if ( g != null && ! Quad.isDefaultGraph(g) )
-            output(g) ;
+            output(g);
         tok.endTuple();
         tok.flush();
     }
 
     private void output(Node g) {
-        tok.sendNode(g); 
+        tok.sendNode(g);
     }
 
     private void outputWord(String code) {
@@ -93,7 +93,7 @@ public class RDFChangesWriter implements RDFChanges {
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        output(DEL_DATA, g, s, p, o) ;
+        output(DEL_DATA, g, s, p, o);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class RDFChangesWriter implements RDFChanges {
         tok.startTuple();
         outputWord(ADD_PREFIX);
         tok.sendString(prefix);
-        tok.sendString(uriStr) ;
+        tok.sendString(uriStr);
         if ( gn != null )
             tok.sendNode(gn);
         tok.endTuple();
@@ -123,22 +123,22 @@ public class RDFChangesWriter implements RDFChanges {
         tok.startTuple();
         tok.sendWord(code);
         tok.endTuple();
-        tok.flush() ;
+        tok.flush();
     }
-    
+
     @Override
     public void txnBegin() {
-        oneline(TXN_BEGIN) ;
+        oneline(TXN_BEGIN);
     }
 
     @Override
     public void txnCommit() {
-        oneline(TXN_COMMIT) ;
+        oneline(TXN_COMMIT);
     }
 
     @Override
     public void txnAbort() {
-        oneline(TXN_ABORT) ;
+        oneline(TXN_ABORT);
     }
 
     @Override

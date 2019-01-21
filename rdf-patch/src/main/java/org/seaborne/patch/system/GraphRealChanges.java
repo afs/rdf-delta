@@ -21,15 +21,15 @@ package org.seaborne.patch.system;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChanges;
 
 /**
  * A {@link Graph} and {@link RDFChanges} that check whether a triple change is real or
  * not and only passes the chnage on if the add(triple)/delete(triple) causes an actual
  * change to the graph.
- * 
+ *
  * @see GraphChanges
- */ 
+ */
 public class GraphRealChanges extends GraphChanges
 {
     public GraphRealChanges(Graph graph, RDFChanges changes) {
@@ -39,7 +39,7 @@ public class GraphRealChanges extends GraphChanges
     public GraphRealChanges(Graph graph, Node graphName, RDFChanges changes) {
         super(graph, graphName, changes);
     }
-    
+
     @Override
     public void add(Triple t) {
         if ( ! super.contains(t) )

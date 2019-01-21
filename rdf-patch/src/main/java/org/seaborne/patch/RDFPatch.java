@@ -22,27 +22,27 @@ import org.apache.jena.graph.Node;
 
 public interface RDFPatch {
     // Long name - not preferred.
-    static final String PREVIOUS        = "previous" ;
-    
-    public PatchHeader header() ;
-    
-    public default Node getHeader(String field) { 
-        return header().get(field) ; 
+    static final String PREVIOUS        = "previous";
+
+    public PatchHeader header();
+
+    public default Node getHeader(String field) {
+        return header().get(field) ;
     }
-    
-    public default Node getId() { 
-        return header().get(RDFPatchConst.ID) ;
+
+    public default Node getId() {
+        return header().get(RDFPatchConst.ID);
     }
 
     public default Node getPrevious() {
-        Node n = header().get(RDFPatchConst.PREV) ;
+        Node n = header().get(RDFPatchConst.PREV);
         if ( n == null )
-            n = header().get(PREVIOUS) ;
+            n = header().get(PREVIOUS);
         return n;
     }
-    
-    /** Act on the patch by sending it to a changes processor. */ 
+
+    /** Act on the patch by sending it to a changes processor. */
     public void apply(RDFChanges changes);
-    
-    public boolean repeatable(); 
+
+    public boolean repeatable();
 }

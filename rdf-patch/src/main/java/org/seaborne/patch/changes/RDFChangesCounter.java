@@ -24,9 +24,9 @@ import org.seaborne.patch.RDFChanges;
 public class RDFChangesCounter implements RDFChanges {
 
     protected PatchSummary summary = new PatchSummary();
-    
+
     public RDFChangesCounter() {}
-    
+
     public void reset() {
         summary.reset();
     }
@@ -39,7 +39,7 @@ public class RDFChangesCounter implements RDFChanges {
     public void start() {
         summary.countStart++;
     }
-    
+
     @Override
     public void finish() {
         summary.countFinish++;

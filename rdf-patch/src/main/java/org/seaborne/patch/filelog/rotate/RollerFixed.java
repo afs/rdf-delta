@@ -26,8 +26,8 @@ import java.util.stream.Stream;
 class RollerFixed implements Roller {
     private final Path directory;
     private final String baseFilename;
-    private Path filename = null; 
-    
+    private Path filename = null;
+
 
     RollerFixed(Path directory, String baseFilename) {
         this.directory = directory;
@@ -39,7 +39,7 @@ class RollerFixed implements Roller {
     public Stream<Filename> files() {
         return Stream.of(new Filename(directory, baseFilename, null, null, null));
     }
-    
+
     @Override
     public Path directory() {
         return directory;
@@ -61,7 +61,7 @@ class RollerFixed implements Roller {
 
     @Override
     public Path latestFilename() {
-        return Files.exists(filename) ? filename : null ;
+        return Files.exists(filename) ? filename : null;
     }
     @Override
     public Path nextFilename() {

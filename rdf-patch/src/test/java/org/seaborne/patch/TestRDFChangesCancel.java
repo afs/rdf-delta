@@ -44,29 +44,29 @@ public class TestRDFChangesCancel {
         DatasetGraph dsg0 = DatasetGraphFactory.createTxnMem();
         dsg = new DatasetGraphChanges(dsg0, c);
     }
-    
-    @Before public void beforeTest() { }
-    
-    @After public void afterTest() { }
-    
-    private static Quad quad1 = SSE.parseQuad("(:g _:s <p> 1)") ;
-    private static Quad quad2 = SSE.parseQuad("(:g _:s <p> 2)") ;
 
-    private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)") ;
-    private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)") ;
-    
+    @Before public void beforeTest() { }
+
+    @After public void afterTest() { }
+
+    private static Quad quad1 = SSE.parseQuad("(:g _:s <p> 1)");
+    private static Quad quad2 = SSE.parseQuad("(:g _:s <p> 2)");
+
+    private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)");
+    private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)");
+
     @Test public void changeSuppressEmptyCommit_1() {
         Txn.executeRead(dsg, ()->{});
-        
+
         PatchSummary s1 = counter.summary();
         assertEquals(0, s1.getCountTxnBegin());
         assertEquals(0, s1.getCountTxnCommit());
         assertEquals(0, s1.getCountTxnAbort());
     }
-    
+
     @Test public void changeSuppressEmptyCommit_2() {
         Txn.executeWrite(dsg, ()->{});
-        
+
         PatchSummary s1 = counter.summary();
         assertEquals(1, s1.getCountTxnBegin());
         assertEquals(0, s1.getCountTxnCommit());
@@ -75,37 +75,37 @@ public class TestRDFChangesCancel {
 
     @Test public void changeSuppressEmptyCommit_3() {
         Txn.executeWrite(dsg, ()->dsg.add(quad1));
-        
+
         PatchSummary s1 = counter.summary();
         assertEquals(1, s1.getCountTxnBegin());
         assertEquals(1, s1.getCountTxnCommit());
         assertEquals(0, s1.getCountTxnAbort());
     }
-    
-    
+
+
     @Test public void changeSuppressEmptyCommit_4() {
         Quad q = SSE.parseQuad("(_ :s :p 'object')");
         Triple t = SSE.parseTriple("(:t :p 'object')");
-        
+
         Txn.executeRead(dsg,   ()->{});
         testCounters(counter.summary(), 0, 0);
-        
+
         Txn.executeWrite(dsg,  ()->{dsg.add(q);});
         testCounters(counter.summary(), 1, 0);
 
         Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().add(t);});
         testCounters(counter.summary(), 2, 0);
-        
+
         Txn.executeWrite(dsg,  ()->{dsg.getDefaultGraph().getPrefixMapping().setNsPrefix("", "http://example/");});
         testCounters(counter.summary(), 2, 1);
-        
+
         Txn.executeWrite(dsg,  ()->{});
         testCounters(counter.summary(), 2, 1);
     }
-    
+
     private static void testCounters(PatchSummary s, long dataAddCount, long prefixAddCount) {
         assertEquals("dataAddCount",   dataAddCount,   s.getCountAddData());
         assertEquals("prefixAddCount", prefixAddCount, s.getCountAddPrefix());
     }
-    
+
 }

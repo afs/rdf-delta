@@ -48,14 +48,14 @@ public class TestRDFChangesDataset  {
     DatasetGraph dsg = RDFPatchOps.textWriter(dsgBase, bout);
 
     @Before public void beforeTest() {}
-    @After public void afterTest() {}    
-    
+    @After public void afterTest() {}
+
     private static Quad quad1 = SSE.parseQuad("(:g _:s <p> 1)");
     private static Quad quad2 = SSE.parseQuad("(:g _:s <p> 2)");
 
     private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)");
     private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)");
-    
+
     private DatasetGraph replay() {
         IO.close(bout);
         try(ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray())) {
@@ -64,14 +64,14 @@ public class TestRDFChangesDataset  {
             return dsg2;
         } catch (IOException ex) { IO.exception(ex); return null; }
     }
-        
+
     private static void check(DatasetGraph dsg, Quad...quads) {
         if ( quads.length == 0 ) {
             assertTrue(dsg.isEmpty());
             return;
         }
-        
-        List<Quad> listExpected = Arrays.asList(quads); 
+
+        List<Quad> listExpected = Arrays.asList(quads);
         List<Quad> listActual = Iter.toList(dsg.find());
         assertEquals(listActual.size(), listExpected.size());
         assertTrue(ListUtils.equalsUnordered(listExpected, listActual));
@@ -81,7 +81,7 @@ public class TestRDFChangesDataset  {
         DatasetGraph dsg2 = replay();
         check(dsg2);
     }
-    
+
     @Test public void record_add() {
         Txn.executeWrite(dsg, ()->dsg.add(quad1));
         DatasetGraph dsg2 = replay();
@@ -105,7 +105,7 @@ public class TestRDFChangesDataset  {
         DatasetGraph dsg2 = replay();
         check(dsg2, quad1);
     }
-    
+
     @Test public void record_add_delete_1() {
         Txn.executeWrite(dsg, ()-> {
             dsg.add(quad1);
@@ -125,14 +125,14 @@ public class TestRDFChangesDataset  {
     }
 
     @Test public void record_add_delete_3() {
-        Txn.executeWrite(dsg, ()-> { 
+        Txn.executeWrite(dsg, ()-> {
             dsg.delete(quad2);
             dsg.add(quad1);
         });
         DatasetGraph dsg2 = replay();
         check(dsg2, quad1);
     }
-    
+
     @Test public void record_add_delete_4() {
         Txn.executeWrite(dsg, ()-> {
             dsg.delete(quad1);
@@ -141,7 +141,7 @@ public class TestRDFChangesDataset  {
         DatasetGraph dsg2 = replay();
         check(dsg2, quad1);
     }
-    
+
     @Test public void record_add_abort_1() {
         Txn.executeWrite(dsg, ()-> {
             dsg.delete(quad1);
@@ -150,7 +150,7 @@ public class TestRDFChangesDataset  {
         DatasetGraph dsg2 = replay();
         check(dsg2);
     }
-    
+
     @Test public void record_graph_1() {
         Txn.executeWrite(dsg, ()-> {
             Graph g = dsg.getDefaultGraph();

@@ -233,7 +233,7 @@ public class RDF_REPEAT implements org.apache.thrift.TBase<RDF_REPEAT, RDF_REPEA
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {

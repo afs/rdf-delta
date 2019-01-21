@@ -18,32 +18,32 @@
 
 package org.seaborne.patch.system;
 
-import org.apache.jena.graph.Node ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.seaborne.patch.RDFChanges;
 
 // UNFINISHED
 
 // ?? Prefixes.
 public class DatasetGraphRealChanges extends AbstractDatasetGraphAddDelete {
-    /** With checking, the {@link RDFChanges} becomes reversible */ 
-    protected final boolean checking = true ; 
+    /** With checking, the {@link RDFChanges} becomes reversible */
+    protected final boolean checking = true ;
 
-    public DatasetGraphRealChanges(DatasetGraph dsg) { 
-        super(dsg) ; 
+    public DatasetGraphRealChanges(DatasetGraph dsg) {
+        super(dsg) ;
     }
 
     @Override
     protected void actionAdd(Node g, Node s, Node p, Node o) {
         if ( checking && get().contains(g, s, p, o) )
-            return ;
-        get().add(g, s, p, o); 
+            return;
+        get().add(g, s, p, o);
     }
 
     @Override
     protected void actionDelete(Node g, Node s, Node p, Node o) {
         if ( checking && ! get().contains(g, s, p, o) )
-            return ;
-        get().delete(g, s, p, o); 
+            return;
+        get().delete(g, s, p, o);
     }
 }

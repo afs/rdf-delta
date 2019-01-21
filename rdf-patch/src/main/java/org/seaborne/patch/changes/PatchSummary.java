@@ -32,7 +32,7 @@ public class PatchSummary {
     public long countSegment      = 0;
 
     public PatchSummary() {}
-    
+
     public void reset() {
         countStart        = 0;
         countFinish       = 0;
@@ -63,7 +63,7 @@ public class PatchSummary {
         other.countSegment      = this.countSegment;
         return other;
     }
-    
+
     public long getCountStart() {
         return countStart;
     }

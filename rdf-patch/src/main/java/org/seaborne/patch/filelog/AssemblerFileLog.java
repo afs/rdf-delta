@@ -45,14 +45,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Assembler for a dataset that wraps another and provides change logging to a file.
  * <pre>
- *     <#dataset> rdf:type patch:LoggedDataset ;
+ *     <#dataset> rdf:type patch:LoggedDataset;
  *         patch:logFile "Dir/BaseFilename";
  *         patch:logPolicy "
- *           
+ *
  * </pre>
  * Policies: "date", "timestamp", "index", "rotate", "shift", "fixed" and "none".
  * <ul>
- * <li>"date" - add the date to the base name, rotate at midnight. 
+ * <li>"date" - add the date to the base name, rotate at midnight.
  * <li>"timestamp" - add a timestamp, rotate on every file.
  * <li>"index" - add a counter, rotate on every file. Highest numbered file is latest written.
  * <li>"rotate" or "shift"- move indexed files up one; write the baseFilename. Highest numbered file is the oldest written.
@@ -61,9 +61,9 @@ import org.slf4j.LoggerFactory;
  */
 public class AssemblerFileLog extends AssemblerBase {
     private static Logger LOG = LoggerFactory.getLogger(AssemblerFileLog.class);
-    
+
     public AssemblerFileLog() {}
-    
+
     @Override
     public Object open(Assembler a, Resource root, Mode mode) {
         if ( !exactlyOneProperty(root, VocabPatch.pDataset) )
@@ -73,29 +73,29 @@ public class AssemblerFileLog extends AssemblerBase {
 
         Resource dataset = GraphUtils.getResourceValue(root, VocabPatch.pDataset);
         List<String> destLogs =  GraphUtils.multiValueAsString(root, VocabPatch.pLogFile);
-        
+
         String logPolicy = GraphUtils.getStringValue(root, VocabPatch.pLogPolicy);
         FilePolicy policy = logPolicy == null ? FilePolicy.FIXED : FilePolicy.policy(logPolicy);
-        
+
         DatasetGraph dsgBase;;
-        try { 
+        try {
             Dataset dsBase = (Dataset)a.open(dataset);
             dsgBase = dsBase.asDatasetGraph();
         } catch (Exception ex) {
             FmtLog.error(this.getClass(), "Failed to build the dataset to adding change logging to: %s",dataset);
             throw ex;
         }
-        
-        RDFChanges changes = null ;
+
+        RDFChanges changes = null;
 
         // It would be better if each file had a policy.
         //   patch:logFile [ patch:filename ; patch:policy ];
-        //   patch:logFile ("FILE" "FIXED"); 
+        //   patch:logFile ("FILE" "FIXED");
         for ( String x : destLogs ) {
             FmtLog.info(LOG, "Log file: '%s'", x);
             if ( x.startsWith("file:") )
                 x = IRILib.IRIToFilename(x);
-            
+
             ManagedOutput output = OutputMgr.create(x, policy);
             // --------------
             String ext = FileUtils.getFilenameExt(x);
@@ -104,16 +104,16 @@ public class AssemblerFileLog extends AssemblerBase {
 //                ext = FileUtils.getFilenameExt(fn2);
 //            }
 //            OutputStream out = IO.openOutputFile(x);
-            
+
             boolean binaryPatches = ext.equalsIgnoreCase(RDFPatchConst.EXT_B);
             RDFChanges sc = binaryPatches
                 ? null //RDFPatchOps.binaryWriter(out);
                 //: RDFPatchOps.textWriter(out);
                 : new RDFChangesManagedOutput(output);
-            
+
             if ( sc == null )
                 throw new AssemblerException(root, "Failed to build the output destination: "+x);
-            changes = RDFChangesN.multi(changes, sc) ;
+            changes = RDFChangesN.multi(changes, sc);
         }
         DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changes);
         Dataset ds = DatasetFactory.wrap(dsg);

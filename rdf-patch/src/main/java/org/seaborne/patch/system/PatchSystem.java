@@ -27,22 +27,22 @@ public class PatchSystem {
      * See {@link InitPatch} and {@code META_INF/services/org.apache.jena.system.JenaSubsystemLifecycle}
      */
     public static void init( ) { init$(); }
-    
-    private static Object initLock = new Object() ;
-    private static volatile boolean initialized = false ;
-    
+
+    private static Object initLock = new Object();
+    private static volatile boolean initialized = false;
+
     private static void init$() {
         if ( initialized )
-            return ;
+            return;
         synchronized(initLock) {
             if ( initialized ) {
-                JenaSystem.logLifecycle("Patch.init - return") ;
-                return ;
+                JenaSystem.logLifecycle("Patch.init - return");
+                return;
             }
-            initialized = true ;
-            JenaSystem.logLifecycle("Patch.init - start") ;
+            initialized = true;
+            JenaSystem.logLifecycle("Patch.init - start");
             VocabPatch.init();
-            JenaSystem.logLifecycle("Patch.init - finish") ;
+            JenaSystem.logLifecycle("Patch.init - finish");
         }
     }
 

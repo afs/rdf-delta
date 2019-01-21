@@ -18,19 +18,19 @@
 
 package org.seaborne.patch.items;
 
-import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.Node;
 
 public class DeleteQuad  extends ChangeItem {
-    public final Node g ;
-    public final Node s ;
-    public final Node p ;
-    public final Node o ;
+    public final Node g;
+    public final Node s;
+    public final Node p;
+    public final Node o;
 
     public DeleteQuad(Node g, Node s, Node p, Node o) {
-        this.g = g ;
-        this.s = s ;
-        this.p = p ;
-        this.o = o ;
+        this.g = g;
+        this.s = s;
+        this.p = p;
+        this.o = o;
     }
 
     @Override

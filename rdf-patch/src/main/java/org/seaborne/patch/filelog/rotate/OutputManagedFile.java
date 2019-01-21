@@ -30,16 +30,16 @@ import org.seaborne.patch.filelog.FilePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** File-based {@link ManagedOutput} with various {@link FilePolicy FilePolicys} for file rotation. */ 
+/** File-based {@link ManagedOutput} with various {@link FilePolicy FilePolicys} for file rotation. */
 public class OutputManagedFile implements ManagedOutput {
-    private static Logger LOG = LoggerFactory.getLogger(OutputManagedFile.class); 
-    
-    // The file area 
+    private static Logger LOG = LoggerFactory.getLogger(OutputManagedFile.class);
+
+    // The file area
     private final Path directory;
     private final String filebase;
     // Current active file, full path name.
     private Path currentFilename = null;
-    
+
     // One writer at a time.
     private final Semaphore sema = new Semaphore(1);
     // The output
@@ -47,12 +47,12 @@ public class OutputManagedFile implements ManagedOutput {
     // Buffered output stream used by the caller.
     private OutputStream output = null;
     private OutputStreamManaged currentOutput = null;
-    
+
     static DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     // File Policy
-    private final Roller roller; 
-    
+    private final Roller roller;
+
     // Number of writes this process-lifetime.
     private long counter = 0;
 
@@ -72,14 +72,14 @@ public class OutputManagedFile implements ManagedOutput {
         }
         return null;
     }
-    
+
     /** Get rotation engine */
     @Override
     public Roller roller() {
         return roller;
     }
 
-    
+
     @Override
     public OutputStream currentOutput() {
         return currentOutput;
@@ -95,7 +95,7 @@ public class OutputManagedFile implements ManagedOutput {
     public Path latestFilename() {
         return roller.latestFilename();
     }
-    
+
     @Override
     public OutputStream output() {
         try {
@@ -109,7 +109,7 @@ public class OutputManagedFile implements ManagedOutput {
         currentOutput = new OutputStreamManaged(output, (x)->finish());
         return currentOutput;
     }
-    
+
     /** Force a rotation of the output file. */
     @Override
     public void rotate() {
@@ -134,10 +134,10 @@ public class OutputManagedFile implements ManagedOutput {
             sema.release();
     }
 
-    private boolean hasActiveFile() { 
+    private boolean hasActiveFile() {
         return output != null;
     }
-        
+
     private void advanceIfNecessary() {
         // Inside ownership of the semaphore.
         // Other rules
@@ -156,7 +156,7 @@ public class OutputManagedFile implements ManagedOutput {
             e.printStackTrace();
         }
     }
-    
+
     private void closeOutput() {
         if ( output == null )
             return;

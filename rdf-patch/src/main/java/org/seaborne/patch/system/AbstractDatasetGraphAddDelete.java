@@ -18,52 +18,52 @@
 
 package org.seaborne.patch.system;
 
-import java.util.Iterator ;
+import java.util.Iterator;
 
-import org.apache.jena.graph.Graph ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.DatasetGraphWrapper ;
-import org.apache.jena.sparql.core.GraphView ;
-import org.apache.jena.sparql.core.Quad ;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphWrapper;
+import org.apache.jena.sparql.core.GraphView;
+import org.apache.jena.sparql.core.Quad;
 
-/** Reduce all changes to calls to {@link #actionAdd} and {@link #actionDelete} */ 
+/** Reduce all changes to calls to {@link #actionAdd} and {@link #actionDelete} */
 public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper {
 
-    public AbstractDatasetGraphAddDelete(DatasetGraph dsg) { 
-        super(dsg) ; 
+    public AbstractDatasetGraphAddDelete(DatasetGraph dsg) {
+        super(dsg) ;
     }
-    
-    protected abstract void actionAdd(Node g, Node s, Node p, Node o) ;
-    protected abstract void actionDelete(Node g, Node s, Node p, Node o) ;
+
+    protected abstract void actionAdd(Node g, Node s, Node p, Node o);
+    protected abstract void actionDelete(Node g, Node s, Node p, Node o);
 
     @Override
     public void add(Quad quad) {
         add(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
     }
-    
+
     @Override
     public void delete(Quad quad) {
         delete(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
     }
-    
+
     @Override
     public void add(Node g, Node s, Node p, Node o) {
-        actionAdd(g,s,p,o) ;
+        actionAdd(g,s,p,o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
-        actionDelete(g, s, p, o) ;
+        actionDelete(g, s, p, o);
     }
-    
+
     //Is this needed?
     @Override
-    public void addGraph(Node graphName, Graph graph) {  
+    public void addGraph(Node graphName, Graph graph) {
         graph.find(null, null, null)
-            .forEachRemaining((t) -> this.add(graphName, t.getSubject(), t.getPredicate(), t.getObject())) ;
+            .forEachRemaining((t) -> this.add(graphName, t.getSubject(), t.getPredicate(), t.getObject()));
     }
-    
+
     @Override
     public void removeGraph(Node graphName)
     { deleteAny(graphName, Node.ANY, Node.ANY, Node.ANY) ; }
@@ -71,16 +71,16 @@ public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper 
     @Override
     public void setDefaultGraph(Graph graph) {
         graph.find(null, null, null)
-             .forEachRemaining((t) -> this.add(Quad.defaultGraphNodeGenerated, t.getSubject(), t.getPredicate(), t.getObject())) ;
+             .forEachRemaining((t) -> this.add(Quad.defaultGraphNodeGenerated, t.getSubject(), t.getPredicate(), t.getObject()));
     }
 
     @Override
-    public void clear() 
+    public void clear()
     { deleteAny(Node.ANY, Node.ANY, Node.ANY, Node.ANY) ; }
-    
+
     // XXX Ensure the graphs loop back here.
     // GraphChanges.
-    
+
     @Override
     public Graph getDefaultGraph()
     { return GraphView.createDefaultGraph(this) ; }
@@ -88,15 +88,15 @@ public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper 
     @Override
     public Graph getGraph(Node graphNode)
     { return GraphView.createNamedGraph(get(), graphNode) ; }
-    
+
     // Unbundle deleteAny
-    private static final int DeleteBufferSize = 10000 ;
+    private static final int DeleteBufferSize = 10000;
     @Override
     /** Simple implementation but done without assuming iterator.remove() */
     public void deleteAny(Node g, Node s, Node p, Node o) {
-        // TODO DRY This code. 
+        // TODO DRY This code.
         // This is duplicated: see DatasetGraphBase.
-        // We need to do the conversion here. 
+        // We need to do the conversion here.
         // DRY => DSGUtils
         // Convert deleteAny to deletes.
         Quad[] buffer = new Quad[DeleteBufferSize];

@@ -21,16 +21,16 @@ package org.seaborne.patch.changes;
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.graph.Node;
 import org.seaborne.patch.RDFPatchConst;
-import org.seaborne.patch.system.Printer ;
+import org.seaborne.patch.system.Printer;
 
 public class RDFChangesLogSummary extends RDFChangesCounter {
     final private Printer printer;
     private Node node = null;
 
 //    public RDFChangesLogSummary() { this(RDFChangesLog::printer) ; }
-    
+
     public RDFChangesLogSummary(Printer printer) {
-        this.printer = printer ;
+        this.printer = printer;
     }
 
     @Override
@@ -42,17 +42,17 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
 
     // 6 chars of UUID.
     private static int AbbrevUuidLen = "uuid:".length()+6;
-    
+
     @Override
     public void finish() {
         if ( summary.getDepth() != 0 )
-            return; 
-        
+            return;
+
         String s = "unset";
         if ( node != null ) {
             if ( node.isURI())
                 s = node.getURI();
-            else if ( node.isBlank() ) 
+            else if ( node.isBlank() )
                 s = node.getBlankNodeLabel();
             else
                 s = node.getLiteralLexicalForm();
@@ -60,7 +60,7 @@ public class RDFChangesLogSummary extends RDFChangesCounter {
         if ( s.startsWith("uuid:") && s.length() > AbbrevUuidLen )
             //s = s.substring(0, 11)+"...";
             s = s.substring(0, 11);
-        
+
         printer.print("%s :: Add %d :: Del %d :: P-Add %d :: P-Del %d",
                       s,
                       summary.countAddData,

@@ -18,17 +18,17 @@
 
 package org.seaborne.patch.system;
 
-import java.util.Iterator ;
-import java.util.function.Consumer ;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
-import org.apache.jena.graph.Graph ;
-import org.apache.jena.graph.Node ;
-import org.apache.jena.query.ReadWrite ;
-import org.apache.jena.query.TxnType ;
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.apache.jena.sparql.core.DatasetGraphWrapper ;
-import org.apache.jena.sparql.core.Quad ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.TxnType;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphWrapper;
+import org.apache.jena.sparql.core.Quad;
+import org.seaborne.patch.RDFChanges;
 
 
 /**
@@ -39,7 +39,7 @@ import org.seaborne.patch.RDFChanges ;
  * Optionally, a sync handler can be given that is called on {@code sync()} or {@code begin}.
  * This class is stateless so updating the wrapped dataset is possible via the sync handler.
  * <p>
- * Synchrionization can also be performed externally on the wrapped dataset.
+ * Synchronization can also be performed externally on the wrapped dataset.
  * <p>
  * Use {@link DatasetGraphRealChanges} to get a dataset that logs only changes that have a
  * real effect - that makes the changes log reversible (play delete for each add) to undo
@@ -70,8 +70,8 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
      *  Transactional usage preferred.
      */
     public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor, Runnable syncHandler, Consumer<ReadWrite> txnSyncHandler) {
-        super(dsg) ;
-        this.monitor = monitor ;
+        super(dsg);
+        this.monitor = monitor;
         this.syncHandler = syncHandler == null ? identityRunnable : syncHandler;
         this.txnSyncHandler = txnSyncHandler == null ? identityConsumer() : txnSyncHandler;
     }
@@ -97,13 +97,13 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         monitor.add(g, s, p, o);
-        super.add(g, s, p, o) ;
+        super.add(g, s, p, o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         monitor.delete(g, s, p, o);
-        super.delete(g, s, p, o) ;
+        super.delete(g, s, p, o);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public Graph getGraph(Node graphNode)
     { return new GraphChanges(get().getGraph(graphNode), graphNode, monitor) ; }
 
-    private static final int DeleteBufferSize = 10000 ;
+    private static final int DeleteBufferSize = 10000;
     @Override
     /** Simple implementation but done without assuming iterator.remove() */
     public void deleteAny(Node g, Node s, Node p, Node o) {
@@ -140,7 +140,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     }
 
     private boolean isWriteMode() {
-        return super.transactionMode() == ReadWrite.WRITE ;
+        return super.transactionMode() == ReadWrite.WRITE;
     }
 
     // In case an implementation has one "begin" calling another.
@@ -175,7 +175,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public void begin(TxnType txnType) {
         if ( insideBegin.get() ) {
             super.begin(txnType);
-            return ;
+            return;
         }
 
         insideBegin.set(true);
@@ -196,7 +196,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public void begin(ReadWrite readWrite) {
         if ( insideBegin.get() ) {
             super.begin(readWrite);
-            return ;
+            return;
         }
         insideBegin.set(true);
         try {

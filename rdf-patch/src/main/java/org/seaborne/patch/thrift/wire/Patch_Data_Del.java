@@ -124,13 +124,13 @@ public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, P
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.S, new org.apache.thrift.meta_data.FieldMetaData("s", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.S, new org.apache.thrift.meta_data.FieldMetaData("s", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.P, new org.apache.thrift.meta_data.FieldMetaData("p", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.P, new org.apache.thrift.meta_data.FieldMetaData("p", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.O, new org.apache.thrift.meta_data.FieldMetaData("o", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.O, new org.apache.thrift.meta_data.FieldMetaData("o", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.G, new org.apache.thrift.meta_data.FieldMetaData("g", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.G, new org.apache.thrift.meta_data.FieldMetaData("g", org.apache.thrift.TFieldRequirementType.OPTIONAL,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Data_Del.class, metaDataMap);
@@ -556,7 +556,7 @@ public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, P
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -565,7 +565,7 @@ public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, P
               struct.s = new RDF_Term();
               struct.s.read(iprot);
               struct.setSIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -574,7 +574,7 @@ public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, P
               struct.p = new RDF_Term();
               struct.p.read(iprot);
               struct.setPIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -583,7 +583,7 @@ public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, P
               struct.o = new RDF_Term();
               struct.o.read(iprot);
               struct.setOIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -592,7 +592,7 @@ public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, P
               struct.g = new RDF_Term();
               struct.g.read(iprot);
               struct.setGIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;

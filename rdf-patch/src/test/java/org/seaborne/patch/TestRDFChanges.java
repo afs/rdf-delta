@@ -34,16 +34,16 @@ import org.seaborne.patch.changes.RDFChangesN;
 
 public class TestRDFChanges {
     // Write read.
-    
-    private static Node g1 = SSE.parseNode(":g1"); 
-    private static Node g2 = SSE.parseNode("_:g2"); 
-    private static Node s1 = SSE.parseNode(":s1"); 
-    private static Node s2 = SSE.parseNode("_:s2"); 
-    private static Node p1 = SSE.parseNode("<http://example/p1>"); 
-    private static Node p2 = SSE.parseNode(":p2"); 
+
+    private static Node g1 = SSE.parseNode(":g1");
+    private static Node g2 = SSE.parseNode("_:g2");
+    private static Node s1 = SSE.parseNode(":s1");
+    private static Node s2 = SSE.parseNode("_:s2");
+    private static Node p1 = SSE.parseNode("<http://example/p1>");
+    private static Node p2 = SSE.parseNode(":p2");
     private static Node o1 = SSE.parseNode("<http://example/o1>");
     private static Node o2 = SSE.parseNode("123");
-    
+
     private static RDFPatch makePatch(Consumer<RDFChanges> action) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         RDFChangesCollector changes = new RDFChangesCollector();
@@ -51,7 +51,7 @@ public class TestRDFChanges {
         action.accept(changes);
         changes.finish();
         RDFPatch patch = changes.getRDFPatch();
-        return patch ;
+        return patch;
     }
 
     private static byte[] write(Consumer<RDFChanges> action) {
@@ -59,19 +59,19 @@ public class TestRDFChanges {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         RDFPatchOps.write(out, patch);
         byte[] output = out.toByteArray();
-        return output ;
+        return output;
     }
-    
+
     // test basic mechanism
     @Test public void changes_write_read_01() {
         RDFChangesCollector changes = new RDFChangesCollector();
         changes.start();
         changes.txnBegin();
-        changes.add(g1, s1, p1, o1);        
+        changes.add(g1, s1, p1, o1);
         changes.txnCommit();
         changes.finish();
     }
-    
+
     @Test public void changes_write_read_02() {
         RDFPatch patch = makePatch(changes->{
             changes.add(g1, s1, p1, o1);
@@ -82,7 +82,7 @@ public class TestRDFChanges {
         RDFPatchOps.write(out, patch);
         byte[] output = out.toByteArray();
     }
-    
+
     @Test public void changes_write_read_03() {
         RDFPatch patch = makePatch(changes->{
             changes.add(g1, s1, p1, o1);
@@ -100,7 +100,7 @@ public class TestRDFChanges {
 
     @Test public void changes_write_read_04() {
         byte[] output = write(changes->{});
-        assertEquals(0, output.length) ;
+        assertEquals(0, output.length);
         String x = StrUtils.fromUTF8bytes(output);
     }
 
@@ -109,7 +109,7 @@ public class TestRDFChanges {
             changes.txnBegin();
             changes.txnCommit();
         });
-        assertNotEquals(0, output.length) ;
+        assertNotEquals(0, output.length);
         String x = StrUtils.fromUTF8bytes(output);
         assertEquals("TX .\nTC .\n", x);
     }
@@ -122,13 +122,13 @@ public class TestRDFChanges {
             changes.txnCommit();
         });
         ByteArrayInputStream in = new ByteArrayInputStream(output);
-        
+
         RDFPatch patch2 = RDFPatchOps.read(in);
         RDFChangesCounter changes2 = new RDFChangesCounter();
-        
+
         patch2.apply(changes2);
         PatchSummary ps = changes2.summary();
-        
+
         assertEquals(1, ps.getCountAddData());
         assertEquals(1, ps.getCountDeleteData());
         assertEquals(1, ps.getCountTxnBegin());
@@ -157,7 +157,7 @@ public class TestRDFChanges {
     }
 
     // Specific implementations.
-    
+
     @Test public void changesN_01() {
         RDFPatch patch = makePatch((x)->{
             x.txnBegin();
@@ -165,7 +165,7 @@ public class TestRDFChanges {
             x.add(g2, s1, p1, o1);
             x.txnCommit();
         });
-        
+
         RDFChangesCounter c1 = new RDFChangesCounter();
         RDFChangesCounter c2 = new RDFChangesCounter();
         RDFChanges changes = new RDFChangesN(c1, c2);
@@ -174,7 +174,7 @@ public class TestRDFChanges {
         assertEquals(1, c1.summary().getCountTxnCommit());
         assertEquals(0, c1.summary().getCountTxnAbort());
         assertEquals(2, c1.summary().getCountAddData());
-        
+
         assertEquals(1, c2.summary().getCountTxnBegin());
         assertEquals(1, c2.summary().getCountTxnCommit());
         assertEquals(0, c2.summary().getCountTxnAbort());

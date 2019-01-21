@@ -233,7 +233,7 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {

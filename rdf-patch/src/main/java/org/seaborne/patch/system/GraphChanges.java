@@ -40,7 +40,7 @@ import org.seaborne.patch.RDFChanges;
  * If the graph is a graph from a dataset and the same graph name is to be used, then
  * instead of this class, get a graph from {@link DatasetGraphChanges}. Using this class
  * does not preseve the graph name, it uses the name explciit set in the constructor.
- * 
+ *
  * @see DatasetGraphChanges
  * @see RDFChanges
  */
@@ -51,13 +51,13 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
     private final PrefixMapping prefixMapping;
     private final TransactionHandler transactionHandler;
 
-    /** 
-     * Send changes to a graph to a {@link RDFChanges} with null for the graph name. 
+    /**
+     * Send changes to a graph to a {@link RDFChanges} with null for the graph name.
      */
     public GraphChanges(Graph graph, RDFChanges changes) {
         this(graph, null, changes);
     }
-    
+
     /**
      * Send changes to a graph to a {@link RDFChanges} with the specified graph name.
      * The graph name may be null for "no name".
@@ -69,9 +69,9 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
         this.prefixMapping = new PrefixMappingChanges(graph, graphName, changes);
         this.transactionHandler = new TransactionHandlerMonitor(graph.getTransactionHandler(), changes);
     }
-    
+
     @Override
-    public void add(Triple t) { 
+    public void add(Triple t) {
         changes.add(graphName,  t.getSubject(), t.getPredicate(), t.getObject());
         super.add(t);
     }
@@ -84,7 +84,7 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
 
 //    @Override public void performAdd( Triple t )    { add(t); }
 //    @Override public void performDelete( Triple t ) { delete(t); }
-    
+
     @Override
     public void clear() {
         remove(Node.ANY, Node.ANY, Node.ANY);
@@ -97,11 +97,11 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
 
     @Override
     public void remove(Node s, Node p, Node o) {
-        // Convert to calls to delete. 
+        // Convert to calls to delete.
         GraphUtil.remove(this, s, p, o);
     }
-    
-    
+
+
     @Override
     public TransactionHandler getTransactionHandler() {
         return transactionHandler;

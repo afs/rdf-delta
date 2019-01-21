@@ -30,7 +30,7 @@ public enum FilePolicy {
      */
     DATE,
     /**
-     * Timestamp with explicit roll over by calling {@link ManagedOutput#rotate()} 
+     * Timestamp with explicit roll over by calling {@link ManagedOutput#rotate()}
      * The file format is "filename-yyyy-mm-dd_hh-mm-ss".
      */
     TIMESTAMP,
@@ -47,8 +47,8 @@ public enum FilePolicy {
      * Use a fixed file
      */
     FIXED
-    ;
-    
+   ;
+
     public static FilePolicy policy(String name) {
         Objects.requireNonNull(name);
         if ( name.equalsIgnoreCase("date") ) return DATE;
@@ -58,6 +58,6 @@ public enum FilePolicy {
         if ( name.equalsIgnoreCase("shift") ) return SHIFT;
         if ( name.equalsIgnoreCase("fixed") ) return FIXED;
         if ( name.equalsIgnoreCase("none") ) return FIXED;
-        throw new FileRotateException("Unknown policy name: "+name); 
+        throw new FileRotateException("Unknown policy name: "+name);
     }
 }

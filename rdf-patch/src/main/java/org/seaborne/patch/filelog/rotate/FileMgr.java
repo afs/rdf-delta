@@ -37,24 +37,24 @@ import org.slf4j.LoggerFactory;
 
 public class FileMgr {
     static Logger LOG = LoggerFactory.getLogger(FileMgr.class);
-    
+
     private static final int IDX_TRIES = 1000;
-    
+
     public static Path freshFilename(Path directory, String filename) {
-        return freshFilename(directory, filename, 0, INC_SEP, "%d"); 
+        return freshFilename(directory, filename, 0, INC_SEP, "%d");
     }
-    
+
     /** Find a unique file name, assumes that it will not take too many probes.
      * Conceptually, ".0" is the base filename.
      * This function does not create the file.
      * Returns the full file name, directory included.
-     *  
+     *
      * @param directory Directory to look in
-     * @param filename  Base file name, without index modifer 
+     * @param filename  Base file name, without index modifer
      * @param startingFrom  Begin probing at index
      * @param format String format of the number as modifier e.g. "%03d"
      */
-  
+
     public static Path freshFilename(Path directory, String filename, int startingFrom, String sep, String format) {
         for ( int idx = startingFrom; idx < IDX_TRIES+startingFrom; idx++ ) {
             String fn = ( idx == 0 ) ? filename : basename(filename, idx, sep, format);
@@ -71,12 +71,12 @@ public class FileMgr {
      * <ul>
      * <li>1 : the base filename.
      * <li>2 : the separator
-     * <li>3 : the policy modifier. 
+     * <li>3 : the policy modifier.
      * </ul>
-     * 
+     *
      * @param directory Path
-     * @param namebase base name of interest 
-     * @param pattern Regex to extract the part of the filename for a {@link Filename}  
+     * @param namebase base name of interest
+     * @param pattern Regex to extract the part of the filename for a {@link Filename}
      * @return Unsorted List<Filename> of matches.
      */
     public static <X> List<Filename> scan(Path directory, String namebase, Pattern pattern) {
@@ -89,7 +89,7 @@ public class FileMgr {
         // Crude filtering by Files.newDirectoryStream because we will process again to extract the parts.
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, namebase+"*")) {
             for ( Path f : stream ) {
-                Filename filename = fromPath(directory, f, pattern); 
+                Filename filename = fromPath(directory, f, pattern);
                 if ( filename != null )
                     indexes.add(filename);
             }
@@ -98,10 +98,10 @@ public class FileMgr {
             throw new PatchException(ex);
         }
         return indexes;
-    } 
-    
+    }
+
     /**
-     * Find files matching a pattern and also include the base filename. 
+     * Find files matching a pattern and also include the base filename.
      */
     public static List<Filename> scanIncludeBase(Path directory, String filename, Pattern pattern) {
         List<Filename> filenames = scan(directory, filename, pattern);
@@ -110,17 +110,17 @@ public class FileMgr {
             filenames.add(fn);
         }
         //[gz]
-        return filenames ;
+        return filenames;
     }
 
-    /** Create a {@link FileName} */ 
+    /** Create a {@link FileName} */
     private static Filename fromPath(Path directory, Path filepath, Pattern pattern) {
         filepath = directory.resolve(filepath).getFileName();
         directory = directory.resolve(filepath).getParent();
         return fromPath(directory, filepath.getFileName().toString(), pattern);
     }
-    
-    /** Create a {@link Filename} */ 
+
+    /** Create a {@link Filename} */
     /*package*/ public static Filename fromPath(Path directory, String fn, Pattern pattern) {
         Matcher matcher = pattern.matcher(fn);
         if ( ! matcher.matches() )
@@ -129,19 +129,19 @@ public class FileMgr {
             FmtLog.info(LOG, "Match but wrong groups: "+fn);
             return null;
         }
-            
+
         String basename = matcher.group(1);
         String separator = matcher.group(2);
         String modifier = matcher.group(3);
         String compression = null;
         if ( matcher.groupCount() >= 4 )
             compression = matcher.group(4);
-        
+
         return new Filename(directory, basename, separator, modifier, compression);
     }
 
-    /** Shift files with a ".NNN" up by one, and move the base file to "filename.1".  
-     * 
+    /** Shift files with a ".NNN" up by one, and move the base file to "filename.1".
+     *
      * @param directory
      * @param filename
      */
@@ -151,15 +151,15 @@ public class FileMgr {
 
     /** Match an incremental file (does not match the base file name). **/
     /*package*/ static Pattern patternIncremental = Pattern.compile("(.*)(\\.)(\\d+)");
-    
+
     /*package*/ static final String INC_SEP = ".";
     /** Compare, and it there is no modifier, put in 0 */
     /*package*/ static Comparator<Filename> cmpNumericModifier = (x,y)->{
         long vx = indexFromFilename(x);
         long vy = indexFromFilename(y);
-        return Long.compare(vx, vy); 
+        return Long.compare(vx, vy);
     };
-    
+
     /*package*/ static long indexFromFilename(Filename filename) {
         if ( filename.isBasename() )
             return 0;
@@ -173,7 +173,7 @@ public class FileMgr {
     public static List<Filename> scanForIncrement(Path directory, String filename) {
         return scanIncludeBase(directory, filename, patternIncremental);
     }
-    
+
     /**
      * @param directory
      * @param filename
@@ -183,13 +183,13 @@ public class FileMgr {
     public static void shiftFiles(Path directory, String filename, int increment, String format) {
         if ( increment <= 0 )
             throw new IllegalArgumentException("Increment must be positive: got "+increment);
-        
+
         // Move files of the form "NAME" and "NAME.num" up  s
         List<Filename> files = scanForIncrement(directory, filename);
         Collections.sort(files, cmpNumericModifier.reversed());
         // Guava: Lists.reverse(List) -- is a view.
-        
-        // Pass 1 : check the list of files (checks rebuilding file names) 
+
+        // Pass 1 : check the list of files (checks rebuilding file names)
         for ( Filename fn : files ) {
             Path src = directory.resolve(fn.asFilenameString());
             if ( ! Files.exists(src) )
@@ -198,9 +198,9 @@ public class FileMgr {
                 // Check parsing.
                 Integer.parseInt(fn.modifier);
         }
-        
+
         // Pass 2 : do it.
-        
+
         for ( Filename fn : files ) {
             Path src1 = fn.absolute();
             Path src = directory.resolve(fn.asFilenameString());
@@ -216,9 +216,9 @@ public class FileMgr {
             catch (IOException e) { IO.exception(e); }
         }
     }
-    
-    
-    
+
+
+
     /** Create a file name using the base and the numeric modifier, converted to a number using the format */
     /*package*/ static String basename(String base, long idx, String sep, String modFormat) {
         return String.format("%s%s"+modFormat, base, sep, idx);

@@ -18,26 +18,26 @@
 
 package org.seaborne.patch.changes;
 
-import org.apache.jena.graph.Graph ;
-import org.apache.jena.graph.Node ;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.util.FmtUtils;
 import org.seaborne.patch.PatchException;
-import org.seaborne.patch.RDFChanges ;
+import org.seaborne.patch.RDFChanges;
 
-/** Apply chanages to a {@link Graph} */ 
+/** Apply chanages to a {@link Graph} */
 public class RDFChangesApplyGraph implements RDFChanges {
-    
-    private Graph graph ;
+
+    private Graph graph;
 
     public RDFChangesApplyGraph(Graph graph) {
-        this.graph = graph ;
+        this.graph = graph;
     }
 
     private static class QuadDataException extends PatchException {
-        QuadDataException(String msg) { super(msg) ; } 
+        QuadDataException(String msg) { super(msg) ; }
     }
-    
+
     @Override
     public void start() {}
 
@@ -56,34 +56,34 @@ public class RDFChangesApplyGraph implements RDFChanges {
             throw new QuadDataException("Attempt to add quad data to a graph: g="+FmtUtils.stringForNode(g));
         graph.add(Triple.create(s, p, o));
     }
-    
+
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         if ( g != null )
             throw new QuadDataException("Attempt to delete quad data to a graph: g="+FmtUtils.stringForNode(g));
         graph.delete(Triple.create(s, p, o));
     }
-    
+
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
-        graph.getPrefixMapping().setNsPrefix(prefix, uriStr) ;
+        graph.getPrefixMapping().setNsPrefix(prefix, uriStr);
     }
-    
+
     @Override
     public void deletePrefix(Node gn, String prefix) {
-        graph.getPrefixMapping().removeNsPrefix(prefix) ;
+        graph.getPrefixMapping().removeNsPrefix(prefix);
     }
-    
+
     @Override
     public void txnBegin() {
         graph.getTransactionHandler().begin();
     }
-    
+
     @Override
     public void txnCommit() {
         graph.getTransactionHandler().commit();
     }
-    
+
     @Override
     public void txnAbort() {
         graph.getTransactionHandler().abort();

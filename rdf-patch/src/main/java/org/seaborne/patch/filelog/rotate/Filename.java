@@ -36,21 +36,21 @@ public class Filename {
     public final String modifier;
     public final String compression;
     private Path absolute;
-    
+
     private static String SEP = ".";
-    
+
     public Filename(Path directory, String basename, String separator, String modifier, String compression) {
         Objects.requireNonNull(directory, "directory");
         Objects.requireNonNull(basename, "basename");
         this.directory = directory;
         this.basename = basename;
-        
+
         if ( 1 == countNonNulls(separator, modifier) ) {
             FmtLog.warn(FileMgr.LOG, "Both separator and modifier must be set, or both be null: (s=%s, m=%s)", separator, modifier);
             separator = null;
             modifier = null;
         }
-        
+
         this.separator = separator;
         this.modifier = modifier;
         if ( compression != null && compression.startsWith(SEP) )
@@ -58,7 +58,7 @@ public class Filename {
         this.compression = compression;
         this.absolute = null;
     }
-    
+
     private Path toAbsolutePath() {
         String fn = asFilenameString();
         return directory.resolve(fn).toAbsolutePath();
@@ -67,7 +67,7 @@ public class Filename {
     public boolean isBasename() {
         return modifier==null || separator==null;
     }
-    
+
     public boolean isCompressed() {
         return compression != null;
     }
@@ -81,14 +81,14 @@ public class Filename {
             fn = fn+SEP+compression;
         return fn;
     }
-    
+
     /** As a absolute file system filename. */
     public Path absolute() {
         if ( absolute == null )
             absolute = toAbsolutePath();
         return absolute;
     }
-    
+
     // display version.
     @Override
     public String toString() {
@@ -102,7 +102,7 @@ public class Filename {
             fn = fn + MARK +compression;
         return fn;
     }
-    
+
     private static int countNonNulls(Object ... objects) {
         int x = 0;
         for ( Object obj : objects ) {

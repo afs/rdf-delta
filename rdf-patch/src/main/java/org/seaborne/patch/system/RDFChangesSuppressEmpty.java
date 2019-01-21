@@ -23,17 +23,17 @@ import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesWrapper;
 
 /** Note whether a change has happened and call different operations on txnCommit
- *  A change is a call to one of the dataset-changing operations, 
+ *  A change is a call to one of the dataset-changing operations,
  *  {@code add}, {@code delete}, {@code addPrefix}, {@code deletePrefix}.
  *  Setting headers is not consided a change.
  *  <p>
  *  If a change has been made, {@link #txnChangeCommit()} is called, otherwise
- *  {@link #txnNoChangeCommit()} is called.  The implementation of these methods must call 
+ *  {@link #txnNoChangeCommit()} is called.  The implementation of these methods must call
  *  {@link #doCommit()}, to accept the change or {@link #doAbort()} to cancel it.
  *  <p>
  *  A common case is to suppress empty transactions.
  *  To do this, call {@link #doAbort()} in {@link #txnNoChangeCommit()}
- */  
+ */
 public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
     // TODO Add RDFChanges.cancel.
 
@@ -41,13 +41,13 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
         super(other);
     }
 
-    private boolean changeHappened = false ;
+    private boolean changeHappened = false;
     protected boolean changeHappened()  { return changeHappened; }
-    
+
     private void markChanged() {
         changeHappened = true;
     }
-    
+
 //    @Override
 //    public void start() {}
 //
@@ -55,7 +55,7 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
 //    public void finish() {}
 
     // Headers do not count as "changes".
-    // A patch must have certain headers for use with a patch log - an id, and a prev. 
+    // A patch must have certain headers for use with a patch log - an id, and a prev.
     @Override
     public void header(String field, Node value) {
         super.header(field, value);
@@ -97,24 +97,24 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
             txnChangeCommit();
         else
             txnNoChangeCommit();
-        changeHappened = false ;
+        changeHappened = false;
     }
 
     @Override
     public final void txnAbort() {
         txnAborting();
-        changeHappened = false ;
+        changeHappened = false;
     }
-    
+
     /**
      * Called when commit called and there were no changes made (no calls to add/delete
-     * operations of quads or prefixes). 
+     * operations of quads or prefixes).
      * <p>
-     * The default implementation is to call 
+     * The default implementation is to call
      * {@link #doAbort()}.
      * <p>
      * If this is a call to {@link #doCommit()}
-     * then the process is a no-op. 
+     * then the process is a no-op.
      */
     protected void txnNoChangeCommit() {
         doAbort();
@@ -122,17 +122,17 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
 
     /**
      * Called when commit called and there were were changes made.
-     * The default implementation is to call {@link #doCommit()}. 
+     * The default implementation is to call {@link #doCommit()}.
      */
     protected void txnChangeCommit() {
         doCommit();
     }
 
-    /** Called when abort called. */ 
+    /** Called when abort called. */
     protected void txnAborting() {
         doAbort();
     }
-    
+
     // Let subclasses call the wrapped txnCommit()
     protected void doCommit() {
         super.txnCommit();
@@ -142,5 +142,5 @@ public class RDFChangesSuppressEmpty extends RDFChangesWrapper {
     protected void doAbort() {
         super.txnAbort();
     }
-    
+
 }

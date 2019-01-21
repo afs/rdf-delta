@@ -52,18 +52,18 @@ import org.seaborne.patch.thrift.wire.Transaction;
  */
 public class RDFPatchReaderBinary implements PatchProcessor {
     private final InputStream input;
-    
+
     private RDFPatchReaderBinary(InputStream input) {
         this.input = input;
     }
-    
+
     @Override
     public void apply(RDFChanges processor) {
         read(input, processor);
     }
 
     public static PatchProcessor create(InputStream input) { return new RDFPatchReaderBinary(input); }
-    
+
     /**
      * Read input stream and produce an {@link RDFPatch}.
      * This operation actively reads the patch into memory.
@@ -72,13 +72,13 @@ public class RDFPatchReaderBinary implements PatchProcessor {
      * Create an {@code PatchReaderBinary} object with {@link RDFPatchReaderBinary#create}
      * to create a delayed read processor.
      * See {@link RDFPatchOps#collect} to make sure a patch has been read.
-     */ 
+     */
     public static RDFPatch read(InputStream input) {
         RDFChangesCollector changes = new RDFChangesCollector();
         RDFPatchReaderBinary.read(input, changes);
         return changes.getRDFPatch();
     }
-    
+
     /**
      * Read input stream and produce a {@link PatchHeader}.
      * The stream is read during this call.
@@ -88,14 +88,14 @@ public class RDFPatchReaderBinary implements PatchProcessor {
         return readHeader(protocol);
     }
 
-    /** 
+    /**
      * Read input stream and produce a {@link PatchHeader}.
      * The stream is read during this call.
      */
     private static PatchHeader readHeader(TProtocol protocol) {
         RDF_Patch_Row row = new RDF_Patch_Row();
         Map<String, Node> header = new LinkedHashMap<>();
-        
+
         for (;;) {
             row.clear();
             try { row.read(protocol) ; }
@@ -107,7 +107,7 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             catch (TException e) {
                 throw new PatchException("Thrift exception", e);
             }
-            
+
             if ( row.isSetHeader() ) {
                 Patch_Header h = row.getHeader();
                 Node n = RDFPatchReaderBinary.fromThrift(h.getValue());
@@ -117,14 +117,14 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             break;
         }
         return new PatchHeader(header);
-        
+
     }
 
-    /** Read and apply */ 
+    /** Read and apply */
     public static void read(InputStream input, RDFChanges changes) {
         read(TRDF.protocol(input), changes);
     }
-    
+
     public static void read(TProtocol protocol, RDFChanges changes) {
         RDF_Patch_Row row = new RDF_Patch_Row();
         changes.start();
@@ -134,16 +134,16 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             catch (TTransportException e) {
                 if ( e.getType() == TTransportException.END_OF_FILE ) {
                     changes.finish();
-                    return ;
+                    return;
                 }
                 throw new PatchException("Thrift exception", e);
             }
             catch (TException e) {
                 throw new PatchException("Thrift exception", e);
             }
-            
+
             dispatch(row, changes);
-        }        
+        }
     }
 
     private static void dispatch(RDF_Patch_Row row, RDFChanges changes) {
@@ -165,7 +165,7 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             changes.add(g, s, p, o);
             return;
         }
-        
+
         if ( row.isSetDataDel() ) {
             Patch_Data_Del del = row.getDataDel();
             Node s = RDFPatchReaderBinary.fromThrift(del.getS());
@@ -186,7 +186,7 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             changes.addPrefix(gn, add.getPrefix(), add.getIriStr());
             return;
         }
-        
+
         if ( row.isSetPrefixDel()) {
             Patch_Prefix_Del del = row.getPrefixDel();
             Node gn = null;
@@ -195,7 +195,7 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             changes.deletePrefix(gn, del.getPrefix());
             return;
         }
-        
+
         if ( row.isSetTxn() ) {
             Transaction txn = row.getTxn();
             switch (txn) {
@@ -206,29 +206,29 @@ public class RDFPatchReaderBinary implements PatchProcessor {
             }
             return;
         }
-        
+
         throw new PatchException("Unrecogized :"+row);
     }
 
     public static Node fromThrift(RDF_Term term) {
         if ( term.isSetIri() )
-            return NodeFactory.createURI(term.getIri().getIri()) ;
-    
+            return NodeFactory.createURI(term.getIri().getIri());
+
         if ( term.isSetBnode() )
-            return NodeFactory.createBlankNode(term.getBnode().getLabel()) ;
-    
+            return NodeFactory.createBlankNode(term.getBnode().getLabel());
+
         if ( term.isSetLiteral() ) {
-            RDF_Literal lit = term.getLiteral() ;
-            String lex = lit.getLex() ;
-            String dtString = null ;
+            RDF_Literal lit = term.getLiteral();
+            String lex = lit.getLex();
+            String dtString = null;
             if ( lit.isSetDatatype() )
-                dtString = lit.getDatatype() ;
-            RDFDatatype dt = NodeFactory.getType(dtString) ;
-    
-            String lang = lit.getLangtag() ;
-            return NodeFactory.createLiteral(lex, lang, dt) ;
+                dtString = lit.getDatatype();
+            RDFDatatype dt = NodeFactory.getType(dtString);
+
+            String lang = lit.getLangtag();
+            return NodeFactory.createLiteral(lex, lang, dt);
         }
-    
-        throw new PatchException("No conversion to a Node: "+term.toString()) ;
+
+        throw new PatchException("No conversion to a Node: "+term.toString());
     }
 }

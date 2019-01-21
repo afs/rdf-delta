@@ -28,16 +28,16 @@ import org.apache.jena.sparql.core.Quad;
 public class Match {
     public static Stream<Triple> match(Collection<Triple> triples, Node s, Node p, Node o) {
         return triples.stream()
-            .filter(t-> match(t, s,p,o)); 
+            .filter(t-> match(t, s,p,o));
     }
 
     public static Stream<Quad> match(Collection<Quad> quads, Node g, Node s, Node p, Node o) {
         return quads.stream()
-            .filter(q-> match(q, g,s,p,o)); 
+            .filter(q-> match(q, g,s,p,o));
     }
 
     public static boolean match(Quad quad, Node g, Node s, Node p, Node o) {
-        return 
+        return
             match(quad.getGraph(), g) &&
             match(quad.getSubject(), s) &&
             match(quad.getPredicate(), p) &&
@@ -46,12 +46,12 @@ public class Match {
 
     public static boolean match(Triple triple, Node s, Node p, Node o) {
         return
-            match(triple.getSubject(), s) && 
+            match(triple.getSubject(), s) &&
             match(triple.getPredicate(), p) &&
             match(triple.getObject(), o);
     }
 
     public static boolean match(Node node, Node pattern) {
-        return pattern == null || pattern == Node.ANY || pattern.equals(node); 
+        return pattern == null || pattern == Node.ANY || pattern.equals(node);
     }
 }

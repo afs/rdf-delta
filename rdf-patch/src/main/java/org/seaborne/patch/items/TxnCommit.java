@@ -18,7 +18,7 @@
 
 package org.seaborne.patch.items;
 
-public class TxnCommit extends ChangeItem { 
+public class TxnCommit extends ChangeItem {
     @Override
     public int hashCode() {
         return 17;

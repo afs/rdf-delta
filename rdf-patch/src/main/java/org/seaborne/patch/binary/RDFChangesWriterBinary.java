@@ -36,6 +36,10 @@ import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.thrift.wire.*;
 
 /**
+ * Write RDF PAtch in binary (thrift encoded).
+ * <p>
+ * This class is not thread safe.
+ *
  * @see RDFChangesWriter
  */
 public class RDFChangesWriterBinary implements RDFChanges {
@@ -48,33 +52,33 @@ public class RDFChangesWriterBinary implements RDFChanges {
             writer.finish();
         } catch (IOException ex) { IO.exception(ex); }
     }
-    
-    private RDF_Term tv = new RDF_Term();
-    private RDF_Term ts = new RDF_Term();
-    private RDF_Term tp = new RDF_Term();
-    private RDF_Term to = new RDF_Term();
-    private RDF_Term tg = new RDF_Term();
-    private Patch_Header header = new Patch_Header();
-    private Patch_Data_Add dataAdd = new Patch_Data_Add();
-    private Patch_Data_Del dataDel = new Patch_Data_Del();
-    private Patch_Prefix_Add prefixAdd = new Patch_Prefix_Add();
-    private Patch_Prefix_Del prefixDel = new Patch_Prefix_Del();
-    private RDF_Patch_Row row = new RDF_Patch_Row();
-    
+
+    // Workspace - reused objects
+    private final RDF_Term tv = new RDF_Term();
+    private final RDF_Term ts = new RDF_Term();
+    private final RDF_Term tp = new RDF_Term();
+    private final RDF_Term to = new RDF_Term();
+    private final RDF_Term tg = new RDF_Term();
+    private final Patch_Header header = new Patch_Header();
+    private final Patch_Data_Add dataAdd = new Patch_Data_Add();
+    private final Patch_Data_Del dataDel = new Patch_Data_Del();
+    private final Patch_Prefix_Add prefixAdd = new Patch_Prefix_Add();
+    private final Patch_Prefix_Del prefixDel = new Patch_Prefix_Del();
+    private final RDF_Patch_Row row = new RDF_Patch_Row();
+
     private final TProtocol protocol;
-    
     public RDFChangesWriterBinary(TProtocol protocol) {
         this.protocol = protocol;
     }
-    
+
     private void write() {
-        try { row.write(protocol); } 
+        try { row.write(protocol); }
         catch (TException e) {
             throw new PatchException("Thrift exception", e);
         }
         row.clear();
     }
-    
+
     @Override
     public void start() {}
 
@@ -130,7 +134,7 @@ public class RDFChangesWriterBinary implements RDFChanges {
     @Override
     public void addPrefix(Node gn, String prefix, String uriStr) {
         prefixAdd.clear();
-        if ( gn != null ) { 
+        if ( gn != null ) {
             tv.clear();
             toThrift(gn, tv);
             prefixAdd.setGraphNode(tv);
@@ -144,7 +148,7 @@ public class RDFChangesWriterBinary implements RDFChanges {
     @Override
     public void deletePrefix(Node gn, String prefix) {
         prefixDel.clear();
-        if ( gn != null ) { 
+        if ( gn != null ) {
             tv.clear();
             toThrift(gn, tv);
             prefixDel.setGraphNode(tv);
@@ -180,54 +184,54 @@ public class RDFChangesWriterBinary implements RDFChanges {
 
     /*package*/ static void toThrift(Node node, RDF_Term term) {
         if ( node.isURI() ) {
-            RDF_IRI iri = new RDF_IRI(node.getURI()) ;
-            term.setIri(iri) ;
-            return ;
+            RDF_IRI iri = new RDF_IRI(node.getURI());
+            term.setIri(iri);
+            return;
         }
 
         if ( node.isBlank() ) {
-            RDF_BNode b = new RDF_BNode(node.getBlankNodeLabel()) ;
-            term.setBnode(b) ;
-            return ;
+            RDF_BNode b = new RDF_BNode(node.getBlankNodeLabel());
+            term.setBnode(b);
+            return;
         }
 
         if ( node.isURI() ) {
-            RDF_IRI iri = new RDF_IRI(node.getURI()) ;
-            term.setIri(iri) ;
-            return ;
+            RDF_IRI iri = new RDF_IRI(node.getURI());
+            term.setIri(iri);
+            return;
         }
 
         if ( node.isLiteral() ) {
-            String lex = node.getLiteralLexicalForm() ;
-            String dt = node.getLiteralDatatypeURI() ;
-            String lang = node.getLiteralLanguage() ;
+            String lex = node.getLiteralLexicalForm();
+            String dt = node.getLiteralDatatypeURI();
+            String lang = node.getLiteralLanguage();
 
             // General encoding.
-            RDF_Literal literal = new RDF_Literal(lex) ;
+            RDF_Literal literal = new RDF_Literal(lex);
             if ( JenaRuntime.isRDF11 ) {
-                if ( node.getLiteralDatatype().equals(XSDDatatype.XSDstring) || 
+                if ( node.getLiteralDatatype().equals(XSDDatatype.XSDstring) ||
                     node.getLiteralDatatype().equals(RDFLangString.rdfLangString) )
-                    dt = null ;
+                    dt = null;
             }
 
             if ( dt != null ) {
-                literal.setDatatype(dt) ;
+                literal.setDatatype(dt);
             }
             if ( lang != null && ! lang.isEmpty() )
-                literal.setLangtag(lang) ;
-            term.setLiteral(literal) ;
-            return ;
+                literal.setLangtag(lang);
+            term.setLiteral(literal);
+            return;
         }
 
         if ( node.isVariable() ) {
-            RDF_VAR var = new RDF_VAR(node.getName()) ;
-            term.setVariable(var) ;
-            return ;
+            RDF_VAR var = new RDF_VAR(node.getName());
+            term.setVariable(var);
+            return;
         }
 //        if ( Node.ANY.equals(node)) {
-//            term.setAny(ANY) ;
-//            return ;
+//            term.setAny(ANY);
+//            return;
 //        }
-        throw new PatchException("Node converstion not supported: "+node) ;
+        throw new PatchException("Node converstion not supported: "+node);
     }
 }

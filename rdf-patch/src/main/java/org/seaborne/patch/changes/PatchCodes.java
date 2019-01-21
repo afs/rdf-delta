@@ -21,10 +21,10 @@ package org.seaborne.patch.changes;
 /** Text format code (start of line) */
 public class PatchCodes {
     // An enum does not help.
-    // 
+    //
     // In the reader we need to do string -> dispatch in a string-switch statement.
     // In the writer, we need the label to output.
-    
+
     public static final String HEADER     = "H";
 
     public static final String ADD_DATA   = "A";

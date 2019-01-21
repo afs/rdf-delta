@@ -50,7 +50,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
     PREFIX_ADD((short)4, "prefixAdd"),
     PREFIX_DEL((short)5, "prefixDel"),
     /**
-     * 
+     *
      * @see Transaction
      */
     TXN((short)6, "txn");
@@ -122,17 +122,17 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Patch_Header.class)));
-    tmpMap.put(_Fields.DATA_ADD, new org.apache.thrift.meta_data.FieldMetaData("dataAdd", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.DATA_ADD, new org.apache.thrift.meta_data.FieldMetaData("dataAdd", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Patch_Data_Add.class)));
-    tmpMap.put(_Fields.DATA_DEL, new org.apache.thrift.meta_data.FieldMetaData("dataDel", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.DATA_DEL, new org.apache.thrift.meta_data.FieldMetaData("dataDel", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Patch_Data_Del.class)));
-    tmpMap.put(_Fields.PREFIX_ADD, new org.apache.thrift.meta_data.FieldMetaData("prefixAdd", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PREFIX_ADD, new org.apache.thrift.meta_data.FieldMetaData("prefixAdd", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Patch_Prefix_Add.class)));
-    tmpMap.put(_Fields.PREFIX_DEL, new org.apache.thrift.meta_data.FieldMetaData("prefixDel", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PREFIX_DEL, new org.apache.thrift.meta_data.FieldMetaData("prefixDel", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Patch_Prefix_Del.class)));
-    tmpMap.put(_Fields.TXN, new org.apache.thrift.meta_data.FieldMetaData("txn", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.TXN, new org.apache.thrift.meta_data.FieldMetaData("txn", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, Transaction.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_Patch_Row.class, metaDataMap);
@@ -513,7 +513,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
   }
 
   /**
-   * 
+   *
    * @see Transaction
    */
   public Transaction getTxn() {
@@ -525,7 +525,7 @@ public class RDF_Patch_Row extends org.apache.thrift.TUnion<RDF_Patch_Row, RDF_P
   }
 
   /**
-   * 
+   *
    * @see Transaction
    */
   public void setTxn(Transaction value) {

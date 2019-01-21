@@ -119,11 +119,11 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.GRAPH_NODE, new org.apache.thrift.meta_data.FieldMetaData("graphNode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.GRAPH_NODE, new org.apache.thrift.meta_data.FieldMetaData("graphNode", org.apache.thrift.TFieldRequirementType.OPTIONAL,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.IRI_STR, new org.apache.thrift.meta_data.FieldMetaData("iriStr", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.IRI_STR, new org.apache.thrift.meta_data.FieldMetaData("iriStr", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Prefix_Add.class, metaDataMap);
@@ -476,7 +476,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -485,7 +485,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
               struct.graphNode = new RDF_Term();
               struct.graphNode.read(iprot);
               struct.setGraphNodeIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -493,7 +493,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.prefix = iprot.readString();
               struct.setPrefixIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -501,7 +501,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.iriStr = iprot.readString();
               struct.setIriStrIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;

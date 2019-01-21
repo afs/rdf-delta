@@ -18,14 +18,14 @@
 
 package org.seaborne.patch;
 
-import java.util.Locale ;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors ;
+import java.util.stream.Collectors;
 
 import org.apache.jena.graph.Node;
 
-/** RDF Patch header */ 
+/** RDF Patch header */
 public class PatchHeader {
     // Currently, a read-only wrapper on a Map
     private Map<String, Node> header;
@@ -36,20 +36,20 @@ public class PatchHeader {
             .stream().collect(Collectors.toMap(e->lc(e.getKey()),
                                                e->e.getValue()));
     }
-    
-    public Node getId() { 
-        return get(RDFPatchConst.ID) ;
+
+    public Node getId() {
+        return get(RDFPatchConst.ID);
     }
 
     public Node getPrevious() {
-        Node n = get(RDFPatchConst.PREV) ;
+        Node n = get(RDFPatchConst.PREV);
         if ( n == null )
-            n = get(RDFPatch.PREVIOUS) ;
+            n = get(RDFPatch.PREVIOUS);
         return n;
     }
-    
+
     public Node get(String field) {
-        return header.get(lc(field)) ;
+        return header.get(lc(field));
     }
 
     public void apply(RDFChanges changes) {
@@ -62,7 +62,7 @@ public class PatchHeader {
             changes.header(RDFPatchConst.PREV, prevNode);
 
         // Then the rest,
-        
+
         forEach( (s,n) -> {
             switch(s) {
                 case RDFPatchConst.ID:
@@ -74,17 +74,17 @@ public class PatchHeader {
             }
         });
     }
-    
+
     public void forEach(BiConsumer<String, Node> action) {
-        
-        
+
+
         header.forEach(action);
     }
 
     private static String lc(String str) {
         return str.toLowerCase(Locale.ROOT);
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -109,8 +109,8 @@ public class PatchHeader {
             return false;
         return true;
     }
-    
-    @Override 
+
+    @Override
     public String toString() {
         return header.toString();
     }

@@ -18,44 +18,44 @@
 
 package org.seaborne.patch.changes;
 
-import org.apache.jena.graph.Node ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Node;
+import org.seaborne.patch.RDFChanges;
 
 public class RDFChangesBase implements RDFChanges {
     // Logically, this is an abstract class.
     // But to ensure every operation has a mention here, we do not add "abstract".
-    
+
     @Override
     public void start() {}
 
     @Override
     public void finish() {}
-    
+
     @Override
     public void segment() {}
-    
+
     @Override
-    public void header(String field, Node value) {} 
-    
+    public void header(String field, Node value) {}
+
     @Override
     public void add(Node g, Node s, Node p, Node o) {}
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) { }
-    
+
     @Override
-    public void addPrefix(Node graph, String prefix, String uriStr) {} 
-    
+    public void addPrefix(Node graph, String prefix, String uriStr) {}
+
     @Override
     public void deletePrefix(Node graph, String prefix) {}
-    
+
     @Override
     public void txnBegin() {}
-    
+
     @Override
     public void txnCommit() {}
-    
+
     @Override
     public void txnAbort() {}
-    
+
 }

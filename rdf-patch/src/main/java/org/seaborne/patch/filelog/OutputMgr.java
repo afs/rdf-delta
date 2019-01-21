@@ -31,7 +31,7 @@ import org.seaborne.patch.filelog.rotate.OutputManagedFile;
 public class OutputMgr {
 
     /** Create a {@link ManagedOutput managed output stream} handler for a file.
-     * The {@link FilePolicy} determines how the file is rotated which 
+     * The {@link FilePolicy} determines how the file is rotated which
      * may be automatic (such as by {@link FilePolicy#DATE})
      * or by external control ({@link ManagedOutput#rotate()})
      * @param directoryName
@@ -43,11 +43,11 @@ public class OutputMgr {
         Objects.requireNonNull(directoryName);
         Objects.requireNonNull(baseFilename);
         Objects.requireNonNull(strategy);
-        return new OutputManagedFile(Paths.get(directoryName), baseFilename, strategy); 
+        return new OutputManagedFile(Paths.get(directoryName), baseFilename, strategy);
     }
-    
+
     /** Create a {@link ManagedOutput managed output stream} handler for a file.
-     * The {@link FilePolicy} determines how the file is rotated which 
+     * The {@link FilePolicy} determines how the file is rotated which
      * may be automatic (such as by {@link FilePolicy#DATE})
      * or by external control ({@link ManagedOutput#rotate()})
      * @param directory
@@ -61,9 +61,9 @@ public class OutputMgr {
         Objects.requireNonNull(strategy);
         return new OutputManagedFile(directory, baseFilename, strategy);
     }
-    
+
     /** Create a {@link ManagedOutput managed output stream} handler for a file.
-     * The {@link FilePolicy} determines how the file is rotated which 
+     * The {@link FilePolicy} determines how the file is rotated which
      * may be automatic (such as by {@link FilePolicy#DATE})
      * or by external control ({@link ManagedOutput#rotate()})
      * @param pathName
@@ -78,14 +78,14 @@ public class OutputMgr {
         Path p = Paths.get(pathName).toAbsolutePath();
         return new OutputManagedFile(p.getParent(), p.getFileName().toString(), strategy);
     }
-    
+
     /** Create a managed output stream handler for fixed {@link OutputStream}.
      * The {@code OutputStream} is fixed; there is no rotation policy.
-     * This is an adapter from {@code OutputStream} to {@code ManagedOutput}.  
+     * This is an adapter from {@code OutputStream} to {@code ManagedOutput}.
      * @param outputStream
      * @return ManagedOutput
      */
     public static ManagedOutput create(OutputStream outputStream) {
-        return new OutputFixed(outputStream); 
+        return new OutputFixed(outputStream);
     }
 }

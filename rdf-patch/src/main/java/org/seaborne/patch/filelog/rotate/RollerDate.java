@@ -33,11 +33,11 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 
+/**
  * Filename policy where files are "filebase-yyyy-mm-dd".
- * Rollover happens at the first new section written after local midnight. 
+ * Rollover happens at the first new section written after local midnight.
  * ("local" means "system default").
- */  
+ */
 class RollerDate implements Roller {
     private static final Logger LOG = LoggerFactory.getLogger(RollerDate.class);
     // Date-based roll over
@@ -45,27 +45,27 @@ class RollerDate implements Roller {
     private final String baseFilename;
     private Path latestFilename = null;
     private LocalDate current = LocalDate.now();
-    
-    /** Match a date-appended filename */ 
+
+    /** Match a date-appended filename */
     private static final Pattern patternFilenameDate = Pattern.compile("(.*)(-)(\\d{4}-\\d{2}-\\d{2})");
     private static final String DATE_SEP = "-";
     private static final DateTimeFormatter fmtDate = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final Comparator<Filename> cmpDate = (x,y)->{
         LocalDate xdt = filenameToDate(x);
         LocalDate ydt = filenameToDate(y);
-        return xdt.compareTo(ydt); 
+        return xdt.compareTo(ydt);
     };
-    
+
     private static LocalDate filenameToDate(Filename filename) {
         return LocalDate.parse(filename.modifier, fmtDate);
     }
-    
+
     RollerDate(Path directory, String baseFilename) {
         this.directory = directory;
         this.baseFilename = baseFilename;
         init(directory,baseFilename);
     }
-    
+
     private void init(Path directory, String baseFilename) {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDate);
         if ( filenames.isEmpty() )
@@ -73,7 +73,7 @@ class RollerDate implements Roller {
         else {
             LocalDate dateLast = filenameToDate(Collections.max(filenames, cmpDate));
             LocalDate dateFirst = filenameToDate(Collections.min(filenames, cmpDate));
-            int problems = 0 ;
+            int problems = 0;
             if ( dateLast.isAfter(current)) {
                 problems++;
                 FmtLog.warn(LOG, "Latest output file is dated after today: %s > %s", dateLast, current);
@@ -83,18 +83,18 @@ class RollerDate implements Roller {
                 FmtLog.warn(LOG, "First output file is dated after today: %s > %s", dateFirst, current);
             }
             if ( problems > 0 )
-                throw new FileRotateException("Existing files dated into the future"); 
+                throw new FileRotateException("Existing files dated into the future");
             latestFilename = filename(dateLast);
         }
     }
-    
+
     @Override
     public Stream<Filename> files() {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDate);
         return filenames.stream().sorted(cmpDate);
     }
 
-    
+
     @Override
     public Path directory() {
         return directory;
@@ -108,7 +108,7 @@ class RollerDate implements Roller {
 
     private ZoneId zoneId = ZoneId.systemDefault();
     //private ZoneId zoneId = ZoneId.of("UTC");
-    
+
     @Override
     public Path latestFilename() {
         return latestFilename;
@@ -116,30 +116,30 @@ class RollerDate implements Roller {
 
     @Override
     public boolean hasExpired() {
-        return ( LocalDate.now(zoneId).isAfter(current) ) ;
+        return ( LocalDate.now(zoneId).isAfter(current) );
     }
-    
+
     @Override
     public void rotate() {
         // No-op.
     }
-    
+
     @Override
     public Path nextFilename() {
         LocalDate nextCurrent = LocalDate.now(zoneId);
         // Same date.
         if ( nextCurrent.equals(current) ) { }
         current = nextCurrent;
-        latestFilename = filename(nextCurrent); 
+        latestFilename = filename(nextCurrent);
         return latestFilename;
     }
-    
+
     // LocalDate to filename.
     private Path filename(LocalDate timepoint) {
         String fn = baseFilename + DATE_SEP + timepoint.format(fmtDate);
         Path path = directory.resolve(fn);
         if ( Files.exists(path) )
-            FmtLog.warn(LOG, "Using existing file: "+fn); 
+            FmtLog.warn(LOG, "Using existing file: "+fn);
         return path;
     }
 }

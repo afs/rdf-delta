@@ -26,7 +26,7 @@ public class RDFPatchWrapper implements RDFPatch {
     public RDFPatchWrapper(RDFPatch other) {
         this.other = other;
     }
-    
+
     @Override
     public PatchHeader header() {
         return other.header();

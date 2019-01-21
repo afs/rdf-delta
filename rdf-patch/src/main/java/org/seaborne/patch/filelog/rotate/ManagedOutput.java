@@ -25,7 +25,7 @@ import org.seaborne.patch.filelog.FilePolicy;
 import org.seaborne.patch.filelog.OutputMgr;
 
 /** Interface to managed output streams.
- * 
+ *
  * @see OutputMgr
  * @see FilePolicy
  */
@@ -34,19 +34,19 @@ public interface ManagedOutput {
      *  Closing the OutputStream returns it to the manager.
      */
     public OutputStream output();
-    
-    /** Current output stream, or null if theer hasn't been one yet */  
+
+    /** Current output stream, or null if theer hasn't been one yet */
     public OutputStream currentOutput();
-    
+
     /** The most recent output file name, only valid during an output section, else null. */
     public Path currentFilename();
 
     /** The latest output file name, or null if there hasn't been one yet */
     public Path latestFilename();
 
-    /** Request file rotation */ 
+    /** Request file rotation */
     public void rotate();
-    
+
     /** Get rotation engine */
     public Roller roller();
 }

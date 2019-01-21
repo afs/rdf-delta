@@ -108,7 +108,7 @@ public class RDF_IRI implements org.apache.thrift.TBase<RDF_IRI, RDF_IRI._Fields
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.IRI, new org.apache.thrift.meta_data.FieldMetaData("iri", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.IRI, new org.apache.thrift.meta_data.FieldMetaData("iri", org.apache.thrift.TFieldRequirementType.REQUIRED,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_IRI.class, metaDataMap);
@@ -318,7 +318,7 @@ public class RDF_IRI implements org.apache.thrift.TBase<RDF_IRI, RDF_IRI._Fields
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -326,7 +326,7 @@ public class RDF_IRI implements org.apache.thrift.TBase<RDF_IRI, RDF_IRI._Fields
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.iri = iprot.readString();
               struct.setIriIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;

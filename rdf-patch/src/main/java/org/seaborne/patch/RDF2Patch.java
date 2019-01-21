@@ -25,17 +25,17 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 // DRY with StreamPatch.
 
-/** An {@link StreamRDF} that converts to  patch format. */  
+/** An {@link StreamRDF} that converts to  patch format. */
 public class RDF2Patch implements StreamRDF {
     RDFChangesCollector x = new RDFChangesCollector();
     private final RDFChanges changes;
-    
-//    public RDFPatch getRDFPatch() { return x.getRDFPatch(); } 
+
+//    public RDFPatch getRDFPatch() { return x.getRDFPatch(); }
 
     public RDF2Patch(RDFChanges changes) {
         this.changes = changes;
     }
-    
+
     @Override
     public void start() {
         changes.txnBegin();

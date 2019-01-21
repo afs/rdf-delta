@@ -1,7 +1,7 @@
 package org.seaborne.patch.changes;
 
-import org.apache.jena.graph.Node ;
-import org.seaborne.patch.RDFChanges ;
+import org.apache.jena.graph.Node;
+import org.seaborne.patch.RDFChanges;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,13 +24,13 @@ import org.seaborne.patch.RDFChanges ;
 /** Wrapper for {@link RDFChanges} */
 public class RDFChangesWrapper implements RDFChanges {
 
-    private RDFChanges other ;
+    private RDFChanges other;
     protected RDFChanges get() { return other ; }
-    
+
     public RDFChangesWrapper(RDFChanges other) {
-        this.other = other ;
+        this.other = other;
     }
-    
+
     @Override
     public void start() {
         get().start();

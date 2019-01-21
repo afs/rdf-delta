@@ -18,7 +18,7 @@
 
 package org.seaborne.patch.items;
 
-public class Segment extends ChangeItem { 
+public class Segment extends ChangeItem {
     @Override
     public int hashCode() {
         return 20;

@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 /** Filename policy where files are "filebase-yyyy-mm-dd_hh-mm-ss"
  *  and do not rollover automatically, only when prompted via {@link #forceRollover}.
- */  
+ */
 class RollerTimestamp implements Roller {
     private final static Logger LOG = LoggerFactory.getLogger(RollerTimestamp.class);
     private final Path directory;
@@ -43,8 +43,8 @@ class RollerTimestamp implements Roller {
     private Path currentFilename = null;
     private boolean valid = false;
     private LocalDateTime lastTimestamp = null;
-    private Path lastAllocatedPath = null; 
-    
+    private Path lastAllocatedPath = null;
+
     /** Match a datetime-appended filename, with non-capturing optional fractional seconds. */
     private static final Pattern patternFilenameDateTime = Pattern.compile("(.*)(-)(\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}(?:\\.\\d+)?)");
     private static final String DATETIME_SEP = "-";
@@ -52,21 +52,21 @@ class RollerTimestamp implements Roller {
     private static final Comparator<Filename> cmpDateTime = (x,y)->{
         LocalDateTime xdt = filenameToDateTime(x);
         LocalDateTime ydt = filenameToDateTime(y);
-        return xdt.compareTo(ydt); 
+        return xdt.compareTo(ydt);
     };
-    private static int RETRIES = 5 ;
+    private static int RETRIES = 5;
 
 
     private static LocalDateTime filenameToDateTime(Filename filename) {
         return LocalDateTime.parse(filename.modifier, fmtDateTime);
     }
-    
+
     RollerTimestamp(Path directory, String baseFilename) {
         this.directory = directory;
         this.baseFilename = baseFilename;
         init(directory,baseFilename);
     }
-    
+
     private void init(Path directory, String baseFilename) {
         LocalDateTime current = LocalDateTime.now();
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDateTime);
@@ -75,7 +75,7 @@ class RollerTimestamp implements Roller {
         } else {
             LocalDateTime dtLast = filenameToDateTime(Collections.max(filenames, cmpDateTime));
             LocalDateTime dtFirst = filenameToDateTime(Collections.min(filenames, cmpDateTime));
-            int problems = 0 ;
+            int problems = 0;
             if ( dtLast.isAfter(current)) {
                 problems++;
                 FmtLog.warn(LOG, "Latest output file is timestamped after now: %s > %s", dtLast, current);
@@ -89,11 +89,11 @@ class RollerTimestamp implements Roller {
             currentFilename = filename(dtLast);
         }
     }
-    
+
     @Override
     public Stream<Filename> files() {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternFilenameDateTime);
-        return filenames.stream().sorted(cmpDateTime); 
+        return filenames.stream().sorted(cmpDateTime);
     }
 
     @Override
@@ -117,16 +117,16 @@ class RollerTimestamp implements Roller {
         // Manual rollover only.
         return ! valid;
     }
-    
+
     @Override
     public void rotate() {
         valid = false;
     }
-    
+
     @Override
     public Path nextFilename() {
-        for ( int i = 1 ; ; i++ ) { 
-            // This "must" be unique unless it is the same time as last time 
+        for ( int i = 1 ; ; i++ ) {
+            // This "must" be unique unless it is the same time as last time
             // because time moves forward and we checked for future files in init().
             LocalDateTime timestamp = LocalDateTime.now();
             String fn = baseFilename + DATETIME_SEP + timestamp.format(fmtDateTime);
@@ -139,7 +139,7 @@ class RollerTimestamp implements Roller {
             }
             // Try again.
             if ( i == RETRIES)
-                throw new FileRotateException("Failed to find a new, fresh filename: "+timestamp);        
+                throw new FileRotateException("Failed to find a new, fresh filename: "+timestamp);
             Lib.sleep(1000);
         }
     }
