@@ -37,6 +37,7 @@ import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
+import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.changes.RDFChangesApply;
 import org.seaborne.patch.changes.RDFChangesWrapper;
@@ -93,18 +94,37 @@ public class PatchApplyService extends ActionREST {
     private void operation$(HttpAction action) {
         action.log.info(format("[%d] RDF Patch", action.id));
         action.beginWrite();
-        // Add patch handler to suppress TX-TC in the patch but allow TA.
         try {
-            applyRDFPatch(action);
+            applyRDFPatch(action, WithPatchTxn.EXTERNAL_TXN);
             action.commit();
-        } catch (Exception ex) {
+        }
+        catch (TransactionAbortException ex) {
+            // This is not an error in the service.
+            // The patch said "abort", and transactions are being managed by this code,
+            // so the patch processor throws TransactionAbortException if an abort is encountered.
+            // where one patch is one transaction.
+            action.abort();
+            action.log.info(format("[%d] RDF Patch : abort in patch", action.id));
+        }
+        catch (Exception ex) {
             action.abort();
             throw ex;
         } finally { action.end(); }
         ServletOps.success(action);
     }
 
-    private void applyRDFPatch(HttpAction action) {
+    private enum WithPatchTxn { PATCH_TXN, EXTERNAL_TXN }
+
+    /** Apply a patch action.
+     * {@code withPatchTxn} controls whether to respect the TX-TC in the patch itself,
+     * or whether to execute ignoring them, allowing the caller to manage the transaction,
+     * such as put one transaction around the whole patch.
+     * Abort is always
+     *
+     * @param action
+     * @param withPatchTxn Whether to use transaction markers in the patch or assume call is managing transactions.
+     */
+    private void applyRDFPatch(HttpAction action, WithPatchTxn withPatchTxn) {
         try {
             String ct = action.getRequest().getContentType();
             // If triples or quads, maybe POST.
@@ -115,10 +135,15 @@ public class PatchApplyService extends ActionREST {
             RDFPatchReaderText pr = new RDFPatchReaderText(input);
             RDFChanges changes = new RDFChangesApply(dsg);
             // External transaction. Suppress patch recorded TX and TC.
-            changes = new RDFChangesNoTxn(changes);
+            if ( withPatchTxn == WithPatchTxn.PATCH_TXN )
+                changes = new RDFChangesNoTxn(changes);
 
             pr.apply(changes);
             ServletOps.success(action);
+        }
+        catch (TransactionAbortException ex) {
+            // Let this propagate to the caller.
+            throw ex;
         }
         catch (RiotException ex) {
             ServletOps.errorBadRequest("RDF Patch parse error: "+ex.getMessage());
@@ -128,19 +153,25 @@ public class PatchApplyService extends ActionREST {
         }
     }
 
+    static class TransactionAbortException extends PatchException {}
+
     // Counting?
     static class RDFChangesNoTxn extends RDFChangesWrapper {
         public RDFChangesNoTxn(RDFChanges other) {
             super(other);
         }
         // Ignore so external control can be applied - but allow abort.
-        // Combine so multi-txn works AND
 
         @Override
         public void txnBegin() {}
 
         @Override
         public void txnCommit() {}
+
+        @Override
+        public void txnAbort() {
+            throw new TransactionAbortException();
+        }
 
         @Override
         public void segment() {}
