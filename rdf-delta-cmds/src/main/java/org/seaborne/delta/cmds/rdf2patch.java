@@ -25,7 +25,7 @@ import jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDF ;
-import org.seaborne.patch.StreamPatch ;
+import org.seaborne.patch.RDFPatchOps;
 
 /** Write an RDF file as a patch file of "adds" (prefixes and triples/quads). */
 public class rdf2patch extends CmdGeneral
@@ -48,24 +48,17 @@ public class rdf2patch extends CmdGeneral
     @Override
     protected void processModulesAndArgs() {
         super.processModulesAndArgs();
+        if ( super.positionals.isEmpty() )
+            throw new CmdException("File argument required. Usage: "+getSummary());
     }
-
-    // System.in not working yet.
-    // Extend "riot"?
 
     @Override
     protected void exec() {
-        StreamRDF dest  = new StreamPatch(System.out);
+        StreamRDF dest  = RDFPatchOps.write(System.out);
         dest.start();
-
         if ( getPositional().isEmpty() )
             execOne(System.in);
-        getPositional().forEach(fn->{
-            RDFDataMgr.parse(dest, fn);
-//            InputStream input = IO.openFile(fn);
-//            execOne(input);
-        });
-
+        getPositional().forEach(fn->RDFDataMgr.parse(dest, fn));
         dest.finish();
     }
 

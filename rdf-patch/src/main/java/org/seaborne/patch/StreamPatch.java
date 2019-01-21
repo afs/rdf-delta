@@ -18,7 +18,6 @@
 
 package org.seaborne.patch;
 
-import java.io.OutputStream;
 import java.util.UUID;
 
 import org.apache.jena.graph.Node;
@@ -26,11 +25,8 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.sparql.core.Quad;
-import org.seaborne.patch.changes.RDFChangesWriter;
-import org.seaborne.patch.text.TokenWriter;
-import org.seaborne.patch.text.TokenWriterText;
 
-/** Convert a {@link StreamRDF} to a {@code RDF Patch}.
+/** Convert a {@link StreamRDF} to a {@link RDFPatch}.
  *  {@link StreamRDF#start} and {@link StreamRDF#finish}
  *  must be called; these bracket the patch in transaction markers
  *  {@code TX} and {@code TC}.
@@ -38,13 +34,10 @@ import org.seaborne.patch.text.TokenWriterText;
 public class StreamPatch implements StreamRDF {
 
     private int depth = 0;
-    private OutputStream out;
-    private RDFChanges c;
+    private RDFChanges changes;
 
-    public StreamPatch(OutputStream out) {
-        this.out = out;
-        TokenWriter t = new TokenWriterText(out);
-        this.c = new RDFChangesWriter(t);
+    public StreamPatch(RDFChanges changes) {
+        this.changes = changes;
     }
 
     @Override
@@ -54,20 +47,27 @@ public class StreamPatch implements StreamRDF {
             // Header
             // Node n = NodeFactory.createURI(JenaUUID.getFactory().generate().asURI());
             Node n = NodeFactory.createURI("uuid:"+UUID.randomUUID().toString());
-            c.header(RDFPatchConst.ID, n);
-            c.txnBegin();
+            changes.header(RDFPatchConst.ID, n);
+            changes.txnBegin();
         }
     }
 
 
     @Override
+    public void finish() {
+        if ( depth == 1 )
+            changes.txnCommit();
+        --depth;
+    }
+
+    @Override
     public void triple(Triple triple) {
-        c.add(null, triple.getSubject(), triple.getPredicate(), triple.getObject());
+        changes.add(null, triple.getSubject(), triple.getPredicate(), triple.getObject());
     }
 
     @Override
     public void quad(Quad quad) {
-        c.add(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
+        changes.add(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
     }
 
     @Override
@@ -75,13 +75,6 @@ public class StreamPatch implements StreamRDF {
 
     @Override
     public void prefix(String prefix, String iri) {
-        c.addPrefix(null, prefix, iri);
-    }
-
-    @Override
-    public void finish() {
-        if ( depth == 1 )
-            c.txnCommit();
-        --depth;
+        changes.addPrefix(null, prefix, iri);
     }
 }

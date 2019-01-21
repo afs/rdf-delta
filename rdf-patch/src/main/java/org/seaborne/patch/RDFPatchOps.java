@@ -33,6 +33,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.shared.uuid.JenaUUID;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.patch.changes.PatchSummary;
@@ -256,6 +257,17 @@ public class RDFPatchOps {
         RDFChanges c = new RDFChangesWriter(tw);
         patch.apply(c);
         tw.flush();
+    }
+
+    /** Write an {@link StreamRDF} out in {@link RDFPatch} format.
+     *  {@link StreamRDF#start} and {@link StreamRDF#finish}
+     *  must be called; these bracket the patch in transaction markers
+     *  {@code TX} and {@code TC}.
+     */
+    public static StreamRDF write(OutputStream out) {
+        TokenWriter tw = new TokenWriterText(out);
+        RDFChanges rdfChanges = new RDFChangesWriter(tw);
+        return new StreamPatch(rdfChanges);
     }
 
     public static String str(RDFPatch patch) {
