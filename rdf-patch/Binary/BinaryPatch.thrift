@@ -25,7 +25,7 @@
 
 
 //namespace java org.apache.jena.riot.thrift.wire
-namespace java org.seaborne.patch.thrift.wire
+namespace java org.seaborne.patch.binary.thrift
 
 // ==== RDF Term Definitions 
 

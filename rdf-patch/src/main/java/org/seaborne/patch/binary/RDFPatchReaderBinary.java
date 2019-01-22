@@ -35,16 +35,16 @@ import org.seaborne.patch.PatchProcessor;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.binary.thrift.Patch_Data_Add;
+import org.seaborne.patch.binary.thrift.Patch_Data_Del;
+import org.seaborne.patch.binary.thrift.Patch_Header;
+import org.seaborne.patch.binary.thrift.Patch_Prefix_Add;
+import org.seaborne.patch.binary.thrift.Patch_Prefix_Del;
+import org.seaborne.patch.binary.thrift.RDF_Literal;
+import org.seaborne.patch.binary.thrift.RDF_Patch_Row;
+import org.seaborne.patch.binary.thrift.RDF_Term;
+import org.seaborne.patch.binary.thrift.Transaction;
 import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.thrift.wire.Patch_Data_Add;
-import org.seaborne.patch.thrift.wire.Patch_Data_Del;
-import org.seaborne.patch.thrift.wire.Patch_Header;
-import org.seaborne.patch.thrift.wire.Patch_Prefix_Add;
-import org.seaborne.patch.thrift.wire.Patch_Prefix_Del;
-import org.seaborne.patch.thrift.wire.RDF_Literal;
-import org.seaborne.patch.thrift.wire.RDF_Patch_Row;
-import org.seaborne.patch.thrift.wire.RDF_Term;
-import org.seaborne.patch.thrift.wire.Transaction;
 
 /**
  * Read a binary patch.

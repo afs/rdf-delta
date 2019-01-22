@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -33,8 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("all")
-public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, Patch_Data_Add._Fields>, java.io.Serializable, Cloneable, Comparable<Patch_Data_Add> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("Patch_Data_Add");
+public class Patch_Data_Del implements org.apache.thrift.TBase<Patch_Data_Del, Patch_Data_Del._Fields>, java.io.Serializable, Cloneable, Comparable<Patch_Data_Del> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("Patch_Data_Del");
 
   private static final org.apache.thrift.protocol.TField S_FIELD_DESC = new org.apache.thrift.protocol.TField("s", org.apache.thrift.protocol.TType.STRUCT, (short)1);
   private static final org.apache.thrift.protocol.TField P_FIELD_DESC = new org.apache.thrift.protocol.TField("p", org.apache.thrift.protocol.TType.STRUCT, (short)2);
@@ -43,8 +43,8 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new Patch_Data_AddStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new Patch_Data_AddTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new Patch_Data_DelStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new Patch_Data_DelTupleSchemeFactory());
   }
 
   public RDF_Term s; // required
@@ -124,22 +124,22 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.S, new org.apache.thrift.meta_data.FieldMetaData("s", org.apache.thrift.TFieldRequirementType.REQUIRED,
+    tmpMap.put(_Fields.S, new org.apache.thrift.meta_data.FieldMetaData("s", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.P, new org.apache.thrift.meta_data.FieldMetaData("p", org.apache.thrift.TFieldRequirementType.REQUIRED,
+    tmpMap.put(_Fields.P, new org.apache.thrift.meta_data.FieldMetaData("p", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.O, new org.apache.thrift.meta_data.FieldMetaData("o", org.apache.thrift.TFieldRequirementType.REQUIRED,
+    tmpMap.put(_Fields.O, new org.apache.thrift.meta_data.FieldMetaData("o", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.G, new org.apache.thrift.meta_data.FieldMetaData("g", org.apache.thrift.TFieldRequirementType.OPTIONAL,
+    tmpMap.put(_Fields.G, new org.apache.thrift.meta_data.FieldMetaData("g", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Data_Add.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Data_Del.class, metaDataMap);
   }
 
-  public Patch_Data_Add() {
+  public Patch_Data_Del() {
   }
 
-  public Patch_Data_Add(
+  public Patch_Data_Del(
     RDF_Term s,
     RDF_Term p,
     RDF_Term o)
@@ -153,7 +153,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public Patch_Data_Add(Patch_Data_Add other) {
+  public Patch_Data_Del(Patch_Data_Del other) {
     if (other.isSetS()) {
       this.s = new RDF_Term(other.s);
     }
@@ -168,8 +168,8 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     }
   }
 
-  public Patch_Data_Add deepCopy() {
-    return new Patch_Data_Add(this);
+  public Patch_Data_Del deepCopy() {
+    return new Patch_Data_Del(this);
   }
 
   @Override
@@ -184,7 +184,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     return this.s;
   }
 
-  public Patch_Data_Add setS(RDF_Term s) {
+  public Patch_Data_Del setS(RDF_Term s) {
     this.s = s;
     return this;
   }
@@ -208,7 +208,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     return this.p;
   }
 
-  public Patch_Data_Add setP(RDF_Term p) {
+  public Patch_Data_Del setP(RDF_Term p) {
     this.p = p;
     return this;
   }
@@ -232,7 +232,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     return this.o;
   }
 
-  public Patch_Data_Add setO(RDF_Term o) {
+  public Patch_Data_Del setO(RDF_Term o) {
     this.o = o;
     return this;
   }
@@ -256,7 +256,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     return this.g;
   }
 
-  public Patch_Data_Add setG(RDF_Term g) {
+  public Patch_Data_Del setG(RDF_Term g) {
     this.g = g;
     return this;
   }
@@ -354,12 +354,12 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof Patch_Data_Add)
-      return this.equals((Patch_Data_Add)that);
+    if (that instanceof Patch_Data_Del)
+      return this.equals((Patch_Data_Del)that);
     return false;
   }
 
-  public boolean equals(Patch_Data_Add that) {
+  public boolean equals(Patch_Data_Del that) {
     if (that == null)
       return false;
 
@@ -408,7 +408,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
   }
 
   @Override
-  public int compareTo(Patch_Data_Add other) {
+  public int compareTo(Patch_Data_Del other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -472,7 +472,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Patch_Data_Add(");
+    StringBuilder sb = new StringBuilder("Patch_Data_Del(");
     boolean first = true;
 
     sb.append("s:");
@@ -542,21 +542,21 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     }
   }
 
-  private static class Patch_Data_AddStandardSchemeFactory implements SchemeFactory {
-    public Patch_Data_AddStandardScheme getScheme() {
-      return new Patch_Data_AddStandardScheme();
+  private static class Patch_Data_DelStandardSchemeFactory implements SchemeFactory {
+    public Patch_Data_DelStandardScheme getScheme() {
+      return new Patch_Data_DelStandardScheme();
     }
   }
 
-  private static class Patch_Data_AddStandardScheme extends StandardScheme<Patch_Data_Add> {
+  private static class Patch_Data_DelStandardScheme extends StandardScheme<Patch_Data_Del> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, Patch_Data_Add struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, Patch_Data_Del struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (schemeField.id) {
@@ -565,7 +565,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
               struct.s = new RDF_Term();
               struct.s.read(iprot);
               struct.setSIsSet(true);
-            } else {
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -574,7 +574,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
               struct.p = new RDF_Term();
               struct.p.read(iprot);
               struct.setPIsSet(true);
-            } else {
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -583,7 +583,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
               struct.o = new RDF_Term();
               struct.o.read(iprot);
               struct.setOIsSet(true);
-            } else {
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -592,7 +592,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
               struct.g = new RDF_Term();
               struct.g.read(iprot);
               struct.setGIsSet(true);
-            } else {
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -607,7 +607,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, Patch_Data_Add struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, Patch_Data_Del struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -639,16 +639,16 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
 
   }
 
-  private static class Patch_Data_AddTupleSchemeFactory implements SchemeFactory {
-    public Patch_Data_AddTupleScheme getScheme() {
-      return new Patch_Data_AddTupleScheme();
+  private static class Patch_Data_DelTupleSchemeFactory implements SchemeFactory {
+    public Patch_Data_DelTupleScheme getScheme() {
+      return new Patch_Data_DelTupleScheme();
     }
   }
 
-  private static class Patch_Data_AddTupleScheme extends TupleScheme<Patch_Data_Add> {
+  private static class Patch_Data_DelTupleScheme extends TupleScheme<Patch_Data_Del> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, Patch_Data_Add struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, Patch_Data_Del struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       struct.s.write(oprot);
       struct.p.write(oprot);
@@ -664,7 +664,7 @@ public class Patch_Data_Add implements org.apache.thrift.TBase<Patch_Data_Add, P
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, Patch_Data_Add struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, Patch_Data_Del struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       struct.s = new RDF_Term();
       struct.s.read(iprot);

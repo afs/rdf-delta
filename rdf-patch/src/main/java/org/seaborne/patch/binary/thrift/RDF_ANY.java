@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -33,14 +33,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("all")
-public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_UNDEF> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_UNDEF");
+public class RDF_ANY implements org.apache.thrift.TBase<RDF_ANY, RDF_ANY._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_ANY> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_ANY");
 
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new RDF_UNDEFStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new RDF_UNDEFTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new RDF_ANYStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new RDF_ANYTupleSchemeFactory());
   }
 
 
@@ -103,20 +103,20 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_UNDEF.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_ANY.class, metaDataMap);
   }
 
-  public RDF_UNDEF() {
+  public RDF_ANY() {
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public RDF_UNDEF(RDF_UNDEF other) {
+  public RDF_ANY(RDF_ANY other) {
   }
 
-  public RDF_UNDEF deepCopy() {
-    return new RDF_UNDEF(this);
+  public RDF_ANY deepCopy() {
+    return new RDF_ANY(this);
   }
 
   @Override
@@ -149,12 +149,12 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof RDF_UNDEF)
-      return this.equals((RDF_UNDEF)that);
+    if (that instanceof RDF_ANY)
+      return this.equals((RDF_ANY)that);
     return false;
   }
 
-  public boolean equals(RDF_UNDEF that) {
+  public boolean equals(RDF_ANY that) {
     if (that == null)
       return false;
 
@@ -167,7 +167,7 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
   }
 
   @Override
-  public int compareTo(RDF_UNDEF other) {
+  public int compareTo(RDF_ANY other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -191,7 +191,7 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("RDF_UNDEF(");
+    StringBuilder sb = new StringBuilder("RDF_ANY(");
     boolean first = true;
 
     sb.append(")");
@@ -219,21 +219,21 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
     }
   }
 
-  private static class RDF_UNDEFStandardSchemeFactory implements SchemeFactory {
-    public RDF_UNDEFStandardScheme getScheme() {
-      return new RDF_UNDEFStandardScheme();
+  private static class RDF_ANYStandardSchemeFactory implements SchemeFactory {
+    public RDF_ANYStandardScheme getScheme() {
+      return new RDF_ANYStandardScheme();
     }
   }
 
-  private static class RDF_UNDEFStandardScheme extends StandardScheme<RDF_UNDEF> {
+  private static class RDF_ANYStandardScheme extends StandardScheme<RDF_ANY> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_UNDEF struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_ANY struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (schemeField.id) {
@@ -248,7 +248,7 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_UNDEF struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_ANY struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -258,21 +258,21 @@ public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._
 
   }
 
-  private static class RDF_UNDEFTupleSchemeFactory implements SchemeFactory {
-    public RDF_UNDEFTupleScheme getScheme() {
-      return new RDF_UNDEFTupleScheme();
+  private static class RDF_ANYTupleSchemeFactory implements SchemeFactory {
+    public RDF_ANYTupleScheme getScheme() {
+      return new RDF_ANYTupleScheme();
     }
   }
 
-  private static class RDF_UNDEFTupleScheme extends TupleScheme<RDF_UNDEF> {
+  private static class RDF_ANYTupleScheme extends TupleScheme<RDF_ANY> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_UNDEF struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_ANY struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_UNDEF struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_ANY struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
     }
   }

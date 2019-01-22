@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -33,25 +33,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("all")
-public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_Del, Patch_Prefix_Del._Fields>, java.io.Serializable, Cloneable, Comparable<Patch_Prefix_Del> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("Patch_Prefix_Del");
+public class RDF_PrefixName implements org.apache.thrift.TBase<RDF_PrefixName, RDF_PrefixName._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_PrefixName> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_PrefixName");
 
-  private static final org.apache.thrift.protocol.TField GRAPH_NODE_FIELD_DESC = new org.apache.thrift.protocol.TField("graphNode", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-  private static final org.apache.thrift.protocol.TField PREFIX_FIELD_DESC = new org.apache.thrift.protocol.TField("prefix", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField PREFIX_FIELD_DESC = new org.apache.thrift.protocol.TField("prefix", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField LOCAL_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("localName", org.apache.thrift.protocol.TType.STRING, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new Patch_Prefix_DelStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new Patch_Prefix_DelTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new RDF_PrefixNameStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new RDF_PrefixNameTupleSchemeFactory());
   }
 
-  public RDF_Term graphNode; // optional
   public String prefix; // required
+  public String localName; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    GRAPH_NODE((short)1, "graphNode"),
-    PREFIX((short)2, "prefix");
+    PREFIX((short)1, "prefix"),
+    LOCAL_NAME((short)2, "localName");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -66,10 +66,10 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // GRAPH_NODE
-          return GRAPH_NODE;
-        case 2: // PREFIX
+        case 1: // PREFIX
           return PREFIX;
+        case 2: // LOCAL_NAME
+          return LOCAL_NAME;
         default:
           return null;
       }
@@ -110,79 +110,56 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
   }
 
   // isset id assignments
-  private _Fields optionals[] = {_Fields.GRAPH_NODE};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.GRAPH_NODE, new org.apache.thrift.meta_data.FieldMetaData("graphNode", org.apache.thrift.TFieldRequirementType.OPTIONAL,
-        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED,
+    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.LOCAL_NAME, new org.apache.thrift.meta_data.FieldMetaData("localName", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Prefix_Del.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_PrefixName.class, metaDataMap);
   }
 
-  public Patch_Prefix_Del() {
+  public RDF_PrefixName() {
   }
 
-  public Patch_Prefix_Del(
-    String prefix)
+  public RDF_PrefixName(
+    String prefix,
+    String localName)
   {
     this();
     this.prefix = prefix;
+    this.localName = localName;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public Patch_Prefix_Del(Patch_Prefix_Del other) {
-    if (other.isSetGraphNode()) {
-      this.graphNode = new RDF_Term(other.graphNode);
-    }
+  public RDF_PrefixName(RDF_PrefixName other) {
     if (other.isSetPrefix()) {
       this.prefix = other.prefix;
     }
+    if (other.isSetLocalName()) {
+      this.localName = other.localName;
+    }
   }
 
-  public Patch_Prefix_Del deepCopy() {
-    return new Patch_Prefix_Del(this);
+  public RDF_PrefixName deepCopy() {
+    return new RDF_PrefixName(this);
   }
 
   @Override
   public void clear() {
-    this.graphNode = null;
     this.prefix = null;
-  }
-
-  public RDF_Term getGraphNode() {
-    return this.graphNode;
-  }
-
-  public Patch_Prefix_Del setGraphNode(RDF_Term graphNode) {
-    this.graphNode = graphNode;
-    return this;
-  }
-
-  public void unsetGraphNode() {
-    this.graphNode = null;
-  }
-
-  /** Returns true if field graphNode is set (has been assigned a value) and false otherwise */
-  public boolean isSetGraphNode() {
-    return this.graphNode != null;
-  }
-
-  public void setGraphNodeIsSet(boolean value) {
-    if (!value) {
-      this.graphNode = null;
-    }
+    this.localName = null;
   }
 
   public String getPrefix() {
     return this.prefix;
   }
 
-  public Patch_Prefix_Del setPrefix(String prefix) {
+  public RDF_PrefixName setPrefix(String prefix) {
     this.prefix = prefix;
     return this;
   }
@@ -202,16 +179,32 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
     }
   }
 
+  public String getLocalName() {
+    return this.localName;
+  }
+
+  public RDF_PrefixName setLocalName(String localName) {
+    this.localName = localName;
+    return this;
+  }
+
+  public void unsetLocalName() {
+    this.localName = null;
+  }
+
+  /** Returns true if field localName is set (has been assigned a value) and false otherwise */
+  public boolean isSetLocalName() {
+    return this.localName != null;
+  }
+
+  public void setLocalNameIsSet(boolean value) {
+    if (!value) {
+      this.localName = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case GRAPH_NODE:
-      if (value == null) {
-        unsetGraphNode();
-      } else {
-        setGraphNode((RDF_Term)value);
-      }
-      break;
-
     case PREFIX:
       if (value == null) {
         unsetPrefix();
@@ -220,16 +213,24 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
       }
       break;
 
+    case LOCAL_NAME:
+      if (value == null) {
+        unsetLocalName();
+      } else {
+        setLocalName((String)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case GRAPH_NODE:
-      return getGraphNode();
-
     case PREFIX:
       return getPrefix();
+
+    case LOCAL_NAME:
+      return getLocalName();
 
     }
     throw new IllegalStateException();
@@ -242,10 +243,10 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
     }
 
     switch (field) {
-    case GRAPH_NODE:
-      return isSetGraphNode();
     case PREFIX:
       return isSetPrefix();
+    case LOCAL_NAME:
+      return isSetLocalName();
     }
     throw new IllegalStateException();
   }
@@ -254,23 +255,14 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof Patch_Prefix_Del)
-      return this.equals((Patch_Prefix_Del)that);
+    if (that instanceof RDF_PrefixName)
+      return this.equals((RDF_PrefixName)that);
     return false;
   }
 
-  public boolean equals(Patch_Prefix_Del that) {
+  public boolean equals(RDF_PrefixName that) {
     if (that == null)
       return false;
-
-    boolean this_present_graphNode = true && this.isSetGraphNode();
-    boolean that_present_graphNode = true && that.isSetGraphNode();
-    if (this_present_graphNode || that_present_graphNode) {
-      if (!(this_present_graphNode && that_present_graphNode))
-        return false;
-      if (!this.graphNode.equals(that.graphNode))
-        return false;
-    }
 
     boolean this_present_prefix = true && this.isSetPrefix();
     boolean that_present_prefix = true && that.isSetPrefix();
@@ -278,6 +270,15 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
       if (!(this_present_prefix && that_present_prefix))
         return false;
       if (!this.prefix.equals(that.prefix))
+        return false;
+    }
+
+    boolean this_present_localName = true && this.isSetLocalName();
+    boolean that_present_localName = true && that.isSetLocalName();
+    if (this_present_localName || that_present_localName) {
+      if (!(this_present_localName && that_present_localName))
+        return false;
+      if (!this.localName.equals(that.localName))
         return false;
     }
 
@@ -290,29 +291,29 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
   }
 
   @Override
-  public int compareTo(Patch_Prefix_Del other) {
+  public int compareTo(RDF_PrefixName other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetGraphNode()).compareTo(other.isSetGraphNode());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetGraphNode()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.graphNode, other.graphNode);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetPrefix()).compareTo(other.isSetPrefix());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetPrefix()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.prefix, other.prefix);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetLocalName()).compareTo(other.isSetLocalName());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetLocalName()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.localName, other.localName);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -334,24 +335,22 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Patch_Prefix_Del(");
+    StringBuilder sb = new StringBuilder("RDF_PrefixName(");
     boolean first = true;
 
-    if (isSetGraphNode()) {
-      sb.append("graphNode:");
-      if (this.graphNode == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.graphNode);
-      }
-      first = false;
-    }
-    if (!first) sb.append(", ");
     sb.append("prefix:");
     if (this.prefix == null) {
       sb.append("null");
     } else {
       sb.append(this.prefix);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("localName:");
+    if (this.localName == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.localName);
     }
     first = false;
     sb.append(")");
@@ -362,6 +361,9 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
     // check for required fields
     if (prefix == null) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'prefix' was not present! Struct: " + toString());
+    }
+    if (localName == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'localName' was not present! Struct: " + toString());
     }
     // check for sub-struct validity
   }
@@ -382,38 +384,37 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
     }
   }
 
-  private static class Patch_Prefix_DelStandardSchemeFactory implements SchemeFactory {
-    public Patch_Prefix_DelStandardScheme getScheme() {
-      return new Patch_Prefix_DelStandardScheme();
+  private static class RDF_PrefixNameStandardSchemeFactory implements SchemeFactory {
+    public RDF_PrefixNameStandardScheme getScheme() {
+      return new RDF_PrefixNameStandardScheme();
     }
   }
 
-  private static class Patch_Prefix_DelStandardScheme extends StandardScheme<Patch_Prefix_Del> {
+  private static class RDF_PrefixNameStandardScheme extends StandardScheme<RDF_PrefixName> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_PrefixName struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (schemeField.id) {
-          case 1: // GRAPH_NODE
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.graphNode = new RDF_Term();
-              struct.graphNode.read(iprot);
-              struct.setGraphNodeIsSet(true);
-            } else {
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // PREFIX
+          case 1: // PREFIX
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.prefix = iprot.readString();
               struct.setPrefixIsSet(true);
-            } else {
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // LOCAL_NAME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.localName = iprot.readString();
+              struct.setLocalNameIsSet(true);
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -428,20 +429,18 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_PrefixName struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.graphNode != null) {
-        if (struct.isSetGraphNode()) {
-          oprot.writeFieldBegin(GRAPH_NODE_FIELD_DESC);
-          struct.graphNode.write(oprot);
-          oprot.writeFieldEnd();
-        }
-      }
       if (struct.prefix != null) {
         oprot.writeFieldBegin(PREFIX_FIELD_DESC);
         oprot.writeString(struct.prefix);
+        oprot.writeFieldEnd();
+      }
+      if (struct.localName != null) {
+        oprot.writeFieldBegin(LOCAL_NAME_FIELD_DESC);
+        oprot.writeString(struct.localName);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -450,39 +449,28 @@ public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_De
 
   }
 
-  private static class Patch_Prefix_DelTupleSchemeFactory implements SchemeFactory {
-    public Patch_Prefix_DelTupleScheme getScheme() {
-      return new Patch_Prefix_DelTupleScheme();
+  private static class RDF_PrefixNameTupleSchemeFactory implements SchemeFactory {
+    public RDF_PrefixNameTupleScheme getScheme() {
+      return new RDF_PrefixNameTupleScheme();
     }
   }
 
-  private static class Patch_Prefix_DelTupleScheme extends TupleScheme<Patch_Prefix_Del> {
+  private static class RDF_PrefixNameTupleScheme extends TupleScheme<RDF_PrefixName> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_PrefixName struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       oprot.writeString(struct.prefix);
-      BitSet optionals = new BitSet();
-      if (struct.isSetGraphNode()) {
-        optionals.set(0);
-      }
-      oprot.writeBitSet(optionals, 1);
-      if (struct.isSetGraphNode()) {
-        struct.graphNode.write(oprot);
-      }
+      oprot.writeString(struct.localName);
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_PrefixName struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       struct.prefix = iprot.readString();
       struct.setPrefixIsSet(true);
-      BitSet incoming = iprot.readBitSet(1);
-      if (incoming.get(0)) {
-        struct.graphNode = new RDF_Term();
-        struct.graphNode.read(iprot);
-        struct.setGraphNodeIsSet(true);
-      }
+      struct.localName = iprot.readString();
+      struct.setLocalNameIsSet(true);
     }
   }
 

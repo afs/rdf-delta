@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -138,27 +138,27 @@ public class RDF_Term extends org.apache.thrift.TUnion<RDF_Term, RDF_Term._Field
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.IRI, new org.apache.thrift.meta_data.FieldMetaData("iri", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.IRI, new org.apache.thrift.meta_data.FieldMetaData("iri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_IRI.class)));
-    tmpMap.put(_Fields.BNODE, new org.apache.thrift.meta_data.FieldMetaData("bnode", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.BNODE, new org.apache.thrift.meta_data.FieldMetaData("bnode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_BNode.class)));
-    tmpMap.put(_Fields.LITERAL, new org.apache.thrift.meta_data.FieldMetaData("literal", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.LITERAL, new org.apache.thrift.meta_data.FieldMetaData("literal", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Literal.class)));
-    tmpMap.put(_Fields.PREFIX_NAME, new org.apache.thrift.meta_data.FieldMetaData("prefixName", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.PREFIX_NAME, new org.apache.thrift.meta_data.FieldMetaData("prefixName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_PrefixName.class)));
-    tmpMap.put(_Fields.VARIABLE, new org.apache.thrift.meta_data.FieldMetaData("variable", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.VARIABLE, new org.apache.thrift.meta_data.FieldMetaData("variable", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_VAR.class)));
-    tmpMap.put(_Fields.ANY, new org.apache.thrift.meta_data.FieldMetaData("any", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.ANY, new org.apache.thrift.meta_data.FieldMetaData("any", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_ANY.class)));
-    tmpMap.put(_Fields.UNDEFINED, new org.apache.thrift.meta_data.FieldMetaData("undefined", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.UNDEFINED, new org.apache.thrift.meta_data.FieldMetaData("undefined", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_UNDEF.class)));
-    tmpMap.put(_Fields.REPEAT, new org.apache.thrift.meta_data.FieldMetaData("repeat", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.REPEAT, new org.apache.thrift.meta_data.FieldMetaData("repeat", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_REPEAT.class)));
-    tmpMap.put(_Fields.VAL_INTEGER, new org.apache.thrift.meta_data.FieldMetaData("valInteger", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.VAL_INTEGER, new org.apache.thrift.meta_data.FieldMetaData("valInteger", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.VAL_DOUBLE, new org.apache.thrift.meta_data.FieldMetaData("valDouble", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.VAL_DOUBLE, new org.apache.thrift.meta_data.FieldMetaData("valDouble", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
-    tmpMap.put(_Fields.VAL_DECIMAL, new org.apache.thrift.meta_data.FieldMetaData("valDecimal", org.apache.thrift.TFieldRequirementType.DEFAULT,
+    tmpMap.put(_Fields.VAL_DECIMAL, new org.apache.thrift.meta_data.FieldMetaData("valDecimal", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Decimal.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_Term.class, metaDataMap);

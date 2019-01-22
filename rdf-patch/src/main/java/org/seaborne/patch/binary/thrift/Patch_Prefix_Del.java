@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -33,28 +33,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("all")
-public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Add, Patch_Prefix_Add._Fields>, java.io.Serializable, Cloneable, Comparable<Patch_Prefix_Add> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("Patch_Prefix_Add");
+public class Patch_Prefix_Del implements org.apache.thrift.TBase<Patch_Prefix_Del, Patch_Prefix_Del._Fields>, java.io.Serializable, Cloneable, Comparable<Patch_Prefix_Del> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("Patch_Prefix_Del");
 
   private static final org.apache.thrift.protocol.TField GRAPH_NODE_FIELD_DESC = new org.apache.thrift.protocol.TField("graphNode", org.apache.thrift.protocol.TType.STRUCT, (short)1);
   private static final org.apache.thrift.protocol.TField PREFIX_FIELD_DESC = new org.apache.thrift.protocol.TField("prefix", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField IRI_STR_FIELD_DESC = new org.apache.thrift.protocol.TField("iriStr", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new Patch_Prefix_AddStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new Patch_Prefix_AddTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new Patch_Prefix_DelStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new Patch_Prefix_DelTupleSchemeFactory());
   }
 
   public RDF_Term graphNode; // optional
   public String prefix; // required
-  public String iriStr; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     GRAPH_NODE((short)1, "graphNode"),
-    PREFIX((short)2, "prefix"),
-    IRI_STR((short)3, "iriStr");
+    PREFIX((short)2, "prefix");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -73,8 +70,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
           return GRAPH_NODE;
         case 2: // PREFIX
           return PREFIX;
-        case 3: // IRI_STR
-          return IRI_STR;
         default:
           return null;
       }
@@ -119,59 +114,51 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.GRAPH_NODE, new org.apache.thrift.meta_data.FieldMetaData("graphNode", org.apache.thrift.TFieldRequirementType.OPTIONAL,
+    tmpMap.put(_Fields.GRAPH_NODE, new org.apache.thrift.meta_data.FieldMetaData("graphNode", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RDF_Term.class)));
-    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED,
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.IRI_STR, new org.apache.thrift.meta_data.FieldMetaData("iriStr", org.apache.thrift.TFieldRequirementType.REQUIRED,
+    tmpMap.put(_Fields.PREFIX, new org.apache.thrift.meta_data.FieldMetaData("prefix", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Prefix_Add.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Patch_Prefix_Del.class, metaDataMap);
   }
 
-  public Patch_Prefix_Add() {
+  public Patch_Prefix_Del() {
   }
 
-  public Patch_Prefix_Add(
-    String prefix,
-    String iriStr)
+  public Patch_Prefix_Del(
+    String prefix)
   {
     this();
     this.prefix = prefix;
-    this.iriStr = iriStr;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public Patch_Prefix_Add(Patch_Prefix_Add other) {
+  public Patch_Prefix_Del(Patch_Prefix_Del other) {
     if (other.isSetGraphNode()) {
       this.graphNode = new RDF_Term(other.graphNode);
     }
     if (other.isSetPrefix()) {
       this.prefix = other.prefix;
     }
-    if (other.isSetIriStr()) {
-      this.iriStr = other.iriStr;
-    }
   }
 
-  public Patch_Prefix_Add deepCopy() {
-    return new Patch_Prefix_Add(this);
+  public Patch_Prefix_Del deepCopy() {
+    return new Patch_Prefix_Del(this);
   }
 
   @Override
   public void clear() {
     this.graphNode = null;
     this.prefix = null;
-    this.iriStr = null;
   }
 
   public RDF_Term getGraphNode() {
     return this.graphNode;
   }
 
-  public Patch_Prefix_Add setGraphNode(RDF_Term graphNode) {
+  public Patch_Prefix_Del setGraphNode(RDF_Term graphNode) {
     this.graphNode = graphNode;
     return this;
   }
@@ -195,7 +182,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
     return this.prefix;
   }
 
-  public Patch_Prefix_Add setPrefix(String prefix) {
+  public Patch_Prefix_Del setPrefix(String prefix) {
     this.prefix = prefix;
     return this;
   }
@@ -212,30 +199,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
   public void setPrefixIsSet(boolean value) {
     if (!value) {
       this.prefix = null;
-    }
-  }
-
-  public String getIriStr() {
-    return this.iriStr;
-  }
-
-  public Patch_Prefix_Add setIriStr(String iriStr) {
-    this.iriStr = iriStr;
-    return this;
-  }
-
-  public void unsetIriStr() {
-    this.iriStr = null;
-  }
-
-  /** Returns true if field iriStr is set (has been assigned a value) and false otherwise */
-  public boolean isSetIriStr() {
-    return this.iriStr != null;
-  }
-
-  public void setIriStrIsSet(boolean value) {
-    if (!value) {
-      this.iriStr = null;
     }
   }
 
@@ -257,14 +220,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
       }
       break;
 
-    case IRI_STR:
-      if (value == null) {
-        unsetIriStr();
-      } else {
-        setIriStr((String)value);
-      }
-      break;
-
     }
   }
 
@@ -275,9 +230,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
 
     case PREFIX:
       return getPrefix();
-
-    case IRI_STR:
-      return getIriStr();
 
     }
     throw new IllegalStateException();
@@ -294,8 +246,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
       return isSetGraphNode();
     case PREFIX:
       return isSetPrefix();
-    case IRI_STR:
-      return isSetIriStr();
     }
     throw new IllegalStateException();
   }
@@ -304,12 +254,12 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof Patch_Prefix_Add)
-      return this.equals((Patch_Prefix_Add)that);
+    if (that instanceof Patch_Prefix_Del)
+      return this.equals((Patch_Prefix_Del)that);
     return false;
   }
 
-  public boolean equals(Patch_Prefix_Add that) {
+  public boolean equals(Patch_Prefix_Del that) {
     if (that == null)
       return false;
 
@@ -331,15 +281,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
         return false;
     }
 
-    boolean this_present_iriStr = true && this.isSetIriStr();
-    boolean that_present_iriStr = true && that.isSetIriStr();
-    if (this_present_iriStr || that_present_iriStr) {
-      if (!(this_present_iriStr && that_present_iriStr))
-        return false;
-      if (!this.iriStr.equals(that.iriStr))
-        return false;
-    }
-
     return true;
   }
 
@@ -349,7 +290,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
   }
 
   @Override
-  public int compareTo(Patch_Prefix_Add other) {
+  public int compareTo(Patch_Prefix_Del other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -376,16 +317,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetIriStr()).compareTo(other.isSetIriStr());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetIriStr()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.iriStr, other.iriStr);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     return 0;
   }
 
@@ -403,7 +334,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Patch_Prefix_Add(");
+    StringBuilder sb = new StringBuilder("Patch_Prefix_Del(");
     boolean first = true;
 
     if (isSetGraphNode()) {
@@ -423,14 +354,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
       sb.append(this.prefix);
     }
     first = false;
-    if (!first) sb.append(", ");
-    sb.append("iriStr:");
-    if (this.iriStr == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.iriStr);
-    }
-    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -439,9 +362,6 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
     // check for required fields
     if (prefix == null) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'prefix' was not present! Struct: " + toString());
-    }
-    if (iriStr == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'iriStr' was not present! Struct: " + toString());
     }
     // check for sub-struct validity
   }
@@ -462,21 +382,21 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
     }
   }
 
-  private static class Patch_Prefix_AddStandardSchemeFactory implements SchemeFactory {
-    public Patch_Prefix_AddStandardScheme getScheme() {
-      return new Patch_Prefix_AddStandardScheme();
+  private static class Patch_Prefix_DelStandardSchemeFactory implements SchemeFactory {
+    public Patch_Prefix_DelStandardScheme getScheme() {
+      return new Patch_Prefix_DelStandardScheme();
     }
   }
 
-  private static class Patch_Prefix_AddStandardScheme extends StandardScheme<Patch_Prefix_Add> {
+  private static class Patch_Prefix_DelStandardScheme extends StandardScheme<Patch_Prefix_Del> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, Patch_Prefix_Add struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (schemeField.id) {
@@ -485,7 +405,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
               struct.graphNode = new RDF_Term();
               struct.graphNode.read(iprot);
               struct.setGraphNodeIsSet(true);
-            } else {
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -493,15 +413,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.prefix = iprot.readString();
               struct.setPrefixIsSet(true);
-            } else {
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // IRI_STR
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.iriStr = iprot.readString();
-              struct.setIriStrIsSet(true);
-            } else {
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -516,7 +428,7 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, Patch_Prefix_Add struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -532,30 +444,24 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
         oprot.writeString(struct.prefix);
         oprot.writeFieldEnd();
       }
-      if (struct.iriStr != null) {
-        oprot.writeFieldBegin(IRI_STR_FIELD_DESC);
-        oprot.writeString(struct.iriStr);
-        oprot.writeFieldEnd();
-      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
 
   }
 
-  private static class Patch_Prefix_AddTupleSchemeFactory implements SchemeFactory {
-    public Patch_Prefix_AddTupleScheme getScheme() {
-      return new Patch_Prefix_AddTupleScheme();
+  private static class Patch_Prefix_DelTupleSchemeFactory implements SchemeFactory {
+    public Patch_Prefix_DelTupleScheme getScheme() {
+      return new Patch_Prefix_DelTupleScheme();
     }
   }
 
-  private static class Patch_Prefix_AddTupleScheme extends TupleScheme<Patch_Prefix_Add> {
+  private static class Patch_Prefix_DelTupleScheme extends TupleScheme<Patch_Prefix_Del> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, Patch_Prefix_Add struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       oprot.writeString(struct.prefix);
-      oprot.writeString(struct.iriStr);
       BitSet optionals = new BitSet();
       if (struct.isSetGraphNode()) {
         optionals.set(0);
@@ -567,12 +473,10 @@ public class Patch_Prefix_Add implements org.apache.thrift.TBase<Patch_Prefix_Ad
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, Patch_Prefix_Add struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, Patch_Prefix_Del struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       struct.prefix = iprot.readString();
       struct.setPrefixIsSet(true);
-      struct.iriStr = iprot.readString();
-      struct.setIriStrIsSet(true);
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         struct.graphNode = new RDF_Term();

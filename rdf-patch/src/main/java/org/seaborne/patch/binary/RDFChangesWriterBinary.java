@@ -32,8 +32,8 @@ import org.apache.thrift.protocol.TProtocol;
 import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
+import org.seaborne.patch.binary.thrift.*;
 import org.seaborne.patch.changes.RDFChangesWriter;
-import org.seaborne.patch.thrift.wire.*;
 
 /**
  * Write RDF PAtch in binary (thrift encoded).

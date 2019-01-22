@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -33,22 +33,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("all")
-public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_VAR> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_VAR");
+public class RDF_UNDEF implements org.apache.thrift.TBase<RDF_UNDEF, RDF_UNDEF._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_UNDEF> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_UNDEF");
 
-  private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new RDF_VARStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new RDF_VARTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new RDF_UNDEFStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new RDF_UNDEFTupleSchemeFactory());
   }
 
-  public String name; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    NAME((short)1, "name");
+;
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,8 +61,6 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // NAME
-          return NAME;
         default:
           return null;
       }
@@ -103,87 +99,37 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
       return _fieldName;
     }
   }
-
-  // isset id assignments
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.REQUIRED,
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_VAR.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_UNDEF.class, metaDataMap);
   }
 
-  public RDF_VAR() {
-  }
-
-  public RDF_VAR(
-    String name)
-  {
-    this();
-    this.name = name;
+  public RDF_UNDEF() {
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public RDF_VAR(RDF_VAR other) {
-    if (other.isSetName()) {
-      this.name = other.name;
-    }
+  public RDF_UNDEF(RDF_UNDEF other) {
   }
 
-  public RDF_VAR deepCopy() {
-    return new RDF_VAR(this);
+  public RDF_UNDEF deepCopy() {
+    return new RDF_UNDEF(this);
   }
 
   @Override
   public void clear() {
-    this.name = null;
-  }
-
-  public String getName() {
-    return this.name;
-  }
-
-  public RDF_VAR setName(String name) {
-    this.name = name;
-    return this;
-  }
-
-  public void unsetName() {
-    this.name = null;
-  }
-
-  /** Returns true if field name is set (has been assigned a value) and false otherwise */
-  public boolean isSetName() {
-    return this.name != null;
-  }
-
-  public void setNameIsSet(boolean value) {
-    if (!value) {
-      this.name = null;
-    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case NAME:
-      if (value == null) {
-        unsetName();
-      } else {
-        setName((String)value);
-      }
-      break;
-
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case NAME:
-      return getName();
-
     }
     throw new IllegalStateException();
   }
@@ -195,8 +141,6 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
     }
 
     switch (field) {
-    case NAME:
-      return isSetName();
     }
     throw new IllegalStateException();
   }
@@ -205,23 +149,14 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof RDF_VAR)
-      return this.equals((RDF_VAR)that);
+    if (that instanceof RDF_UNDEF)
+      return this.equals((RDF_UNDEF)that);
     return false;
   }
 
-  public boolean equals(RDF_VAR that) {
+  public boolean equals(RDF_UNDEF that) {
     if (that == null)
       return false;
-
-    boolean this_present_name = true && this.isSetName();
-    boolean that_present_name = true && that.isSetName();
-    if (this_present_name || that_present_name) {
-      if (!(this_present_name && that_present_name))
-        return false;
-      if (!this.name.equals(that.name))
-        return false;
-    }
 
     return true;
   }
@@ -232,23 +167,13 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
   }
 
   @Override
-  public int compareTo(RDF_VAR other) {
+  public int compareTo(RDF_UNDEF other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetName()).compareTo(other.isSetName());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetName()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.name, other.name);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     return 0;
   }
 
@@ -266,25 +191,15 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("RDF_VAR(");
+    StringBuilder sb = new StringBuilder("RDF_UNDEF(");
     boolean first = true;
 
-    sb.append("name:");
-    if (this.name == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.name);
-    }
-    first = false;
     sb.append(")");
     return sb.toString();
   }
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (name == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'name' was not present! Struct: " + toString());
-    }
     // check for sub-struct validity
   }
 
@@ -304,32 +219,24 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
     }
   }
 
-  private static class RDF_VARStandardSchemeFactory implements SchemeFactory {
-    public RDF_VARStandardScheme getScheme() {
-      return new RDF_VARStandardScheme();
+  private static class RDF_UNDEFStandardSchemeFactory implements SchemeFactory {
+    public RDF_UNDEFStandardScheme getScheme() {
+      return new RDF_UNDEFStandardScheme();
     }
   }
 
-  private static class RDF_VARStandardScheme extends StandardScheme<RDF_VAR> {
+  private static class RDF_UNDEFStandardScheme extends StandardScheme<RDF_UNDEF> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_VAR struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_UNDEF struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (schemeField.id) {
-          case 1: // NAME
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.name = iprot.readString();
-              struct.setNameIsSet(true);
-            } else {
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -341,40 +248,32 @@ public class RDF_VAR implements org.apache.thrift.TBase<RDF_VAR, RDF_VAR._Fields
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_VAR struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_UNDEF struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.name != null) {
-        oprot.writeFieldBegin(NAME_FIELD_DESC);
-        oprot.writeString(struct.name);
-        oprot.writeFieldEnd();
-      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
 
   }
 
-  private static class RDF_VARTupleSchemeFactory implements SchemeFactory {
-    public RDF_VARTupleScheme getScheme() {
-      return new RDF_VARTupleScheme();
+  private static class RDF_UNDEFTupleSchemeFactory implements SchemeFactory {
+    public RDF_UNDEFTupleScheme getScheme() {
+      return new RDF_UNDEFTupleScheme();
     }
   }
 
-  private static class RDF_VARTupleScheme extends TupleScheme<RDF_VAR> {
+  private static class RDF_UNDEFTupleScheme extends TupleScheme<RDF_UNDEF> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_VAR struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_UNDEF struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeString(struct.name);
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_VAR struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_UNDEF struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.name = iprot.readString();
-      struct.setNameIsSet(true);
     }
   }
 

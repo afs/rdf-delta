@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 
 import java.util.Map;
@@ -35,7 +35,7 @@ public enum Transaction implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static Transaction findByValue(int value) {
+  public static Transaction findByValue(int value) { 
     switch (value) {
       case 0:
         return TX;

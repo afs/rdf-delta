@@ -4,7 +4,7 @@
  * DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
  *  @generated
  */
-package org.seaborne.patch.thrift.wire;
+package org.seaborne.patch.binary.thrift;
 
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
@@ -33,22 +33,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("all")
-public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_BNode> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_BNode");
+public class RDF_IRI implements org.apache.thrift.TBase<RDF_IRI, RDF_IRI._Fields>, java.io.Serializable, Cloneable, Comparable<RDF_IRI> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RDF_IRI");
 
-  private static final org.apache.thrift.protocol.TField LABEL_FIELD_DESC = new org.apache.thrift.protocol.TField("label", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField IRI_FIELD_DESC = new org.apache.thrift.protocol.TField("iri", org.apache.thrift.protocol.TType.STRING, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new RDF_BNodeStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new RDF_BNodeTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new RDF_IRIStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new RDF_IRITupleSchemeFactory());
   }
 
-  public String label; // required
+  public String iri; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    LABEL((short)1, "label");
+    IRI((short)1, "iri");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,8 +63,8 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // LABEL
-          return LABEL;
+        case 1: // IRI
+          return IRI;
         default:
           return null;
       }
@@ -108,71 +108,71 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.LABEL, new org.apache.thrift.meta_data.FieldMetaData("label", org.apache.thrift.TFieldRequirementType.REQUIRED,
+    tmpMap.put(_Fields.IRI, new org.apache.thrift.meta_data.FieldMetaData("iri", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_BNode.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RDF_IRI.class, metaDataMap);
   }
 
-  public RDF_BNode() {
+  public RDF_IRI() {
   }
 
-  public RDF_BNode(
-    String label)
+  public RDF_IRI(
+    String iri)
   {
     this();
-    this.label = label;
+    this.iri = iri;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public RDF_BNode(RDF_BNode other) {
-    if (other.isSetLabel()) {
-      this.label = other.label;
+  public RDF_IRI(RDF_IRI other) {
+    if (other.isSetIri()) {
+      this.iri = other.iri;
     }
   }
 
-  public RDF_BNode deepCopy() {
-    return new RDF_BNode(this);
+  public RDF_IRI deepCopy() {
+    return new RDF_IRI(this);
   }
 
   @Override
   public void clear() {
-    this.label = null;
+    this.iri = null;
   }
 
-  public String getLabel() {
-    return this.label;
+  public String getIri() {
+    return this.iri;
   }
 
-  public RDF_BNode setLabel(String label) {
-    this.label = label;
+  public RDF_IRI setIri(String iri) {
+    this.iri = iri;
     return this;
   }
 
-  public void unsetLabel() {
-    this.label = null;
+  public void unsetIri() {
+    this.iri = null;
   }
 
-  /** Returns true if field label is set (has been assigned a value) and false otherwise */
-  public boolean isSetLabel() {
-    return this.label != null;
+  /** Returns true if field iri is set (has been assigned a value) and false otherwise */
+  public boolean isSetIri() {
+    return this.iri != null;
   }
 
-  public void setLabelIsSet(boolean value) {
+  public void setIriIsSet(boolean value) {
     if (!value) {
-      this.label = null;
+      this.iri = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case LABEL:
+    case IRI:
       if (value == null) {
-        unsetLabel();
+        unsetIri();
       } else {
-        setLabel((String)value);
+        setIri((String)value);
       }
       break;
 
@@ -181,8 +181,8 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case LABEL:
-      return getLabel();
+    case IRI:
+      return getIri();
 
     }
     throw new IllegalStateException();
@@ -195,8 +195,8 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
     }
 
     switch (field) {
-    case LABEL:
-      return isSetLabel();
+    case IRI:
+      return isSetIri();
     }
     throw new IllegalStateException();
   }
@@ -205,21 +205,21 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof RDF_BNode)
-      return this.equals((RDF_BNode)that);
+    if (that instanceof RDF_IRI)
+      return this.equals((RDF_IRI)that);
     return false;
   }
 
-  public boolean equals(RDF_BNode that) {
+  public boolean equals(RDF_IRI that) {
     if (that == null)
       return false;
 
-    boolean this_present_label = true && this.isSetLabel();
-    boolean that_present_label = true && that.isSetLabel();
-    if (this_present_label || that_present_label) {
-      if (!(this_present_label && that_present_label))
+    boolean this_present_iri = true && this.isSetIri();
+    boolean that_present_iri = true && that.isSetIri();
+    if (this_present_iri || that_present_iri) {
+      if (!(this_present_iri && that_present_iri))
         return false;
-      if (!this.label.equals(that.label))
+      if (!this.iri.equals(that.iri))
         return false;
     }
 
@@ -232,19 +232,19 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
   }
 
   @Override
-  public int compareTo(RDF_BNode other) {
+  public int compareTo(RDF_IRI other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetLabel()).compareTo(other.isSetLabel());
+    lastComparison = Boolean.valueOf(isSetIri()).compareTo(other.isSetIri());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetLabel()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.label, other.label);
+    if (isSetIri()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.iri, other.iri);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -266,14 +266,14 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("RDF_BNode(");
+    StringBuilder sb = new StringBuilder("RDF_IRI(");
     boolean first = true;
 
-    sb.append("label:");
-    if (this.label == null) {
+    sb.append("iri:");
+    if (this.iri == null) {
       sb.append("null");
     } else {
-      sb.append(this.label);
+      sb.append(this.iri);
     }
     first = false;
     sb.append(")");
@@ -282,8 +282,8 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (label == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'label' was not present! Struct: " + toString());
+    if (iri == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'iri' was not present! Struct: " + toString());
     }
     // check for sub-struct validity
   }
@@ -304,29 +304,29 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
     }
   }
 
-  private static class RDF_BNodeStandardSchemeFactory implements SchemeFactory {
-    public RDF_BNodeStandardScheme getScheme() {
-      return new RDF_BNodeStandardScheme();
+  private static class RDF_IRIStandardSchemeFactory implements SchemeFactory {
+    public RDF_IRIStandardScheme getScheme() {
+      return new RDF_IRIStandardScheme();
     }
   }
 
-  private static class RDF_BNodeStandardScheme extends StandardScheme<RDF_BNode> {
+  private static class RDF_IRIStandardScheme extends StandardScheme<RDF_IRI> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_BNode struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, RDF_IRI struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (schemeField.id) {
-          case 1: // LABEL
+          case 1: // IRI
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.label = iprot.readString();
-              struct.setLabelIsSet(true);
-            } else {
+              struct.iri = iprot.readString();
+              struct.setIriIsSet(true);
+            } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -341,13 +341,13 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_BNode struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, RDF_IRI struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.label != null) {
-        oprot.writeFieldBegin(LABEL_FIELD_DESC);
-        oprot.writeString(struct.label);
+      if (struct.iri != null) {
+        oprot.writeFieldBegin(IRI_FIELD_DESC);
+        oprot.writeString(struct.iri);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -356,25 +356,25 @@ public class RDF_BNode implements org.apache.thrift.TBase<RDF_BNode, RDF_BNode._
 
   }
 
-  private static class RDF_BNodeTupleSchemeFactory implements SchemeFactory {
-    public RDF_BNodeTupleScheme getScheme() {
-      return new RDF_BNodeTupleScheme();
+  private static class RDF_IRITupleSchemeFactory implements SchemeFactory {
+    public RDF_IRITupleScheme getScheme() {
+      return new RDF_IRITupleScheme();
     }
   }
 
-  private static class RDF_BNodeTupleScheme extends TupleScheme<RDF_BNode> {
+  private static class RDF_IRITupleScheme extends TupleScheme<RDF_IRI> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_BNode struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, RDF_IRI struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeString(struct.label);
+      oprot.writeString(struct.iri);
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_BNode struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, RDF_IRI struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.label = iprot.readString();
-      struct.setLabelIsSet(true);
+      struct.iri = iprot.readString();
+      struct.setIriIsSet(true);
     }
   }
 
