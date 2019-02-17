@@ -23,6 +23,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.out.NodeFormatter;
 import org.apache.jena.riot.out.NodeFormatterNT;
+import org.apache.jena.riot.out.NodeFormatterTTL;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.PrefixMapFactory;
 import org.seaborne.patch.RDFChanges;
 
 /** Write data changes as SPARQL Update.
@@ -30,10 +33,34 @@ import org.seaborne.patch.RDFChanges;
  */
 public class RDFChangesWriteUpdate implements RDFChanges {
 
+    private NodeFormatter formatter = new NodeFormatterNT() {
+        // Write as a URI.
+        @Override
+        public void formatBNode(AWriter w, String label) {
+            w.print("<_:");
+            String lab = NodeFmtLib.encodeBNodeLabel(label);
+            w.print(lab);
+            w.print(">");
+        }
+    };
+
     private final AWriter out;
+    // Reset every ?
+    private PrefixMap pmap = PrefixMapFactory.create();
 
     public RDFChangesWriteUpdate(AWriter out) {
         this.out = out;
+        pmap = PrefixMapFactory.create();
+        this.formatter = new NodeFormatterTTL(null, pmap) {
+            // Write as a URI.
+            @Override
+            public void formatBNode(AWriter w, String label) {
+                w.print("<_:");
+                String lab = NodeFmtLib.encodeBNodeLabel(label);
+                w.print(lab);
+                w.print(">");
+            }
+        };
     }
 
     @Override
@@ -52,7 +79,7 @@ public class RDFChangesWriteUpdate implements RDFChanges {
         out.println();
     }
 
-    private boolean doingHeader = false;
+    private boolean doingHeader = true;
     private boolean adding = false;
     private boolean deleting = false;
 
@@ -94,30 +121,19 @@ public class RDFChangesWriteUpdate implements RDFChanges {
 
     private void notHeader() {
         if ( doingHeader ) {
-            out.println();
+            //out.println();
             doingHeader = false;
         }
     }
 
     private void header() {
         if ( ! doingHeader ) {
-            out.println();
+            //out.println();
             doingHeader = true;
         }
     }
 
-    static NodeFormatter formatter = new NodeFormatterNT() {
-        // Write as a URI.
-        @Override
-        public void formatBNode(AWriter w, String label) {
-            w.print("<_:");
-            String lab = NodeFmtLib.encodeBNodeLabel(label);
-            w.print(lab);
-            w.print(">");
-        }
-    };
-
-    private static void outputNode(AWriter out, Node node) {
+    private  void outputNode(AWriter out, Node node) {
         formatter.format(out, node);
     }
 
@@ -125,21 +141,33 @@ public class RDFChangesWriteUpdate implements RDFChanges {
     public void addPrefix(Node gn, String prefix, String uriStr) {
         notHeader();
         out.print("# AddPrefix ");
-        outputNode(out, gn);
-        out.print(" ");
+        if ( gn != null ) {
+            outputNode(out, gn);
+            out.print(" ");
+        }
         out.print(prefix);
         out.print(" <");
         out.print(uriStr);
         out.print(">");
         out.println();
+        out.print("PREFIX ");
+        out.print(prefix+": ");
+        out.print("<");
+        out.print(uriStr);
+        out.print(">");
+        out.println();
+        pmap.add(prefix, uriStr);
     }
 
     @Override
     public void deletePrefix(Node gn, String prefix) {
         notHeader();
+        pmap.delete(prefix);
         out.print("# DelPrefix ");
-        outputNode(out, gn);
-        out.print(" ");
+        if ( gn != null ) {
+            outputNode(out, gn);
+            out.print(" ");
+        }
         out.print(prefix);
         out.println();
     }

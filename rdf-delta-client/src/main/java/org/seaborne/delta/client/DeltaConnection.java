@@ -347,18 +347,18 @@ public class DeltaConnection implements AutoCloseable {
         Version patchLastVersion = Version.UNSET;
 
         for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
-            //FmtLog.debug(LOG, "Play: patch=%d", ver);
+            //FmtLog.debug(LOG, "Play: patch=%s", ver);
             RDFPatch patch;
             Version verObj = Version.create(ver);
             try {
                 patch = dLink.fetch(datasourceId, verObj);
                 if ( patch == null ) {
-                    FmtLog.info(LOG, "Play: %s patch=%d : not found", datasourceId, verObj);
+                    FmtLog.info(LOG, "Play: %s patch=%s : not found", datasourceId, verObj);
                     continue;
                 }
             } catch (DeltaNotFoundException ex) {
                 // Which ever way it is signalled.  This way means "bad datasourceId"
-                FmtLog.info(LOG, "Play: %s patch=%d : not found", datasourceId, verObj);
+                FmtLog.info(LOG, "Play: %s patch=%s : not found (no datasource)", datasourceId, verObj);
                 continue;
             }
             RDFChanges c = target;

@@ -58,6 +58,14 @@ import org.slf4j.LoggerFactory;
 public class LocalServer {
     private static Logger LOG = LoggerFactory.getLogger(LocalServer.class);
 
+    private void devlog(Logger log, String fmt, Object...args) {
+        if ( ! log.isDebugEnabled() )
+            return;
+        if ( label != null )
+            fmt = String.format("[%s] %s", label, fmt);
+        FmtLog.debug(log, fmt, args);
+    }
+
     static { DeltaSystem.init(); }
 
     private AtomicBoolean active = new AtomicBoolean(false);
@@ -152,6 +160,7 @@ public class LocalServer {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.patchStore = patchStore;
+        // For multiple loclservers in oneprocess.
         this.label = "ls-"+instancecounter.incrementAndGet();
     }
 
@@ -160,10 +169,8 @@ public class LocalServer {
         List<DataSource> sources = listDataSources();
 
         if ( sources.isEmpty() )
-            FmtLog.info(LOG, "  No data sources");
+            FmtLog.info(Delta.DELTA_LOG, "  No data sources");
         else {
-            //descriptions.forEach(dsd->FmtLog.info(LOG, "   Data source : %s", dsd));
-            // Print nicely.
             sources.sort( (ds1, ds2)-> ds1.getName().compareTo(ds2.getName()) );
             sources.forEach(ds->{
                 PatchLogInfo info = ds.getPatchLog().getInfo();
@@ -231,21 +238,21 @@ public class LocalServer {
 
     public DataSource getDataSource(Id dsRef) {
         // Called to poll for a logs version changes.
-        FmtLog.info(LOG, "[%s] getDataSource(%s)", label, dsRef);
+        devlog(LOG, "getDataSource(%s)", dsRef);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.get(dsRef));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByName(String name) {
-        FmtLog.info(LOG, "[%s] getDataSourceByName(%s)", label, name);
+        devlog(LOG, "getDataSourceByName(%s)", name);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.getByName(name));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByURI(String uri) {
-        FmtLog.info(LOG, "[%s] getDataSourceByURI(%s)", label, uri);
+        devlog(LOG, "getDataSourceByURI(%s)", uri);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataRegistry.getByURI(uri));
         return dataSource(ds);
@@ -322,10 +329,10 @@ public class LocalServer {
         // does not find someone else has (with a different id);
         // XXX Delay id allocation until create-for-real. Create does not take a DSD.
         Id dsRef = Id.create();
-        FmtLog.info(LOG, "[%s](%d) createDataSource/start: %s", label, C, dsRef);
+        devlog(LOG, "(%d) createDataSource/start: %s", C, dsRef);
         DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
         DataSource dataSource = createDataSource$(C, patchStore, dsd);
-        FmtLog.info(LOG, "[%s](%d) createDataSource/finish: %s %s", label, C, dsRef, dataSource.getDescription());
+        devlog(LOG, "(%d) createDataSource/finish: %s %s", C, dsRef, dataSource.getDescription());
         // dsRef is not invalid if it was not used.
         dsRef = null;
         return dataSource.getId();
@@ -347,16 +354,15 @@ public class LocalServer {
             // May not be id in DSD - the prev test was not in a cluster lock but patchStore.createLog is atomic ("createOrGet")
             if ( ! patchLog.getLogId().equals(dsd.getId()) ) {
                 if ( reg.containsName(dsd.getName()) ) {
-                    FmtLog.info(LOG, "(%d) Existing1: %s -> %s", C, dsd, patchLog.getDescription());
+                    devlog(LOG, "(%d) Existing1: %s -> %s", C, dsd, patchLog.getDescription());
                     DataSource ds = reg.getByName(dsd.getName());
-                    FmtLog.info(LOG, "(%d) Existing2: %s -> %s", C, dsd, ds.getDescription());
+                    devlog(LOG, "(%d) Existing2: %s -> %s", C, dsd, ds.getDescription());
                     return ds;
                 }
                 LOG.error("Existing but not found again: "+dsd+" : patch ="+patchLog.getDescription());
             }
             // -- DEV
-
-            FmtLog.info(LOG, "(%d) New: %s", C, dsd);
+            devlog(LOG, "(%d) New: %s", C, dsd);
             DataSource newDataSource = new DataSource(dsd, patchLog);
             // XXX Isn't this done in PatchStore.createPatchLog as well?
             reg.put(dsd.getId(), newDataSource);

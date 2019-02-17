@@ -25,7 +25,7 @@ import org.apache.jena.sparql.util.FmtUtils;
 import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFChanges;
 
-/** Apply chanages to a {@link Graph} */
+/** Apply changes to a {@link Graph} */
 public class RDFChangesApplyGraph implements RDFChanges {
 
     private Graph graph;

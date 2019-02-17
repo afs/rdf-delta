@@ -134,7 +134,6 @@ public class LogOp {
     }
 
     public static void fetch(DeltaAction action) throws IOException {
-        LOG.info("Patch:fetch");
         Id dsRef = idForDatasource(action);
         if ( dsRef == null )
             throw new DeltaNotFoundException("No such datasource: '"+action.httpArgs.datasourceName+"'");
@@ -142,11 +141,13 @@ public class LogOp {
 
         if ( action.httpArgs.patchId != null ) {
             Id patchId = action.httpArgs.patchId;
+            FmtLog.info(LOG, "Patch:fetch Dest=%s, Patch=%s", dsRef, patchId);
             patch = action.dLink.fetch(dsRef, patchId);
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: id="+patchId);
         } else if ( action.httpArgs.version != null ) {
             Version ver = Version.create(action.httpArgs.version);
+            FmtLog.info(LOG, "Patch:fetch Dest=%s, Patch=%s", dsRef, ver);
             patch = action.dLink.fetch(dsRef, ver);
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: version="+action.httpArgs.version);

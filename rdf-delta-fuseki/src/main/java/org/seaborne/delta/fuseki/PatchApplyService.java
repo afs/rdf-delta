@@ -39,8 +39,9 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFChanges;
+import org.seaborne.patch.changes.PatchTxnAbortException;
 import org.seaborne.patch.changes.RDFChangesApply;
-import org.seaborne.patch.changes.RDFChangesWrapper;
+import org.seaborne.patch.changes.RDFChangesExternalTxn;
 import org.seaborne.patch.text.RDFPatchReaderText ;
 
 /** A Fuseki service to receive and apply a patch. */
@@ -66,14 +67,22 @@ public class PatchApplyService extends ActionREST {
                 ServletOps.errorMethodNotAllowed(method+" : Patch must use POST or PATCH");
         }
         String ctStr = action.request.getContentType();
-        // Must be UTF-8 or unset. But this is wrong so often,
-        // it is less trouble to just force UTF-8.
+        // Must be UTF-8 or unset. But this is wrong so often.
+        // It is less trouble to just force UTF-8.
         String charset = action.request.getCharacterEncoding();
         if ( charset != null && ! WebContent.charsetUTF8.equals(charset) )
             ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or UTF-8, not "+charset);
 
+        if ( WebContent.contentTypeHTMLForm.equals(ctStr) ) {
+            // Both "curl --data" and "wget --post-file"
+            // without also using "--header" will set the Content-type to "application/x-www-form-urlencoded".
+            // Treat this as "unset".
+            ctStr = null;
+        }
+
         // If no header Content-type - assume patch-text.
         ContentType contentType = ( ctStr != null ) ? ContentType.create(ctStr) : ctPatchText;
+
         if ( ! ctPatchText.equals(contentType) && ! ctPatchBinary.equals(contentType) )
             ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Allowed Content-types are "+ctPatchText+" or "+ctPatchBinary+", not "+ctStr);
         if ( ctPatchBinary.equals(contentType) )
@@ -98,7 +107,7 @@ public class PatchApplyService extends ActionREST {
             applyRDFPatch(action, WithPatchTxn.EXTERNAL_TXN);
             action.commit();
         }
-        catch (TransactionAbortException ex) {
+        catch (PatchTxnAbortException ex) {
             // This is not an error in the service.
             // The patch said "abort", and transactions are being managed by this code,
             // so the patch processor throws TransactionAbortException if an abort is encountered.
@@ -116,6 +125,7 @@ public class PatchApplyService extends ActionREST {
     private enum WithPatchTxn { PATCH_TXN, EXTERNAL_TXN }
 
     /** Apply a patch action.
+     * <p>
      * {@code withPatchTxn} controls whether to respect the TX-TC in the patch itself,
      * or whether to execute ignoring them, allowing the caller to manage the transaction,
      * such as put one transaction around the whole patch.
@@ -135,16 +145,17 @@ public class PatchApplyService extends ActionREST {
             RDFPatchReaderText pr = new RDFPatchReaderText(input);
             RDFChanges changes = new RDFChangesApply(dsg);
             // External transaction. Suppress patch recorded TX and TC.
-            if ( withPatchTxn == WithPatchTxn.PATCH_TXN )
-                changes = new RDFChangesNoTxn(changes);
+            if ( withPatchTxn == WithPatchTxn.EXTERNAL_TXN )
+                changes = new RDFChangesExternalTxn(changes);
 
             pr.apply(changes);
             ServletOps.success(action);
         }
-        catch (TransactionAbortException ex) {
-            // Let this propagate to the caller.
+        catch (PatchTxnAbortException ex) {
+            // Let this propagate to the caller. TA encountered.
             throw ex;
         }
+        catch ( PatchException ex) { throw ex; }
         catch (RiotException ex) {
             ServletOps.errorBadRequest("RDF Patch parse error: "+ex.getMessage());
         }
@@ -153,29 +164,9 @@ public class PatchApplyService extends ActionREST {
         }
     }
 
-    static class TransactionAbortException extends PatchException {}
 
-    // Counting?
-    static class RDFChangesNoTxn extends RDFChangesWrapper {
-        public RDFChangesNoTxn(RDFChanges other) {
-            super(other);
-        }
-        // Ignore so external control can be applied - but allow abort.
 
-        @Override
-        public void txnBegin() {}
 
-        @Override
-        public void txnCommit() {}
-
-        @Override
-        public void txnAbort() {
-            throw new TransactionAbortException();
-        }
-
-        @Override
-        public void segment() {}
-    }
 
     // ---- POST or PATCH or OPTIONS
 

@@ -104,6 +104,10 @@ public class dcmd {
             case "p2r":
                 cmdExec = "patch2rdf";
                 break;
+            case "p2u":
+                cmdExec = "patch2update";
+                break;
+
             case "server" :
                 cmdExec = "patchserver";
                 break;
@@ -111,14 +115,15 @@ public class dcmd {
 
         // Execute sub-command
         switch (cmdExec) {
-            case "mklog":       mklog.main(argsSub); break;
-            case "rmlog":       rmlog.main(argsSub); break;
-            case "list":        list.main(argsSub); break;
-            case "append":      append.main(argsSub); break;
-            case "getpatch":    getpatch.main(argsSub); break;
-            case "rdf2patch":   rdf2patch.main(argsSub); break;
-            case "patch2rdf":   patch2rdf.main(argsSub); break;
-            case "parse":       patchparse.main(argsSub); break;
+            case "mklog":           mklog.main(argsSub); break;
+            case "rmlog":           rmlog.main(argsSub); break;
+            case "list":            list.main(argsSub); break;
+            case "append":          append.main(argsSub); break;
+            case "getpatch":        getpatch.main(argsSub); break;
+            case "rdf2patch":       rdf2patch.main(argsSub); break;
+            case "patch2rdf":       patch2rdf.main(argsSub); break;
+            case "patch2update":    patch2update.main(argsSub); break;
+            case "parse":           patchparse.main(argsSub); break;
             case "patchserver":
                 delta.server.DeltaServerCmd.main(argsSub); break;
             case "fuseki":

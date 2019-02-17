@@ -31,7 +31,9 @@ public class DeltaFuseki {
         return FusekiServer.create().port(port).parseConfigFile(config).build().start();
     }
 
-    /** Build a Fuseki server whose dataset is a changes dataset wrapping the base */
+    /**
+     * Build a Fuseki server whose dataset is a changes dataset wrapping the given base.
+     */
     public static FusekiServer deltaFuseki(int port, String name, DatasetGraph dsgBase, RDFChanges changes) {
         DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changes);
         return
@@ -44,7 +46,10 @@ public class DeltaFuseki {
     public static Operation patchOp = Operation.register("Patch", "Patch Service");
     public static String patchContentType = "application/rdf-patch";
 
-    /** Create a {@code FusekiServer.Builder} with a patch operation. */
+    /** Create a {@code FusekiServer.Builder} with registered patch operation.
+     *  To enable it, on a dataset "name", use {@code addOperation(name, "patch", DeltaFuseki.patchOp)}.
+     *  This makes it available by POST to {@code /name/patch} or {@code /name} with content-type "application/rdf-patch".
+     */
     public static FusekiServer.Builder fusekiWithPatch() {
         ActionService handler = new PatchApplyService();
         return FusekiServer.create().registerOperation(patchOp, patchContentType, handler);

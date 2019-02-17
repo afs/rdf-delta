@@ -110,7 +110,7 @@ public class RDFPatchOps {
     /** Create a brief summary of a patch.
      * <p>
      * This function plays the patch.
-     * */
+     */
     public static PatchSummary summary(RDFPatch patch) {
         RDFChangesCounter x = new RDFChangesCounter();
         patch.apply(x);

@@ -44,15 +44,18 @@ import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesWrapper;
 import org.seaborne.patch.filelog.FilePolicy;
 import org.seaborne.patch.filelog.OutputMgr;
 import org.seaborne.patch.filelog.rotate.ManagedOutput;
 
-/** A Fuseki servlet to receive a patch and write it out. */
+/**
+ * A patch receiver. This server writes patches to a log file according to a
+ * {@link FilePolicy} and so it functions as a backup server
+ *
+ * It is a Fuseki servlet and not a dataset service.
+ */
 public class PatchWriteServlet extends ActionBase {
     static CounterName counterPatches     = CounterName.register("RDFpatch-write", "rdf-patch.write.requests");
     static CounterName counterPatchesGood = CounterName.register("RDFpatch-write", "rdf-patch.write.good");
@@ -83,6 +86,8 @@ public class PatchWriteServlet extends ActionBase {
         response.setHeader(HttpNames.hContentLengh, "0");
     }
 
+    // Possible common framework for patch processing.
+
     @Override
     protected void execCommonWorker(HttpAction action) {
         validate(action);
@@ -90,7 +95,7 @@ public class PatchWriteServlet extends ActionBase {
     }
 
     //@Override
-    protected void validate(HttpAction action) {
+    static void validate(HttpAction action) {
         String method = action.getRequest().getMethod();
         switch(method) {
             case HttpNames.METHOD_POST:
@@ -159,23 +164,5 @@ public class PatchWriteServlet extends ActionBase {
         catch (IOException ex) {
             ServletOps.errorBadRequest("IOException: "+ex.getMessage());
         }
-    }
-
-    // Counting?
-    static class RDFChangesNoTxn extends RDFChangesWrapper {
-        public RDFChangesNoTxn(RDFChanges other) {
-            super(other);
-        }
-        // Ignore so external control can be applied - but allow abort.
-        // Combine so multi-txn works AND
-
-        @Override
-        public void txnBegin() {}
-
-        @Override
-        public void txnCommit() {}
-
-        @Override
-        public void segment() {}
     }
 }

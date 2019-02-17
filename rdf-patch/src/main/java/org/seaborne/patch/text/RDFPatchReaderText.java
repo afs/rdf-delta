@@ -128,7 +128,7 @@ public class RDFPatchReaderText implements PatchProcessor {
             case ADD_PREFIX: {
                 Token tokPrefix = nextToken(tokenizer);
                 if ( tokPrefix == null )
-                    throw new PatchException("["+tokCode.getLine()+"] Prefix add tuple too short");
+                    throw exception(tokenizer, "Prefix add tuple too short");
                 String prefix = tokPrefix.asString();
                 if ( prefix == null )
                     throw exception(tokPrefix, "Prefix is not a string: %s", tokPrefix);
@@ -148,7 +148,7 @@ public class RDFPatchReaderText implements PatchProcessor {
             case DEL_PREFIX: {
                 Token tokPrefix = nextToken(tokenizer);
                 if ( tokPrefix == null )
-                    throw new PatchException("["+tokCode.getLine()+"] Prefix delete tuple too short");
+                    throw exception(tokenizer, "Prefix delete tuple too short");
                 String prefix = tokPrefix.asString();
                 if ( prefix == null )
                     throw exception(tokPrefix, "Prefix is not a string: %s", tokPrefix);
@@ -180,7 +180,7 @@ public class RDFPatchReaderText implements PatchProcessor {
                 return false;
             }
             default:  {
-                throw new PatchException("["+tokCode.getLine()+"] Code '"+code+"' not recognized");
+                throw exception(tokenizer, "Code '%s' not recognized", code);
             }
         }
     }
@@ -225,13 +225,12 @@ public class RDFPatchReaderText implements PatchProcessor {
     private static void readHeaderLine(Tokenizer tokenizer, BiConsumer<String, Node> action) {
         Token token2 = nextToken(tokenizer);
         if ( ! token2.isWord() && ! token2.isString() )
-            throw new PatchException("["+token2.getLine()+"] Header does not have a key that is a word: "+token2);
+            throw exception(tokenizer, "Header does not have a key that is a word: "+token2);
         String field = token2.getImage();
         Node v = nextNode(tokenizer);
         skip(tokenizer, DOT);
         action.accept(field, v);
     }
-
 
     private static void skip(Tokenizer tokenizer, TokenType tokenType ) {
         Token tok = tokenizer.next();
@@ -244,22 +243,31 @@ public class RDFPatchReaderText implements PatchProcessor {
         if ( tok.hasType(DOT) )
             return null;
         if ( tok.isEOF() )
-            throw new PatchException("Input truncated: no DOT seen on last line");
+            throw exception(tokenizer, "Input truncated: no DOT seen on last line");
         return tokenToNode(tokenizer.next());
     }
 
     // Next token, required, must not be EOF or DOT.
     private static Token nextToken(Tokenizer tokenizer) {
+        if ( ! tokenizer.hasNext() )
+            throw exception(tokenizer, "Input truncated");
         Token tok = tokenizer.next();
         if ( tok.hasType(DOT) )
             throw exception(tok, "Input truncated by DOT: line too short");
         if ( tok.isEOF() )
-            throw new PatchException("Input truncated: no DOT seen on last line");
+            throw exception(tok, "Input truncated: no DOT seen on last line");
         return tok;
     }
 
     private static Node nextNode(Tokenizer tokenizer) {
         return tokenToNode(nextToken(tokenizer));
+    }
+
+    private static PatchException exception(Tokenizer tokenizer, String fmt, Object... args) {
+        String msg = String.format(fmt, args);
+        if ( tokenizer != null )
+            msg = SysRIOT.fmtMessage(msg, tokenizer.getLine(), tokenizer.getColumn());
+        return new PatchException(msg);
     }
 
     private static PatchException exception(Token token, String fmt, Object... args) {
