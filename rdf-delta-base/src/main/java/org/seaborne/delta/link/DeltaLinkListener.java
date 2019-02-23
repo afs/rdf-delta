@@ -24,7 +24,7 @@ import org.seaborne.patch.RDFPatch;
 
 /**
  * {@link DeltaLink} listener.
- * Event occur for DataSource changes and for patch actions.
+ * Events occur for DataSource changes and for patch actions.
  */
 public interface DeltaLinkListener {
     public default void newDataSource(Id dsRef, String name) {}

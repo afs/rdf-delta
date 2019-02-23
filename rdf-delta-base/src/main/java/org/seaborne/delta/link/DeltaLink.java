@@ -22,9 +22,9 @@ import java.util.List;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo ;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
-import org.seaborne.patch.RDFPatch ;
+import org.seaborne.patch.RDFPatch;
 
 /**
  * Interface to the server for the operations.
@@ -42,7 +42,7 @@ public interface DeltaLink {
      * <p>
      * The {@code uri} is carried around with the data source.
      */
-    public Id newDataSource(String name, String uri) ;
+    public Id newDataSource(String name, String uri);
 
     /** Make a dataset unavailable.
      *  Actual deleting of resources depends on the implementation.
@@ -51,7 +51,7 @@ public interface DeltaLink {
     public void removeDataSource(Id dsRef);
 
     /** Return an array of ids of datasets */
-    public List<Id> listDatasets() ;
+    public List<Id> listDatasets();
 
     /** Return details of all patch logs.
      * <p>
@@ -61,13 +61,13 @@ public interface DeltaLink {
     public List<PatchLogInfo> listPatchLogInfo();
 
     /** Return details of the patch log, or null if not registered. */
-    public PatchLogInfo getPatchLogInfo(Id dsRef) ;
+    public PatchLogInfo getPatchLogInfo(Id dsRef);
 
     /** Return an array of {@link DataSourceDescription}s of datasets */
     public List<DataSourceDescription> listDescriptions();
 
     /** Return details of a patch log, or null if not registered. */
-    public DataSourceDescription getDataSourceDescription(Id dsRef) ;
+    public DataSourceDescription getDataSourceDescription(Id dsRef);
 
     /**
      * Test whether patch log exists or not.
@@ -143,12 +143,13 @@ public interface DeltaLink {
      * Retrieve a URL to the initial state.
      * The log starts with this state.
      */
-    public String initialState(Id dsRef) ;
+    public String initialState(Id dsRef);
 
     /** Add a {@link DeltaLinkListener} listener. */
-    public void addListener(DeltaLinkListener listener) ;
+    public void addListener(DeltaLinkListener listener);
+
     /** Remove a {@link DeltaLinkListener} listener. */
-    public void removeListener(DeltaLinkListener listener) ;
+    public void removeListener(DeltaLinkListener listener);
 
     /** No-op end-to-end operation. This operation succeeds or throws an exception.
      *  This operation makes one attempt only to perform the ping even if the {@code DeltaLink}

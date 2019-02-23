@@ -124,12 +124,13 @@ public abstract class AbstractTestDeltaClient {
         DatasetGraph dsg = dConn.getDatasetGraph();
         long x0 = Iter.count(dsg.find());
         assertEquals(0, x0);
-        dsg.add(quad);
+        Txn.executeWrite(dsg, ()->dsg.add(quad));
 
-        long x1 = Iter.count(dsg.find());
+        long x1 = Txn.calculateRead(dsg, ()->Iter.count(dsg.find()));
         assertEquals(1, x1);
 
-        long x2 = Iter.count(dConn.getStorage().find());
+        DatasetGraph dsgx = dConn.getStorage();
+        long x2 = Txn.calculateRead(dsgx, ()->Iter.count(dsgx.find()));
         assertEquals(1, x1);
 
     }

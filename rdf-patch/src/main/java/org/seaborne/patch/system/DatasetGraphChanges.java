@@ -222,15 +222,17 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public boolean promote() {
         // Do not use the wrapper which will redirect to the wrapped DSG
         // bypassing promote(Promote) below.
-        // This is copied and simplified :-( from "Transactional"
+        // This is copied :-( from "Transactional"
         TxnType txnType = transactionType();
+        if ( txnType == null )
+            throw new JenaTransactionException("Not in a transaction") ;
         switch(txnType) {
             case WRITE :                  return true;
             case READ :                   return false;
             case READ_PROMOTE :           return promote(Promote.ISOLATED);
             case READ_COMMITTED_PROMOTE : return promote(Promote.READ_COMMITTED);
         }
-        throw new JenaTransactionException("Not in a transaction") ;
+        throw new JenaTransactionException("Can't determine promote '"+txnType+"'transaction");
     }
 
     @Override
