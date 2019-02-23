@@ -25,11 +25,11 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
+import org.apache.jena.sparql.JenaTransactionException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphWrapper;
 import org.apache.jena.sparql.core.Quad;
 import org.seaborne.patch.RDFChanges;
-
 
 /**
  * Connect a {@link DatasetGraph} with {@link RDFChanges}. All operations on the
@@ -96,14 +96,25 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 
     @Override
     public void add(Node g, Node s, Node p, Node o) {
+        requireWriteTxn();
         monitor.add(g, s, p, o);
         super.add(g, s, p, o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
+        requireWriteTxn();
         monitor.delete(g, s, p, o);
         super.delete(g, s, p, o);
+    }
+
+    private void requireWriteTxn() {
+        ReadWrite mode = transactionMode();
+        if ( mode == ReadWrite.WRITE )
+            return;
+        boolean b = promote() ;
+        if ( !b )
+            throw new JenaTransactionException("Can't write") ;
     }
 
     @Override
@@ -118,6 +129,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     @Override
     /** Simple implementation but done without assuming iterator.remove() */
     public void deleteAny(Node g, Node s, Node p, Node o) {
+        requireWriteTxn();
         Quad[] buffer = new Quad[DeleteBufferSize];
         while (true) {
             Iterator<Quad> iter = find(g, s, p, o);
@@ -137,10 +149,6 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             if ( len < DeleteBufferSize )
                 break;
         }
-    }
-
-    private boolean isWriteMode() {
-        return super.transactionMode() == ReadWrite.WRITE;
     }
 
     // In case an implementation has one "begin" calling another.
@@ -211,6 +219,21 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     }
 
     @Override
+    public boolean promote() {
+        // Do not use the wrapper which will redirect to the wrapped DSG
+        // bypassing promote(Promote) below.
+        // This is copied and simplified :-( from "Transactional"
+        TxnType txnType = transactionType();
+        switch(txnType) {
+            case WRITE :                  return true;
+            case READ :                   return false;
+            case READ_PROMOTE :           return promote(Promote.ISOLATED);
+            case READ_COMMITTED_PROMOTE : return promote(Promote.READ_COMMITTED);
+        }
+        throw new JenaTransactionException("Not in a transaction") ;
+    }
+
+    @Override
     public boolean promote(Promote type) {
         // Any potential write causes a write-sync to be done in "begin".
         // Here we are inside the transaction so calling the sync handler is not possible (nested transaction risk).
@@ -240,7 +263,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             try {
                 monitor.txnCommit();
             } catch (Exception ex) {
-                //Don't signal.  monitor.txnAbort() is a client-causd abort.
+                //Don't signal.  monitor.txnAbort() is a client-caused abort.
                 super.abort();
                 return;
             }
@@ -254,6 +277,10 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         if ( isWriteMode() )
             monitor.txnAbort();
         super.abort();
+    }
+
+    private boolean isWriteMode() {
+        return super.transactionMode() == ReadWrite.WRITE;
     }
 
 //    @Override

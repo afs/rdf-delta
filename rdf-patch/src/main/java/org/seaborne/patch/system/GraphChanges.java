@@ -101,7 +101,6 @@ public class GraphChanges extends GraphWrapper /*implements GraphWithPerform*/ /
         GraphUtil.remove(this, s, p, o);
     }
 
-
     @Override
     public TransactionHandler getTransactionHandler() {
         return transactionHandler;
