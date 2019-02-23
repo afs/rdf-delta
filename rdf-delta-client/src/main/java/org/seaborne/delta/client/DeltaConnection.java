@@ -33,6 +33,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.system.Txn;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
@@ -42,6 +43,7 @@ import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesApply ;
 import org.seaborne.patch.changes.RDFChangesCollector;
+import org.seaborne.patch.changes.RDFChangesExternalTxn;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
@@ -119,6 +121,12 @@ public class DeltaConnection implements AutoCloseable {
 
         // Where to put incoming changes.
         this.target = new RDFChangesApply(basedsg);
+
+        // Note: future possibility of having RDFChangesEvents
+//        RDFChanges t = new RDFChangesApply(basedsg);
+//        //t = new RDFChangesEvents(t, n->{System.out.println("**** Event: "+n); return null;});
+//        this.target = t;
+
         // Where to send outgoing changes.
         RDFChanges monitor = new RDFChangesDS();
         this.managed = new DatasetGraphChanges(basedsg, monitor, null, syncer(syncTxnBegin));
@@ -333,42 +341,51 @@ public class DeltaConnection implements AutoCloseable {
 
     /** Play the patches (range is inclusive at both ends) */
     private void playPatches(long firstPatchVer, long lastPatchVer) {
-        Pair<Version, Node> p = play(datasourceId, target, dLink, firstPatchVer, lastPatchVer);
+        Pair<Version, Node> p = play(datasourceId, base, target, dLink, firstPatchVer, lastPatchVer);
         Version patchLastVersion = p.car();
         Node patchLastIdNode = p.cdr();
         setLocalState(patchLastVersion, patchLastIdNode);
     }
 
     /** Play patches, return details of the the last successfully applied one */
-    private static Pair<Version, Node> play(Id datasourceId, RDFChanges target, DeltaLink dLink, long minVersion, long maxVersion) {
+    private static Pair<Version, Node> play(Id datasourceId, DatasetGraph base, RDFChanges target, DeltaLink dLink, long minVersion, long maxVersion) {
         // [Delta] replace with a one-shot "get all patches" operation.
         //FmtLog.debug(LOG, "Patch range [%d, %d]", minVersion, maxVersion);
-        Node patchLastIdNode = null;
-        Version patchLastVersion = Version.UNSET;
 
-        for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
-            //FmtLog.debug(LOG, "Play: patch=%s", ver);
-            RDFPatch patch;
-            Version verObj = Version.create(ver);
-            try {
-                patch = dLink.fetch(datasourceId, verObj);
-                if ( patch == null ) {
-                    FmtLog.info(LOG, "Play: %s patch=%s : not found", datasourceId, verObj);
-                    continue;
+        RDFChanges c = new RDFChangesExternalTxn(target);
+        if ( false )
+            c = DeltaOps.print(c);
+        try {
+            return Txn.calculateWrite(base, ()->{
+                Node patchLastIdNode = null;
+                Version patchLastVersion = Version.UNSET;
+
+                for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
+                    //FmtLog.debug(LOG, "Play: patch=%s", ver);
+                    RDFPatch patch;
+                    Version verObj = Version.create(ver);
+                    try {
+                        patch = dLink.fetch(datasourceId, verObj);
+                        if ( patch == null ) {
+                            base.commit();
+                            FmtLog.info(LOG, "Play: %s patch=%s : not found", datasourceId, verObj);
+                            continue;
+                        }
+                    } catch (DeltaNotFoundException ex) {
+                        // Which ever way it is signalled.  This way means "bad datasourceId"
+                        FmtLog.info(LOG, "Play: %s patch=%s : not found (no datasource)", datasourceId, verObj);
+                        continue;
+                    }
+                    patch.apply(c);
+                    patchLastIdNode = patch.getId();
+                    patchLastVersion = verObj;
                 }
-            } catch (DeltaNotFoundException ex) {
-                // Which ever way it is signalled.  This way means "bad datasourceId"
-                FmtLog.info(LOG, "Play: %s patch=%s : not found (no datasource)", datasourceId, verObj);
-                continue;
-            }
-            RDFChanges c = target;
-            if ( false )
-                c = DeltaOps.print(c);
-            patch.apply(c);
-            patchLastIdNode = patch.getId();
-            patchLastVersion = verObj;
+                return Pair.create(patchLastVersion, patchLastIdNode);
+            });
+        } catch (Throwable th) {
+            FmtLog.warn(LOG, "Play: Problem for %s", datasourceId, th);
+            throw th;
         }
-        return Pair.create(patchLastVersion, patchLastIdNode);
     }
 
     @Override
