@@ -36,35 +36,34 @@ import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
 public class load {
-    static { 
+    static {
         LogCtl.setCmdLogging() ;
         LogCtl.setJavaLogging();
     }
-    
-    // Load a file into a managed dataset with timing. 
+
+    // Load a file into a managed dataset with timing.
     public static void main(String...argv) {
         Logger LOG = LoggerFactory.getLogger("Load");
-        
+
         if ( argv.length == 0 ) {
             System.err.println("Usage: load FILE...");
             System.exit(1);
         }
 
         String[] args = argv; //new String[] {"/home/afs/Datasets/BSBM/bsbm-5m.nt.gz"};
-        
+
         String DIR = "ZoneX";
         String URL = "http://localhost:1066/";
         String DS  = "DS";
-        
-        FileOps.ensureDir(DIR); 
+
+        FileOps.ensureDir(DIR);
         FileOps.clearDirectory(DIR);
         Zone zone = Zone.connect(Location.create(DIR));
         DeltaLink dLink = DeltaLinkHTTP.connect(URL);
-        
+
         DeltaClient dClient = DeltaClient.create(zone, dLink);
-        Id dsRef = dClient.newDataSource(DS, "http://example/"+DS);
-        dClient.register(dsRef, LocalStorageType.TDB, SyncPolicy.TXN_RW);
-        
+        Id dsRef = dClient.createDataSource(DS, "http://example/"+DS, LocalStorageType.TDB, SyncPolicy.TXN_RW);
+
         long count = -99;
         Timer timer = new Timer();
         timer.startTimer();
@@ -78,7 +77,7 @@ public class load {
                     RDFDataMgr.parse(cdest, fn);
                 }
             });
-            count = cdest.count();   
+            count = cdest.count();
         }
         long x = timer.endTimer();
         double seconds = x/1000.0;

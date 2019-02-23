@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory ;
  * <p>
  * Convenience combined operations are provided:
  * <ul>
- * <li> {@link #newDataSource(String, String, LocalStorageType, SyncPolicy)}: create-attach-connect
+ * <li> {@link #createDataSource(String, String, LocalStorageType, SyncPolicy)}: create-attach-connect
  * <li> {@link #register(Id, LocalStorageType, SyncPolicy)}: attach(Id)-connect
  * <li> {@link #register(String, LocalStorageType, SyncPolicy)}: attach(Name)-connect
  * </ul>
@@ -154,7 +154,7 @@ public class DeltaClient {
      * The choice of {@code syncPolicy} applies only to this registration.
      * When restarting call {@link #connect} to
      */
-    public Id newDataSource(String name, String uri, LocalStorageType storageType, SyncPolicy syncPolicy) {
+    public Id createDataSource(String name, String uri, LocalStorageType storageType, SyncPolicy syncPolicy) {
         Id dsRef = dLink.newDataSource(name, uri);
         attach(dsRef, storageType);
         connect(dsRef, syncPolicy);
