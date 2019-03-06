@@ -134,7 +134,7 @@ Turtle on the prefix name.
 PA rdf <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 ```
 
-`PA` is addign a prfix, `PD` is deleting a prefix.
+`PA` is adding a prefix, `PD` is deleting a prefix.
 
 #### Quads and Triples
 
