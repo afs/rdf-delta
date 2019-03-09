@@ -1,0 +1,5 @@
+H id   <uuid:20279a22-4037-4874-9680-c36336ac7dc3> .
+TX .
+# Triple
+A <http://example/s> <http://example/p> <http://example/o> .
+TC .

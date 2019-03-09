@@ -21,19 +21,31 @@ package org.seaborne.delta;
 import static org.junit.Assert.*;
 
 import java.util.List ;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.ext.com.google.common.base.Objects;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphListener;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDFLib ;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.apache.jena.web.HttpSC;
 import org.junit.BeforeClass ;
 import org.junit.Test;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkCounter;
+import org.seaborne.delta.link.DeltaLinkEvents;
+import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.changes.PatchSummary;
 import org.seaborne.patch.changes.RDFChangesCollector;
+import org.seaborne.patch.changes.RDFChangesCounter;
 
 /** Tests for the link (multiplex connection to the server or local engine) */
 public abstract class AbstractTestDeltaLink {
@@ -502,13 +514,13 @@ public abstract class AbstractTestDeltaLink {
     }
 
     @Test
-    public void events_dLink_1() {
+    public void dLink_events_1() {
         DeltaLink dLink = getLink();
         DeltaLinkCounter listener = new DeltaLinkCounter();
         dLink.addListener(listener);
 
         assertEquals(0, listener.countCreated());
-        Id dsRef = dLink.newDataSource("events_dLink_1", "http://example/cde1");
+        Id dsRef = dLink.newDataSource("dLink_events_1", "http://example/cde1");
         assertEquals(1, listener.countCreated());
 
         assertEquals(0, listener.countRemoved());
@@ -517,9 +529,9 @@ public abstract class AbstractTestDeltaLink {
     }
 
     @Test
-    public void events_dLink_2() {
+    public void dLink_events_2() {
         DeltaLink dLink = getLink();
-        Id dsRef = dLink.newDataSource("events_dLink_2", "http://example/cde2");
+        Id dsRef = dLink.newDataSource("dLink_events_2", "http://example/cde2");
 
         DeltaLinkCounter listener = new DeltaLinkCounter();
         dLink.addListener(listener);
@@ -540,6 +552,70 @@ public abstract class AbstractTestDeltaLink {
         RDFPatch p1a = dLink.fetch(dsRef, Id.fromNode(p1.getId()));
         assertEquals(3, listener.countFetch());
     }
+
+    private static void setupEvents(DeltaLink dLink , Id dsRef,  RDFChanges rdfChanges) {
+        DeltaLinkEvents.listenToPatches(dLink, dsRef, rdfChanges);
+        // This listener should not happen.
+        Id dsNoRef = Id.create();
+        DeltaLinkEvents.listenToPatches(dLink, dsNoRef, new RDFChangesNotExpected());
+    }
+
+    @Test
+    public void dLink_patch_events_1() {
+        // Test routing to RDFChanges.
+        DeltaLink dLink = getLink();
+        Id dsRef = dLink.newDataSource("dLink_patch_events_1", "http://example/patchEvent1");
+
+        Node gn = NodeFactory.createURI("http://example/g");
+        // Test listener.
+        RDFChangesCounter c = new RDFChangesCounter() {
+            @Override
+            public void add(Node g, Node s, Node p, Node o) {
+                assertEquals(gn, g);
+                super.add(g, s, p, o);
+            }
+        };
+        setupEvents(dLink, dsRef, c);
+
+        patch_send(dsRef, "patch1.rdfp");
+        // Fetch patch, trigger listener.
+        dLink.fetch(dsRef, Version.FIRST);
+
+        // Assess what happened.
+        PatchSummary summary = c.summary();
+        assertEquals(1, summary.countAddData);
+    }
+
+    @Test
+    public void dLink_patch_events_graph_1() {
+        // Test routing to RDFChanges that routes to a graph.
+        DeltaLink dLink = getLink();
+        Id dsRef = dLink.newDataSource("dLink_patch_events_2", "http://example/patchEvent2");
+
+        // Agrees with "patch1"
+        Graph g = GraphFactory.createGraphMem();
+        AtomicInteger counter = new AtomicInteger();
+        GraphListener gl = new GraphListenerBase() {
+            @Override protected void deleteEvent(Triple t) {}
+            @Override protected void addEvent(Triple t) { counter.incrementAndGet(); }
+        };
+        g.getEventManager().register(gl);
+
+        // Route to this graph.
+        DeltaLinkEvents.enableGraphEvents(dLink, dsRef, (n)->{
+            assertNull(n);
+            return g;
+        });
+
+        patch_send(dsRef, "patch-graph.rdfp");
+
+        // Fetch patch, trigger listener.
+        dLink.fetch(dsRef, Version.FIRST);
+        assertEquals(1, counter.get());
+        dLink.fetch(dsRef, Version.FIRST);
+        assertEquals(2, counter.get());
+    }
+
     private static boolean equals(RDFPatch patch1, RDFPatch patch2) {
         RDFChangesCollector c1 = new RDFChangesCollector();
         patch1.apply(c1);

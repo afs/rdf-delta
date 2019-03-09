@@ -445,8 +445,6 @@ public class DeltaClient {
         dLink.removeDataSource(datasourceId);
     }
 
-
-
     private void checkDeltaClient() {}
 
 //    public void printState() {
@@ -460,10 +458,10 @@ public class DeltaClient {
 //    }
 
     public Zone getZone() {
-        return zone ;
+        return zone;
     }
 
     public DeltaLink getLink() {
-        return dLink ;
+        return dLink;
     }
 }
