@@ -47,8 +47,6 @@ public class dcmd {
             // Stop Jena initializing in CmdMain -> LogCtl.setCmdLogging()
             System.setProperty("log4j.configuration", "off");
             LogCtl.setJavaLogging();
-            // [Jena 3.9.0] Can be dropped.
-            System.setProperty("java.util.logging.configuration", "set");
         }
     }
 
@@ -78,10 +76,15 @@ public class dcmd {
 
         // Map to full name.
         switch (cmdExec) {
+            case "server" :
+                cmdExec = "patchserver";
+                break;
+
             case "appendpatch" :
             case "add" :
                 cmdExec = "append";
                 break;
+
             case "mk" :
                 cmdExec = "mklog";
                 break;
@@ -91,10 +94,16 @@ public class dcmd {
             case "rm" :
                 cmdExec = "rmlog";
                 break;
+
             case "get" :
             case "fetch" :
                 cmdExec = "getpatch";
                 break;
+
+            case "cat":
+                cmdExec = "catpatch";
+                break;
+
             case "p": case "parse":
                 cmdExec = "parse";
                 break;
@@ -107,10 +116,6 @@ public class dcmd {
             case "p2u":
                 cmdExec = "patch2update";
                 break;
-
-            case "server" :
-                cmdExec = "patchserver";
-                break;
         }
 
         // Execute sub-command
@@ -118,8 +123,12 @@ public class dcmd {
             case "mklog":           mklog.main(argsSub); break;
             case "rmlog":           rmlog.main(argsSub); break;
             case "list":            list.main(argsSub); break;
+
             case "append":          append.main(argsSub); break;
             case "getpatch":        getpatch.main(argsSub); break;
+
+            case "catpatch":        catpatch.main(argsSub); break;
+
             case "rdf2patch":       rdf2patch.main(argsSub); break;
             case "patch2rdf":       patch2rdf.main(argsSub); break;
             case "patch2update":    patch2update.main(argsSub); break;
