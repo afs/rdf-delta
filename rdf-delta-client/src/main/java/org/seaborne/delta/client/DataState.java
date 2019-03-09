@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 /** Track the state of one client connected to one {@code DataSource} */
 public class DataState {
     static Logger LOG = LoggerFactory.getLogger(DataState.class);
-    
+
     private final Zone zone;
     private String name;
     private String uri;
@@ -46,12 +46,12 @@ public class DataState {
 
     // Data source id for the state
     private Id datasource;
-    
+
     // Persistent state that varies.
     private Version version = Version.UNSET;
     private Id patchId = null;
     private LocalStorageType storage ;
-    
+
     // State is:
     //   version - at least an int
     //   dsRef - id
@@ -62,8 +62,8 @@ public class DataState {
     //   datasource: string/uuid
     //   patch:      string/uuid
     // }
-    
-    /** Create from existing state */ 
+
+    /** Create from existing state */
     /*package*/ DataState(Zone zone, PersistentState state) {
         this.zone = zone;
         this.state = state;
@@ -71,8 +71,8 @@ public class DataState {
         setStateFromString(this, state.getString());
         //FmtLog.info(LOG, "%s", this);
     }
-    
-    /** Create new, initialize state. */ 
+
+    /** Create new, initialize state. */
     /*package*/ DataState(Zone zone, Path stateFile, LocalStorageType storage, Id dsRef, String name, String uri, Version version, Id patchId) {
         this.zone = zone;
         this.datasource = dsRef;
@@ -85,7 +85,7 @@ public class DataState {
         this.patchId = patchId;
         this.name = name;
         this.uri = uri;
-        this.storage = storage; 
+        this.storage = storage;
         writeState(this);
     }
 
@@ -93,7 +93,7 @@ public class DataState {
         if ( state != null )
             load(getStatePath());
     }
-    
+
     private void load(Path stateFile) {
         state = new PersistentState(stateFile);
         stateStr = state;
@@ -114,28 +114,28 @@ public class DataState {
 
     @Override
     public String toString() {
-        return String.format("[DataState: %s version=%d patch=%s]", datasource, version(), latestPatchId());
+        return String.format("[DataState: %s version=%s patch=%s]", datasource, version(), latestPatchId());
     }
-    
-    // XXX Check concurrency! Coordinate win DeltaConnection. 
+
+    // XXX Check concurrency! Coordinate win DeltaConnection.
     public synchronized void updateState(Version newVersion, Id patchId) {
-        // Update the shadow data first. Replaying patches is safe. 
+        // Update the shadow data first. Replaying patches is safe.
         // Update on disk.
         writeState(this.stateStr, this.datasource, this.name, this.uri, this.storage, newVersion, patchId);
         // Update local
         this.version = newVersion;
         this.patchId = patchId;
     }
-    
+
     public Id getDataSourceId() {
         return datasource;
     }
-    
+
 //    public DataSourceDescription asDataSourceDescription() {
-//        return new DataSourceDescription(datasource, name, uri); 
+//        return new DataSourceDescription(datasource, name, uri);
 //    }
 
-    /** Place on-disk where the state is stored. Use with care. */ 
+    /** Place on-disk where the state is stored. Use with care. */
     public Path getStatePath() {
         return state.getPath();
     }
@@ -147,7 +147,7 @@ public class DataState {
     public String getUri() {
         return uri ;
     }
-    
+
     public LocalStorageType getStorageType() {
         return storage ;
     }
@@ -156,12 +156,12 @@ public class DataState {
         setStateFromString(this, state.getString());
     }
 
-    
+
     private void writeState(DataState dataState) {
         writeState(dataState.stateStr, dataState.datasource, dataState.name, dataState.uri, dataState.storage, dataState.version, dataState.patchId);
     }
-    
-    /** Allow a different version so we can write the state ahead of changing in-memory */  
+
+    /** Allow a different version so we can write the state ahead of changing in-memory */
     private static void writeState(RefString state, Id datasource, String name, String uri, LocalStorageType storage, Version version, Id patchId) {
         if ( state == null )
             // Not persisted.
@@ -171,12 +171,12 @@ public class DataState {
             x = x+"\n";
         state.setString(x);
     }
-    
+
     private static String stateToString(Id datasource, String name, String uri, LocalStorageType storage, Version version, Id patchId) {
         JsonObject json = stateToJson(datasource, name, uri, storage, version, patchId);
         return JSON.toString(json);
     }
-    
+
     private static JsonObject stateToJson(Id datasource, String name, String uri,  LocalStorageType storage, Version version, Id patchId) {
         String x = "";
         if ( patchId != null )
@@ -189,14 +189,14 @@ public class DataState {
                     .pair(F_ID, patchStr)
                     .pair(F_NAME, name)
                     .pair(F_DATASOURCE, datasource.asPlainString());
-                
+
                 if ( storage != null )
                     builder.pair(F_STORAGE, storage.typeName());
                 if ( uri != null )
                     builder.pair(F_URI, uri);
             });
     }
-    
+
     /** Set version and datasource id from a string which is JOSN */
     private static void setStateFromString(DataState state, String string) {
         JsonObject obj = JSON.parse(string);
@@ -210,14 +210,14 @@ public class DataState {
             LOG.warn("No version: "+JSON.toStringFlat(sourceObj));
         }
         dataState.version = version;
-        
+
         String patchStr = JSONX.getStrOrNull(sourceObj, F_ID);
         if ( patchStr == null || patchStr.isEmpty() ) {
             dataState.patchId = null;
         } else {
             dataState.patchId = Id.fromString(patchStr);
         }
-            
+
         String dsStr = JSONX.getStrOrNull(sourceObj, F_DATASOURCE);
         if ( dsStr != null )
             dataState.datasource = Id.fromString(dsStr);
@@ -225,7 +225,7 @@ public class DataState {
             LOG.error("No datasource: "+JSON.toStringFlat(sourceObj));
             throw new DeltaException("No datasource: "+JSON.toStringFlat(sourceObj));
         }
-        
+
         String name = JSONX.getStrOrNull(sourceObj, F_NAME);
         if ( name != null )
             dataState.name = name;
@@ -233,11 +233,11 @@ public class DataState {
             LOG.error("No datasource name: "+JSON.toStringFlat(sourceObj));
             throw new DeltaException("No datasource name: "+JSON.toStringFlat(sourceObj));
         }
-        
+
         String uri = JSONX.getStrOrNull(sourceObj, F_URI);
         if ( uri != null )
             dataState.uri = uri;
-        
+
         String typeName = JSONX.getStrOrNull(sourceObj, F_STORAGE);
         LocalStorageType storage = LocalStorageType.fromString(typeName);
 //        if ( storage == null )

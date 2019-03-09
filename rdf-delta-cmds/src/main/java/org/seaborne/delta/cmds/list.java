@@ -24,7 +24,7 @@ import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.PatchLogInfo ;
 import org.seaborne.delta.Version;
 
-/** Create a new log */
+/** List a new log */
 public class list extends DeltaCmd {
 
     public static void main(String... args) {

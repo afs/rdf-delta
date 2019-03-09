@@ -23,7 +23,7 @@ import org.seaborne.delta.*;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 
-/** Create a new log */
+/** GET a patch */
 public class getpatch extends DeltaCmd {
 
     public static void main(String... args) {

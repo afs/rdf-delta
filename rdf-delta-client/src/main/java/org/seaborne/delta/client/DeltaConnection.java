@@ -352,6 +352,7 @@ public class DeltaConnection implements AutoCloseable {
         // [Delta] replace with a one-shot "get all patches" operation.
         //FmtLog.debug(LOG, "Patch range [%d, %d]", minVersion, maxVersion);
 
+        // Switch off transactions inside of each patch and execute as a single, overall transaction.
         RDFChanges c = new RDFChangesExternalTxn(target);
         if ( false )
             c = DeltaOps.print(c);
