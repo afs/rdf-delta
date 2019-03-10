@@ -46,9 +46,7 @@ import org.slf4j.Logger;
 
 /** Command line run the server. */
 public class DeltaServerCmd {
-    /* This class is (ostly) responsible for command line to DelatServerConfig.
-     *
-     */
+    // This class is (mostly) responsible for command line to DelatServerConfig.
 
     static { dcmd.setLogging(); }
 
@@ -82,7 +80,6 @@ public class DeltaServerCmd {
     // know it has started on return, and it is not blocking.
 
     public static void main(String...args) {
-        FmtLog.info(Delta.DELTA_LOG, "%s %s %s", SystemInfo.systemName(), SystemInfo.version(), SystemInfo.buildDate());
 
         try {
             DeltaServer deltaServer = server(args);
@@ -93,6 +90,7 @@ public class DeltaServerCmd {
             }
             // And away we go.
             try {
+                FmtLog.info(Delta.DELTA_LOG, "%s %s %s", SystemInfo.systemName(), SystemInfo.version(), SystemInfo.buildDate());
                 deltaServer.start();
                 deltaServer.join();
                 System.exit(0);
@@ -404,6 +402,16 @@ public class DeltaServerCmd {
         if ( fmt.endsWith("\n") )
             fmt = fmt.trim();
         String msg = String.format(fmt, args);
-        throw new CmdException(msg);
+        throw new CmdException(msg) {
+            @Override public Throwable fillInStackTrace() { return this ; }
+        };
     }
+
+//    private static void cmdLineError(String fmt, Object...args) {
+//        if ( ! fmt.endsWith("\n") )
+//            fmt = fmt.trim();
+//        String msg = String.format(fmt, args);
+//        System.err.printf(msg+"\n", args);
+//        System.exit(1);
+//    }
 }

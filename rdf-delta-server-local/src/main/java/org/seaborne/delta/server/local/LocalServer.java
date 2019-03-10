@@ -150,7 +150,10 @@ public class LocalServer {
 
     private static void initializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
         List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
-        FmtLog.info(Delta.DELTA_LOG, "DataSources: %s : %s", ps.getProvider().getShortName(), descriptions);
+        FmtLog.info(Delta.DELTA_LOG, "Provider: %s", ps.getProvider().getShortName());
+        if ( Delta.DELTA_LOG.isDebugEnabled() )
+            descriptions.forEach(dsd->FmtLog.debug(Delta.DELTA_LOG, "  %s", dsd));
+        FmtLog.debug(Delta.DELTA_LOG, "DataSources: %s : %s", ps.getProvider().getShortName(), descriptions);
     }
 
     private static AtomicInteger instancecounter = new AtomicInteger(0);
@@ -160,7 +163,7 @@ public class LocalServer {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.patchStore = patchStore;
-        // For multiple loclservers in oneprocess.
+        // For multiple localservers in one process.
         this.label = "ls-"+instancecounter.incrementAndGet();
     }
 

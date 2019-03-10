@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0 -->
+<Configuration status='WARN'>
+  <Appenders>
+    <Console name='STDOUT' target='SYSTEM_OUT'>
+      <PatternLayout
+        pattern='%d{HH:mm:ss} %-5p %-15c{1} :: %m%n' />
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Root level='ERROR'>
+      <AppenderRef ref='STDOUT' />
+    </Root>
+    
+    <Logger name='Delta' level='ERROR'/>
+    <Logger name='org.seaborne.delta' level='WARN'/>
+    <Logger name='org.apache.jena' level='WARN'/>
+    <Logger name='org.apache.zookeeper' level='WARN'/>
+    <Logger name='org.apache.zookeeper.server.NIOServerCnxn' level='ERROR'/>
+    <Logger name='org.apache.zookeeper.server.quorum.QuorumPeerMain' level='ERROR'/>
+  </Loggers>
+</Configuration>
+

@@ -5,23 +5,18 @@
 ## Sets up the java enviroment to run a command from RDF Delta.
 
 CP="${CP:-}"
+
 DELTA_HOME=${DELTA_HOME:-/home/afs/ASF/rdf-delta}
 CP_DIR="$DELTA_HOME/rdf-delta-cmds"
 
 CPF="$CP_DIR/delta.classpath"
 if [ ! -e "$CPF" ]; then
-    ## Should not contain log4j.
     echo "Need to create Delta classpath file"
     echo "Ensure maven is up to date with the latest snapshots and then run"
     echo -e "( cd $CP_DIR/ ; \n  mvn dependency:build-classpath -Dmdep.outputFile=delta.classpath )"
     exit 1
 fi
 DELTA_CP="$(cat $CPF)"
-
-## ## Log4j
-## LOG4J_CP="/home/afs/.m2/repo/org/slf4j/slf4j-log4j12/1.7.25/slf4j-log4j12-1.7.25.jar:/home/afs/.m2/repo/log4j/log4j/1.2.17/log4j-1.2.17.jar"
-## ## JUL
-## JUL_CP="/home/afs/.m2/repo/org/slf4j/slf4j-jdk14/1.7.25/slf4j-jdk14-1.7.25.jar"
 
 # Delta modules
 read -r -d '' MODULES << EOM
