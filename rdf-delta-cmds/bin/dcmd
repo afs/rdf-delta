@@ -48,18 +48,13 @@ fi
 # Prepend target/classes
 DELTA_CP="$D:$DELTA_CP"
 
-if [[ -e logging.properties ]]
+if [[ -e "log4j2.xml" ]]
 then
-    LOGGING=-Djava.util.logging.config.file=logging.properties
+    LOGGING="-Dlog4j.configurationFile=log4j2.xml -Dlog4j.configuration=delta"
 fi
-## # Overrides JUL.
-## if [[ -e log4j.properties ]]
-## then
-##     LOGGING=-Dlog4j.configuration=file:log4j.properties
-## fi
 
 function usage() {
-    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r" 1>&2
+    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r, fuseki" 1>&2
     ##echo "Class path: $DELTA_CP"
     exit
 }

@@ -37,7 +37,7 @@ import org.apache.jena.atlas.web.WebLib;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.cmds.dcmd;
+import org.seaborne.delta.cmds.DeltaLogging;
 import org.seaborne.delta.lib.SystemInfo;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.http.Provider;
@@ -46,9 +46,9 @@ import org.slf4j.Logger;
 
 /** Command line run the server. */
 public class DeltaServerCmd {
-    // This class is (mostly) responsible for command line to DelatServerConfig.
+    // This class is (mostly) responsible for command line to DeltaServerConfig.
 
-    static { dcmd.setLogging(); }
+    static { DeltaLogging.setLogging(); }
 
     private static Logger LOG = Delta.DELTA_LOG;
 

@@ -353,7 +353,7 @@ It may be necessary to increase the logging to diagnose problems.
 Alternatively, run the script "`../dzk-server`" each of zookeeper server directories.
 It will determine the service instance number.
 
-To reset the system, delete the `zk` directory and copy 'zk-example` again.
+To reset the system, delete the `zk` directory and copy `zk-example` again.
 To reset just the zookeeper state, delete the three directories
 `zk{1,2,3}/ZkData/version-2`.
 

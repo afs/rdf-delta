@@ -18,100 +18,16 @@
 
 package org.seaborne.delta.cmds;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 
 import jena.cmd.CmdException;
-import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.ConfigurationFactory;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.seaborne.delta.lib.IOX;
 
 /** Subcommand dispatch.
  *  Usage: "dcmd SUB ARGS...
  */
 public class dcmd {
-
-    private static String log4j2SysProp = "log4j.configurationFile";
-
-    private static boolean INITIALIZED = false;
-    static {
-        setLogging();
-    }
-
-    public static void setLogging() {
-
-        if ( INITIALIZED )
-            return ;
-        INITIALIZED = true;
-
-        if ( System.getProperty("log4j.configurationFile") != null ) {
-            // Log4j2 configuration set from outside.
-            // Leave to log4j2 itself.
-            return;
-        }
-
-        if ( FileOps.exists("logging.properties") ) {
-            System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
-            System.err.println("  Found 'logging.properties' (for java.util.logging) - ignored");
-        }
-
-        if ( FileOps.exists("log4j.properties") ) {
-            System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
-            System.err.println("  Found 'log4j.properties' (for log4j1) - ignored");
-        }
-
-        if ( FileOps.exists("log4j2.xml") ) {
-            // Let Log4j2 initialize normally.
-            System.setProperty("log4j.configurationFile", "log4j2.xml");
-            return;
-        }
-
-        // Stop Jena's cmds initializing logging.
-        System.setProperty("log4j.configuration", "off");
-
-        // Initialize log4j2 from a default (in XML non-strict format)
-        byte b[] = StrUtils.asUTF8bytes(getDefaultString());
-        try (InputStream input = new ByteArrayInputStream(b)) {
-            ConfigurationSource source = new ConfigurationSource(input);
-            ConfigurationFactory factory = ConfigurationFactory.getInstance();
-            Configuration configuration = factory.getConfiguration(null, source);
-            Configurator.initialize(configuration);
-        }
-        catch (IOException ex) {
-            IOX.exception(ex);
-        }
-    }
-
-    // Log4J2, non-strict XML format
-    public static String getDefaultString() {
-
-        String defaultLog4j2_xml = String.join("\n"
-            ,"<?xml version='1.0' encoding='UTF-8'?>"
-            ,"<Configuration status='WARN'>"
-            ,"  <Appenders>"
-            ,"    <Console name='STDOUT' target='SYSTEM_OUT'>"
-            ,"      <PatternLayout pattern='[%d{yyyy-MM-dd HH:mm:ss}] %-10c{1} %-5p %m%n'/>"
-            ,"    </Console>"
-            ,"  </Appenders>"
-            ,"  <Loggers>"
-            ,"    <Root level='WARN'>"
-            ,"      <AppenderRef ref='STDOUT'/>"
-            ,"    </Root>"
-            ,"    <Logger name='Delta' level='INFO'/>"
-            ,"    <Logger name='org.seaborne.delta' level='INFO'/>"
-            ,"    <Logger name='org.apache.jena' level='INFO'/>"
-            ,"  </Loggers>"
-            ,"</Configuration>"
-            );
-        return defaultLog4j2_xml;
-    }
+    static { DeltaLogging.setLogging(); }
 
     public static void main(String...args) {
         if ( args.length == 0 ) {

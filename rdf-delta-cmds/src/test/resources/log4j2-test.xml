@@ -18,6 +18,7 @@
     <Logger name='org.apache.zookeeper' level='WARN'/>
     <Logger name='org.apache.zookeeper.server.NIOServerCnxn' level='ERROR'/>
     <Logger name='org.apache.zookeeper.server.quorum.QuorumPeerMain' level='ERROR'/>
+    <!-- Else outputs an error that is not relevant -->
+    <Logger name='org.apache.zookeeper.server.ZooKeeperServer' level='FATAL'/>
   </Loggers>
 </Configuration>
-

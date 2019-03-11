@@ -18,7 +18,8 @@
 
 <!-- 
   The distribution.
-  Assumes jar made and onejars for the patch log server and for combined Fuseki have been made.
+  Assumes jar made and onejars for the patch log server
+  and for combined Fuseki have been made.
 -->
 
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"

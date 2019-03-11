@@ -18,15 +18,23 @@
 
 package org.seaborne.delta.fuseki.cmd;
 
-import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
+import org.apache.jena.fuseki.system.FusekiLogging;
 
 public class DeltaFusekiServerCmd {
 
     public static void main(String[] args) {
         // Stop Fuseki trying to initialize logging using log4j.
         System.setProperty("log4j.configuration", "delta");
-        LogCtl.setJavaLogging();
+        // In case, we are invoked directly, not via dcmd.
+        String[] log4j2files = { "log4j2.properties", "log4j2.yaml", "log4j2.yml", "log4j2.json", "log4j2.jsn", "log4j2.xml" };
+        for ( String fn : log4j2files ) {
+            if ( FileOps.exists(fn) )
+                // Let Log4j2 initialize normally.
+                System.setProperty("log4j.configurationFile", "log4j2.xml");
+        }
+        FusekiLogging.allowLoggingReset(false);
         FusekiMainCmd.main(args);
     }
 }

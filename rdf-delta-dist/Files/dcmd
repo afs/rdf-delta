@@ -15,9 +15,9 @@ else
     exit 1
 fi
 
-if [[ -e logging.properties ]]
+if [[ -e "log4j2.xml" ]]
 then
-    LOGGING=-Djava.util.logging.config.file=logging.properties
+    LOGGING="-Dlog4j.configurationFile=log4j2.xml -Dlog4j.configuration=delta"
 fi
 
 function usage() {

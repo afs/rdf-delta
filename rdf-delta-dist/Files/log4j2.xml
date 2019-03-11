@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0 -->
+<!--
+    Logging setup for the patch server for RDF Delta and for Fuseki with RDF Delta.
+    This file is log4j XML, non-strict synatx.
+    http://logging.apache.org/log4j/2.x/manual/configuration.html#XML
+-->
+
+<Configuration status='WARN'>
+  <Appenders>
+    <Console name='STDOUT' target='SYSTEM_OUT'>
+      <PatternLayout pattern='[%d{yyyy-MM-dd HH:mm:ss}] %-10c{1} %-5p %m%n' />
+    </Console>
+    <Console name='PLAIN' target='SYSTEM_OUT'>
+      <PatternLayout pattern='%m%n' />
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Root level='WARN'>
+      <AppenderRef ref='STDOUT' />
+    </Root>
+
+    <!-- Loggers for normal operation are 'Delta.*' -->
+    <Logger name='Delta' level='INFO'/>
+
+    <!-- Internal server logs. -->
+    <Logger name='org.seaborne.delta' level='INFO'/>
+    <Logger name='org.apache.jena' level='INFO'/>
+    <Logger name='org.apache..http.client' level='INFO'/>
+
+    <!-- Built-in zookeeper --> 
+    <Logger name='org.apache.zookeeper' level='WARN'/>
+    <!-- Eclipse Jetty -->
+    <Logger name='org.eclipse.jetty'    level='WARN'/>
+
+    <!-- For Fuseki itself-->
+    <Logger name='org.apache.jena.fuseki.Server' level='INFO'/>
+    <Logger name='org.apache.jena.fuseki.Fuseki' level='INFO'/>
+
+    <!-- The NCSA request log -->
+    <Logger name='org.apache.jena.fuseki.Request' 
+            additivity='false' level='OFF'>
+      <AppenderRef ref='PLAIN'/>
+    </Logger>
+
+  </Loggers>
+</Configuration>
