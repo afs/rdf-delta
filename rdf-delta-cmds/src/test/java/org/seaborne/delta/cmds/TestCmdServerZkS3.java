@@ -114,7 +114,7 @@ public class TestCmdServerZkS3 {
                 DeltaServerCmd.server(
                     "--port="+port,
                     "--zk=mem",
-                    "--zkPort="+zkPort,
+                    //"--zkPort="+zkPort,
                     "--s3bucket=afs-delta-1",
                     "--s3region="+REGION,
                     "--s3endpoint="+s3EndpointURL

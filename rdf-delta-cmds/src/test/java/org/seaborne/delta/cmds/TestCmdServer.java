@@ -61,7 +61,7 @@ public class TestCmdServer {
     }
 
     @Test public void server2_zkMem() {
-        String[] args = {"--zk=mem",   "--zkPort=2188"};
+        String[] args = {"--zk=mem"};
         serverAndVerify(args);
     }
 
