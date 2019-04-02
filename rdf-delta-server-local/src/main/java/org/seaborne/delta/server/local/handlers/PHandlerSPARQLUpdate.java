@@ -32,16 +32,16 @@ import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
 /** Convert a patch to SPARQL Update and send to some endpoints */
-public class PHandlerGSP implements PatchHandler {
+public class PHandlerSPARQLUpdate implements PatchHandler {
     
     // SPARQL Update services to poke
     private List<String> updateEndpoints = new ArrayList<>() ;
-    public PHandlerGSP addEndpoint(String url) {
+    public PHandlerSPARQLUpdate addEndpoint(String url) {
         updateEndpoints.add(url) ;
         return this ;
     }
     
-    public PHandlerGSP() { }
+    public PHandlerSPARQLUpdate() { }
     
     private Object dft = ARQ.getContext().get(ARQ.constantBNodeLabels) ;
     

@@ -24,8 +24,8 @@ import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
 /** Convert a patch to SPARQL Update and output to the console */
-public class PHandlerGSPOutput implements PatchHandler {
-    public PHandlerGSPOutput() {}
+public class PHandlerSPARQLUpdateOutput implements PatchHandler {
+    public PHandlerSPARQLUpdateOutput() {}
     
     @Override
     public void handle(Patch patch) {
