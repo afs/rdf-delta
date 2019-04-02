@@ -155,8 +155,10 @@ public class DeltaClient {
      */
     public Id createDataSource(String name, String uri, LocalStorageType storageType, SyncPolicy syncPolicy) {
         Id dsRef = dLink.newDataSource(name, uri);
-        attach(dsRef, storageType);
-        connect(dsRef, syncPolicy);
+        register(dsRef, storageType, syncPolicy);
+        // Which is:
+        //   attach(dsRef, storageType);
+        //   DeltaConnection dConn = connect(dsRef, syncPolicy);
         return dsRef;
     }
 
@@ -223,12 +225,11 @@ public class DeltaClient {
      * @param storageType
      * @param syncPolicy
      */
-    public void register(Id datasourceId, LocalStorageType storageType, SyncPolicy syncPolicy) {
+    public DeltaConnection register(Id datasourceId, LocalStorageType storageType, SyncPolicy syncPolicy) {
         attach(datasourceId, storageType);
-        connect(datasourceId, syncPolicy);
+        DeltaConnection dConn = connect(datasourceId, syncPolicy);
+        return dConn;
     }
-
-    // "connect" vs "connect and sync".
 
     /**
      * Connect to an existing {@code DataSource} with existing local state.
@@ -236,7 +237,7 @@ public class DeltaClient {
      * @param datasourceId
      * @param syncPolicy
      */
-    public void connect(Id datasourceId, SyncPolicy syncPolicy) {
+    public DeltaConnection connect(Id datasourceId, SyncPolicy syncPolicy) {
         syncPolicy = applyDefault(syncPolicy);
         if ( ! zone.exists(datasourceId) )
             throw new DeltaConfigException("Data source '"+datasourceId.toString()+"' not found for this DeltaClient");
@@ -244,6 +245,7 @@ public class DeltaClient {
         DatasetGraph dsg = zone.getDataset(dataState);
         DeltaConnection dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
         putCache(datasourceId, dConn);
+        return dConn;
     }
 
     /**
@@ -253,14 +255,15 @@ public class DeltaClient {
      * @param dataset
      * @param syncPolicy
      */
-    public void connectExt(Id datasourceId, DatasetGraph dataset, SyncPolicy syncPolicy) {
+    public DeltaConnection connectExt(int x, Id datasourceId, DatasetGraph dataset, SyncPolicy syncPolicy) {
         Objects.requireNonNull(datasourceId);
         DeltaConnection dConn = get(datasourceId);
         if ( dConn != null )
-            return;
+            return dConn;
         DataState dataState = zone.get(datasourceId);
         dConn = DeltaConnection.create(dataState, dataset, dLink, syncPolicy);
         putCache(datasourceId, dConn);
+        return dConn;
     }
 
     /**

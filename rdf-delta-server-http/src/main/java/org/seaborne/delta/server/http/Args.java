@@ -64,7 +64,7 @@ public class Args {
 
         Id patchId =    Id.fromStringOrNull(patchIdStr);
         Id clientId =   Id.fromStringOrNull(clientIdStr);
-        Long version =  (versionStr == null)  ? null : new Long(versionStr);
+        Long version =  (versionStr == null)  ? null : Long.parseLong(versionStr);
         return new Args(request, datasourceName, patchId, version, clientId, tokenStr);
     }
 
@@ -169,7 +169,7 @@ public class Args {
         if ( intStr.startsWith("+") || intStr.startsWith("-") )
             return dft;
         try {
-            return new Long(intStr);
+            return Long.parseLong(intStr);
         } catch (NumberFormatException ex) {
             return dft;
         }

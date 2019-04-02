@@ -258,6 +258,10 @@ public class DeltaConnection implements AutoCloseable {
         state.updateState(ver, Id.fromNode(patch.getId()));
     }
 
+    public RDFPatch fetch(Version version) {
+        return dLink.fetch(datasourceId, version);
+    }
+
     /** Try to sync ; return true if succeeded, else false */
     public boolean trySync() {
         return attempt(()->sync());

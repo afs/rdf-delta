@@ -24,7 +24,6 @@ import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaPatchLog;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage;
 import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone;
 
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -35,18 +34,13 @@ import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.Mode;
 import org.apache.jena.assembler.assemblers.AssemblerBase;
 import org.apache.jena.assembler.exceptions.AssemblerException;
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
@@ -142,11 +136,6 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             throw new AssemblerException(r, "Not a string or URI: "+n);
         }));
         return xs;
-    }
-
-    private InputStream openChangesSrc(String x) {
-        // May change to cope with remote source
-        return IO.openFile(x) ;
     }
 
     // Poll for changes.

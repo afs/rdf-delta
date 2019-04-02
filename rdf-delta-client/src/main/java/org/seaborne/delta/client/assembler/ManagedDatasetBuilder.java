@@ -33,7 +33,7 @@ import org.seaborne.delta.client.SyncPolicy;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.link.DeltaLink;
 
-// "Maker"- like a builder but not mimicking the fields.
+/** Builder for {@link DatasetGraph} connected to a patch server over a {@link DeltaLink}. */
 public class ManagedDatasetBuilder {
     public static ManagedDatasetBuilder create() { return new ManagedDatasetBuilder(); }
     protected ManagedDatasetBuilder() {}
@@ -43,12 +43,6 @@ public class ManagedDatasetBuilder {
     private SyncPolicy syncPolicy;
     private Zone zone;
     private LocalStorageType storageType;
-
-    // Convenience methods.
-    // These do some setup and call the core setters.
-
-
-    // Core setters
 
     public  ManagedDatasetBuilder logName(String logName) {
         this.logName = logName;

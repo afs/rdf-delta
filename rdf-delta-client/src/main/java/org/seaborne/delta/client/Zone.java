@@ -217,9 +217,11 @@ public class Zone {
         return states.containsKey(dsRef);
     }
 
+    /**
+     * Get existing {@link DataState} - this will read data from disk if necessary.
+     */
     public DataState getExisting(String name) {
         Id id = getIdForName(name);
-
         if ( id == null ) {
             // look on disk.
             Path dsState = stateArea.resolve(name);
@@ -233,6 +235,13 @@ public class Zone {
             return states.get(id);
         }
     }
+    
+    /**
+     * Get existing {@link DataState} - this does not read data from disk.
+     */
+    public DataState getExisting(Id id) {
+        return states.get(id);
+    }
 
     /** Initialize a new area. */
     public DataState create(Id dsRef, String name, String uri, LocalStorageType storage) {
@@ -240,28 +249,31 @@ public class Zone {
         Objects.requireNonNull(name,    "Data source name");
         Objects.requireNonNull(storage, "Storage type");
 
-        Path statePath = null;
-        Path dataPath = null;
-        if ( stateArea != null ) {
-            // Per data source area.
-            Path conn = stateArea.resolve(name);
-            FileOps.ensureDir(conn.toString());
-
-            // {zone}/{name}/state
-            // Always write the datastate even if ephemeral.
-            statePath = conn.resolve(FN.STATE);
-            // {zone}/{name}/data
-            dataPath = storage.isEphemeral() ? null : conn.resolve(FN.DATA);
-        }
-
         synchronized (zoneLock) {
             if ( ! INITIALIZED )
                 throw new DeltaException("Not initialized");
             if ( states.containsKey(dsRef) )
                 throw new DeltaException("Already exists: data state for " + dsRef + " : name=" + name);
+        
+            Path statePath = null;
+            Path dataPath = null;
+            if ( stateArea != null ) {
+                // Per data source area.
+                Path conn = stateArea.resolve(name);
+                FileOps.ensureDir(conn.toString());
+
+                // {zone}/{name}/state
+                // Always write the datastate even if ephemeral.
+                statePath = conn.resolve(FN.STATE);
+                // {zone}/{name}/data
+                dataPath = null;
+                if ( ! storage.isEphemeral() && storage != LocalStorageType.EXTERNAL )
+                    dataPath = conn.resolve(FN.DATA);
+            }
+
+            // dataPath is null for ephemeral
             if ( dataPath != null )
                 FileOps.ensureDir(dataPath.toString());
-            // statePath is null for ephemeral
 
             DataState dataState = new DataState(this, statePath, storage, dsRef, name, uri, Version.INIT, null);
             register(dataState);
@@ -291,7 +303,8 @@ public class Zone {
         return external.get(dataState.getDataSourceId());
     }
 
-    /** Create a dataset appropriate to the storage type.
+    /**
+     * Create a dataset appropriate to the storage type.
      * This does <em>not</em> write the configuration details into the on-disk zone information.
      */
     public DatasetGraph localStorage(LocalStorageType storage, Path dataPath) {
@@ -323,7 +336,8 @@ public class Zone {
         external.put(datasourceId, dsg);
     }
 
-    /** Delete a {@code DataState}. Do not use the {@code DataState} again.
+    /**
+     * Delete a {@code DataState}. Do not use the {@code DataState} again.
      * This operation makes the state on disk inacessible on reboot.
      * (It may delete the old contents.)
      */
