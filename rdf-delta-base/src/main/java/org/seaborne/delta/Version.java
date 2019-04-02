@@ -26,7 +26,7 @@ import org.apache.jena.atlas.json.JsonValue;
 import org.seaborne.delta.lib.JSONX;
 
 /** A Version */
-public class Version {
+public class Version implements Comparable<Version> {
     // Certain well known versions.
     public static Version UNSET = new Version(DeltaConst.VERSION_UNSET, "<unset>");
     public static Version INIT  = new Version(DeltaConst.VERSION_INIT, "<init>");
@@ -78,6 +78,12 @@ public class Version {
         throw new DeltaException("Unrecognized JSON version: '"+JSON.toStringFlat(version)+"'");
     }
 
+    public static Version create(String string) {
+        Objects.requireNonNull(string);
+        long x = Long.parseLong(string);
+        return Version.create(x);
+    }
+    
     public static Version create(long version) {
         // Versions count from 1 or use a constant,
         if ( version == UNSET.value() )
@@ -107,6 +113,14 @@ public class Version {
     }
 
 
+
+    public Version dec() {
+        if ( this == INIT || this == UNSET )
+            throw new DeltaException("Attempt to get version before a non-version number: "+this);
+        if ( ! isValid() )
+            throw new DeltaException("Attempt to get dec version on a non-version number: "+this);
+        return Version.create(version-1);
+    }
 
     /** Is this version a possible version? (i.e. not a marker) */
     public static boolean isValid(Version version) {
@@ -144,6 +158,24 @@ public class Version {
         return result;
     }
 
+    @Override
+    public int compareTo(Version other) {
+        Objects.requireNonNull(other);
+        return Long.compare(this.version, other.version);
+    }
+    
+    public boolean isBefore(Version other) {
+        Objects.requireNonNull(other);
+        int x = this.compareTo(other);
+        return x < 0 ; 
+    }
+
+    public boolean isAfter(Version other) {
+        Objects.requireNonNull(other);
+        int x = this.compareTo(other);
+        return x > 0 ; 
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )

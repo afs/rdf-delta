@@ -155,9 +155,9 @@ public final class Id {
      * Create an Id from a UUID string, return a default if the UUID string
      * does not parse correctly.
      */
-    public static Id parseId(String patchStr, Id dft) {
+    public static Id parseId(String uuidStr, Id dft) {
         try {
-            return Id.fromUUID(UUID.fromString(patchStr));
+            return Id.fromUUID(UUID.fromString(uuidStr));
         } catch (IllegalArgumentException ex) {
             return dft;
         }
