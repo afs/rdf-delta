@@ -148,7 +148,7 @@ public class PatchLogBase implements PatchLog {
 
             // Is it a reply of the last patch?
             if ( ! isEmpty() && getLatestId().equals(thisId) ) {
-                if ( Objects.equals(prevId, logIndex.getPreviousId()) )
+                if ( ! Objects.equals(prevId, logIndex.getPreviousId()) )
                     FmtLog.warn(LOG, "Patch id matches log head, but patch previous does not match log previous id");
                 return getLatestVersion();
             }

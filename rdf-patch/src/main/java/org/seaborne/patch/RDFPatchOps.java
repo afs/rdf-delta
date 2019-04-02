@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.graph.Graph;
@@ -123,11 +124,18 @@ public class RDFPatchOps {
     public static RDFPatch collect(RDFPatch patch) {
         if ( patch instanceof RDFChangesCollector )
             return patch;
-        RDFChangesCollector x = new RDFChangesCollector();
-        patch.apply(x);
-        return x.getRDFPatch();
+        return build( x-> patch.apply(x));
     }
 
+    /**
+     * Build a patch.
+     */
+    public static RDFPatch build(Consumer<RDFChangesCollector> filler) {
+        RDFChangesCollector x = new RDFChangesCollector();
+        filler.accept(x);
+        return x.getRDFPatch(); 
+    }
+    
     /** RDF data file to patch.
      * The patch has no Id or Previous - see {@link #withHeader}.
      */

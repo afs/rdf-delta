@@ -21,7 +21,6 @@ import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.out.NodeFormatter;
-import org.apache.jena.riot.out.NodeFormatterNT;
 import org.apache.jena.riot.out.NodeFormatterTTL;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.PrefixMapFactory;
@@ -31,26 +30,25 @@ import org.seaborne.patch.RDFChanges;
  * This is just data - no prefixes.
  */
 public class RDFChangesWriteUpdate implements RDFChanges {
-
-    private NodeFormatter formatter = new NodeFormatterNT() {
-        // Write as a URI.
-        @Override
-        public void formatBNode(AWriter w, String label) {
-            w.print("<_:");
-            String lab = NodeFmtLib.encodeBNodeLabel(label);
-            w.print(lab);
-            w.print(">");
-        }
-    };
+    private NodeFormatter formatter;
 
     private final AWriter out;
-    // Reset every ?
-    private PrefixMap pmap = PrefixMapFactory.create();
+    // Track prefixes.
+    private final PrefixMap pmap;
 
     public RDFChangesWriteUpdate(AWriter out) {
         this.out = out;
-        pmap = PrefixMapFactory.create();
-        this.formatter = new NodeFormatterTTL(null, pmap) {
+        this.pmap = PrefixMapFactory.create();
+        // Without prefixes on output - set pmap to null.
+        // Avoid Jena 3.10.0 and earlier error that deleting prefixes does not stop abbreviation.
+        // Fixes in Jena 3.11.0 when "pmap" can be used.
+        this.formatter = new NodeFormatterTTL(null, /*pmap*/null) {
+            @Override
+            // Fix NodeFormatterTTL in Jena.
+            public void formatBNode(AWriter w, Node n) {
+                formatBNode(w, n.getBlankNodeLabel());
+            }
+            
             // Write as a URI.
             @Override
             public void formatBNode(AWriter w, String label) {
