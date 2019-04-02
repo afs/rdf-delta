@@ -67,6 +67,7 @@
   <properties>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ver.jena>3.10.0</ver.jena>
     <ver.jetty>9.4.12.v20180830</ver.jetty> <!-- Keep in step with Jena -->
     <ver.junit>4.12</ver.junit>
@@ -342,10 +343,10 @@
                RDF Delta should work for compile and target Java 11 as well.
                It is client software that might require java8 class formats.
           -->
-
-          <!--
+          
+          <!-- Compile with java11
           <configuration>
-            <release>8</release>
+            <release>11</release>
           </configuration>
           -->
 
