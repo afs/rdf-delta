@@ -24,22 +24,29 @@ package org.seaborne.delta.client;
  */
 
 public enum LocalStorageType {
+    
     /** TDB storage */
-    TDB(false, "TDB"),
-    TDB2(false, "TDB2"),
-    //FILE(false, "file"),
+    TDB(false, true, "TDB"),
+    TDB2(false, true, "TDB2"),
+    //FILE(false, true, "file"),
+    
     /** In-memory and ephemeral */
-    MEM(true, "mem"),
-    /** External storage (not zone managed). */
-    EXTERNAL(false, "external"),
-    /** No persistence tracking, just within this JVM */
-    NONE(true, "none");
+    MEM(true, true, "mem"),
+    
+    /** External storage (not zone managed) with persistent tracked state. */
+    EXTERNAL(false, false, "external"),
+    
+    /** No persistence tracking, just within this JVM and no persistent state. */
+    NONE(true, false, "none");
     ;
-    private final boolean ephemeral ;
+    
     private String typeName ;
+    private final boolean ephemeral ;
+    private final boolean managedStorage ;
 
-    private LocalStorageType(boolean ephemeral, String typeName) {
+    private LocalStorageType(boolean ephemeral, boolean managedStorage, String typeName) {
         this.ephemeral = ephemeral;
+        this.managedStorage = managedStorage;
         this.typeName = typeName;
     }
 
@@ -54,7 +61,14 @@ public enum LocalStorageType {
         //throw new DeltaException("No storage type constant for '"+string+"'");
     }
 
+    /** If "ephemeral", the tracked state disappears when the JVM ends. */
     public boolean isEphemeral() { return ephemeral; }
+    
+    /** If "managedStorage", the local Zone is managing storage. */
+    public boolean managedStorage() { return managedStorage; }
+    
+    /** Name for presentation purposes. */
+    // toString() left to default enum behaviour. 
     public String typeName() { return typeName; }
 }
 

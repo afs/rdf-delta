@@ -222,18 +222,18 @@ public class Zone {
      */
     public DataState getExisting(String name) {
         Id id = getIdForName(name);
-        if ( id == null ) {
-            // look on disk.
-            Path dsState = stateArea.resolve(name);
-            if ( Files.exists(dsState) ) {
-                DataState state = readDataState(dsState);
-                return state;
-                // see scanForDataState
-            }
-            return null;
-        } else {
+        if ( id != null )
             return states.get(id);
+        if ( stateLocation.isMem() )
+            return null;    
+        // look on disk.
+        Path dsState = stateArea.resolve(name);
+        if ( Files.exists(dsState) ) {
+            DataState state = readDataState(dsState);
+            return state;
         }
+        // No such file.
+        return null;
     }
     
     /**
@@ -267,7 +267,7 @@ public class Zone {
                 statePath = conn.resolve(FN.STATE);
                 // {zone}/{name}/data
                 dataPath = null;
-                if ( ! storage.isEphemeral() && storage != LocalStorageType.EXTERNAL )
+                if ( ! storage.isEphemeral() &&  storage.managedStorage() )
                     dataPath = conn.resolve(FN.DATA);
             }
 
