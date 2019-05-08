@@ -51,7 +51,7 @@ The text format for an RDF Patch is N-Triples-like: it is a series of
 rows, each row ends with a `.` (DOT).  The tokens on a row are keywords,
 URIs, blank nodes, writen with their label (see below) or RDF Literals,
 in N-triples syntax.  A keyword follows the same rules as
-Turtle prefix declarations without a tariling `:`.
+Turtle prefix declarations without a trailing `:`.
 
 A line has an operation code, then some number of items depending on 
 the operation.
