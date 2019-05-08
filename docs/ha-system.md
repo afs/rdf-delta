@@ -79,7 +79,7 @@ The end-to-end system has components for
 1. the Apache Jena Fuseki Servers
 2. the RDF Delta Patch Servers
 3. the index of patch logs
-4. the storage layer of the patched themselves
+4. the storage layer of the patches themselves
 
 The Fuseki servers each have their own copies of a database for RDF
 Dataset they provide. All SPARQL operations happen locally in a
@@ -214,8 +214,8 @@ and the Fuseki server has synchronized.
 
 If you query the server ("s-query" is a command line program to send
 SPARQL queries, See
-[SOH](http://jena.apache.org/documentation/fuseki2/soh.html for
-details)
+[SOH](http://jena.apache.org/documentation/fuseki2/soh.html) for
+details).
 
 ```
 s-query --service=http://localhost:3031/ds --output=text 'SELECT * { ?s ?p ?o }'
