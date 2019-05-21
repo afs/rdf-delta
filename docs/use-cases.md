@@ -10,7 +10,7 @@ section: 4
 Distributing changes to a dataset has two aspects: the format used to
 record changes and the mechanism used to propagate changes.
 
-RDF Delta provides thse into two parts:
+RDF Delta provides these into two parts:
 
 * RDF Patch - a format to record changes that is easy to generate and consume.
 * RDF Patch Logs - a protocol for distributing change files.
@@ -53,7 +53,7 @@ A log is a sequence of changes that has two operations:
 * add a new log item to head of the log
 * read log entries
 
-so a log has no branches (theer is only one head of the log at any one
+so a log has no branches (there is only one head of the log at any one
 time and only one item can be added to the head to create a new head). A
 log is linear list of operations in the time order they were performed.
 
