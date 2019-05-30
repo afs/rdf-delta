@@ -66,10 +66,10 @@ servers.
 
 High availability (HA), also called Fault Tolerance, is for providing a
 service in a way that is resistent to being taken offline by some of the servers
-used to provide the service going offline. Server may go offlien because
-they crash, or through palnned needs such as maintenance. 
+used to provide the service going offline. Server may go offline because
+they crash, or through planned needs such as maintenance. 
 
-One way to achieve this is for there to be multiple servers behind a
+One way to achieve this is to have multiple servers behind a
 load balancer so that clients see a single, unchanging contact point,
 but the machines used behind that can be changed.
 
