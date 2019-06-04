@@ -26,7 +26,7 @@ import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
 
 /** Locally, create a new DataSource, remove it. */
-public class DeltaEx8_CreateDataSourceLocal {
+public class DeltaEx08_CreateDataSourceLocal {
 
     public static void main(String... args) {
         Location loc = Location.create("DeltaServer");

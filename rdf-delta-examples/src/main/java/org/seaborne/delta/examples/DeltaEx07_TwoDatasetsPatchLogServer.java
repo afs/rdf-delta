@@ -43,7 +43,7 @@ import org.seaborne.delta.server.http.DeltaServer;
  * datasets and the the patch log server is in the same JVM but nothing is
  * shared and all interaction is over HTTP.
  */
-public class DeltaEx7_TwoDatasetsPatchLogServer {
+public class DeltaEx07_TwoDatasetsPatchLogServer {
     static { LogCtl.setJavaLogging(); }
 
     final static int PLOG_PORT = 1066;

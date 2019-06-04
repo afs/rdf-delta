@@ -32,10 +32,10 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 
 /** Set up a dataset, collect the changes as they happen, then write the changes.
  * <p>
- * See {@link DeltaEx1_DatasetWithPatchLog} for a similar example but
+ * See {@link DeltaEx01_DatasetWithPatchLog} for a similar example but
  * emitting the change log as changes occur in the transaction.
  */
-public class DeltaEx2_DatasetCollectPatch {
+public class DeltaEx02_DatasetCollectPatch {
     public static void main(String ...args) {
         // -- Base dataset 
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();

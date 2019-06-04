@@ -43,7 +43,7 @@ import org.seaborne.patch.RDFPatchOps ;
  * In a real world deployment, the patch log server would be on another machine.
  * All interaction is over HTTP.
  */
-public class DeltaEx4_DatasetToPatchLogServer {
+public class DeltaEx04_DatasetToPatchLogServer {
     static { LogCtl.setJavaLogging(); }
 
     final static int PLOG_PORT = 1066;

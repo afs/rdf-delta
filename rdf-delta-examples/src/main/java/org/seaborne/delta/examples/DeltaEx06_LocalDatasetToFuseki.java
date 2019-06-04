@@ -27,9 +27,9 @@ package org.seaborne.delta.examples;
  * Alternatively, not shown here, changes can be collected up into a series of
  * patch then sent together to the Fuseki server.
  * <p>
- * See {@link DeltaEx5_FusekiPatchOperation}.
+ * See {@link DeltaEx05_FusekiPatchOperation}.
  */
-public class DeltaEx6_LocalDatasetToFuseki {
+public class DeltaEx06_LocalDatasetToFuseki {
 }
 //    static { LogCtl.setJavaLogging(); }
 //    

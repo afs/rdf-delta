@@ -49,7 +49,7 @@ import org.seaborne.patch.RDFPatchOps ;
  * {@code http://host:port/dataset/patch} wil be applied as a single
  * transaction.
  */
-public class DeltaEx5_FusekiPatchOperation {
+public class DeltaEx05_FusekiPatchOperation {
     static { LogCtl.setJavaLogging(); }
 
     public static void main(String ...args) {

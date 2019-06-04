@@ -37,7 +37,7 @@ import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
 
 /** Connect to an HTTP server, create a new DataSource, remove it. */
-public class DeltaEx9_CreateDataSourceHTTP {
+public class DeltaEx09_CreateDataSourceHTTP {
 
     public static Quad quad = SSE.parseQuad("(:g :s :p :o)");
 
