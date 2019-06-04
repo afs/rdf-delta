@@ -41,32 +41,37 @@ public class DeltaLogging {
     private static String log4j2SysProp = "log4j.configurationFile";
 
     private static boolean INITIALIZED = false;
-    public static void setLogging() {
 
+    public static void setLogging() {
+        setLogging(false);
+    }
+
+    public static void setLogging(boolean withWarnings) {
         if ( INITIALIZED )
             return ;
         INITIALIZED = true;
 
-        // Stop Apache Jena command line logging initialization (Jena used log4j1 for command line logging).
+        // Stop Apache Jena command line logging initialization (Jena uses log4j1 for command line logging by default).
         System.setProperty("log4j.configuration", "off");
 
         // Log4j2 configuration set from outside. Leave to log4j2 itself.
         if ( System.getProperty("log4j.configurationFile") != null )
             return;
 
-        // Check for attempts at JUL and log4j1 setup.
-        if ( FileOps.exists("logging.properties") ) {
-            System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
-            System.err.println("  Found 'logging.properties' (for java.util.logging) - ignored");
+        if ( withWarnings ) {
+            // Check for attempts at JUL and log4j1 setup.
+            if ( FileOps.exists("logging.properties") ) {
+                System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
+                System.err.println("  Found 'logging.properties' (for java.util.logging) - ignored");
+            }
+
+            if ( FileOps.exists("log4j.properties") ) {
+                System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
+                System.err.println("  Found 'log4j.properties' (for log4j1) - ignored");
+            }
         }
-
-//        if ( FileOps.exists("log4j.properties") ) {
-//            System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
-//            System.err.println("  Found 'log4j.properties' (for log4j1) - ignored");
-//        }
-
         // See https://logging.apache.org/log4j/2.0/manual/configuration.html
-        // Modify so that just the present of a file of the right name will configure logging.
+        // Modify so that just the presence of a file of the right name will configure logging.
         // This helps for sealed jars (ie. "java -jar").
         // If a log4j2 file is present use that:
         String[] log4j2files = { "log4j2.properties", "log4j2.yaml", "log4j2.yml", "log4j2.json", "log4j2.jsn", "log4j2.xml" };
@@ -137,4 +142,3 @@ public class DeltaLogging {
         return defaultLog4j2_xml;
     }
 }
-

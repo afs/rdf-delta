@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 public class DeltaServerCmd {
     // This class is (mostly) responsible for command line to DeltaServerConfig.
 
-    static { DeltaLogging.setLogging(); }
+    static { DeltaLogging.setLogging(true); }
 
     private static Logger LOG = Delta.DELTA_LOG;
 

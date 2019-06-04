@@ -26,7 +26,7 @@ import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
  *  Usage: "dcmd SUB ARGS...
  */
 public class dcmd {
-    static { DeltaLogging.setLogging(); }
+    static { DeltaLogging.setLogging(true); }
 
     public static void main(String...args) {
         if ( args.length == 0 ) {
