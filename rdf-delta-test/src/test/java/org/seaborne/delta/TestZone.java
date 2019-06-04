@@ -48,10 +48,10 @@ public class TestZone {
     private DeltaLink deltaLink;
     private DeltaClient deltaClient;
 
-    @BeforeClass public static void beforeClass() { 
+    @BeforeClass public static void beforeClass() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-    
+
     @Before public void before() {
         FileOps.ensureDir(DIR_ZONE);
         FileOps.clearAll(DIR_ZONE);
@@ -68,19 +68,36 @@ public class TestZone {
         deltaClient.connect(dsRef, SyncPolicy.NONE);
         return dsRef;
     }
-    
+
+    private Id registerExternal(String name, DatasetGraph dsgBase) {
+        Id dsRef = deltaClient.newDataSource(name, "http://example/"+name);
+        deltaClient.registerExternal(dsRef, dsgBase, SyncPolicy.NONE);
+        return dsRef;
+    }
+
     @After public void after() {
         deltaLink.close();
         zone.shutdown();
     }
-    
+
     @AfterClass public static void afterClass() {
     }
-    
-    @Test public void zone_01() {
+
+    @Test public void zone_01_createExternal() {
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
-        String NAME = "ABC"; 
+        String NAME = "ABC";
         Id dsRef = createExternal(NAME, dsgBase);
+
+        try(DeltaConnection dConn = deltaClient.get(dsRef)) {
+            DatasetGraph storage = dConn.getStorage();
+            assertEquals(dsgBase, storage);
+        }
+    }
+
+    @Test public void zone_01_registerExternal() {
+        DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
+        String NAME = "ABC";
+        Id dsRef = registerExternal(NAME, dsgBase);
 
         try(DeltaConnection dConn = deltaClient.get(dsRef)) {
             DatasetGraph storage = dConn.getStorage();
@@ -91,32 +108,32 @@ public class TestZone {
     @Test public void zone_02() {
         assertTrue(zone.localConnections().isEmpty());
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
-        String NAME = "ABC"; 
+        String NAME = "ABC";
         Id dsRef = createExternal(NAME, dsgBase);
         assertFalse(zone.localConnections().isEmpty());
         Quad quad = SSE.parseQuad("(_ :s :p :o)");
-        
+
         try(DeltaConnection dConn = deltaClient.get(dsRef)) {
             DatasetGraph dsg  = dConn.getDatasetGraph();
-            Txn.executeWrite(dsg, ()->dsg.add(quad)); 
+            Txn.executeWrite(dsg, ()->dsg.add(quad));
         }
-        
+
         try(DeltaConnection dConn = deltaClient.get(dsRef)) {
             DatasetGraph dsg  = dConn.getDatasetGraph();
-            Txn.executeRead(dsg, ()->dsg.contains(quad)); 
+            Txn.executeRead(dsg, ()->dsg.contains(quad));
         }
     }
-    
+
     @Test public void zone_03() {
         assertTrue(zone.localConnections().isEmpty());
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
-        String NAME = "ABC"; 
-        Id dsRef = createExternal(NAME, dsgBase);
+        String NAME = "ABC";
+        Id dsRef = registerExternal(NAME, dsgBase);
         assertFalse(zone.localConnections().isEmpty());
         Quad quad = SSE.parseQuad("(_ :s :p :o)");
         try(DeltaConnection dConn = deltaClient.get(dsRef)) {
             DatasetGraph dsg  = dConn.getDatasetGraph();
-            Txn.executeWrite(dsg, ()->dsg.add(quad)); 
+            Txn.executeWrite(dsg, ()->dsg.add(quad));
         }
         // read log.
         PatchLogInfo info = deltaLink.getPatchLogInfo(dsRef);

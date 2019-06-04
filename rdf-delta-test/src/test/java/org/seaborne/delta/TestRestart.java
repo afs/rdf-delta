@@ -46,9 +46,9 @@ public class TestRestart {
     static String DIR_ZONE = "target/Zone3";
     static Path ServerArea = Paths.get("target/test/server");
     static String TDIR = "testing/";
-    
+
     private Zone zone;
-    private LocalServer localServer; 
+    private LocalServer localServer;
     private DeltaLink deltaLink;
     private DeltaClient deltaClient;
 
@@ -56,7 +56,7 @@ public class TestRestart {
         ensureClear(DIR_ZONE);
         ensureClear(ServerArea.toString());
     }
-    
+
     @After public void after() {
         shutdown();
     }
@@ -64,19 +64,19 @@ public class TestRestart {
     private static void ensureClearLocal() {
         ensureClear(DIR_ZONE);
     }
-        
-    private static void ensureClearRemote() {   
+
+    private static void ensureClearRemote() {
         ensureClear(ServerArea.toString());
         FileStore.resetTracked();
     }
-    
+
     private static void ensureClear(String dirname) {
         FileOps.ensureDir(dirname);
         FileOps.clearAll(dirname);
-    }    
+    }
     //DeltaTestLib.
-    
-    
+
+
     private static void test(Id dsRef, DeltaClient dClient, int numQuads) {
         try(DeltaConnection dConn = dClient.get(dsRef)) {
             DatasetGraph dsg  = dConn.getDatasetGraph();
@@ -85,15 +85,15 @@ public class TestRestart {
             });
         }
     }
-    
+
     private static void update(Id dsRef, DeltaClient dClient) {
         // Use it.
         Quad quad = quad();
         try(DeltaConnection dConn = dClient.get(dsRef)) {
             DatasetGraph dsg  = dConn.getDatasetGraph();
-            Txn.executeWrite(dsg, ()->dsg.add(quad)); 
+            Txn.executeWrite(dsg, ()->dsg.add(quad));
         }
-        
+
         try(DeltaConnection dConn = dClient.get(dsRef)) {
             DatasetGraph dsg  = dConn.getDatasetGraph();
             Txn.executeRead(dsg, ()->{
@@ -111,10 +111,10 @@ public class TestRestart {
         ensureClearLocal();
         ensureClearRemote();
         String cfg = "delta.cfg";
-        IOX.copy(TDIR+cfg, ServerArea.toString()); 
+        IOX.copy(TDIR+cfg, ServerArea.toString());
         setup();
     }
-    
+
     private void setup() {
         localServer = LocalServers.createFile(ServerArea);
         deltaLink = DeltaLinkLocal.connect(localServer);
@@ -134,20 +134,20 @@ public class TestRestart {
         deltaClient = null;
         deltaLink = null;
     }
-    
-    private Id createExternal(String name, DatasetGraph dsgBase) {
+
+    private Id xcreateExternal(String name, DatasetGraph dsgBase) {
         Id dsRef = deltaClient.newDataSource(name, "http://example/"+name);
         deltaClient.attachExternal(dsRef, dsgBase);
         deltaClient.connect(dsRef, SyncPolicy.NONE);
         return dsRef;
     }
 
-    @BeforeClass public static void beforeClass() { 
+    @BeforeClass public static void beforeClass() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
-    
+
     @AfterClass public static void afterClass() {
-        
+
     }
 
     @Test public void restart_00() {
@@ -162,32 +162,32 @@ public class TestRestart {
         assertTrue(deltaClient.getZone().localConnections().isEmpty());
         assertTrue(deltaLink.listDatasets().isEmpty());
     }
-    
+
     @Test public void lifecycle_01() {
         setupEmpty();
         assertTrue(zone.localConnections().isEmpty());
         String NAME = "lifecycle_01";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
-        
+
         DataSourceDescription dsd = deltaLink.getDataSourceDescription(dsRef);
         assertNotNull(dsd);
-        
+
         // Remote only
         assertEquals(0, zone.localConnections().size());
         assertNull(deltaClient.get(dsRef));
-        
+
         // Not connected, but in zone.
         deltaClient.attach(dsRef, LocalStorageType.MEM);
         zone.exists(dsRef);
         assertNull(deltaClient.get(dsRef));
-        
+
         // Connected!
         deltaClient.connect(dsRef, SyncPolicy.TXN_RW);
         assertNotNull(deltaClient.get(dsRef));
 
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);
-        
+
     }
 
     @Test public void lifecycle_02() {
@@ -217,25 +217,25 @@ public class TestRestart {
         assertFalse(deltaClient.existsRemote(dsRef));
     }
 
-    
+
     @Test public void restart_01() {
         setupEmpty();
         String NAME = "restart_01";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
         deltaClient.register(dsRef, LocalStorageType.MEM, SyncPolicy.TXN_RW);
-        
+
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);
-        
+
         shutdown();
         setup();
-        
+
         assertTrue(deltaClient.existsLocal(dsRef));
         deltaClient.connect(dsRef, SyncPolicy.TXN_RW);
-        
+
         test(dsRef, deltaClient, 1);
     }
-    
+
     @Test public void restart_02() {
         setupEmpty();
         String NAME = "restart_02";
@@ -244,25 +244,25 @@ public class TestRestart {
         update(dsRef, deltaClient);
 
         shutdown();
-        
+
         // Clear local.
         ensureClearLocal();
         setup();
-        
+
         assertFalse(deltaClient.existsLocal(dsRef));
         // Exists remote.
         assertTrue(deltaClient.existsRemote(dsRef));
-        
+
         PatchLogInfo info = deltaClient.getLink().getPatchLogInfo(dsRef);
         assertEquals(version_1, info.getMinVersion());
         assertEquals(version_1, info.getMaxVersion());
-        
+
         deltaClient.attach(dsRef, LocalStorageType.MEM);
         deltaClient.connect(dsRef, SyncPolicy.NONE);
         deltaClient.get(dsRef).sync();
         test(dsRef, deltaClient, 1);
     }
-    
+
     //existing local, deleted remote.
     @Test public void restart_03() {
         setupEmpty();
@@ -272,15 +272,15 @@ public class TestRestart {
         update(dsRef, deltaClient);
 
         shutdown();
-        
+
         // Clear remote
         ensureClearRemote();
         setup();
-        
+
         assertTrue(deltaClient.existsLocal(dsRef));
         // Exists remote.
         assertFalse(deltaClient.existsRemote(dsRef));
-        
+
         // Delete
         deltaClient.removeDataSource(dsRef);
 
@@ -290,12 +290,12 @@ public class TestRestart {
 //        PatchLogInfo info = deltaClient.getLink().getPatchLogInfo(dsRef);
 //        assertEquals(1, info.getMinVersion());
 //        assertEquals(1, info.getMaxVersion());
-//        
+//
 //        deltaClient.attach(dsRef, LocalStorageType.MEM);
 //        deltaClient.connect(dsRef, TxnSyncPolicy.NONE);
 //        test(dsRef, deltaClient, 1);
     }
-    
+
     @Test public void restart_04() {
         setupEmpty();
         String NAME = "restart_04";

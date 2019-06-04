@@ -31,7 +31,7 @@ public class DeltaFusekiServerCmd {
         for ( String fn : log4j2files ) {
             if ( FileOps.exists(fn) )
                 // Let Log4j2 initialize normally.
-                System.setProperty("log4j.configurationFile", "log4j2.xml");
+                System.setProperty("log4j.configurationFile", fn);
         }
         FusekiLogging.allowLoggingReset(false);
         FusekiMainCmd.main(args);

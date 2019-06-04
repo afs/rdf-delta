@@ -225,7 +225,7 @@ public class Zone {
         if ( id != null )
             return states.get(id);
         if ( stateLocation.isMem() )
-            return null;    
+            return null;
         // look on disk.
         Path dsState = stateArea.resolve(name);
         if ( Files.exists(dsState) ) {
@@ -235,7 +235,7 @@ public class Zone {
         // No such file.
         return null;
     }
-    
+
     /**
      * Get existing {@link DataState} - this does not read data from disk.
      */
@@ -254,7 +254,7 @@ public class Zone {
                 throw new DeltaException("Not initialized");
             if ( states.containsKey(dsRef) )
                 throw new DeltaException("Already exists: data state for " + dsRef + " : name=" + name);
-        
+
             Path statePath = null;
             Path dataPath = null;
             if ( stateArea != null ) {
@@ -315,6 +315,7 @@ public class Zone {
                 return TDBFactory.createDatasetGraph(IOX.asLocation(dataPath));
             case TDB2:
                 return DatabaseMgr.connectDatasetGraph(dataPath.toString());
+            case NONE:         return null;
             default :
                 throw new NotImplemented("Zone::localStorage = "+storage);
         }

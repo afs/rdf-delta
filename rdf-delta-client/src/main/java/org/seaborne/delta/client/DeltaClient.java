@@ -248,23 +248,23 @@ public class DeltaClient {
         return dConn;
     }
 
-    /**
-     * Connect to an existing {@code DataSource} with provided {@link DatasetGraph} as local state.
-     * This operation does not fail if it can not contact the patch log server.
-     * @param datasourceId
-     * @param dataset
-     * @param syncPolicy
-     */
-    public DeltaConnection connectExt(int x, Id datasourceId, DatasetGraph dataset, SyncPolicy syncPolicy) {
-        Objects.requireNonNull(datasourceId);
-        DeltaConnection dConn = get(datasourceId);
-        if ( dConn != null )
-            return dConn;
-        DataState dataState = zone.get(datasourceId);
-        dConn = DeltaConnection.create(dataState, dataset, dLink, syncPolicy);
-        putCache(datasourceId, dConn);
-        return dConn;
-    }
+//    /**
+//     * Connect to an existing {@code DataSource} with provided {@link DatasetGraph} as local state.
+//     * This operation does not fail if it can not contact the patch log server.
+//     * @param datasourceId
+//     * @param dataset
+//     * @param syncPolicy
+//     */
+//    public DeltaConnection connectExt(Id datasourceId, DatasetGraph dataset, SyncPolicy syncPolicy) {
+//        Objects.requireNonNull(datasourceId);
+//        DeltaConnection dConn = get(datasourceId);
+//        if ( dConn != null )
+//            return dConn;
+//        DataState dataState = zone.get(datasourceId);
+//        dConn = DeltaConnection.create(dataState, dataset, dLink, syncPolicy);
+//        putCache(datasourceId, dConn);
+//        return dConn;
+//    }
 
     /**
      * Connect to an existing {@code DataSource} with existing local state.
@@ -287,7 +287,7 @@ public class DeltaClient {
      * This is a specialised operation - using a managed dataset (see
      * {@link #attach(String, LocalStorageType)}) is preferred.
      * <p>
-     * The {@code DatasetGraph} is assumed to empty and is brought up-to-date.
+     * The {@code DatasetGraph} is assumed to be empty and is brought up-to-date.
      * The client must be registered with the {@code DeltaLink}.
      * <p>
      * {@link #connect(Id, SyncPolicy)} must be called later to use the dataset.
@@ -307,7 +307,7 @@ public class DeltaClient {
      * the {@code DatasetGraph} through a {@link DeltaConnection} obtained from
      * this {@code DeltaClient}.
      * <p>
-     * The {@code DatasetGraph} is assumed to empty and is brought up-to-date.
+     * The {@code DatasetGraph} is assumed to be empty and is brought up-to-date.
      * The client must be registered with the {@link DeltaLink}.
      * <p>
      * This is a specialised operation - using a managed dataset (see
@@ -321,6 +321,24 @@ public class DeltaClient {
         if ( dsd == null )
             throw new DeltaBadRequestException("Can't attach: no such link data source : "+datasourceId);
         setupExternal(dsd, dsg);
+    }
+
+    /** Create a local zone entry and setup to track the existing remote datasource.
+     *  This operation is equivalent to:
+     *  <pre>
+     *    attachExternal(datasourceId, datasetGraph);
+     *    connect(datasourceId, syncPolicy);
+     *  </pre>
+     *  <p>
+     *  This operation contacts the patch log server (see {@link #attach}).
+     * @param datasourceId
+     * @param datasetGraph
+     * @param syncPolicy
+     */
+    public DeltaConnection registerExternal(Id datasourceId, DatasetGraph datasetGraph, SyncPolicy syncPolicy) {
+        attachExternal(datasourceId, datasetGraph);
+        DeltaConnection dConn = connect(datasourceId, syncPolicy);
+        return dConn;
     }
 
     /** Supply a dataset for matching to an attached external data source */

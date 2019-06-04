@@ -116,7 +116,7 @@ public class DataState {
         return String.format("[DataState: %s version=%s patch=%s]", datasource, version(), latestPatchId());
     }
 
-    // XXX Check concurrency! Coordinate win DeltaConnection.
+    // XXX Check concurrency! Coordinate with DeltaConnection.
     public synchronized void updateState(Version newVersion, Id patchId) {
         // Update the shadow data first. Replaying patches is safe.
         // Update on disk.
