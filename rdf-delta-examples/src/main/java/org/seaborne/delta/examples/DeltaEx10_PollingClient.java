@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.Lib;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
@@ -42,6 +43,8 @@ import org.seaborne.patch.text.TokenWriterText;
  * them out and updates the local persistent record.
  */
 public class DeltaEx10_PollingClient {
+    static { LogCtl.setJavaLogging(); }
+
     static final Object lock = new Object();
 
     public static void main(String[] args) {

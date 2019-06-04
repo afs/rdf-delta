@@ -19,6 +19,7 @@ package org.seaborne.delta.examples;
 
 import java.io.OutputStream;
 
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.riot.RDFDataMgr;
@@ -37,17 +38,20 @@ import org.seaborne.patch.RDFPatchOps;
  * collecting the patch before writing it.
  */
 public class DeltaEx01_DatasetWithPatchLog {
+    static { LogCtl.setJavaLogging(); }
+
+
     public static void main(String ...args) {
-        // -- Base dataset 
+        // -- Base dataset
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
 
         // -- Destination for changes.
-        // Text form of output.  
+        // Text form of output.
         OutputStream out = System.out;
         // Create an RDFChanges that writes to "out".
         RDFChanges changeLog = RDFPatchOps.textWriter(out);
 
-        // Combined datasetgraph and changes. 
+        // Combined datasetgraph and changes.
         DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
 
         // Wrap in the Dataset API
@@ -59,5 +63,5 @@ public class DeltaEx01_DatasetWithPatchLog {
         Txn.executeWrite(ds,
             ()->RDFDataMgr.read(dsg, "data.ttl")
             );
-    }    
+    }
 }
