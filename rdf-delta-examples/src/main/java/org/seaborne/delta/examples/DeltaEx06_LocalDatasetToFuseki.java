@@ -30,7 +30,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
-import org.seaborne.delta.client.RDFChangesHTTP;
+import org.seaborne.delta.client.DeltaLib;
 import org.seaborne.delta.fuseki.DeltaFuseki;
 import org.seaborne.delta.fuseki.PatchApplyService;
 import org.seaborne.patch.RDFChanges;
@@ -68,11 +68,15 @@ public class DeltaEx06_LocalDatasetToFuseki {
 
         // ---- Destination for changes is the Fuseki patch opration.
         String url = "http://localhost:"+PORT+"/ds/"+serviceName;
-        RDFChanges changeSender = new RDFChangesHTTP(url, url);
+
+        RDFChanges changeSender = DeltaLib.destination(url);
+        // In the case of http/https URLs, this is done with
+        //    RDFChanges changeSender = new RDFChangesHTTP(url);
 
         // ---- Local dataset.
         DatasetGraph dsgLocal = DatasetGraphFactory.createTxnMem();
         // Combined datasetgraph and changes.
+        // Changes will be POSTed to the URL.
         DatasetGraph dsg = RDFPatchOps.changes(dsgLocal, changeSender);
 
         // ---- Do something. Read in data.ttl inside a transaction.
