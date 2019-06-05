@@ -7,7 +7,7 @@ PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 
 <#dataset> rdf:type delta:DeltaDataset ;
-    delta:changes  "http://localhost:1068/" ;
+    delta:changes  "http://localhost:1069/" ;
     delta:patchlog "A-mem";
     delta:zone "target/Zone1";
     delta:storage "mem";

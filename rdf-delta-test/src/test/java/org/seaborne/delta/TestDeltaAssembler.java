@@ -72,7 +72,8 @@ public class TestDeltaAssembler {
         LocalServerConfig config = LocalServers.configMem();
         LocalServer localServer = LocalServer.create(config);
         DeltaLink deltaLink = DeltaLinkLocal.connect(localServer);
-        deltaServer = DeltaServer.create(1068, deltaLink);
+        // Port number in the assemblers.
+        deltaServer = DeltaServer.create(1069, deltaLink);
         deltaServer.start();
     }
 

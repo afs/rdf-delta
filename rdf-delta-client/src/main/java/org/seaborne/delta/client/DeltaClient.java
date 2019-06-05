@@ -18,17 +18,17 @@
 package org.seaborne.delta.client;
 
 import java.util.Map;
-import java.util.Objects ;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.jena.sparql.core.DatasetGraph ;
-import org.seaborne.delta.DataSourceDescription ;
-import org.seaborne.delta.DeltaBadRequestException ;
-import org.seaborne.delta.DeltaConfigException ;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.link.DeltaLink ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaBadRequestException;
+import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.link.DeltaLink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@code DeltaClient} is the application interface to managed local state (held in
@@ -86,13 +86,27 @@ import org.slf4j.LoggerFactory ;
  * <li> {@link #register(String, LocalStorageType, SyncPolicy)}: attach(Name)-connect
  * </ul>
  * {@link #removeDataSource} ensures local state clean-up is done.
+ * <p>
+ * {@code LocalStorageType.NONE} indicates that there is no RDF dataset to be managed - the
+ * patch log version tracking is stills available.
+ * </p>
+ * <p>
+ * {@code LocalStorageType.EXTERNAL} indicates the dataset is provided by the application.
+ * Specific operation {@link #attachExternal}, and the attach-connect combined operation
+ * of {@link #registerExternal}, enable the application to pass in a dataset. The
+ * application is responsible for the initial state of the data. If the application is
+ * using RDF Delta to synchronize this data, it must start in the same initial state on
+ * each machine, including same blank node internal identifiers. This can be achieved by
+ * copying a single source to all machines.
+ * </p>
  */
 public class DeltaClient {
     private static Logger LOG = LoggerFactory.getLogger(DeltaClient.class);
 
     /**
-     * Create a {@code DeltaClient} which consists of a {@link Zone}, client-side recorded state
-     * of the dataset being managed, and a {@link DeltaLink} connection to the patch log server.
+     * Create a {@code DeltaClient} which consists of a {@link Zone}, client-side recorded
+     * state of the dataset being managed, and a {@link DeltaLink} connection to the patch
+     * log server.
      */
     public static DeltaClient create(Zone zone, DeltaLink dLink) {
         Objects.requireNonNull(zone);
@@ -100,8 +114,8 @@ public class DeltaClient {
         return new DeltaClient(zone, dLink);
     }
 
-    private final Zone zone ;
-    private final DeltaLink dLink ;
+    private final Zone               zone;
+    private final DeltaLink          dLink;
     // For now, non-counting.
     private Map<Id, DeltaConnection> connections = new ConcurrentHashMap<>();
 
@@ -120,10 +134,10 @@ public class DeltaClient {
         return connections.get(id);
     }
 
-//    //No Cache. get() also needs a fixup.
-//    private void removeCache(Id id) { }
-//    private void putCache(Id id, DeltaConnection dConn) { }
-//    private DeltaConnection getCache(Id id) { return null; }
+// //No Cache. get() also needs a fixup.
+// private void removeCache(Id id) { }
+// private void putCache(Id id, DeltaConnection dConn) { }
+// private DeltaConnection getCache(Id id) { return null; }
 
     private static SyncPolicy applyDefault(SyncPolicy syncPolicy) {
         return syncPolicy == null ? SyncPolicy.NONE : syncPolicy;
@@ -134,35 +148,40 @@ public class DeltaClient {
         this.dLink = dLink;
     }
 
-    /** Create a new data source.
-     * This operation does not register the new {@code DataSource} to this {@code DeltaClient};
-     * call {@link #register(Id, LocalStorageType, SyncPolicy)}.
+    /**
+     * Create a new data source. This operation does not register the new
+     * {@code DataSource} to this {@code DeltaClient}; call
+     * {@link #register(Id, LocalStorageType, SyncPolicy)}.
      */
     public Id newDataSource(String name, String uri) {
         return dLink.newDataSource(name, uri);
     }
 
-    /** Create a new data source, setup with local storage, and connect.
-     * This is a convenience operation equivalent to:
+    /**
+     * Create a new data source, setup with local storage, and connect. This is a
+     * convenience operation equivalent to:
+     *
      * <pre>
-     *   Id dsRef = dLink.newDataSource(name, uri);
-     *   register(dsRef, storageType, syncPolicy);
-     *   return dsRef;
+     * Id dsRef = dLink.newDataSource(name, uri);
+     * register(dsRef, storageType, syncPolicy);
+     * return dsRef;
      * </pre>
-     * The choice of {@code storageType} is permanent for the client-side cache.
-     * The choice of {@code syncPolicy} applies only to this registration.
-     * When restarting call {@link #connect} to
+     *
+     * The choice of {@code storageType} is permanent for the client-side cache. The
+     * choice of {@code syncPolicy} applies only to this registration. When restarting
+     * call {@link #connect} to
      */
     public Id createDataSource(String name, String uri, LocalStorageType storageType, SyncPolicy syncPolicy) {
         Id dsRef = dLink.newDataSource(name, uri);
         register(dsRef, storageType, syncPolicy);
         // Which is:
-        //   attach(dsRef, storageType);
-        //   DeltaConnection dConn = connect(dsRef, syncPolicy);
+        // attach(dsRef, storageType);
+        // DeltaConnection dConn = connect(dsRef, syncPolicy);
         return dsRef;
     }
 
-    /** Setup local state management.
+    /**
+     * Setup local state management.
      * <p>
      * This operation contacts the patch log server.
      */
@@ -170,11 +189,12 @@ public class DeltaClient {
         Objects.requireNonNull(name, "name");
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(name);
         if ( dsd == null )
-            throw new DeltaBadRequestException("Can't attach: no such link data source by name : "+name);
+            throw new DeltaBadRequestException("Can't attach: no such link data source by name : " + name);
         setupState$(dsd, storageType);
     }
 
-    /** Setup local state management.
+    /**
+     * Setup local state management.
      * <p>
      * This operation contacts the patch log server.
      */
@@ -182,7 +202,7 @@ public class DeltaClient {
         Objects.requireNonNull(datasourceId, "datasourceId");
         DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
         if ( dsd == null )
-            throw new DeltaBadRequestException("Can't attach: no such link data source by id : "+datasourceId);
+            throw new DeltaBadRequestException("Can't attach: no such link data source by id : " + datasourceId);
         setupState$(dsd, storageType);
     }
 
@@ -190,16 +210,18 @@ public class DeltaClient {
         Id datasourceId = dsd.getId();
         if ( zone.exists(datasourceId) ) {
             DataState dataState = zone.get(datasourceId);
-            throw new DeltaConfigException("Local data source management already exists: "+dataState.getDatasourceName());
+            throw new DeltaConfigException("Local data source management already exists: " + dataState.getDatasourceName());
         }
         DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), storageType);
     }
 
-    /** Create a local zone entry and setup to track the existing remote datasource.
-     *  <p>
-     *  This is a combination of {@link #attach(String, LocalStorageType)} and {@link #connect(Id, SyncPolicy)}.
-     *  <p>
-     *  This operation contacts the patch log server (see {@link #attach}).
+    /**
+     * Create a local zone entry and setup to track the existing remote datasource.
+     * <p>
+     * This is a combination of {@link #attach(String, LocalStorageType)} and
+     * {@link #connect(Id, SyncPolicy)}.
+     * <p>
+     * This operation contacts the patch log server (see {@link #attach}).
      *
      * @param name
      * @param storageType
@@ -213,14 +235,17 @@ public class DeltaClient {
         return dsRef;
     }
 
-    /** Create a local zone entry and setup to track the existing remote datasource.
-     *  This operation is equivalent to:
-     *  <pre>
-     *    attach(datasourceId, storageType);
-     *    connect(datasourceId, syncPolicy);
-     *  </pre>
-     *  <p>
-     *  This operation contacts the patch log server (see {@link #attach}).
+    /**
+     * Create a local zone entry and setup to track the existing remote datasource. This
+     * operation is equivalent to:
+     *
+     * <pre>
+     * attach(datasourceId, storageType);
+     * connect(datasourceId, syncPolicy);
+     * </pre>
+     * <p>
+     * This operation contacts the patch log server (see {@link #attach}).
+     *
      * @param datasourceId
      * @param storageType
      * @param syncPolicy
@@ -232,15 +257,16 @@ public class DeltaClient {
     }
 
     /**
-     * Connect to an existing {@code DataSource} with existing local state.
-     * This operation does not fail if it can not contact the patch log server.
+     * Connect to an existing {@code DataSource} with existing local state. This operation
+     * does not fail if it can not contact the patch log server.
+     *
      * @param datasourceId
      * @param syncPolicy
      */
     public DeltaConnection connect(Id datasourceId, SyncPolicy syncPolicy) {
         syncPolicy = applyDefault(syncPolicy);
-        if ( ! zone.exists(datasourceId) )
-            throw new DeltaConfigException("Data source '"+datasourceId.toString()+"' not found for this DeltaClient");
+        if ( !zone.exists(datasourceId) )
+            throw new DeltaConfigException("Data source '" + datasourceId.toString() + "' not found for this DeltaClient");
         DataState dataState = zone.connect(datasourceId);
         DatasetGraph dsg = zone.getDataset(dataState);
         DeltaConnection dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
@@ -248,27 +274,30 @@ public class DeltaClient {
         return dConn;
     }
 
-//    /**
-//     * Connect to an existing {@code DataSource} with provided {@link DatasetGraph} as local state.
-//     * This operation does not fail if it can not contact the patch log server.
-//     * @param datasourceId
-//     * @param dataset
-//     * @param syncPolicy
-//     */
-//    public DeltaConnection connectExt(Id datasourceId, DatasetGraph dataset, SyncPolicy syncPolicy) {
-//        Objects.requireNonNull(datasourceId);
-//        DeltaConnection dConn = get(datasourceId);
-//        if ( dConn != null )
-//            return dConn;
-//        DataState dataState = zone.get(datasourceId);
-//        dConn = DeltaConnection.create(dataState, dataset, dLink, syncPolicy);
-//        putCache(datasourceId, dConn);
-//        return dConn;
-//    }
+// /**
+// * Connect to an existing {@code DataSource} with provided {@link DatasetGraph} as local
+// state.
+// * This operation does not fail if it can not contact the patch log server.
+// * @param datasourceId
+// * @param dataset
+// * @param syncPolicy
+// */
+// public DeltaConnection connectExt(Id datasourceId, DatasetGraph dataset, SyncPolicy
+// syncPolicy) {
+// Objects.requireNonNull(datasourceId);
+// DeltaConnection dConn = get(datasourceId);
+// if ( dConn != null )
+// return dConn;
+// DataState dataState = zone.get(datasourceId);
+// dConn = DeltaConnection.create(dataState, dataset, dLink, syncPolicy);
+// putCache(datasourceId, dConn);
+// return dConn;
+// }
 
     /**
-     * Connect to an existing {@code DataSource} with existing local state.
-     * This operation does not fail if it can not contact the patch log server.
+     * Connect to an existing {@code DataSource} with existing local state. This operation
+     * does not fail if it can not contact the patch log server.
+     *
      * @param name
      * @param syncPolicy
      */
@@ -279,16 +308,15 @@ public class DeltaClient {
     }
 
     /**
-     * Attach to an existing {@code DataSource} with a fresh
-     * {@link DatasetGraph} as local state. The caller undertakes to only access
-     * the {@code DatasetGraph} through a {@link DeltaConnection} obtained from
-     * this {@code DeltaClient}.
+     * Attach to an existing {@code DataSource} with a fresh {@link DatasetGraph} as local
+     * state. The caller undertakes to only access the {@code DatasetGraph} through a
+     * {@link DeltaConnection} obtained from this {@code DeltaClient}.
      * <p>
      * This is a specialised operation - using a managed dataset (see
      * {@link #attach(String, LocalStorageType)}) is preferred.
      * <p>
-     * The {@code DatasetGraph} is assumed to be empty and is brought up-to-date.
-     * The client must be registered with the {@code DeltaLink}.
+     * The {@code DatasetGraph} is assumed to be empty and is brought up-to-date. The
+     * client must be registered with the {@code DeltaLink}.
      * <p>
      * {@link #connect(Id, SyncPolicy)} must be called later to use the dataset.
      */
@@ -296,19 +324,18 @@ public class DeltaClient {
     public Id attachExternal(String name, DatasetGraph dsg) {
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(name);
         if ( dsd == null )
-            throw new DeltaBadRequestException("Can't attach: no such link data source : "+name);
+            throw new DeltaBadRequestException("Can't attach: no such link data source : " + name);
         setupExternal(dsd, dsg);
         return dsd.getId();
     }
 
     /**
-     * Attach to an existing {@code DataSource} with a fresh
-     * {@link DatasetGraph} as local state. The caller undertakes to only access
-     * the {@code DatasetGraph} through a {@link DeltaConnection} obtained from
-     * this {@code DeltaClient}.
+     * Attach to an existing {@code DataSource} with a fresh {@link DatasetGraph} as local
+     * state. The caller undertakes to only access the {@code DatasetGraph} through a
+     * {@link DeltaConnection} obtained from this {@code DeltaClient}.
      * <p>
-     * The {@code DatasetGraph} is assumed to be empty and is brought up-to-date.
-     * The client must be registered with the {@link DeltaLink}.
+     * The {@code DatasetGraph} is assumed to be empty and is brought up-to-date. The
+     * client must be registered with the {@link DeltaLink}.
      * <p>
      * This is a specialised operation - using a managed dataset (see
      * {@link #register(Id, LocalStorageType, SyncPolicy)}) is preferred.
@@ -319,18 +346,21 @@ public class DeltaClient {
         Objects.requireNonNull(datasourceId);
         DataSourceDescription dsd = dLink.getDataSourceDescription(datasourceId);
         if ( dsd == null )
-            throw new DeltaBadRequestException("Can't attach: no such link data source : "+datasourceId);
+            throw new DeltaBadRequestException("Can't attach: no such link data source : " + datasourceId);
         setupExternal(dsd, dsg);
     }
 
-    /** Create a local zone entry and setup to track the existing remote datasource.
-     *  This operation is equivalent to:
-     *  <pre>
-     *    attachExternal(datasourceId, datasetGraph);
-     *    connect(datasourceId, syncPolicy);
-     *  </pre>
-     *  <p>
-     *  This operation contacts the patch log server (see {@link #attach}).
+    /**
+     * Create a local zone entry and setup to track the existing remote datasource. This
+     * operation is equivalent to:
+     *
+     * <pre>
+     * attachExternal(datasourceId, datasetGraph);
+     * connect(datasourceId, syncPolicy);
+     * </pre>
+     * <p>
+     * This operation contacts the patch log server (see {@link #attach}).
+     *
      * @param datasourceId
      * @param datasetGraph
      * @param syncPolicy
@@ -343,11 +373,11 @@ public class DeltaClient {
 
     /** Supply a dataset for matching to an attached external data source */
     public void externalStorage(Id datasourceId, DatasetGraph dsg) {
-        if ( ! zone.exists(datasourceId) )
-            throw new DeltaConfigException("Can't add external storage: data source not attached to this zone: "+datasourceId);
+        if ( !zone.exists(datasourceId) )
+            throw new DeltaConfigException("Can't add external storage: data source not attached to this zone: " + datasourceId);
         DataState dataState = zone.get(datasourceId);
-        if ( ! LocalStorageType.EXTERNAL.equals(dataState.getStorageType()) ) {
-            throw new DeltaConfigException("Can't add external storage: data source is not 'external': "+datasourceId);
+        if ( !LocalStorageType.EXTERNAL.equals(dataState.getStorageType()) ) {
+            throw new DeltaConfigException("Can't add external storage: data source is not 'external': " + datasourceId);
         }
         zone.externalStorage(datasourceId, dsg);
     }
@@ -356,23 +386,23 @@ public class DeltaClient {
         Id datasourceId = dsd.getId();
         if ( zone.exists(datasourceId) ) {
             DataState dataState = zone.get(datasourceId);
-            throw new DeltaConfigException("Can't attach: data source already exists locally: "+dataState.getDatasourceName());
+            throw new DeltaConfigException("Can't attach: data source already exists locally: " + dataState.getDatasourceName());
         }
         DataState dataState = zone.create(datasourceId, dsd.getName(), dsd.getUri(), LocalStorageType.EXTERNAL);
         externalStorage(datasourceId, dsg);
     }
 
-
-    /** Get the {@link Id} for a given short name for the {@link DeltaLink} for this pool.
+    /**
+     * Get the {@link Id} for a given short name for the {@link DeltaLink} for this pool.
      * Returns null if there is no attached local statement management.
      */
     public Id nameToId(String name) {
         return zone.getIdForName(name);
-//        return dLink.listDescriptions().stream()
-//            .filter(dsd->name.equals(dsd.getName()))
-//            .map(dsd->dsd.getId())
-//            .findAny()
-//            .orElse(null);
+// return dLink.listDescriptions().stream()
+// .filter(dsd->name.equals(dsd.getName()))
+// .map(dsd->dsd.getId())
+// .findAny()
+// .orElse(null);
     }
 
     public void connect(Id datasourceId, DatasetGraph dsg, SyncPolicy syncPolicy) {
@@ -385,25 +415,29 @@ public class DeltaClient {
         putCache(datasourceId, dConn);
     }
 
-    /** Test whether a data source Id is available locally, that is, there is data state in the zone. */
+    /**
+     * Test whether a data source Id is available locally, that is, there is data state in
+     * the zone.
+     */
     public boolean existsLocal(Id datasourceId) {
         return zone.exists(datasourceId);
     }
 
-    /** Test whether a data source Id is available remotely, that is, there is log in the server. */
+    /**
+     * Test whether a data source Id is available remotely, that is, there is log in the
+     * server.
+     */
     public boolean existsRemote(Id datasourceId) {
         return dLink.getDataSourceDescription(datasourceId) != null;
     }
 
     /**
-     * Get a {@link DeltaConnection}.
-     * It is not automatically up-to-date - that depends on the {@link SyncPolicy}
-     * set when the DataSource was registered with this client.
+     * Get a {@link DeltaConnection}. It is not automatically up-to-date - that depends on
+     * the {@link SyncPolicy} set when the DataSource was registered with this client.
      * Either it is done on transaction boundaries, or the application can call
      * {@link DeltaConnection#sync()}. The caller must close this object -
-     * {@code try-with-resources} is supported. Returns null if the
-     * {@code dsRef} does not identify a data source that has been registered with
-     * a registation operation.
+     * {@code try-with-resources} is supported. Returns null if the {@code dsRef} does not
+     * identify a data source that has been registered with a registation operation.
      *
      * @param dsRef
      * @return DeltaConnection or null
@@ -419,6 +453,7 @@ public class DeltaClient {
     /**
      * Get the {@link DeltaConnection} but only return from the local cache and do not try
      * to contact the patch log server and do not sync according to policy.
+     *
      * @param dsRef
      * @return DeltaConnection or null
      */
@@ -428,14 +463,12 @@ public class DeltaClient {
     }
 
     /**
-     * Get a {@link DeltaConnection}.
-     * It is not automatically up-to-date - that depends on the {@link SyncPolicy}
-     * set when the DataSource was registered with this client.
+     * Get a {@link DeltaConnection}. It is not automatically up-to-date - that depends on
+     * the {@link SyncPolicy} set when the DataSource was registered with this client.
      * Either it is done on transaction boundaries, or the application can call
      * {@link DeltaConnection#sync()}. The caller must close this object -
-     * {@code try-with-resources} is supported. Returns null if the
-     * {@code dsRef} does not identify a data source that has been registered with
-     * a registation operation.
+     * {@code try-with-resources} is supported. Returns null if the {@code dsRef} does not
+     * identify a data source that has been registered with a registation operation.
      *
      * @param name
      * @return DeltaConnection or null
@@ -467,15 +500,15 @@ public class DeltaClient {
 
     private void checkDeltaClient() {}
 
-//    public void printState() {
-//        PrintStream out = System.out;
-//        out.println("DeltaClient:");
-//        connections.forEach((id, dc)->{
-//            DataState ds = zone.get(id);
-//            out.printf("  Id = %s State=%s\n", id, ds);
-//        });
+// public void printState() {
+// PrintStream out = System.out;
+// out.println("DeltaClient:");
+// connections.forEach((id, dc)->{
+// DataState ds = zone.get(id);
+// out.printf(" Id = %s State=%s\n", id, ds);
+// });
 //
-//    }
+// }
 
     public Zone getZone() {
         return zone;

@@ -72,7 +72,7 @@ public class DeltaEx10_PollingClient {
         // Set up the local zone tracking.
         PatchLogInfo info = patchLog.get();
         Id dsRef = patchLog.get().getDataSourceId();
-        DataState dataState = zoneTracker.create(dsRef, info.getDataSourceName(), info.getDataSourceURI(), LocalStorageType.EXTERNAL);
+        DataState dataState = zoneTracker.create(dsRef, info.getDataSourceName(), info.getDataSourceURI(), LocalStorageType.NONE);
 
         //Sync loop.
         for ( ;; ) {
