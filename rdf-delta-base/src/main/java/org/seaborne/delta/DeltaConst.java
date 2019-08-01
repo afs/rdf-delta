@@ -141,6 +141,6 @@ public class DeltaConst {
     /** The version number when there are no patches */
     public static long VERSION_INIT     = 0;
 
-    /** The version number of the first patch */
+    /** The version number of the first patch (default) */
     public static long VERSION_FIRST    = 1;
 }

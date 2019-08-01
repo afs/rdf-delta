@@ -20,13 +20,35 @@ package org.seaborne.delta.cmds;
 import java.util.Arrays;
 
 import jena.cmd.CmdException;
+import org.apache.jena.Jena;
+import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
+import org.seaborne.delta.lib.SystemInfo;
 
 /** Subcommand dispatch.
  *  Usage: "dcmd SUB ARGS...
  */
 public class dcmd {
     static { DeltaLogging.setLogging(true); }
+
+    public static class RDF_Delta {
+        // For org.apache.jena.atlas.lib.Version
+        static public final String        NAME              = "RDF Delta";
+        static public final String        VERSION           = SystemInfo.version();
+        static public final String        BUILD_DATE        = SystemInfo.buildDate();
+    }
+
+    private static void version() {
+//        Metadata system = new Metadata();
+//        system.addMetadata("org/seaborne/delta/delta-properties.xml");
+//        system.addMetadata("org/apache/jena/jena-properties.xml");
+        // Need rewriting! Put back "name".
+        // No reflection foo.
+        org.apache.jena.atlas.lib.Version version = new org.apache.jena.atlas.lib.Version();
+        version.addClass(RDF_Delta.class);
+        version.addClass(Jena.class) ;
+        version.print(IndentedWriter.stdout);
+    }
 
     public static void main(String...args) {
         if ( args.length == 0 ) {
@@ -46,6 +68,11 @@ public class dcmd {
             case "--help" :
                 System.err.println("Commands: server, ls, mk, rm, list, get, add, parse, r2p, p2r");
                 return;
+            case "version":
+            case "--version":
+            case "-version":
+                version();
+                System.exit(0);
         }
 
         // Map to full name.

@@ -22,7 +22,7 @@ import org.apache.jena.util.Metadata;
 public class SystemInfo {
     /**
      * A relative resources path to the location of
-     * <code>fuseki-properties.xml</code> file.
+     * <code>delta-properties.xml</code> file.
      */
     static private String   metadataLocation             = "org/seaborne/delta/delta-properties.xml";
 
@@ -41,19 +41,7 @@ public class SystemInfo {
     /** Property path name base */
     private static final String PATH = "org.seaborne.delta";
 
-    public static String systemName() { return "RDF Delta"; }
-    public static String version() { return metadata.get(PATH + ".version", "development"); }
-    public static String buildDate() { return metadata.get(PATH + ".build.datetime", "unknown"); }
-
-//    /** The system name.*/
-//    static public final String        NAME              = "RDF Delta";
-//
-//    /** Version of this code */
-//    static public final String        VERSION           = metadata.get(PATH + ".version", "development");
-//
-//    /** Date when last built */
-//    static public final String        BUILD_DATE        = metadata.get(PATH + ".build.datetime", "unknown");
-
-
-
+    public static String systemName()   { return "RDF Delta"; }
+    public static String version()      { return metadata.get(PATH + ".version", "development"); }
+    public static String buildDate()    { return metadata.get(PATH + ".build.datetime", "unknown"); }
 }

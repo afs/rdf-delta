@@ -69,5 +69,4 @@ public class Delta {
      * (not the {@code DeltaSystem} initialization)
      */
     public static void init( ) { }
-
 }

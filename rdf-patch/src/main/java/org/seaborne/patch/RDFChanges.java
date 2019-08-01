@@ -20,14 +20,16 @@ package org.seaborne.patch;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Quad;
 
-/** Interface for receiving a stream of changes to an RDF Dataset or RDF Graph. */
+/** Interface for a stream of changes to to an RDF Dataset, or RDF Graph.
+ * For an RDF graph, the "graph name" will be null.
+ */
 public interface RDFChanges {
-    // Changes lifecycle.
-    // Must not span txn boundaries.
-    public void start();
-    public void finish();
+    // XXX
+    // Consider the triples versions.
 
-    /** Header field */
+    /** Header field.
+     * Headers are metadata about the changes being made.
+     */
     public void header(String field, Node value);
 
     /**
@@ -40,15 +42,31 @@ public interface RDFChanges {
      */
     public void add(Node g, Node s, Node p, Node o);
 
+//    /**
+//     * Notification that a triple is added.
+//     * A stream of Triples outside a dataset will have null for the graph name.
+//     */
+//    public default void add(Node s, Node p, Node o) {
+//        add(null, s, p, o);
+//    }
+
     /**
      * Notification that a quad or triple is deleted.
      * A stream of Triples outside a dataset will have null for the graph name.
      * Inside an RDF Dataset, it may be more natural to use "urn:x-arq:DefaultGraph" or "urn:x-arq:DefaultGraphNode"
      * in which case test with {@link Quad#isDefaultGraph(Node)}.
      * <p>
-     * It is not defined whether the delete happenes before or after this notification all.
+     * It is not defined whether the delete happens before or after this notification all.
      */
     public void delete(Node g, Node s, Node p, Node o);
+
+//    /**
+//     * Notification that a triple is deleted.
+//     * A stream of Triples outside a dataset will have null for the graph name.
+//     */
+//    public default void delete(Node s, Node p, Node o) {
+//        delete(null, s, p, o);
+//    }
 
     /**
      * Add a prefix.  The graph name follows the same rules as {@link #add}.
@@ -79,8 +97,24 @@ public interface RDFChanges {
      * <p>
      * There is no guarantee it will be used.
      * <p>
-     * Segments must contain complete transactions.
+     * Segments must contain complete transactions.<br/>
      * Segments must not span start-finish pairs.
      */
     public void segment();
+
+    /**
+     * Start processing.
+     * The exact meaning is implementation dependent.
+     * This should be paired with a {@link #finish}.
+     */
+    public void start();
+
+    /**
+     * Finish processing.
+     * The exact meaning is implementation dependent.
+     * This should be paired with a {@link #start}.
+     */
+    public void finish();
+
+
 }
