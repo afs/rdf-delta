@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -58,7 +57,7 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        return CfgFile.scanForLogs(serverRoot, this);
+        return CfgFile.scanForLogs(serverRoot);
     }
 
     @Override
@@ -66,8 +65,7 @@ public class PatchStoreFile extends PatchStore {
         Path patchLogArea = serverRoot.resolve(dsd.getName());
         if ( ! Files.exists(patchLogArea) )
             CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
-        Location loc = Location.create(patchLogArea.toString());
-        PatchLog pLog = PatchLogFile.attach(dsd, this, loc);
+        PatchLog pLog = PatchLogFile.attach(dsd, this, patchLogArea);
         return pLog;
     }
 

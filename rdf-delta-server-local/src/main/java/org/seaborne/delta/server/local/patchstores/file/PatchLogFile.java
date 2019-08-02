@@ -17,12 +17,12 @@
 
 package org.seaborne.delta.server.local.patchstores.file;
 
+import static java.lang.String.format;
 import static org.seaborne.delta.DeltaConst.VERSION_INIT ;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.NoSuchFileException;
-import java.util.Iterator ;
+import java.nio.file.Path;
 import java.util.Map ;
 import java.util.Objects ;
 import java.util.concurrent.ConcurrentHashMap ;
@@ -34,20 +34,19 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.ext.com.google.common.collect.Maps ;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchValidation;
+import org.seaborne.delta.server.local.filestore.FS;
 import org.seaborne.delta.server.local.filestore.FileEntry;
 import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.patch.text.RDFPatchReaderText ;
 import org.seaborne.patch.text.TokenWriter ;
 import org.seaborne.patch.text.TokenWriterText ;
 import org.slf4j.Logger;
@@ -69,8 +68,8 @@ public class PatchLogFile implements PatchLog {
     private final PatchStore      patchStore;
     private final FileStore       fileStore;
 
-    // Forward, backwards chain?
-    // c.g. HistoryEntry
+//    // Forward, backwards chain?
+//    // c.g. HistoryEntry
     private BiMap<Id, Version> idToVersion =  Maps.synchronizedBiMap(HashBiMap.create());
     private Map<Id, PatchHeader> headers = new ConcurrentHashMap<>();
 
@@ -78,62 +77,28 @@ public class PatchLogFile implements PatchLog {
     private Version latestVersion = Version.UNSET;
 
     /** Attached to an existing {@code PatchLog}. */
-    public static PatchLogFile attach(DataSourceDescription dsd, PatchStore patchStore, Location location) {
+    public static PatchLogFile attach(DataSourceDescription dsd, PatchStore patchStore, Path location) {
         return new PatchLogFile(dsd, patchStore, location);
     }
 
-    private PatchLogFile(DataSourceDescription dsd, PatchStore patchStore, Location location) {
+    private PatchLogFile(DataSourceDescription dsd, PatchStore patchStore, Path location) {
         this.dsd = dsd;
         this.logId = dsd.getId();
         this.fileStore = FileStore.attach(location, "patch");
         this.patchStore = patchStore;
-        initFromFileStore();
+        Version ver = FS.initFromFileStore(LOG, fileStore, idToVersion, headers);
+        if ( ver != null ) {
+            long ver2 = fileStore.getCurrentIndex();
+            if ( ver.value() != ver2 )
+                throw new InternalErrorException(format("PatchLogFile: versions do not match: fileStore:%d scan:%s", ver2, ver));
+            latestVersion = ver;
+            this.latestId = idToVersion.inverse().get(latestVersion);
+        }
     }
 
     @Override
     public Id getLogId() {
         return logId;
-    }
-
-    private void initFromFileStore() {
-        Iterator<Long> iter = fileStore.getIndexes().iterator();
-        PatchHeader previous = null;
-        for ( ; iter.hasNext() ; ) {
-            long idx = iter.next();
-            try ( InputStream in = fileStore.open(idx) ) {
-                PatchHeader patchHeader = RDFPatchReaderText.readerHeader(in);
-                if ( patchHeader == null ) {
-                    FmtLog.error(LOG, "Can't read header: idx=%d", idx);
-                    continue;
-                }
-                Id id = Id.fromNode(patchHeader.getId());
-                if ( id == null ) {
-                    FmtLog.error(LOG, "Can't find id: idx=%d: id=%s", idx, id);
-                    continue;
-                }
-                else {
-                    if ( contains(id) ) {
-                        FmtLog.error(LOG, "Duplicate: idx=%d: id=%s", idx, id);
-                    }
-                }
-
-                Id prev = Id.fromNode(patchHeader.getPrevious());
-                if ( prev != null ) {
-                    // We process entries in order so we should have seen previous by now.
-                    if ( ! contains(prev) ) {
-                        FmtLog.error(LOG, "Can't find previous: idx=%d: id=%s, prev=%s", idx, id, prev);
-                        continue;
-                    }
-                }
-                headers.put(id, patchHeader);
-                Version ver = Version.create(idx);
-                idToVersion.put(id, ver);
-                latestId = id;
-                latestVersion = ver;
-            }
-            catch (NoSuchFileException ex) {}
-            catch (IOException ex) {}
-        }
     }
 
     @Override

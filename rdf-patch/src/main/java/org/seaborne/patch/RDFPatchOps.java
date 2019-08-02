@@ -63,7 +63,7 @@ public class RDFPatchOps {
         private final PatchHeader header = new PatchHeader(Collections.emptyMap());
         @Override
         public PatchHeader header() {
-            return header();
+            return header;
         }
         @Override
         public void apply(RDFChanges changes) {}
@@ -133,9 +133,9 @@ public class RDFPatchOps {
     public static RDFPatch build(Consumer<RDFChangesCollector> filler) {
         RDFChangesCollector x = new RDFChangesCollector();
         filler.accept(x);
-        return x.getRDFPatch(); 
+        return x.getRDFPatch();
     }
-    
+
     /** RDF data file to patch.
      * The patch has no Id or Previous - see {@link #withHeader}.
      */

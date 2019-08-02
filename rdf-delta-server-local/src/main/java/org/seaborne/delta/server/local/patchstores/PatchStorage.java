@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.ListUtils;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.Version;
 import org.seaborne.patch.RDFPatch;
 
 /**
@@ -30,23 +31,30 @@ import org.seaborne.patch.RDFPatch;
 public interface PatchStorage {
     /** Stream of all the patches - in no particular order */
     public Stream<Id> find();
-    
+
     /** Store a patch */
-    public void store(Id key, RDFPatch value);
-    
+    public void store(Id key, RDFPatch patch);
+
+    /** Store a patch */
+    public default void store(Version version, Id key, RDFPatch patch) {
+        // [FILE2] override point.
+        // Ignore version for patch storage.
+        store(key, patch);
+    }
+
     /** Get a patch */
     public RDFPatch fetch(Id key);
-    
+
     /** Delete a patch */
     public void delete(Id id);
-    
+
     /** Release all the patches and any other state for this {@code PatchStorage} */
     public default void release() { }
-    
+
     /** Release all the patches and any other state for this {@code PatchStorage} */
     public default void delete() {
         // Copy to isolate.
-        List<Id> x = ListUtils.toList(find()); 
+        List<Id> x = ListUtils.toList(find());
         x.forEach(this::delete);
     }
 }

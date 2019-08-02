@@ -23,13 +23,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.tdb.base.file.Location;
 import org.apache.jena.util.FileUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -38,19 +38,19 @@ import org.seaborne.delta.server.local.filestore.FileEntry;
 import org.seaborne.delta.server.local.filestore.FileStore;
 
 public class TestFileStore {
-    static final Location STORE = Location.create("target/test/store");
+    static final Path STORE = Paths.get("target/test/store");
     static String regex = "target[\\\\/]test[/\\\\]store[/\\\\]FILE-([0-9]+)$";
     static Pattern pattern = Pattern.compile(regex);
 
     @BeforeClass
     static public void beforeClass() {
-        FileOps.ensureDir(STORE.getDirectoryPath());
+        FileOps.ensureDir(STORE.toString());
     }
 
     @After
     public void afterTest() {
         FileStore.resetTracked();
-        FileOps.clearDirectory(STORE.getDirectoryPath());
+        FileOps.clearDirectory(STORE.toString());
     }
 
     @Test
@@ -69,7 +69,7 @@ public class TestFileStore {
         assertEquals(1, fs.getCurrentIndex());
         int idx1 = checkFilename(p1);
         assertEquals(1, idx1);
-        
+
         Path p2 = fs.nextFilename().datafile;
         int idx2 = checkFilename(p2);
         assertEquals(2, fs.getCurrentIndex());
@@ -87,8 +87,8 @@ public class TestFileStore {
         assertEquals(0, fs.getCurrentIndex());
         FileEntry entry = fs.writeNewFile(out->{
             try(AWriter aw = IO .wrapUTF8(out)) {
-              aw.write("abc");  
-            } 
+              aw.write("abc");
+            }
         }) ;
         assertNotNull(entry);
         assertNotNull(entry.datafile);
@@ -98,7 +98,7 @@ public class TestFileStore {
         String s = FileUtils.readWholeFileAsUTF8(entry.getDatafileName());
         assertEquals("abc", s);
     }
-    
+
     private int checkFilename(Path path) {
         Matcher m = pattern.matcher(path.toString());
         assertTrue(m.find());

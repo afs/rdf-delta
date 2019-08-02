@@ -55,7 +55,7 @@ public class CfgFile {
      * Scan the given area for directories (must have a config file), check they are enabled,
      * and deal with {@code log_type}.
      */
-    public static List<DataSourceDescription> scanForLogs(Path location, PatchStore ps) {
+    public static List<DataSourceDescription> scanForLogs(Path location) {
         // PatchStore's that rely on the scan of local directories and checking the "log_type" field.
         Pair<List<Path>, List<Path>> pair = scanDirectory(location);
         List<Path> dataSourcePaths = pair.getLeft();
@@ -149,11 +149,12 @@ public class CfgFile {
     private static Logger LOG = Delta.DELTA_LOG;
     /**
      * Set up a disk file area for the data source
+     * @param root
      * @param patchStore
+     * @param dsd
      */
-    /*package*/ static Path setupDataSourceByFile(Path root, PatchStore patchStore, DataSourceDescription dsd) {
-        // Disk file setup.
-        // Eventually this fixed code needs to move to PatchStoreFile or a library and be invoked from PatchStoreFile.
+    /*package*/ public static Path setupDataSourceByFile(Path root, PatchStore patchStore, DataSourceDescription dsd) {
+        // Disk file setup
 
         Path sourcePath = root.resolve(dsd.getName());
 

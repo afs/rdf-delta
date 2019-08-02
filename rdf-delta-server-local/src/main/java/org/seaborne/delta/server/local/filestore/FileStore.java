@@ -34,8 +34,8 @@ import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DeltaConst ;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.DeltaNotFoundException ;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.IOX.IOConsumer;
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A {@code FileStore} is a collection of files where the file names have a common pattern
- * and the files are stored in the same location. 
+ * and the files are stored in the same location.
  * <p>
  * The set of files is from a basename, with new files being "BASE-0001", "BASE-0002",
  * etc.
@@ -55,14 +55,14 @@ import org.slf4j.LoggerFactory;
  * <p>
  * The basename "tmp" is reserved.
  * <p>
- * Once written, files are not changed. 
+ * Once written, files are not changed.
  */
 public class FileStore {
     private static Logger       LOG = LoggerFactory.getLogger(FileStore.class);
-    
+
     // Key'ed by directory and name name.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();
-    
+
     private static final String tmpBasename = "tmp";
     private static final int BUFSIZE = 128*1024;
     // Setting for "no files": start at one less than the first allocated number.
@@ -77,13 +77,14 @@ public class FileStore {
     private final Path          directory;
     private final String        basename;
 
-    public static FileStore attach(Location dirname, String basename) {
+    public static FileStore attach(Path dirname, String basename) {
         Objects.requireNonNull(dirname, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
             throw new IllegalArgumentException("FileStore.attach: basename is equal to the reserved name '"+tmpBasename+"'") ;
-        Path dirPath = IOX.asPath(dirname);
+        Path dirPath = dirname;
         Path k = key(dirPath, basename);
+        // [FILE2] computeIfAbsent.
         if ( areas.containsKey(k) )
             return areas.get(k);
         if ( ! Files.exists(dirPath) || ! Files.isDirectory(dirPath) )
@@ -92,7 +93,7 @@ public class FileStore {
         // Delete any tmp files left lying around.
         List<String> tmpFiles = scanForTmpFiles(dirPath);
         tmpFiles.forEach(FileOps::delete);
-                
+
         // Find existing files.
         List<Long> indexes = scanForIndex(dirPath, basename);
         long min;
@@ -131,10 +132,10 @@ public class FileStore {
     }
 
     /**
-     * Return the {@code Path} of the area being managed. 
+     * Return the {@code Path} of the area being managed.
      */
     public Path getPath() { return directory ; }
-    
+
     /**
      * Return the index of the last allocation. Return the integer before the first
      * allocation if there has been no allocation.
@@ -145,7 +146,7 @@ public class FileStore {
     }
 
     /**
-     * Return the index of the last allocation. Return the integer before the first
+     * Return the index of the first allocation. Return the integer before the first
      * allocation if there has been no allocation.
      */
     public long getMinIndex() {
@@ -160,7 +161,7 @@ public class FileStore {
     }
 
     /**
-     * Is the file store empty? 
+     * Is the file store empty?
      */
     public boolean isEmpty() {
         return indexes.isEmpty();
@@ -168,19 +169,19 @@ public class FileStore {
 
     /** Return an {@code InputStream} to data for {@code idx}.
      * The {@code InputStream} is not buffered.
-     * The caller is responsible for closing the {@code InputStream}.  
+     * The caller is responsible for closing the {@code InputStream}.
      */
     public InputStream open(long idx) {
         Path path = filename(idx);
-        try { 
+        try {
             return Files.newInputStream(path);
         } catch (NoSuchFileException ex) {
             throw new DeltaNotFoundException(ex.getMessage());
-        } catch (IOException ex) { 
+        } catch (IOException ex) {
             throw IOX.exception(ex);
         }
     }
-    
+
     /**
      * Return details of the next file slot to use in the file store. The file for
      * this name does not exist.
@@ -190,7 +191,7 @@ public class FileStore {
     public FileEntry nextFilename() {
         return allocateFilename();
     }
-    
+
     /**
      * Return the {@link #nextFilename} along with a temporary filename.
      * <p>
@@ -199,7 +200,7 @@ public class FileStore {
     private FileEntry allocateFilename() {
         // --> IOX
         // TODO Use Files.createTempFile? Or does recovery mean we need more control?
-        synchronized(this) { 
+        synchronized(this) {
             for ( ;; ) {
                 long idx = nextIndex();
                 Path fn = filename(idx);
@@ -216,7 +217,25 @@ public class FileStore {
             }
         }
     }
-    
+
+    // [FILE2]
+    // This assumes the version/idx is safely allocated elsewhere.
+    public FileEntry allocateFilename(long idx) {
+        synchronized(this) {
+            Path fn = filename(idx);
+            if ( Files.exists(fn) ) {
+                FmtLog.error(LOG, "Existing file: %s", fn);
+                throw new DeltaException("Existing file: "+fn);
+            }
+            Path tmpFn = filename(directory, tmpBasename, idx);
+            if ( Files.exists(tmpFn) ) {
+                FmtLog.error(LOG, "Existing tmp file: %s", tmpFn);
+                throw new DeltaException("Existing tmp file: "+tmpFn);
+            }
+            return new FileEntry(idx, fn, tmpFn) ;
+        }
+
+    }
     /** Write a fresh file, safely.
      * <p>
      * This operation writes to a temporary file on the same filesystem, then moves it to
@@ -238,18 +257,18 @@ public class FileStore {
 
     /** Release this {@code FileStore} - do not use again. */
     public void release() {
-        // Overlapping outstanding operations can continue. 
+        // Overlapping outstanding operations can continue.
         Path k = key(directory, basename);
         FileStore old = areas.remove(k);
         if ( old == null )
             FmtLog.warn(LOG, "Releasing non-existent FileStore: (%s, %s)", directory, basename);
     }
-    
+
     /** Stop managing files */
     public static void resetTracked() {
         areas.clear();
     }
-    
+
     private long nextIndex() {
         long x = counter.incrementAndGet();
         indexes.add(x);
@@ -262,14 +281,14 @@ public class FileStore {
     public String basename(long idx) {
         return basename(basename, idx);
     }
-    
+
     @Override
     public String toString() {
-        return "FileStore["+directory+", "+basename+"]"; 
+        return "FileStore["+directory+", "+basename+"]";
     }
 
     private static final String SEP = "-";
-    
+
     private static String basename(String base, long idx) {
         if ( idx < 0 )
             throw new IllegalArgumentException("idx = " + idx);
@@ -330,7 +349,7 @@ public class FileStore {
             FmtLog.warn(LOG, "Can't inspect directory: (%s, %s)", directory, namebase);
             throw new PatchException(ex);
         }
-        
+
         indexes.sort(Long::compareTo);
         return indexes;
     }
@@ -353,7 +372,7 @@ public class FileStore {
     }
 
     /**
-     * Remove all files matching the temporary file template 
+     * Remove all files matching the temporary file template
      */
     private static void deleteFiles(Path directory, String template) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, template+"*")) {

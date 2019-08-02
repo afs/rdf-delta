@@ -22,7 +22,8 @@ import java.util.List;
 
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile2;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile2;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.system.DeltaSystem;
@@ -44,7 +45,6 @@ public class DPS {
     public static String pspMem  = "mem";
     public static String pspZk   = "zk";
 
-
     public static void init() {
         if ( initialized )
             return;
@@ -59,13 +59,15 @@ public class DPS {
     /**
      * For testing. This code knows where all the global state is
      * and reset the system to the default after init() called.
-     * There default PatchStoreProvider is retained.
+     * The default PatchStoreProviders are retained.
      */
     public static void resetSystem() {
         DeltaSystem.init();
         DPS.init();
         LocalServer.releaseAll();
         FileStore.resetTracked();
+        // [FILE2]
+        PatchStoreFile2.resetTracked();
         // PatchStoreMgr.reset clears the patch store providers.
         PatchStoreMgr.reset();
         initPatchStoreProviders();
@@ -77,7 +79,7 @@ public class DPS {
         List<PatchStoreProvider> providers = new ArrayList<>();
 
         // Hard code the discovery for now.
-        providers.add(new PatchStoreProviderFile());
+        providers.add(new PatchStoreProviderFile2());
         providers.add(new PatchStoreProviderMem());
         providers.add(new PatchStoreProviderZk());
 

@@ -208,7 +208,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     @Override
     public boolean isEmpty() {
-        //return version == DeltaConst.VERSION_UNSET || DeltaConst.VERSION_INIT;
+        //return version == Version.UNSET || version == Version.INIT;
         return current == null;
     }
 

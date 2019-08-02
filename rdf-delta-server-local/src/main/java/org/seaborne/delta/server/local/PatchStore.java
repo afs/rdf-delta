@@ -139,7 +139,7 @@ public abstract class PatchStore {
 
     /**
      * Return a new {@link PatchLog}. Checking that there isn't a patch log for this
-     * {@link DataSourceDescription} has already been done.
+     * {@link DataSourceDescription} has already been done. If so, return the existing one.
      *
      * @param dsd
      * @return PatchLog

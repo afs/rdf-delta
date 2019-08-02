@@ -28,8 +28,11 @@ import org.seaborne.delta.lib.JSONX;
 /** A Version */
 public class Version implements Comparable<Version> {
     // Certain well known versions.
+    /** The version number when not set */
     public static Version UNSET = new Version(DeltaConst.VERSION_UNSET, "<unset>");
+    /** The version when there are no patches */
     public static Version INIT  = new Version(DeltaConst.VERSION_INIT, "<init>");
+    /** The version number of the first patch (default) */
     public static Version FIRST = Version.create(DeltaConst.VERSION_FIRST);
 
     private final long version;
@@ -83,7 +86,7 @@ public class Version implements Comparable<Version> {
         long x = Long.parseLong(string);
         return Version.create(x);
     }
-    
+
     public static Version create(long version) {
         // Versions count from 1 or use a constant,
         if ( version == UNSET.value() )
@@ -163,19 +166,19 @@ public class Version implements Comparable<Version> {
         Objects.requireNonNull(other);
         return Long.compare(this.version, other.version);
     }
-    
+
     public boolean isBefore(Version other) {
         Objects.requireNonNull(other);
         int x = this.compareTo(other);
-        return x < 0 ; 
+        return x < 0 ;
     }
 
     public boolean isAfter(Version other) {
         Objects.requireNonNull(other);
         int x = this.compareTo(other);
-        return x > 0 ; 
+        return x > 0 ;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )

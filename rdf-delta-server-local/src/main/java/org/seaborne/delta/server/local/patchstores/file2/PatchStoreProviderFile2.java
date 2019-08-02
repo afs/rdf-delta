@@ -15,25 +15,34 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file;
+package org.seaborne.delta.server.local.patchstores.file2;
 
-import org.apache.jena.atlas.lib.InternalErrorException;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
-public class PatchStoreProviderFile implements PatchStoreProvider {
+public class PatchStoreProviderFile2 implements PatchStoreProvider {
 
-    public PatchStoreProviderFile() {}
+    public PatchStoreProviderFile2() {}
 
     @Override
     public PatchStore create(LocalServerConfig config) {
-        String fileArea = config.getProperty(DeltaConst.pDeltaFile);
-        if ( fileArea == null )
+        // The directory where all patch logs are kept.
+        String patchLogDirectory = config.getProperty(DeltaConst.pDeltaFile);
+        return create(patchLogDirectory);
+    }
+
+    //private static Map<String, PatchStoreFile2>
+
+    public PatchStoreFile2 create(String patchLogDirectory) {
+        if ( patchLogDirectory == null )
             return null;
-        return new PatchStoreFile(fileArea, this);
+        return new PatchStoreFile2(patchLogDirectory, this);
     }
 
     @Override
@@ -46,18 +55,20 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
         return DPS.pspFile;
     }
 
-    // The File-backed PatchStore predates the index/storage split.
-    // PatchStoreFile implementation of "newPatchLog" does not call these.
-    // For the file area PatchStore the index is an in-memory structure built from the
-    // FileArea.
+    // For the file based PatchStore the index is an in-memory structure built from the
+    // FileStore to create the FilePatchIdx held in the PatchStoreFile2 object.
 
     @Override
     public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        throw new InternalErrorException("PatchStoreProviderFile.newPatchLogIndex");
+        PatchStoreFile2 patchStoreFile = (PatchStoreFile2)patchStore;
+        FilePatchIdx filePatchIdex = patchStoreFile.getPatchLogFile(dsd.getId());
+        return new PatchLogIndexFile(filePatchIdex);
     }
 
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        throw new InternalErrorException("PatchStoreProviderFile.newPatchStorage");
+        PatchStoreFile2 patchStoreFile = (PatchStoreFile2)patchStore;
+        FilePatchIdx filePatchIndex = patchStoreFile.getPatchLogFile(dsd.getId());
+        return new PatchStorageFile(filePatchIndex.fileStore(), filePatchIndex::idToVersion);
     }
 }

@@ -154,9 +154,11 @@ public class PatchLogBase implements PatchLog {
             }
 
             PatchValidation.validateNewPatch(this, thisId, prevId, PatchValidation::badPatchEx);
-            patchStorage.store(thisId, patch);
+
+            // Commit. One or other of these must be the true "commit point.
+            // We can inside the patchlog wide lock at this point.
             Version version = logIndex.nextVersion();
-            // This is the commit point. Indeside the log lock.
+            patchStorage.store(version, thisId, patch);
             logIndex.save(version, thisId, prevId);
             return version;
         });

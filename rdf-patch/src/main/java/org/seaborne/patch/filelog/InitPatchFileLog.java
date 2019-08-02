@@ -27,9 +27,9 @@ public class InitPatchFileLog implements JenaSubsystemLifecycle {
 
     @Override
     public void start() {
-        JenaSystem.logLifecycle("PatchFileLog.init - start");
+        JenaSystem.logLifecycle("filePatchIdx.init - start");
         VocabPatch.init();
-        JenaSystem.logLifecycle("PatchFileLog.init - finish");
+        JenaSystem.logLifecycle("filePatchIdx.init - finish");
     }
 
     @Override
