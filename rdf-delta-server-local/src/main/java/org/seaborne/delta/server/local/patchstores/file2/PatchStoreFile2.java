@@ -48,8 +48,7 @@ public class PatchStoreFile2 extends PatchStore {
     private static final String patchBasename = "patch";
 
     // Singletons.
-    // Should  patchLogDirectory->cache
-
+    // "static" so two PatchStoreFile2 go to the same log.
     private static Map<Id, FilePatchIdx> filePatchIdxs = new ConcurrentHashMap<>();
 
     private Path patchLogDirectory = null;

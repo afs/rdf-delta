@@ -22,93 +22,59 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchInfo;
+import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
 
 /** State control for a {@link PatchStore} */
-public class PatchLogIndexMem implements PatchLogIndex {
+public class PatchLogIndexMem extends PatchLogIndexBase implements PatchLogIndex {
     private Object lock = new Object();
-    // Only needs to be a Map unless we need Id->Version.
-    private Map<Version, Id> versions = new ConcurrentHashMap<>();
-    private Map<Id, PatchInfo> patchHeaders = new ConcurrentHashMap<>();
-
-    private Version earliestVersion = Version.UNSET;
-    private Id earliestId = null;
-
-    private Version version = Version.UNSET;
-    private Id current = null;
-    private Id prev = null;
+    private Map<Version, Id> versionToId = new ConcurrentHashMap<>();
+    private Map<Id, LogEntry> patchHeaders = new ConcurrentHashMap<>();
 
     public PatchLogIndexMem() {
-        version = Version.INIT;
-        earliestVersion = Version.INIT;
-        current = null;
-        prev = null;
+        super(Version.INIT, null, null, Version.INIT, null);
     }
 
     @Override
-    public boolean isEmpty() {
-        //return version == DeltaConst.VERSION_UNSET || DeltaConst.VERSION_INIT;
-        return current == null;
-    }
-
-    @Override
-    public Version nextVersion() {
+    protected Version genNextVersion() {
         return getCurrentVersion().inc();
     }
 
-    @Override
-    public void save(Version version, Id patch, Id prev) {
-        this.version = version;
-        this.current = patch;
-        this.prev = prev;
-        if ( earliestId == null ) {
-            earliestVersion = version;
-            earliestId = patch;
-        }
 
-        versions.put(version, patch);
-        patchHeaders.put(patch, new PatchInfo(current, version, prev));
+    @Override
+    protected void savePrepare(Version version, Id patch, Id prev) {
+        // Check.
     }
 
     @Override
-    public Version getCurrentVersion() {
-        return version;
+    protected void saveCommit(Version version, Id patch, Id prev) {
+        versionToId.put(version, patch);
+        patchHeaders.put(patch, new LogEntry(patch, version, prev));
     }
 
     @Override
-    public Id getCurrentId() {
-        return current;
+    protected Id fetchVersionToId(Version version) {
+        return versionToId.get(version);
     }
 
     @Override
-    public Id getPreviousId() {
-        return prev;
+    protected Version fetchIdToVersion(Id id) {
+        return idToVersion(id);
     }
 
     @Override
-    public Version getEarliestVersion() {
-        return earliestVersion;
-    }
-
-    @Override
-    public Id getEarliestId() {
-        return earliestId;
-    }
-
-    @Override
-    public Id versionToId(Version ver) {
-        return versions.get(ver);
+    protected LogEntry fetchPatchInfo(Id id) {
+        return patchHeaders.get(id);
     }
 
     @Override
     public void release() {
-        versions.clear();
-        version = Version.UNSET;
-        current = null;
-        prev = null;
+        versionToId.clear();
+        patchHeaders.clear();
+        saveCommit(Version.INIT, null, null);
     }
 
     @Override
@@ -128,11 +94,6 @@ public class PatchLogIndexMem implements PatchLogIndex {
         synchronized(lock) {
             return action.get();
         }
-    }
-
-    @Override
-    public PatchInfo getPatchInfo(Id id) {
-        return patchHeaders.get(id);
     }
 
     @Override

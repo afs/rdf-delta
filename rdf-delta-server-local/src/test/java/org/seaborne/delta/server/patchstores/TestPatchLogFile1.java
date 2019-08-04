@@ -17,22 +17,38 @@
 
 package org.seaborne.delta.server.patchstores;
 
+import org.apache.jena.atlas.lib.FileOps;
+import org.junit.After;
+import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.server.local.PatchLog;
-import org.seaborne.delta.server.local.patchstores.PatchLogBase;
-import org.seaborne.delta.server.local.patchstores.mem.PatchLogIndexMem;
-import org.seaborne.delta.server.local.patchstores.mem.PatchStorageMem;
+import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 
-public class TestPatchLogMem extends AbstractTestPatchLog {
-
+public class TestPatchLogFile1 extends AbstractTestPatchLog {
+    
+    private static final String LOG = "target/test";
+    private static final LocalServerConfig config = LocalServers.configFile(LOG);
+    private PatchStore patchStore;
+    private PatchLog patchLog;
+    
+    @Before public void before() {
+        FileStore.resetTracked();
+        FileOps.ensureDir(LOG);
+        FileOps.clearAll(LOG);
+    }
+    
+    @After public void after() {
+        patchLog.release();
+    }
+    
     @Override
     protected PatchLog patchLog() {
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
-        return new PatchLogBase(dsd,
-            new PatchLogIndexMem(),
-            new PatchStorageMem(),
-            null);
+        patchStore = new PatchStoreProviderFile().create(config);
+        patchStore.initialize(new DataRegistry("X"), config);
+        patchLog = patchStore.createLog(dsd);
+        return patchLog;
     }
-
 }

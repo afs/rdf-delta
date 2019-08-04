@@ -32,25 +32,25 @@ import org.seaborne.patch.RDFPatch;
  * All patches have a fixed {@link Id}. In addition, a patch log
  * gives each patch a version number (sequence number).
  * <p><i>Version numbers</i>
- * <p>   
+ * <p>
  * The next patch after patch with version N is found by trying to fetch the patch with version N+1.
  * Calling code must also check this is not null - versions may jump by more than one.
  * The gap is not expected to be big, nor frequent.
  * <p>
  * Versions numbers are not guaranteed to be stable across process restart.
- * Clients should use {@link #getInfo()} to find the current range. 
+ * Clients should use {@link #getInfo()} to find the current range.
  */
 public interface PatchLog {
-    
+
     /** Return the {@link Id} of first/earliest patch */
     public Id getEarliestId();
-    
+
     /** Return the version of first/earliest patch */
     public Version getEarliestVersion();
 
     /** Return the {@link Id} of most recent patch */
     public Id getLatestId();
-    
+
     /** Return the version of most recent patch */
     public Version getLatestVersion();
 
@@ -60,7 +60,7 @@ public interface PatchLog {
      * changes to the patch log. In other words, it is not "live".
      */
     public PatchLogInfo getInfo();
-    
+
     /**
      * Return a description of the {@code PatchLog}. This is the state at a
      * point in time and does not track subsequent changes to the patch log. In
@@ -68,29 +68,29 @@ public interface PatchLog {
      */
     public DataSourceDescription getDescription();
 
-    
+
     /**
-     * Return the {@link PatchStore} responsible for this {@code PatchLog}.  
+     * Return the {@link PatchStore} responsible for this {@code PatchLog}.
      */
     public PatchStore getPatchStore();
-    
+
     /**
      * Get the Id that identifies this log.
      */
     public Id getLogId();
-    
+
     /** Is the {@code PatchLog} empty? */
     public boolean isEmpty();
-    
+
     /** Does the log contain the patch with id {@code patchId}? */
     public boolean contains(Id patchId);
 
     /** Add a patch to the {@code PatchLog}. Return the version number. */
     public Version append(RDFPatch patch);
-    
+
     /** Get a patch by {@code Id}. */
     public RDFPatch fetch(Id patchId);
-    
+
     /** Get a patch by version (version number may change across restarts). */
     public RDFPatch fetch(Version version) ;
 
@@ -103,9 +103,9 @@ public interface PatchLog {
     /** Get a {@link PatchHeader} by {@code Id}.*/
     public default PatchHeader fetchHeader(Id patchId) {
         RDFPatch p = fetch(patchId) ;
-        return p != null ? p.header() : null; 
+        return p != null ? p.header() : null;
     }
-    
+
     /** Get a {@link PatchHeader} by version (version number may change across restarts) .*/
     public default PatchHeader fetchHeader(Version version) {
         RDFPatch p = fetch(version) ;
@@ -124,13 +124,13 @@ public interface PatchLog {
 
     /** Translate a version number into its stable patch id. */
     public Id find(Version version);
-    
-    /** Translate a patch id to version. */ 
+
+    /** Translate a patch id to version. */
     public Version find(Id id);
-    
+
     /** Delete - do not use again. */
     public void delete();
 
-    /** Free in-process resources */ 
+    /** Free in-process resources */
     public void release();
 }

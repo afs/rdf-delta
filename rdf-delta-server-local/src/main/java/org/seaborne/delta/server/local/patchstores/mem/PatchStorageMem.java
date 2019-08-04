@@ -26,14 +26,14 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.patch.RDFPatch;
 
 /**
- * Patch store in-memory, nothing persisted. 
+ * Patch store in-memory, nothing persisted.
  */
 public class PatchStorageMem implements PatchStorage {
 
     private Map<Id, RDFPatch> store = new LinkedHashMap<>();
-    
+
     public PatchStorageMem() {}
-    
+
     @Override
     public Stream<Id> find() {
         return store.keySet().stream();
@@ -54,8 +54,8 @@ public class PatchStorageMem implements PatchStorage {
         store.remove(id);
     }
 
-//    @Override
-//    public void release() {
-//        store.clear();
-//    }
+    @Override
+    public void release() {
+        store.clear();
+    }
 }

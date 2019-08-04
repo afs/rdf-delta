@@ -17,15 +17,15 @@
 
 package org.seaborne.delta;
 
-/** Reference to an integer value (as a long) */ 
+/** Reference to an integer value (as a long) */
 public interface RefLong {
-    
+
     /** Get the current value */
     public long getInteger();
-    
+
     /** Set the current value */
     public void setInteger(long value);
 
-    /** Increment the current value and return the new value (link {@code ++x} not like {@code X++}) */ 
+    /** Increment the current value and return the new value (link {@code ++x} not like {@code X++}) */
     public long inc();
 }

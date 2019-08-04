@@ -21,7 +21,7 @@ package org.seaborne.delta.server.local.patchstores.file2;
 import java.util.function.Supplier;
 
 import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchInfo;
+import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.slf4j.Logger;
@@ -95,8 +95,13 @@ public class PatchLogIndexFile implements PatchLogIndex {
     }
 
     @Override
-    public PatchInfo getPatchInfo(Id id) {
-        return null;
+    public Version idToVersion(Id id) {
+        return filePatchIdx.idToVersion(id);
+    }
+
+    @Override
+    public LogEntry getPatchInfo(Id id) {
+        return filePatchIdx.getPatchInfo(id);
     }
 
     @Override

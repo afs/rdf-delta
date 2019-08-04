@@ -19,10 +19,12 @@
 package org.seaborne.delta.server.local.patchstores.file2;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.filestore.FileStore;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ public class FilePatchIdx {
     private final Path patchDir;
     private final BiMap<Id, Version> idToVersion;
     private final Function<Id, Version> id2version;
+    private final Map<Id, LogEntry> patchInfo;
 
     // Latest patch at the point of starting in this JVM.
     private Id currentId;
@@ -49,12 +52,16 @@ public class FilePatchIdx {
 //    private final Version _initalCurrentVersionId;
 
     public static FilePatchIdx create(FileStore fileStore) {
+        // [FILE2] Move PatchStoreFile2.filePatchIdxs here
+        // Then per store instance map there.
+        //fileStore.getPath();
+
         FilePatchIdx filePatchIdx = FS2.initFromFileStore(fileStore);
         return filePatchIdx;
     }
 
     /*package*/ FilePatchIdx(FileStore fileStore, BiMap<Id, Version> idToVersion,
-                             Version latestVersion, Version latestPrevious, Version earliestVersion) {
+                             Version latestVersion, Version latestPrevious, Version earliestVersion, Map<Id, LogEntry> headers) {
         this.fileStore = fileStore;
         this.patchDir = fileStore.getPath();
         this.idToVersion = idToVersion;
@@ -68,6 +75,7 @@ public class FilePatchIdx {
 
         this.earliestVersion = versionOrDft(earliestVersion, Version.INIT);
         this.earliestId = versionToId(earliestVersion);
+        this.patchInfo = headers;
     }
 
     private Version versionOrDft(Version ver, Version verDefault) {
@@ -92,6 +100,10 @@ public class FilePatchIdx {
         if ( Version.INIT.equals(version) )
             return null;
         return idToVersion.inverse().get(version);
+    }
+
+    public LogEntry getPatchInfo(Id id) {
+        return patchInfo.get(id);
     }
 
     /*package*/ void setCurrentLatest(Id id, Version version, Id previous) {

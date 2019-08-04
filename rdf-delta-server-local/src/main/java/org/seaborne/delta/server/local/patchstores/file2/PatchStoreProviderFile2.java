@@ -42,6 +42,7 @@ public class PatchStoreProviderFile2 implements PatchStoreProvider {
     public PatchStoreFile2 create(String patchLogDirectory) {
         if ( patchLogDirectory == null )
             return null;
+        // [FILE2] Assumes a cache in PatchStoreFile2 of FilePatchIdx objects.
         return new PatchStoreFile2(patchLogDirectory, this);
     }
 

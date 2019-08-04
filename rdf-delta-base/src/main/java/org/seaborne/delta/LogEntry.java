@@ -19,18 +19,18 @@ package org.seaborne.delta;
 
 import java.util.Objects;
 
-/** 
+/**
  * Information about an entry in a patch log.
- * 
+ *
  * @see DataSourceDescription
  * @see PatchLogInfo
  */
-public class PatchInfo {
+public class LogEntry {
     private final Version version ;
     private final Id patch ;
     private final Id previous ;
-    
-    public PatchInfo(Id patch, Version version, Id previous) {
+
+    public LogEntry(Id patch, Version version, Id previous) {
         Objects.requireNonNull(patch, "Patch");
         this.patch = patch;
         this.version = version;
@@ -41,7 +41,7 @@ public class PatchInfo {
         return version;
     }
 
-    public Id getPatch() {
+    public Id getPatchId() {
         return patch;
     }
 
@@ -67,7 +67,7 @@ public class PatchInfo {
             return false;
         if ( getClass() != obj.getClass() )
             return false;
-        PatchInfo other = (PatchInfo)obj;
+        LogEntry other = (LogEntry)obj;
         if ( patch == null ) {
             if ( other.patch != null )
                 return false;
@@ -85,6 +85,4 @@ public class PatchInfo {
             return false;
         return true;
     }
-
-
 }

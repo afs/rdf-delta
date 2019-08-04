@@ -73,6 +73,7 @@ public class RDFPatchOps {
     }
 
     private static class RDFPatchEmpty implements RDFPatch {
+        // id, no previous.
         private final Node id = NodeFactory.createURI(JenaUUID.generate().asURI());
         private final PatchHeader header = new PatchHeader(Collections.singletonMap(RDFPatchConst.ID, id));
 

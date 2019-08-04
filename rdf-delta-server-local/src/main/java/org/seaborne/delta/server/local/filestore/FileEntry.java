@@ -30,7 +30,7 @@ import org.seaborne.delta.lib.IOX.IOConsumer;
 /**
  * Record of a file in a {@link FileStore}.
  * <p>
- * It provides the path to the file, a path to an associated temporary fileused to perform
+ * It provides the path to the file, a path to an associated temporary file used to perform
  * atomic writes to the file.
  * <p>
  * {@code FileEntry} are "write once".
@@ -43,22 +43,26 @@ import org.seaborne.delta.lib.IOX.IOConsumer;
  *    ... write contents ...
  *    entry.completeWrite();
  * </pre>
+ * and made convenient with:
+ * <pre>
+ * fileStore.writeNewFile(IOConsumer<OutoutStream>)
+ * </pre>
  */
 public class FileEntry {
     public final long version;
     public final Path datafile;
     private final Path tmpfile;
-    
+
     // Only for openForWrite / completeWrite
     private OutputStream out = null ;
     private boolean haveWritten = false;
-    
+
     /*package*/ FileEntry(long index, Path datafile, Path tmpfile) {
         this.version = index;
         this.datafile = datafile;
         this.tmpfile = tmpfile;
     }
-    
+
     /** Atomically write the file */
     public void write(IOConsumer<OutputStream> action) {
         if ( haveWritten )
@@ -69,9 +73,9 @@ public class FileEntry {
 
     /**
      * Initiate the write process. The {@code Outstream} returned is to a
-     * temporary file (same filing system) that is moved into place in 
+     * temporary file (same filing system) that is moved into place in
      * {@link #completeWrite}, making the writing of the file atomic.
-     * <p> 
+     * <p>
      * Note that {@code Outstream.close} is idempotent - it is safe for the application to
      * close the {@code Outstream}.
      */
@@ -82,11 +86,11 @@ public class FileEntry {
             return out = Files.newOutputStream(tmpfile) ;
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
-    
+
     /**
      * Complete the write process: closes the OutputStream allocated by
      * {@link #openForWrite} thenn
-     * 
+     *
      * <p>
      * Note that {@code Outstream.close} is idempotent - it is safe
      * for the application to close the {@code Outstream}.
@@ -99,15 +103,15 @@ public class FileEntry {
         haveWritten = true;
         out = null ;
     }
-    
+
     public String getDatafileName() {
         return datafile.toString();
     }
-    
+
     @Override
     public String toString() {
         // Dirctory is quite long.
-        return String.format("FileEntry[%d, %s, %s]", version, 
+        return String.format("FileEntry[%d, %s, %s]", version,
                              datafile.getFileName(), tmpfile.getFileName(), datafile.getParent());
     }
 }

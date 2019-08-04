@@ -47,13 +47,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private /*final*/ String instance;
 
     private final DataSourceDescription dsd;
-    private String logName;  // Java-ism - can't use the DSD final in Watcher lambdas
+    private final String logName;
     private final String statePath;
     private final String lockPath;
     private final String versionsPath;
     private final String headersPath;
 
-    /* Keep head info - the (version, id, prev) is saved in /headers/<id> when a patch is stored in addition to the
+    // null => no watching.
+    //private Watcher logStateWatcher = null;
+    private final Watcher logStateWatcher;
+
+    /* Keep header info - the (version, id, prev) is saved in /headers/<id> when a patch is stored in addition to the
      * /versions/NNNN which as just id.
      * This isn't necessary for operation.
      * It can be used to check the patch store.
@@ -94,7 +98,14 @@ public class PatchLogIndexZk implements PatchLogIndex {
         this.statePath      = zkPath(logPath, ZkConst.nState);
         this.lockPath       = zkPath(logPath, ZkConst.nLock);
         this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
-        this.headersPath   = zkPath(logPath, ZkConst.nHeaders);
+        this.headersPath    = zkPath(logPath, ZkConst.nHeaders);
+        this.logStateWatcher = (event)->{
+          synchronized(lock) {
+              FmtLog.debug(LOG, "++ [%s:%s] Log watcher", instance, logName);
+              syncState();
+          }
+        };
+
 
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
@@ -267,15 +278,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
         Zk.zkSet(client, statePath, bytes);
     }
 
-    // null => no watching.
-    //private Watcher logStateWatcher = null;
-    private Watcher logStateWatcher = (event)->{
-        synchronized(lock) {
-            FmtLog.debug(LOG, "++ [%s:%s] Log watcher", instance, logName);
-            syncState();
-        }
-    };
-
     private void syncState() {
         JsonObject obj = getWatchedState();
         if ( obj != null )
@@ -385,7 +387,16 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public PatchInfo getPatchInfo(Id id) {
+    public Version idToVersion(Id id) {
+        String p = headerPath(id);
+        JsonObject obj = Zk.zkFetchJson(client, p);
+        long ver = JSONX.getLong(obj, fVersion, -99);
+        Version version = ver < 0 ? Version.UNSET : Version.create(ver);
+        return version;
+    }
+
+    @Override
+    public LogEntry getPatchInfo(Id id) {
         String p = headerPath(id);
         JsonObject obj = Zk.zkFetchJson(client, p);
         Id patchId = getIdOrNull(obj, fId);
@@ -393,7 +404,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         Id prevId = getIdOrNull(obj, fPrevious);
         long ver = JSONX.getLong(obj, fVersion, -99);
         Version version = ver < 0 ? Version.UNSET : Version.create(ver);
-        return new PatchInfo(patchId, Version.UNSET, prevId);
+        return new LogEntry(patchId, Version.UNSET, prevId);
     }
 
     private String versionPath(Version ver) { return versionPath(ver.value()) ; }

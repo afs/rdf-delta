@@ -36,23 +36,23 @@ import org.seaborne.patch.RDFPatchOps;
 
 public abstract class AbstractTestPatchStore {
 
-    // XXX Convert to parameterized tests 
-    
+    // XXX Convert to parameterized tests??
+
     private static int counter = 0;
     private PatchStore patchStore = null;
-        
+
     @BeforeClass public static void setup() {
         DeltaSystem.init();
     }
-    
+
     @Before public void setupTest() {
         patchStore = provider();
     }
-    
+
     @After public void teardown() {
         patchStore = null;
     }
-    
+
     /**
      * Return the PatchStore implementation under test. Return the same object each time.
      */
@@ -63,35 +63,35 @@ public abstract class AbstractTestPatchStore {
         }
         return patchStore;
     }
-    
+
     protected abstract PatchStore patchStore(DataRegistry dataRegistry);
-    
+
     @Test public void patchStore_0() {
         PatchStore ps = provider();
         DataRegistry dataRegistry = ps.getDataRegistry();
         assertTrue(dataRegistry.isEmpty());
         assertTrue(ps.listDataSources().isEmpty());
     }
-    
+
     @Test public void patchStore_1() {
         PatchStore ps = provider();
         DataRegistry dataRegistry = ps.getDataRegistry();
-        
+
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);
         Id logId = patchLog.getLogId();
-        
+
         assertEquals(dsdSetup.getId(), logId);
         assertNotNull(dataRegistry.getByName("ABC"));
         assertFalse(dataRegistry.isEmpty());
         assertTrue(ps.logExists(dsdSetup.getId()));
         assertEquals(patchLog, ps.getLog(logId));
     }
-    
+
     @Test public void patchStore_2() {
         PatchStore ps = provider();
         DataRegistry dataRegistry = ps.getDataRegistry();
-        
+
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);
         assertEquals(dsdSetup.getId(), patchLog.getLogId());
@@ -100,7 +100,7 @@ public abstract class AbstractTestPatchStore {
         assertNotNull(dataRegistry.getByName("ABC"));
         assertTrue(ps.logExists(dsdSetup.getId()));
         assertNotNull(ps.getLog(logId));
-        
+
         ps.release(patchLog);
         assertTrue(dataRegistry.isEmpty());
         assertNull(dataRegistry.getByName("ABC"));
@@ -109,23 +109,23 @@ public abstract class AbstractTestPatchStore {
     }
 
     // Recovery (does not apply to PatchStoreMem)
-    //@Test 
+    //@Test
     public void recovery1() {
         PatchStore ps = provider();
 
         // Match dsd2 below
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);
-        
+
         RDFPatch patch = RDFPatchOps.emptyPatch();
         patchLog.append(patch);
-        
+
         PatchLogInfo info = patchLog.getInfo();
         Id id = patchLog.getLogId();
         DataSourceDescription dsd = patchLog.getDescription();
-        
+
         DPS.resetSystem();
-        
+
         String name = dsd.getName();
         PatchStore provider = provider();
 
@@ -135,7 +135,7 @@ public abstract class AbstractTestPatchStore {
         PatchLogInfo info1 = patchLog1.getInfo();
         assertEquals(info, info1);
     }
-    
+
     // MORE TESTS
     // Get non-existent.
 }

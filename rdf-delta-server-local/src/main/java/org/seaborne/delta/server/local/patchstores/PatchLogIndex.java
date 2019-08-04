@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchInfo;
+import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 
@@ -44,7 +44,7 @@ public interface PatchLogIndex {
     public Version nextVersion();
 
     /** Save the new head of log information. */
-    public void save(Version version, Id patch, Id prev);
+    public void save(Version newVersion, Id newCurrentId, Id newPreviousId);
 
     /**
      * Get the earliest version in the log.
@@ -62,7 +62,6 @@ public interface PatchLogIndex {
      * Get the {@code version} of the current head of the log.
      * Returns {@link DeltaConst#VERSION_INIT} when the log is empty.
      */
-
     public Version getCurrentVersion();
 
     /** Get the {@code Id} of the current head of the log, or null if there isn't one. */
@@ -74,8 +73,11 @@ public interface PatchLogIndex {
     /** Map version number to the {@link Id} for the patch it refers to. */
     public Id versionToId(Version version);
 
-    /** Map {@link Id} to version information. */
-    public PatchInfo getPatchInfo(Id id);
+    /** Map {@link Id} to version for the patch it refers to. */
+    public Version idToVersion(Id id);
+
+    /** Map {@link Id} to information about the patch. */
+    public LogEntry getPatchInfo(Id id);
 
     /** Release the in-process state for this log index. */
     public void release();

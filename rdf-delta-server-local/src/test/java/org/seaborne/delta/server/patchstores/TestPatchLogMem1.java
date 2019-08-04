@@ -21,16 +21,16 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
-import org.seaborne.delta.server.local.patchstores.mem.PatchLogIndexMem;
+import org.seaborne.delta.server.local.patchstores.mem.PatchLogIndexMem1;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStorageMem;
 
-public class TestPatchLogMem extends AbstractTestPatchLog {
+public class TestPatchLogMem1 extends AbstractTestPatchLog {
 
     @Override
     protected PatchLog patchLog() {
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
         return new PatchLogBase(dsd,
-            new PatchLogIndexMem(),
+            new PatchLogIndexMem1(),
             new PatchStorageMem(),
             null);
     }

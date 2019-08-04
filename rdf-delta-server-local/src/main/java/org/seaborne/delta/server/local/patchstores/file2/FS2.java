@@ -23,12 +23,14 @@ import java.io.InputStream;
 import java.nio.file.NoSuchFileException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap;
 import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.filestore.FileStore;
@@ -46,7 +48,7 @@ public class FS2 {
      */
     public static FilePatchIdx initFromFileStore(FileStore fileStore) {
         BiMap<Id, Version> idToVersion = Maps.synchronizedBiMap(HashBiMap.create());
-        Map<Id, PatchHeader> headers = null; //new ConcurrentHashMap<>();
+        Map<Id, LogEntry> headers = new ConcurrentHashMap<>();
 
         // Iterator is sorted.
         Iterator<Long> iter = fileStore.getIndexes().iterator();
@@ -84,9 +86,12 @@ public class FS2 {
                         continue;
                     }
                 }
-                if ( headers != null )
-                    headers.put(id, patchHeader);
+
                 Version ver = Version.create(idx);
+                if ( headers != null ) {
+                    LogEntry patchInfo = new LogEntry(id, ver, prev);
+                    headers.put(id, patchInfo);
+                }
                 idToVersion.put(id, ver);
                 if ( earliestVersion == null )
                     earliestVersion = ver;
@@ -96,7 +101,7 @@ public class FS2 {
             catch (NoSuchFileException ex) { throw IOX.exception(ex); }
             catch (IOException ex)  { throw IOX.exception(ex); }
         }
-        return new FilePatchIdx(fileStore, idToVersion, currentVersion, currentPreviousVersion, earliestVersion);
+        return new FilePatchIdx(fileStore, idToVersion, currentVersion, currentPreviousVersion, earliestVersion, headers);
     }
 
 }

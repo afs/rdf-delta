@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong ;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.FileOps;
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * and the files are stored in the same location.
  * <p>
  * The set of files is from a basename, with new files being "BASE-0001", "BASE-0002",
- * etc.
+ * etc. The basename must match the pattern <tt>[a-zA-Z]([_a-zA-Z0-9])*</tt> and not end with the "-".
  * <p>
  * In addition, it is possible to allocate a fresh filename (no file with that name existed before) and an
  * associated temporary file. This supports atomically writing new data; see {@link #writeNewFile}.
@@ -60,14 +61,17 @@ import org.slf4j.LoggerFactory;
 public class FileStore {
     private static Logger       LOG = LoggerFactory.getLogger(FileStore.class);
 
-    // Key'ed by directory and name name.
+    // Key'ed by directory and log name.
+    // One FileStore per location on disk.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();
 
     private static final String tmpBasename = "tmp";
+    private static final Pattern basenamePattern = Pattern.compile("[a-zA-Z][_a-zA-Z0-9]*");
+    private static final String SEP = "-";
+
     private static final int BUFSIZE = 128*1024;
+
     // Setting for "no files": start at one less than the first allocated number.
-    private final long startMinIndex;
-    private final long startMaxIndex;
     private long minIndex;
     private final List<Long> indexes;
 
@@ -82,6 +86,10 @@ public class FileStore {
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
             throw new IllegalArgumentException("FileStore.attach: basename is equal to the reserved name '"+tmpBasename+"'") ;
+        if ( basename.endsWith(SEP) )
+            throw new IllegalArgumentException("FileStore.attach: basename ends with the separator: '"+SEP+"'");
+        if ( ! basenamePattern.matcher(basename).matches() )
+            throw new IllegalArgumentException("FileStore.attach: basename does not match the regex "+basenamePattern);
         Path dirPath = dirname;
         Path k = key(dirPath, basename);
         // [FILE2] computeIfAbsent.
@@ -122,9 +130,7 @@ public class FileStore {
         this.directory = directory;
         this.basename = basename;
         // Record initial setup
-        this.startMinIndex = minIndex;
-        this.minIndex = startMinIndex;
-        this.startMaxIndex = maxIndex;
+        this.minIndex = minIndex;
         // Version management.
         this.indexes = indexes;
         this.counter = new AtomicLong(maxIndex);
@@ -142,6 +148,12 @@ public class FileStore {
      */
     public long getCurrentIndex() {
         long x = counter.get();
+        return x;
+    }
+
+    private long nextIndex() {
+        long x = counter.incrementAndGet();
+        indexes.add(x);
         return x;
     }
 
@@ -219,9 +231,19 @@ public class FileStore {
     }
 
     // [FILE2]
+    // Better? IOConsumer to take version as well as OutputStream.
     // This assumes the version/idx is safely allocated elsewhere.
+
+    /** Allocate a {@link FileEntry} based on the callers choice of index.
+     * This must be greater than the current index.
+     */
     public FileEntry allocateFilename(long idx) {
         synchronized(this) {
+            // Ensure this is "+1" -- more restrictive than contract ATM.
+            long v = counter.get();
+            if ( idx != v+1 )
+                throw new DeltaException("FileStore.allocateFilename(idx): Not an incremental file version");
+            counter.set(idx);
             Path fn = filename(idx);
             if ( Files.exists(fn) ) {
                 FmtLog.error(LOG, "Existing file: %s", fn);
@@ -234,8 +256,8 @@ public class FileStore {
             }
             return new FileEntry(idx, fn, tmpFn) ;
         }
-
     }
+
     /** Write a fresh file, safely.
      * <p>
      * This operation writes to a temporary file on the same filesystem, then moves it to
@@ -269,12 +291,6 @@ public class FileStore {
         areas.clear();
     }
 
-    private long nextIndex() {
-        long x = counter.incrementAndGet();
-        indexes.add(x);
-        return x;
-    }
-
     /**
      * Basename of a file for the index. This does not mean the file exists.
      */
@@ -286,8 +302,6 @@ public class FileStore {
     public String toString() {
         return "FileStore["+directory+", "+basename+"]";
     }
-
-    private static final String SEP = "-";
 
     private static String basename(String base, long idx) {
         if ( idx < 0 )
