@@ -27,7 +27,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses( {
     TestLocalLinkMem.class ,
     TestLocalLinkFile.class ,
-    //TestLocalLinkZk.class ,
+    TestLocalLinkZk.class ,
 
     TestLocalConnectionMem.class ,
     TestLocalConnectionFile.class ,

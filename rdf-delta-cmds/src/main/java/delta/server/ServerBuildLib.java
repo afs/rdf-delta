@@ -27,13 +27,8 @@ import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.http.Provider;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.LocalServerConfig;
-import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.server.local.PatchStoreMgr;
-import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
+import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile2;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
@@ -69,7 +64,7 @@ public /*package*/ class ServerBuildLib {
 
         switch (deltaServerConfig.provider) {
             case FILE :
-                psp = installProvider(new PatchStoreProviderFile());
+                psp = installProvider(new PatchStoreProviderFile2());
                 localServerConfig = LocalServers.configFile(deltaServerConfig.fileBase);
                 providerLabel = "file["+deltaServerConfig.fileBase+"]";
                 break;

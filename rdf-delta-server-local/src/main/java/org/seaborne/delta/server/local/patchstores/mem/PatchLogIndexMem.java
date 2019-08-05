@@ -17,85 +17,72 @@
 
 package org.seaborne.delta.server.local.patchstores.mem;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
-
-import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
-import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase2;
 
 /** State control for a {@link PatchStore} */
-public class PatchLogIndexMem extends PatchLogIndexBase implements PatchLogIndex {
-    private Object lock = new Object();
-    private Map<Version, Id> versionToId = new ConcurrentHashMap<>();
-    private Map<Id, LogEntry> patchHeaders = new ConcurrentHashMap<>();
+public class PatchLogIndexMem extends PatchLogIndexBase2 implements PatchLogIndex {
 
     public PatchLogIndexMem() {
-        super(Version.INIT, null, null, Version.INIT, null);
+        super(new LogIndexMem(), null, null);
     }
-
-    @Override
-    protected Version genNextVersion() {
-        return getCurrentVersion().inc();
-    }
-
-
-    @Override
-    protected void savePrepare(Version version, Id patch, Id prev) {
-        // Check.
-    }
-
-    @Override
-    protected void saveCommit(Version version, Id patch, Id prev) {
-        versionToId.put(version, patch);
-        patchHeaders.put(patch, new LogEntry(patch, version, prev));
-    }
-
-    @Override
-    protected Id fetchVersionToId(Version version) {
-        return versionToId.get(version);
-    }
-
-    @Override
-    protected Version fetchIdToVersion(Id id) {
-        return idToVersion(id);
-    }
-
-    @Override
-    protected LogEntry fetchPatchInfo(Id id) {
-        return patchHeaders.get(id);
-    }
-
-    @Override
-    public void release() {
-        versionToId.clear();
-        patchHeaders.clear();
-        saveCommit(Version.INIT, null, null);
-    }
-
-    @Override
-    public void delete() {
-        release();
-    }
-
-    @Override
-    public void runWithLock(Runnable action) {
-        synchronized(lock) {
-            action.run();
-        }
-    }
-
-    @Override
-    public <X> X runWithLockRtn(Supplier<X> action) {
-        synchronized(lock) {
-            return action.get();
-        }
-    }
-
-    @Override
-    public void syncVersionInfo() {}
+//
+//    @Override
+//    protected Version genNextVersion() {
+//        return getCurrentVersion().inc();
+//    }
+//
+//
+//    @Override
+//    protected void savePrepare(Version version, Id patch, Id prev) {
+//        // Check.
+//    }
+//
+//    @Override
+//    protected void saveCommit(Version version, Id patch, Id prev) {
+//        // Inside the lock of PatchLogIndexBase
+//        versionToId.put(version, patch);
+//        patchHeaders.put(patch, new LogEntry(patch, version, prev));
+//    }
+//
+//    @Override
+//    protected Id fetchVersionToId(Version version) {
+//        return versionToId.get(version);
+//    }
+//
+//    @Override
+//    protected LogEntry fetchPatchInfo(Id id) {
+//        // Thread safe - LogEntry created at save time.
+//        return patchHeaders.get(id);
+//    }
+//
+//    @Override
+//    public void release() {
+//        versionToId.clear();
+//        patchHeaders.clear();
+//        saveCommit(Version.INIT, null, null);
+//    }
+//
+//    @Override
+//    public void delete() {
+//        release();
+//    }
+//
+//    @Override
+//    public void runWithLock(Runnable action) {
+//        synchronized(lock) {
+//            action.run();
+//        }
+//    }
+//
+//    @Override
+//    public <X> X runWithLockRtn(Supplier<X> action) {
+//        synchronized(lock) {
+//            return action.get();
+//        }
+//    }
+//
+//    @Override
+//    public void syncVersionInfo() {}
 }

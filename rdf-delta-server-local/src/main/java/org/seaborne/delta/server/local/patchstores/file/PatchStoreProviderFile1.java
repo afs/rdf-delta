@@ -24,16 +24,16 @@ import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
-public class PatchStoreProviderFile implements PatchStoreProvider {
+public class PatchStoreProviderFile1 implements PatchStoreProvider {
 
-    public PatchStoreProviderFile() {}
+    public PatchStoreProviderFile1() {}
 
     @Override
     public PatchStore create(LocalServerConfig config) {
         String fileArea = config.getProperty(DeltaConst.pDeltaFile);
         if ( fileArea == null )
             return null;
-        return new PatchStoreFile(fileArea, this);
+        return new PatchStoreFile1(fileArea, this);
     }
 
     @Override

@@ -23,15 +23,16 @@ import static java.lang.String.format;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 
-/** Implementation framework for a PatchLogIndex based on
- *  functions to id-&gt;version, version-&gt; and id->patchInfo.
+/**
+ * Implementation framework for a PatchLogIndex based on {@link LogIndex}.
  */
-public abstract class PatchLogIndexBase implements PatchLogIndex {
+public abstract class PatchLogIndexBase2 implements PatchLogIndex {
 
     private final Object lock = new Object();
     // Natural values for a new patch log.
@@ -40,32 +41,29 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     private Version      currentVersion  = Version.INIT;
     private Id           currentId       = null;
     private Id           previousId      = null;
+    private final LogIndex logIndex;
 
-    protected PatchLogIndexBase(Version startVersion, Id startCurrent, Id startPrevious,
-                                Version startEarliestVersion, Id startEarliestId ) {
-        this.currentVersion = startVersion;
-        this.currentId = startCurrent;
-        this.previousId = startPrevious;
-        this.earliestVersion = startEarliestVersion;
-        this.earliestId = startEarliestId;
+    protected PatchLogIndexBase2(LogIndex logIndex, LogEntry earliest,  LogEntry latest) {
+        this.logIndex = logIndex;
+        if ( latest!=null ) {
+            this.currentVersion = latest.getVersion();
+            this.currentId = latest.getPatchId();
+            this.previousId = latest.getPrevious();
+        }
+        if (earliest != null ) {
+            earliestVersion = earliest.getVersion();
+            earliestId = earliest.getPatchId();
+            if ( earliest.getPrevious() != null )
+                Log.warn(PatchLogIndexBase2.class, "Dangling earliest prvious reference: "+earliest.getPrevious());
+        }
     }
-
-    // Contract
-    protected abstract Id fetchVersionToId(Version version);
-    protected abstract Version genNextVersion();
-
-    // Called inside the per-patch log lock to get consustent results.
-    protected abstract LogEntry fetchPatchInfo(Id id);
-    // Two phase commit. Many systems will do all the work in "saveCommit".
-    protected abstract void savePrepare(Version newVersion, Id newCurrent, Id newPrevious);
-    protected abstract void saveCommit(Version newVersion, Id newCurrent, Id newPrevious);
 
     @Override
     final
     public Id versionToId(Version version) {
         if ( Objects.equals(currentVersion, version) )
             return currentId;
-        return fetchVersionToId(version);
+        return logIndex.fetchVersionToId(version);
     }
 
     //    @Override
@@ -77,7 +75,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     public Version idToVersion(Id id) {
         if ( Objects.equals(currentId, id) )
             return currentVersion;
-        return fetchPatchInfo(id).getVersion();
+        return logIndex.fetchPatchInfo(id).getVersion();
     }
 
     @Override
@@ -87,14 +85,14 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
         return runWithLockRtn(()->{
                 if ( Objects.equals(currentId, id) )
                     return new LogEntry(currentId, currentVersion, previousId);
-                return fetchPatchInfo(id);
+                return logIndex.fetchPatchInfo(id);
             });
     }
 
     @Override
     final
     public Version nextVersion() {
-        return genNextVersion();
+        return logIndex.genNextVersion();
     }
 
     @Override
@@ -117,11 +115,6 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
         return currentId == null;
     }
 
-//    @Override
-//    public Version nextVersion() {
-//        return null;
-//    }
-
     @Override
     final public void save(Version newVersion, Id newCurrent, Id newPrevious) {
         Objects.requireNonNull(newVersion);
@@ -136,8 +129,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
             if ( ! Objects.equals(this.currentId, newPrevious) )
                 throw new DeltaException(
                     format("save: Attempt save state when current != new prev (%s %s)", currentId, newPrevious));
-            savePrepare(newVersion, newCurrent, newPrevious);
-            saveCommit(newVersion, newCurrent, newPrevious);
+            logIndex.save(newVersion, newCurrent, newPrevious);
             this.currentVersion = newVersion;
             this.currentId = newCurrent;
             this.previousId = newPrevious;

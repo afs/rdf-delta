@@ -29,19 +29,18 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 
 /** State control for a {@link PatchStore} */
 public class PatchLogIndexMem1 implements PatchLogIndex {
-    private Object lock = new Object();
-    // Only needs to be a Map unless we need Id->Version.
-    private Map<Version, Id> versions = new ConcurrentHashMap<>();
-    private Map<Id, LogEntry> patchHeaders = new ConcurrentHashMap<>();
+    private Object            lock            = new Object();
+    private Map<Id, LogEntry> patchHeaders    = new ConcurrentHashMap<>();
+    private Map<Version, Id>  versions        = new ConcurrentHashMap<>();
 
-    private Version earliestVersion = Version.UNSET;
-    private Id earliestId = null;
+    private Version   earliestVersion = Version.UNSET;
+    private Id        earliestId      = null;
 
-    private Version version = Version.UNSET;
-    private Id current = null;
-    private Id prev = null;
+    private Version   version         = Version.UNSET;
+    private Id        current         = null;
+    private Id        prev            = null;
 
-    public PatchLogIndexMem1() {
+    /*unused - has been replaced*/private PatchLogIndexMem1() {
         version = Version.INIT;
         earliestVersion = Version.INIT;
         current = null;

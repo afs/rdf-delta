@@ -31,8 +31,8 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PatchStoreFile extends PatchStore {
-    private static Logger LOG = LoggerFactory.getLogger(PatchStoreFile.class);
+public class PatchStoreFile1 extends PatchStore {
+    private static Logger LOG = LoggerFactory.getLogger(PatchStoreFile1.class);
 
     /*   Server Root
      *      delta.cfg
@@ -45,11 +45,11 @@ public class PatchStoreFile extends PatchStore {
 
     private final Path serverRoot;
 
-    public PatchStoreFile(String location, PatchStoreProvider provider) {
+    public PatchStoreFile1(String location, PatchStoreProvider provider) {
         this(Paths.get(location), provider);
     }
 
-    public PatchStoreFile(Path location, PatchStoreProvider provider) {
+    public PatchStoreFile1(Path location, PatchStoreProvider provider) {
         super(provider);
         IOX.ensureDirectory(location);
         this.serverRoot = location;

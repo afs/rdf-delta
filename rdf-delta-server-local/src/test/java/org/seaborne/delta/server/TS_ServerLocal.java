@@ -37,7 +37,6 @@ import org.seaborne.delta.server.patchstores.*;
     //, TestPatchLogIndexZk.class
 
     , TestPatchLogMem.class
-    , TestPatchLogMem1.class
     , TestPatchLogFile1.class   // Original
     , TestPatchLogFile2.class   // New
     , TestPatchLogZk.class
