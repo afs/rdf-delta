@@ -31,6 +31,8 @@ import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.server.local.JsonLogEntry;
+import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.zk.Zk;
@@ -78,10 +80,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private volatile long version = Version.UNSET.value();
     private volatile Id current = null;
     private volatile Id previous = null;
-
-    private static final String fVersion = "version";
-    private static final String fId = "id";
-    private static final String fPrevious = "previous";
 
     /** {@code PatchLogIndexZk}
      * <ul>
@@ -145,17 +143,18 @@ public class PatchLogIndexZk implements PatchLogIndex {
         // Create the threaded patches
         Map<Id, Id> mapIdToPrev = new HashMap<>();
         Map<Id, Id> mapPrevToId = new HashMap<>();
-        Map<Long, Id> mapLongToId = new HashMap<>();
+        Map<Version, Id> mapVersionToId = new HashMap<>();
 
         headers.forEach(idStr->{
             Id id = Id.fromString(idStr);
             String path = zkPath(headersPath, idStr);
             JsonObject obj = Zk.zkFetchJson(client, path);
-            Id patchId = getIdOrNull(obj, fId);
-            if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
+            LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
+            Id patchId = entry.getPatchId();
+            //if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
 
-            Id prevId = getIdOrNull(obj, fPrevious);
-            long ver = JSONX.getLong(obj, fVersion, -99);
+            Id prevId = entry.getPrevious();
+            Version ver = entry.getVersion();
             if ( patchId == null ) {
                 FmtLog.error(LOG, "Null patch id (%s, %s)", patchId, prevId);
                 return;
@@ -165,7 +164,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
             mapIdToPrev.put(patchId, prevId);
             mapPrevToId.put(prevId, patchId);
-            mapLongToId.put(ver, patchId);
+            mapVersionToId.put(ver, patchId);
         });
 
         // Find all the ids with no prev.
@@ -318,30 +317,23 @@ public class PatchLogIndexZk implements PatchLogIndex {
     /** The initial state object of a patch log */
     /*package*/ static JsonObject initialStateJson() {
         FmtLog.debug(LOG, "initialStateJson");
-        return JSONX.buildObject(b->{
-            b.pair(fVersion, DeltaConst.VERSION_INIT);
-        });
+        return JsonLogEntry.logEntryToJson(DeltaConst.VERSION_INIT, null, null);
     }
 
     private static JsonObject stateToJson(long version, Id patch, Id prev) {
         FmtLog.debug(LOG, "stateToJson ver=%d", version);
-        return JSONX.buildObject(b->{
-            b.pair(fVersion, version);
-            if ( patch != null )
-                b.pair(fId, patch.asPlainString());
-            if ( prev != null )
-                b.pair(fPrevious, patch.asPlainString());
-        });
+        return JsonLogEntry.logEntryToJson(version, patch, prev);
     }
 
     private void jsonSetState(JsonObject obj) {
         try {
             FmtLog.debug(LOG, "jsonToState %s",JSON.toStringFlat(obj));
-            long ver = obj.get(fVersion).getAsNumber().value().longValue();
+            LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
+            long ver = entry.getVersion().value();
             if ( ver == version )
                 return ;
-            Id newCurrent = getIdOrNull(obj, fId);
-            Id newPrevious = getIdOrNull(obj, fPrevious);
+            Id newCurrent = entry.getPatchId();
+            Id newPrevious = entry.getPrevious();
             newState(ver, newCurrent, newPrevious);
         } catch (RuntimeException ex) {
             FmtLog.error(this.getClass(), "Failed to load the patch log index state", ex);
@@ -390,22 +382,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
     public Version idToVersion(Id id) {
         String p = headerPath(id);
         JsonObject obj = Zk.zkFetchJson(client, p);
-        long ver = JSONX.getLong(obj, fVersion, -99);
-        Version version = ver < 0 ? Version.UNSET : Version.create(ver);
-        return version;
+        LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
+        return entry.getVersion();
     }
 
     @Override
     public LogEntry getPatchInfo(Id id) {
         String p = headerPath(id);
         JsonObject obj = Zk.zkFetchJson(client, p);
-        Id patchId = getIdOrNull(obj, fId);
-        if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
-        Id prevId = getIdOrNull(obj, fPrevious);
-        long ver = JSONX.getLong(obj, fVersion, -99);
-        Version version = ver < 0 ? Version.UNSET : Version.create(ver);
-        return new LogEntry(patchId, Version.UNSET, prevId);
-    }
+        LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
+        return entry;
+   }
 
     private String versionPath(Version ver) { return versionPath(ver.value()) ; }
     private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
@@ -418,13 +405,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
             Log.warn(this, "Attempt to extract the version from '"+name+"'");
             return -1;
         }
-    }
-
-    private Id getIdOrNull(JsonObject obj, String field) {
-        String s = JSONX.getStrOrNull(obj, field);
-        if ( s == null )
-            return null;
-        return Id.fromString(s);
     }
 
     @Override

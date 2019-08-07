@@ -17,25 +17,37 @@
 
 package org.seaborne.delta.server.patchstores;
 
+import java.nio.file.Paths;
+
 import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
-import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.delta.server.local.patchstores.file3.PatchStorageRocks;
+import org.seaborne.delta.server.local.patchstores.file3.RocksDatabase;
 
-public class TestPatchStoreFile extends AbstractTestPatchStore {
-    private static String DIR = "target/test/patch-store-file";
+public class TestPatchStorageRocks extends AbstractTestPatchStorage {
+    private static String DIR = "target/test/patch-store-file/db";
 
-    @After public void afterPatchStoreFile() {
-        PatchStoreFile.resetTracked();
+    @BeforeClass public static void beforeClass() {
+        FileOps.ensureDir(DIR);
+        FileOps.clearAll(DIR);
+
+    }
+
+    private RocksDatabase rdb = null;
+    @Before public void before() {
+        rdb = new RocksDatabase(Paths.get(DIR));
+    }
+
+    @After public void after() {
+        rdb.close();
+        FileOps.clearAll(DIR);
     }
 
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
-        LocalServerConfig conf = LocalServers.configFile(DIR);
-        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider).create(conf);
-        FileOps.ensureDir(DIR);
-        FileOps.clearAll(DIR);
-        patchStore.initialize(dataRegistry, conf);
-        return patchStore;
+    protected PatchStorage patchStorage() {
+        return new PatchStorageRocks(rdb);
     }
 }

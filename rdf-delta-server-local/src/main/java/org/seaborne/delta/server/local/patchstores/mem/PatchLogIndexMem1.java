@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
+import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 

@@ -44,6 +44,7 @@ import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.patchstores.FileNames;
 import org.slf4j.Logger;
 
 /** Various configuration utilities; file-based server. */

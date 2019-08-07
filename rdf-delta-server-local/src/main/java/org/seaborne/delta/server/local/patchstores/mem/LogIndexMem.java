@@ -19,23 +19,26 @@
 package org.seaborne.delta.server.local.patchstores.mem;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
+import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.patchstores.LogIndex;
 
 /** Implementation of {@link LogIndex} in-memory. */
 public class LogIndexMem implements LogIndex {
 
-    private Version currentVersion = null;
+    private Version currentVersion = Version.INIT;
     private AtomicLong currentVersionCounter = new AtomicLong(0);
-    private Version earliest = null;
+    private Version earliest = Version.INIT;
     private Map<Version, Id> versionToId = new ConcurrentHashMap<>();
     private Map<Id, LogEntry> entries = new ConcurrentHashMap<>();
+
+    public LogIndexMem() {}
 
     @Override
     public void save(Version version, Id id, Id previous) {
@@ -53,6 +56,8 @@ public class LogIndexMem implements LogIndex {
 
     @Override
     public Id fetchVersionToId(Version version) {
+        Objects.requireNonNull(version);
+
         return versionToId.get(version);
     }
 

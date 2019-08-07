@@ -21,8 +21,8 @@ import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
+import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.PatchStore;
 
 /** State control for a {@link PatchStore}. The index is {@code version -> id} mapping. */

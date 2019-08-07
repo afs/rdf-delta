@@ -23,18 +23,17 @@ import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile2;
+import org.seaborne.delta.server.local.patchstores.file3.PatchStoreProviderRocks;
 
-public class TestPatchLogFile2 extends AbstractTestPatchLog {
+public class TestPatchLogFileRocks extends AbstractTestPatchLog {
 
-    private static final String LOG = "target/test";
+    private static final String LOG = "target/test-rocksdb";
     private static final LocalServerConfig config = LocalServers.configFile(LOG);
     private PatchStore patchStore;
     private PatchLog patchLog;
 
     @Before public void before() {
-        FileStore.resetTracked();
+        DPS.resetSystem();
         FileOps.ensureDir(LOG);
         FileOps.clearAll(LOG);
     }
@@ -45,8 +44,9 @@ public class TestPatchLogFile2 extends AbstractTestPatchLog {
 
     @Override
     protected PatchLog patchLog() {
+        PatchStoreProviderRocks psp = (PatchStoreProviderRocks)PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreDatabaseProvider);
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
-        patchStore = new PatchStoreProviderFile2().create(config);
+        patchStore = psp.create(config);
         patchStore.initialize(new DataRegistry("X"), config);
         patchLog = patchStore.createLog(dsd);
         return patchLog;

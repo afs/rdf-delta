@@ -22,8 +22,10 @@ import java.util.List;
 
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile2;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile2;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile;
+import org.seaborne.delta.server.local.patchstores.file3.PatchStoreProviderRocks;
+import org.seaborne.delta.server.local.patchstores.file3.PatchStoreRocks;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.system.DeltaSystem;
@@ -36,9 +38,10 @@ public class DPS {
 
     private static volatile boolean initialized = false;
 
-    public static String PatchStoreFileProvider = "PatchStore/File";
-    public static String PatchStoreMemProvider  = "PatchStore/Mem";
-    public static String PatchStoreZkProvider  = "PatchStore/Zk";
+    public static String PatchStoreFileProvider     = "PatchStore/File";
+    public static String PatchStoreDatabaseProvider = "PatchStore/DB";
+    public static String PatchStoreMemProvider      = "PatchStore/Mem";
+    public static String PatchStoreZkProvider       = "PatchStore/Zk";
 
     // Short names.
     public static String pspFile = "file";
@@ -67,7 +70,8 @@ public class DPS {
         LocalServer.releaseAll();
         FileStore.resetTracked();
         // [FILE2]
-        PatchStoreFile2.resetTracked();
+        PatchStoreFile.resetTracked();
+        PatchStoreRocks.resetTracked();
         // PatchStoreMgr.reset clears the patch store providers.
         PatchStoreMgr.reset();
         initPatchStoreProviders();
@@ -79,7 +83,8 @@ public class DPS {
         List<PatchStoreProvider> providers = new ArrayList<>();
 
         // Hard code the discovery for now.
-        providers.add(new PatchStoreProviderFile2());
+        providers.add(new PatchStoreProviderFile());
+        providers.add(new PatchStoreProviderRocks());
         providers.add(new PatchStoreProviderMem());
         providers.add(new PatchStoreProviderZk());
 

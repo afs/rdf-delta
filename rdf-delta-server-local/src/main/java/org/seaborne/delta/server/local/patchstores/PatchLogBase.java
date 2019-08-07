@@ -17,16 +17,17 @@
 
 package org.seaborne.delta.server.local.patchstores;
 
+import static java.lang.String.format;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.Version;
+import org.seaborne.delta.*;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchValidation;
@@ -158,8 +159,8 @@ public class PatchLogBase implements PatchLog {
             // Commit. One or other of these must be the true "commit point.
             // We can inside the patchlog wide lock at this point.
             Version version = logIndex.nextVersion();
-            patchStorage.store(version, thisId, patch);
             logIndex.save(version, thisId, prevId);
+            patchStorage.store(version, thisId, patch);
             return version;
         });
     }
@@ -194,9 +195,21 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public Stream<RDFPatch> range(Version start, Version finish) {
-        // Increment and probe.
-        throw new NotImplemented();
-        //return null;
+        // Brute force implementation.
+        if ( start.isValid() && start.isAfter(logIndex.getCurrentVersion()) )
+            throw new DeltaException(format("start out of range: range(%s,%s) but log is %s", start, finish, getInfo()));
+        if ( finish.isValid() && finish.isBefore(logIndex.getEarliestVersion()) )
+            throw new DeltaException(format("finish out of range: range(%s,%s) but log is %s", start, finish, getInfo()));
+        if ( start.isAfter(finish) )
+            throw new DeltaException(format("Range start after finish: range(%s,%s)", start, finish));
+        List<RDFPatch> x = new ArrayList<>();
+        // Range is inclusive.
+        for ( long v = start.value() ; v <= finish.value() ; v++ ) {
+            RDFPatch patch = fetch(Version.create(v));
+            if ( patch != null )
+                x.add(patch);
+        }
+        return x.stream();
     }
 
     @Override

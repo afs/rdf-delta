@@ -24,29 +24,30 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile1;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile;
 
-public class TestPatchLogFile1 extends AbstractTestPatchLog {
-    
+public class TestPatchLogFile extends AbstractTestPatchLog {
+
     private static final String LOG = "target/test";
     private static final LocalServerConfig config = LocalServers.configFile(LOG);
     private PatchStore patchStore;
     private PatchLog patchLog;
-    
+
     @Before public void before() {
         FileStore.resetTracked();
         FileOps.ensureDir(LOG);
         FileOps.clearAll(LOG);
     }
-    
+
     @After public void after() {
         patchLog.release();
     }
-    
+
     @Override
     protected PatchLog patchLog() {
+        PatchStoreProviderFile psp = (PatchStoreProviderFile)PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider);
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
-        patchStore = new PatchStoreProviderFile1().create(config);
+        patchStore = new PatchStoreProviderFile().create(config);
         patchStore.initialize(new DataRegistry("X"), config);
         patchLog = patchStore.createLog(dsd);
         return patchLog;

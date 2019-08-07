@@ -23,10 +23,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
+import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
@@ -35,9 +39,11 @@ import org.seaborne.delta.lib.IOX.IOConsumer;
 import org.seaborne.delta.server.local.filestore.FileEntry;
 import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesWriter;
+import org.seaborne.patch.text.RDFPatchReaderText;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 
@@ -48,13 +54,26 @@ public class PatchStorageFile implements PatchStorage {
     private final FileStore fileStore;
 
     public PatchStorageFile(FileStore fileStore, Function<Id, Version> id2version) {
+        // File-based patch storage is by version number, hence "id2version" required.
         this.fileStore = fileStore;
         this.id2version = id2version;
     }
 
     @Override
     public Stream<Id> find() {
-        return null;
+        // Reads the disk to find the ids. For testing.
+        Iterator<Long> iter = fileStore.scanIndex().iterator();
+        List<Id> ids = new ArrayList<>();
+        iter.forEachRemaining(v->{
+            try ( InputStream in = fileStore.open(v) ) {
+                PatchHeader patchHeader = RDFPatchReaderText.readerHeader(in);
+                Node n = patchHeader.getId();
+                ids.add(Id.fromNode(n));
+            } catch (IOException ex) {
+                throw IOX.exception(ex);
+            }
+        });
+        return ids.stream();
     }
 
     @Override
@@ -64,19 +83,15 @@ public class PatchStorageFile implements PatchStorage {
 
     @Override
     public void store(Version version, Id key, RDFPatch patch) {
-        // [FILE2]
         IOConsumer<OutputStream> action = out -> {
             TokenWriter tw = new TokenWriterText(out) ;
             RDFChangesWriter dest = new RDFChangesWriter(tw) ;
             patch.apply(dest);
         };
 
-
         FileEntry file = fileStore.allocateFilename(version.value());
         file.write(action);
         fileStore.completeWrite(file);
-
-//        FileEntry entry = fileStore.writeNewFile(action);
     }
 
     private Version idToVersion(Id id) {

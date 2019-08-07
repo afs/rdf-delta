@@ -19,10 +19,7 @@ package org.seaborne.delta.server.patchstores;
 
 import static org.junit.Assert.*;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
@@ -34,6 +31,7 @@ import org.seaborne.delta.server.system.DeltaSystem;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
+@FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class AbstractTestPatchStore {
 
     // XXX Convert to parameterized tests??

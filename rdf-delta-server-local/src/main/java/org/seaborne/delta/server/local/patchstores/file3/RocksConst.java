@@ -16,13 +16,20 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.file2;
+package org.seaborne.delta.server.local.patchstores.file3;
 
-import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
+import static org.apache.jena.atlas.lib.StrUtils.asUTF8bytes;
 
-public class PatchLogIndexFile extends PatchLogIndexBase {
+public class RocksConst {
 
-    public PatchLogIndexFile(LogIndexFile logIndexFile) {
-        super(logIndexFile, null, null);
-    }
+    public static final String databaseFilename = "log";
+
+    public static final String CF_VERSION_ID   = "versionToId";
+    public static final String CF_ID_ENTRY     = "idToLogEntry";
+    public static final String CF_PATCH        = "patchStorage";
+
+    public static final byte[] B_CF_VERSION_ID = asUTF8bytes(CF_VERSION_ID);
+    public static final byte[] B_CF_ID_ENTRY   = asUTF8bytes(CF_ID_ENTRY);
+    public static final byte[] B_CF_PATCH      = asUTF8bytes(CF_PATCH);
+
 }

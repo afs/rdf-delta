@@ -17,20 +17,22 @@
 
 package org.seaborne.delta.server.patchstores;
 
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Id;
+import org.apache.jena.atlas.lib.FileOps;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile1;
 
-public class TestPatchLogMem extends AbstractTestPatchLog {
+public class TestPatchStoreFileOriginal extends AbstractTestPatchStore {
+    private static String DIR = "target/test/patch-store-file";
 
     @Override
-    protected PatchLog patchLog() {
-        DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
-        PatchStoreProvider psp = new PatchStoreProviderMem();
-        LocalServerConfig config = LocalServerConfig.basic();
-        PatchStore patchStore = psp.create(config);
-        patchStore.initialize(new DataRegistry("mem"), config);
-        return patchStore.createLog(dsd);
+    protected PatchStore patchStore(DataRegistry dataRegistry) {
+        // Create directly - not the default provider for file-based storage.
+        LocalServerConfig conf = LocalServers.configFile(DIR);
+        PatchStoreProvider psp = new PatchStoreProviderFile1();
+        PatchStore patchStore = psp.create(conf);
+        FileOps.ensureDir(DIR);
+        FileOps.clearAll(DIR);
+        patchStore.initialize(dataRegistry, conf);
+        return patchStore;
     }
 }

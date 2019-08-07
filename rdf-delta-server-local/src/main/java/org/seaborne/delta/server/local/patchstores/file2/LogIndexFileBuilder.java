@@ -21,34 +21,37 @@ package org.seaborne.delta.server.local.patchstores.file2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.NoSuchFileException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.ext.com.google.common.collect.BiMap;
-import org.apache.jena.ext.com.google.common.collect.HashBiMap;
-import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FS2 {
-    private static Logger LOG = LoggerFactory.getLogger(FilePatchIdx.class);
+/** Build LogIndexFile from a FileStore */
+public class LogIndexFileBuilder {
+    private static Logger LOG = LoggerFactory.getLogger(LogIndexFile.class);
 
     /**
      * Inspect a {@link FileStore} and build the in-memory maps.
      * Return the latest version or null if no patches.
      */
-    public static FilePatchIdx initFromFileStore(FileStore fileStore) {
-        BiMap<Id, Version> idToVersion = Maps.synchronizedBiMap(HashBiMap.create());
-        Map<Id, LogEntry> headers = new ConcurrentHashMap<>();
+    /*package*/ static LogIndexFile initFromFileStore(FileStore fileStore) {
+        Map<Version, Id> versionToId = new ConcurrentHashMap<>();
+
+        // Only used locally.
+        Map<Id, Version> idToVersion = new HashMap<>();
+
+        Map<Id, LogEntry> logEntries = new ConcurrentHashMap<>();
 
         // Iterator is sorted.
         Iterator<Long> iter = fileStore.getIndexes().iterator();
@@ -88,9 +91,9 @@ public class FS2 {
                 }
 
                 Version ver = Version.create(idx);
-                if ( headers != null ) {
+                if ( logEntries != null ) {
                     LogEntry patchInfo = new LogEntry(id, ver, prev);
-                    headers.put(id, patchInfo);
+                    logEntries.put(id, patchInfo);
                 }
                 idToVersion.put(id, ver);
                 if ( earliestVersion == null )
@@ -101,7 +104,6 @@ public class FS2 {
             catch (NoSuchFileException ex) { throw IOX.exception(ex); }
             catch (IOException ex)  { throw IOX.exception(ex); }
         }
-        return new FilePatchIdx(fileStore, idToVersion, currentVersion, currentPreviousVersion, earliestVersion, headers);
+        return new LogIndexFile(fileStore, versionToId, currentVersion, currentPreviousVersion, earliestVersion, logEntries);
     }
-
 }

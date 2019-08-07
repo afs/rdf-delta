@@ -53,14 +53,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** A sequence of patches for an {@link DataSource}. */
-public class PatchLogFile implements PatchLog {
+public class PatchLogFile1 implements PatchLog {
     // Predates PatchStorage/PatchLogIndex.
     // Could do with converting.
 
     private static final boolean CHECKING = true ;
 
     // Centralized logger for regular lifecycle reporting.
-    private static Logger  LOG     = LoggerFactory.getLogger(PatchLogFile.class);
+    private static Logger  LOG     = LoggerFactory.getLogger(PatchLogFile1.class);
 
     // Currently, id of the DataSource
     private final Id logId;
@@ -77,11 +77,11 @@ public class PatchLogFile implements PatchLog {
     private Version latestVersion = Version.UNSET;
 
     /** Attached to an existing {@code PatchLog}. */
-    public static PatchLogFile attach(DataSourceDescription dsd, PatchStore patchStore, Path location) {
-        return new PatchLogFile(dsd, patchStore, location);
+    public static PatchLogFile1 attach(DataSourceDescription dsd, PatchStore patchStore, Path location) {
+        return new PatchLogFile1(dsd, patchStore, location);
     }
 
-    private PatchLogFile(DataSourceDescription dsd, PatchStore patchStore, Path location) {
+    private PatchLogFile1(DataSourceDescription dsd, PatchStore patchStore, Path location) {
         this.dsd = dsd;
         this.logId = dsd.getId();
         this.fileStore = FileStore.attach(location, "patch");

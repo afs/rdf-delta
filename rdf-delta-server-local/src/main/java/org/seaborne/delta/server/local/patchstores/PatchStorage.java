@@ -37,8 +37,7 @@ public interface PatchStorage {
 
     /** Store a patch */
     public default void store(Version version, Id key, RDFPatch patch) {
-        // [FILE2] override point.
-        // Ignore version for patch storage.
+        // Intercept for when PatchStorage is based on version.
         store(key, patch);
     }
 

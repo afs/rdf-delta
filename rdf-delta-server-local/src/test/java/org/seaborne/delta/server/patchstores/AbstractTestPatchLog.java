@@ -33,7 +33,7 @@ import org.seaborne.patch.RDFPatchOps;
  */
 
 public abstract class AbstractTestPatchLog {
-
+    //Parameterize tests
     private static Version version_1 = Version.create(1);
     private static Version version_2 = Version.create(2);
     private static Version version_3 = Version.create(3);

@@ -15,9 +15,16 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta;
+package org.seaborne.delta.server.local;
+
+import static java.lang.String.format;
 
 import java.util.Objects;
+
+import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.Version;
 
 /**
  * Information about an entry in a patch log.
@@ -31,7 +38,8 @@ public class LogEntry {
     private final Id previous ;
 
     public LogEntry(Id patch, Version version, Id previous) {
-        Objects.requireNonNull(patch, "Patch");
+        if ( Version.isValid(version) )
+            Objects.requireNonNull(patch, "Patch");
         this.patch = patch;
         this.version = version;
         this.previous = previous;
@@ -47,6 +55,15 @@ public class LogEntry {
 
     public Id getPrevious() {
         return previous;
+    }
+
+    @Override
+    public String toString() {
+        return format("LogEntry[%s, %s, %s]", str(patch), str(version), str(previous));
+    }
+
+    private String str(Object object) {
+        return String.valueOf(object);
     }
 
     @Override

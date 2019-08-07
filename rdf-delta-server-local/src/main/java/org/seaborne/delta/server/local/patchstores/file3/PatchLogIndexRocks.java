@@ -16,13 +16,26 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.file2;
+package org.seaborne.delta.server.local.patchstores.file3;
 
 import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
 
-public class PatchLogIndexFile extends PatchLogIndexBase {
+public class PatchLogIndexRocks extends PatchLogIndexBase {
 
-    public PatchLogIndexFile(LogIndexFile logIndexFile) {
-        super(logIndexFile, null, null);
+    private final RocksDatabase database;
+
+    public PatchLogIndexRocks(RocksDatabase database) {
+        super(new LogIndexRocks(database), null, null);
+        this.database = database;
+    }
+
+    @Override
+    public void release() {
+        database.close();
+    }
+
+    @Override
+    public void delete() {
+        System.err.println("PatchLogIndexRocks::delete");
     }
 }

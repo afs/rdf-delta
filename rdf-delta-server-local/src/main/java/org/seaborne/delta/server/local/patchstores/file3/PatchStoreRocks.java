@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.file2;
+package org.seaborne.delta.server.local.patchstores.file3;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,35 +33,38 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.file.CfgFile;
 
-public class PatchStoreFile2 extends PatchStore {
-    /*   Server Root
-     *      delta.cfg
-     *      /NAME ... per DataSource.
-     *          /source.cfg
-     *          /Log -- patch on disk (optional)
-     *          /data -- TDB database (optional)
-     *          /disabled -- if this file is present, then the datasource is not accessible.
+public class PatchStoreRocks extends PatchStore {
+    /*
+     *  / server root
+     *    delta.cfg
+     *    / source
+     *       / source.cfg
+     *       / database /
+     *
+     *   RocksDB: index:
+     *     (version, id)
+     *     (id, PatchInfo)  ?? for PatchLogIndex.getPatchInfo(Id)
+     *   RocksDB: patch storage
+     *     (id, patch)
      */
-    private static final String patchBasename = "patch";
 
     // Singletons.
-    // "static" so two PatchStoreFile2 go to the same log.
-    private static Map<Id, FilePatchIdx> filePatchIdxs = new ConcurrentHashMap<>();
+    // "static" so two PatchStoreRocks go to the same databases.
+    private static Map<Id, RocksDatabase> databases = new ConcurrentHashMap<>();
 
     private Path patchLogDirectory = null;
 
-    /*package*/ PatchStoreFile2(String patchLogDirectory, PatchStoreProvider provider) {
+    /*package*/ PatchStoreRocks(String patchLogDirectory, PatchStoreProvider provider) {
         super(provider);
         Objects.requireNonNull(patchLogDirectory);
         this.patchLogDirectory = Paths.get(patchLogDirectory);
     }
 
     public static void resetTracked() {
-        // [FILE2]
-        filePatchIdxs.clear();
+        databases.values().forEach(RocksDatabase::close);
+        databases.clear();
     }
 
     @Override
@@ -81,29 +84,33 @@ public class PatchStoreFile2 extends PatchStore {
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
         Id id = dsd.getId();
-        filePatchIdxs.computeIfAbsent(id, x->{
+        databases.computeIfAbsent(id, x->{
             Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
-            if ( ! Files.exists(fileStoreDir) )
+            if ( ! Files.exists(fileStoreDir) ) {
                 CfgFile.setupDataSourceByFile(patchLogDirectory, this, dsd);
-            FileStore fileStore = FileStore.attach(fileStoreDir, patchBasename);
-            return FilePatchIdx.create(fileStore);
+//                try { Files.createDirectory(fileStoreDir); }
+//                catch (IOException ex) { throw IOX.exception(ex); }
+            }
+            Path dbPath = fileStoreDir.resolve(RocksConst.databaseFilename).toAbsolutePath();
+            RocksDatabase db = new RocksDatabase(dbPath);
+            return db;
         });
-        // The FilePatchIdx will be picked up by newPatchLogIndex, newPatchStorage
-        // calls in PatchStoreProviderFile2.
+        // The database will be picked up by newPatchLogIndex, newPatchStorage
+        // calls in PatchStoreProviderFileRocks
         PatchLog newPatchLog = newPatchLogFromProvider(dsd);
         return newPatchLog;
     }
 
-    public FilePatchIdx getPatchLogFile(Id id) {
-        return filePatchIdxs.get(id);
+    public RocksDatabase getDatabase(Id id) {
+        return databases.get(id);
     }
 
     @Override
     protected void delete(PatchLog patchLog) {
-        PatchStoreFile2 patchStoreFile = (PatchStoreFile2)patchLog.getPatchStore();
+        PatchStoreRocks patchStoreFile = (PatchStoreRocks)patchLog.getPatchStore();
         Id id = patchLog.getDescription().getId();
-        FilePatchIdx filePatchIdx = filePatchIdxs.remove(id);
-        Path p = filePatchIdx.getPath();
+        RocksDatabase database = databases.remove(id);
+        Path p = database.getPath();
         IOX.deleteAll(p);
     }
 

@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file2;
+package org.seaborne.delta.server.local.patchstores.file3;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
@@ -26,9 +26,7 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
-public class PatchStoreProviderFile2 implements PatchStoreProvider {
-
-    public PatchStoreProviderFile2() {}
+public class PatchStoreProviderRocks implements PatchStoreProvider {
 
     @Override
     public PatchStore create(LocalServerConfig config) {
@@ -37,18 +35,15 @@ public class PatchStoreProviderFile2 implements PatchStoreProvider {
         return create(patchLogDirectory);
     }
 
-    //private static Map<String, PatchStoreFile2>
-
-    public PatchStoreFile2 create(String patchLogDirectory) {
+    public PatchStoreRocks create(String patchLogDirectory) {
         if ( patchLogDirectory == null )
             return null;
-        // [FILE2] Assumes a cache in PatchStoreFile2 of FilePatchIdx objects.
-        return new PatchStoreFile2(patchLogDirectory, this);
+        return new PatchStoreRocks(patchLogDirectory, this);
     }
 
     @Override
     public String getProviderName() {
-        return DPS.PatchStoreFileProvider;
+        return DPS.PatchStoreDatabaseProvider;
     }
 
     @Override
@@ -56,20 +51,17 @@ public class PatchStoreProviderFile2 implements PatchStoreProvider {
         return DPS.pspFile;
     }
 
-    // For the file based PatchStore the index is an in-memory structure built from the
-    // FileStore to create the FilePatchIdx held in the PatchStoreFile2 object.
-
     @Override
     public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreFile2 patchStoreFile = (PatchStoreFile2)patchStore;
-        FilePatchIdx filePatchIdex = patchStoreFile.getPatchLogFile(dsd.getId());
-        return new PatchLogIndexFile(filePatchIdex);
+        PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
+        RocksDatabase rdb = patchStoreRocks.getDatabase(dsd.getId());
+        return new PatchLogIndexRocks(rdb);
     }
 
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreFile2 patchStoreFile = (PatchStoreFile2)patchStore;
-        FilePatchIdx filePatchIndex = patchStoreFile.getPatchLogFile(dsd.getId());
-        return new PatchStorageFile(filePatchIndex.fileStore(), filePatchIndex::idToVersion);
+        PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
+        RocksDatabase rdb = patchStoreRocks.getDatabase(dsd.getId());
+        return new PatchStorageRocks(rdb);
     }
 }

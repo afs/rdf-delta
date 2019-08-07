@@ -21,8 +21,8 @@ package org.seaborne.delta.server.local.patchstores;
 import java.util.stream.Stream;
 
 import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
+import org.seaborne.delta.server.local.LogEntry;
 
 public interface LogIndex {
 

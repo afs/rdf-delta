@@ -19,27 +19,30 @@
 package org.seaborne.delta.server.local.patchstores.file2;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
-import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.LogEntry;
 import org.seaborne.delta.Version;
+import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.patchstores.LogIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** The details of the patch file are for one patch log, constructed by parsing the {@link FileStore}. */
-public class FilePatchIdx {
-    private static Logger  LOG = LoggerFactory.getLogger(FilePatchIdx.class);
+public class LogIndexFile implements LogIndex {
+    private static Logger  LOG = LoggerFactory.getLogger(LogIndexFile.class);
+
+    //Use LogIndexMem?
 
     // For reference.
     private final FileStore fileStore;
     private final Path patchDir;
-    private final BiMap<Id, Version> idToVersion;
-    private final Function<Id, Version> id2version;
-    private final Map<Id, LogEntry> patchInfo;
+    private final Map<Version, Id> versionToId;
+    private final Map<Id, LogEntry> logEntries;
 
     // Latest patch at the point of starting in this JVM.
     private Id currentId;
@@ -51,31 +54,27 @@ public class FilePatchIdx {
 //    private final Id _initialCurrentId;
 //    private final Version _initalCurrentVersionId;
 
-    public static FilePatchIdx create(FileStore fileStore) {
-        // [FILE2] Move PatchStoreFile2.filePatchIdxs here
-        // Then per store instance map there.
-        //fileStore.getPath();
-
-        FilePatchIdx filePatchIdx = FS2.initFromFileStore(fileStore);
-        return filePatchIdx;
+    public static LogIndexFile create(FileStore fileStore) {
+        LogIndexFile logIndexFile = LogIndexFileBuilder.initFromFileStore(fileStore);
+        return logIndexFile;
     }
 
-    /*package*/ FilePatchIdx(FileStore fileStore, BiMap<Id, Version> idToVersion,
-                             Version latestVersion, Version latestPrevious, Version earliestVersion, Map<Id, LogEntry> headers) {
+    /*package*/ LogIndexFile(FileStore fileStore, Map<Version, Id> versionToId,
+                             Version latestVersion, Version latestPrevious, Version earliestVersion, Map<Id, LogEntry> logEntries) {
         this.fileStore = fileStore;
         this.patchDir = fileStore.getPath();
-        this.idToVersion = idToVersion;
-        this.id2version = idToVersion::get;
+        this.versionToId = versionToId;
         this.currentVersion = versionOrDft(latestVersion, Version.INIT);
-        this.previousId = versionToId(latestPrevious);
-
-//        // Initial starting runtime state.
-//        this.initialCurrentId = this.currentId;
-//        this.initalCurrentVersionId = this.currentVersion;
-
+        this.currentId = versionToId(latestPrevious);
+        if ( currentId != null ) {
+            LogEntry e = logEntries.get(currentId);
+            this.previousId = e.getPrevious();
+        } else
+            this.previousId = null;
         this.earliestVersion = versionOrDft(earliestVersion, Version.INIT);
         this.earliestId = versionToId(earliestVersion);
-        this.patchInfo = headers;
+        this.logEntries = logEntries;
+        // FileStore is not used again except to be carried around for PatchStorageFile.
     }
 
     private Version versionOrDft(Version ver, Version verDefault) {
@@ -90,51 +89,67 @@ public class FilePatchIdx {
         return patchDir;
     }
 
-    public Version idToVersion(Id id) {
-        return idToVersion.get(id);
+    /*package*/ Version idToVersion(Id id) {
+        LogEntry entry = logEntries.get(id);
+        if ( entry == null )
+            return null;
+        return entry.getVersion();
     }
 
-    public Id versionToId(Version version) {
+    private Id versionToId(Version version) {
+        if ( version == null )
+            return null;
         if ( Version.UNSET.equals(version) )
             return null;
         if ( Version.INIT.equals(version) )
             return null;
-        return idToVersion.inverse().get(version);
+        return versionToId.get(version);
     }
 
-    public LogEntry getPatchInfo(Id id) {
-        return patchInfo.get(id);
-    }
-
-    /*package*/ void setCurrentLatest(Id id, Version version, Id previous) {
-        // [FILE2] Does not update FileStore.
+    @Override
+    public void save(Version version, Id id, Id previous) {
+        // Does not update FileStore.
+        // The update to the PatchStorageFile updates the on-disk recovery state.
         currentId = id;
         currentVersion = version;
         previousId = previous;
-        idToVersion.put(id, version);
+        versionToId.put(version, id);
+        LogEntry entry = new LogEntry(id, version, previous);
+        logEntries.put(id, entry);
         if ( earliestId == null ) {
             earliestId = id;
             earliestVersion = version;
         }
     }
 
-    public Id getCurrentId() {
-        return currentId;
+    @Override
+    public Stream<LogEntry> entries() {
+        List<LogEntry> x = new ArrayList<>(logEntries.values());
+        return x.stream();
     }
 
-    public Id getPreviousId() {
-        return previousId;
+    @Override
+    public Id fetchVersionToId(Version version) {
+        return versionToId(version);
     }
 
-    public Version getCurrentVersion() {
-        return currentVersion;
+    @Override
+    public Version genNextVersion() {
+        return currentVersion.inc();
     }
 
-    public Id getEarliestId() {
-        return earliestId;
+    @Override
+    public LogEntry fetchPatchInfo(Id id) {
+        return null;
     }
 
-    public Version getEarliestVersion() {
+    @Override
+    public Version earliest() {
         return earliestVersion;
+    }
+
+    @Override
+    public Version current() {
+        return currentVersion;
     }
 }

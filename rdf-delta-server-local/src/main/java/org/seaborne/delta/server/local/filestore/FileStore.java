@@ -347,6 +347,10 @@ public class FileStore {
         return tmpFiles;
     }
 
+    public List<Long> scanIndex() {
+       return scanForIndex(directory, basename);
+    }
+
     /** Find the indexes of files in this FileStore. Return sorted, low to high. */
     private static List<Long> scanForIndex(Path directory, String namebase) {
         List<Long> indexes = new ArrayList<>();

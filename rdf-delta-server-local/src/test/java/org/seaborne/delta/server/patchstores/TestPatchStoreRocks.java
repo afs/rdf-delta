@@ -17,24 +17,28 @@
 
 package org.seaborne.delta.server.patchstores;
 
-import org.apache.curator.test.TestingServer;
+import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
-import org.junit.Before;
-import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.patchstores.file3.PatchStoreRocks;
 
-public class TestPatchStoreZk extends AbstractTestPatchStore {
+public class TestPatchStoreRocks extends AbstractTestPatchStore {
+    private static String DIR = "target/test/patch-store-file";
 
-    @Before public void beforeZkTest() {}
-    @After public void afterZkTest() { ZkT.clearAll(); }
+    @After public void afterPatchStoreRocks() {
+        PatchStoreRocks.resetTracked();
+    }
+
 
     @Override
     protected PatchStore patchStore(DataRegistry dataRegistry) {
-        TestingServer server = ZkT.localServer();
-        String connectionString = server.getConnectString();
-        LocalServerConfig config = LocalServers.configZk(connectionString);
-        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreZkProvider).create(config);
-        patchStore.initialize(dataRegistry, config);
+        FileOps.ensureDir(DIR);
+        FileOps.clearAll(DIR);
+        LocalServerConfig conf = LocalServers.configFile(DIR);
+        PatchStoreRocks patchStore = (PatchStoreRocks)PatchStoreMgr
+                                            .getPatchStoreProvider(DPS.PatchStoreDatabaseProvider)
+                                            .create(conf);
+        patchStore.initialize(dataRegistry, conf);
         return patchStore;
     }
 }

@@ -65,13 +65,13 @@ public class PatchStoreFile1 extends PatchStore {
         Path patchLogArea = serverRoot.resolve(dsd.getName());
         if ( ! Files.exists(patchLogArea) )
             CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
-        PatchLog pLog = PatchLogFile.attach(dsd, this, patchLogArea);
+        PatchLog pLog = PatchLogFile1.attach(dsd, this, patchLogArea);
         return pLog;
     }
 
     @Override
     protected void delete(PatchLog patchLog) {
-        Path p = ((PatchLogFile)patchLog).getFileStore().getPath();
+        Path p = ((PatchLogFile1)patchLog).getFileStore().getPath();
         patchLog.delete();
     }
 
