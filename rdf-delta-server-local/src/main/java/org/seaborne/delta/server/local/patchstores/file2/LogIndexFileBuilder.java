@@ -31,7 +31,7 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LogEntry;
-import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.slf4j.Logger;

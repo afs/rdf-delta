@@ -36,7 +36,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 
 // There are restart tests in AbstractTestsDeltaConnection as well.
 // Here we are concerned with different ways to restart on the client side

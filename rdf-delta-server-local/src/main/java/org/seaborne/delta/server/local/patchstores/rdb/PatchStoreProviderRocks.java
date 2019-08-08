@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file3;
+package org.seaborne.delta.server.local.patchstores.rdb;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
@@ -48,7 +48,7 @@ public class PatchStoreProviderRocks implements PatchStoreProvider {
 
     @Override
     public String getShortName() {
-        return DPS.pspFile;
+        return DPS.pspRocks;
     }
 
     @Override

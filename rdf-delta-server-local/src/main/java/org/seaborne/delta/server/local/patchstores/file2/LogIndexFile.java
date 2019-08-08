@@ -27,8 +27,8 @@ import java.util.stream.Stream;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.LogEntry;
-import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.LogIndex;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

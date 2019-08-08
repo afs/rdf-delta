@@ -22,7 +22,7 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import io.findify.s3mock.S3Mock;
 import org.apache.curator.test.TestingServer;
 import org.apache.jena.atlas.lib.Pair;
-import org.seaborne.delta.lib.LibX;
+import org.apache.jena.atlas.web.WebLib;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.local.DataSourceRegistry;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -37,7 +37,7 @@ public class S3T {
     public static Pair<PatchStore, S3Mock> setup() {
         TestingServer server = ZkT.localServer();
         String connectString = "localhost:" + server.getPort();
-        int port = LibX.choosePort();
+        int port = WebLib.choosePort();
 
         S3Mock api = new S3Mock.Builder()
             .withPort(port)

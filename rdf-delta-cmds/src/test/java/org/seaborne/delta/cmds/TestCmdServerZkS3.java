@@ -27,11 +27,11 @@ import delta.server.DeltaServerCmd;
 import io.findify.s3mock.S3Mock;
 import org.apache.jena.atlas.io.NullOutputStream;
 import org.apache.jena.atlas.web.HttpException;
+import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.riot.web.HttpOp;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.http.DeltaServer;
 
 /** Test running the server command with an in-memory Zk and S3 mock up */
@@ -41,7 +41,7 @@ public class TestCmdServerZkS3 {
     private String endpointURL;
 
     @Before public void before() {
-        int port = LibX.choosePort();
+        int port = WebLib.choosePort();
         EndpointConfiguration endpoint = new EndpointConfiguration("http://localhost:"+port, REGION);
         api = new S3Mock.Builder().withPort(port).withInMemoryBackend().build();
         api.start();
@@ -103,9 +103,9 @@ public class TestCmdServerZkS3 {
     }
 
     private static void runtest(Consumer<String> action,  String s3EndpointURL) {
-        int port = LibX.choosePort();
+        int port = WebLib.choosePort();
         // Imperfect port choice but in practice pretty good.
-        int zkPort = LibX.choosePort();
+        int zkPort = WebLib.choosePort();
 
         DeltaServer server;
         try {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.file3;
+package org.seaborne.delta.server.local.patchstores.rdb;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,12 +28,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.file.CfgFile;
+import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
 
 public class PatchStoreRocks extends PatchStore {
     /*
@@ -82,7 +81,7 @@ public class PatchStoreRocks extends PatchStore {
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        return CfgFile.scanForLogs(patchLogDirectory);
+        return FileArea.scanForLogs(patchLogDirectory);
     }
 
     @Override
@@ -91,7 +90,7 @@ public class PatchStoreRocks extends PatchStore {
         logIndexes.computeIfAbsent(id, x->{
             Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
             if ( ! Files.exists(fileStoreDir) ) {
-                CfgFile.setupDataSourceByFile(patchLogDirectory, this, dsd);
+                FileArea.setupDataSourceByFile(patchLogDirectory, this, dsd);
 //                try { Files.createDirectory(fileStoreDir); }
 //                catch (IOException ex) { throw IOX.exception(ex); }
             }
@@ -108,11 +107,10 @@ public class PatchStoreRocks extends PatchStore {
 
     @Override
     protected void delete(PatchLog patchLog) {
-        PatchStoreRocks patchStoreFile = (PatchStoreRocks)patchLog.getPatchStore();
         Id id = patchLog.getDescription().getId();
         LogIndexRocks idx = logIndexes.remove(id);
         Path p = idx.getPath();
-        IOX.deleteAll(p);
+        FileArea.retire(p);
     }
 
 }

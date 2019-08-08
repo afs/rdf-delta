@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.seaborne.delta.Delta;
-import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
 import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile;
-import org.seaborne.delta.server.local.patchstores.file3.PatchStoreProviderRocks;
-import org.seaborne.delta.server.local.patchstores.file3.PatchStoreRocks;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
+import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
+import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.system.DeltaSystem;
 import org.slf4j.Logger;
@@ -44,9 +44,10 @@ public class DPS {
     public static String PatchStoreZkProvider       = "PatchStore/Zk";
 
     // Short names.
-    public static String pspFile = "file";
-    public static String pspMem  = "mem";
-    public static String pspZk   = "zk";
+    public static String pspFile    = "file";
+    public static String pspRocks   = "db";
+    public static String pspMem     = "mem";
+    public static String pspZk      = "zk";
 
     public static void init() {
         if ( initialized )
@@ -69,10 +70,9 @@ public class DPS {
         DPS.init();
         LocalServer.releaseAll();
         FileStore.resetTracked();
-        // [FILE2]
         PatchStoreFile.resetTracked();
         PatchStoreRocks.resetTracked();
-        // PatchStoreMgr.reset clears the patch store providers.
+        // PatchStoreMgr.reset clears the patch store providers
         PatchStoreMgr.reset();
         initPatchStoreProviders();
     }

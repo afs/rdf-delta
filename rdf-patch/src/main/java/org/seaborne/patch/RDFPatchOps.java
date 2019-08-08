@@ -17,11 +17,7 @@
 
 package org.seaborne.patch;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,13 +32,9 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.shared.uuid.JenaUUID;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.seaborne.patch.changes.PatchSummary;
-import org.seaborne.patch.changes.RDFChangesApply;
-import org.seaborne.patch.changes.RDFChangesApplyGraph;
-import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.changes.RDFChangesCounter;
-import org.seaborne.patch.changes.RDFChangesLog;
-import org.seaborne.patch.changes.RDFChangesWriter;
+import org.seaborne.patch.binary.RDFChangesWriterBinary;
+import org.seaborne.patch.binary.RDFPatchReaderBinary;
+import org.seaborne.patch.changes.*;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.GraphChanges;
 import org.seaborne.patch.system.RDFPatchAltHeader;
@@ -176,7 +168,7 @@ public class RDFPatchOps {
     }
 
     /**
-     * Read an {@link RDFPatch} from a file.
+     * Read an {@link RDFPatch} from a file in text format
      * Throws {@link PatchException} on patch parse error.
      */
     public static RDFPatch read(InputStream input) {
@@ -190,6 +182,23 @@ public class RDFPatchOps {
     public static RDFPatch read(String filename) {
         try ( InputStream input = IO.openFile(filename) ) {
             return read(input);
+        } catch (IOException ex) { IO.exception(ex); return null; }
+    }
+
+    /**
+     * Read an {@link RDFPatch} from an input stream in binary format.
+     */
+    public static RDFPatch readBinary(InputStream input) {
+        PatchProcessor reader = RDFPatchReaderBinary.create(input);
+        RDFChangesCollector c = new RDFChangesCollector();
+        reader.apply(c);
+        return c.getRDFPatch();
+    }
+
+    /** Read an {@link RDFPatch} from a file. */
+    public static RDFPatch readBinary(String filename) {
+        try ( InputStream input = IO.openFile(filename) ) {
+            return readBinary(input);
         } catch (IOException ex) { IO.exception(ex); return null; }
     }
 
@@ -260,6 +269,7 @@ public class RDFPatchOps {
         return changes(dsgBase, changeLog);
     }
 
+    /** Write a {@link RDFPatch} in text format */
     public static void write(OutputStream out, RDFPatch patch) {
         TokenWriter tw = new TokenWriterText(out);
         RDFChanges c = new RDFChangesWriter(tw);
@@ -267,7 +277,12 @@ public class RDFPatchOps {
         tw.flush();
     }
 
-    /** Write an {@link StreamRDF} out in {@link RDFPatch} format.
+    /** Write a {@link RDFPatch} in binary format */
+    public static void writeBinary(OutputStream out, RDFPatch patch) {
+        RDFChangesWriterBinary.write(patch, out);
+    }
+
+    /** Write an {@link StreamRDF} out in {@link RDFPatch} text format.
      *  {@link StreamRDF#start} and {@link StreamRDF#finish}
      *  must be called; these bracket the patch in transaction markers
      *  {@code TX} and {@code TC}.
@@ -276,6 +291,18 @@ public class RDFPatchOps {
         TokenWriter tw = new TokenWriterText(out);
         RDFChanges rdfChanges = new RDFChangesWriter(tw);
         return new StreamPatch(rdfChanges);
+    }
+
+    /** Provide an {@link StreamRDF} that will output in RDFPatch binary format.
+     *  {@link StreamRDF#start} and {@link StreamRDF#finish}
+     *  must be called; these bracket the patch in transaction markers
+     *  {@code TX} and {@code TC}.
+     */
+    public static void writeBinary(OutputStream out, Consumer<StreamRDF> action) {
+        RDFChangesWriterBinary.writeBinary(out, c->{
+            StreamRDF stream = new StreamPatch(c);
+            action.accept(stream);
+        });
     }
 
     public static String str(RDFPatch patch) {

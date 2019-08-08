@@ -24,20 +24,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.Creator;
+import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.http.DeltaServer;
-import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataSourceRegistry;
-import org.seaborne.delta.server.local.DeltaLinkLocal;
-import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.LocalServerConfig;
-import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreMgr;
+import org.seaborne.delta.server.local.*;
 
 public class Setup {
     static { DPS.init(); }
@@ -160,7 +153,7 @@ public class Setup {
         @Override
         public void beforeTest() {
             resetDefaultHttpClient();
-            testPort = LibX.choosePort();
+            testPort = WebLib.choosePort();
             localServer = DeltaTestLib.createEmptyTestServer();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server = DeltaServer.create(testPort, localLink);

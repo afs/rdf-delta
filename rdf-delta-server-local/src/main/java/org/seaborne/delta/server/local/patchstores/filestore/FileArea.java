@@ -15,23 +15,20 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file;
+package org.seaborne.delta.server.local.patchstores.filestore;
 
 import static org.seaborne.delta.DeltaConst.F_LOG_TYPE;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -48,8 +45,9 @@ import org.seaborne.delta.server.local.patchstores.FileNames;
 import org.slf4j.Logger;
 
 /** Various configuration utilities; file-based server. */
-public class CfgFile {
+public class FileArea {
 
+    private static Logger LOG = Delta.DELTA_LOG;
     /**
      * Look for {@link DataSource DataSources} in a disk area given by {@code location}.
      * <p>
@@ -103,7 +101,7 @@ public class CfgFile {
             return Pair.create(enabled, disabled);
         }
         catch (IOException ex) {
-            Log.error(CfgFile.class, "Exception while reading "+directory);
+            Log.error(FileArea.class, "Exception while reading "+directory);
             throw IOX.exception(ex);
         }
     }
@@ -134,7 +132,7 @@ public class CfgFile {
 
     /** Test for a valid data source - does not check "disabled" */
     private static boolean isFormattedDataSource(Path path) {
-        if ( ! CfgFile.isMinimalDataSource(path) )
+        if ( ! FileArea.isMinimalDataSource(path) )
             return false;
         // Additional requirements
         Path patchesArea = path.resolve(FileNames.LOG);
@@ -147,7 +145,6 @@ public class CfgFile {
         return true ;
     }
 
-    private static Logger LOG = Delta.DELTA_LOG;
     /**
      * Set up a disk file area for the data source
      * @param root
@@ -167,9 +164,9 @@ public class CfgFile {
         //        if ( sourceArea.exists() )
         //            throw new DeltaException("Area already exists");
 
-        if ( CfgFile.isMinimalDataSource(sourcePath) )
+        if ( FileArea.isMinimalDataSource(sourcePath) )
             throw new DeltaBadRequestException("DataSource area already exists at: "+sourcePath);
-        if ( ! CfgFile.isEnabled(sourcePath) )
+        if ( ! FileArea.isEnabled(sourcePath) )
             throw new DeltaBadRequestException("DataSource area disabled: "+sourcePath);
 
         try {
@@ -194,7 +191,7 @@ public class CfgFile {
     private static final String DELETE_MARKER = "-deleted";
 
     /** Retire an on-disk log file area */
-    /*package*/ static void retire(Path pathLog) {
+    public static void retire(Path pathLog) {
 //        if ( true ) {
 //            // Mark unavailable.
 //            Path disabled = pathLog.resolve(ConstDISABLED);
@@ -207,22 +204,7 @@ public class CfgFile {
 //            try { Files.move(pathLog, dest, StandardCopyOption.ATOMIC_MOVE); }
 //            catch (IOException e) { throw IOX.exception(e); }
 //        }
-//        if ( false ) {
-        {
-            // Destroy.
-            try {
-                Files.walk(pathLog)
-                    // So a directory path itself is after its entries.
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            }
-            catch (IOException e) { throw IOX.exception(e); }
-            File d = pathLog.toFile();
-            FileOps.clearAll(d);
-            d.delete();
-        }
-
+        IOX.deleteAll(pathLog);
     }
 
 }

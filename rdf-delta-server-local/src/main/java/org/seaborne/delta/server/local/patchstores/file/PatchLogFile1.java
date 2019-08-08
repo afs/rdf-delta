@@ -40,9 +40,10 @@ import org.seaborne.delta.server.local.DataSource ;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchValidation;
-import org.seaborne.delta.server.local.filestore.FS;
-import org.seaborne.delta.server.local.filestore.FileEntry;
-import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
+import org.seaborne.delta.server.local.patchstores.filestore.FS;
+import org.seaborne.delta.server.local.patchstores.filestore.FileEntry;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
@@ -158,7 +159,7 @@ public class PatchLogFile1 implements PatchLog {
 
     @Override
     public void delete() {
-        CfgFile.retire(fileStore.getPath());
+        FileArea.retire(fileStore.getPath());
         release();
     }
 

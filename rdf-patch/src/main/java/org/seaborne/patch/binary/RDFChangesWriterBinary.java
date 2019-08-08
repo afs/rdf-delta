@@ -19,6 +19,7 @@ package org.seaborne.patch.binary;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.function.Consumer;
 
 import org.apache.jena.JenaRuntime;
 import org.apache.jena.atlas.io.IO;
@@ -35,7 +36,7 @@ import org.seaborne.patch.binary.thrift.*;
 import org.seaborne.patch.changes.RDFChangesWriter;
 
 /**
- * Write RDF PAtch in binary (thrift encoded).
+ * Write RDF Patch in binary (thrift encoded).
  * <p>
  * This class is not thread safe.
  *
@@ -44,13 +45,34 @@ import org.seaborne.patch.changes.RDFChangesWriter;
 public class RDFChangesWriterBinary implements RDFChanges {
     public static void write(RDFPatch patch, String filename) {
         try ( OutputStream out = IO.openOutputFile(filename) ) {
-            TProtocol protocol = TRDF.protocol(out);
-            RDFChangesWriterBinary writer = new RDFChangesWriterBinary(protocol);
-            writer.start();
-            patch.apply(writer);
-            writer.finish();
+            write(patch, out);
         } catch (IOException ex) { IO.exception(ex); }
     }
+
+    /** Write a patch in binary. */
+    public static void write(RDFPatch patch, OutputStream out) {
+        writeBinary(out, c -> patch.apply(c) );
+    }
+
+    /** {@link RDFChanges} that writes in binary. */
+    public static void writeBinary(OutputStream out, Consumer<RDFChanges> action) {
+        TProtocol protocol = TRDF.protocol(out);
+        RDFChangesWriterBinary writer = new RDFChangesWriterBinary(protocol);
+        writer.start();
+        action.accept(writer);
+        writer.finish();
+    }
+
+    /**
+     * Return an {@link RDFChanges} that writes in binary. Must call
+     * {@link RDFChanges#start()} and {@link RDFChanges#finish()}.
+     */
+    private static RDFChanges writerBinary(OutputStream out) {
+        TProtocol protocol = TRDF.protocol(out);
+        RDFChangesWriterBinary writer = new RDFChangesWriterBinary(protocol);
+        return writer;
+    }
+
 
     // Workspace - reused objects
     private final RDF_Term tv = new RDF_Term();

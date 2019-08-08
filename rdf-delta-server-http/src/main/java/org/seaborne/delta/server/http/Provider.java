@@ -18,12 +18,14 @@
 package org.seaborne.delta.server.http;
 
 public enum Provider {
-    UNSET, MEM, FILE, ZKS3, ZKZK;
+    UNSET, MEM, FILE, ROCKS, ZKS3, ZKZK;
 
     public static Provider create(String str) {
         if ( UNSET.name().equalsIgnoreCase(str) )   return UNSET;
         if ( MEM.name().equalsIgnoreCase(str) )     return MEM;
         if ( FILE.name().equalsIgnoreCase(str) )    return FILE;
+        if ( ROCKS.name().equalsIgnoreCase(str) )   return ROCKS;
+        if ( "rdb".equalsIgnoreCase(str) )          return ROCKS;
         if ( ZKZK.name().equalsIgnoreCase(str) )    return ZKZK;
         if ( ZKS3.name().equalsIgnoreCase(str) )    return ZKS3;
         return null;

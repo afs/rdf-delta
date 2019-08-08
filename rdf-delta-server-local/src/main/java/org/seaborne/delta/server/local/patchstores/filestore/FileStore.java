@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.filestore;
+package org.seaborne.delta.server.local.patchstores.filestore;
 
 import java.io.IOException ;
 import java.io.InputStream ;
@@ -63,6 +63,8 @@ public class FileStore {
 
     // Key'ed by directory and log name.
     // One FileStore per location on disk.
+    // Only needed for the original file-based PatchStoreFile1.
+    // PatchStoreFile caches LogIndexFile.
     private static Map<Path, FileStore> areas = new ConcurrentHashMap<>();
 
     private static final String tmpBasename = "tmp";

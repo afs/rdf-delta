@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.file3;
+package org.seaborne.delta.server.local.patchstores.rdb;
 
 import static org.apache.jena.atlas.lib.StrUtils.asUTF8bytes;
 

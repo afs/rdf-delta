@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file3;
+package org.seaborne.delta.server.local.patchstores.rdb;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -64,9 +64,8 @@ public class PatchStorageRocks implements PatchStorage {
 
     @Override
     public void store(Id id, RDFPatch value) {
-        /// XXX Binary
         ByteArrayOutputStream out = new ByteArrayOutputStream(1024*1024);
-        RDFPatchOps.write(out, value);
+        RDFPatchOps.writeBinary(out, value);
         byte[] key = id.asBytes();
         byte[] data = out.toByteArray();
         rdb.update(batch-> {
@@ -85,7 +84,7 @@ public class PatchStorageRocks implements PatchStorage {
         if ( value == null )
             return null;
         InputStream in = new ByteArrayInputStream(value);
-        RDFPatch patch = RDFPatchOps.read(in);
+        RDFPatch patch = RDFPatchOps.readBinary(in);
         return patch;
     }
 

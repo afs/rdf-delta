@@ -28,6 +28,7 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,14 +58,14 @@ public class PatchStoreFile1 extends PatchStore {
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        return CfgFile.scanForLogs(serverRoot);
+        return FileArea.scanForLogs(serverRoot);
     }
 
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
         Path patchLogArea = serverRoot.resolve(dsd.getName());
         if ( ! Files.exists(patchLogArea) )
-            CfgFile.setupDataSourceByFile(serverRoot, this, dsd);
+            FileArea.setupDataSourceByFile(serverRoot, this, dsd);
         PatchLog pLog = PatchLogFile1.attach(dsd, this, patchLogArea);
         return pLog;
     }

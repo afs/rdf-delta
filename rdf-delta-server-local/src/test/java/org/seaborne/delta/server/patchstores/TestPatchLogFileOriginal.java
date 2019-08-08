@@ -23,8 +23,8 @@ import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFileOriginal;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 
 public class TestPatchLogFileOriginal extends AbstractTestPatchLog {
 

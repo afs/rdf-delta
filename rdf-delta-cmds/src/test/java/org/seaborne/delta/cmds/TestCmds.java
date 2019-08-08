@@ -24,30 +24,30 @@ import static org.seaborne.delta.cmds.CmdTestLib.cmdq;
 
 import java.util.List;
 
+import org.apache.jena.atlas.web.WebLib;
 import org.junit.Before;
 import org.junit.Test;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLog;
 
 /** Set up a server and perform tests of commands on it. */
 
 public class TestCmds {
-    
+
     private String serverURL;
     private DeltaLink dLink;
 
     public TestCmds() { }
-    
+
     @Before public void before() {
-        int port = LibX.choosePort(); 
+        int port = WebLib.choosePort();
         serverURL = CmdTestLib.server("--mem");
         dLink = DeltaLinkHTTP.connect(serverURL);
     }
-    
+
     @Test public void cmd_mk() {
         String LOG_NAME = "ABC_1";
         cmdq("mk", "--server="+serverURL, LOG_NAME);
@@ -56,12 +56,12 @@ public class TestCmds {
         assertEquals(LOG_NAME, dsd.getName());
         List<DataSourceDescription> list = dLink.listDescriptions();
         assertEquals(1, list.size());
-        
+
         DeltaLog log = new DeltaLog(dLink, dsd.getId());
         PatchLogInfo info = log.info();
         assertEquals(0, log.getCurrentVersion().value());
     }
-        
+
     @Test public void cmd_mk_rm() {
         String LOG_NAME = "ABC_2";
         cmdq("mk", "--server="+serverURL, LOG_NAME);

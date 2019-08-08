@@ -24,8 +24,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.delta.server.local.patchstores.file3.PatchStorageRocks;
-import org.seaborne.delta.server.local.patchstores.file3.RocksDatabase;
+import org.seaborne.delta.server.local.patchstores.rdb.PatchStorageRocks;
+import org.seaborne.delta.server.local.patchstores.rdb.RocksDatabase;
 
 public class TestPatchStorageRocks extends AbstractTestPatchStorage {
     private static String DIR = "target/test/patch-store-file/db";
@@ -33,7 +33,6 @@ public class TestPatchStorageRocks extends AbstractTestPatchStorage {
     @BeforeClass public static void beforeClass() {
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
-
     }
 
     private RocksDatabase rdb = null;

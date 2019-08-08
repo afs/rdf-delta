@@ -22,7 +22,7 @@ import java.net.BindException;
 
 import delta.server.DeltaServerCmd;
 import org.apache.jena.atlas.io.NullOutputStream;
-import org.seaborne.delta.lib.LibX;
+import org.apache.jena.atlas.web.WebLib;
 
 public class CmdTestLib {
 
@@ -45,7 +45,7 @@ public class CmdTestLib {
     }
 
     public static String server(String... args) {
-        int port = LibX.choosePort();
+        int port = WebLib.choosePort();
         String[] serverArgs = {"--port="+port};
 
         String[] cmdLine = new String[args.length+serverArgs.length];

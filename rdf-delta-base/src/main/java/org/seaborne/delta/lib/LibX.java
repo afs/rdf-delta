@@ -18,13 +18,14 @@
 package org.seaborne.delta.lib;
 
 import java.io.ByteArrayInputStream ;
+import java.io.IOException;
 import java.io.InputStream ;
+import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays ;
 
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.tdb.base.file.Location;
 
 public class LibX {
@@ -102,13 +103,16 @@ public class LibX {
         return countNonNulls(objects) == 1;
     }
 
-    public static int choosePort() {
-        return WebLib.choosePort();
-    }
-
     public static RuntimeException wrap(Throwable th) { return new WrappedException(th); }
     private static class WrappedException extends RuntimeException {
         public WrappedException(Throwable th) { super(th); }
         @Override public synchronized Throwable fillInStackTrace() { return this; }
+    }
+
+    /** Test whether a port on the local machine is in user. */
+    public static boolean isPortInUser(int port) {
+        try ( ServerSocket socket = new ServerSocket(port) ) {
+            return false;
+        } catch (IOException ex) { return true; }
     }
 }

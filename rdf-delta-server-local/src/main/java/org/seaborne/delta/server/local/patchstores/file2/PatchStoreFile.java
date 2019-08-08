@@ -28,13 +28,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file.CfgFile;
+import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 
 public class PatchStoreFile extends PatchStore {
     /*   Server Root
@@ -78,7 +77,7 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        return CfgFile.scanForLogs(patchLogDirectory);
+        return FileArea.scanForLogs(patchLogDirectory);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class PatchStoreFile extends PatchStore {
         logIndexes.computeIfAbsent(id, x->{
             Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
             if ( ! Files.exists(fileStoreDir) )
-                CfgFile.setupDataSourceByFile(patchLogDirectory, this, dsd);
+                FileArea.setupDataSourceByFile(patchLogDirectory, this, dsd);
             FileStore fileStore = FileStore.attach(fileStoreDir, patchBasename);
             return LogIndexFile.create(fileStore);
         });
@@ -99,11 +98,10 @@ public class PatchStoreFile extends PatchStore {
 
     @Override
     protected void delete(PatchLog patchLog) {
-        PatchStoreFile patchStoreFile = (PatchStoreFile)patchLog.getPatchStore();
         Id id = patchLog.getDescription().getId();
         LogIndexFile logIndexFile = logIndexes.remove(id);
-        Path p = logIndexFile.getPath();
-        IOX.deleteAll(p);
+        Path path = logIndexFile.getPath();
+        FileArea.retire(path);
     }
 
 }

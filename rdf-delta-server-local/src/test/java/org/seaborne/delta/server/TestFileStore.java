@@ -34,8 +34,8 @@ import org.apache.jena.util.FileUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.server.local.filestore.FileEntry;
-import org.seaborne.delta.server.local.filestore.FileStore;
+import org.seaborne.delta.server.local.patchstores.filestore.FileEntry;
+import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 
 public class TestFileStore {
     static final Path STORE = Paths.get("target/test/store");

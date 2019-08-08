@@ -37,6 +37,7 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.cmds.DeltaLogging;
+import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.lib.SystemInfo;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.http.Provider;
@@ -56,8 +57,9 @@ public class DeltaServerCmd {
     //private static ArgDecl argVersion    = new ArgDecl(false, "version");
     private static ArgDecl argPort              = new ArgDecl(true, "port");
 
-    private static ArgDecl argBase              = new ArgDecl(true, "base");
+    private static ArgDecl argBase              = new ArgDecl(true,  "base");
     private static ArgDecl argMem               = new ArgDecl(false, "mem");
+    private static ArgDecl argStore             = new ArgDecl(true, "store", "rdb");
     private static ArgDecl argZk                = new ArgDecl(true, "zk");
     private static ArgDecl argZkPort            = new ArgDecl(true, "zkPort", "zkport");
     private static ArgDecl argZkData            = new ArgDecl(true, "zkData", "zkdata");
@@ -96,15 +98,21 @@ public class DeltaServerCmd {
             } catch(BindException ex) {
                 cmdLineError("Port in use: port=%d", deltaServer.getPort());
             }
-        } catch (DeltaConfigException ex) {
-            cmdLineError(ex.getMessage());
+        } catch (CmdException ex) {
+            System.err.println("Error: "+ex.getMessage());
+            System.exit(1);
         }
     }
 
     public static DeltaServer server(String...args) {
-        DeltaServerConfig deltaServerConfig = config(args);
-        DeltaServer deltaServer = ServerBuildLib.build(deltaServerConfig);
-        return deltaServer;
+        try {
+            DeltaServerConfig deltaServerConfig = config(args);
+            DeltaServer deltaServer = ServerBuildLib.build(deltaServerConfig);
+            return deltaServer;
+        }  catch (DeltaConfigException ex) {
+            cmdLineError(ex.getMessage());
+            return null;
+        }
     }
 
     public static DeltaServerConfig config(String...args) {
@@ -129,6 +137,7 @@ public class DeltaServerCmd {
         cla.add(argBase);
 
         cla.add(argMem);
+        cla.add(argStore);
 
         cla.add(argZk);
         cla.add(argZkConf);
@@ -152,6 +161,8 @@ public class DeltaServerCmd {
             String msg = StrUtils.strjoinNL
                 ("        --port              Port number for the patch server."
                 ,"        --jetty=FILE        File name of a jetty.xml configuration file."
+                ,"Local database patch server:"
+                ,"        --store=DIR         File system directory"
                 ,"File based patch server:"
                 ,"        --base=DIR          File system directory"
                 ,"Simple testing"
@@ -201,14 +212,19 @@ public class DeltaServerCmd {
             provider = Provider.MEM;
         }
 
+        if ( cla.contains(argStore) ) {
+            x++;
+            provider = Provider.ROCKS;
+        }
+
         if ( x < 1 ) {
             if ( args.length == 0 )
-                cmdLineError("No arguments : one of --mem , --zk or --base  is required");
+                cmdLineError("No arguments : one of --mem , --store , --base or --zk is required");
             else
-                cmdLineError("No provider : one of --mem , --zk or --base  is required");
+                cmdLineError("No provider : one of --mem , --store , --base or --zk is required");
         }
         if ( x > 1 )
-            cmdLineError("Exactly one of --mem , --zk or --base is required");
+            cmdLineError("Exactly one of --mem , --store , --base or --zk is required");
 
         DeltaServerConfig serverConfig = new DeltaServerConfig();
 
@@ -217,8 +233,13 @@ public class DeltaServerCmd {
         // Server.
         serverConfig.serverPort = null;
         serverConfig.jettyConf  = cla.getValue(argJetty);
-        if ( serverConfig.jettyConf == null )
-            serverConfig.serverPort = chooseServerPort(cla);
+        if ( serverConfig.jettyConf == null ) {
+            int port = chooseServerPort(cla);
+            // Check early, otherwise it happens after initializing patch stores and patch logs.
+            if ( LibX.isPortInUser(port) )
+                cmdLineError("Port %d is in use",port);
+            serverConfig.serverPort = port;
+        }
 
         // Providers
         switch(provider) {

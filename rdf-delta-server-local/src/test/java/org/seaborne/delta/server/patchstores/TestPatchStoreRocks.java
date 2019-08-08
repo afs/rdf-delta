@@ -20,7 +20,7 @@ package org.seaborne.delta.server.patchstores;
 import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.file3.PatchStoreRocks;
+import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
 
 public class TestPatchStoreRocks extends AbstractTestPatchStore {
     private static String DIR = "target/test/patch-store-file";
@@ -28,7 +28,6 @@ public class TestPatchStoreRocks extends AbstractTestPatchStore {
     @After public void afterPatchStoreRocks() {
         PatchStoreRocks.resetTracked();
     }
-
 
     @Override
     protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
