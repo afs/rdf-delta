@@ -19,16 +19,16 @@ package org.seaborne.delta.server.patchstores;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile1;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFileOriginal;
 
 public class TestPatchStoreFileOriginal extends AbstractTestPatchStore {
     private static String DIR = "target/test/patch-store-file";
 
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
+    protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         // Create directly - not the default provider for file-based storage.
         LocalServerConfig conf = LocalServers.configFile(DIR);
-        PatchStoreProvider psp = new PatchStoreProviderFile1();
+        PatchStoreProvider psp = new PatchStoreProviderFileOriginal();
         PatchStore patchStore = psp.create(conf);
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);

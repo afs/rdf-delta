@@ -47,14 +47,18 @@ public class LogIndexFileBuilder {
      */
     /*package*/ static LogIndexFile initFromFileStore(FileStore fileStore) {
         Map<Version, Id> versionToId = new ConcurrentHashMap<>();
+        Map<Id, LogEntry> logEntries = new ConcurrentHashMap<>();
 
         // Only used locally.
-        Map<Id, Version> idToVersion = new HashMap<>();
-
-        Map<Id, LogEntry> logEntries = new ConcurrentHashMap<>();
+        Map<Id, Version> trackIdToVersion = new HashMap<>();
 
         // Iterator is sorted.
         Iterator<Long> iter = fileStore.getIndexes().iterator();
+        // DEBUG
+//        List<Long> x = Iter.toList(iter);
+//        System.out.println(x);
+//        iter = x.iterator();
+        // DEBUG
 
         Version earliestVersion = null;     // Not found yet.
         Version currentPreviousVersion = null;
@@ -76,7 +80,7 @@ public class LogIndexFileBuilder {
                     continue;
                 }
                 else {
-                    if ( idToVersion.containsKey(id) ) {
+                    if ( trackIdToVersion.containsKey(id) ) {
                         FmtLog.error(LOG, "Duplicate: idx=%d: id=%s", idx, id);
                     }
                 }
@@ -84,7 +88,7 @@ public class LogIndexFileBuilder {
                 Id prev = Id.fromNode(patchHeader.getPrevious());
                 if ( prev != null ) {
                     // We process entries in order so we should have seen previous by now.
-                    if ( ! idToVersion.containsKey(prev) ) {
+                    if ( ! trackIdToVersion.containsKey(prev) ) {
                         FmtLog.error(LOG, "Can't find previous: idx=%d: id=%s, prev=%s", idx, id, prev);
                         continue;
                     }
@@ -95,7 +99,8 @@ public class LogIndexFileBuilder {
                     LogEntry patchInfo = new LogEntry(id, ver, prev);
                     logEntries.put(id, patchInfo);
                 }
-                idToVersion.put(id, ver);
+                trackIdToVersion.put(id, ver);
+                versionToId.put(ver, id);
                 if ( earliestVersion == null )
                     earliestVersion = ver;
                 currentPreviousVersion = currentVersion;

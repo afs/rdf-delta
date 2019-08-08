@@ -207,16 +207,6 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public void delete() {
-        // Don't actually delete the state.
-    }
-
-    @Override
-    public void release() {
-        // Release local resources.
-    }
-
-    @Override
     public boolean isEmpty() {
         //return version == Version.UNSET || version == Version.INIT;
         return current == null;

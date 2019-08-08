@@ -48,7 +48,7 @@ public class PatchStoreFile extends PatchStore {
     private static final String patchBasename = "patch";
 
     // Singletons.
-    // "static" so two PatchStoreFile2 go to the same log.
+    // "static" so two PatchStoreFile's go to the same log.
     private static Map<Id, LogIndexFile> logIndexes = new ConcurrentHashMap<>();
 
     private Path patchLogDirectory = null;
@@ -60,8 +60,11 @@ public class PatchStoreFile extends PatchStore {
     }
 
     public static void resetTracked() {
-        // [FILE2]
         logIndexes.clear();
+    }
+
+    /*package*/ LogIndexFile getLogIndex(Id id) {
+        return logIndexes.get(id);
     }
 
     @Override
@@ -92,10 +95,6 @@ public class PatchStoreFile extends PatchStore {
         // calls in PatchStoreProviderFile2.
         PatchLog newPatchLog = newPatchLogFromProvider(dsd);
         return newPatchLog;
-    }
-
-    public LogIndexFile getPatchLogFile(Id id) {
-        return logIndexes.get(id);
     }
 
     @Override

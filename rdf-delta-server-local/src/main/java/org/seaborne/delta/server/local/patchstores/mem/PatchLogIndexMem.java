@@ -24,6 +24,6 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
 public class PatchLogIndexMem extends PatchLogIndexBase {
 
     public PatchLogIndexMem() {
-        super(new LogIndexMem(), null, null);
+        super(new LogIndexMem());
     }
 }

@@ -54,14 +54,14 @@ public class PatchStoreProviderRocks implements PatchStoreProvider {
     @Override
     public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
-        RocksDatabase rdb = patchStoreRocks.getDatabase(dsd.getId());
-        return new PatchLogIndexRocks(rdb);
+        LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
+        return new PatchLogIndexRocks(rIdx);
     }
 
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
-        RocksDatabase rdb = patchStoreRocks.getDatabase(dsd.getId());
-        return new PatchStorageRocks(rdb);
+        LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
+        return new PatchStorageRocks(rIdx.database());
     }
 }

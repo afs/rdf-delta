@@ -27,10 +27,11 @@ import org.seaborne.delta.server.local.LogEntry;
 public interface LogIndex {
 
     /** Add a {@link LogEntry}.
-     *
-     * Calling code guarantees that the entry values are correct - new
-     * version, new id, refers to an existing previous.
-     *
+     * <p>
+     * The calling code guarantees that the entry values are correct - new version is the
+     * next version to use, id is new, and previous refers to an existing log entry.
+     * <p>
+     * It is called inside the {@link PatchLogIndex} lock.
      */
     public void save(Version version, Id id, Id previous);
 
@@ -42,7 +43,10 @@ public interface LogIndex {
      */
     public Stream<LogEntry> entries();
 
-    /** Map version to id */
+    /** Map version to id.
+     * <p>
+     * Return return null if the argument is null.
+     */
     public Id fetchVersionToId(Version version);
 
     /** Return the next version.
@@ -52,7 +56,10 @@ public interface LogIndex {
      */
     public Version genNextVersion();
 
-    /** Get the {@link LogEntry} for this id. */
+    /** Get the {@link LogEntry} for this id.
+     * <p>
+     * Return return null if the argument is null.
+     */
     public LogEntry fetchPatchInfo(Id id);
 
     /** Earliest version in the index.
@@ -64,4 +71,9 @@ public interface LogIndex {
 
     /** Current latest version in the index. */
     public Version current();
+
+//    /** Stop use of this {@code LogIndex}.
+//     * It will not be accessed again.
+//     */
+//    public void shutdown();
 }

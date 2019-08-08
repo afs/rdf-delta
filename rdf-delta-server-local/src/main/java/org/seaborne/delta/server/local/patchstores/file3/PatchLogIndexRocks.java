@@ -22,20 +22,7 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
 
 public class PatchLogIndexRocks extends PatchLogIndexBase {
 
-    private final RocksDatabase database;
-
-    public PatchLogIndexRocks(RocksDatabase database) {
-        super(new LogIndexRocks(database), null, null);
-        this.database = database;
-    }
-
-    @Override
-    public void release() {
-        database.close();
-    }
-
-    @Override
-    public void delete() {
-        System.err.println("PatchLogIndexRocks::delete");
+    public PatchLogIndexRocks(LogIndexRocks logIndex) {
+        super(logIndex);
     }
 }

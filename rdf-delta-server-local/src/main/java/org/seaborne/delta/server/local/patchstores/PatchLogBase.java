@@ -230,15 +230,8 @@ public class PatchLogBase implements PatchLog {
     }
 
     @Override
-    public void delete() {
-        logIndex.delete();
-        patchStorage.delete();
-    }
+    public void delete() { }
 
     @Override
-    public void release() {
-        logIndex.release();
-        patchStorage.release();
-    }
-
+    public void release() { }
 }

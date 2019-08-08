@@ -23,6 +23,6 @@ import org.seaborne.delta.server.local.patchstores.PatchLogIndexBase;
 public class PatchLogIndexFile extends PatchLogIndexBase {
 
     public PatchLogIndexFile(LogIndexFile logIndexFile) {
-        super(logIndexFile, null, null);
+        super(logIndexFile);
     }
 }

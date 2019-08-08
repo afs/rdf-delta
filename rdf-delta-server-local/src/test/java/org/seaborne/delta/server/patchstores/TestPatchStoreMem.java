@@ -23,7 +23,7 @@ import org.seaborne.delta.server.local.*;
 public class TestPatchStoreMem extends AbstractTestPatchStore {
     
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
+    protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         LocalServerConfig config = LocalServers.configMem();
         PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreMemProvider).create(config);
         patchStore.initialize(dataRegistry, config);

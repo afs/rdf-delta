@@ -24,7 +24,7 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.DataSourceRegistry;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.system.DeltaSystem;
@@ -56,24 +56,24 @@ public abstract class AbstractTestPatchStore {
      */
     private PatchStore provider() {
         if ( patchStore == null ) {
-            DataRegistry dataRegistry = new DataRegistry(this.getClass().getName()+":"+(++counter));
+            DataSourceRegistry dataRegistry = new DataSourceRegistry(this.getClass().getName()+":"+(++counter));
             patchStore = patchStore(dataRegistry);
         }
         return patchStore;
     }
 
-    protected abstract PatchStore patchStore(DataRegistry dataRegistry);
+    protected abstract PatchStore patchStore(DataSourceRegistry dataRegistry);
 
     @Test public void patchStore_0() {
         PatchStore ps = provider();
-        DataRegistry dataRegistry = ps.getDataRegistry();
+        DataSourceRegistry dataRegistry = ps.getDataRegistry();
         assertTrue(dataRegistry.isEmpty());
         assertTrue(ps.listDataSources().isEmpty());
     }
 
     @Test public void patchStore_1() {
         PatchStore ps = provider();
-        DataRegistry dataRegistry = ps.getDataRegistry();
+        DataSourceRegistry dataRegistry = ps.getDataRegistry();
 
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);
@@ -88,7 +88,7 @@ public abstract class AbstractTestPatchStore {
 
     @Test public void patchStore_2() {
         PatchStore ps = provider();
-        DataRegistry dataRegistry = ps.getDataRegistry();
+        DataSourceRegistry dataRegistry = ps.getDataRegistry();
 
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);

@@ -40,19 +40,15 @@ public class LogIndexFile implements LogIndex {
 
     // For reference.
     private final FileStore fileStore;
-    private final Path patchDir;
     private final Map<Version, Id> versionToId;
     private final Map<Id, LogEntry> logEntries;
 
     // Latest patch at the point of starting in this JVM.
     private Id currentId;
     private Version currentVersion;
-    private Id previousId;
 
     private Id earliestId;
     private Version earliestVersion;
-//    private final Id _initialCurrentId;
-//    private final Version _initalCurrentVersionId;
 
     public static LogIndexFile create(FileStore fileStore) {
         LogIndexFile logIndexFile = LogIndexFileBuilder.initFromFileStore(fileStore);
@@ -62,18 +58,13 @@ public class LogIndexFile implements LogIndex {
     /*package*/ LogIndexFile(FileStore fileStore, Map<Version, Id> versionToId,
                              Version latestVersion, Version latestPrevious, Version earliestVersion, Map<Id, LogEntry> logEntries) {
         this.fileStore = fileStore;
-        this.patchDir = fileStore.getPath();
         this.versionToId = versionToId;
         this.currentVersion = versionOrDft(latestVersion, Version.INIT);
-        this.currentId = versionToId(latestPrevious);
-        if ( currentId != null ) {
-            LogEntry e = logEntries.get(currentId);
-            this.previousId = e.getPrevious();
-        } else
-            this.previousId = null;
+        this.currentId = versionToId(currentVersion);
         this.earliestVersion = versionOrDft(earliestVersion, Version.INIT);
         this.earliestId = versionToId(earliestVersion);
         this.logEntries = logEntries;
+
         // FileStore is not used again except to be carried around for PatchStorageFile.
     }
 
@@ -86,10 +77,12 @@ public class LogIndexFile implements LogIndex {
     }
 
     public Path getPath() {
-        return patchDir;
+        return fileStore.getPath();
     }
 
     /*package*/ Version idToVersion(Id id) {
+        if ( id == null )
+            return null;
         LogEntry entry = logEntries.get(id);
         if ( entry == null )
             return null;
@@ -112,7 +105,6 @@ public class LogIndexFile implements LogIndex {
         // The update to the PatchStorageFile updates the on-disk recovery state.
         currentId = id;
         currentVersion = version;
-        previousId = previous;
         versionToId.put(version, id);
         LogEntry entry = new LogEntry(id, version, previous);
         logEntries.put(id, entry);
@@ -140,7 +132,7 @@ public class LogIndexFile implements LogIndex {
 
     @Override
     public LogEntry fetchPatchInfo(Id id) {
-        return null;
+        return logEntries.get(id);
     }
 
     @Override

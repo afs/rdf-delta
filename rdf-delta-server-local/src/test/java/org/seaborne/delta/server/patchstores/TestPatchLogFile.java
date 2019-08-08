@@ -48,7 +48,7 @@ public class TestPatchLogFile extends AbstractTestPatchLog {
         PatchStoreProviderFile psp = (PatchStoreProviderFile)PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider);
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
         patchStore = new PatchStoreProviderFile().create(config);
-        patchStore.initialize(new DataRegistry("X"), config);
+        patchStore.initialize(new DataSourceRegistry("X"), config);
         patchLog = patchStore.createLog(dsd);
         return patchLog;
     }

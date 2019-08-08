@@ -37,12 +37,10 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
         return create(patchLogDirectory);
     }
 
-    //private static Map<String, PatchStoreFile2>
-
     public PatchStoreFile create(String patchLogDirectory) {
         if ( patchLogDirectory == null )
             return null;
-        // [FILE2] Assumes a cache in PatchStoreFile2 of LogIndexFile objects.
+        // Assumes a cache in PatchStoreFile of LogIndexFile objects.
         return new PatchStoreFile(patchLogDirectory, this);
     }
 
@@ -62,14 +60,14 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
     @Override
     public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
-        LogIndexFile filePatchIdex = patchStoreFile.getPatchLogFile(dsd.getId());
-        return new PatchLogIndexFile(filePatchIdex);
+        LogIndexFile filePatchIdx = patchStoreFile.getLogIndex(dsd.getId());
+        return new PatchLogIndexFile(filePatchIdx);
     }
 
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
-        LogIndexFile logIndexFile = patchStoreFile.getPatchLogFile(dsd.getId());
+        LogIndexFile logIndexFile = patchStoreFile.getLogIndex(dsd.getId());
         return new PatchStorageFile(logIndexFile.fileStore(), logIndexFile::idToVersion);
     }
 }

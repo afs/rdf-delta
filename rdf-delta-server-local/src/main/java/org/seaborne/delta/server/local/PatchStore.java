@@ -35,11 +35,12 @@ import org.slf4j.LoggerFactory;
 /**
  * A {@code PatchStore} is manager for a number of {@link PatchLog}s. One {@link PatchLog}
  * is the log for one data source; a {@code PatchStore} is a collection of such logs and
- * it is responsible for initialization, restoring {@code PatchLog}s on external storage
- * (files etc.)
+ * it is responsible for initialization, creation and deletion of {@code PatchLog}.
  * <p>
  * There is normally one {@code PatchStore} for each patch storage technology but this is
  * not a requirement.
+ * <p>
+ * {@code PatchStore} must not overlap - each {@link PatchLog} is controlled by exactly one {@code PatchStore}.
  */
 public abstract class PatchStore {
     private static Logger LOG = LoggerFactory.getLogger(PatchStore.class);
@@ -69,7 +70,7 @@ public abstract class PatchStore {
     // -------- Instance
     private final PatchStoreProvider provider;
 
-    private DataRegistry dataRegistry = null;
+    private DataSourceRegistry dataRegistry = null;
 
     private LocalServerConfig configuration;
 
@@ -91,7 +92,7 @@ public abstract class PatchStore {
     /** Stop using this {@code PatchStore} - notification the {@link LocalServer} is stopping and subclasses can release resources. */
     protected abstract void closeStore();
 
-    public DataRegistry getDataRegistry() {
+    public DataSourceRegistry getDataRegistry() {
         checkInitialized();
         return dataRegistry;
     }
@@ -99,13 +100,13 @@ public abstract class PatchStore {
     /**
      * Initialize a {@code PatchStore}.
      * <p>
-     * The {@link DataRegistry} is used to route incoming requests,
+     * The {@link DataSourceRegistry} is used to route incoming requests,
      * by name the patch log name, to {@link PatchLog PatchLogs}; this argument may be null
      * for {@code PatchStores} not attached to a server (testing, development cases).
      * Only {@link DataSource DataSources} that are compatible with the {@code PatchStore} provider called
      * should be included in the returned list.
      */
-    public List<DataSourceDescription> initialize(DataRegistry dataRegistry, LocalServerConfig config) {
+    public List<DataSourceDescription> initialize(DataSourceRegistry dataRegistry, LocalServerConfig config) {
         this.dataRegistry = dataRegistry;
         this.configuration = config;
         List<DataSourceDescription> descr = initialize(config);

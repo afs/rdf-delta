@@ -23,7 +23,6 @@ import static java.lang.String.format;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
@@ -34,37 +33,34 @@ import org.seaborne.delta.server.local.LogEntry;
  */
 public abstract class PatchLogIndexBase implements PatchLogIndex {
 
+    // There is some duplication LogIndex keeping current and earliest.
+    // LogIndex is not assumed to be efficient,e.g. it may need to do I/O
+    // to find the required data,
+
     private final Object lock = new Object();
+
+    private final LogIndex logIndex;
     // Natural values for a new patch log.
+
     private Version      earliestVersion = Version.INIT;
     private Id           earliestId      = null;
     private Version      currentVersion  = Version.INIT;
     private Id           currentId       = null;
     private Id           previousId      = null;
-    private final LogIndex logIndex;
 
-    protected PatchLogIndexBase(LogIndex logIndex, LogEntry earliest,  LogEntry latest) {
+
+    protected PatchLogIndexBase(LogIndex logIndex) {
         this.logIndex = logIndex;
-        if ( latest!=null ) {
-            this.currentVersion = latest.getVersion();
-            this.currentId = latest.getPatchId();
-            this.previousId = latest.getPrevious();
-        } else {
-            this.currentVersion = logIndex.current();
-            this.currentId = logIndex.fetchVersionToId(currentVersion);
-            LogEntry e = (currentId==null) ? null : logIndex.fetchPatchInfo(currentId);
-            if ( e != null )
-                this.previousId = e.getPrevious();
-        }
-        if (earliest != null ) {
-            earliestVersion = earliest.getVersion();
-            earliestId = earliest.getPatchId();
-            if ( earliest.getPrevious() != null )
-                Log.warn(PatchLogIndexBase.class, "Dangling earliest prvious reference: "+earliest.getPrevious());
-        } else {
-            this.earliestVersion = logIndex.earliest();
-            this.earliestId = logIndex.fetchVersionToId(earliestVersion);
-        }
+
+        this.currentVersion = logIndex.current();
+        this.currentId = logIndex.fetchVersionToId(currentVersion);
+
+        LogEntry e = (currentId==null) ? null : logIndex.fetchPatchInfo(currentId);
+        if ( e != null )
+            this.previousId = e.getPrevious();
+
+        this.earliestVersion = logIndex.earliest();
+        this.earliestId = logIndex.fetchVersionToId(earliestVersion);
     }
 
     @Override
@@ -173,12 +169,6 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     final public Id getPreviousId() {
         return previousId;
     }
-
-    @Override
-    public void release() {}
-
-    @Override
-    public void delete() {}
 
     @Override
     public void syncVersionInfo() {}

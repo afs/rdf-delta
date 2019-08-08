@@ -24,7 +24,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.jena.atlas.lib.Pair;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.ZkT;
-import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.DataSourceRegistry;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
@@ -65,7 +65,7 @@ public class S3T {
 
         PatchStoreProvider provider = new PatchStoreProviderZkS3();
         PatchStore patchStore = provider.create(config);
-        patchStore.initialize(new DataRegistry("X"), config);
+        patchStore.initialize(new DataSourceRegistry("X"), config);
         return Pair.create(patchStore, api);
     }
 

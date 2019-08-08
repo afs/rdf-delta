@@ -52,7 +52,7 @@ public class PatchStoreRocks extends PatchStore {
 
     // Singletons.
     // "static" so two PatchStoreRocks go to the same databases.
-    private static Map<Id, RocksDatabase> databases = new ConcurrentHashMap<>();
+    private static Map<Id, LogIndexRocks> logIndexes = new ConcurrentHashMap<>();
 
     private Path patchLogDirectory = null;
 
@@ -63,8 +63,12 @@ public class PatchStoreRocks extends PatchStore {
     }
 
     public static void resetTracked() {
-        databases.values().forEach(RocksDatabase::close);
-        databases.clear();
+        logIndexes.values().forEach(idx->idx.shutdown());
+        logIndexes.clear();
+    }
+
+    /*package*/ LogIndexRocks getLogIndex(Id id) {
+        return logIndexes.get(id);
     }
 
     @Override
@@ -84,7 +88,7 @@ public class PatchStoreRocks extends PatchStore {
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
         Id id = dsd.getId();
-        databases.computeIfAbsent(id, x->{
+        logIndexes.computeIfAbsent(id, x->{
             Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
             if ( ! Files.exists(fileStoreDir) ) {
                 CfgFile.setupDataSourceByFile(patchLogDirectory, this, dsd);
@@ -93,7 +97,8 @@ public class PatchStoreRocks extends PatchStore {
             }
             Path dbPath = fileStoreDir.resolve(RocksConst.databaseFilename).toAbsolutePath();
             RocksDatabase db = new RocksDatabase(dbPath);
-            return db;
+            LogIndexRocks idx = new LogIndexRocks(db);
+            return idx;
         });
         // The database will be picked up by newPatchLogIndex, newPatchStorage
         // calls in PatchStoreProviderFileRocks
@@ -101,16 +106,12 @@ public class PatchStoreRocks extends PatchStore {
         return newPatchLog;
     }
 
-    public RocksDatabase getDatabase(Id id) {
-        return databases.get(id);
-    }
-
     @Override
     protected void delete(PatchLog patchLog) {
         PatchStoreRocks patchStoreFile = (PatchStoreRocks)patchLog.getPatchStore();
         Id id = patchLog.getDescription().getId();
-        RocksDatabase database = databases.remove(id);
-        Path p = database.getPath();
+        LogIndexRocks idx = logIndexes.remove(id);
+        Path p = idx.getPath();
         IOX.deleteAll(p);
     }
 

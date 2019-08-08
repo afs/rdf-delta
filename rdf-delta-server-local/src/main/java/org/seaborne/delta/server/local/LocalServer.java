@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * A local server.
  * <p>
  * This provides for operations on a {@link PatchStore} for several {@link DataSource}
- * areas using a {@link DataRegistry}.
+ * areas using a {@link DataSourceRegistry}.
  * {@code LocalServer} is responsible for server-wide configuration and
  * for the {@link DataSource} lifecycle of create and delete.
  *
@@ -72,7 +72,7 @@ public class LocalServer {
     // Track the LocalServers, - mainly so testing can clear them all.
     private static List<LocalServer> servers = new ArrayList<>();
 
-    private final DataRegistry dataRegistry;
+    private final DataSourceRegistry dataRegistry;
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
     // Cache of known disabled data sources. (Not set at startup - disabled
@@ -118,7 +118,7 @@ public class LocalServer {
     }
 
     private static LocalServer buildLocalServer(PatchStore ps, LocalServerConfig conf) {
-        DataRegistry dataRegistry = new DataRegistry("Server"+counter.incrementAndGet());
+        DataSourceRegistry dataRegistry = new DataSourceRegistry("Server"+counter.incrementAndGet());
         return newLocalServer(conf, ps, dataRegistry);
     }
 
@@ -140,14 +140,14 @@ public class LocalServer {
     }
 
     /** Make a LocalServer; this includes initializing the patch store */
-    private static LocalServer newLocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
+    private static LocalServer newLocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataRegistry) {
         initializePatchStore(patchStore, dataRegistry, config);
         LocalServer lServer = new LocalServer(config, patchStore, dataRegistry);
         servers.add(lServer);
         return lServer ;
     }
 
-    private static void initializePatchStore(PatchStore ps, DataRegistry dataRegistry, LocalServerConfig config) {
+    private static void initializePatchStore(PatchStore ps, DataSourceRegistry dataRegistry, LocalServerConfig config) {
         List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
         FmtLog.info(Delta.DELTA_LOG, "Provider: %s", ps.getProvider().getShortName());
         if ( Delta.DELTA_LOG.isDebugEnabled() )
@@ -158,7 +158,7 @@ public class LocalServer {
     private static AtomicInteger instancecounter = new AtomicInteger(0);
     private final String label;
 
-    private LocalServer(LocalServerConfig config, PatchStore patchStore, DataRegistry dataRegistry) {
+    private LocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataRegistry) {
         this.serverConfig = config;
         this.dataRegistry = dataRegistry;
         this.patchStore = patchStore;
@@ -203,12 +203,12 @@ public class LocalServer {
         getPatchStore().shutdown();
     }
 
-    public DataRegistry getDataRegistry() {
+    public DataSourceRegistry getDataRegistry() {
         // Not sync'ed.
         return dataRegistry;
     }
 
-    private DataRegistry syncedDataRegistry() {
+    private DataSourceRegistry syncedDataRegistry() {
         syncPatchStore();
         return dataRegistry;
     }
@@ -344,7 +344,7 @@ public class LocalServer {
         synchronized(serverLock) {
             // Server lock, not cluster lock.
 
-            DataRegistry reg = syncedDataRegistry();
+            DataSourceRegistry reg = syncedDataRegistry();
             if ( reg.containsName(dsd.getName()) ) {
                 FmtLog.info(LOG, "(%d) Existing: %s", C, dsd);
                 DataSource ds = reg.getByName(dsd.getName());

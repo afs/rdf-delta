@@ -29,7 +29,7 @@ public class TestPatchStoreZk extends AbstractTestPatchStore {
     @After public void afterZkTest() { ZkT.clearAll(); }
 
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
+    protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         TestingServer server = ZkT.localServer();
         String connectionString = server.getConnectString();
         LocalServerConfig config = LocalServers.configZk(connectionString);

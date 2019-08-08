@@ -30,7 +30,7 @@ public class TestPatchLogMem extends AbstractTestPatchLog {
         PatchStoreProvider psp = new PatchStoreProviderMem();
         LocalServerConfig config = LocalServerConfig.basic();
         PatchStore patchStore = psp.create(config);
-        patchStore.initialize(new DataRegistry("mem"), config);
+        patchStore.initialize(new DataSourceRegistry("mem"), config);
         return patchStore.createLog(dsd);
     }
 }

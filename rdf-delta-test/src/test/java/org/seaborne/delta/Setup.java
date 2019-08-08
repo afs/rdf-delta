@@ -31,7 +31,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
-import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.DataSourceRegistry;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -80,7 +80,7 @@ public class Setup {
         public static LinkSetup createZkMem() {
             return new LocalSetup(()->{
                 TestingServer server = ZkT.localServer();
-                DataRegistry dataRegistry = new DataRegistry("Zk-LocalServer");
+                DataSourceRegistry dataRegistry = new DataSourceRegistry("Zk-LocalServer");
                 String connectionString = server.getConnectString();
                 LocalServerConfig config = LocalServers.configZk(connectionString);
                 PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreZkProvider).create(config);

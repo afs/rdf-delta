@@ -22,7 +22,7 @@ import org.apache.jena.atlas.lib.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.server.ZkT;
-import org.seaborne.delta.server.local.DataRegistry;
+import org.seaborne.delta.server.local.DataSourceRegistry;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchStore;
 
@@ -44,7 +44,7 @@ public class TestPatchStoreZkS3 extends AbstractTestPatchStore {
     }
 
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
+    protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         return patchStore;
     }
 

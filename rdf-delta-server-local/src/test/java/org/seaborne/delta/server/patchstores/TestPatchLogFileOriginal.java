@@ -24,7 +24,7 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.filestore.FileStore;
-import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile1;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFileOriginal;
 
 public class TestPatchLogFileOriginal extends AbstractTestPatchLog {
 
@@ -47,8 +47,8 @@ public class TestPatchLogFileOriginal extends AbstractTestPatchLog {
     protected PatchLog patchLog() {
         // Build directly - not the defaut for file-based patch logs.
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
-        patchStore = new PatchStoreProviderFile1().create(config);
-        patchStore.initialize(new DataRegistry("X"), config);
+        patchStore = new PatchStoreProviderFileOriginal().create(config);
+        patchStore.initialize(new DataSourceRegistry("X"), config);
         patchLog = patchStore.createLog(dsd);
         return patchLog;
     }

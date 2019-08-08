@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local.patchstores.file3;
 
 import static java.util.Objects.requireNonNull;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -38,7 +39,7 @@ import org.seaborne.delta.server.local.JsonLogEntry;
 import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.patchstores.LogIndex;
 
-public class LogIndexRocks implements LogIndex/* XXX add close()*/ {
+public class LogIndexRocks implements LogIndex {
 
     //   RocksDB: index:
     //     (version, id)
@@ -63,6 +64,14 @@ public class LogIndexRocks implements LogIndex/* XXX add close()*/ {
 
         current = (ver > 0 ) ? Version.create(ver) : Version.INIT;
         earliest = verFirst > 0 ? Version.create(verFirst) : Version.INIT;
+    }
+
+    public Path getPath() {
+        return rdb.getPath();
+    }
+
+    public RocksDatabase database() {
+        return rdb;
     }
 
     @Override
@@ -139,7 +148,7 @@ public class LogIndexRocks implements LogIndex/* XXX add close()*/ {
         return current;
     }
 
-    public void close() {
+    public void shutdown() {
         rdb.close();
     }
 

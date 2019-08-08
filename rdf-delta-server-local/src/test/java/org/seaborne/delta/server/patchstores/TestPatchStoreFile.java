@@ -30,7 +30,7 @@ public class TestPatchStoreFile extends AbstractTestPatchStore {
     }
 
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
+    protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         LocalServerConfig conf = LocalServers.configFile(DIR);
         PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider).create(conf);
         FileOps.ensureDir(DIR);

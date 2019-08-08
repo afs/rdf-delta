@@ -31,7 +31,7 @@ public class TestPatchStoreRocks extends AbstractTestPatchStore {
 
 
     @Override
-    protected PatchStore patchStore(DataRegistry dataRegistry) {
+    protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
         LocalServerConfig conf = LocalServers.configFile(DIR);

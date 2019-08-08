@@ -24,9 +24,9 @@ import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
-public class PatchStoreProviderFile1 implements PatchStoreProvider {
+public class PatchStoreProviderFileOriginal implements PatchStoreProvider {
 
-    public PatchStoreProviderFile1() {}
+    public PatchStoreProviderFileOriginal() {}
 
     @Override
     public PatchStore create(LocalServerConfig config) {

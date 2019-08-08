@@ -25,27 +25,27 @@ import org.apache.jena.atlas.lib.Registry ;
 import org.seaborne.delta.Id;
 import org.slf4j.Logger ;
 
-/** The registry of all data under the control of server.
+/** The registry of all {@link DataSource} under the control of server.
  *  Each {@link LocalServer} has a single {@code DataRegistry}
  *  which provides the lookup map for the managed {@link DataSource}s.
  *  <p>
- *  The patches area is a {@link PatchLog}, 
- *  and the implementations are determined by {@link PatchStore}, technology for a group of implmentations.
+ *  The patches area is a {@link PatchLog},
+ *  and the implementations are determined by {@link PatchStore}, technology for a group of implementations.
  *  <p>
- *  The can be different implementations of {@link PatchLog} in one system, e.g. file backed and database backed.     
- */ 
-public class DataRegistry extends Registry<Id, DataSource> {
-    
+ *  The can be different implementations of {@link PatchLog} in one system, e.g. file backed and database backed.
+ */
+public class DataSourceRegistry extends Registry<Id, DataSource> {
+
     private static Logger LOG = DPS.LOG ;
-    private final String label ; 
-    // Index DataSources by URI, only if the URI is not null. 
-    private Map<String, DataSource> indexByURI = new ConcurrentHashMap<>();   
-    private Map<String, DataSource> indexByName = new ConcurrentHashMap<>();   
-    
-    public DataRegistry(String label) {
+    private final String label ;
+    // Index DataSources by URI, only if the URI is not null.
+    private Map<String, DataSource> indexByURI = new ConcurrentHashMap<>();
+    private Map<String, DataSource> indexByName = new ConcurrentHashMap<>();
+
+    public DataSourceRegistry(String label) {
         this.label = label ;
     }
-    
+
     public void add(DataSource ds) {
         put(ds.getId(), ds);
     }
@@ -59,17 +59,17 @@ public class DataRegistry extends Registry<Id, DataSource> {
         if ( ds.getName() != null )
             indexByName.put(ds.getName(), ds);
     }
-    
+
     @Override
     public void remove(Id key) {
         DataSource ds = get(key);
         if ( ds == null )
-            return; 
+            return;
         super.remove(key);
         indexByName.remove(ds.getName());
         indexByURI.remove(ds.getURI());
     }
-    
+
     @Override
     public DataSource get(Id key) {
         return super.get(key) ;
@@ -98,7 +98,7 @@ public class DataRegistry extends Registry<Id, DataSource> {
     public Stream<String> names() {
         return indexByName.keySet().stream();
     }
-    
+
     public Stream<DataSource> dataSources() {
         return indexByName.values().stream();
     }
@@ -108,6 +108,6 @@ public class DataRegistry extends Registry<Id, DataSource> {
         if ( label != null )
             return String.format("Registry: '%s': size=%d : %s", label, super.size(), super.keys()) ;
         else
-            return String.format("Registry: size=%d : %s", super.size(), super.keys()) ; 
+            return String.format("Registry: size=%d : %s", super.size(), super.keys()) ;
     }
 }

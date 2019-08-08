@@ -84,6 +84,7 @@ public class DPS {
 
         // Hard code the discovery for now.
         providers.add(new PatchStoreProviderFile());
+        //providers.add(new PatchStoreProviderFileOriginal());
         providers.add(new PatchStoreProviderRocks());
         providers.add(new PatchStoreProviderMem());
         providers.add(new PatchStoreProviderZk());

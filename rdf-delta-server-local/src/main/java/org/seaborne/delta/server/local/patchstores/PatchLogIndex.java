@@ -79,12 +79,6 @@ public interface PatchLogIndex {
     /** Map {@link Id} to information about the patch. */
     public LogEntry getPatchInfo(Id id);
 
-    /** Release the in-process state for this log index. */
-    public void release();
-
-    /** Delete (or make unavailable) the persistent state. */
-    public void delete();
-
     /** Make sure the version information is up to date. */
     public void syncVersionInfo();
 }

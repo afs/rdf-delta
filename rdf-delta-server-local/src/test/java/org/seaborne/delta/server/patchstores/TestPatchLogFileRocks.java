@@ -47,7 +47,7 @@ public class TestPatchLogFileRocks extends AbstractTestPatchLog {
         PatchStoreProviderRocks psp = (PatchStoreProviderRocks)PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreDatabaseProvider);
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
         patchStore = psp.create(config);
-        patchStore.initialize(new DataRegistry("X"), config);
+        patchStore.initialize(new DataSourceRegistry("X"), config);
         patchLog = patchStore.createLog(dsd);
         return patchLog;
     }
