@@ -154,11 +154,21 @@ public abstract class PatchStore {
      * @param dsd
      * @return
      */
-    protected PatchLog newPatchLogFromProvider(DataSourceDescription dsd) {
-        PatchLogIndex patchLogIndex = getProvider().newPatchLogIndex(dsd, this, configuration);
-        PatchStorage patchStorage = getProvider().newPatchStorage(dsd, this, configuration);
+    protected PatchLog newPatchLogFromIndexAndStorage(DataSourceDescription dsd) {
+        PatchLogIndex patchLogIndex = newPatchLogIndex(dsd, this, configuration);
+        PatchStorage patchStorage = newPatchStorage(dsd, this, configuration);
         return new PatchLogBase(dsd, patchLogIndex, patchStorage, this);
     }
+
+    /** Create a new {@link PatchLogIndex} for the given {@link DataSourceDescription}.
+     * Part of the {@link #newPatchLogFromIndexAndStorage} cycle.
+     */
+    protected abstract PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration2);
+
+    /** Create a new {@link PatchStorage} for the given {@link DataSourceDescription}.
+     * Part of the {@link #newPatchLogFromIndexAndStorage} cycle.
+     */
+    protected abstract PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration2);
 
     /** Return a new {@link PatchLog}, which must already exist and be registered. */
     public PatchLog connectLog(DataSourceDescription dsd) {

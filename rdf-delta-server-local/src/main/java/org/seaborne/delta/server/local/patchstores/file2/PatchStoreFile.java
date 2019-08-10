@@ -33,6 +33,8 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
 import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 
@@ -91,9 +93,24 @@ public class PatchStoreFile extends PatchStore {
         });
         // The LogIndexFile will be picked up by newPatchLogIndex, newPatchStorage
         // calls in PatchStoreProviderFile2.
-        PatchLog newPatchLog = newPatchLogFromProvider(dsd);
+        PatchLog newPatchLog = newPatchLogFromIndexAndStorage(dsd);
         return newPatchLog;
     }
+
+    @Override
+    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
+        LogIndexFile filePatchIdx = patchStoreFile.getLogIndex(dsd.getId());
+        return new PatchLogIndexFile(filePatchIdx);
+    }
+
+    @Override
+    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
+        LogIndexFile logIndexFile = patchStoreFile.getLogIndex(dsd.getId());
+        return new PatchStorageFile(logIndexFile.fileStore(), logIndexFile::idToVersion);
+    }
+
 
     @Override
     protected void delete(PatchLog patchLog) {

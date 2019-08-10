@@ -18,7 +18,6 @@
 package org.seaborne.delta.server.local.patchstores.rdb;
 
 import org.apache.jena.atlas.logging.Log;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
@@ -26,8 +25,6 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 public class PatchStoreProviderRocks implements PatchStoreProvider {
 
@@ -54,19 +51,5 @@ public class PatchStoreProviderRocks implements PatchStoreProvider {
     @Override
     public String getShortName() {
         return DPS.pspRocks;
-    }
-
-    @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
-        LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
-        return new PatchLogIndexRocks(rIdx);
-    }
-
-    @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
-        LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
-        return new PatchStorageRocks(rIdx.database());
     }
 }

@@ -17,13 +17,12 @@
 
 package org.seaborne.delta.server.local.patchstores.file;
 
-import org.apache.jena.atlas.lib.InternalErrorException;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
-import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.LocalServerConfig;
+import org.seaborne.delta.server.local.PatchStore;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 
 public class PatchStoreProviderFileOriginal implements PatchStoreProvider {
 
@@ -43,20 +42,5 @@ public class PatchStoreProviderFileOriginal implements PatchStoreProvider {
     @Override
     public String getShortName() {
         return DPS.pspFile;
-    }
-
-    // The File-backed PatchStore predates the index/storage split.
-    // PatchStoreFile implementation of "newPatchLog" does not call these.
-    // For the file area PatchStore the index is an in-memory structure built from the
-    // FileArea.
-
-    @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        throw new InternalErrorException("PatchStoreProviderFile.newPatchLogIndex");
-    }
-
-    @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        throw new InternalErrorException("PatchStoreProviderFile.newPatchStorage");
     }
 }

@@ -18,7 +18,6 @@
 package org.seaborne.delta.server.local.patchstores.file2;
 
 import org.apache.jena.atlas.logging.Log;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
@@ -26,8 +25,6 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 public class PatchStoreProviderFile implements PatchStoreProvider {
 
@@ -57,22 +54,5 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
     @Override
     public String getShortName() {
         return DPS.pspFile;
-    }
-
-    // For the file based PatchStore, the index is an in-memory structure, initialized from
-    // FileStore. The
-
-    @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
-        LogIndexFile filePatchIdx = patchStoreFile.getLogIndex(dsd.getId());
-        return new PatchLogIndexFile(filePatchIdx);
-    }
-
-    @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
-        LogIndexFile logIndexFile = patchStoreFile.getLogIndex(dsd.getId());
-        return new PatchStorageFile(logIndexFile.fileStore(), logIndexFile::idToVersion);
     }
 }

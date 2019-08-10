@@ -18,14 +18,11 @@
 
 package org.seaborne.delta.server.local.patchstores.any;
 
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 /**
  * A patch store provider that can rebuild from any local (file-based, or RockDB-based) installation.
@@ -45,9 +42,20 @@ public class PatchStoreProviderAny implements PatchStoreProvider {
         // SPECIAL
         if ( patchLogDirectory == null )
             return null;
+        // ** Does it existrs?
+        // ** What type is it?
+
+        // ** Default to rocks.
+
+//        Path path = Paths.get(patchLogDirectory);
+//        List<DataSourceDescription> patchLogs =  FileArea.scanForLogs(path);
+//        patchLogs.forEach(dsd->{});
         return null;
-        //return new PatchStoreRocks(patchLogDirectory, this);
+        //return new PatchStore???(patchLogDirectory);
     }
+
+    //In PatchStore
+    //PatchLog newPatchLog(DataSourceDescription dsd) { throw new NotImplemented(); }
 
     @Override
     public Provider getProvider() { return null; }
@@ -56,15 +64,4 @@ public class PatchStoreProviderAny implements PatchStoreProvider {
     public String getShortName() {
         return null;
     }
-
-    @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        return null;
-    }
-
-    @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        return null;
-    }
-
 }

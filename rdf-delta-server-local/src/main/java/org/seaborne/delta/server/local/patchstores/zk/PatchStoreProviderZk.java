@@ -17,19 +17,14 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.zk.Zk.zkPath;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.Log;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.zk.Zk;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
@@ -49,20 +44,6 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
             Log.error(this, "No connection string in configuration");
         CuratorFramework client = Zk.curator(connectionString);
         return client;
-    }
-
-    @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
-        String logPath = zkPath(ZkConst.pLogs, dsd.getName());
-        return new PatchLogIndexZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), dsd, logPath);
-    }
-
-    @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
-        String logPath = zkPath(ZkConst.pLogs, dsd.getName());
-        return new PatchStorageZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), logPath);
     }
 
     @Override

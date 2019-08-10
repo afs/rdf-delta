@@ -17,10 +17,7 @@
 
 package org.seaborne.delta.server.local;
 
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.Provider;
-import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 /** The provider (factory) of {@link PatchStore} implementations.
  * These are added to {@link PatchStoreMgr}.
@@ -39,14 +36,4 @@ public interface PatchStoreProvider {
 
     /** Short name used in server configuration files to set the default provider via "log_type" */
     public String getShortName();
-
-    // These provide the policies for the choice of PatchLogIndex and PatchStorage.
-
-    /** Create a new {@link PatchLogIndex} for the given {@link DataSourceDescription}. */
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration);
-
-    /** Create a new {@link PatchStorage} for the given {@link DataSourceDescription}. */
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration);
-
-    //default public void shutdownProvider() {}
 }

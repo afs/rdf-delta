@@ -32,6 +32,8 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
 
 public class PatchStoreRocks extends PatchStore {
@@ -100,9 +102,23 @@ public class PatchStoreRocks extends PatchStore {
             return idx;
         });
         // The database will be picked up by newPatchLogIndex, newPatchStorage
-        // calls in PatchStoreProviderFileRocks
-        PatchLog newPatchLog = newPatchLogFromProvider(dsd);
+        PatchLog newPatchLog = newPatchLogFromIndexAndStorage(dsd);
         return newPatchLog;
+    }
+
+
+    @Override
+    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
+        LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
+        return new PatchLogIndexRocks(rIdx);
+    }
+
+    @Override
+    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
+        LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
+        return new PatchStorageRocks(rIdx.database());
     }
 
     @Override

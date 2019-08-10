@@ -47,6 +47,8 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.zk.Zk;
 import org.seaborne.delta.zk.Zk.ZkRunnable;
 import org.seaborne.delta.zk.Zk.ZkSupplier;
@@ -362,10 +364,24 @@ public class PatchStoreZk extends PatchStore {
             }, null);
         }
         // Local storeLock still held.
-        // create local the local object.
-        PatchLog patchLog = super.newPatchLogFromProvider(dsd);
+        // create the local object.
+        PatchLog patchLog = newPatchLogFromIndexAndStorage(dsd);
         patchLogs.put(dsName, patchLog);
         return patchLog;
+    }
+
+    @Override
+    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
+        String logPath = zkPath(ZkConst.pLogs, dsd.getName());
+        return new PatchLogIndexZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), dsd, logPath);
+    }
+
+    @Override
+    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
+        String logPath = zkPath(ZkConst.pLogs, dsd.getName());
+        return new PatchStorageZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), logPath);
     }
 
     @Override

@@ -26,13 +26,11 @@ import com.amazonaws.util.StringUtils;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
@@ -92,12 +90,5 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
     @Override
     public String getShortName() {
         return DPS.pspZkS3;
-    }
-
-    @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
-        DetailsS3 s3 = ((PatchStoreZkS3)patchStore).access();
-        String logPrefix = s3.prefix+dsd.getName()+"/";
-        return new PatchStorageS3(s3.client, s3.bucketName, logPrefix);
     }
 }

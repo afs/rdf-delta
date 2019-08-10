@@ -25,6 +25,8 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
 /**
  * In-memory, ephemeral {@link PatchStore}.
@@ -56,6 +58,17 @@ public class PatchStoreMem extends PatchStore {
 
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
-        return newPatchLogFromProvider(dsd);
+        return newPatchLogFromIndexAndStorage(dsd);
     }
+
+    @Override
+    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        return new PatchLogIndexMem();
+    }
+
+    @Override
+    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        return new PatchStorageMem();
+    }
+
 }

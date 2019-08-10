@@ -22,12 +22,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.apache.jena.atlas.lib.InternalErrorException;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
+import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +72,20 @@ public class PatchStoreFile1 extends PatchStore {
         PatchLog pLog = PatchLogFile1.attach(dsd, this, patchLogArea);
         return pLog;
     }
+
+    // This File-backed PatchStore predates the index/storage split.
+    // PatchStoreFile implementation of "newPatchLog" does not call these.
+
+    @Override
+    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        throw new InternalErrorException("PatchStoreProviderFile.newPatchLogIndex");
+    }
+
+    @Override
+    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        throw new InternalErrorException("PatchStoreProviderFile.newPatchStorage");
+    }
+
 
     @Override
     protected void delete(PatchLog patchLog) {
