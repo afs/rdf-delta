@@ -48,10 +48,11 @@ fi
 # Prepend target/classes
 DELTA_CP="$D:$DELTA_CP"
 
-if [[ -e "log4j2.xml" ]]
-then
-    LOGGING="-Dlog4j.configurationFile=log4j2.xml -Dlog4j.configuration=delta"
-fi
+## dmcd has this built-in.
+## if [[ -e "log4j2.xml" ]]
+## then
+##     LOGGING="-Dlog4j.configurationFile=log4j2.xml -Dlog4j.configuration=delta"
+## fi
 
 function usage() {
     echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r, fuseki" 1>&2
@@ -70,14 +71,4 @@ then
     exit
 fi
 
-## echo "DELTA_CP=$DELTA_CP"
-## echo "JENA_CP=$JENA_CP"
-## echo java $JVM_ARGS $LOGGING -cp "$DELTA_CP" "$CLASS" "$@"
-
-# Add CMD to org.seaborne.delta.cmds.rdf2patch.CMD
-
-## exec org.seaborne.delta.cmds.dcmd
-#exec java $JVM_ARGS -cp "$DELTA_CP" $LOGGING "$CMD_CLS" "$@"
-
-## Becomes:
 exec java $JVM_ARGS -cp "$DELTA_CP"   $LOGGING org.seaborne.delta.cmds.dcmd "$@"

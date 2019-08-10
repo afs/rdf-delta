@@ -119,7 +119,7 @@ public class LogIndexRocks implements LogIndex {
     }
 
     @Override
-    public Id fetchVersionToId(Version version) {
+    public Id versionToId(Version version) {
         if ( ! version.isValid() )
             return null;
         return versionToId(rdb, version.value());
@@ -133,7 +133,7 @@ public class LogIndexRocks implements LogIndex {
     }
 
     @Override
-    public LogEntry fetchPatchInfo(Id id) {
+    public LogEntry getPatchInfo(Id id) {
         requireNonNull(id);
         return getLogEntry(rdb, id);
     }

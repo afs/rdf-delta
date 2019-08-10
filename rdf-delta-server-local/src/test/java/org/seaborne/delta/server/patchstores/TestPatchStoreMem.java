@@ -18,18 +18,19 @@
 package org.seaborne.delta.server.patchstores;
 
 import org.junit.Test ;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
 
 public class TestPatchStoreMem extends AbstractTestPatchStore {
-    
+
     @Override
     protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         LocalServerConfig config = LocalServers.configMem();
-        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreMemProvider).create(config);
+        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(Provider.MEM).create(config);
         patchStore.initialize(dataRegistry, config);
         return patchStore;
     }
-    
+
     // No persistent state - no recovery.
     @Override
     @Test public void recovery1() {}

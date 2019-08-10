@@ -19,6 +19,7 @@ package org.seaborne.delta.server.patchstores;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
 
@@ -32,7 +33,7 @@ public class TestPatchStoreFile extends AbstractTestPatchStore {
     @Override
     protected PatchStore patchStore(DataSourceRegistry dataRegistry) {
         LocalServerConfig conf = LocalServers.configFile(DIR);
-        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider).create(conf);
+        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(Provider.FILE).create(conf);
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
         patchStore.initialize(dataRegistry, conf);

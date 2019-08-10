@@ -25,11 +25,12 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
-import org.seaborne.delta.server.http.Provider;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
+import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
 import org.seaborne.delta.server.s3.S3;
@@ -46,7 +47,7 @@ public /*package*/ class ServerBuildLib {
      * Build a {@link DeltaServer}. This will create and run a Zookeeper server in the local that have been requested.
      */
     public static DeltaServer build(DeltaServerConfig deltaServerConfig) {
-        // Curator needs ZK running. PatchStore when created read the persistent state.
+        // Curator needs ZK running. PatchStore when created reads the persistent state.
         // This could be moved into DeltaServer.start.
         Supplier<LocalServerConfig> startup = ()->{
             // Further setup of the JVM. e.g. start in-process zookeeper.
@@ -68,6 +69,11 @@ public /*package*/ class ServerBuildLib {
                 localServerConfig = LocalServers.configFile(deltaServerConfig.fileBase);
                 providerLabel = "file["+deltaServerConfig.fileBase+"]";
                 break;
+            case ROCKS :
+                psp = installProvider(new PatchStoreProviderRocks());
+                localServerConfig = LocalServers.configRDB(deltaServerConfig.fileBase);
+                providerLabel = "rdb["+deltaServerConfig.fileBase+"]";
+                break;
             case MEM :
                 psp = installProvider(new PatchStoreProviderMem());
                 localServerConfig = LocalServers.configMem();
@@ -87,7 +93,7 @@ public /*package*/ class ServerBuildLib {
             default :
                 throw new DeltaConfigException("Unrecognized provider: "+deltaServerConfig.provider);
         }
-        LOG.debug("Provider: "+providerLabel);
+        LOG.debug("Setup for provider: "+providerLabel);
 
         localServerConfig.jettyConf = deltaServerConfig.jettyConf;
         return localServerConfig;
@@ -99,7 +105,7 @@ public /*package*/ class ServerBuildLib {
     }
 
     private static PatchStoreProvider installProvider(PatchStoreProvider psp) {
-        if ( ! PatchStoreMgr.isRegistered(psp.getProviderName()) )
+        if ( ! PatchStoreMgr.isRegistered(psp.getProvider()) )
             PatchStoreMgr.register(psp);
         return psp;
     }

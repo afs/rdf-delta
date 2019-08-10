@@ -22,25 +22,24 @@ import org.apache.jena.sys.JenaSystem;
 import org.seaborne.delta.server.system.DeltaSystem ;
 
 /** Hook into JenaSystem initialization.
- * @see InitDeltaServerLocal
+ * @see InitDeltaServerLocalFirst
  */
 public class InitJenaDeltaServerLocal implements JenaSubsystemLifecycle {
     // Not used - kept for the information.
-    // InitDelatServerLocal is called from the Delta server initialization sequence.
+    // InitDeltaServerLocal is called from the Delta server initialization sequence.
     @Override
     public void start() {
         boolean original = DeltaSystem.DEBUG_INIT;
         DeltaSystem.DEBUG_INIT = DeltaSystem.DEBUG_INIT | JenaSystem.DEBUG_INIT;
         JenaSystem.logLifecycle("InitJenaDeltaServerLocal - start");
-        // Delta's (newer) version of the same initialization system using different names. 
-        //DeltaSystem.init();
+        // Delta's (newer) version of the same initialization system using different names.
         JenaSystem.logLifecycle("InitJenaDeltaServerLocal - finish");
         DeltaSystem.DEBUG_INIT = original;
     }
-    
+
     @Override
     public void stop() {}
 
     @Override
-    public int level() { return 100; }
+    public int level() { return 900; }
 }

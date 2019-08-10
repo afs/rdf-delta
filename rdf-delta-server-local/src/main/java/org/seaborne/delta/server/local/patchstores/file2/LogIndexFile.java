@@ -89,7 +89,8 @@ public class LogIndexFile implements LogIndex {
         return entry.getVersion();
     }
 
-    private Id versionToId(Version version) {
+    @Override
+    public Id versionToId(Version version) {
         if ( version == null )
             return null;
         if ( Version.UNSET.equals(version) )
@@ -121,17 +122,12 @@ public class LogIndexFile implements LogIndex {
     }
 
     @Override
-    public Id fetchVersionToId(Version version) {
-        return versionToId(version);
-    }
-
-    @Override
     public Version genNextVersion() {
         return currentVersion.inc();
     }
 
     @Override
-    public LogEntry fetchPatchInfo(Id id) {
+    public LogEntry getPatchInfo(Id id) {
         return logEntries.get(id);
     }
 

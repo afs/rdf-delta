@@ -25,7 +25,7 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.delta.server.http.Provider;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.ZkMode;
 
 /**

@@ -17,8 +17,8 @@
 
 package delta.server;
 
-import static org.seaborne.delta.server.http.Provider.FILE;
-import static org.seaborne.delta.server.http.Provider.UNSET;
+import static org.seaborne.delta.server.Provider.FILE;
+import static org.seaborne.delta.server.Provider.UNSET;
 
 import java.net.BindException;
 import java.nio.file.Files;
@@ -39,9 +39,10 @@ import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.cmds.DeltaLogging;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.lib.SystemInfo;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
-import org.seaborne.delta.server.http.Provider;
 import org.seaborne.delta.server.http.ZkMode;
+import org.seaborne.delta.server.s3.InitZkS3;
 import org.slf4j.Logger;
 
 /** Command line run the server. */
@@ -202,8 +203,10 @@ public class DeltaServerCmd {
         }
         if ( cla.contains(argZk) ) {
             x++;
-            if ( cla.contains(argS3Bucket) )
+            if ( cla.contains(argS3Bucket) ) {
+                InitZkS3.register();
                 provider = Provider.ZKS3;
+            }
             else
                 provider = Provider.ZKZK;
         }
@@ -245,6 +248,16 @@ public class DeltaServerCmd {
         switch(provider) {
             case FILE : {
                 String directory = cla.getValue(argBase);
+                Path base = Paths.get(directory).toAbsolutePath();
+                if ( ! Files.exists(base) )
+                    cmdLineError("No such directory: %s",base);
+                if ( ! Files.isDirectory(base) )
+                    cmdLineError("Exists, but is not a directory: %s",base);
+                serverConfig.fileBase = directory;
+                break;
+            }
+            case ROCKS : {
+                String directory = cla.getValue(argStore);
                 Path base = Paths.get(directory).toAbsolutePath();
                 if ( ! Files.exists(base) )
                     cmdLineError("No such directory: %s",base);

@@ -47,7 +47,7 @@ public interface LogIndex {
      * <p>
      * Return return null if the argument is null.
      */
-    public Id fetchVersionToId(Version version);
+    public Id versionToId(Version version);
 
     /** Return the next version.
      *
@@ -60,7 +60,7 @@ public interface LogIndex {
      * <p>
      * Return return null if the argument is null.
      */
-    public LogEntry fetchPatchInfo(Id id);
+    public LogEntry getPatchInfo(Id id);
 
     /** Earliest version in the index.
      *
@@ -71,9 +71,4 @@ public interface LogIndex {
 
     /** Current latest version in the index. */
     public Version current();
-
-//    /** Stop use of this {@code LogIndex}.
-//     * It will not be accessed again.
-//     */
-//    public void shutdown();
 }

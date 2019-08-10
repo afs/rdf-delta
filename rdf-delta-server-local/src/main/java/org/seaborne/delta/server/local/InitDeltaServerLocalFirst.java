@@ -15,19 +15,24 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.http;
+package org.seaborne.delta.server.local;
 
-public enum Provider {
-    UNSET, MEM, FILE, ROCKS, ZKS3, ZKZK;
+import org.seaborne.delta.server.system.DeltaSubsystemLifecycle ;
+import org.seaborne.delta.server.system.DeltaSystem ;
 
-    public static Provider create(String str) {
-        if ( UNSET.name().equalsIgnoreCase(str) )   return UNSET;
-        if ( MEM.name().equalsIgnoreCase(str) )     return MEM;
-        if ( FILE.name().equalsIgnoreCase(str) )    return FILE;
-        if ( ROCKS.name().equalsIgnoreCase(str) )   return ROCKS;
-        if ( "rdb".equalsIgnoreCase(str) )          return ROCKS;
-        if ( ZKZK.name().equalsIgnoreCase(str) )    return ZKZK;
-        if ( ZKS3.name().equalsIgnoreCase(str) )    return ZKS3;
-        return null;
+public class InitDeltaServerLocalFirst implements DeltaSubsystemLifecycle {
+
+    @Override
+    public void start() {
+        DeltaSystem.logLifecycle("InitDeltaServerLocalFirst - start");
+        DPS.initFirst();
+        DeltaSystem.logLifecycle("InitDeltaServerLocalFirst - finish");
     }
+
+    @Override
+    public void stop() {}
+
+    // Make this the first service init so last inits can have a setup system.
+    @Override
+    public int level() { return 1 ; }
 }

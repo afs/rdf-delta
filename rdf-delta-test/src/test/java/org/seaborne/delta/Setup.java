@@ -28,6 +28,7 @@ import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.*;
@@ -76,7 +77,7 @@ public class Setup {
                 DataSourceRegistry dataRegistry = new DataSourceRegistry("Zk-LocalServer");
                 String connectionString = server.getConnectString();
                 LocalServerConfig config = LocalServers.configZk(connectionString);
-                PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreZkProvider).create(config);
+                PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(Provider.ZKZK).create(config);
                 patchStore.initialize(dataRegistry, config);
                 LocalServer localServer = LocalServer.create(patchStore, config);
                 return localServer;

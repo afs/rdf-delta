@@ -20,19 +20,20 @@ package org.seaborne.delta.server.local;
 import org.seaborne.delta.server.system.DeltaSubsystemLifecycle ;
 import org.seaborne.delta.server.system.DeltaSystem ;
 
-public class InitDeltaServerLocal implements DeltaSubsystemLifecycle {
-    
+public class InitDeltaServerLocalLast implements DeltaSubsystemLifecycle {
+
     @Override
     public void start() {
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - start");
-        DPS.init();
-        DeltaSystem.logLifecycle("InitDeltaServerLocal - finish");
+        DeltaSystem.logLifecycle("InitDeltaServerLocalLast - start");
+        DPS.initLast();
+        DeltaSystem.logLifecycle("InitDeltaServerLocalLast - finish");
     }
-    
+
     @Override
     public void stop() {}
 
-    // Make this the last service init so DPS can do setup after all registrations. 
+    // Make this late (but before extras liek ZkS3) so DPS can do setup
+    // all normal registrations.
     @Override
     public int level() { return 9000 ; }
 }

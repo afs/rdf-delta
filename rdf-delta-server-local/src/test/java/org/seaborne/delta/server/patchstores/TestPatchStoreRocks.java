@@ -19,6 +19,7 @@ package org.seaborne.delta.server.patchstores;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
 
@@ -35,7 +36,7 @@ public class TestPatchStoreRocks extends AbstractTestPatchStore {
         FileOps.clearAll(DIR);
         LocalServerConfig conf = LocalServers.configFile(DIR);
         PatchStoreRocks patchStore = (PatchStoreRocks)PatchStoreMgr
-                                            .getPatchStoreProvider(DPS.PatchStoreDatabaseProvider)
+                                            .getPatchStoreProvider(Provider.ROCKS)
                                             .create(conf);
         patchStore.initialize(dataRegistry, conf);
         return patchStore;

@@ -38,6 +38,7 @@ import com.amazonaws.services.s3.model.HeadBucketResult;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
 
@@ -58,7 +59,7 @@ public class S3 {
     public static LocalServerConfig configZkS3(LocalServerConfig c, S3Config s3Cfg) {
         Properties properties = cfg2properties(s3Cfg);
         return LocalServerConfig.create(c)
-            .setLogProvider(PatchStoreProviderZkS3.ProviderName)
+            .setLogProvider(Provider.ZKS3)
             .setProperties(properties)
             .build();
     }

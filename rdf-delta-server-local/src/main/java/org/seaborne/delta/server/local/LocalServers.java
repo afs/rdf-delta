@@ -20,67 +20,79 @@ package org.seaborne.delta.server.local;
 import java.nio.file.Path;
 
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.system.DeltaSystem;
 
 /** Ways to construct a {@link LocalServer} */
 public class LocalServers {
-    static { DeltaSystem.init(); } 
+    static { DeltaSystem.init(); }
 
     public static LocalServer create(LocalServerConfig configuration) {
         return LocalServer.create(configuration);
     }
 
-    /** {@link LocalServerConfig} for a {@link LocalServer} with a file-based patch store. */ 
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a file-based patch store. */
     public static LocalServerConfig configFile(String directory) {
         return LocalServerConfig.create()
             .setProperty(DeltaConst.pDeltaFile, directory)
-            .setLogProvider(DPS.PatchStoreFileProvider)
+            .setLogProvider(Provider.FILE)
             .build();
     }
 
-    /** {@link LocalServerConfig} for a {@link LocalServer} with a memory-based patch store. */ 
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a RockDB-based patch store. */
+    public static LocalServerConfig configRDB(String directory) {
+        return LocalServerConfig.create()
+            .setProperty(DeltaConst.pDeltaFile, directory)
+            .setLogProvider(Provider.ROCKS)
+            .build();
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a memory-based patch store. */
     public static LocalServerConfig configMem() {
         return LocalServerConfig.create()
-            .setLogProvider(DPS.PatchStoreMemProvider)
+            .setLogProvider(Provider.MEM)
             .build();
     }
 
-    /** {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based patch store. */ 
-    public static LocalServerConfig configZk(String connectionString) { 
+    /**
+     * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
+     * and zookeeper-based index patch store.
+     */
+    public static LocalServerConfig configZk(String connectionString) {
         LocalServerConfig.Builder builder = LocalServerConfig.create()
-            .setLogProvider(DPS.PatchStoreZkProvider);
+            .setLogProvider(Provider.ZKZK);
         if ( connectionString != null )
             builder.setProperty(DeltaConst.pDeltaZk, connectionString);
         return builder.build();
     }
 
-    /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */ 
+    /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */
     public static LocalServer createFile(String directory) {
         return create(configFile(directory));
     }
-    
-    /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */ 
+
+    /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */
     public static LocalServer createFile(Path dirPath) {
         return createFile(dirPath.toString());
     }
 
-    /** Create a {@link LocalServer} with an in-memory {@link PatchStore}. */ 
+    /** Create a {@link LocalServer} with an in-memory {@link PatchStore}. */
     public static LocalServer createMem() {
         return create(configMem());
     }
-    
-    /** Create a {@link LocalServer} with a Apache ZooKeeper based {@link PatchStore}. */ 
-    public static LocalServer createZk(String connectionString) { 
+
+    /** Create a {@link LocalServer} with a Apache ZooKeeper based {@link PatchStore}. */
+    public static LocalServer createZk(String connectionString) {
         return create(configZk(connectionString));
     }
-    
+
 //    /** Create a {@link LocalServer} using an existing {@link CuratorFramework}.
 //     * Special case; normally, each {@link PatchStoreZk} has it's own {@code CuratorFramework}.
-//     */ 
+//     */
 //    public static LocalServer createZk(CuratorFramework client) {
 //        LocalServerConfig config = configZk(null);
 //        PatchStore ps = new PatchStoreProviderZk(client).create(config);
-//        return LocalServer.create(ps, config); 
+//        return LocalServer.create(ps, config);
 //    }
 
     public static LocalServer createConf(String configFile) {

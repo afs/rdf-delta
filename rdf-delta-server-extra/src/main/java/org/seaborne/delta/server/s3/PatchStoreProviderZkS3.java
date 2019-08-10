@@ -28,6 +28,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -35,11 +36,6 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
-    public static String convertProviderName(String logProvider) {
-        return logProvider+"_S3";
-    }
-
-    public static final String ProviderName = convertProviderName(DPS.PatchStoreZkProvider);
 
     private static String DEFAULT_PREFIX = "patches/";
 
@@ -89,16 +85,13 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
         //return access.computeIfAbsent(bucketName, n->new DetailsS3(bucketName, prefix, client));
     }
 
-    /** Long name */
     @Override
-    public String getProviderName() {
-        return ProviderName;
-    }
+    public Provider getProvider() { return Provider.ZKS3; }
 
     /** Short name used in server configuration files to set the default provider via "log_type" */
     @Override
     public String getShortName() {
-        return super.getShortName() + "s3";
+        return DPS.pspZkS3;
     }
 
     @Override

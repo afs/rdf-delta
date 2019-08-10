@@ -19,25 +19,15 @@ package org.seaborne.delta.server.local;
 
 import static org.seaborne.delta.DeltaOps.verString;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors ;
 
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Delta;
-import org.seaborne.delta.DeltaBadRequestException;
-import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
+import org.seaborne.delta.*;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.system.DeltaSystem ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,10 +89,10 @@ public class LocalServer {
     }
 
     private static PatchStore createPatchStore(LocalServerConfig config) {
-        String providerName = config.getLogProvider();
-        if ( providerName == null )
+        Provider provider = config.getLogProvider();
+        if ( provider == null )
             throw new DeltaConfigException("LocalServer.selectPatchStore: Provider name is null");
-        PatchStoreProvider psp = PatchStoreMgr.getPatchStoreProvider(providerName);
+        PatchStoreProvider psp = PatchStoreMgr.getPatchStoreProvider(provider);
         if ( psp == null )
             throw new DeltaConfigException("No patch store provider: "+config.getLogProvider());
         PatchStore ps = psp.create(config);

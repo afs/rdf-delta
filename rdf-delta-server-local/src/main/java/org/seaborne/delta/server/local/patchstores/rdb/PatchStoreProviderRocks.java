@@ -17,8 +17,11 @@
 
 package org.seaborne.delta.server.local.patchstores.rdb;
 
+import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -32,6 +35,10 @@ public class PatchStoreProviderRocks implements PatchStoreProvider {
     public PatchStore create(LocalServerConfig config) {
         // The directory where all patch logs are kept.
         String patchLogDirectory = config.getProperty(DeltaConst.pDeltaFile);
+        if ( patchLogDirectory == null ) {
+            Log.error(this, "No file area setting in the configuration for RocksDB based patch storage setup");
+            throw new DeltaConfigException("No file area setting in the configuration for RocksDB based patch storage setup");
+        }
         return create(patchLogDirectory);
     }
 
@@ -42,9 +49,7 @@ public class PatchStoreProviderRocks implements PatchStoreProvider {
     }
 
     @Override
-    public String getProviderName() {
-        return DPS.PatchStoreDatabaseProvider;
-    }
+    public Provider getProvider() { return Provider.ROCKS; }
 
     @Override
     public String getShortName() {

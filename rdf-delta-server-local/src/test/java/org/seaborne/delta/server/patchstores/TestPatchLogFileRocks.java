@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 
@@ -44,7 +45,7 @@ public class TestPatchLogFileRocks extends AbstractTestPatchLog {
 
     @Override
     protected PatchLog patchLog() {
-        PatchStoreProviderRocks psp = (PatchStoreProviderRocks)PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreDatabaseProvider);
+        PatchStoreProviderRocks psp = (PatchStoreProviderRocks)PatchStoreMgr.getPatchStoreProvider(Provider.ROCKS);
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
         patchStore = psp.create(config);
         patchStore.initialize(new DataSourceRegistry("X"), config);

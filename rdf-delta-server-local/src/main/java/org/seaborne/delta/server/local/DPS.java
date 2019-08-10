@@ -36,28 +36,45 @@ public class DPS {
     public static Logger LOG = Delta.DELTA_LOG;
     public static Logger HTTP_LOG = Delta.DELTA_HTTP_LOG;
 
-    private static volatile boolean initialized = false;
+    private static volatile boolean initializedFirst = false;
+    private static volatile boolean initializedLast = false;
 
-    public static String PatchStoreFileProvider     = "PatchStore/File";
-    public static String PatchStoreDatabaseProvider = "PatchStore/DB";
-    public static String PatchStoreMemProvider      = "PatchStore/Mem";
-    public static String PatchStoreZkProvider       = "PatchStore/Zk";
+//    public static String PatchStoreFileProvider     = "PatchStore/File";
+//    public static String PatchStoreDatabaseProvider = "PatchStore/DB";
+//    public static String PatchStoreMemProvider      = "PatchStore/Mem";
+//    public static String PatchStoreZkProvider       = "PatchStore/Zk";
 
     // Short names.
-    public static String pspFile    = "file";
-    public static String pspRocks   = "db";
-    public static String pspMem     = "mem";
-    public static String pspZk      = "zk";
+    public static final String pspFile    = "file";
+    public static final String pspRocks   = "db";
+    public static final String pspMem     = "mem";
+    public static final String pspZk      = "zk";
+    public static final String pspZkS3      = "zks3";
 
-    public static void init() {
-        if ( initialized )
+    public static void initFirst() {
+        if ( initializedFirst )
             return;
         synchronized(DPS.class) {
-            if ( initialized )
+            if ( initializedFirst )
                 return;
-            initialized = true;
+            initializedFirst = true;
+            DeltaSystem.init();
+        }
+    }
+
+    public static void initLast() {
+        if ( initializedLast )
+            return;
+        synchronized(DPS.class) {
+            if ( initializedLast )
+                return;
+            initializedLast = true;
             initPatchStoreProviders();
         }
+    }
+
+    public static void init() {
+        DeltaSystem.init();
     }
 
     /**
@@ -67,22 +84,27 @@ public class DPS {
      */
     public static void resetSystem() {
         DeltaSystem.init();
-        DPS.init();
+        DPS.initFirst();
+
+        // Clear any state.
         LocalServer.releaseAll();
         FileStore.resetTracked();
         PatchStoreFile.resetTracked();
         PatchStoreRocks.resetTracked();
         // PatchStoreMgr.reset clears the patch store providers
         PatchStoreMgr.reset();
+
         initPatchStoreProviders();
+        // And ZkS3?
+
+        DPS.initLast();
     }
 
     // Things to do once.
     private static void initPatchStoreProviders() {
-        // Find PatchStoreProviders.
         List<PatchStoreProvider> providers = new ArrayList<>();
 
-        // Hard code the discovery for now.
+        // Hard coded the discovery.
         providers.add(new PatchStoreProviderFile());
         //providers.add(new PatchStoreProviderFileOriginal());
         providers.add(new PatchStoreProviderRocks());
@@ -90,11 +112,8 @@ public class DPS {
         providers.add(new PatchStoreProviderZk());
 
         providers.forEach(psp->{
-            LOG.debug("Provider: "+psp.getProviderName());
+            LOG.debug("Provider: "+psp.getProvider().toString().toLowerCase()+"{"+psp.getShortName()+"}");
             PatchStoreMgr.register(psp);
         });
-        // Still need to set the server-wide default PatchStore.
-//        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreZkProvider);
-//        PatchStoreMgr.setDftPatchStoreName(DPS.PatchStoreFileProvider);
     }
 }

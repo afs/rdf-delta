@@ -29,6 +29,11 @@ public class DeltaConst {
     public static final String  DataSourceRegexStr = "^[\\w_\\$][\\w-\\._\\$]*$";
     public static final Pattern DataSourceRegex    = Pattern.compile(DataSourceRegexStr);
 
+    // PatchStore implementations
+    // Name of the file basename for file stored patches.
+    public static final String FilePatchBasename = "patch";
+
+
     // Endpoints.
 //    public static final String EP_PatchLog     = "patch-log";
 //    public static final String EP_Fetch        = "fetch";

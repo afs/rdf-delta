@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
@@ -44,8 +45,6 @@ public class PatchStoreFile extends PatchStore {
      *          /data -- TDB database (optional)
      *          /disabled -- if this file is present, then the datasource is not accessible.
      */
-    private static final String patchBasename = "patch";
-
     // Singletons.
     // "static" so two PatchStoreFile's go to the same log.
     private static Map<Id, LogIndexFile> logIndexes = new ConcurrentHashMap<>();
@@ -87,7 +86,7 @@ public class PatchStoreFile extends PatchStore {
             Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
             if ( ! Files.exists(fileStoreDir) )
                 FileArea.setupDataSourceByFile(patchLogDirectory, this, dsd);
-            FileStore fileStore = FileStore.attach(fileStoreDir, patchBasename);
+            FileStore fileStore = FileStore.attach(fileStoreDir, DeltaConst.FilePatchBasename);
             return LogIndexFile.create(fileStore);
         });
         // The LogIndexFile will be picked up by newPatchLogIndex, newPatchStorage

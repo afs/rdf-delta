@@ -85,7 +85,7 @@ public class PatchLogFile1 implements PatchLog {
     private PatchLogFile1(DataSourceDescription dsd, PatchStore patchStore, Path location) {
         this.dsd = dsd;
         this.logId = dsd.getId();
-        this.fileStore = FileStore.attach(location, "patch");
+        this.fileStore = FileStore.attach(location, DeltaConst.FilePatchBasename);
         this.patchStore = patchStore;
         Version ver = FS.initFromFileStore(LOG, fileStore, idToVersion, headers);
         if ( ver != null ) {

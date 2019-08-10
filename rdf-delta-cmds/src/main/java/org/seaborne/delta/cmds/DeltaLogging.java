@@ -72,13 +72,13 @@ public class DeltaLogging {
         }
         // See https://logging.apache.org/log4j/2.0/manual/configuration.html
         // Modify so that just the presence of a file of the right name will configure logging.
-        // This helps for sealed jars (ie. "java -jar").
+        // This helps for sealed jars (i.e. "java -jar").
         // If a log4j2 file is present use that:
         String[] log4j2files = { "log4j2.properties", "log4j2.yaml", "log4j2.yml", "log4j2.json", "log4j2.jsn", "log4j2.xml" };
         for ( String fn : log4j2files ) {
             if ( FileOps.exists(fn) ) {
                 // Let Log4j2 initialize normally.
-                System.setProperty("log4j.configurationFile", "log4j2.xml");
+                System.setProperty("log4j.configurationFile", fn);
                 return;
             }
         }

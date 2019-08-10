@@ -18,6 +18,7 @@
 package org.seaborne.delta.server.local;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
@@ -34,8 +35,7 @@ public interface PatchStoreProvider {
      */
     public PatchStore create(LocalServerConfig config);
 
-    /** Long name */
-    public String getProviderName();
+    public Provider getProvider();
 
     /** Short name used in server configuration files to set the default provider via "log_type" */
     public String getShortName();

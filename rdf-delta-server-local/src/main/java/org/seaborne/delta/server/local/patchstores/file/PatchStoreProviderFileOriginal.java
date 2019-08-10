@@ -20,6 +20,7 @@ package org.seaborne.delta.server.local.patchstores.file;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
@@ -37,9 +38,7 @@ public class PatchStoreProviderFileOriginal implements PatchStoreProvider {
     }
 
     @Override
-    public String getProviderName() {
-        return DPS.PatchStoreFileProvider;
-    }
+    public Provider getProvider() { return null; }
 
     @Override
     public String getShortName() {

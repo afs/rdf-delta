@@ -53,14 +53,14 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
         this.logIndex = logIndex;
 
         this.currentVersion = logIndex.current();
-        this.currentId = logIndex.fetchVersionToId(currentVersion);
+        this.currentId = logIndex.versionToId(currentVersion);
 
-        LogEntry e = (currentId==null) ? null : logIndex.fetchPatchInfo(currentId);
+        LogEntry e = (currentId==null) ? null : logIndex.getPatchInfo(currentId);
         if ( e != null )
             this.previousId = e.getPrevious();
 
         this.earliestVersion = logIndex.earliest();
-        this.earliestId = logIndex.fetchVersionToId(earliestVersion);
+        this.earliestId = logIndex.versionToId(earliestVersion);
     }
 
     @Override
@@ -68,7 +68,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     public Id versionToId(Version version) {
         if ( Objects.equals(currentVersion, version) )
             return currentId;
-        return logIndex.fetchVersionToId(version);
+        return logIndex.versionToId(version);
     }
 
     //    @Override
@@ -80,7 +80,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     public Version idToVersion(Id id) {
         if ( Objects.equals(currentId, id) )
             return currentVersion;
-        return logIndex.fetchPatchInfo(id).getVersion();
+        return logIndex.getPatchInfo(id).getVersion();
     }
 
     @Override
@@ -90,7 +90,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
         return runWithLockRtn(()->{
                 if ( Objects.equals(currentId, id) )
                     return new LogEntry(currentId, currentVersion, previousId);
-                return logIndex.fetchPatchInfo(id);
+                return logIndex.getPatchInfo(id);
             });
     }
 

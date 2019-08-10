@@ -55,7 +55,7 @@ public class LogIndexMem implements LogIndex {
     }
 
     @Override
-    public Id fetchVersionToId(Version version) {
+    public Id versionToId(Version version) {
         Objects.requireNonNull(version);
 
         return versionToId.get(version);
@@ -67,7 +67,7 @@ public class LogIndexMem implements LogIndex {
     }
 
     @Override
-    public LogEntry fetchPatchInfo(Id id) {
+    public LogEntry getPatchInfo(Id id) {
         return entries.get(id);
     }
 

@@ -28,7 +28,7 @@ public class TestPatchLogMem extends AbstractTestPatchLog {
     protected PatchLog patchLog() {
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
         PatchStoreProvider psp = new PatchStoreProviderMem();
-        LocalServerConfig config = LocalServerConfig.basic();
+        LocalServerConfig config = LocalServers.configMem();
         PatchStore patchStore = psp.create(config);
         patchStore.initialize(new DataSourceRegistry("mem"), config);
         return patchStore.createLog(dsd);

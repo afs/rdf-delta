@@ -20,6 +20,7 @@ package org.seaborne.delta.server.patchstores;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.Before;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.local.*;
 
@@ -33,7 +34,7 @@ public class TestPatchStoreZk extends AbstractTestPatchStore {
         TestingServer server = ZkT.localServer();
         String connectionString = server.getConnectString();
         LocalServerConfig config = LocalServers.configZk(connectionString);
-        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreZkProvider).create(config);
+        PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(Provider.ZKZK).create(config);
         patchStore.initialize(dataRegistry, config);
         return patchStore;
     }

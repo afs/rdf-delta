@@ -45,7 +45,6 @@ public class TestPatchLogFile extends AbstractTestPatchLog {
 
     @Override
     protected PatchLog patchLog() {
-        PatchStoreProviderFile psp = (PatchStoreProviderFile)PatchStoreMgr.getPatchStoreProvider(DPS.PatchStoreFileProvider);
         DataSourceDescription dsd = new DataSourceDescription(Id.create(), "ABC", "http://test/ABC");
         patchStore = new PatchStoreProviderFile().create(config);
         patchStore.initialize(new DataSourceRegistry("X"), config);

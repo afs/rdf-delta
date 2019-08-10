@@ -22,6 +22,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.ext.com.google.common.collect.BiMap ;
 import org.apache.jena.ext.com.google.common.collect.HashBiMap ;
+import org.seaborne.delta.server.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,31 +30,31 @@ import org.slf4j.LoggerFactory;
  * Known {@link PatchStore}s. A {@link PatchStore} manages a number of {@link PatchLog}s.
  * <p>
  * There is a default {@link PatchStore} where new patch logs are created unless
- * otherwise specificed.
+ * otherwise specified.
  */
 public class PatchStoreMgr {
     protected static Logger LOG = LoggerFactory.getLogger(PatchStoreMgr.class);
 
-    private static Map<String, PatchStoreProvider> providers = new HashMap<>();
+    private static Map<Provider, PatchStoreProvider> providers = new HashMap<>();
 
     // ---- Short name / long name.
-    private static BiMap<String, String> shortName2LongName = HashBiMap.create();
+    private static BiMap<String, Provider> shortName2LongName = HashBiMap.create();
 
-    public static void registerShortName(String shortName, String providerName) {
-        shortName2LongName.put(shortName, providerName);
+    public static void registerShortName(String shortName, Provider provider) {
+        shortName2LongName.put(shortName, provider);
     }
 
-    /** Short name to full provider name.
+    /** Short name to {@link Provider}
      *  A return of null means "don't know".
      */
-    public static String shortName2LongName(String shortName) {
+    public static Provider shortName2LongName(String shortName) {
         if ( shortName == null )
             return null;
         return shortName2LongName.get(shortName);
     }
 
-    public static String longName2ShortName(String providerName) {
-        return shortName2LongName.inverse().get(providerName);
+    public static String longName2ShortName(Provider provider) {
+        return shortName2LongName.inverse().get(provider);
     }
     // ----
 
@@ -61,48 +62,33 @@ public class PatchStoreMgr {
         return new HashSet<>(providers.values());
     }
 
-    public static boolean isRegistered(String providerName) {
-        return providers.containsKey(providerName);
+    public static boolean isRegistered(Provider provider) {
+        return providers.containsKey(provider);
     }
 
     /**
      * Add a {@link PatchStore} using the given {@link PatchStoreProvider} for details and
      * to create the {@code PatchStore}
      */
-    public static void register(PatchStoreProvider provider) {
-        String name = provider.getProviderName();
-        registerShortName(provider.getShortName(), name);
-        providers.put(name, provider);
+    public static void register(PatchStoreProvider patchStoreProvider) {
+        Provider provider = patchStoreProvider.getProvider();
+        registerShortName(patchStoreProvider.getShortName(), provider);
+        providers.put(provider, patchStoreProvider);
     }
 
     /** Unregister by provider name */
-    public static void unregister(String providerName) {
-        FmtLog.info(LOG, "Unregister patch store: %s", providerName);
-        if ( ! providers.containsKey(providerName) )
-            Log.warn(PatchStore.class, "Not registered: "+providerName);
-        PatchStoreProvider psp = providers.remove(providerName);
+    public static void unregister(Provider provider) {
+        FmtLog.info(LOG, "Unregister patch store: %s", provider);
+        if ( ! providers.containsKey(provider) )
+            Log.warn(PatchStore.class, "Not registered: "+provider);
+        PatchStoreProvider psp = providers.remove(provider);
     }
 
     /**
-     * Get the {@code PatchStoreProvider} by name.
+     * Get the {@link PatchStoreProvider} by enum-name.
      */
-    public static PatchStoreProvider getPatchStoreProvider(String providerName) {
-        String name = key(providerName);
-        return providers.get(name);
-    }
-
-    /** Return the preferred name, which must be a registered provider. */
-    public static String canonical(String name) {
-        return key(name);
-    }
-
-    private static String key(String name) {
-        if ( isRegistered(name) )
-            return name;
-        name = shortName2LongName(name);
-        if ( isRegistered(name) )
-            return name;
-        return null;
+    public static PatchStoreProvider getPatchStoreProvider(Provider provider) {
+        return providers.get(provider);
     }
 
     public static void reset() {

@@ -23,6 +23,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -65,9 +66,7 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     }
 
     @Override
-    public String getProviderName() {
-        return DPS.PatchStoreZkProvider;
-    }
+    public Provider getProvider() { return Provider.ZKZK; }
 
     @Override
     public String getShortName() {

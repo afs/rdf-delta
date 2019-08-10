@@ -18,6 +18,7 @@
 package org.seaborne.delta.server.local.patchstores.mem;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -33,9 +34,7 @@ public class PatchStoreProviderMem implements PatchStoreProvider {
     }
 
     @Override
-    public String getProviderName() {
-        return DPS.PatchStoreMemProvider;
-    }
+    public Provider getProvider() { return Provider.MEM; }
 
     @Override
     public String getShortName() {

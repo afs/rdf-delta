@@ -1,2 +1,3 @@
 org.seaborne.delta.server.system.DeltaInitLevel1
-org.seaborne.delta.server.local.InitDeltaServerLocal
+org.seaborne.delta.server.local.InitDeltaServerLocalFirst
+org.seaborne.delta.server.local.InitDeltaServerLocalLast

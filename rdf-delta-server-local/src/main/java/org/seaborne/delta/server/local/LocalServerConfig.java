@@ -33,14 +33,15 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.server.Provider;
 import org.slf4j.Logger;
 
 public class LocalServerConfig {
 
-    public static LocalServerConfig basic() { return LocalServerConfig.create().build(); }
+    //public static LocalServerConfig basic() { return LocalServerConfig.create().build(); }
 
-    /** Name of the default PatchStore provider */
-    private final String logProvider;
+    /** Name of the default PatchStore provider for new patch logs.*/
+    private final Provider logProvider;
 
     /** File name of the configuration file (if any - may be null) */
     private final String configFile;
@@ -50,15 +51,15 @@ public class LocalServerConfig {
 
     public String jettyConf;
 
-    private LocalServerConfig(String logProvider, Properties properties, String configFile) {
-        //Objects.requireNonNull(logProvider);
+    private LocalServerConfig(Provider logProvider, Properties properties, String configFile) {
+        Objects.requireNonNull(logProvider);
         this.logProvider = logProvider;
         this.configFile = configFile;
         this.properties = properties;
     }
 
     /** Name of the default PatchStore provider */
-    public String getLogProvider() {
+    public Provider getLogProvider() {
         return logProvider ;
     }
 
@@ -99,6 +100,8 @@ public class LocalServerConfig {
 
     public static Builder create() { return new Builder(); }
 
+    //public static Builder create(Provider logProvider) { return new Builder().setLogProvider(logProvider); }
+
     public static Builder create(LocalServerConfig other) { return new Builder(other); }
 
     /** Configuration builder.
@@ -108,7 +111,7 @@ public class LocalServerConfig {
     static public class Builder {
         private static Logger LOG = Delta.DELTA_CONFIG_LOG;
         private String configFile = null;
-        private String logProvider = null;
+        private Provider logProvider = null;
         private final Properties properties = new Properties();
 
         public Builder() {}
@@ -119,7 +122,7 @@ public class LocalServerConfig {
             copyPropertiesInto(other.properties, this.properties);
         }
 
-        public Builder setLogProvider(String logProvider) {
+        public Builder setLogProvider(Provider logProvider) {
             Objects.requireNonNull(logProvider);
             this.logProvider = logProvider;
             return this;
@@ -157,23 +160,27 @@ public class LocalServerConfig {
             this.configFile = configFile;
 
             // -- log provider
-            logProvider = DPS.PatchStoreFileProvider;
+            logProvider = Provider.FILE;
             String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
             if ( logTypeName != null ) {
-                String providerName = PatchStoreMgr.canonical(logTypeName);
-                if ( providerName == null )
-                    providerName = DeltaConst.LOG_FILE;
-                logProvider = providerName;
+                // Move this to Provder.
+                switch(logTypeName.toLowerCase()) {
+                    case DPS.pspMem:   logProvider = Provider.MEM; break;
+                    case DPS.pspFile:  logProvider = Provider.FILE; break;
+                    case DPS.pspRocks: logProvider = Provider.ROCKS; break;
+                    case DPS.pspZk:    logProvider = Provider.ZKZK; break;
+                    // XXX
+                    //case DPS.pspZkS3:  logProvider = Provider.ZKS3; break;
+                    default:
+                        throw new DeltaConfigException("Unknown log type: "+logTypeName);
+                }
             }
             setProperty(DeltaConst.pDeltaFile, path.getParent().toString());
             return this;
         }
 
         public LocalServerConfig build() {
-            String provider = null;
-            if ( logProvider != null )
-                provider = PatchStoreMgr.canonical(logProvider);
-            return new LocalServerConfig(provider, properties, configFile);
+            return new LocalServerConfig(logProvider, properties, configFile);
         }
     }
 
