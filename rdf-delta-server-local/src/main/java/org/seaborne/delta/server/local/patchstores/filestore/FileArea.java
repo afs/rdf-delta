@@ -38,7 +38,6 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.FileNames;
@@ -86,7 +85,7 @@ public class FileArea {
      * Scan a directory for DataSource areas.
      * These must have a file called source.cfg.
      */
-    /*package*/ static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Path directory) {
+    private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Path directory) {
         try {
             List<Path> directoryEntries = ListUtils.toList( Files.list(directory).filter(p->Files.isDirectory(p)).sorted() );
 //            directoryEntries.stream()
@@ -130,20 +129,20 @@ public class FileArea {
         return true ;
     }
 
-    /** Test for a valid data source - does not check "disabled" */
-    private static boolean isFormattedDataSource(Path path) {
-        if ( ! FileArea.isMinimalDataSource(path) )
-            return false;
-        // Additional requirements
-        Path patchesArea = path.resolve(FileNames.LOG);
-        if ( ! Files.exists(patchesArea) )
-            return false;
-        // If we keep a state file....
-//      Path pathVersion = path.resolve(DPConst.STATE_FILE);
-//      if ( ! Files.exists(pathVersion) )
-//          return false;
-        return true ;
-    }
+//    /** Test for a valid data source - does not check "disabled" */
+//    private static boolean xisFormattedDataSource(Path path) {
+//        if ( ! FileArea.isMinimalDataSource(path) )
+//            return false;
+//        // Additional requirements
+//        Path patchesArea = path.resolve(FileNames.LOG);
+//        if ( ! Files.exists(patchesArea) )
+//            return false;
+//        // If we keep a state file....
+////      Path pathVersion = path.resolve(DPConst.STATE_FILE);
+////      if ( ! Files.exists(pathVersion) )
+////          return false;
+//        return true ;
+//    }
 
     /**
      * Set up a disk file area for the data source
@@ -178,9 +177,10 @@ public class FileArea {
 
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
-        if ( ! DPS.pspFile.equals(patchStore.getProvider().getShortName()) )
-            // Not file - explicitly set the provider.
-            obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
+//        if ( ! DPS.pspFile.equals(patchStore.getProvider().getShortName()) )
+//            // Not file - explicitly set the provider.
+        // Now always put it in.
+        obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
         LOG.info(JSON.toStringFlat(obj));
         try (OutputStream out = Files.newOutputStream(sourcePath.resolve(FileNames.DS_CONFIG))) {
             JSON.write(out, obj);

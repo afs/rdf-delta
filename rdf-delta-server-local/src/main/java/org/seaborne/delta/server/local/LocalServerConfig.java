@@ -142,6 +142,7 @@ public class LocalServerConfig {
         private static void copyPropertiesInto(Properties src, Properties dest) {
             src.forEach((k,v)->dest.setProperty((String)k, (String)v));
         }
+
         /** Parse a configuration file. */
         public Builder parse(String configFile) {
             Path path = Paths.get(configFile);
@@ -163,14 +164,13 @@ public class LocalServerConfig {
             logProvider = Provider.FILE;
             String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
             if ( logTypeName != null ) {
-                // Move this to Provder.
+                // Move this to Provider.
                 switch(logTypeName.toLowerCase()) {
-                    case DPS.pspMem:   logProvider = Provider.MEM; break;
-                    case DPS.pspFile:  logProvider = Provider.FILE; break;
+                    case DPS.pspMem:   logProvider = Provider.MEM;   break;
+                    case DPS.pspFile:  logProvider = Provider.FILE;  break;
                     case DPS.pspRocks: logProvider = Provider.ROCKS; break;
-                    case DPS.pspZk:    logProvider = Provider.ZKZK; break;
-                    // XXX
-                    //case DPS.pspZkS3:  logProvider = Provider.ZKS3; break;
+                    case DPS.pspZk:    logProvider = Provider.ZKZK;  break;
+                    case DPS.pspZkS3:  logProvider = Provider.ZKS3;  break;
                     default:
                         throw new DeltaConfigException("Unknown log type: "+logTypeName);
                 }

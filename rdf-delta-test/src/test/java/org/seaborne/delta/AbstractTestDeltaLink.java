@@ -54,7 +54,6 @@ public abstract class AbstractTestDeltaLink {
     private static Version version_4 = Version.create(4);
 
     @BeforeClass public static void setForTesting() {
-        LogCtl.setLog4j();
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
 

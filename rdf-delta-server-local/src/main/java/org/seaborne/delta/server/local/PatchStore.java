@@ -25,6 +25,7 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
@@ -45,10 +46,8 @@ import org.slf4j.LoggerFactory;
 public abstract class PatchStore {
     private static Logger LOG = LoggerFactory.getLogger(PatchStore.class);
 
-    // ---- PatchStore.Provider
-
-    // -------- Global
-    // DataRegistry? That is all of the LocalServer i.e. all patch stores.
+    // --- Store-wide.
+    // The logs managed by this PatchStore.
     private Map<Id, PatchLog> logs = new ConcurrentHashMap<>();
 
     /** Return the {@link PatchLog}, which must already exist. */
@@ -65,14 +64,16 @@ public abstract class PatchStore {
         logs.clear();
     }
 
-    // ---- /Global
-
-    // -------- Instance
     private final PatchStoreProvider provider;
 
-    private DataSourceRegistry dataRegistry = null;
+    // Global DataSourceRegistry from the LocalServer.
+    // Injected in initialize.
+    // Also used to test that initialization happened.
+    private DataSourceRegistry dataSourceRegistry = null;
 
     private LocalServerConfig configuration;
+
+    private boolean initialized = false;
 
     protected PatchStore(PatchStoreProvider provider) {
         this.provider = provider;
@@ -86,57 +87,87 @@ public abstract class PatchStore {
     /** For subclasses of {@link PatchStore} to override - some don't need to do anything, Zookeeper ones do. */
     protected void sync() {}
 
-    /** Start this {@code PatchStore} - notification the {@link LocalServer} starting. */
-    protected abstract void startStore();
-
-    /** Stop using this {@code PatchStore} - notification the {@link LocalServer} is stopping and subclasses can release resources. */
-    protected abstract void closeStore();
-
-    public DataSourceRegistry getDataRegistry() {
-        checkInitialized();
-        return dataRegistry;
+    public DataSourceRegistry getDataSourceRegistry() {
+        return dataSourceRegistry;
     }
 
     /**
      * Initialize a {@code PatchStore}.
      * <p>
-     * The {@link DataSourceRegistry} is used to route incoming requests,
-     * by name the patch log name, to {@link PatchLog PatchLogs}; this argument may be null
-     * for {@code PatchStores} not attached to a server (testing, development cases).
-     * Only {@link DataSource DataSources} that are compatible with the {@code PatchStore} provider called
-     * should be included in the returned list.
+     * The {@link DataSourceRegistry} is used to route incoming requests, by mapping the
+     * patch log name to {@link PatchLog PatchLogs}. Only {@link DataSource DataSources}
+     * that are compatible with the {@code PatchStore} provider called should be included
+     * in the returned list.
+     * <p>
+     * {@code initialize} is called exactly once.
      */
-    public List<DataSourceDescription> initialize(DataSourceRegistry dataRegistry, LocalServerConfig config) {
-        this.dataRegistry = dataRegistry;
+    public void initialize(DataSourceRegistry dataSourceRegistry, LocalServerConfig config) {
+        // Initialization of LocalServer and PatchStore can't proceed in a simple nested
+        // fashion. Significant work is needed for a PatchStore(rebuild from disk) so delaying
+        // until the server starts is better.
+        // (and I don't like constructors that do significant work as does Zk based start-up).
+        setDataSourceRegistry(dataSourceRegistry);
         this.configuration = config;
-        List<DataSourceDescription> descr = initialize(config);
-        descr.forEach(dsd->createPatchLog(dsd));
-        return descr;
+        initialize(config);
+        markInitialized();
     }
 
-    private void checkInitialized() {
-        if ( dataRegistry == null )
-            throw new InternalErrorException("PatchStore not initialized");
+    protected abstract void initialize(LocalServerConfig config);
+
+    /** List the persistently stored patch logs of this {@code PatchStore},
+     * by going to the actual storage.
+     * <p>
+     * Contrast this with {@link #listDataSources} which is expected to be fast and current.
+     */
+    protected abstract List<DataSourceDescription> initialDataSources();
+
+    protected void serverStarts() {}
+
+    /** Initialize a patch store and provide a list of existing logs. */
+    private void setDataSourceRegistry(DataSourceRegistry dataSourceRegistry) {
+        if ( this.dataSourceRegistry != null )
+            throw new DeltaConfigException("Attempt to set patch store DataSourceRegistry more than once");
+        this.dataSourceRegistry = dataSourceRegistry;
+    }
+
+    /** Create the initial patchlogs for this patchstore. */
+    protected void createPatchLogs(List<DataSourceDescription> descr) {
+        // createPatchLog also registers it.
+        descr.forEach(dsd->createPatchLog(dsd));
     }
 
     /**
-     * Initialize a patch store and provide a list of existing logs.
-    */
-    protected abstract List<DataSourceDescription> initialize(LocalServerConfig config);
+     * Mark this {@code PatchStore} as initialized. Normally, PatchStore implementation do
+     * not need to call this. It is only needed for special cases like the "any local"
+     * indirection than modifies the initialization sequence that may need to explicitly
+     * indicate that initialization has been done. Initialization can only be done once.
+     */
+    private void markInitialized() {
+        if ( initialized )
+            throw new InternalErrorException("PatchStore already initialized");
+        initialized = true;
+        if ( dataSourceRegistry == null )
+            throw new InternalErrorException("No DataSourceRegistry registry set during initialization phase");
+    }
+
+    private void checkInitialized() {
+        if ( ! initialized )
+            throw new InternalErrorException("PatchStore not initialized");
+    }
 
     final
     public void shutdown() {
-        closeStore();
+        shutdownSub();
+        // Reset state?
     }
+
+    protected abstract void shutdownSub();
 
     /** All the patch logs currently managed by this {@code PatchStore}. */
     public List<DataSourceDescription> listDataSources() {
         checkInitialized();
-        return ListUtils.toList(dataRegistry.dataSources().map(log->log.getDescription()));
+        return ListUtils.toList(dataSourceRegistry.dataSources().map(log->log.getDescription()));
     }
-
-    // XXX Implement getDataSource(String name) : use in PatchStoreZk.
-    //public DataSourceDescription getDataSource(String name) { return null; }
 
     /**
      * Return a new {@link PatchLog}. Checking that there isn't a patch log for this
@@ -170,7 +201,7 @@ public abstract class PatchStore {
      */
     protected abstract PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration2);
 
-    /** Return a new {@link PatchLog}, which must already exist and be registered. */
+    /** Return a {@link PatchLog}, which must already exist and be registered. */
     public PatchLog connectLog(DataSourceDescription dsd) {
         FmtLog.info(LOG, "Connect log: %s", dsd);
         checkInitialized();
@@ -198,8 +229,8 @@ public abstract class PatchStore {
                 return plog;
                 //throw new DeltaException("Can't create - PatchLog exists");
             }
-            if ( dataRegistry.containsName(dsd.getName()) ) {
-                DataSource ds = dataRegistry.getByName(dsd.getName());
+            if ( dataSourceRegistry.containsName(dsd.getName()) ) {
+                DataSource ds = dataSourceRegistry.getByName(dsd.getName());
                 FmtLog.info(LOG, "Create (name exists): "+dsd);
                 return ds.getPatchLog();
             }
@@ -223,17 +254,12 @@ public abstract class PatchStore {
         Id dsRef = dsd.getId();
         PatchLog patchLog = newPatchLog(dsd);
         logs.put(dsRef, patchLog);
-        if ( dataRegistry != null ) {
+        if ( dataSourceRegistry != null ) {
             DataSource dataSource = new DataSource(dsd, patchLog);
-            // XXX Isn't this done in LocalServer.createDataSource$ as well?
-            dataRegistry.add(dataSource);
+            dataSourceRegistry.add(dataSource);
         }
         return patchLog;
     }
-
-    // XXX Sort out/verify the responsibility and call order for crate/release, all paths.
-    // LocalServer/PatchStore on its own/Zk async update.
-    // Single place to release, including call from LocalServer.
 
     /**
      * Release ("delete") the {@link PatchLog}.
@@ -243,11 +269,11 @@ public abstract class PatchStore {
     public void release(PatchLog patchLog) {
         Id dsRef = patchLog.getLogId();
         // See also LocalServer.removeDataSource$
-        if ( ! dataRegistry.contains(dsRef) ) {
+        if ( ! dataSourceRegistry.contains(dsRef) ) {
             FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
             return;
         }
-        dataRegistry.remove(dsRef);
+        dataSourceRegistry.remove(dsRef);
         logs.remove(dsRef);
         delete(patchLog);
     }
@@ -258,7 +284,7 @@ public abstract class PatchStore {
      */
     final
     protected void releasePatchLog(Id dsRef) {
-        DataSource ds = dataRegistry.get(dsRef);
+        DataSource ds = dataSourceRegistry.get(dsRef);
         if ( ds == null )
             return ;
         release(ds.getPatchLog());
@@ -269,7 +295,4 @@ public abstract class PatchStore {
      * @param patchLog
      */
     protected abstract void delete(PatchLog patchLog);
-
-    /** Delete this {@code PatchStore}. */
-    protected abstract void deleteStore();
 }

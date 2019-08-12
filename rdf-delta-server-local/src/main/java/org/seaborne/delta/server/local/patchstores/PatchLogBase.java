@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
 public class PatchLogBase implements PatchLog {
     private final static Logger LOG = LoggerFactory.getLogger(PatchLogBase.class);
 
+    private Object lock = new Object();
+
     private final DataSourceDescription dsd;
     private final Id logId;
     private final PatchLogIndex logIndex;
@@ -105,7 +107,7 @@ public class PatchLogBase implements PatchLog {
     @Override
     public PatchLogInfo getInfo() {
         // Called when polling for changes during dataset sync.
-        synchronized(this) {
+        synchronized(lock) {
             logIndex.syncVersionInfo();
             return new PatchLogInfo(dsd, getEarliestVersion(), getLatestVersion(), getLatestId());
         }

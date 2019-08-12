@@ -219,8 +219,6 @@ public class Zk {
     }
 
 
-    // XXX Do we need these?
-
     @FunctionalInterface
     public interface ZkRunnable { public void run() throws Exception; }
 

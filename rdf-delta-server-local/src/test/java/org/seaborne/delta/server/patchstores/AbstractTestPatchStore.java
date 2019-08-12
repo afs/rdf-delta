@@ -66,14 +66,14 @@ public abstract class AbstractTestPatchStore {
 
     @Test public void patchStore_0() {
         PatchStore ps = provider();
-        DataSourceRegistry dataRegistry = ps.getDataRegistry();
+        DataSourceRegistry dataRegistry = ps.getDataSourceRegistry();
         assertTrue(dataRegistry.isEmpty());
         assertTrue(ps.listDataSources().isEmpty());
     }
 
     @Test public void patchStore_1() {
         PatchStore ps = provider();
-        DataSourceRegistry dataRegistry = ps.getDataRegistry();
+        DataSourceRegistry dataRegistry = ps.getDataSourceRegistry();
 
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);
@@ -88,7 +88,7 @@ public abstract class AbstractTestPatchStore {
 
     @Test public void patchStore_2() {
         PatchStore ps = provider();
-        DataSourceRegistry dataRegistry = ps.getDataRegistry();
+        DataSourceRegistry dataRegistry = ps.getDataSourceRegistry();
 
         DataSourceDescription dsdSetup = new DataSourceDescription(Id.create(), "ABC", "http://example/ABC");
         PatchLog patchLog = ps.createLog(dsdSetup);

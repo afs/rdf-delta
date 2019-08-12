@@ -28,6 +28,8 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
 
 public class PatchStoreProviderRocks implements PatchStoreProvider {
 
+    public PatchStoreProviderRocks() {}
+
     @Override
     public PatchStore create(LocalServerConfig config) {
         // The directory where all patch logs are kept.

@@ -43,17 +43,16 @@ public class PatchStoreFile extends PatchStore {
      *      delta.cfg
      *      /NAME ... per DataSource.
      *          /source.cfg
-     *          /Log -- patch on disk (optional)
      *          /data -- TDB database (optional)
      *          /disabled -- if this file is present, then the datasource is not accessible.
      */
-    // Singletons.
+    // Singleton.
     // "static" so two PatchStoreFile's go to the same log.
     private static Map<Id, LogIndexFile> logIndexes = new ConcurrentHashMap<>();
 
-    private Path patchLogDirectory = null;
+    private final Path patchLogDirectory;
 
-    /*package*/ PatchStoreFile(String patchLogDirectory, PatchStoreProvider provider) {
+    public PatchStoreFile(String patchLogDirectory, PatchStoreProvider provider) {
         super(provider);
         Objects.requireNonNull(patchLogDirectory);
         this.patchLogDirectory = Paths.get(patchLogDirectory);
@@ -68,16 +67,12 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    protected void startStore() {}
+    protected void initialize(LocalServerConfig config) {
+        return;
+    }
 
     @Override
-    protected void closeStore() {}
-
-    @Override
-    protected void deleteStore() {}
-
-    @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
+    protected List<DataSourceDescription> initialDataSources() {
         return FileArea.scanForLogs(patchLogDirectory);
     }
 
@@ -98,14 +93,14 @@ public class PatchStoreFile extends PatchStore {
     }
 
     @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+    protected PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
         LogIndexFile filePatchIdx = patchStoreFile.getLogIndex(dsd.getId());
         return new PatchLogIndexFile(filePatchIdx);
     }
 
     @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+    protected PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreFile patchStoreFile = (PatchStoreFile)patchStore;
         LogIndexFile logIndexFile = patchStoreFile.getLogIndex(dsd.getId());
         return new PatchStorageFile(logIndexFile.fileStore(), logIndexFile::idToVersion);
@@ -119,5 +114,8 @@ public class PatchStoreFile extends PatchStore {
         Path path = logIndexFile.getPath();
         FileArea.retire(path);
     }
+
+    @Override
+    protected void shutdownSub() {}
 
 }

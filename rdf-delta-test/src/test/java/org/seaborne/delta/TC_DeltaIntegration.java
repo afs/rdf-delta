@@ -30,9 +30,8 @@ import org.seaborne.delta.integration.TS_DeltaZk;
     , TS_DeltaZk.class
 })
 
-public class TC_Delta {
-    @BeforeClass public static void setForTesting() { 
-        //LogCtl.setLog4j();
+public class TC_DeltaIntegration {
+    @BeforeClass public static void setForTesting() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
     }
 }

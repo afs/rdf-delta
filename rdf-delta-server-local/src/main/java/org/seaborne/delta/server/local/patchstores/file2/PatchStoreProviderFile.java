@@ -44,7 +44,6 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
     public PatchStoreFile create(String patchLogDirectory) {
         if ( patchLogDirectory == null )
             return null;
-        // Assumes a cache in PatchStoreFile of LogIndexFile objects.
         return new PatchStoreFile(patchLogDirectory, this);
     }
 

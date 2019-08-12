@@ -40,7 +40,7 @@ public class PatchStoreRocks extends PatchStore {
     /*
      *  / server root
      *    delta.cfg
-     *    / source
+     *    / NAME
      *       / source.cfg
      *       / database /
      *
@@ -55,9 +55,9 @@ public class PatchStoreRocks extends PatchStore {
     // "static" so two PatchStoreRocks go to the same databases.
     private static Map<Id, LogIndexRocks> logIndexes = new ConcurrentHashMap<>();
 
-    private Path patchLogDirectory = null;
+    private final Path patchLogDirectory;
 
-    /*package*/ PatchStoreRocks(String patchLogDirectory, PatchStoreProvider provider) {
+    public PatchStoreRocks(String patchLogDirectory, PatchStoreProvider provider) {
         super(provider);
         Objects.requireNonNull(patchLogDirectory);
         this.patchLogDirectory = Paths.get(patchLogDirectory);
@@ -73,16 +73,10 @@ public class PatchStoreRocks extends PatchStore {
     }
 
     @Override
-    protected void startStore() {}
+    protected void initialize(LocalServerConfig config) {}
 
     @Override
-    protected void closeStore() {}
-
-    @Override
-    protected void deleteStore() {}
-
-    @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
+    protected List<DataSourceDescription> initialDataSources() {
         return FileArea.scanForLogs(patchLogDirectory);
     }
 
@@ -101,21 +95,20 @@ public class PatchStoreRocks extends PatchStore {
             LogIndexRocks idx = new LogIndexRocks(db);
             return idx;
         });
-        // The database will be picked up by newPatchLogIndex, newPatchStorage
+        // The database will be picked up by newPatchLogIndex and newPatchStorage
         PatchLog newPatchLog = newPatchLogFromIndexAndStorage(dsd);
         return newPatchLog;
     }
 
-
     @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+    protected PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
         LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
         return new PatchLogIndexRocks(rIdx);
     }
 
     @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+    protected PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreRocks patchStoreRocks = (PatchStoreRocks)patchStore;
         LogIndexRocks rIdx = patchStoreRocks.getLogIndex(dsd.getId());
         return new PatchStorageRocks(rIdx.database());
@@ -128,5 +121,8 @@ public class PatchStoreRocks extends PatchStore {
         Path p = idx.getPath();
         FileArea.retire(p);
     }
+
+    @Override
+    protected void shutdownSub() {}
 
 }

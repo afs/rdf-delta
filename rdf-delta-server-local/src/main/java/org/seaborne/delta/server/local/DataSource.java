@@ -22,11 +22,11 @@ import org.seaborne.delta.Id;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 
+/**
  * An item under the control of the server.
  * <p>
  * These act as a record of the patch logs in a server, and are recorded in a {@link DataSourceRegistry}
- * so that routing by name or URI can be be done. 
+ * so that routing by name or URI can be be done.
  */
 public class DataSource {
     // Might be able to replace with "PatchLog".
@@ -34,28 +34,6 @@ public class DataSource {
     private final DataSourceDescription dsDescription;
     private final PatchLog patchLog;
 
-    // XXX To be deleted.
-//    /**
-//     * Attach to a {@link DataSource} file area and return a {@link DataSource} object.
-//     * The directory {@code dsPath} must exist.
-//     * The {@code DataSource} area is not formatted by the provider. 
-//     */
-//    public static DataSource connect(DataSourceDescription dsd, PatchStore patchStore) {
-//        Objects.requireNonNull(dsd, "Null DataSourceDescription");
-//        Objects.requireNonNull(patchStore, "No patch store");
-//        PatchLog patchLog = patchStore.connectLog(dsd);
-//        DataSource dataSource = new DataSource(dsd, patchLog);
-//        return dataSource;
-//    }
-//
-//    public static DataSource create(DataSourceDescription dsd, PatchStore patchStore) {
-//        Objects.requireNonNull(dsd, "Null DataSourceDescription");
-//        Objects.requireNonNull(patchStore, "No patch store");
-//        PatchLog patchLog = patchStore.createLog(dsd);
-//        DataSource dataSource = new DataSource(dsd, patchLog);
-//        return dataSource;
-//    }
-    
     public DataSource(DataSourceDescription dsd, PatchLog patchLog) {
         super();
         this.dsDescription = dsd;
@@ -85,10 +63,10 @@ public class DataSource {
     public DataSourceDescription getDescription() {
         return dsDescription;
     }
-    
+
     @Override
     public String toString() {
-        return String.format("[DataSource:%s %s (%s)]", 
+        return String.format("[DataSource:%s %s (%s)]",
                              dsDescription.getName(), dsDescription.getId(),
                              patchLog.getPatchStore().getProvider().getShortName());
     }

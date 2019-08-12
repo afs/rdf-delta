@@ -22,19 +22,18 @@ import org.junit.*;
 import org.seaborne.delta.server.system.DeltaSystem;
 
 public class TestLocalLinkFile extends AbstractTestDeltaLink {
-    @BeforeClass public static void setForTesting() { 
-        //LogCtl.setLog4j();
+    @BeforeClass public static void setForTesting() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
         DeltaSystem.init();
     }
-    
+
     static Setup.LinkSetup setup = Setup.LocalSetup.createFile();
-    
+
     @Override
     public Setup.LinkSetup getSetup() {
         return setup;
     }
-    
+
     @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
     @AfterClass  public static void afterClass()    { setup.afterClass(); }
     @Before public void beforeTest()                { setup.beforeTest(); }

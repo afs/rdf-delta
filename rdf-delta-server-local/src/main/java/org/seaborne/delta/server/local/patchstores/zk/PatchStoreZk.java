@@ -198,10 +198,10 @@ public class PatchStoreZk extends PatchStore {
     }
 
     @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
+    protected void initialize(LocalServerConfig config) {
         if ( client == null ) {
-            FmtLog.warn(LOGZK, "[%s] Format new PatchStoreZk", instance);
-            return Collections.emptyList();
+            FmtLog.warn(LOGZK, "[%s] No Curator client", instance);
+            return;
         }
         connectToZookeeper();
 
@@ -216,10 +216,15 @@ public class PatchStoreZk extends PatchStore {
         }
         catch (Exception ex) {
             LOGZK.error("Failed to initialize from the persistent state: "+ex.getMessage(), ex);
-            return Collections.emptyList();
         }
+    }
+
+    @Override
+    protected List<DataSourceDescription> initialDataSources() {
+        // This is sync'ed to the Zk state.
         return listDataSourcesZk();
     }
+
 
     private void connectToZookeeper() {
         try {
@@ -234,20 +239,10 @@ public class PatchStoreZk extends PatchStore {
         }
     }
 
-
     @Override
-    protected void startStore() {}
-
-    @Override
-    protected void closeStore() {
+    protected void shutdownSub() {
         if ( client != null )
             client.close();
-    }
-
-    @Override
-    protected void deleteStore() {
-        // currently, do not delete persistent state.
-        closeStore();
     }
 
     @Override
@@ -255,9 +250,6 @@ public class PatchStoreZk extends PatchStore {
         FmtLog.debug(LOGZK, "[%d] listDataSources", instance);
         sync();
         return super.listDataSources();
-//        List<DataSourceDescription> sources = listDataSourcesZk();
-//        // Would need to atomically set the data registry.
-//        return sources;
     }
 
     // Guaranteed to look in zookeeper, no local caching.

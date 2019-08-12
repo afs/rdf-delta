@@ -75,6 +75,8 @@ public class DPS {
 
     public static void init() {
         DeltaSystem.init();
+        initFirst();
+        initLast();
     }
 
     /**

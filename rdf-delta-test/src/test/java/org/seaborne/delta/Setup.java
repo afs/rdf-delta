@@ -74,11 +74,9 @@ public class Setup {
         public static LinkSetup createZkMem() {
             return new LocalSetup(()->{
                 TestingServer server = ZkT.localServer();
-                DataSourceRegistry dataRegistry = new DataSourceRegistry("Zk-LocalServer");
                 String connectionString = server.getConnectString();
                 LocalServerConfig config = LocalServers.configZk(connectionString);
                 PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(Provider.ZKZK).create(config);
-                patchStore.initialize(dataRegistry, config);
                 LocalServer localServer = LocalServer.create(patchStore, config);
                 return localServer;
             }, false);

@@ -60,7 +60,10 @@ public class PatchStoreFile1 extends PatchStore {
     }
 
     @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
+    protected void initialize(LocalServerConfig config) { }
+
+    @Override
+    public List<DataSourceDescription> initialDataSources() {
         return FileArea.scanForLogs(serverRoot);
     }
 
@@ -86,7 +89,6 @@ public class PatchStoreFile1 extends PatchStore {
         throw new InternalErrorException("PatchStoreProviderFile.newPatchStorage");
     }
 
-
     @Override
     protected void delete(PatchLog patchLog) {
         Path p = ((PatchLogFile1)patchLog).getFileStore().getPath();
@@ -94,11 +96,5 @@ public class PatchStoreFile1 extends PatchStore {
     }
 
     @Override
-    protected void startStore() {}
-
-    @Override
-    protected void closeStore() { }
-
-    @Override
-    protected void deleteStore() { }
+    protected void shutdownSub() {}
 }

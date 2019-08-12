@@ -18,57 +18,106 @@
 
 package org.seaborne.delta.server.local.patchstores.any;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 
 import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.server.local.LocalServerConfig;
-import org.seaborne.delta.server.local.PatchLog;
-import org.seaborne.delta.server.local.PatchStore;
-import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.Id;
+import org.seaborne.delta.server.Provider;
+import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
+import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
+import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
+import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
+import org.seaborne.delta.server.local.patchstores.rdb.RocksConst;
 
+//This class exists to handle newPatchLog.
+
+/**
+ * A {@link PatchStore} that create a local file-based or RocksDB-based {@link PatchLog}
+ * by intercepting {@link #newPatchLog}.
+ */
 public class PatchStoreAnyLocal extends PatchStore {
 
-    protected PatchStoreAnyLocal(PatchStoreProvider provider) {
+    private final PatchStoreFile   patchStoreFile;
+    private final PatchStoreRocks  patchStoreRocks;
+    private final PatchStore       patchStoreDefaultNew;
+
+    private final Path patchLogDirectory;
+
+    public PatchStoreAnyLocal(String patchLogDirectory, PatchStoreProvider provider) {
         super(provider);
+        Objects.requireNonNull(patchLogDirectory);
+        this.patchLogDirectory = Paths.get(patchLogDirectory);
+        patchStoreFile = new PatchStoreFile(patchLogDirectory, PatchStoreMgr.getPatchStoreProvider(Provider.FILE));
+        patchStoreRocks = new PatchStoreRocks(patchLogDirectory, PatchStoreMgr.getPatchStoreProvider(Provider.ROCKS));
+        patchStoreDefaultNew = patchStoreRocks;
     }
 
     @Override
-    protected void startStore() {}
+    public void initialize(DataSourceRegistry dataSourceRegistry, LocalServerConfig config) {
+        patchStoreFile.initialize(dataSourceRegistry, config);
+        patchStoreRocks.initialize(dataSourceRegistry, config);
+        super.initialize(dataSourceRegistry, config);
+    }
 
     @Override
-    protected void closeStore() {}
+    protected void initialize(LocalServerConfig config) {}
 
     @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
-        return null;
+    protected List<DataSourceDescription> initialDataSources() {
+        return FileArea.scanForLogs(patchLogDirectory);
     }
 
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
-//        if ( exists ) {
-//
-//        } else {
-//
-//        }
-        return null;
+        Id id = dsd.getId();
+        Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
+        PatchStore patchStore = choose(dsd, fileStoreDir);
+        return patchStore.createLog(dsd);
     }
 
+    private PatchStore choose(DataSourceDescription dsd, Path patchLogDir) {
 
+        //System.out.println("choose: "+dsd+" "+patchLogDir);
+
+        if ( ! Files.exists(patchLogDir) ) {
+            System.out.println("choose: "+dsd+" New");
+            return patchStoreDefaultNew;
+        } else {
+            // Rocks has a "log" directory.
+            // See PatchStoreRocks.newPatchLog
+            Path dbPath = patchLogDir.resolve(RocksConst.databaseFilename).toAbsolutePath();
+            boolean rocks = Files.exists(dbPath);
+            System.out.println("choose: "+dsd+" Rocks="+rocks);
+            return rocks ? patchStoreRocks : patchStoreFile;
+        }
+    }
+
+    // Not called.
     @Override
-    protected PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration2) {
-        return null;
+    protected PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        throw new DeltaException("PatchStoreAnyLocal.newPatchLogIndex called");
     }
 
     @Override
-    protected PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration2) {
-        return null;
+    protected PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+        throw new DeltaException("PatchStoreAnyLocal.newPatchStorage called");
     }
 
     @Override
-    protected void delete(PatchLog patchLog) {}
+    protected void delete(PatchLog patchLog) {
+        throw new DeltaException("PatchStoreAnyLocal.delete called");
+    }
 
     @Override
-    protected void deleteStore() {}
+    protected void shutdownSub() {
+        patchStoreFile.shutdown();
+        patchStoreRocks.shutdown();
+    }
 }

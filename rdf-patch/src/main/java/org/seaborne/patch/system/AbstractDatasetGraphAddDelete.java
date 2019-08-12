@@ -77,9 +77,6 @@ public abstract class AbstractDatasetGraphAddDelete extends DatasetGraphWrapper 
     public void clear()
     { deleteAny(Node.ANY, Node.ANY, Node.ANY, Node.ANY) ; }
 
-    // XXX Ensure the graphs loop back here.
-    // GraphChanges.
-
     @Override
     public Graph getDefaultGraph()
     { return GraphView.createDefaultGraph(this) ; }

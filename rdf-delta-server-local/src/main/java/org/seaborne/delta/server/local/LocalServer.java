@@ -62,7 +62,7 @@ public class LocalServer {
     // Track the LocalServers, - mainly so testing can clear them all.
     private static List<LocalServer> servers = new ArrayList<>();
 
-    private final DataSourceRegistry dataRegistry;
+    private final DataSourceRegistry dataSourceRegistry;
     private final LocalServerConfig serverConfig;
     private static AtomicInteger counter = new AtomicInteger(0);
     // Cache of known disabled data sources. (Not set at startup - disabled
@@ -130,15 +130,19 @@ public class LocalServer {
     }
 
     /** Make a LocalServer; this includes initializing the patch store */
-    private static LocalServer newLocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataRegistry) {
-        initializePatchStore(patchStore, dataRegistry, config);
-        LocalServer lServer = new LocalServer(config, patchStore, dataRegistry);
+    private static LocalServer newLocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataSourceRegistry) {
+        initializePatchStore(patchStore, dataSourceRegistry, config);
+        LocalServer lServer = new LocalServer(config, patchStore, dataSourceRegistry);
         servers.add(lServer);
         return lServer ;
     }
 
-    private static void initializePatchStore(PatchStore ps, DataSourceRegistry dataRegistry, LocalServerConfig config) {
-        List<DataSourceDescription> descriptions = ps.initialize(dataRegistry, config);
+    private static void initializePatchStore(PatchStore ps, DataSourceRegistry dataSourceRegistry, LocalServerConfig config) {
+        ps.initialize(dataSourceRegistry, config);
+
+        List<DataSourceDescription> descriptions = ps.initialDataSources();
+        descriptions.forEach(dsd->ps.createLog(dsd));
+
         FmtLog.info(Delta.DELTA_LOG, "Provider: %s", ps.getProvider().getShortName());
         if ( Delta.DELTA_LOG.isDebugEnabled() )
             descriptions.forEach(dsd->FmtLog.debug(Delta.DELTA_LOG, "  %s", dsd));
@@ -148,9 +152,9 @@ public class LocalServer {
     private static AtomicInteger instancecounter = new AtomicInteger(0);
     private final String label;
 
-    private LocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataRegistry) {
+    private LocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataSourceRegistry) {
         this.serverConfig = config;
-        this.dataRegistry = dataRegistry;
+        this.dataSourceRegistry = dataSourceRegistry;
         this.patchStore = patchStore;
         // For multiple localservers in one process.
         this.label = "ls-"+instancecounter.incrementAndGet();
@@ -172,14 +176,14 @@ public class LocalServer {
     }
 
     public LocalServer start() {
-        patchStore.startStore();
+        patchStore.serverStarts();
         active.set(true);
         return this;
     }
 
     public void shutdown() {
         active.set(false);
-        patchStore.closeStore();
+        patchStore.shutdown();
         LocalServer.release(this);
     }
 
@@ -189,18 +193,18 @@ public class LocalServer {
     }
 
     private void shutdown$() {
-        dataRegistry.clear();
+        dataSourceRegistry.clear();
         getPatchStore().shutdown();
     }
 
     public DataSourceRegistry getDataRegistry() {
         // Not sync'ed.
-        return dataRegistry;
+        return dataSourceRegistry;
     }
 
     private DataSourceRegistry syncedDataRegistry() {
         syncPatchStore();
-        return dataRegistry;
+        return dataSourceRegistry;
     }
 
     public static boolean alwaysSyncPatchStore = false;
@@ -232,21 +236,21 @@ public class LocalServer {
         // Called to poll for a logs version changes.
         devlog(LOG, "getDataSource(%s)", dsRef);
         checkActive();
-        DataSource ds = actionSyncPatchStore(()->dataRegistry.get(dsRef));
+        DataSource ds = actionSyncPatchStore(()->dataSourceRegistry.get(dsRef));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByName(String name) {
         devlog(LOG, "getDataSourceByName(%s)", name);
         checkActive();
-        DataSource ds = actionSyncPatchStore(()->dataRegistry.getByName(name));
+        DataSource ds = actionSyncPatchStore(()->dataSourceRegistry.getByName(name));
         return dataSource(ds);
     }
 
     public DataSource getDataSourceByURI(String uri) {
         devlog(LOG, "getDataSourceByURI(%s)", uri);
         checkActive();
-        DataSource ds = actionSyncPatchStore(()->dataRegistry.getByURI(uri));
+        DataSource ds = actionSyncPatchStore(()->dataSourceRegistry.getByURI(uri));
         return dataSource(ds);
     }
 
@@ -260,7 +264,7 @@ public class LocalServer {
 
     public DataSourceDescription getDescriptor(Id dsRef) {
         checkActive();
-        DataSource dataSource = actionSyncPatchStore(()->dataRegistry.get(dsRef));
+        DataSource dataSource = actionSyncPatchStore(()->dataSourceRegistry.get(dsRef));
         return descriptor(dataSource);
     }
 
@@ -307,19 +311,19 @@ public class LocalServer {
     }
 
     private static AtomicInteger createCounter = new AtomicInteger(0);
+
     /**
      * Create a new data source in the specified {@link PatchStore}. This can
      * not be one that has been removed (i.e. disabled) whose files must be
      * cleaned up manually.
      */
-    public Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
+    private Id createDataSource(PatchStore patchStore, String name, String baseURI/*, details*/) {
         checkActive();
         int C = createCounter.incrementAndGet();
         if ( syncedDataRegistry().containsName(name) )
             throw new DeltaBadRequestException("DataSource with name '"+name+"' already exists");
         // Proposed id, only becomes permanent if the create actually does a create and
         // does not find someone else has (with a different id);
-        // XXX Delay id allocation until create-for-real. Create does not take a DSD.
         Id dsRef = Id.create();
         devlog(LOG, "(%d) createDataSource/start: %s", C, dsRef);
         DataSourceDescription dsd = new DataSourceDescription(dsRef, name, baseURI);
@@ -356,7 +360,6 @@ public class LocalServer {
             // -- DEV
             devlog(LOG, "(%d) New: %s", C, dsd);
             DataSource newDataSource = new DataSource(dsd, patchLog);
-            // XXX Isn't this done in PatchStore.createPatchLog as well?
             reg.put(dsd.getId(), newDataSource);
             return newDataSource;
         }

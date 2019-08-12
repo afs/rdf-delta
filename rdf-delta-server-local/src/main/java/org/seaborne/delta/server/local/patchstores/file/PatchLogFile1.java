@@ -180,7 +180,6 @@ public class PatchLogFile1 implements PatchLog {
      * Only the {@code PatchLog} in-memory metadata is updated.
      * @param patch
      */
-    // XXX synchronized with fetching?
     @Override
     synchronized
     public Version append(RDFPatch patch) {

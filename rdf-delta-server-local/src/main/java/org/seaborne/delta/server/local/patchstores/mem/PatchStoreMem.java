@@ -43,18 +43,12 @@ public class PatchStoreMem extends PatchStore {
     protected void delete(PatchLog patchLog) {}
 
     @Override
-    protected List<DataSourceDescription> initialize(LocalServerConfig config) {
+    public List<DataSourceDescription> initialDataSources() {
         return Collections.emptyList();
     }
 
     @Override
-    protected void startStore() {}
-
-    @Override
-    protected void closeStore() {}
-
-    @Override
-    protected void deleteStore() { closeStore(); }
+    protected void initialize(LocalServerConfig config) {}
 
     @Override
     protected PatchLog newPatchLog(DataSourceDescription dsd) {
@@ -71,4 +65,6 @@ public class PatchStoreMem extends PatchStore {
         return new PatchStorageMem();
     }
 
+    @Override
+    protected void shutdownSub() {}
 }

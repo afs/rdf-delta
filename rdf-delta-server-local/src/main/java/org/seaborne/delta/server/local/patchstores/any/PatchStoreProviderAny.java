@@ -18,7 +18,10 @@
 
 package org.seaborne.delta.server.local.patchstores.any;
 
+import org.apache.jena.atlas.logging.Log;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -31,37 +34,30 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
 
 public class PatchStoreProviderAny implements PatchStoreProvider {
 
+    public PatchStoreProviderAny() {}
+
     @Override
     public PatchStore create(LocalServerConfig config) {
         // The directory where all patch logs are kept.
         String patchLogDirectory = config.getProperty(DeltaConst.pDeltaFile);
+        if ( patchLogDirectory == null ) {
+            Log.error(this, "No file area setting in the configuration for local patch storage setup");
+            throw new DeltaConfigException("No file area setting in the configuration for local patch storage setup");
+        }
         return create(patchLogDirectory);
     }
 
-    public PatchStore create(String patchLogDirectory) {
-        // SPECIAL
+    public PatchStoreAnyLocal create(String patchLogDirectory) {
         if ( patchLogDirectory == null )
             return null;
-        // ** Does it existrs?
-        // ** What type is it?
-
-        // ** Default to rocks.
-
-//        Path path = Paths.get(patchLogDirectory);
-//        List<DataSourceDescription> patchLogs =  FileArea.scanForLogs(path);
-//        patchLogs.forEach(dsd->{});
-        return null;
-        //return new PatchStore???(patchLogDirectory);
+        return new PatchStoreAnyLocal(patchLogDirectory, this);
     }
 
-    //In PatchStore
-    //PatchLog newPatchLog(DataSourceDescription dsd) { throw new NotImplemented(); }
-
     @Override
-    public Provider getProvider() { return null; }
+    public Provider getProvider() { throw new DeltaException("PatchStoreProviderAny.getProvider() called"); }
 
     @Override
     public String getShortName() {
-        return null;
+        return "AnyLocal";
     }
 }

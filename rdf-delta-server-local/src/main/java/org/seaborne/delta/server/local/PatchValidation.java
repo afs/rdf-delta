@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class PatchValidation {
     private static Logger LOG = LoggerFactory.getLogger(PatchValidation.class);
-    
+
     /** Validate a patch for this {@code PatchLog} */
     public static boolean validate(RDFPatch patch, PatchLog log) {
         Id previousId = Id.fromNode(patch.getPrevious());
@@ -40,7 +40,7 @@ public class PatchValidation {
             FmtLog.warn(LOG, "No patch id");
             return false;
         }
-        
+
         if ( previousId == null ) {
             if ( !log.isEmpty() ) {
                 FmtLog.warn(LOG, "No previous for patch when PatchLog is not empty: patch=%s", patchId);
@@ -58,14 +58,13 @@ public class PatchValidation {
             }
         }
         try {
-            // XXX Why separate?
             validate(log, patch.header(), patchId, previousId, PatchValidation::badPatchEx);
             return true ;
         } catch (DeltaException ex) { return false; }
     }
 
     @FunctionalInterface public interface BadHandler { void bad(String fmt, Object ...args) ; }
-    
+
     public static void validateNewPatch(PatchLog log, Id patchId, Id previousId, BadHandler action) {
         if ( patchId == null )
             action.bad("Patch: No id");
@@ -77,7 +76,7 @@ public class PatchValidation {
             action.bad("Previous not current: log head=%s : patch previous=%s",logHead, previousId);
         }
     }
-    
+
     private static void validate(PatchLog log, PatchHeader header, Id patchId, Id previousId, BadHandler action) {
         if ( previousId != null ) {
             if ( ! log.contains(previousId) )
@@ -89,27 +88,27 @@ public class PatchValidation {
             if ( header.getPrevious() != null )
                 action.bad("Patch previous header not found: patch=%s, previous=%s", patchId, previousId);
         }
-           
+
         if ( ! previousId.equals(log.getLatestId()) ) {
             // No empty log, previousId != null but does not match log head.
-            // Validation should have caught this. 
-            badPatchEx("Patch not an update on the latest logged one: id=%s prev=%s (log=[%d, %s])", 
+            // Validation should have caught this.
+            badPatchEx("Patch not an update on the latest logged one: id=%s prev=%s (log=[%d, %s])",
                         patchId, previousId, log.getLatestVersion(), log.getLatestId());
         }
     }
-    
+
     public static void badPatchEx(String fmt, Object...args) {
         badPatchWarning(fmt, args);
         String msg = String.format(fmt, args);
         throw new DeltaBadPatchException(msg);
     }
-    
+
     public static void badPatchError(String fmt, Object...args) {
-        FmtLog.error(LOG, String.format(fmt, args)); 
+        FmtLog.error(LOG, String.format(fmt, args));
     }
 
     public static void badPatchWarning(String fmt, Object...args) {
-        FmtLog.warn(LOG, String.format(fmt, args)); 
+        FmtLog.warn(LOG, String.format(fmt, args));
     }
 
 

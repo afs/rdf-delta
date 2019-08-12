@@ -83,8 +83,8 @@ public class FileStore {
     private final Path          directory;
     private final String        basename;
 
-    public static FileStore attach(Path dirname, String basename) {
-        Objects.requireNonNull(dirname, "argument 'dirname' is null");
+    public static FileStore attach(Path dirPath, String basename) {
+        Objects.requireNonNull(dirPath, "argument 'dirname' is null");
         Objects.requireNonNull(basename, "argument 'basename' is null");
         if ( basename.equals(tmpBasename) )
             throw new IllegalArgumentException("FileStore.attach: basename is equal to the reserved name '"+tmpBasename+"'") ;
@@ -92,18 +92,18 @@ public class FileStore {
             throw new IllegalArgumentException("FileStore.attach: basename ends with the separator: '"+SEP+"'");
         if ( ! basenamePattern.matcher(basename).matches() )
             throw new IllegalArgumentException("FileStore.attach: basename does not match the regex "+basenamePattern);
-        Path dirPath = dirname;
-        Path k = key(dirPath, basename);
-        // [FILE2] computeIfAbsent.
-        if ( areas.containsKey(k) )
-            return areas.get(k);
         if ( ! Files.exists(dirPath) || ! Files.isDirectory(dirPath) )
             throw new IllegalArgumentException("FileStore.attach: Path '" + dirPath + "' does not name a directory");
+        Path k = key(dirPath, basename);
+        FileStore fs = areas.computeIfAbsent(k, key->createFileStoreObject(dirPath, basename));
+        return fs;
+    }
 
+    /** Create a FileStore object after the checking in "attach". */
+    private static FileStore createFileStoreObject(Path dirPath, String basename) {
         // Delete any tmp files left lying around.
         List<String> tmpFiles = scanForTmpFiles(dirPath);
         tmpFiles.forEach(FileOps::delete);
-
         // Find existing files.
         List<Long> indexes = scanForIndex(dirPath, basename);
         long min;
@@ -112,15 +112,15 @@ public class FileStore {
             min = DeltaConst.VERSION_INIT;
             // So increment is the next version.
             max = DeltaConst.VERSION_FIRST - 1;
-            FmtLog.debug(LOG, "FileStore : index [--,--] %s", dirname);
+            FmtLog.debug(LOG, "FileStore : index [--,--] %s", dirPath);
         } else {
             min = indexes.get(0);
             max = indexes.get(indexes.size()-1);
-            FmtLog.debug(LOG, "FileStore : index [%d,%d] %s", min, max, dirname);
+            FmtLog.debug(LOG, "FileStore : index [%d,%d] %s", min, max, dirPath);
         }
         FileStore fs = new FileStore(dirPath, basename, indexes, min, max);
-        areas.put(k, fs);
         return fs;
+
     }
 
     private static Path key(Path path, String basename) {
@@ -232,7 +232,6 @@ public class FileStore {
         }
     }
 
-    // [FILE2]
     // Better? IOConsumer to take version as well as OutputStream.
     // This assumes the version/idx is safely allocated elsewhere.
 
