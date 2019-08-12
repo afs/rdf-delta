@@ -17,12 +17,12 @@
 
 package org.seaborne.delta.server.local;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.seaborne.delta.Delta;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile;
+import org.seaborne.delta.server.Provider;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreFile;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
@@ -46,10 +46,23 @@ public class DPS {
 
     // Short names.
     public static final String pspFile    = "file";
-    public static final String pspRocks   = "db";
+    public static final String pspRocks   = "rdb";
     public static final String pspMem     = "mem";
     public static final String pspZk      = "zk";
-    public static final String pspZkS3      = "zks3";
+    public static final String pspZkS3    = "zks3";
+    private static final Map<String, Provider> providerByName = new HashMap<>();
+
+    static {
+        providerByName.put(pspMem,   Provider.MEM);
+        providerByName.put(pspFile,  Provider.FILE);
+        providerByName.put(pspRocks, Provider.ROCKS);
+        providerByName.put(pspZk,    Provider.ZKZK);
+        providerByName.put(pspZkS3,  Provider.ZKS3);
+    }
+    public static Provider providerByname(String name) {
+        if ( name == null) return null;
+        return providerByname(name.toLowerCase(Locale.ROOT));
+    }
 
     public static void initFirst() {
         if ( initializedFirst )

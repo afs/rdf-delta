@@ -21,7 +21,7 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.junit.After;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreFile;
 
 public class TestPatchStoreFile extends AbstractTestPatchStore {
     private static String DIR = "target/test/patch-store-file";

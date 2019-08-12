@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.delta.server.local.patchstores.file2;
+package org.seaborne.delta.server.local.patchstores.file;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

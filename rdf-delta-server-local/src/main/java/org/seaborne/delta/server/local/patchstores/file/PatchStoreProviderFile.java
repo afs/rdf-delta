@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file2;
+package org.seaborne.delta.server.local.patchstores.file;
 
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaConfigException;

@@ -31,7 +31,7 @@ import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreFile;
 import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
 import org.seaborne.delta.server.local.patchstores.rdb.RocksConst;

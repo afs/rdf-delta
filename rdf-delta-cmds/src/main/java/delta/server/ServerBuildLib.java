@@ -28,7 +28,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreProviderFile;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;

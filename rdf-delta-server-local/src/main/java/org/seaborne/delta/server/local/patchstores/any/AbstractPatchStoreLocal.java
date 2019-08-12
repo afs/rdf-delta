@@ -24,7 +24,7 @@ import java.util.Objects;
 
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.server.local.patchstores.file2.PatchStoreFile;
+import org.seaborne.delta.server.local.patchstores.file.PatchStoreFile;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
 
 /**

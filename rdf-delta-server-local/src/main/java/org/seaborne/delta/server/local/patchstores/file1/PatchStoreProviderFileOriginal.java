@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file;
+package org.seaborne.delta.server.local.patchstores.file1;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;

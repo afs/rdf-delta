@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file;
+package org.seaborne.delta.server.local.patchstores.file1;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PatchStoreFile1 extends PatchStore {
+    // Original PatchStoreFile.
+
     private static Logger LOG = LoggerFactory.getLogger(PatchStoreFile1.class);
 
     /*   Server Root
@@ -49,7 +51,7 @@ public class PatchStoreFile1 extends PatchStore {
 
     private final Path serverRoot;
 
-    public PatchStoreFile1(String location, PatchStoreProvider provider) {
+    /*package was public*/ PatchStoreFile1(String location, PatchStoreProvider provider) {
         this(Paths.get(location), provider);
     }
 

@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.delta.server.local.patchstores.file;
+package org.seaborne.delta.server.local.patchstores.file1;
 
 import static java.lang.String.format;
 import static org.seaborne.delta.DeltaConst.VERSION_INIT ;
