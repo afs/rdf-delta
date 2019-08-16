@@ -266,6 +266,16 @@ public class DeltaServerCmd {
                 serverConfig.fileBase = directory;
                 break;
             }
+            case LOCAL : {
+                String directory = cla.getValue(argStore);
+                Path base = Paths.get(directory).toAbsolutePath();
+                if ( ! Files.exists(base) )
+                    cmdLineError("No such directory: %s",base);
+                if ( ! Files.isDirectory(base) )
+                    cmdLineError("Exists, but is not a directory: %s",base);
+                serverConfig.fileBase = directory;
+                break;
+            }
             case MEM : {
                 // No configuration.
                 break;

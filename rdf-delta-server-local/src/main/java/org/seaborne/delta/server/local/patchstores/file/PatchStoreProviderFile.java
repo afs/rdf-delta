@@ -33,7 +33,7 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
     @Override
     public PatchStore create(LocalServerConfig config) {
         // The directory where all patch logs are kept.
-        String patchLogDirectory = config.getProperty(DeltaConst.pDeltaFile);
+        String patchLogDirectory = config.getProperty(DeltaConst.pDeltaStore);
         if ( patchLogDirectory == null ) {
             Log.error(this, "No file area setting in the configuration for RocksDB based patch storage setup");
             throw new DeltaConfigException("No file area setting in the configuration for RocksDB based patch storage setup");

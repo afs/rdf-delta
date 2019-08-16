@@ -31,10 +31,18 @@ public class LocalServers {
         return LocalServer.create(configuration);
     }
 
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a local storage patch store. */
+    public static LocalServerConfig configLocal(String directory) {
+        return LocalServerConfig.create()
+            .setProperty(DeltaConst.pDeltaStore, directory)
+            .setLogProvider(Provider.LOCAL)
+            .build();
+    }
+
     /** {@link LocalServerConfig} for a {@link LocalServer} with a file-based patch store. */
     public static LocalServerConfig configFile(String directory) {
         return LocalServerConfig.create()
-            .setProperty(DeltaConst.pDeltaFile, directory)
+            .setProperty(DeltaConst.pDeltaStore, directory)
             .setLogProvider(Provider.FILE)
             .build();
     }
@@ -42,7 +50,7 @@ public class LocalServers {
     /** {@link LocalServerConfig} for a {@link LocalServer} with a RockDB-based patch store. */
     public static LocalServerConfig configRDB(String directory) {
         return LocalServerConfig.create()
-            .setProperty(DeltaConst.pDeltaFile, directory)
+            .setProperty(DeltaConst.pDeltaStore, directory)
             .setLogProvider(Provider.ROCKS)
             .build();
     }

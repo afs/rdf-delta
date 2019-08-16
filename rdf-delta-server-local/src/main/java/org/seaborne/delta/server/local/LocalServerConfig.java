@@ -17,7 +17,8 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.seaborne.delta.DeltaConst.F_LOG_TYPE ;
+import static org.seaborne.delta.DeltaConst.F_LOG_TYPE;
+import static org.seaborne.delta.DeltaConst.F_STORE;
 import static org.seaborne.delta.DeltaConst.F_VERSION;
 import static org.seaborne.delta.DeltaConst.SYSTEM_VERSION ;
 
@@ -161,22 +162,37 @@ public class LocalServerConfig {
             this.configFile = configFile;
 
             // -- log provider
+            // Default.
             logProvider = Provider.FILE;
             String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
             if ( logTypeName != null ) {
-                // Move this to Provider.
-                switch(logTypeName.toLowerCase()) {
-                    case DPS.pspMem:   logProvider = Provider.MEM;   break;
-                    case DPS.pspFile:  logProvider = Provider.FILE;  break;
-                    case DPS.pspRocks: logProvider = Provider.ROCKS; break;
-                    case DPS.pspZk:    logProvider = Provider.ZKZK;  break;
-                    case DPS.pspZkS3:  logProvider = Provider.ZKS3;  break;
-                    default:
-                        throw new DeltaConfigException("Unknown log type: "+logTypeName);
-                }
+                Provider provider =
+                DPS.providerByName(logTypeName);
+                if ( provider == null )
+                    throw new DeltaConfigException("Unknown log type: "+logTypeName);
+                logProvider = provider ;
             }
-            setProperty(DeltaConst.pDeltaFile, path.getParent().toString());
+            // -- store (file, rocks, any local)
+            if ( isLocalProvider(logProvider) ) {
+                String store = JSONX.getStrOrNull(obj, F_STORE);
+                Path storeLocation = null;
+                if ( store == null )
+                    // Default to directory where the config file is.
+                    storeLocation = path.getParent();
+                else
+                    storeLocation = path.getParent().resolve(store);
+
+                if ( storeLocation != null )
+                    setProperty(DeltaConst.pDeltaStore, storeLocation.toString());
+            }
             return this;
+        }
+
+        private static boolean isLocalProvider(Provider provider) {
+            switch(provider) {
+                case FILE: case ROCKS: return true;
+                default: return false;
+            }
         }
 
         public LocalServerConfig build() {

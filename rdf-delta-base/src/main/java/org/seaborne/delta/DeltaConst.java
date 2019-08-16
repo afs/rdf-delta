@@ -79,6 +79,7 @@ public class DeltaConst {
     public static final String F_DATA          = "data";
     public static final String F_URI           = "uri";
     public static final String F_LOG_TYPE      = "log_type";
+    public static final String F_STORE         = "store";
     // Some atomic JSON value.
     public static final String F_VALUE         = "value";
     // Some JSON array
@@ -95,7 +96,7 @@ public class DeltaConst {
     public static final String LOG_S3          = "s3";
 
     // Properties used to define patch store providers.
-    public static final String pDeltaFile      = "delta.file";
+    public static final String pDeltaStore     = "delta.store";
     public static final String pDeltaZk        = "delta.zk";
 
     // HTTP query string.

@@ -50,6 +50,7 @@ public class DPS {
     public static final String pspMem     = "mem";
     public static final String pspZk      = "zk";
     public static final String pspZkS3    = "zks3";
+    public static final String pspLocal   = "local";
     private static final Map<String, Provider> providerByName = new HashMap<>();
 
     static {
@@ -58,10 +59,11 @@ public class DPS {
         providerByName.put(pspRocks, Provider.ROCKS);
         providerByName.put(pspZk,    Provider.ZKZK);
         providerByName.put(pspZkS3,  Provider.ZKS3);
+        providerByName.put(pspLocal, Provider.LOCAL);
     }
-    public static Provider providerByname(String name) {
+    public static Provider providerByName(String name) {
         if ( name == null) return null;
-        return providerByname(name.toLowerCase(Locale.ROOT));
+        return providerByName.get(name.toLowerCase(Locale.ROOT));
     }
 
     public static void initFirst() {

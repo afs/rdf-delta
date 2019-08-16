@@ -28,6 +28,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.patchstores.any.PatchStoreProviderAny;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
@@ -73,6 +74,11 @@ public /*package*/ class ServerBuildLib {
                 psp = installProvider(new PatchStoreProviderRocks());
                 localServerConfig = LocalServers.configRDB(deltaServerConfig.fileBase);
                 providerLabel = "rdb["+deltaServerConfig.fileBase+"]";
+                break;
+            case LOCAL:
+                psp = installProvider(new PatchStoreProviderAny());
+                localServerConfig = LocalServers.configLocal(deltaServerConfig.fileBase);
+                providerLabel = "local["+deltaServerConfig.fileBase+"]";
                 break;
             case MEM :
                 psp = installProvider(new PatchStoreProviderMem());

@@ -30,7 +30,7 @@ public class PatchStoreProviderFileOriginal implements PatchStoreProvider {
 
     @Override
     public PatchStore create(LocalServerConfig config) {
-        String fileArea = config.getProperty(DeltaConst.pDeltaFile);
+        String fileArea = config.getProperty(DeltaConst.pDeltaStore);
         if ( fileArea == null )
             return null;
         return new PatchStoreFile1(fileArea, this);
