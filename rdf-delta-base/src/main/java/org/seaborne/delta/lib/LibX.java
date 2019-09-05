@@ -115,4 +115,12 @@ public class LibX {
             return false;
         } catch (IOException ex) { return true; }
     }
+
+    @SafeVarargs
+    public static <X> X firstNonNull(X ... objs) {
+        for ( X x : objs )
+            if ( x != null )
+                return x;
+        return null;
+    }
 }

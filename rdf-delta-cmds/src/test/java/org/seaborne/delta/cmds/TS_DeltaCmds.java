@@ -29,7 +29,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses( {
-    TestDeltaServerConfig.class
+    TestLocalServerCmdSetup.class
+    , TestDeltaServerConfig.class
     , TestCmds.class
     , TestCmdServer.class
     , TestCmdServerZkS3.class

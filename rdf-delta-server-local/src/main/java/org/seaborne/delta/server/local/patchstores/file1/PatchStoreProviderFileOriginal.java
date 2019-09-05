@@ -37,7 +37,7 @@ public class PatchStoreProviderFileOriginal implements PatchStoreProvider {
     }
 
     @Override
-    public Provider getProvider() { return null; }
+    public Provider getType() { return null; }
 
     @Override
     public String getShortName() {

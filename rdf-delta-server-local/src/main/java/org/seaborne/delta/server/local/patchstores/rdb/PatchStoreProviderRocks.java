@@ -48,7 +48,7 @@ public class PatchStoreProviderRocks implements PatchStoreProvider {
     }
 
     @Override
-    public Provider getProvider() { return Provider.ROCKS; }
+    public Provider getType() { return Provider.ROCKS; }
 
     @Override
     public String getShortName() {

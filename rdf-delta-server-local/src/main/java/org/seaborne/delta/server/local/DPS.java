@@ -21,6 +21,7 @@ import java.util.*;
 
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.Provider;
+import org.seaborne.delta.server.local.patchstores.any.PatchStoreProviderAnyLocal;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreFile;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
@@ -127,9 +128,10 @@ public class DPS {
         providers.add(new PatchStoreProviderRocks());
         providers.add(new PatchStoreProviderMem());
         providers.add(new PatchStoreProviderZk());
+        providers.add(new PatchStoreProviderAnyLocal());
 
         providers.forEach(psp->{
-            LOG.debug("Provider: "+psp.getProvider().toString().toLowerCase()+"{"+psp.getShortName()+"}");
+            LOG.debug("Provider: "+psp.getType().toString().toLowerCase()+"{"+psp.getShortName()+"}");
             PatchStoreMgr.register(psp);
         });
     }

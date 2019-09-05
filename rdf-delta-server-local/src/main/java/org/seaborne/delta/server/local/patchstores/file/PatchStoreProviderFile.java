@@ -48,7 +48,7 @@ public class PatchStoreProviderFile implements PatchStoreProvider {
     }
 
     @Override
-    public Provider getProvider() { return Provider.FILE; }
+    public Provider getType() { return Provider.FILE; }
 
     @Override
     public String getShortName() {

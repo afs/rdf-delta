@@ -60,7 +60,7 @@ public class FileArea {
         List<Path> disabledDataSources = pair.getRight();
 
         //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
-        disabledDataSources.forEach(p->LOG.info("Data source: "+p+" : Disabled"));
+        disabledDataSources.forEach(p->LOG.info("  Data source: "+p+" : Disabled"));
 
         List<DataSourceDescription> descriptions = ListUtils.toList
             (dataSourcePaths.stream()

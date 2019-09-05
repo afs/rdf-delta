@@ -22,11 +22,11 @@ public class FileNames {
     /** Name for the DataSource configuration file for the file-based provider. */
     public static final String DS_CONFIG       = "source.cfg";
 
-    /** Relative path name in a DataSource for the "sources" area. */
-    public static final String SOURCES         = "Sources";
+//    /** Relative path name in a DataSource for the "sources" area. */
+//    public static final String SOURCES         = "Sources";
 
-    /** Relative path name in a DataSource for the log area. */
-    public static final String LOG             = "Log";
+//    /** Relative path name in a DataSource for the log area. */
+//    public static final String LOG             = "Log";
 
     /** Marker file for "deletes" data sources (they are only hidden) */
     public static final String DISABLED        = "disabled";

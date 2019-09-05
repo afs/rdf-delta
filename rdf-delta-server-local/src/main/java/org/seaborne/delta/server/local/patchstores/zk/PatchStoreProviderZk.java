@@ -47,7 +47,7 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     }
 
     @Override
-    public Provider getProvider() { return Provider.ZKZK; }
+    public Provider getType() { return Provider.ZKZK; }
 
     @Override
     public String getShortName() {

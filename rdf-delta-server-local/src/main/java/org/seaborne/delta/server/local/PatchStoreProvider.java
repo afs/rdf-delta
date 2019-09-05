@@ -32,7 +32,7 @@ public interface PatchStoreProvider {
      */
     public PatchStore create(LocalServerConfig config);
 
-    public Provider getProvider();
+    public Provider getType();
 
     /** Short name used in server configuration files to set the default provider via "log_type" */
     public String getShortName();

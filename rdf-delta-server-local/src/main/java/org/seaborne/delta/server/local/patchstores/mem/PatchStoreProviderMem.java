@@ -31,7 +31,7 @@ public class PatchStoreProviderMem implements PatchStoreProvider {
     }
 
     @Override
-    public Provider getProvider() { return Provider.MEM; }
+    public Provider getType() { return Provider.MEM; }
 
     @Override
     public String getShortName() {

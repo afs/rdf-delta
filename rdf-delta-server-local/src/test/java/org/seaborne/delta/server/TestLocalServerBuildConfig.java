@@ -18,6 +18,7 @@
 package org.seaborne.delta.server;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -31,38 +32,43 @@ import org.seaborne.delta.server.local.*;
  *  Tests of configuration and building a {@link LocalServer}.
  */
 public class TestLocalServerBuildConfig {
-    
+
     // This is the pre-setup testing area and is not modified in tests.
     public static String TESTING = "testing/";
 
     @BeforeClass public static void beforeClass() {
         Delta.init();
     }
-    
+
     @Before public void before() {
 //        DPS.resetSystem();
         DPS.init();
     }
-    
+
     @Test public void local_server_config_builder_01() {
         // Server configuration builder.
         LocalServerConfig conf = LocalServerConfig.create()
             .parse(TESTING+"delta.cfg")
             .build();
+        assertEquals(Provider.LOCAL, conf.getLogProviderType());
     }
 
     @Test public void local_server_config_01() {
-        LocalServer server = LocalServers.createFile(TESTING+"DeltaServerBlank");
+        LocalServer server = LocalServers.createFile(TESTING+"DeltaServerBlankFile");
+        assertEquals(Provider.FILE, server.getPatchStore().getProvider().getType());
+        assertTrue(server.getDataRegistry().isEmpty());
     }
 
     @Test public void local_server_config_02() {
-        LocalServers.createFile(TESTING+"DeltaServer");
+        LocalServer server = LocalServers.createFromConf(TESTING+"DeltaServer/delta.cfg");
+        assertEquals(Provider.LOCAL, server.getPatchStore().getProvider().getType());
     }
 
     @Test public void local_server_config_03() {
-        String DIR = TESTING+"DeltaServerBlank";
-        LocalServer server = LocalServers.createConf(DIR+"/delta.cfg");
+        String DIR = TESTING+"DeltaServerBlankDft";
+        LocalServer server = LocalServers.createFromConf(DIR+"/delta.cfg");
         List<DataSource> sources = server.listDataSources();
         assertEquals(0, sources.size());
+        assertEquals(Provider.LOCAL, server.getPatchStore().getProvider().getType());
     }
 }

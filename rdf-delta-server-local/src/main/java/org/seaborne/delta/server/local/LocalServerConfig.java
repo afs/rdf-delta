@@ -50,17 +50,18 @@ public class LocalServerConfig {
     /** Delta properties */
     private final Properties properties;
 
-    public String jettyConf;
+    private final String jettyConf;
 
-    private LocalServerConfig(Provider logProvider, Properties properties, String configFile) {
+    private LocalServerConfig(Provider logProvider, Properties properties, String configFile, String jettyConf) {
         Objects.requireNonNull(logProvider);
         this.logProvider = logProvider;
         this.configFile = configFile;
         this.properties = properties;
+        this.jettyConf = jettyConf;
     }
 
     /** Name of the default PatchStore provider */
-    public Provider getLogProvider() {
+    public Provider getLogProviderType() {
         return logProvider ;
     }
 
@@ -72,6 +73,11 @@ public class LocalServerConfig {
     /** Get property, return null for no found. */
     public String getProperty(String key) {
         return properties.getProperty(key);
+    }
+
+    /** Get the Jetty server configuration file, if any. */
+    public String getJettyConfigFile() {
+        return jettyConf;
     }
 
     @Override
@@ -113,6 +119,7 @@ public class LocalServerConfig {
         private static Logger LOG = Delta.DELTA_CONFIG_LOG;
         private String configFile = null;
         private Provider logProvider = null;
+        private String jettyConfigFile = null;
         private final Properties properties = new Properties();
 
         public Builder() {}
@@ -139,6 +146,12 @@ public class LocalServerConfig {
             return this;
         }
 
+        public Builder jettyConfigFile(String jettyConfigFile) {
+            this.jettyConfigFile  = jettyConfigFile;
+            return this;
+        }
+
+
         /** Copy properties from {@code src} to {@code dest}. */
         private static void copyPropertiesInto(Properties src, Properties dest) {
             src.forEach((k,v)->dest.setProperty((String)k, (String)v));
@@ -146,6 +159,7 @@ public class LocalServerConfig {
 
         /** Parse a configuration file. */
         public Builder parse(String configFile) {
+            // Relationship to DeltaServerConfig in command line.
             Path path = Paths.get(configFile);
             if ( ! Files.exists(path) )
                 throw new DeltaConfigException("File not found: "+configFile);
@@ -163,11 +177,10 @@ public class LocalServerConfig {
 
             // -- log provider
             // Default.
-            logProvider = Provider.FILE;
+            logProvider = Provider.LOCAL;
             String logTypeName = JSONX.getStrOrNull(obj, F_LOG_TYPE);
             if ( logTypeName != null ) {
-                Provider provider =
-                DPS.providerByName(logTypeName);
+                Provider provider = DPS.providerByName(logTypeName);
                 if ( provider == null )
                     throw new DeltaConfigException("Unknown log type: "+logTypeName);
                 logProvider = provider ;
@@ -185,18 +198,19 @@ public class LocalServerConfig {
                 if ( storeLocation != null )
                     setProperty(DeltaConst.pDeltaStore, storeLocation.toString());
             }
+            // TODO -- General properties.
             return this;
         }
 
         private static boolean isLocalProvider(Provider provider) {
             switch(provider) {
-                case FILE: case ROCKS: return true;
+                case LOCAL: case FILE: case ROCKS: return true;
                 default: return false;
             }
         }
 
         public LocalServerConfig build() {
-            return new LocalServerConfig(logProvider, properties, configFile);
+            return new LocalServerConfig(logProvider, properties, configFile, jettyConfigFile);
         }
     }
 

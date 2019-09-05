@@ -89,15 +89,15 @@ public class LocalServer {
     }
 
     private static PatchStore createPatchStore(LocalServerConfig config) {
-        Provider provider = config.getLogProvider();
+        Provider provider = config.getLogProviderType();
         if ( provider == null )
             throw new DeltaConfigException("LocalServer.selectPatchStore: Provider name is null");
         PatchStoreProvider psp = PatchStoreMgr.getPatchStoreProvider(provider);
         if ( psp == null )
-            throw new DeltaConfigException("No patch store provider: "+config.getLogProvider());
+            throw new DeltaConfigException("No patch store provider: "+config.getLogProviderType());
         PatchStore ps = psp.create(config);
         if ( ps == null )
-            throw new DeltaConfigException("Patch store not created and configured: "+config.getLogProvider());
+            throw new DeltaConfigException("Patch store not created and configured: "+config.getLogProviderType());
         return ps;
     }
 
@@ -170,7 +170,13 @@ public class LocalServer {
             sources.sort( (ds1, ds2)-> ds1.getName().compareTo(ds2.getName()) );
             sources.forEach(ds->{
                 PatchLogInfo info = ds.getPatchLog().getInfo();
-                FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s]", info.getDataSourceDescr(), verString(info.getMinVersion()), verString(info.getMaxVersion()) );
+                String providerTypeName = ds.getPatchStore().getProvider().getShortName();
+
+                FmtLog.info(Delta.DELTA_LOG, "  Data source: %s version [%s,%s] type=%s",
+                    info.getDataSourceDescr(),
+                    verString(info.getMinVersion()),
+                    verString(info.getMaxVersion()),
+                    providerTypeName);
             });
         }
     }

@@ -21,7 +21,6 @@ package org.seaborne.delta.server.local.patchstores.any;
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -32,9 +31,9 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
  * This allows for a mixed storage implementation.
  */
 
-public class PatchStoreProviderAny implements PatchStoreProvider {
+public class PatchStoreProviderAnyLocal implements PatchStoreProvider {
 
-    public PatchStoreProviderAny() {}
+    public PatchStoreProviderAnyLocal() {}
 
     @Override
     public PatchStore create(LocalServerConfig config) {
@@ -54,10 +53,10 @@ public class PatchStoreProviderAny implements PatchStoreProvider {
     }
 
     @Override
-    public Provider getProvider() { throw new DeltaException("PatchStoreProviderAny.getProvider() called"); }
+    public Provider getType() { return Provider.LOCAL; }
 
     @Override
     public String getShortName() {
-        return "AnyLocal";
+        return "Local";
     }
 }

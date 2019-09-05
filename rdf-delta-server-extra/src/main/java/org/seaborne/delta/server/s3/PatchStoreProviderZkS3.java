@@ -84,7 +84,7 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
     }
 
     @Override
-    public Provider getProvider() { return Provider.ZKS3; }
+    public Provider getType() { return Provider.ZKS3; }
 
     /** Short name used in server configuration files to set the default provider via "log_type" */
     @Override

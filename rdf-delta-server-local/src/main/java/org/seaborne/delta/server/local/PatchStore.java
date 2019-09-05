@@ -215,31 +215,41 @@ public abstract class PatchStore {
     /** Return a new {@link PatchLog}, which must not already exist. */
     public PatchLog createLog(DataSourceDescription dsd) {
         synchronized(lock) {
-            if ( getProvider() == null )
-                FmtLog.info(LOG, "Create log[?]: %s", dsd);
-            else
-                FmtLog.info(LOG, "Create log[%s]: %s", getProvider().getShortName(), dsd);
+//            if ( getProvider() == null )
+//                FmtLog.info(LOG, "log: %s type=?", dsd);
+//            else if ( getProvider().getType() != Provider.LOCAL ) {
+//                // Don't log for "any local" because it will call a concrete
+//                // implementation, which si what we want to know about.
+//                FmtLog.info(LOG, "log: %s type=%s", dsd, getProvider().getShortName());
+//            }
             checkInitialized();
             Id dsRef = dsd.getId();
             sync();
             if ( logExists(dsRef) ) {
-                FmtLog.info(LOG, "Create (exists)");
-                // Still not perfect,.
                 PatchLog plog = logs.get(dsRef);
+                FmtLog.debug(LOG, "Connect (%s): %s ",
+                    plog.getPatchStore().getProvider().getShortName(),
+                    dsd);
                 return plog;
                 //throw new DeltaException("Can't create - PatchLog exists");
             }
+
             if ( dataSourceRegistry.containsName(dsd.getName()) ) {
                 DataSource ds = dataSourceRegistry.getByName(dsd.getName());
-                FmtLog.info(LOG, "Create (name exists): "+dsd);
-                return ds.getPatchLog();
+                PatchLog plog = ds.getPatchLog();
+                FmtLog.debug(LOG, "Connect [name exists](%s): %s ",
+                    plog.getPatchStore().getProvider().getShortName(),
+                    dsd);
+
+                return plog;
             }
 
-            FmtLog.info(LOG, "Create (for real)");
-            PatchLog plog =  createPatchLog(dsd);
+            PatchLog plog = createPatchLog(dsd);
             if ( ! logExists(dsRef) ) {
-                FmtLog.info(LOG, "Create (invisible)");
+                FmtLog.debug(LOG, "Create (invisible)");
             }
+
+            FmtLog.debug(LOG, "Create (%s)", plog.getPatchStore().getProvider().getShortName());
             return plog;
         }
     }

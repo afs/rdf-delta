@@ -74,6 +74,16 @@ public class LocalServers {
         return builder.build();
     }
 
+    /** Create a {@link LocalServer} with a mixed local provider {@link PatchStore}. */
+    public static LocalServer createLocal(String directory) {
+        return create(configLocal(directory));
+    }
+
+    /** Create a {@link LocalServer} with a mixed local provider {@link PatchStore}. */
+    public static LocalServer createLocal(Path dirPath) {
+        return createLocal(dirPath.toString());
+    }
+
     /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */
     public static LocalServer createFile(String directory) {
         return create(configFile(directory));
@@ -82,6 +92,16 @@ public class LocalServers {
     /** Create a {@link LocalServer} with a file-based {@link PatchStore}. */
     public static LocalServer createFile(Path dirPath) {
         return createFile(dirPath.toString());
+    }
+
+    /** Create a {@link LocalServer} with a RocksDB-based {@link PatchStore}. */
+    public static LocalServer createRDB(String directory) {
+        return create(configRDB(directory));
+    }
+
+    /** Create a {@link LocalServer} with a RocksDB-based {@link PatchStore}. */
+    public static LocalServer createRDB(Path dirPath) {
+        return createRDB(dirPath.toString());
     }
 
     /** Create a {@link LocalServer} with an in-memory {@link PatchStore}. */
@@ -103,7 +123,7 @@ public class LocalServers {
 //        return LocalServer.create(ps, config);
 //    }
 
-    public static LocalServer createConf(String configFile) {
+    public static LocalServer createFromConf(String configFile) {
         LocalServerConfig config = LocalServerConfig.create()
             .parse(configFile)
             .build();

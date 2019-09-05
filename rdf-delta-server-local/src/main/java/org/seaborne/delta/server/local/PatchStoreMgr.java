@@ -71,7 +71,7 @@ public class PatchStoreMgr {
      * to create the {@code PatchStore}
      */
     public static void register(PatchStoreProvider patchStoreProvider) {
-        Provider provider = patchStoreProvider.getProvider();
+        Provider provider = patchStoreProvider.getType();
         registerShortName(patchStoreProvider.getShortName(), provider);
         providers.put(provider, patchStoreProvider);
     }

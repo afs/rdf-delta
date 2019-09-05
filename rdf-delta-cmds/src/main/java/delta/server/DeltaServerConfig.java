@@ -17,6 +17,7 @@
 
 package delta.server;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -30,9 +31,6 @@ import org.seaborne.delta.server.http.ZkMode;
 
 /**
  * DeltaServer configuration.
- * <p>
- * Once created the setting have been checked and can be
- * assumed to be correct and consistent without further checking.
  */
 public class DeltaServerConfig {
     // Server level.
@@ -97,6 +95,11 @@ public class DeltaServerConfig {
         return create(obj);
     }
 
+    public static DeltaServerConfig read(InputStream input) {
+        JsonObject obj = JSON.parse(input);
+        return create(obj);
+    }
+
     private static void validate(DeltaServerConfig conf) {}
 
     /** Recreate a {@code DeltaServerConfig} from JSON */
@@ -107,9 +110,19 @@ public class DeltaServerConfig {
             if ( x >= 0 )
                 conf.serverPort = x;
         }
+
+        if ( obj.hasKey(fProvider) )
+            conf.provider = Provider.create(JSONX.getStrOrNull(obj, fProvider));
+
+        // Local on-disk file area.
+        if ( obj.hasKey(fFileDirData) )
+            conf.fileBase = JSONX.getStrOrNull(obj, fFileDirData);
+
+        // Custom Jetty server configuration.
         if ( obj.hasKey(fJetty) )
             conf.jettyConf = JSONX.getStrOrNull(obj, fJetty);
 
+        // Zookeeper
         if ( obj.hasKey(fZkConnectionString) )
             conf.zkConnectionString = JSONX.getStrOrNull(obj, fZkConnectionString);
 
@@ -124,12 +137,6 @@ public class DeltaServerConfig {
         if ( obj.hasKey(fZkData) )
             conf.zkData = JSONX.getStrOrNull(obj, fZkData);
 
-        if ( obj.hasKey(fFileDirData) )
-            conf.fileBase = JSONX.getStrOrNull(obj, fFileDirData);
-
-        if ( obj.hasKey(fProvider) )
-            conf.provider = Provider.create(JSONX.getStrOrNull(obj, fProvider));
-
         if ( conf.zkConnectionString != null )
             conf.zkMode = ZkMode.EXTERNAL;
 
@@ -139,7 +146,7 @@ public class DeltaServerConfig {
             conf.zkMode = ZkMode.MEM;
         else if ( conf.zkData != null )
             conf.zkMode = ZkMode.SINGLE;
-
+        // S3
         if ( obj.hasKey(fS3BucketName) )
             conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);
         if ( obj.hasKey(fS3Region) )
@@ -205,6 +212,11 @@ public class DeltaServerConfig {
             try (OutputStream out = Files.newOutputStream(Paths.get(file))) {
                 JSON.write(out, obj);
         }});
+    }
+
+    public static void writeJSON(DeltaServerConfig config, OutputStream out) {
+        JsonObject obj = config.asJSON();
+        JSON.write(out, obj);
     }
 
     @Override

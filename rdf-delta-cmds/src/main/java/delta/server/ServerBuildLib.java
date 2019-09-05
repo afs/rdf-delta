@@ -28,7 +28,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.*;
-import org.seaborne.delta.server.local.patchstores.any.PatchStoreProviderAny;
+import org.seaborne.delta.server.local.patchstores.any.PatchStoreProviderAnyLocal;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
@@ -59,7 +59,8 @@ public /*package*/ class ServerBuildLib {
         return deltaServer;
     }
 
-    private static LocalServerConfig setupLocalServerConfig(DeltaServerConfig deltaServerConfig) {
+    /** {@link DeltaServerConfig} to {@link LocalServerConfig}. */
+    public static LocalServerConfig setupLocalServerConfig(DeltaServerConfig deltaServerConfig) {
         PatchStoreProvider psp;
         LocalServerConfig localServerConfig;
         String providerLabel;
@@ -76,7 +77,7 @@ public /*package*/ class ServerBuildLib {
                 providerLabel = "rdb["+deltaServerConfig.fileBase+"]";
                 break;
             case LOCAL:
-                psp = installProvider(new PatchStoreProviderAny());
+                psp = installProvider(new PatchStoreProviderAnyLocal());
                 localServerConfig = LocalServers.configLocal(deltaServerConfig.fileBase);
                 providerLabel = "local["+deltaServerConfig.fileBase+"]";
                 break;
@@ -101,7 +102,6 @@ public /*package*/ class ServerBuildLib {
         }
         LOG.debug("Setup for provider: "+providerLabel);
 
-        localServerConfig.jettyConf = deltaServerConfig.jettyConf;
         return localServerConfig;
     }
 
@@ -111,7 +111,7 @@ public /*package*/ class ServerBuildLib {
     }
 
     private static PatchStoreProvider installProvider(PatchStoreProvider psp) {
-        if ( ! PatchStoreMgr.isRegistered(psp.getProvider()) )
+        if ( ! PatchStoreMgr.isRegistered(psp.getType()) )
             PatchStoreMgr.register(psp);
         return psp;
     }
@@ -207,9 +207,9 @@ public /*package*/ class ServerBuildLib {
         DeltaLink link = DeltaLinkLocal.connect(server);
 
         DeltaServer deltaServer;
-        if ( localServerConfig.jettyConf != null ) {
-            FmtLog.info(LOG, "Delta Server jetty config=%s", localServerConfig.jettyConf);
-            deltaServer = DeltaServer.create(localServerConfig.jettyConf, link);
+        if ( localServerConfig.getJettyConfigFile() != null ) {
+            FmtLog.info(LOG, "Delta Server jetty config=%s", localServerConfig.getJettyConfigFile());
+            deltaServer = DeltaServer.create(localServerConfig.getJettyConfigFile(), link);
         } else {
             FmtLog.info(LOG, "Delta Server port=%d", port);
             deltaServer = DeltaServer.create(port, link);

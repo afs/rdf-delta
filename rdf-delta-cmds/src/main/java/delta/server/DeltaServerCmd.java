@@ -17,8 +17,7 @@
 
 package delta.server;
 
-import static org.seaborne.delta.server.Provider.FILE;
-import static org.seaborne.delta.server.Provider.UNSET;
+import static org.seaborne.delta.server.Provider.*;
 
 import java.net.BindException;
 import java.nio.file.Files;
@@ -28,6 +27,7 @@ import java.nio.file.Paths;
 import jena.cmd.ArgDecl;
 import jena.cmd.CmdException;
 import jena.cmd.CmdLineArgs;
+import jena.cmd.TerminationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
@@ -59,6 +59,10 @@ public class DeltaServerCmd {
     private static ArgDecl argPort              = new ArgDecl(true, "port");
 
     private static ArgDecl argBase              = new ArgDecl(true,  "base");
+    // Specific choices
+    private static ArgDecl argFile              = new ArgDecl(false, "file");
+    private static ArgDecl argRocks             = new ArgDecl(false, "rocks", "rocksdb", "rocksDB");
+
     private static ArgDecl argMem               = new ArgDecl(false, "mem");
     private static ArgDecl argStore             = new ArgDecl(true, "store", "rdb");
     private static ArgDecl argZk                = new ArgDecl(true, "zk");
@@ -99,15 +103,30 @@ public class DeltaServerCmd {
             } catch(BindException ex) {
                 cmdLineError("Port in use: port=%d", deltaServer.getPort());
             }
+        } catch (TerminationException ex) {
+            System.exit(ex.returnCode);
         } catch (CmdException ex) {
             System.err.println("Error: "+ex.getMessage());
-            System.exit(1);
         }
     }
 
     public static DeltaServer server(String...args) {
         try {
             DeltaServerConfig deltaServerConfig = config(args);
+
+//            if ( false ){
+//                ByteArrayOutputStream out = new ByteArrayOutputStream();
+//                DeltaServerConfig.writeJSON(deltaServerConfig, out);
+//                ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+//                DeltaServerConfig deltaServerConfig2 = DeltaServerConfig.read(in);
+//                boolean b = Objects.equals(deltaServerConfig, deltaServerConfig2);
+//                if ( !b ) {
+//                    System.err.println("Different round-trip configurations: ");
+//                    DeltaServerConfig.writeJSON(deltaServerConfig, System.err);
+//                    DeltaServerConfig.writeJSON(deltaServerConfig2, System.err);
+//                }
+//            }
+
             DeltaServer deltaServer = ServerBuildLib.build(deltaServerConfig);
             return deltaServer;
         }  catch (DeltaConfigException ex) {
@@ -120,6 +139,8 @@ public class DeltaServerCmd {
         try {
             DeltaServerConfig deltaServerConfig = processArgs(args);
             return deltaServerConfig;
+        } catch (TerminationException ex) {
+            throw ex;
         } catch (CmdException ex) {
             cmdLineError(ex.getMessage());
             return null;
@@ -136,6 +157,8 @@ public class DeltaServerCmd {
         cla.add(argJetty);
 
         cla.add(argBase);
+        cla.add(argFile);
+        cla.add(argRocks);
 
         cla.add(argMem);
         cla.add(argStore);
@@ -184,7 +207,7 @@ public class DeltaServerCmd {
                 ,"        --s3endpoint        S3 alternative endpoint e.g. a store that provides the s3 API"
                 );
             System.err.println(msg);
-            return null;
+            throw new TerminationException(0);
         }
 
 //        String configFile = null;
@@ -199,25 +222,26 @@ public class DeltaServerCmd {
         int x = 0 ;
         if ( cla.contains(argBase) ) {
             x++;
-            provider = FILE;
-        }
-        if ( cla.contains(argZk) ) {
-            x++;
-            if ( cla.contains(argS3Bucket) ) {
-                InitZkS3.register();
-                provider = Provider.ZKS3;
-            }
-            else
-                provider = Provider.ZKZK;
-        }
-        if ( cla.contains(argMem) ) {
-            x++;
-            provider = Provider.MEM;
+            provider = LOCAL;
         }
 
         if ( cla.contains(argStore) ) {
             x++;
-            provider = Provider.ROCKS;
+            provider = LOCAL;
+        }
+
+        if ( cla.contains(argZk) ) {
+            x++;
+            if ( cla.contains(argS3Bucket) ) {
+                InitZkS3.register();
+                provider = ZKS3;
+            }
+            else
+                provider = ZKZK;
+        }
+        if ( cla.contains(argMem) ) {
+            x++;
+            provider = MEM;
         }
 
         if ( x < 1 ) {
@@ -228,6 +252,13 @@ public class DeltaServerCmd {
         }
         if ( x > 1 )
             cmdLineError("Exactly one of --mem , --store , --base or --zk is required");
+
+        if ( provider == LOCAL ) {
+            // Force choice of local provider.
+            if ( cla.contains(argFile) ) provider = FILE;
+            if ( cla.contains(argRocks) ) provider = ROCKS;
+        }
+
 
         DeltaServerConfig serverConfig = new DeltaServerConfig();
 
@@ -248,6 +279,8 @@ public class DeltaServerCmd {
         switch(provider) {
             case FILE : {
                 String directory = cla.getValue(argBase);
+                if ( directory == null )
+                    cmdLineError("No such directory given: --base required");
                 Path base = Paths.get(directory).toAbsolutePath();
                 if ( ! Files.exists(base) )
                     cmdLineError("No such directory: %s",base);
@@ -267,7 +300,17 @@ public class DeltaServerCmd {
                 break;
             }
             case LOCAL : {
-                String directory = cla.getValue(argStore);
+                String directory1 = cla.getValue(argBase);
+                String directory2 = cla.getValue(argStore);
+                if ( directory1 != null && directory2 != null ) {
+                    if ( directory1.equals(directory2) )
+                        cmdLineWarning("Both --base and --store given with teh same value. Only --store is needed.");
+                    else
+                        cmdLineError("Both --base=%s and --store=%s given with different values. Only --store is needed.", directory1, directory2);
+                }
+
+                String directory = LibX.firstNonNull(directory1, directory2);
+
                 Path base = Paths.get(directory).toAbsolutePath();
                 if ( ! Files.exists(base) )
                     cmdLineError("No such directory: %s",base);

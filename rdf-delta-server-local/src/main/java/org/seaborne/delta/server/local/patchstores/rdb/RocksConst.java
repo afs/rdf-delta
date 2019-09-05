@@ -22,7 +22,7 @@ import static org.apache.jena.atlas.lib.StrUtils.asUTF8bytes;
 
 public class RocksConst {
 
-    public static final String databaseFilename = "log";
+    public static final String databaseFilename = "rdb";
 
     public static final String CF_VERSION_ID   = "versionToId";
     public static final String CF_ID_ENTRY     = "idToLogEntry";

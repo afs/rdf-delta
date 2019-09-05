@@ -83,18 +83,14 @@ public class PatchStoreAnyLocal extends PatchStore {
     }
 
     private PatchStore choose(DataSourceDescription dsd, Path patchLogDir) {
-
-        //System.out.println("choose: "+dsd+" "+patchLogDir);
-
         if ( ! Files.exists(patchLogDir) ) {
-            System.out.println("choose: "+dsd+" New");
             return patchStoreDefaultNew;
         } else {
-            // Rocks has a "log" directory.
+            // Rocks has a "rdb" directory.
             // See PatchStoreRocks.newPatchLog
             Path dbPath = patchLogDir.resolve(RocksConst.databaseFilename).toAbsolutePath();
             boolean rocks = Files.exists(dbPath);
-            System.out.println("choose: "+dsd+" Rocks="+rocks);
+            //System.out.println("choose: "+dsd+" Rocks="+rocks);
             return rocks ? patchStoreRocks : patchStoreFile;
         }
     }
