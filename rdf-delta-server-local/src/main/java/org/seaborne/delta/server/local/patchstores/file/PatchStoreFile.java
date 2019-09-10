@@ -106,7 +106,6 @@ public class PatchStoreFile extends PatchStore {
         return new PatchStorageFile(logIndexFile.fileStore(), logIndexFile::idToVersion);
     }
 
-
     @Override
     protected void delete(PatchLog patchLog) {
         Id id = patchLog.getDescription().getId();

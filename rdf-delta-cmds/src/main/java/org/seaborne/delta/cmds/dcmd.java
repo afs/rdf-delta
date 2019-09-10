@@ -86,15 +86,11 @@ public class dcmd {
                 cmdExec = "append";
                 break;
 
-            case "mk" :
-                cmdExec = "mklog";
-                break;
-            case "ls" :
-                cmdExec = "list";
-                break;
-            case "rm" :
-                cmdExec = "rmlog";
-                break;
+            case "mk" : cmdExec = "mklog"; break;
+            case "ls" : cmdExec = "list";  break;
+            case "cp" : cmdExec = "cplog"; break;
+            case "mv" : cmdExec = "mvlog"; break;
+            case "rm" : cmdExec = "rmlog"; break;
 
             case "get" :
             case "fetch" :
@@ -122,6 +118,8 @@ public class dcmd {
         // Execute sub-command
         switch (cmdExec) {
             case "mklog":           mklog.main(argsSub); break;
+            case "mvlog":           mvlog.main(argsSub); break;
+            case "cplog":           cplog.main(argsSub); break;
             case "rmlog":           rmlog.main(argsSub); break;
             case "list":            list.main(argsSub); break;
 

@@ -28,11 +28,13 @@ import org.seaborne.patch.RDFPatch;
  */
 public class DeltaLinkCounter implements DeltaLinkListener {
     private LongAdder cNew = new LongAdder();
+    private LongAdder cRename = new LongAdder();
     private LongAdder cRemove = new LongAdder();
     private LongAdder cFetch = new LongAdder();
     private LongAdder cAppend = new LongAdder();
 
     public long countCreated()  { return cNew.longValue(); }
+    public long countRenamed()  { return cRename.longValue(); }
     public long countRemoved()  { return cRemove.longValue(); }
     public long countFetch()    { return cFetch.longValue(); }
     public long countAppend()   { return cAppend.longValue(); }
@@ -40,6 +42,11 @@ public class DeltaLinkCounter implements DeltaLinkListener {
     @Override
     public void newDataSource(Id dsRef, String name) {
         cNew.increment();
+    }
+
+    @Override
+    public void renameDataSource(Id dsRef, String oldName, String newName) {
+        cRename.increment();
     }
 
     @Override

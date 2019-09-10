@@ -302,10 +302,35 @@ public class DeltaLinkHTTP implements DeltaLink {
 
         // Exists?
 
-        String idStr = obj.get(DeltaConst.F_ID).getAsString().value();
-        Id dsRef = Id.fromString(idStr);
+        Id dsRef = idFromJson(obj);
         listeners.forEach(listener->listener.newDataSource(dsRef, name));
         return dsRef;
+    }
+
+    @Override
+    public Id copyDataSource(Id dsRef, String oldName, String newName) {
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
+            b.key(DeltaConst.F_SRC_NAME).value(oldName);
+            b.key(DeltaConst.F_DST_NAME).value(newName);
+        });
+        JsonObject obj = rpc(DeltaConst.OP_COPY_DS, arg);
+        Id dsRef2 = idFromJson(obj);
+        listeners.forEach(listener->listener.copyDataSource(dsRef, oldName, newName));
+        return dsRef2;
+    }
+
+    @Override
+    public Id renameDataSource(Id dsRef, String oldName, String newName) {
+        JsonObject arg = JSONX.buildObject((b) -> {
+            b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
+            b.key(DeltaConst.F_SRC_NAME).value(oldName);
+            b.key(DeltaConst.F_DST_NAME).value(newName);
+        });
+        JsonObject obj = rpc(DeltaConst.OP_RENAME_DS, arg);
+        Id dsRef2 = idFromJson(obj);
+        listeners.forEach(listener->listener.renameDataSource(dsRef, oldName, newName));
+        return dsRef2;
     }
 
     @Override
@@ -368,6 +393,12 @@ public class DeltaLinkHTTP implements DeltaLink {
         if ( ! r.isObject() )
             throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
         return r.getAsObject();
+    }
+
+    private static Id idFromJson(JsonObject obj) {
+        String idStr = obj.get(DeltaConst.F_ID).getAsString().value();
+        Id dsRef = Id.fromString(idStr);
+        return dsRef;
     }
 
     private JsonValue rpcToValue(String opName, JsonObject arg) {

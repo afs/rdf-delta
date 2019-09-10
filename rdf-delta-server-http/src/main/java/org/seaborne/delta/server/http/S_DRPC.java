@@ -108,6 +108,8 @@ public class S_DRPC extends DeltaServlet {
             case OP_DESCR_DS:
             case OP_DESCR_LOG:
             case OP_CREATE_DS:
+            case OP_COPY_DS:
+            case OP_RENAME_DS:
             case OP_REMOVE_DS:
                 break;
             default:
@@ -149,6 +151,12 @@ public class S_DRPC extends DeltaServlet {
                     break ;
                 case OP_CREATE_DS:
                     rslt = createDataSource(action);
+                    break;
+                case OP_COPY_DS:
+                    rslt = copyDataSource(action);
+                    break;
+                case OP_RENAME_DS:
+                    rslt = renameDataSource(action);
                     break;
                 case OP_REMOVE_DS:
                     rslt = removeDataSource(action);
@@ -290,6 +298,24 @@ public class S_DRPC extends DeltaServlet {
         String uri = getFieldAsString(action, F_URI, false);
         Id dsRef = action.dLink.newDataSource(name, uri);
         return JSONX.buildObject(b->b.key(F_ID).value(dsRef.asPlainString()));
+    }
+
+    private JsonValue copyDataSource(DeltaAction action) {
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE);
+        String oldName = getFieldAsString(action, F_SRC_NAME);
+        String newName = getFieldAsString(action, F_DST_NAME);
+        Id dsRef = Id.fromString(dataSourceId);
+        Id dsRef2 = action.dLink.copyDataSource(dsRef, oldName, newName);
+        return JSONX.buildObject(b->b.key(F_ID).value(dsRef2.asPlainString()));
+    }
+
+    private JsonValue renameDataSource(DeltaAction action) {
+        String dataSourceId = getFieldAsString(action, F_DATASOURCE);
+        String oldName = getFieldAsString(action, F_SRC_NAME);
+        String newName = getFieldAsString(action, F_DST_NAME);
+        Id dsRef = Id.fromString(dataSourceId);
+        action.dLink.renameDataSource(dsRef, oldName, newName);
+        return JSONX.buildObject(b->b.key(F_ID).value(dataSourceId));
     }
 
     private JsonValue removeDataSource(DeltaAction action) {

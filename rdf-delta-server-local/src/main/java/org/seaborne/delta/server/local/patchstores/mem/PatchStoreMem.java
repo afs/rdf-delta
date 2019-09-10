@@ -67,4 +67,10 @@ public class PatchStoreMem extends PatchStore {
 
     @Override
     protected void shutdownSub() {}
+
+    @Override
+    protected PatchLog renamePatchLog(PatchLog patchLog, String oldName, String newName) {
+        // No-op - the logs don't know their "location" - it's all in the PatchStore DataSourceRegistry
+        return patchLog;
+    }
 }

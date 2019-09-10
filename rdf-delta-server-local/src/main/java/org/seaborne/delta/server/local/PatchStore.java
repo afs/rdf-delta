@@ -20,13 +20,14 @@ package org.seaborne.delta.server.local;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
@@ -227,9 +228,7 @@ public abstract class PatchStore {
             sync();
             if ( logExists(dsRef) ) {
                 PatchLog plog = logs.get(dsRef);
-                FmtLog.debug(LOG, "Connect (%s): %s ",
-                    plog.getPatchStore().getProvider().getShortName(),
-                    dsd);
+                FmtLog.debug(LOG, "Connect (%s): %s ", plog.getPatchStore().getProvider().getShortName(), dsd);
                 return plog;
                 //throw new DeltaException("Can't create - PatchLog exists");
             }
@@ -252,6 +251,59 @@ public abstract class PatchStore {
             FmtLog.debug(LOG, "Create (%s)", plog.getPatchStore().getProvider().getShortName());
             return plog;
         }
+    }
+
+
+    /*package*/ PatchLog rename(PatchLog patchLog, String oldName, String newName) {
+        // This is "overlocking" - we're inside the LocalServer lock.
+        // But this operation is not performance critical and not commonly used.
+        // Maybe in the future there will be calls from something other that LocalServer.
+        synchronized(lock) {
+            if ( ! dataSourceRegistry.containsName(oldName) ) {
+                // This may happen when operations are retried.
+                FmtLog.warn(LOG, "Rename(%s, %s): Patch log of name %s not found", oldName, newName, oldName);
+                throw new DeltaException("Can't rename log - PatchLog '"+oldName+"' not registered");
+            }
+            if ( dataSourceRegistry.containsName(newName) ) {
+                // This may happen when operations are retried.
+                FmtLog.warn(LOG, "Rename(%s, %s): Patch log of name %s already exists", oldName, newName, newName);
+                throw new DeltaException("Can't rename log - PatchLog new name '"+oldName+"' exists");
+            }
+            PatchLog newPatchLog = renamePatchLog(patchLog, oldName, newName);
+            // registry changes done in LocalServer.renameDataSource
+            return newPatchLog;
+        }
+    }
+
+    // The xsd:dateTime regex (from XMLSchema 1.1, colon become any char ".", reformated)
+    private static String xsdRegex =
+            "-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"+
+            "T(([01][0-9]|2[0-3]).[0-5][0-9].[0-5][0-9](\\.[0-9]+)?|(24.00.00(\\.0+)?))"+
+            "(Z|(\\+|-)((0[0-9]|1[0-3]).[0-5][0-9]|14.00))?";
+    private static Pattern pattern = Pattern.compile("/[^/]*(_"+xsdRegex+")$");
+
+    /** Basic copy version */
+    protected PatchLog copyPatchLog(PatchLog patchLog, String oldName, String newName) {
+        Id dsRef2 = Id.create();
+        String uri = patchLog.getDescription().getUri();
+        String uriBase = uri;
+        Matcher matcher = pattern.matcher(uriBase);
+        // Trim a previous timestamp URI
+        if ( matcher.find() )
+            uriBase = uriBase.substring(0, matcher.start(1));
+        String now = DateTimeUtils.nowAsXSDDateTimeString().replace(':','_');
+        String uri2 = uriBase+"_"+now;
+        DataSourceDescription dsd2 = new DataSourceDescription(dsRef2, newName, uri2);
+        PatchLog patchLog2 = newPatchLog(dsd2);
+        PatchLogInfo info = patchLog.getInfo();
+        patchLog.range(info.getMinVersion(), info.getMaxVersion()).forEach(patchLog2::append);
+        return patchLog2;
+    }
+
+    protected PatchLog renamePatchLog(PatchLog patchLog, String oldName, String newName) {
+        PatchLog patchLog2 = copyPatchLog(patchLog, oldName, newName);
+        delete(patchLog);
+        return patchLog2;
     }
 
     /** Create and properly register a new {@link PatchLog}.

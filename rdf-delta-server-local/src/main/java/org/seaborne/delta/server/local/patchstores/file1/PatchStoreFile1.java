@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
@@ -89,6 +90,16 @@ public class PatchStoreFile1 extends PatchStore {
     @Override
     public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         throw new InternalErrorException("PatchStoreProviderFile.newPatchStorage");
+    }
+
+    @Override
+    protected PatchLog copyPatchLog(PatchLog patchLog, String oldName, String newName) {
+        throw new DeltaConfigException("copy : Original file Patch Store : Not supported");
+    }
+
+    @Override
+    protected PatchLog renamePatchLog(PatchLog patchLog, String oldName, String newName) {
+        throw new DeltaConfigException("rename : Original file Patch Store : Not supported");
     }
 
     @Override

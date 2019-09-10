@@ -108,6 +108,7 @@ public class PatchStoreAnyLocal extends PatchStore {
 
     @Override
     protected void delete(PatchLog patchLog) {
+        // This should have gone to the concrete file/rocks PatchStore
         throw new DeltaException("PatchStoreAnyLocal.delete called");
     }
 

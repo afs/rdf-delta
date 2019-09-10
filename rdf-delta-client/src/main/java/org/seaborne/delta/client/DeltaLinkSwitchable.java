@@ -78,10 +78,8 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
             exceptionSwitching(ex);
             switchoverCurrentLink();
             return action.get();
-        }
-
-        catch (RuntimeException ex) {
-            // Althing else.
+        } catch (RuntimeException ex) {
+            // Anything else.
             ex.printStackTrace();
             exceptionSwitching(ex);
             switchoverCurrentLink();

@@ -22,6 +22,7 @@ import static org.seaborne.delta.DeltaOps.verString;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors ;
 
@@ -71,15 +72,13 @@ public class LocalServer {
     private Set<Id> disabledDatasources = new HashSet<>();
     private Object serverLock = new Object();
 
-    private final PatchStore patchStore;
-
-//    /** Create a {@code LocalServer} using the given configuration file. */
-//    public static LocalServer create(String confFile) {
-//        LocalServerConfig conf = LocalServerConfig.create()
-//            .parse(confFile)
-//            .build();
-//        return create(conf);
-//    }
+    // Server patch store. One LocalServer, one PatchStore.
+    // This patch store needs to cope with any found (e.g. RDB, FILE).
+    // This performs the "search for logs" on startup and is used to create new logs if
+    // there is no other indication.
+    // However, a patch log from the DataSourceRegistry may be a different patch store,
+    // for example, if a choice when created has been made.
+    private final PatchStore serverPatchStore;
 
     /** Create a {@code LocalServer} based on a configuration. */
     public static LocalServer create(LocalServerConfig conf) {
@@ -155,7 +154,7 @@ public class LocalServer {
     private LocalServer(LocalServerConfig config, PatchStore patchStore, DataSourceRegistry dataSourceRegistry) {
         this.serverConfig = config;
         this.dataSourceRegistry = dataSourceRegistry;
-        this.patchStore = patchStore;
+        this.serverPatchStore = patchStore;
         // For multiple localservers in one process.
         this.label = "ls-"+instancecounter.incrementAndGet();
     }
@@ -182,14 +181,14 @@ public class LocalServer {
     }
 
     public LocalServer start() {
-        patchStore.serverStarts();
+        serverPatchStore.serverStarts();
         active.set(true);
         return this;
     }
 
     public void shutdown() {
         active.set(false);
-        patchStore.shutdown();
+        serverPatchStore.shutdown();
         LocalServer.release(this);
     }
 
@@ -231,11 +230,11 @@ public class LocalServer {
     }
 
     private void syncPatchStore() {
-        patchStore.sync();
+        serverPatchStore.sync();
     }
 
     public PatchStore getPatchStore() {
-        return patchStore;
+        return serverPatchStore;
     }
 
     public DataSource getDataSource(Id dsRef) {
@@ -243,24 +242,24 @@ public class LocalServer {
         devlog(LOG, "getDataSource(%s)", dsRef);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataSourceRegistry.get(dsRef));
-        return dataSource(ds);
+        return dataSourceActive(ds);
     }
 
     public DataSource getDataSourceByName(String name) {
         devlog(LOG, "getDataSourceByName(%s)", name);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataSourceRegistry.getByName(name));
-        return dataSource(ds);
+        return dataSourceActive(ds);
     }
 
     public DataSource getDataSourceByURI(String uri) {
         devlog(LOG, "getDataSourceByURI(%s)", uri);
         checkActive();
         DataSource ds = actionSyncPatchStore(()->dataSourceRegistry.getByURI(uri));
-        return dataSource(ds);
+        return dataSourceActive(ds);
     }
 
-    private DataSource dataSource(DataSource ds) {
+    private DataSource dataSourceActive(DataSource ds) {
         if ( ds == null )
             return null;
         if ( disabledDatasources.contains(ds.getId()) )
@@ -313,7 +312,7 @@ public class LocalServer {
      * up manually.
      */
     public Id createDataSource(String name, String baseURI) {
-        return createDataSource(patchStore, name, baseURI);
+        return createDataSource(serverPatchStore, name, baseURI);
     }
 
     private static AtomicInteger createCounter = new AtomicInteger(0);
@@ -371,13 +370,60 @@ public class LocalServer {
         }
     }
 
-   /** Remove from active use.*/
+    public Id copyDataSource(Id dsRef, String oldName, String newName) {
+        return op2(dsRef, oldName, newName, patchStore -> {
+            try {
+                FmtLog.info(Delta.DELTA_LOG, "Copy: %s : %s -> %s", dsRef, oldName, newName);
+
+                DataSource dataSource = getDataSourceByName(oldName);
+                PatchLog srcPatchLog = dataSource.getPatchLog();
+                PatchLog newPatchLog = serverPatchStore.copyPatchLog(srcPatchLog, oldName, newName);
+                return newPatchLog.getLogId();
+            } catch (DeltaException ex) {
+                throw new DeltaBadRequestException("Exception during copy: "+ex.getMessage());
+            }
+        });
+    }
+
+    public Id renameDataSource(Id dsRef, String oldName, String newName) {
+        return op2(dsRef, oldName, newName, datasource -> {
+            try {
+                FmtLog.info(Delta.DELTA_LOG, "Rename: %s : %s -> %s", dsRef, oldName, newName);
+                PatchLog newPatchLog = datasource.getPatchStore().rename(datasource.getPatchLog(), oldName, newName);
+                // Reset registry
+                DataSourceDescription dsd = new DataSourceDescription(dsRef, newName, datasource.getURI());
+                DataSource newDatasource = new DataSource(dsd, newPatchLog);
+                dataSourceRegistry.remove(dsRef);
+                dataSourceRegistry.add(newDatasource);
+                return dsRef;
+            } catch (DeltaException ex) {
+                throw new DeltaBadRequestException("Exception during rename: "+ex.getMessage());
+            }
+        });
+    }
+
+    public <X> X op2(Id dsRef, String srcName, String dstName, Function<DataSource, X> action) {
+        synchronized(serverLock) {
+            DataSource datasource = getDataSource(dsRef);
+            if ( datasource == null )
+                throw new DeltaBadRequestException("DataSource with name '"+srcName+"' does not exist");
+            if ( ! Objects.equals(datasource.getName(), srcName) )
+                throw new DeltaBadRequestException("DataSource with name '"+srcName+"' currently named '"+datasource.getName()+"'");
+            DataSource datasource2 = getDataSourceByName(dstName);
+            if ( datasource2 != null )
+                throw new DeltaBadRequestException("DataSource with name '"+dstName+"' already exists");
+            X x = action.apply(datasource);
+            return x;
+        }
+    }
+
+    /** Remove from active use.*/
     public void removeDataSource(Id dsRef) {
         checkActive();
         removeDataSource$(dsRef);
     }
 
-private void removeDataSource$(Id dsRef) {
+    private void removeDataSource$(Id dsRef) {
         DataSource datasource1 = getDataSource(dsRef);
         if ( datasource1 == null )
             return;

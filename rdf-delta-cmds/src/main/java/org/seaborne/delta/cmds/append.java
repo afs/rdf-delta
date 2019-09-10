@@ -40,7 +40,7 @@ import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
 
-/** Create a new log */
+/** Append a new patch file to a log */
 public class append extends DeltaCmd {
 
     public static void main(String... args) {

@@ -63,7 +63,7 @@ public class TestLocalServerCmdSetup {
         assertEquals(Provider.FILE, server.getPatchStore().getProvider().getType());
     }
 
-    /** The essential steps from DeltaServerCmd/ServerBuildLib to build a local server */
+    /** The essential steps from DeltaServerCmd/ServerBuildLib to build a {@link LocalServer} */
     private LocalServer buildLocalServer(String[] args) {
         DeltaServerConfig deltaServerConfig = DeltaServerCmd.config(args);
         LocalServerConfig localServerConfig = ServerBuildLib.setupLocalServerConfig(deltaServerConfig);

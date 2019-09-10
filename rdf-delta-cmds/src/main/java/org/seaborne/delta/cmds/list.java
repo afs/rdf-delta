@@ -43,22 +43,42 @@ public class list extends DeltaCmd {
 
     @Override
     protected void execCmd() {
+
+        // "Op1"
+
+
+
         if ( dataSourceName != null ) {
             execOneName(dataSourceName);
+            return;
         }
-        else if ( super.dataSourceURI != null ) {}
-        else {
-        execList();
+        if ( dataSourceURI != null ) {
+            execOneURI(dataSourceURI);
+            return;
         }
+
+        if ( positionals.isEmpty() ) {
+            execList();
+            return;
+        }
+        positionals.forEach(this::execOneName);
     }
 
     private void execOneName(String name) {
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(name);
+        if ( dsd == null ) {
+            System.out.printf("Not found: %s\n", name);
+            return;
+        }
         detailsByDSD(dsd);
     }
 
     private void execOneURI(String uriStr) {
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI(uriStr);
+        if ( dsd == null ) {
+            System.out.printf("Not found: <%s>\n", uriStr);
+            return;
+        }
         detailsByDSD(dsd);
     }
 

@@ -51,6 +51,8 @@ public class DeltaConst {
     public static final String OP_DESCR_LOG      = "describe_log";
     public static final String OP_LIST_LOG_INFO  = "list_log_info";
     public static final String OP_CREATE_DS      = "create_datasource";
+    public static final String OP_COPY_DS        = "copy_datasource";
+    public static final String OP_RENAME_DS      = "rename_datasource";
     public static final String OP_REMOVE_DS      = "remove_datasource";
 
     // JSON field names, in RPC and configuration files.
@@ -60,6 +62,9 @@ public class DeltaConst {
     public static final String F_STORAGE       = "storage";
     public static final String F_CLIENT        = "client";
     public static final String F_TOKEN         = "token";
+    // Two arg operations.
+    public static final String F_SRC_NAME      = "src";
+    public static final String F_DST_NAME      = "dst";
     // For tracking.
     public static final String F_OP_ID         = "opid";
 

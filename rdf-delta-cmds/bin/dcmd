@@ -55,7 +55,7 @@ DELTA_CP="$D:$DELTA_CP"
 ## fi
 
 function usage() {
-    echo "Commands: server, ls, mk, rm, list, get, add, parse, path, r2p, p2r, fuseki" 1>&2
+    echo "Commands: server, ls, mk, mv, rm, list, get, add, parse, path, r2p, p2r, fuseki" 1>&2
     ##echo "Class path: $DELTA_CP"
     exit
 }

@@ -21,17 +21,13 @@ import static org.apache.jena.atlas.lib.ListUtils.toList;
 import static org.seaborne.delta.Id.str;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import org.apache.jena.atlas.logging.FmtLog;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaNotFoundException;
-import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.Version;
+import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.delta.link.DeltaNotConnectedException;
@@ -67,17 +63,6 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
-    public Id newDataSource(String name, String baseURI) {
-        checkLink();
-        if ( !DeltaOps.isValidName(name) )
-            throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
-
-        Id dsRef = localServer.createDataSource(name, baseURI);
-        event(listener->listener.newDataSource(dsRef, name));
-        return dsRef;
-    }
-
-    @Override
     public void start() {
         localServer.start();
         localServer.logDetails();
@@ -100,6 +85,50 @@ public class DeltaLinkLocal implements DeltaLink {
     private void checkLink() {
         if ( !linkOpen )
             throw new DeltaNotConnectedException("Not connected");
+    }
+
+    @Override
+    public Id newDataSource(String name, String baseURI) {
+        checkLink();
+        if ( !DeltaOps.isValidName(name) )
+            throw new IllegalArgumentException("Invalid data source name: '" + name + "'");
+
+        Id dsRef = localServer.createDataSource(name, baseURI);
+        event(listener->listener.newDataSource(dsRef, name));
+        return dsRef;
+    }
+
+    @Override
+    public Id copyDataSource(Id dsRef, String srcName, String dstName) {
+        checkLink();
+        Objects.requireNonNull(dsRef, "dsRef");
+        Objects.requireNonNull(srcName, "srcName");
+        Objects.requireNonNull(dstName, "dstName");
+        if ( !DeltaOps.isValidName(srcName) )
+            throw new IllegalArgumentException("Invalid data source name : '" + srcName + "'");
+        if ( !DeltaOps.isValidName(dstName) )
+            throw new IllegalArgumentException("Invalid data source name : '" + dstName + "'");
+        DataSource dSrc = localServer.getDataSource(dsRef);
+        Id dsRef2 = localServer.copyDataSource(dsRef, srcName, dstName);
+        event(listener->listener.copyDataSource(dsRef, srcName, dstName));
+        return dsRef2;
+    }
+
+    @Override
+    public Id renameDataSource(Id dsRef, String oldName, String newName) {
+        checkLink();
+        Objects.requireNonNull(dsRef, "dsRef");
+        Objects.requireNonNull(oldName, "oldName");
+        Objects.requireNonNull(newName, "newName");
+        if ( !DeltaOps.isValidName(oldName) )
+            throw new IllegalArgumentException("Invalid data source name : '" + oldName + "'");
+        if ( !DeltaOps.isValidName(newName) )
+            throw new IllegalArgumentException("Invalid data source name : '" + newName + "'");
+        DataSource dSrc = localServer.getDataSource(dsRef);
+
+        localServer.renameDataSource(dsRef, oldName, newName);
+        event(listener->listener.renameDataSource(dsRef, oldName, newName));
+        return dsRef;
     }
 
     @Override

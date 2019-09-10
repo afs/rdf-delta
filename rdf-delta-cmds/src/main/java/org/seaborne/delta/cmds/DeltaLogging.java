@@ -58,18 +58,6 @@ public class DeltaLogging {
         if ( System.getProperty("log4j.configurationFile") != null )
             return;
 
-        if ( withWarnings ) {
-            // Check for attempts at JUL and log4j1 setup.
-            if ( FileOps.exists("logging.properties") ) {
-                System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
-                System.err.println("  Found 'logging.properties' (for java.util.logging) - ignored");
-            }
-
-            if ( FileOps.exists("log4j.properties") ) {
-                System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
-                System.err.println("  Found 'log4j.properties' (for log4j1) - ignored");
-            }
-        }
         // See https://logging.apache.org/log4j/2.0/manual/configuration.html
         // Modify so that just the presence of a file of the right name will configure logging.
         // This helps for sealed jars (i.e. "java -jar").
@@ -80,6 +68,19 @@ public class DeltaLogging {
                 // Let Log4j2 initialize normally.
                 System.setProperty("log4j.configurationFile", fn);
                 return;
+            }
+        }
+
+        if ( withWarnings ) {
+            // Check for attempts at JUL and log4j1 setup.
+            if ( FileOps.exists("logging.properties") ) {
+                System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
+                System.err.println("  Found 'logging.properties' (for java.util.logging) - ignored");
+            }
+
+            if ( FileOps.exists("log4j.properties") ) {
+                System.err.println("RDF Delta 0.7.0 and later uses log4j2 for logging");
+                System.err.println("  Found 'log4j.properties' (for log4j1) - ignored");
             }
         }
 

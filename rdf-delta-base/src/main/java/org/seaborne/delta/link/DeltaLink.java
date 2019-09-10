@@ -43,6 +43,25 @@ public interface DeltaLink {
      */
     public Id newDataSource(String name, String uri);
 
+    /** Copy patch log.
+     * <p>
+     * The new log has the given new name, and URI modified from the old patch log.
+     * <p>
+     * Optional operation - may not be supported, or may not, be supported in all cases
+     * (e.g. a server may only allow rename within the same storage provider).
+     */
+    public Id copyDataSource(Id dsRef, String srcName, String dstName);
+
+    /** Change the short name for a patch log.
+     * <p>
+     * The {@code uri} and {@code Id} of the data source is not changed,
+     * only the short name.
+     * <p>
+     * Optional operation - may not be supported, or may not, be supported in all cases
+     * (e.g. a server may only allow rename within the same storage provider).
+     */
+    public Id renameDataSource(Id dsRef, String oldName, String newName);
+
     /** Make a dataset unavailable.
      *  Actual deleting of resources depends on the implementation.
      *  (A server will tend not to really delete a persistent database.)
@@ -161,6 +180,4 @@ public interface DeltaLink {
 
     /** Shutdown the link. */
     public void close();
-
-
 }

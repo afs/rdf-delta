@@ -58,6 +58,16 @@ public class DeltaLinkWrapper implements DeltaLink {
     }
 
     @Override
+    public Id copyDataSource(Id id, String oldName, String newName) {
+        return execRtn(()->get().copyDataSource(id, oldName, newName));
+    }
+
+    @Override
+    public Id renameDataSource(Id id, String oldName, String newName) {
+        return execRtn(()->get().renameDataSource(id, oldName, newName));
+    }
+
+    @Override
     public List<Id> listDatasets() {
         return execRtn(()->get().listDatasets());
     }

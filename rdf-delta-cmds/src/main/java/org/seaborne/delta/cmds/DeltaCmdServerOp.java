@@ -58,7 +58,7 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
         List<String> positionals = super.getPositional();
 
         if ( names.size() + uris.size() + positionals.size() > 1 )
-            throw new CmdException("Multiple logs specificed: use oen of NAME or '--log=NAME' or '--uri=URI'");
+            throw new CmdException("Multiple logs specificed: use one of NAME or '--log=NAME' or '--uri=URI'");
 
         // Only one of these will be non-empty, and it will have one item.
         names.forEach(this::checkCmdName);

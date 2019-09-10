@@ -53,6 +53,7 @@ public class DataSourceRegistry extends Registry<Id, DataSource> {
     @Override
     public void put(Id key, DataSource ds) {
         if ( LOG.isDebugEnabled() ) LOG.debug("Register datasource: "+key );
+        remove(key);
         super.put(key, ds) ;
         if ( ds.getURI() != null )
             indexByURI.put(ds.getURI(), ds);
