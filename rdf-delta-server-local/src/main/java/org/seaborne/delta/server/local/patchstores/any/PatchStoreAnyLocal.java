@@ -28,7 +28,6 @@ import java.util.Objects;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.*;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
