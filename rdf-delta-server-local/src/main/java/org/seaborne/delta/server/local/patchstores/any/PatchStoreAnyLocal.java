@@ -18,21 +18,26 @@
 
 package org.seaborne.delta.server.local.patchstores.any;
 
+import static org.seaborne.delta.DeltaConst.F_LOG_TYPE;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
+import org.apache.jena.atlas.json.JSON;
+import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.seaborne.delta.*;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.server.local.patchstores.FileNames;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.file.PatchStoreFile;
 import org.seaborne.delta.server.local.patchstores.filestore.FileArea;
+import org.seaborne.delta.server.local.patchstores.mem.PatchStoreMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
 import org.seaborne.delta.server.local.patchstores.rdb.RocksConst;
 
@@ -46,6 +51,8 @@ public class PatchStoreAnyLocal extends PatchStore {
 
     private final PatchStoreFile   patchStoreFile;
     private final PatchStoreRocks  patchStoreRocks;
+    // Hidden - or the source.cfg type="mem" case.
+    private final PatchStoreMem    patchStoreMem;
     private final PatchStore       patchStoreDefaultNew;
 
     private final Path patchLogDirectory;
@@ -56,6 +63,8 @@ public class PatchStoreAnyLocal extends PatchStore {
         this.patchLogDirectory = Paths.get(patchLogDirectory);
         patchStoreFile = new PatchStoreFile(patchLogDirectory, PatchStoreMgr.getPatchStoreProvider(Provider.FILE));
         patchStoreRocks = new PatchStoreRocks(patchLogDirectory, PatchStoreMgr.getPatchStoreProvider(Provider.ROCKS));
+        patchStoreMem = new PatchStoreMem(provider);
+
         patchStoreDefaultNew = patchStoreRocks;
     }
 
@@ -79,19 +88,47 @@ public class PatchStoreAnyLocal extends PatchStore {
         Id id = dsd.getId();
         Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
         PatchStore patchStore = choose(dsd, fileStoreDir);
+        if ( patchStore == null )
+            return null;
         return patchStore.createLog(dsd);
     }
 
     private PatchStore choose(DataSourceDescription dsd, Path patchLogDir) {
-        if ( ! Files.exists(patchLogDir) ) {
+        //Look in source.cfg.
+        if ( ! Files.exists(patchLogDir) )
             return patchStoreDefaultNew;
-        } else {
-            // Rocks has a "rdb" directory.
-            // See PatchStoreRocks.newPatchLog
+        Path sourceCfgPath = patchLogDir.resolve(FileNames.DS_CONFIG);
+        if ( ! Files.exists(sourceCfgPath) ) {
+            // Directory, no source.cfg.
+            return patchStoreDefaultNew;
+        }
+
+        try {
+            //c.f. LocalServerConfig.
+            JsonObject obj = JSON.read(sourceCfgPath.toString());
+            DataSourceDescription dsdCfg = DataSourceDescription.fromJson(obj);
+            String logTypeName = obj.get(F_LOG_TYPE).getAsString().value();
+            if ( logTypeName != null ) {
+                Provider provider = DPS.providerByName(logTypeName);
+                if ( provider == null )
+                    throw new DeltaConfigException("Unknown log type: "+logTypeName);
+                switch(provider) {
+                    case FILE :  return patchStoreFile;
+                    case MEM :   return patchStoreMem;
+                    case ROCKS : return patchStoreRocks;
+                    case LOCAL :
+                        throw new DeltaException(dsdCfg.getName()+":"+FileNames.DS_CONFIG+" : log_type = local");
+                    default:
+                        throw new DeltaException(dsdCfg.getName()+":"+FileNames.DS_CONFIG+" : log_type not for a local patch store");
+                }
+            }
             Path dbPath = patchLogDir.resolve(RocksConst.databaseFilename).toAbsolutePath();
             boolean rocks = Files.exists(dbPath);
-            //System.out.println("choose: "+dsd+" Rocks="+rocks);
-            return rocks ? patchStoreRocks : patchStoreFile;
+            if ( rocks )
+                return patchStoreRocks;
+            return patchStoreDefaultNew;
+        } catch (Exception ex) {
+            throw new DeltaException("Exception while reading log configuration: "+dsd.getName(), ex);
         }
     }
 

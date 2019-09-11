@@ -155,7 +155,7 @@ public class LocalServer {
         this.serverConfig = config;
         this.dataSourceRegistry = dataSourceRegistry;
         this.serverPatchStore = patchStore;
-        // For multiple localservers in one process.
+        // For multiple local servers in one process.
         this.label = "ls-"+instancecounter.incrementAndGet();
     }
 

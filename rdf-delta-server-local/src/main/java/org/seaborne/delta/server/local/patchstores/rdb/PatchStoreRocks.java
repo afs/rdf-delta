@@ -42,8 +42,8 @@ public class PatchStoreRocks extends PatchStore {
      *    delta.cfg
      *    / NAME
      *       / source.cfg
-     *       / database /
-     *
+     *       / logs / Rocks database
+     *       / disabled
      *   RocksDB: index:
      *     (version, id)
      *     (id, PatchInfo)  ?? for PatchLogIndex.getPatchInfo(Id)
@@ -85,11 +85,8 @@ public class PatchStoreRocks extends PatchStore {
         Id id = dsd.getId();
         logIndexes.computeIfAbsent(id, x->{
             Path fileStoreDir = patchLogDirectory.resolve(dsd.getName());
-            if ( ! Files.exists(fileStoreDir) ) {
+            if ( ! Files.exists(fileStoreDir) )
                 FileArea.setupDataSourceByFile(patchLogDirectory, this, dsd);
-//                try { Files.createDirectory(fileStoreDir); }
-//                catch (IOException ex) { throw IOX.exception(ex); }
-            }
             Path dbPath = fileStoreDir.resolve(RocksConst.databaseFilename).toAbsolutePath();
             RocksDatabase db = new RocksDatabase(dbPath);
             LogIndexRocks idx = new LogIndexRocks(db);

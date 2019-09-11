@@ -54,7 +54,7 @@ public class FileArea {
      * and deal with {@code log_type}.
      */
     public static List<DataSourceDescription> scanForLogs(Path location) {
-        // PatchStore's that rely on the scan of local directories and checking the "log_type" field.
+        // PatchStore's that rely on the scan of local directories
         Pair<List<Path>, List<Path>> pair = scanDirectory(location);
         List<Path> dataSourcePaths = pair.getLeft();
         List<Path> disabledDataSources = pair.getRight();
@@ -69,11 +69,9 @@ public class FileArea {
                     String dsName = p.getFileName().toString();
                     // read config file.
                     JsonObject sourceObj = JSON.read(p.resolve(FileNames.DS_CONFIG).toString());
-
                     DataSourceDescription dsd = DataSourceDescription.fromJson(sourceObj);
                     if ( ! Objects.equals(dsName, dsd.getName()) )
                         throw new DeltaConfigException("Names do not match: directory="+dsName+", dsd="+dsd);
-
                     return dsd;
                 })
             .filter(Objects::nonNull)
@@ -83,14 +81,11 @@ public class FileArea {
 
     /**
      * Scan a directory for DataSource areas.
-     * These must have a file called source.cfg.
+     * May not be formatted properly.
      */
     private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Path directory) {
         try {
             List<Path> directoryEntries = ListUtils.toList( Files.list(directory).filter(p->Files.isDirectory(p)).sorted() );
-//            directoryEntries.stream()
-//                .filter(LocalServer::isFormattedDataSource)
-//                .collect(Collectors.toList());
             List<Path> enabled = directoryEntries.stream()
                 .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());
@@ -177,9 +172,6 @@ public class FileArea {
 
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
-//        if ( ! DPS.pspFile.equals(patchStore.getProvider().getShortName()) )
-//            // Not file - explicitly set the provider.
-        // Now always put it in.
         obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
         LOG.info(JSON.toStringFlat(obj));
         try (OutputStream out = Files.newOutputStream(sourcePath.resolve(FileNames.DS_CONFIG))) {

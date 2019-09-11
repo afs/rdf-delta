@@ -216,13 +216,6 @@ public abstract class PatchStore {
     /** Return a new {@link PatchLog}, which must not already exist. */
     public PatchLog createLog(DataSourceDescription dsd) {
         synchronized(lock) {
-//            if ( getProvider() == null )
-//                FmtLog.info(LOG, "log: %s type=?", dsd);
-//            else if ( getProvider().getType() != Provider.LOCAL ) {
-//                // Don't log for "any local" because it will call a concrete
-//                // implementation, which si what we want to know about.
-//                FmtLog.info(LOG, "log: %s type=%s", dsd, getProvider().getShortName());
-//            }
             checkInitialized();
             Id dsRef = dsd.getId();
             sync();
