@@ -41,9 +41,9 @@ import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger ;
 
 public class DRPC {
-    static private Logger LOG = Delta.DELTA_RPC_LOG ; 
+    static private Logger LOG = Delta.DELTA_RPC_LOG ;
     static AtomicLong counter = new AtomicLong(0);
-    
+
     /** Send a JSON argument to a URL+name by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, String opName, JsonValue arg) {
         JsonObject a = JSONX.buildObject((b)->{
@@ -55,33 +55,33 @@ public class DRPC {
             }) ;
         return rpc(url, a) ;
     }
-    
+
     /** Send a JSON object to a URL by POST and received a JSON object in return. */
     public static JsonValue rpc(String url, JsonObject object) {
         Objects.requireNonNull(url, "DRPC.rpc: Arg1 URL is null") ;
         Objects.requireNonNull(object, "DRPC.rpc: Arg2 JSON object is null") ;
 
         if ( ! object.hasKey(F_OP) )
-            throw new DeltaException() ; 
-        
+            throw new DeltaException() ;
+
         String argStr = JSON.toString(object) ;
-        try (TypedInputStream x = 
+        try (TypedInputStream x =
                  HttpOp.execHttpPostStream(url, WebContent.contentTypeJSON, argStr, WebContent.contentTypeJSON)
             ) {
             if ( x == null )
                 throw new JsonException("No response") ;
-            
+
             if ( true ) {
                 try {
                     String s = IO.readWholeFileAsUTF8(x) ;
                     return JSON.parseAny(s) ;
                 } catch (IOException ex) { throw IOX.exception(ex); }
             }
-            else 
+            else
                 return JSON.parseAny(x) ;
         } catch (HttpException ex) {
-            if ( HttpSC.BAD_REQUEST_400 == ex.getResponseCode() ) {
-                throw new DeltaBadRequestException(ex.getMessage()); 
+            if ( HttpSC.BAD_REQUEST_400 == ex.getStatusCode() ) {
+                throw new DeltaBadRequestException(ex.getMessage());
             }
             throw ex;
         }

@@ -20,6 +20,7 @@ package org.seaborne.delta.systemtest;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.jena.atlas.lib.ThreadLib.async;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -36,7 +37,6 @@ import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.dboe.migrate.L;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.zookeeper.server.quorum.QuorumPeerMain;
@@ -197,11 +197,11 @@ public class Matrix {
         //ZkS.runZookeeperServer("./../zk/single/zoo.cfg");
 
         //System.out.println("Server1 ...");
-        L.async(()->QuorumPeerMain.main(args1));
+        async(()->QuorumPeerMain.main(args1));
         //System.out.println("Server2 ...");
-        L.async(()->QuorumPeerMain.main(args2));
+        async(()->QuorumPeerMain.main(args2));
         //System.out.println("Server3 ...");
-        L.async(()->QuorumPeerMain.main(args3));
+        async(()->QuorumPeerMain.main(args3));
         return connectionString;
     }
 
@@ -212,7 +212,7 @@ public class Matrix {
         if ( clean )
             FileOps.clearDirectory("./../zk/single/zk-data/version-2");
         String [] args1 = {"./../zk/single/zoo.cfg"};
-        L.async(()->QuorumPeerMain.main(args1));
+        async(()->QuorumPeerMain.main(args1));
         return connectionString;
     }
 

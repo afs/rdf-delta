@@ -53,7 +53,6 @@ import org.slf4j.Logger;
  * Implemented as a packaging of Jetty with the necessary servlets for Delta.
  */
 
-// XXX Complete builder.
 public /*package*/ class PatchLogServer {
     private static Logger LOG = Delta.DELTA_SERVER_LOG;
     private final boolean loopback = false;

@@ -221,7 +221,7 @@ public class DeltaLinkHTTP implements DeltaLink {
             return patch;
         }
         catch ( HttpException ex) {
-            if ( ex.getResponseCode() == HttpSC.NOT_FOUND_404 ) {
+            if ( ex.getStatusCode() == HttpSC.NOT_FOUND_404 ) {
                 return null ; //throw new DeltaNotFoundException(ex.getMessage());
             }
             throw ex;

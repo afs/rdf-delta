@@ -86,14 +86,12 @@ public class Zone {
     private static Map<Location, Zone> zones         = new ConcurrentHashMap<>();
 
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
-    // XXX Rename
     public static Zone connect(String area) {
         Location location = (area == null) ? Location.mem() : Location.create(area);
         return connect(location);
     }
 
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
-    // XXX Rename
     public static Zone connect(Location area) {
         synchronized(zones) {
             if ( zones.containsKey(area) )

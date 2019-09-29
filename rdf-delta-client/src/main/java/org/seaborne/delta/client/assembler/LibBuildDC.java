@@ -52,7 +52,7 @@ public class LibBuildDC {
         try { deltaLink.ping(); }
         catch (HttpException ex) {
             // rc < 0 : failed to connect - ignore?
-            if ( ex.getResponseCode() > 0 )
+            if ( ex.getStatusCode() > 0 )
                 throw ex;
         }
 

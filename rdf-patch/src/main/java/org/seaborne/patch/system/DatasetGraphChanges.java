@@ -151,8 +151,6 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     }
 
     // In case an implementation has one "begin" calling another.
-    // XXX Per thread?  Or a general lock?
-    // But monitor is single-threaded for writers anyway.
     private ThreadLocal<Boolean> insideBegin = ThreadLocal.withInitial(()->false);
 
     @Override

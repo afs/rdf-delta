@@ -226,7 +226,6 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public Version find(Id id) {
-        // XXX PatchLogBase.find(Id)
         FmtLog.warn(LOG, "Not implemented (yet). find(Id)");
         return Version.UNSET;
     }

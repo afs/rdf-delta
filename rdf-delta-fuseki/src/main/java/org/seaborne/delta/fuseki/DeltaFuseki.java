@@ -21,6 +21,7 @@ import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.server.Operation ;
 import org.apache.jena.fuseki.servlets.ActionService ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.seaborne.delta.Delta;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatchOps ;
 
@@ -42,7 +43,7 @@ public class DeltaFuseki {
                 .build();
     }
 
-    public static Operation patchOp = Operation.register("Patch", "Patch Service");
+    public static Operation patchOp = Operation.alloc(Delta.namespace+"patch", "rdf-Patch", "RDF Patch Service");
     public static String patchContentType = "application/rdf-patch";
 
     /** Create a {@code FusekiServer.Builder} with registered patch operation.

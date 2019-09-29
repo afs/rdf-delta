@@ -70,7 +70,7 @@ public class DeltaLinkSwitchable extends DeltaLinkWrapper {
         try {
             return action.get();
         } catch (HttpException ex) {
-            if ( ex.getResponseCode() > 0 ) {
+            if ( ex.getStatusCode() > 0 ) {
                 // Valid HTTP response. No point retrying.
                 throw ex;
             }

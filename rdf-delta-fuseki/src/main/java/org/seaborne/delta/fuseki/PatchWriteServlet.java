@@ -27,16 +27,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.server.CounterName;
-import org.apache.jena.fuseki.servlets.ActionBase;
-import org.apache.jena.fuseki.servlets.ActionErrorException ;
-import org.apache.jena.fuseki.servlets.HttpAction;
-import org.apache.jena.fuseki.servlets.ServletOps;
+import org.apache.jena.fuseki.servlets.*;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.WebContent;
@@ -55,7 +49,7 @@ import org.seaborne.patch.filelog.rotate.ManagedOutput;
  *
  * It is a Fuseki servlet and not a dataset service.
  */
-public class PatchWriteServlet extends ActionBase {
+public class PatchWriteServlet extends ServletProcessor {
     static CounterName counterPatches     = CounterName.register("RDFpatch-write", "rdf-patch.write.requests");
     static CounterName counterPatchesGood = CounterName.register("RDFpatch-write", "rdf-patch.write.good");
     static CounterName counterPatchesBad  = CounterName.register("RDFpatch-write", "rdf-patch.write.bad");
@@ -74,27 +68,19 @@ public class PatchWriteServlet extends ActionBase {
     // ---- POST or OPTIONS
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        doCommon(request, response);
+    public void execPost(HttpAction action) {
+        this.validate(action);
+        this.operation(action);
     }
 
     @Override
-    protected void doOptions(HttpServletRequest request, HttpServletResponse response) {
-        setCommonHeadersForOptions(response);
-        response.setHeader(HttpNames.hAllow, "OPTIONS,POST");
-        response.setHeader(HttpNames.hContentLengh, "0");
+    public void execOptions(HttpAction action) {
+        ActionLib.setCommonHeadersForOptions(action.response);
+        action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST");
+        action.response.setHeader(HttpNames.hContentLengh, "0");
     }
 
-    // Possible common framework for patch processing.
-
-    @Override
-    protected void execCommonWorker(HttpAction action) {
-        validate(action);
-        operation(action);
-    }
-
-    //@Override
-    static void validate(HttpAction action) {
+    protected void validate(HttpAction action) {
         String method = action.getRequest().getMethod();
         switch(method) {
             case HttpNames.METHOD_POST:

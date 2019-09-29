@@ -34,8 +34,6 @@ import org.seaborne.patch.RDFPatchOps;
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class AbstractTestPatchStore {
 
-    // XXX Convert to parameterized tests??
-
     private static int counter = 0;
     private PatchStore patchStore = null;
 

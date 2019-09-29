@@ -36,6 +36,7 @@ import org.apache.jena.rdfconnection.RDFConnectionFactory ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.DeltaFuseki ;
 import org.seaborne.delta.fuseki.PatchApplyService ;
 import org.seaborne.patch.RDFChanges ;
@@ -68,19 +69,19 @@ public class DeltaEx05_FusekiPatchOperation {
             DeltaFuseki.fusekiWithPatch()
                 .port(PORT)
                 .add("/ds", dsg)
-                .addOperation("/ds", "patch", DeltaFuseki.patchOp)
+                .addOperation("/ds", DeltaFuseki.patchOp)
                 .build();
 
         // Long hand version of the same:
         if ( false ) {
-            Operation patchOp = Operation.register("Patch", "Patch Service");
+            Operation patchOp = Operation.alloc(Delta.namespace+"patch", "rdf-Patch", "RDF Patch Service");
             String patchContentType = "application/rdf-patch";
             ActionService handler = new PatchApplyService();
             FusekiServer serverAlt =  FusekiServer.create()
                 .registerOperation(patchOp, patchContentType, handler)
                 .port(PORT)
                 .add("/ds", dsg)
-                .addOperation("/ds", "patch", DeltaFuseki.patchOp)
+                .addOperation("/ds", DeltaFuseki.patchOp)
                 .build();
         }
 

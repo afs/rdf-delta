@@ -59,11 +59,10 @@ public class patch2update extends CmdGeneral
     protected void exec() {
         AWriter out = IO.wrapUTF8(System.out);
 
-        // Genralize to abstract class for any "apply" - patch2rdf
+        // Generalize to abstract class for any "apply" - patch2rdf
         RDFChanges c =  new RDFChangesWriteUpdate(out);
 
         // Patches
-        // XXX
         if ( getPositional().isEmpty() )
             execOne(System.in);
 

@@ -274,7 +274,7 @@ The directory for the patch store must be create first.
 
 ```
 mkdir PatchStore
-dcmd server --base PatchStore
+dcmd server --store PatchStore
 ```
 and the simple patch added:
 ```
@@ -283,12 +283,16 @@ dcmd append --server http://localhost:1066/ --log ABC patch.rdfp
 ```
 Version = 1
 ```
-The patch will be stored in file `PatchStore/ABC/patch-0001`
+The patch will be stored in the patch log area `PatchStore/ABC`.
+This is either a [RocksDB](https://rocksdb.org/) based storage, in
+`PatchStore/ABC/rdb/` or as a plain patch file `PatchStore/ABC/patch-0001` if
+thge server is started with "--base PatchStore --file".
 
 There is only a single copy of the patch store and any file storage may be lost
 so it is better to highly reliable file system where possible.
 
-The patch store can be backed up by backing up the `PatchStore` directory.
+The patch store can be backed up by backing up the `PatchStore` directory when
+the server is not in-use.
 
 ## Adding High Availability Components {#ha-patch-store}
 

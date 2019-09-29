@@ -17,12 +17,16 @@
 
 package org.seaborne.delta.zk;
 
+import static org.apache.jena.atlas.lib.ThreadLib.async;
+
 import java.io.IOException;
 
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.dboe.migrate.L;
-import org.apache.zookeeper.server.*;
+import org.apache.zookeeper.server.ContainerManager;
+import org.apache.zookeeper.server.ServerCnxnFactory;
+import org.apache.zookeeper.server.ServerConfig;
+import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.admin.AdminServer;
 import org.apache.zookeeper.server.admin.AdminServer.AdminServerException;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
@@ -53,7 +57,7 @@ public class ZooServer {
 //    @Deprecated
     public static void quorumServer(String confFile) {
         // No join.
-        L.async(() -> QuorumPeerMain.main(new String[] {confFile}) );
+        async(() -> QuorumPeerMain.main(new String[] {confFile}) );
     }
 
     public ZooServer(ServerConfig config) {

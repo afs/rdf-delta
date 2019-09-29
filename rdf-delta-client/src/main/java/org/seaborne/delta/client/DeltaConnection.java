@@ -301,7 +301,7 @@ public class DeltaConnection implements AutoCloseable {
             PatchLogInfo logInfo = getPatchLogInfo();
             sync(logInfo);
         } catch (HttpException ex) {
-            if ( ex.getResponseCode() == -1 )
+            if ( ex.getStatusCode() == -1 )
                 throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
             throw ex;
         }

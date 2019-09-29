@@ -127,7 +127,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
                 conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
                 Assert.fail("Should not be able to update at the moment");
             } catch (HttpException ex) {
-                assertEquals(503, ex.getResponseCode());
+                assertEquals(503, ex.getStatusCode());
                 // Expected - ignore.
                 //assertTrue(ex.getResponseCode()>= 500);
             }

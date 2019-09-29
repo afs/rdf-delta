@@ -121,7 +121,7 @@ public class PatchStoreZk extends PatchStore {
 
     // Update based on a set of active logs.
     private void updateLogChanges(Set<String> names) {
-        // XXX Better could be to queue all request, have one worker do the updates then
+        // ?? Better could be to queue all request, have one worker do the updates then
         // release all waiting threads.  However, logs don't get created and deleted very often
         // so the work here is usually calculating empty sets.
 

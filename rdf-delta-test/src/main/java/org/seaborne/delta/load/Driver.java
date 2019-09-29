@@ -191,7 +191,7 @@ public class Driver {
       // Process server context
       Resource server = GraphUtils.getResourceByType(assembler, FusekiVocab.tServer);
       if ( server != null )
-          AssemblerUtils.setContext(server, Fuseki.getContext()) ;
+          AssemblerUtils.mergeContext(server, Fuseki.getContext()) ;
       // Process services, whether via server ja:services or, if absent, by finding by type.
       List<DataAccessPoint> x = FusekiConfig.servicesAndDatasets(assembler);
       // Unbundle so that they accumulate.

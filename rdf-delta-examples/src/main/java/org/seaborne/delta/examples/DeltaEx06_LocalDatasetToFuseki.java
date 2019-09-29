@@ -94,14 +94,14 @@ public class DeltaEx06_LocalDatasetToFuseki {
     }
 
     private static FusekiServer fusekiServerWithPatch(String dsName, int port, DatasetGraph dsgFuseki, String serviceName) {
-        Operation patchOp = Operation.register("Patch", "Patch Service");
+        Operation patchOp = DeltaFuseki.patchOp;
         String patchContentType = "application/rdf-patch";
         ActionService handler = new PatchApplyService();
         FusekiServer server =  FusekiServer.create()
             .registerOperation(patchOp, patchContentType, handler)
             .port(port)
             .add(dsName, dsgFuseki)
-            .addOperation(dsName, serviceName, DeltaFuseki.patchOp)
+            .addOperation(dsName, DeltaFuseki.patchOp)
             .build();
         return server ;
     }

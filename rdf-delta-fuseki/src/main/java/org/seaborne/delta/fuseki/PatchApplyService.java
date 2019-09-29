@@ -18,6 +18,7 @@
 package org.seaborne.delta.fuseki;
 
 import static java.lang.String.format;
+import static org.apache.jena.fuseki.servlets.ActionExecLib.incCounter;
 import static org.seaborne.delta.DeltaConst.contentTypePatchBinary;
 import static org.seaborne.delta.DeltaConst.ctPatchBinary;
 import static org.seaborne.delta.DeltaConst.ctPatchText;
@@ -27,10 +28,7 @@ import java.io.InputStream;
 
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.server.CounterName;
-import org.apache.jena.fuseki.servlets.ActionErrorException ;
-import org.apache.jena.fuseki.servlets.ActionREST;
-import org.apache.jena.fuseki.servlets.HttpAction;
-import org.apache.jena.fuseki.servlets.ServletOps;
+import org.apache.jena.fuseki.servlets.*;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.web.HttpNames;
@@ -56,7 +54,7 @@ public class PatchApplyService extends ActionREST {
     }
 
     @Override
-    protected void validate(HttpAction action) {
+    public void validate(HttpAction action) {
         String method = action.getRequest().getMethod();
         switch(method) {
             case HttpNames.METHOD_POST:
@@ -163,10 +161,6 @@ public class PatchApplyService extends ActionREST {
         }
     }
 
-
-
-
-
     // ---- POST or PATCH or OPTIONS
 
     @Override
@@ -181,7 +175,7 @@ public class PatchApplyService extends ActionREST {
 
     @Override
     protected void doOptions(HttpAction action) {
-        setCommonHeadersForOptions(action.response);
+        ActionLib.setCommonHeadersForOptions(action.response);
         action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST,PATCH");
         action.response.setHeader(HttpNames.hContentLengh, "0");
     }

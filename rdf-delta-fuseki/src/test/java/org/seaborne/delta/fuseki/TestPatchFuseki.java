@@ -41,7 +41,7 @@ public class TestPatchFuseki {
         FusekiServer server =
             DeltaFuseki.fusekiWithPatch()
                 .add(dsName, dsg)
-                .addOperation(dsName, "patch", DeltaFuseki.patchOp)
+                .addOperation(dsName, DeltaFuseki.patchOp)
                 .build();
         return Pair.create(server, dsg);
     }
