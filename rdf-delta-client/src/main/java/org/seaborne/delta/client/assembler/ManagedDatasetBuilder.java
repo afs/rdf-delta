@@ -26,11 +26,7 @@ import org.apache.jena.sparql.util.Context;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.client.DeltaClient;
-import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.LocalStorageType;
-import org.seaborne.delta.client.SyncPolicy;
-import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.client.*;
 import org.seaborne.delta.link.DeltaLink;
 
 /** Builder for {@link DatasetGraph} connected to a patch server over a {@link DeltaLink}. */
@@ -43,29 +39,35 @@ public class ManagedDatasetBuilder {
     private SyncPolicy syncPolicy;
     private Zone zone;
     private LocalStorageType storageType;
+    private DatasetGraph externalDataset;
 
-    public  ManagedDatasetBuilder logName(String logName) {
+    public ManagedDatasetBuilder logName(String logName) {
         this.logName = logName;
         return this;
     }
 
-    public  ManagedDatasetBuilder deltaLink(DeltaLink deltaLink) {
+    public ManagedDatasetBuilder deltaLink(DeltaLink deltaLink) {
         this.deltaLink = deltaLink;
         return this;
     }
 
-    public  ManagedDatasetBuilder syncPolicy(SyncPolicy syncPolicy) {
+    public ManagedDatasetBuilder syncPolicy(SyncPolicy syncPolicy) {
         this.syncPolicy = syncPolicy;
         return this;
     }
 
-    public  ManagedDatasetBuilder zone(Zone zone) {
+    public ManagedDatasetBuilder zone(Zone zone) {
         this.zone = zone;
         return this;
     }
 
-    public  ManagedDatasetBuilder storageType(LocalStorageType storageType) {
+    public ManagedDatasetBuilder storageType(LocalStorageType storageType) {
         this.storageType = storageType;
+        return this;
+    }
+
+    public ManagedDatasetBuilder externalDataset(DatasetGraph dataset) {
+        this.externalDataset = dataset;
         return this;
     }
 
@@ -74,6 +76,12 @@ public class ManagedDatasetBuilder {
         if ( deltaLink == null )    throw new DeltaConfigException("deltaLink not set");
         if ( logName == null )      throw new DeltaConfigException("logName not set");
         if ( syncPolicy == null )   throw new DeltaConfigException("syncPolicy not set");
+
+        if ( externalDataset != null && storageType == null )
+            this.storageType = LocalStorageType.EXTERNAL;
+
+        if ( externalDataset != null && storageType != LocalStorageType.EXTERNAL )
+            throw new DeltaConfigException("External dataset but storage is not 'external'");
 
         DeltaClient deltaClient = DeltaClient.create(zone, deltaLink);
         deltaLink.ping();
@@ -84,18 +92,24 @@ public class ManagedDatasetBuilder {
             dsRef = deltaClient.newDataSource(logName, "delta:"+logName);
         else
             dsRef = dsd.getId();
-        if ( zone.exists(dsRef))
-            // Connect - for when the zone already has the dataset.
-            deltaClient.connect(dsRef, syncPolicy);
+        if ( zone.exists(dsRef)) {
+            if ( externalDataset == null )
+                deltaClient.connect(dsRef, syncPolicy);
+            else
+                deltaClient.connectExternal(dsRef, externalDataset, syncPolicy);
+        }
         else {
             // Zones are always cached ahead of time by the startup disk scan.
             // Should not be here if restarting and now using a zone.
             // storageType required because we will create a new zone-log.
             if ( storageType == null )
                 throw new DeltaConfigException("storageType not set");
-            // Register (which is attach then connect).
+            // Register, which is "attach" then "connect".
             // "attach" creates the zone dataset storage.
-            deltaClient.register(dsRef, storageType, syncPolicy);
+            if ( externalDataset == null )
+                deltaClient.register(dsRef, storageType, syncPolicy);
+            else
+                deltaClient.registerExternal(dsRef, externalDataset, syncPolicy);
         }
 
         DeltaConnection deltaConnection = deltaClient.getLocal(dsRef);

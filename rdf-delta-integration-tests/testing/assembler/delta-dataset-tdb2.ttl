@@ -1,4 +1,4 @@
-# Delta Assembler file
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
 PREFIX :        <#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -8,7 +8,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 
 <#dataset> rdf:type delta:DeltaDataset ;
     delta:changes  "http://localhost:1069/" ;
-    delta:patchlog "A-tdb1";
-    delta:zone "target/Zone3";
-    delta:storage "TDB";
+    delta:patchlog "A-tdb2";
+    delta:zone "target/Zone2";
+    delta:storage "TDB2";
     .

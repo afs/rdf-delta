@@ -146,6 +146,11 @@ public class RDFPatchOps {
         return withHeader(body, body.getId(), prev);
     }
 
+    /** Create a patch with body from "patch" and previous set to the id of "prevPatch". */
+    public static RDFPatch withPrev(RDFPatch patch, RDFPatch prevPatch) {
+        return withPrev(patch, prevPatch.getId());
+    }
+
     /** Create a patch with the id and prev as as given in the arguments, ignoring any header in the body patch. */
     public static RDFPatch withHeader(RDFPatch body, Node id, Node prev) {
         PatchHeader h = makeHeader(id, prev);

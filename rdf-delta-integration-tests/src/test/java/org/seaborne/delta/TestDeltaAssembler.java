@@ -25,6 +25,7 @@ import static org.seaborne.delta.DeltaConst.symDeltaZone;
 
 import java.net.BindException;
 
+import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.query.Dataset;
@@ -40,6 +41,7 @@ import org.junit.Test;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.client.assembler.ManagedDatasetBuilder;
+import org.seaborne.delta.client.assembler.VocabDelta;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -52,6 +54,8 @@ import org.seaborne.delta.server.local.LocalServers;
  * See {@link TestManagedDatasetBuilder} and {@link TestManagedDatasetBuilder2}.
  */
 public class TestDeltaAssembler {
+    private static final String DIR = "testing/assembler";
+
     @BeforeClass public static void setForTesting() {
         if ( System.getProperty("java.util.logging.configuration") == null )
             LogCtl.setJavaLogging("src/test/resources/logging.properties");
@@ -83,7 +87,7 @@ public class TestDeltaAssembler {
 
     @Test public void assembler_delta_1() {
         // In-memory
-        Dataset dataset = (Dataset)AssemblerUtils.build("testing/delta-dataset-mem.ttl", DatasetAssembler.getType());
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-mem.ttl", DatasetAssembler.getType());
         assertNotNull(dataset.getContext().get(symDeltaZone));
         assertNotNull(dataset.getContext().get(symDeltaConnection));
         assertNotNull(dataset.getContext().get(symDeltaClient));
@@ -94,7 +98,7 @@ public class TestDeltaAssembler {
         Quad q1 = SSE.parseQuad("(:g :s :p 1)");
         Quad q2 = SSE.parseQuad("(:g :s :p 2)");
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build("testing/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
             try ( DeltaConnection conn = connection(dataset) ) {
                 Txn.executeWrite(conn.getDatasetGraph(), ()->conn.getDatasetGraph().add(q1));
             }
@@ -103,7 +107,7 @@ public class TestDeltaAssembler {
         // Don't clear zone setup.
         // Build again.
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build("testing/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
             try ( DeltaConnection conn = connection(dataset) ) {
                 Txn.executeRead(conn.getDatasetGraph(), ()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
@@ -115,7 +119,7 @@ public class TestDeltaAssembler {
         Quad q1 = SSE.parseQuad("(:g :s :p 1)");
         Quad q2 = SSE.parseQuad("(:g :s :p 2)");
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build("testing/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
             try ( DeltaConnection conn = connection(dataset) ) {
                 Txn.executeWrite(conn.getDatasetGraph(), ()->conn.getDatasetGraph().add(q1));
             }
@@ -126,7 +130,7 @@ public class TestDeltaAssembler {
         Zone.clearZoneCache();
         // Build again.
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build("testing/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
             try ( DeltaConnection conn = connection(dataset) ) {
                 Txn.executeRead(conn.getDatasetGraph(), ()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
@@ -136,4 +140,39 @@ public class TestDeltaAssembler {
     private static DeltaConnection connection(Dataset dataset) {
         return (DeltaConnection)(dataset.getContext().get(symDeltaConnection));
     }
+
+    // External
+    // XXX External good 1 - all mem - fuseki-assembler-ext + resource type.
+    //Need two zones? Windows-isms?
+
+    @Test public void assembler_ext_good_1() {
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-good-1.ttl", VocabDelta.tDatasetDelta);
+        // @@ Use it.
+    }
+
+    @Test public void assembler_ext_good_2() {
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-good-2.ttl", VocabDelta.tDatasetDelta);
+    }
+
+    @Test(expected = AssemblerException.class)
+    public void assembler_ext_bad_1() {
+        // No delta:storage, no delta:dataset.
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-bad-1.ttl", VocabDelta.tDatasetDelta);
+    }
+
+    @Test(expected = AssemblerException.class)
+    public void assembler_ext_bad_2() {
+        // delta:dataset but delta:storage != external
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-bad-2.ttl", VocabDelta.tDatasetDelta);
+    }
+
+    @Test(expected = AssemblerException.class)
+    public void assembler_ext_bad_3() {
+        //
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-bad-3.ttl", VocabDelta.tDatasetDelta);
+    }
+
+    // XXX External bad1 - :storage!=external
+    // XXX External bad2 - no :storage, no :dataset
+
 }

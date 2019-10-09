@@ -44,8 +44,8 @@ public class BaseTestDeltaFuseki {
     // Needs to be fixed - it's in the Fuseki config files.
     protected static int D_PORT   =    1068;
 
-    protected static String fuseki_conf1 = "testing/fuseki_conf_1.ttl";
-    protected static String fuseki_conf2 = "testing/fuseki_conf_2.ttl";
+    protected static String fuseki_conf1 = "testing/fuseki/fuseki_conf_1.ttl";
+    protected static String fuseki_conf2 = "testing/fuseki/fuseki_conf_2.ttl";
     protected static String ds1          = "/ds1";
     protected static String ds2          = "/ds2";
     protected static String deltaServerBase = "target/DeltaServerFuseki";

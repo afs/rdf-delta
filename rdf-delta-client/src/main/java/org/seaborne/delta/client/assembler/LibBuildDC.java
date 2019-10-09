@@ -33,8 +33,19 @@ import org.seaborne.delta.link.DeltaLink;
 
 public class LibBuildDC {
 
-    /** Build a Delta-backed datasets at a zone location. */
+
+    /** Build a Delta-backed dataset, with Delta at a zone location and having an external dataset. */
+    public static DatasetGraph setupDataset(String dsName, Location zoneLocation, DatasetGraph externalDataset, List<String> destURLs) {
+        return setupDataset(dsName, zoneLocation, LocalStorageType.EXTERNAL, externalDataset, destURLs);
+    }
+
+    /** Build a Delta-backed datasets at a zone location, with managed storage. */
     public static DatasetGraph setupDataset(String dsName, Location zoneLocation, LocalStorageType storage, List<String> destURLs) {
+        return setupDataset(dsName, zoneLocation, storage, null, destURLs);
+    }
+
+    /** Build a Delta-backed datasets at a zone location. */
+    public static DatasetGraph setupDataset(String dsName, Location zoneLocation, LocalStorageType storage, DatasetGraph externalDataset, List<String> destURLs) {
         // Link to log server.
         DeltaLink deltaLink;
         if ( destURLs.size() == 1 )
@@ -62,9 +73,8 @@ public class LibBuildDC {
             .zone(zone)
             .syncPolicy(syncPolicy)
             .storageType(storage)
+            .externalDataset(externalDataset)
             .build();
-
-
         return dsg;
      }
 

@@ -279,9 +279,13 @@ public class DeltaServerCmd {
         // Providers
         switch(provider) {
             case FILE : {
+                // --base= or --file --store=
                 String directory = cla.getValue(argBase);
-                if ( directory == null )
-                    cmdLineError("No such directory given: --base required");
+                if ( directory == null ) {
+                    directory = cla.getValue(argStore);
+                    if ( directory == null )
+                        cmdLineError("No such directory given: --base required");
+                }
                 Path base = Paths.get(directory).toAbsolutePath();
                 if ( ! Files.exists(base) )
                     cmdLineError("No such directory: %s",base);

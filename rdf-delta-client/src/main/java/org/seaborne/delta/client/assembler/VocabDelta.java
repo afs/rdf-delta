@@ -56,6 +56,9 @@ public class VocabDelta {
     // Storage type("mem", tdb", "tdb2", "external").
     public static final Property pDeltaStorage          = Vocab.property(getURI(), "storage") ;
 
+    // External dataset.
+    public static final Property pDataset               = Vocab.property(getURI(), "dataset") ;
+
     // Whether and how often to poll for changes.
     //public static final Property pPollForChanges        = Vocab.property(NS, "poll") ;
 

@@ -1,0 +1,20 @@
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+PREFIX :        <http://base/#>
+PREFIX tdb:     <http://jena.hpl.hp.com/2008/tdb#>
+PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX delta:   <http://jena.apache.org/rdf-delta#>
+
+:deltaDataset rdf:type delta:DeltaDataset ;
+     delta:changes  "http://localhost:1069/" ;
+     delta:patchlog "ABC" ;
+     delta:zone     "--mem--" ;
+     ## delta:dataset but delta:storage != external
+     delta:dataset  :dataset ;
+     delta:storage  "mem" ;
+     .
+
+:dataset rdf:type ja:MemoryDataset .

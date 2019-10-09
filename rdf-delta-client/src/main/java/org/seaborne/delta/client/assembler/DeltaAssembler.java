@@ -19,10 +19,7 @@ package org.seaborne.delta.client.assembler;
 
 import static org.apache.jena.sparql.util.graph.GraphUtils.exactlyOneProperty;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaChanges;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaPatchLog;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaStorage;
-import static org.seaborne.delta.client.assembler.VocabDelta.pDeltaZone;
+import static org.seaborne.delta.client.assembler.VocabDelta.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +39,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaConnection;
@@ -81,12 +79,31 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         String dsName = getAsStringValue(root, pDeltaPatchLog);
 
         // delta:storage
-        if ( ! exactlyOneProperty(root, pDeltaStorage) )
-            throw new AssemblerException(root, "No storge type given.") ;
+        // delta:dataset, which is implicitly delta:storage "external".
+        // Checking stage.
+
+        boolean hasExternalDataset = root.hasProperty(pDataset);
+        DatasetGraph externalDataset = null;
+        if ( hasExternalDataset ) {
+            Resource datasetR = GraphUtils.getResourceValue(root, pDataset) ;
+            Dataset ds = (Dataset)a.open(datasetR) ;
+            externalDataset = ds.asDatasetGraph();
+        }
+
+        if ( ! root.hasProperty(pDeltaStorage) && ! hasExternalDataset )
+            throw new AssemblerException(root, "Must have storage type (delta:storage) or an external dataset description (delat:dataset)");
+
         String storageTypeStr = getAsStringValue(root, pDeltaStorage);
         LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);
-        if ( storage == null )
-            throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
+        if ( storage == null ) {
+            if ( hasExternalDataset )
+                storage = LocalStorageType.EXTERNAL;
+            else
+                throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
+        } else {
+            if ( hasExternalDataset && ( storage != LocalStorageType.EXTERNAL ) )
+                throw new AssemblerException(root, "Storage type must be 'external' or absent when using delta:dataset");
+        }
 
         // delta:zone.
         // The zone is ephemeral if the storage is ephemeral.
@@ -102,7 +119,9 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
         }
 
         // Build.
-        DatasetGraph dsg = LibBuildDC.setupDataset(dsName, zoneLocation, storage, deltaServers);
+        DatasetGraph dsg = (externalDataset == null)
+                ? LibBuildDC.setupDataset(dsName, zoneLocation, storage, deltaServers)
+                : LibBuildDC.setupDataset(dsName, zoneLocation, externalDataset, deltaServers);
         Dataset dataset = DatasetFactory.wrap(dsg);
 
         //  Poll for changes as well. Not implemented (yet).

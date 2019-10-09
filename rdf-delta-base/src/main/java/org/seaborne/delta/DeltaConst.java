@@ -24,6 +24,8 @@ import org.apache.jena.atlas.web.ContentType ;
 import org.apache.jena.sparql.util.Symbol ;
 
 public class DeltaConst {
+    public static final String opPatchURI = Delta.namespace+"patch";
+
     // Letters, numbers, "."  "_" and "-"
     // Can't start with a "-" or "."
     public static final String  DataSourceRegexStr = "^[\\w_\\$][\\w-\\._\\$]*$";
