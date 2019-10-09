@@ -91,7 +91,7 @@
     <module>rdf-delta-server-extra</module>
     <module>rdf-delta-server-http</module>
     <module>rdf-delta-fuseki</module>
-    <module>rdf-delta-test</module>
+    <module>rdf-delta-integration-tests</module>
 
     <module>rdf-delta-server</module>
     <module>rdf-delta-fuseki-server</module>

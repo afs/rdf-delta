@@ -55,20 +55,20 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     public static void beforeClass() {
         try {
 
-        dftStdHttpClient = HttpOp.getDefaultHttpClient();
+            dftStdHttpClient = HttpOp.getDefaultHttpClient();
 
-        HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
+            HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
 
-        deltaServer = deltaServer(CLEAN);
+            deltaServer = deltaServer(CLEAN);
 
-        // This needs testing.
-        server1 = fuseki1(CLEAN);
-        server2 = fuseki2(CLEAN); // Can not create!
+            // This needs testing.
+            server1 = fuseki1(CLEAN);
+            server2 = fuseki2(CLEAN); // Can not create!
 
-        URL_DPS = "http://localhost:"+D_PORT+"/";
+            URL_DPS = "http://localhost:"+D_PORT+"/";
 
-        conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
-        conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
+            conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
+            conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
 
         } catch (Throwable th) {
             th.printStackTrace();
