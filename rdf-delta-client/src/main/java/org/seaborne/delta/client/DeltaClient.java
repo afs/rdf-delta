@@ -346,10 +346,9 @@ public class DeltaClient {
      * @param name
      * @param syncPolicy
      */
-    public Id connect(String name, SyncPolicy syncPolicy) {
+    public DeltaConnection connect(String name, SyncPolicy syncPolicy) {
         Id dsRef = nameToId(name);
-        connect(dsRef, syncPolicy);
-        return dsRef;
+        return connect(dsRef, syncPolicy);
     }
 
     /**
@@ -361,15 +360,16 @@ public class DeltaClient {
      * @param dsg
      * @param syncPolicy
      */
-    public void connectExternal(Id datasourceId, DatasetGraph dsg, SyncPolicy syncPolicy) {
+    public DeltaConnection connectExternal(Id datasourceId, DatasetGraph dsg, SyncPolicy syncPolicy) {
         Objects.requireNonNull(datasourceId);
         DeltaConnection dConn = get(datasourceId);
         if ( dConn != null )
-            return;
+            return dConn;
         zone.externalStorage(datasourceId, dsg);
         DataState dataState = zone.get(datasourceId);
         dConn = DeltaConnection.create(dataState, dsg, dLink, syncPolicy);
         putCache(datasourceId, dConn);
+        return dConn;
     }
 
     /** Supply a dataset for matching to an attached external data source */
