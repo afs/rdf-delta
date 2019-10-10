@@ -173,7 +173,6 @@ public class FileArea {
         // Create source.cfg.
         JsonObject obj = dsd.asJson();
         obj.put(F_LOG_TYPE, patchStore.getProvider().getShortName());
-        LOG.info(JSON.toStringFlat(obj));
         try (OutputStream out = Files.newOutputStream(sourcePath.resolve(FileNames.DS_CONFIG))) {
             JSON.write(out, obj);
         } catch (IOException ex)  { throw IOX.exception(ex); }
