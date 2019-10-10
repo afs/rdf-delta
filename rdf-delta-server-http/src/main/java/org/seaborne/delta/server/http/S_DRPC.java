@@ -123,6 +123,8 @@ public class S_DRPC extends DeltaServlet {
     protected void executeAction(DeltaAction action) throws IOException {
         JsonValue rslt = null ;
         JsonObject arg = action.rpcArg;
+        // Some operations are logged at DEBUG because they are high-volume polling.
+        // They shoudl all be "read" operations.
         boolean infoLogThisRPC = true;
         String recordOp = null;
         try {
@@ -132,23 +134,30 @@ public class S_DRPC extends DeltaServlet {
                     rslt = ping(action);
                     break ;
                 case OP_LIST_DS:
+                    infoLogThisRPC = false;
                     rslt = listDataSources(action);
                     break ;
                 case OP_DESCR_DS:
+                    infoLogThisRPC = false;
                     rslt = describeDataSource(action);
                     break ;
                 case OP_DESCR_LOG:
+                    infoLogThisRPC = false;
                     rslt = describePatchLog(action);
                     break ;
                 case OP_LIST_LOG_INFO:
                     // This operation is used to poll for changes so there can be a lot
                     // of such requests. Don't log.
-                    infoLogThisRPC = ! OP_LIST_LOG_INFO.equals(lastOpName);
+                    // If "same as last time" infoLogThisRPC = ! OP_LIST_LOG_INFO.equals(lastOpName);
+                    infoLogThisRPC = false;
                     rslt = listPatchLogInfo(action);
                     break ;
                 case OP_LIST_DSD:
+                    infoLogThisRPC = false;
                     rslt = listDataSourcesDescriptions(action);
                     break ;
+
+                // Operations that change the server.
                 case OP_CREATE_DS:
                     rslt = createDataSource(action);
                     break;
