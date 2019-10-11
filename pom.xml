@@ -69,7 +69,7 @@
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <ver.jena>3.13.0</ver.jena>
+    <ver.jena>3.13.1</ver.jena>
 
     <ver.jetty>9.4.12.v20180830</ver.jetty> <!-- Keep in step with Jena -->
     <ver.junit>4.12</ver.junit>
