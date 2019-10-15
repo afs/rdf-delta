@@ -1,6 +1,10 @@
-# The Fuseki Configuration file
+---
+layout: doc
+title:  Fuseki configuration for High Availability
+---
 
-This is the file Fuseki configuration file used in the tutorial, with additonal
+
+This is the file Fuseki configuration file used in the tutorial, with additional
 comments.
 
 ```
@@ -16,7 +20,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 ## A Fuseki service offering all SPARQL protocols.
 <#service1> rdf:type fuseki:Service ;
     fuseki:name                        "ds" ;
-    fuseki:serviceQuery                "sparql" ;
+    fuseki:endpoint [ fuskei:operation 
     fuseki:serviceQuery                "query" ;
     fuseki:serviceUpdate               "update" ;
     fuseki:serviceUpload               "upload" ;

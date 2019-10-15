@@ -96,7 +96,10 @@ Parse a patch file - this tests the synatx for validity.
 
 ## `patchserver`
 
-Run a patch server on this machine. The default port is 1066. The
-workarea for the server is directory `DIR`.
+Run a patch server on this machine. The default port is 1066. 
+Basic use for a single patch server running with patch log store
+in directory `DIR`:
 
-    dcmd patchserver [--port=NNNN] --base=DIR
+    dcmd patchserver [--port=NNNN] --store=DIR
+
+The [full description of RDF Delta Server operation](delta-server) gives more details.

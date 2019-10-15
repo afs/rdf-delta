@@ -1,7 +1,7 @@
 ---
 layout: doc
-title: Delta Patch Server
-#nav_text: Delta Patch Server
+title: Delta Patch Server API
+#nav_text: Delta Patch Server API
 #section: 5
 ---
 @@
