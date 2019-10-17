@@ -82,3 +82,39 @@ The S3 patch storage argument:
 | `--s3bucket`   | S3 bucket name (required)
 | `--s3region`   | S3 region |
 | `--s3endpoint` | URL for an S3 alternative endpoint | 
+
+## Examples
+
+### Run a single server
+
+This example is for running a single patch log server on the default port (1066)
+with a RockDB database for patches. Patch logs are stored in the directory
+"Delta" which must exist.
+
+<pre>
+    dcmd server --store Delta
+</pre>
+
+### Run a high availability patch log server 
+
+This example is for a high availability patch log service, consisting of 3 patch
+log servers, each using using the embedded Apache Zookeeper, and using AWS S3
+for patch storage.
+
+The three patch log server should be run on different machines.
+
+The connection string for Zookeeper lists the machiens and the Zookeeper port
+used for coordination. Suppose we have machines "server1", "server2", "server3"
+with zookeeper running on port 1110 on each machine.
+
+<pre>
+    dcmd server --port 1060                                         \
+        --zkPort 1110 --zkData LocalDirectory                       \
+        --zk="server1:1110,server2:1110,server3:1110"               \
+        --s3bucket=<i>some-bucket-name</i> --s3region=<i>region</i>
+</pre>
+
+This command is run on each of the machines "server1", "server2" and "server3"
+
+If for testing, multiple servers are run on one machine, the zookeeper and
+delta server ports must be different across all machines.
