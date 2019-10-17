@@ -144,7 +144,7 @@ public /*package*/ class ServerBuildLib {
         switch (config.zkMode) {
             case MEM :
             case QUORUM :
-            case SINGLE :
+            case LOCAL :
                 return true;
             default :
             case NONE :
@@ -159,14 +159,15 @@ public /*package*/ class ServerBuildLib {
 
         switch(config.zkMode) {
             case NONE : throw new InternalErrorException();
-            case SINGLE : {
-                FmtLog.info(LOG, "Zookeeper(single): Connection string: %s", config.zkConnectionString);
+            case LOCAL : {
+                FmtLog.info(LOG, "Zookeeper: port = %d", config.zkPort);
+                FmtLog.info(LOG, "Zookeeper: Connection string: %s", config.zkConnectionString);
                 ZooServer zs = ZkS.runZookeeperServer(config.zkPort, config.zkData);
                 zs.start();
                 break;
             }
             case QUORUM : {
-                FmtLog.info(LOG, "Zookeeper: Connection string: %s", config.zkConnectionString);
+                FmtLog.info(LOG, "Zookeeper (conf): Connection string: %s", config.zkConnectionString);
                 if ( config.zkConf == null )
                     throw new InternalErrorException("config.zkConf == null");
                 ZooServer.quorumServer(config.zkConf);

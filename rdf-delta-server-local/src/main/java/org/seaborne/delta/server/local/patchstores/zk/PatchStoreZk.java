@@ -111,11 +111,11 @@ public class PatchStoreZk extends PatchStore {
     private void updateLogChanges(List<String> namesList, boolean watcher) {
         String label = (watcher?"watcher":"inline");
         if ( namesList == null ) {
-            FmtLog.info(LOGZK, "[%s] updateLogChanges[%s] -> null", instance, label);
+            //FmtLog.info(LOGZK, "[%s] updateLogChanges[%s] -> null", instance, label);
             return;
         }
         Set<String> x = new HashSet<>(namesList);
-        FmtLog.info(LOGZK, "[%s] updateLogChanges[%s] -> %s", instance, label, x);
+        //FmtLog.info(LOGZK, "[%s] updateLogChanges[%s] -> %s", instance, label, x);
         updateLogChanges(x);
     }
 

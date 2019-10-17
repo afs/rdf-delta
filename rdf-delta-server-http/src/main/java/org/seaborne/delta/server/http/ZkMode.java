@@ -17,4 +17,4 @@
 
 package org.seaborne.delta.server.http;
 
-public enum ZkMode { NONE, EXTERNAL, SINGLE, QUORUM, MEM }
+public enum ZkMode { NONE, EXTERNAL, LOCAL, QUORUM, MEM }

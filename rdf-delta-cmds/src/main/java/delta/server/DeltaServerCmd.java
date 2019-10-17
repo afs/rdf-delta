@@ -386,7 +386,7 @@ public class DeltaServerCmd {
 
             serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
             serverConfig.zkData = cla.getValue(argZkData);
-            serverConfig.zkMode = ZkMode.SINGLE;
+            serverConfig.zkMode = ZkMode.LOCAL;
 
             // Make sure port is in the connection string.
             if ( ! connectionString.contains(Integer.toString(serverConfig.zkPort)) )

@@ -145,7 +145,7 @@ public class DeltaServerConfig {
         else if ( "mem".equalsIgnoreCase(conf.zkConnectionString) )
             conf.zkMode = ZkMode.MEM;
         else if ( conf.zkData != null )
-            conf.zkMode = ZkMode.SINGLE;
+            conf.zkMode = ZkMode.LOCAL;
         // S3
         if ( obj.hasKey(fS3BucketName) )
             conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);
