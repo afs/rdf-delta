@@ -24,7 +24,7 @@ package org.seaborne.delta.client;
  * <ul>
  * <li>{@code NONE} No automatic sync, all done by the application.
  * <li>{@code TXN_RW} When a transaction starts (sync attempt for a READ transaction suppresses network errors). 
- * <li>{@code TXN_RW} When a wite-transaction starts. 
+ * <li>{@code TXN_W} When a write-transaction starts. 
  * </ul>
  */
 public enum SyncPolicy { NONE, TXN_RW, TXN_W }
