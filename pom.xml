@@ -221,7 +221,11 @@
       <!--
           org.apache.logging.log4j:log4j-api
           org.apache.logging.log4j:log4j-core
+       slf4j 1.7:
           org.apache.logging.log4j:log4j-slf4j-impl
+       slf4j 1.8: log4j-slf4j18-impl
+          org.apache.logging.log4j:log4j-slf4j18-impl
+       And maybe:
           org.apache.logging.log4j:log4j-web
       -->
       <dependency>
