@@ -17,13 +17,11 @@
 
 package org.seaborne.delta.cmds;
 
-import java.io.InputStream ;
-
 import arq.cmdline.ModDatasetAssembler;
 import jena.cmd.ArgDecl;
 import jena.cmd.CmdException;
-import jena.cmd.CmdGeneral ;
-import org.apache.jena.atlas.logging.LogCtl ;
+import jena.cmd.CmdGeneral;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -34,35 +32,34 @@ import org.seaborne.delta.Id;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 
-/** Apply patches to a base RDF file (or empty dataset) . */
+/** Apply patches to a base RDF file (or empty dataset). */
 public class patch2rdf extends CmdGeneral
 {
-    static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
+    static { JenaSystem.init(); LogCtl.setCmdLogging(); }
 
-    protected ModDatasetAssembler modDataset  =   new ModDatasetAssembler();
-    protected ArgDecl dataDecl                = new ArgDecl(ArgDecl.HasValue, "data") ;
+    protected ModDatasetAssembler modDataset  = new ModDatasetAssembler();
+    protected ArgDecl dataDecl                = new ArgDecl(ArgDecl.HasValue, "data");
 
     public static void main(String... args) {
         new patch2rdf(args).mainRun();
     }
 
     public patch2rdf(String[] argv) {
-        super(argv) ;
-        super.addModule(modDataset) ;
+        super(argv);
+        super.addModule(modDataset);
         super.add(dataDecl);
     }
 
     @Override
     protected String getSummary() {
-        return getCommandName()+"[--data QUADS | --desc ASSEMBLER ]  FILE..." ;
+        return getCommandName()+"[--data QUADS | --desc ASSEMBLER ] FILE...";
     }
 
     @Override
     protected void processModulesAndArgs() {
         super.processModulesAndArgs();
         if ( modDataset.getAssemblerFile() != null && super.hasArg(dataDecl) )
-            throw new CmdException("Both an assembler file and a data file specificed");
-
+            throw new CmdException("Both an assembler file and a data file specified");
     }
 
     @Override
@@ -85,8 +82,10 @@ public class patch2rdf extends CmdGeneral
         }
 
         // Patches
-        if ( getPositional().isEmpty() )
-            execOne(System.in);
+        if ( getPositional().isEmpty() ) {
+            RDFPatch patch = RDFPatchOps.read(System.in);
+            apply(dsg, patch);
+        }
 
         getPositional().forEach(fn->{
             // Check patch threading?
@@ -108,13 +107,8 @@ public class patch2rdf extends CmdGeneral
         RDFPatchOps.applyChange(dsg, patch);
     }
 
-    private void execOne(InputStream input) {
-        throw new CmdException("From InputStream (inc stdin) not yet supported");
-    }
-
     @Override
     protected String getCommandName() {
         return "patch2rdf";
     }
-
 }
