@@ -206,7 +206,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         url = createURL(url, DeltaConst.paramDatasource, dsRef.asParam());
         url = appendURL(url, paramStr);
         final String s = url;
-        FmtLog.info(Delta.DELTA_HTTP_LOG, "Fetch request: %s %s=%s [%s]", dsRef, param, paramStr, url);
         try {
             RDFPatch patch =  retry(()->{
                 // [NET] Network point
