@@ -113,11 +113,11 @@ public class PatchStoreRocks extends PatchStore {
 
     @Override
     protected void delete(PatchLog patchLog) {
-
         String logName = patchLog.getDescription().getName();
         Path patchLogArea = patchLogDirectory.resolve(logName);
         Id id = patchLog.getDescription().getId();
         LogIndexRocks idx = logIndexes.remove(id);
+        idx.database().close();
         FileArea.retire(patchLogArea);
     }
 
