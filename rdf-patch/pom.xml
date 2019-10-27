@@ -21,14 +21,14 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>rdf-patch</artifactId>
   <packaging>jar</packaging>
-  <version>0.8.1</version>
+  <version>0.9.0-SNAPSHOT</version>
 
   <name>RDF Patch</name>
 
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.8.1</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent>
 
   <dependencies>
