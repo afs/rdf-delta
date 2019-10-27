@@ -18,45 +18,24 @@
 package org.seaborne.delta;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.*;
+import org.seaborne.delta.server.system.DeltaSystem;
 
-@RunWith(Suite.class)
-@SuiteClasses( {
-    TestLocalLinkMem.class ,
-    TestLocalLinkFile.class ,
-    TestLocalLinkRocksDB.class ,
-    TestLocalLinkZk.class ,
-
-    TestLocalConnectionMem.class ,
-    TestLocalConnectionFile.class ,
-    TestLocalConnectionZk.class ,
-    TestLocalConnectionRocksDB.class ,
-    TestLocalClient.class ,
-
-    TestRemoteLink.class ,
-    TestRemoteConnection.class ,
-    TestRemoteClient.class ,
-
-    TestZone.class ,
-    TestRestart.class ,
-
-    TestManagedDatasetBuilder.class,
-    TestManagedDatasetBuilder2.class,
-    TestDeltaAssembler.class,
-
-    // Includes assembler tests.
-    TestDeltaFusekiGood.class ,
-    TestDeltaFusekiBad.class ,
-
-    TestReleaseSetup.class
-
-})
-
-public class TS_Delta {
+public class TestLocalLinkRocksDB extends AbstractTestDeltaLink {
     @BeforeClass public static void setForTesting() {
         LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        DeltaSystem.init();
     }
+
+    static Setup.LinkSetup setup = Setup.LocalSetup.createRocksDB();
+
+    @Override
+    public Setup.LinkSetup getSetup() {
+        return setup;
+    }
+
+    @BeforeClass public static void beforeClass()   { setup.beforeClass(); }
+    @AfterClass  public static void afterClass()    { setup.afterClass(); }
+    @Before public void beforeTest()                { setup.beforeTest(); }
+    @After  public void afterTest()                 { setup.afterTest(); }
 }

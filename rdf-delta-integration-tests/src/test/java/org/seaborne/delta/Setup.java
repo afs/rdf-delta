@@ -68,7 +68,11 @@ public class Setup {
         }
 
         public static LinkSetup createFile() {
-            return new LocalSetup(()->DeltaTestLib.createEmptyTestServer(), true);
+            return new LocalSetup(()->DeltaTestLib.createEmptyTestServerFile(), true);
+        }
+
+        public static LinkSetup createRocksDB() {
+            return new LocalSetup(()->DeltaTestLib.createEmptyTestServerRocks(), true);
         }
 
         public static LinkSetup createZkMem() {
@@ -153,7 +157,7 @@ public class Setup {
         public void beforeTest() {
             resetDefaultHttpClient();
             testPort = WebLib.choosePort();
-            localServer = DeltaTestLib.createEmptyTestServer();
+            localServer = DeltaTestLib.createEmptyTestServerRocks();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server = DeltaServer.create(testPort, localLink);
             try {

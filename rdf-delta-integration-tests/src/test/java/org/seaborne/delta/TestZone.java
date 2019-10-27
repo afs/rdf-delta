@@ -55,8 +55,7 @@ public class TestZone {
     @Before public void before() {
         FileOps.ensureDir(DIR_ZONE);
         FileOps.clearAll(DIR_ZONE);
-
-        LocalServer lserver = DeltaTestLib.createEmptyTestServer();
+        LocalServer lserver = DeltaTestLib.createEmptyTestServerRocks();
         deltaLink = DeltaLinkLocal.connect(lserver);
         zone = Zone.connect(DIR_ZONE);
         deltaClient = DeltaClient.create(zone, deltaLink);

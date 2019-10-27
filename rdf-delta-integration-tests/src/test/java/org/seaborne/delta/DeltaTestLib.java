@@ -29,19 +29,27 @@ public class DeltaTestLib {
     // Static resources area.
     protected static String TDIR = "testing/";
     public static String ServerArea = "target/test/server";
-    
+
     private static void ensureClear(String area) {
         FileOps.ensureDir(area);
         FileOps.clearAll(area);
     }
-    
-    static LocalServer createEmptyTestServer() {
+
+    static LocalServer createEmptyTestServerFile() {
         DPS.resetSystem();
         ensureClear(ServerArea);
         LocalServer localServer = LocalServers.createFile(ServerArea);
         return localServer;
     }
-//    
+
+    static LocalServer createEmptyTestServerRocks() {
+        DPS.resetSystem();
+        ensureClear(ServerArea);
+        LocalServer localServer = LocalServers.createRDB(ServerArea);
+        return localServer;
+    }
+
+//
     static Quad freshQuad() {
         return SSE.parseQuad("(_ :s :p '"+DateTimeUtils.nowAsXSDDateTimeString()+"'^^xsd:dateTimeStamp)");
     }
