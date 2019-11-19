@@ -29,9 +29,11 @@ public class DeltaFusekiServerCmd {
         // In case, we are invoked directly, not via dcmd.
         String[] log4j2files = { "log4j2.properties", "log4j2.yaml", "log4j2.yml", "log4j2.json", "log4j2.jsn", "log4j2.xml" };
         for ( String fn : log4j2files ) {
-            if ( FileOps.exists(fn) )
+            if ( FileOps.exists(fn) ) {
                 // Let Log4j2 initialize normally.
                 System.setProperty("log4j.configurationFile", fn);
+                break;
+            }
         }
         FusekiLogging.allowLoggingReset(false);
         FusekiMainCmd.main(args);
