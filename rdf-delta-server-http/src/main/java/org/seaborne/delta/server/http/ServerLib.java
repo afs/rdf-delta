@@ -19,12 +19,6 @@ package org.seaborne.delta.server.http;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.JsonValue;
-import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.lib.JSONX;
-
 public class ServerLib {
     /** URL string, including query string */
     public static String url(HttpServletRequest request) {
@@ -32,13 +26,4 @@ public class ServerLib {
             return request.getRequestURI();
         return request.getRequestURI()+"?"+request.getQueryString();
     }
-    
-    public static JsonValue ping() {
-        String now = DateTimeUtils.nowAsXSDDateTimeString();
-        JsonObject r = JSONX.buildObject(b->{
-            b.pair(DeltaConst.F_VALUE, now);
-        });
-        return r ;
-    }
-
 }

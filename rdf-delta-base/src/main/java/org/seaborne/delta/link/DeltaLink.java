@@ -19,6 +19,7 @@ package org.seaborne.delta.link;
 
 import java.util.List;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
@@ -173,7 +174,7 @@ public interface DeltaLink {
      *  This operation makes one attempt only to perform the ping even if the {@code DeltaLink}
      *  has some level of retry policy.
      */
-    public void ping();
+    public JsonObject ping();
 
     /** Start the link. */
     public void start();

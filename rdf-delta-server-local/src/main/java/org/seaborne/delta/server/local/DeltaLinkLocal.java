@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
@@ -76,7 +77,9 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
-    public void ping() {}
+    public JsonObject ping() {
+        return DeltaLib.ping();
+    }
 
     public LocalServer getLocalServer() {
         return localServer;

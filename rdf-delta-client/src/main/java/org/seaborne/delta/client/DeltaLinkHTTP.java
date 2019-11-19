@@ -105,10 +105,9 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
-    public void ping() {
+    public JsonObject ping() {
         checkLink();
-        JsonObject obj = rpcOnce(DeltaConst.OP_PING, emptyObject);
-        // Pass/fail.  Ignore the result.
+        return rpcOnce(DeltaConst.OP_PING, emptyObject);
     }
 
     private void checkLink() {

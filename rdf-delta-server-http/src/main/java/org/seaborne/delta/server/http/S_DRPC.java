@@ -222,7 +222,7 @@ public class S_DRPC extends DeltaServlet {
 
     // {} -> { "value" ; "...now..."}
     private JsonValue ping(DeltaAction action) {
-        return ServerLib.ping();
+        return DeltaLib.ping();
     }
 
     private JsonValue listDataSources(DeltaAction action) {

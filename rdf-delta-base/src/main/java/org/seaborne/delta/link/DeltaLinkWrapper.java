@@ -20,6 +20,7 @@ package org.seaborne.delta.link;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo ;
@@ -123,7 +124,7 @@ public class DeltaLinkWrapper implements DeltaLink {
     }
 
     @Override
-    public void ping() { exec(()->get().ping()); }
+    public JsonObject ping() { return execRtn(()->get().ping()); }
 
     @Override
     public void start() { exec(()->get().start()); }

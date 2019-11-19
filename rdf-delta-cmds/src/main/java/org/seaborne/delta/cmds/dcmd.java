@@ -77,20 +77,19 @@ public class dcmd {
 
         // Map to full name.
         switch (cmdExec) {
-            case "server" :
-                cmdExec = "patchserver";
-                break;
-
-            case "appendpatch" :
-            case "add" :
-                cmdExec = "append";
-                break;
+            case "server" : cmdExec = "patchserver"; break;
+            case "ping":    cmdExec = "ping"; break;
 
             case "mk" : cmdExec = "mklog"; break;
             case "ls" : cmdExec = "list";  break;
             case "cp" : cmdExec = "cplog"; break;
             case "mv" : cmdExec = "mvlog"; break;
             case "rm" : cmdExec = "rmlog"; break;
+
+            case "appendpatch" :
+            case "add" :
+                cmdExec = "append";
+                break;
 
             case "get" :
             case "fetch" :
@@ -131,9 +130,12 @@ public class dcmd {
             case "rdf2patch":       rdf2patch.main(argsSub); break;
             case "patch2rdf":       patch2rdf.main(argsSub); break;
             case "patch2update":    patch2update.main(argsSub); break;
+            case "ping":            pingserver.main(argsSub); break;
             case "parse":           patchparse.main(argsSub); break;
+
             case "patchserver":
                 delta.server.DeltaServerCmd.main(argsSub); break;
+
             case "fuseki":
                 FusekiMainCmd.main(argsSub);
                 break;

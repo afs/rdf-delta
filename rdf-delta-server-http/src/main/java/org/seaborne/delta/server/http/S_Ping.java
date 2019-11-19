@@ -18,11 +18,12 @@
 package org.seaborne.delta.server.http;
 
 import org.apache.jena.atlas.json.JsonValue ;
+import org.seaborne.delta.DeltaLib;
 
 /** Respond with a ping as a JSON object */
 public class S_Ping extends S_JSON {
     public S_Ping() { }
 
     @Override
-    protected JsonValue json() { return ServerLib.ping() ; } 
+    protected JsonValue json() { return DeltaLib.ping() ; }
 }
