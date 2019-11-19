@@ -26,7 +26,7 @@ import org.seaborne.patch.changes.RDFChangesWriter ;
 import org.seaborne.patch.text.TokenWriter ;
 import org.seaborne.patch.text.TokenWriterText ;
 
-public class DeltaLib {
+public class DeltaClientLib {
 
     /** Connect to a destination for changes */
     public static RDFChanges destination(String dest) {

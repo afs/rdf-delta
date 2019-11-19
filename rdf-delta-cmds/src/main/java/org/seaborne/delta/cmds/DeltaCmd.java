@@ -139,37 +139,6 @@ abstract public class DeltaCmd extends CmdGeneral {
         return description;
     }
 
-//    protected void ping() {
-//        try {
-//            dLink.ping();
-//        } catch (HttpException ex) {
-//            throw new CmdException(messageFromHttpException(ex));
-//        } catch (JsonException ex) {
-//            throw new CmdException("Not an RDF Patch server");
-//        }
-//    }
-//
-//    // Library of operations on the DeltaLink.
-//
-//    protected void list() {
-//        List <DataSourceDescription> all = getDescriptions();
-//        if ( all.isEmpty()) {
-//            System.out.println("-- No logs --");
-//            return ;
-//        }
-//        all.forEach(dsd->{
-//            PatchLogInfo logInfo = dLink.getPatchLogInfo(dsd.id);
-//            if ( logInfo != null ) {
-//                System.out.print(
-//                    String.format("[%s %s <%s> [%d,%d] %s]\n", dsd.id, dsd.name, dsd.uri, logInfo.minVersion, logInfo.maxVersion,
-//                                  (logInfo.latestPatch==null)?"--":logInfo.latestPatch.toString()));
-//            }
-//            else
-//                System.out.println(dsd);
-//
-//        });
-//    }
-//
     protected String messageFromHttpException(HttpException ex) {
         Throwable ex2 = ex;
         if ( ex.getCause() != null )

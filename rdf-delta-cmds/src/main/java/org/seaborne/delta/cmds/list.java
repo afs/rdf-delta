@@ -43,11 +43,7 @@ public class list extends DeltaCmd {
 
     @Override
     protected void execCmd() {
-
         // "Op1"
-
-
-
         if ( dataSourceName != null ) {
             execOneName(dataSourceName);
             return;
