@@ -183,18 +183,6 @@ public class FileArea {
 
     /** Retire an on-disk log file area */
     public static void retire(Path pathLog) {
-//        if ( true ) {
-//            // Mark unavailable.
-//            Path disabled = pathLog.resolve(ConstDISABLED);
-//            try { Files.createFile(disabled); }
-//            catch (IOException ex) { throw IOX.exception(ex); }
-//        }
-//        if ( true ) {
-//            // Move to "NAME-deleted-N"
-//            Path dest = IOX.uniqueDerivedPath(pathLog, (x)->x+DELETE_MARKER);
-//            try { Files.move(pathLog, dest, StandardCopyOption.ATOMIC_MOVE); }
-//            catch (IOException e) { throw IOX.exception(e); }
-//        }
         IOX.deleteAll(pathLog);
     }
 

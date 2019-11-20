@@ -239,7 +239,7 @@ public class FileStore {
      * This must be greater than the current index.
      */
     public FileEntry allocateFilename(long idx) {
-        synchronized(this) {
+        synchronized(this) { // No needed? PatchLogBase assumes single access.
             // Ensure this is "+1" -- more restrictive than contract ATM.
             long v = counter.get();
             if ( idx != v+1 )

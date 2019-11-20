@@ -87,7 +87,7 @@ public class PatchStoreFile extends PatchStore {
             return LogIndexFile.create(fileStore);
         });
         // The LogIndexFile will be picked up by newPatchLogIndex, newPatchStorage
-        // calls in PatchStoreProviderFile2.
+        // calls in PatchStoreProviderFile.
         PatchLog newPatchLog = newPatchLogFromIndexAndStorage(dsd);
         return newPatchLog;
     }
@@ -110,6 +110,7 @@ public class PatchStoreFile extends PatchStore {
     protected void delete(PatchLog patchLog) {
         Id id = patchLog.getDescription().getId();
         LogIndexFile logIndexFile = logIndexes.remove(id);
+        logIndexFile.fileStore().release();
         Path path = logIndexFile.getPath();
         FileArea.retire(path);
     }

@@ -431,11 +431,31 @@ public abstract class AbstractTestDeltaLink {
     @Test
     public void datasource_remove_03() {
         DeltaLink dLink = getLink();
-        Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");
+        Id dsRef = dLink.newDataSource("datasource_remove_03", "http://example/uri");
         dLink.removeDataSource(dsRef);
         assertTrue(dLink.listDatasets().isEmpty());
         // Again.
         dLink.removeDataSource(dsRef);
+    }
+
+    @Test
+    public void datasource_remove_04() {
+        DeltaLink dLink = getLink();
+        Id dsRef = dLink.newDataSource("datasource_remove_04", "http://example/uri");
+        RDFPatch patch = RDFPatchOps.read("testing/data.rdfp");
+        patch = RDFPatchOps.withHeader(patch, patch.getId(), null);
+        Version ver1 = dLink.append(dsRef, patch);
+        assertNotEquals(Version.INIT, ver1);
+
+        dLink.removeDataSource(dsRef);
+        Id dsRef2 = dLink.newDataSource("datasource_remove_04", "http://example/uri");
+        PatchLogInfo info = dLink.getPatchLogInfo(dsRef2);
+        assertNotEquals(dsRef, dsRef2);
+        assertEquals(Version.INIT, info.getMaxVersion());
+        assertEquals(Version.INIT, info.getMinVersion());
+
+        Version ver2 = dLink.append(dsRef2, patch);
+        assertEquals(ver1, ver2);
     }
 
     @Test
