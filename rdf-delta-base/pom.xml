@@ -27,14 +27,14 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.8.2</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent> 
 
   <dependencies>
     <dependency> 
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-patch</artifactId>
-      <version>0.8.2</version>
+      <version>0.9.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
