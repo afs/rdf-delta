@@ -140,13 +140,13 @@ public class LogOp {
 
         if ( action.httpArgs.patchId != null ) {
             Id patchId = action.httpArgs.patchId;
-            FmtLog.info(LOG, "Patch:fetch Dest=%s, Patch=%s", dsRef, patchId);
+            FmtLog.info(LOG, "[%d] Patch:fetch Dest=%s, Patch=%s", action.id, dsRef, patchId);
             patch = action.dLink.fetch(dsRef, patchId);
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: id="+patchId);
         } else if ( action.httpArgs.version != null ) {
             Version ver = Version.create(action.httpArgs.version);
-            FmtLog.info(LOG, "Patch:fetch Dest=%s, Patch=%s", dsRef, ver);
+            FmtLog.info(LOG, "[%d] Patch:fetch Dest=%s, Patch=%s", action.id, dsRef, ver);
             patch = action.dLink.fetch(dsRef, ver);
             if ( patch == null )
                 throw new DeltaNotFoundException("Patch not found: version="+action.httpArgs.version);
