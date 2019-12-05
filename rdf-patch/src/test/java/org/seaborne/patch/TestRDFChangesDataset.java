@@ -30,10 +30,12 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.junit.After;
@@ -178,5 +180,30 @@ public class TestRDFChangesDataset  {
         });
         DatasetGraph dsg2 = replay();
         check(dsg2);
+    }
+
+    @Test public void record_remove_graph_1() {
+        Txn.executeWrite(dsg, ()->dsg.add(quad1));
+        Node gn = quad1.getGraph();
+
+        Txn.executeWrite(dsg, ()-> {
+            dsg.removeGraph(gn);
+        });
+
+        DatasetGraph dsg2 = replay();
+        check(dsg2);
+    }
+
+    @Test public void record_add_graph_1() {
+        Txn.executeWrite(dsg, ()->dsg.add(quad1));
+
+        Graph data = GraphFactory.createDefaultGraph();
+        Node gn = quad1.getGraph();
+        data.add(triple1);
+        Txn.executeWrite(dsg, ()-> {
+            dsg.addGraph(gn, data);
+        });
+        DatasetGraph dsg2 = replay();
+        check(dsg2, Quad.create(gn, triple1));
     }
 }

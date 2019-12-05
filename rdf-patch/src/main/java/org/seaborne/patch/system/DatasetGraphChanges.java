@@ -124,6 +124,17 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public Graph getGraph(Node graphNode)
     { return new GraphChanges(get().getGraph(graphNode), graphNode, monitor) ; }
 
+    @Override
+    public void addGraph(Node graphName, Graph data) {
+        removeGraph(graphName);
+        data.find().forEachRemaining((t) -> add(graphName, t.getSubject(), t.getPredicate(), t.getObject()));
+    }
+
+    @Override
+    public void removeGraph(Node graphName) {
+        deleteAny(graphName, Node.ANY, Node.ANY, Node.ANY);
+    }
+
     private static final int DeleteBufferSize = 10000;
     @Override
     /** Simple implementation but done without assuming iterator.remove() */
