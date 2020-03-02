@@ -422,8 +422,8 @@ public class DeltaConnection implements AutoCloseable {
             if ( remote.get() != null ) {
                 if ( Version.isValid(getRemoteVersionCached()) && info.getMaxVersion().value() < getRemoteVersionCached().value() ) {
                     String dsName = dLink.getDataSourceName(datasourceId);
-                    FmtLog.warn(LOG, "[ds:%s %s] Remote version behind local tracking of remote version: [%d, %d]",
-                                     datasourceId, dsName, info.getMaxVersion(), getRemoteVersionCached());
+                    FmtLog.warn(LOG, "[ds:%s %s] Remote version behind local tracking of remote version: [%s, %s]",
+                                     datasourceId, dsName, info.getMaxVersion().value(), getRemoteVersionCached().value());
                 }
             }
             // Set the local copy whenever we get the remote latest.
