@@ -240,7 +240,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                 }
                 if ( sc == 400 ) {
                     // Bad request.
-                    // When This includes being out of sync with the patch log due to a concurrent update.
+                    // This includes being out of sync with the patch log due to a concurrent update.
                     FmtLog.warn(LOG, "Patch %s : HTTP bad request: %s", idStr, r.getStatusLine().getReasonPhrase());
                     throw new DeltaBadPatchException(r.getStatusLine().getReasonPhrase());
                 }

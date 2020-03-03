@@ -177,7 +177,7 @@ public class PatchApplyService extends ActionREST {
     protected void doOptions(HttpAction action) {
         ActionLib.setCommonHeadersForOptions(action.response);
         action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST,PATCH");
-        action.response.setHeader(HttpNames.hContentLengh, "0");
+        action.response.setHeader(HttpNames.hContentLength, "0");
     }
 
     @Override

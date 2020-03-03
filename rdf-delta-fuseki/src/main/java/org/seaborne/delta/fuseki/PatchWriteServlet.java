@@ -77,7 +77,7 @@ public class PatchWriteServlet extends ServletProcessor {
     public void execOptions(HttpAction action) {
         ActionLib.setCommonHeadersForOptions(action.response);
         action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST");
-        action.response.setHeader(HttpNames.hContentLengh, "0");
+        action.response.setHeader(HttpNames.hContentLength, "0");
     }
 
     protected void validate(HttpAction action) {

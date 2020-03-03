@@ -145,7 +145,7 @@ public /*package*/ class PatchLogServer {
 
     private static void addMimeType(MimeTypes mt, Lang lang) {
         lang.getFileExtensions().forEach(ext->
-            mt.addMimeMapping(ext, lang.getContentType().getContentType())
+            mt.addMimeMapping(ext, lang.getContentType().getContentTypeStr())
         );
     }
 

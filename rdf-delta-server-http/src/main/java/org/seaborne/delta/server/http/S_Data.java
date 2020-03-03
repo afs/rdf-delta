@@ -40,10 +40,10 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DataSource;
 import org.slf4j.Logger ;
 
-/** Data over HTTP. */ 
+/** Data over HTTP. */
 public class S_Data extends HttpOperationBase {
     static private Logger LOG = Delta.getDeltaLogger("Data") ;
-    
+
     public S_Data(DeltaLink engine) {
         super(engine);
     }
@@ -53,16 +53,16 @@ public class S_Data extends HttpOperationBase {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doCommon(req, resp);
     }
-    
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doCommon(req, resp);
     }
-    
+
     @Override
     protected void validateAction(Args httpArgs) {
     }
-    
+
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
         LOG.info("GET "+action.getURL());
@@ -73,13 +73,13 @@ public class S_Data extends HttpOperationBase {
         Path path = Paths.get(fn);
         try ( InputStream in = Files.newInputStream(path) ) {
             action.response.setStatus(HttpSC.OK_200);
-            action.response.setContentType(ct.getContentType());
+            action.response.setContentType(ct.getContentTypeStr());
             IOUtils.copy(in, action.response.getOutputStream());
         } catch (NoSuchFileException | FileNotFoundException ex) {
             throw new DeltaNotFoundException(action.getURL());
         }
     }
-    
+
     /** Decide which data to return.
      *  Default is the initial data for a {@link DataSource}.
      */
