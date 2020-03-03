@@ -109,7 +109,7 @@ public class BaseTestDeltaFuseki {
             case RESTART :
                 break;
         }
-        return FusekiServer.create().port(port).parseConfigFile(config).build().start();
+        return FusekiServer.create().port(port).loopback(true).parseConfigFile(config).build().start();
     }
 
 }

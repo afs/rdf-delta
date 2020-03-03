@@ -187,6 +187,7 @@ public class Driver {
     protected static FusekiServer fuseki(int port, Model assembler) {
         Builder builder =
             FusekiServer.create()
+                .loopback(true)
                 .port(port);
       // Process server context
       Resource server = GraphUtils.getResourceByType(assembler, FusekiVocab.tServer);

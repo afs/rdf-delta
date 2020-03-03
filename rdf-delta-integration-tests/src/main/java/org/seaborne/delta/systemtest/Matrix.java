@@ -252,6 +252,7 @@ public class Matrix {
 
         FusekiServer server =
             FusekiServer.create()
+                .loopback(true)
                 .port(fusekiPort)
                 .add(dsName, dsg)
                 .build();

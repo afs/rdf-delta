@@ -59,7 +59,7 @@ public class TestDeltaFuseki {
         DeltaServer deltaServer = runServer();
 
         // Know port in assembler file - 1077
-        FusekiServer.Builder builder = FusekiServer.create().parseConfigFile("testing/fuseki/fuseki-assembler-ext.ttl");
+        FusekiServer.Builder builder = FusekiServer.create().loopback(true).parseConfigFile("testing/fuseki/fuseki-assembler-ext.ttl");
 
 
         FusekiServer fusekiServer1 = builder.port(PORT1).build();
