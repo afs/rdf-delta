@@ -25,37 +25,36 @@ import javax.servlet.http.HttpServlet ;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.fuseki.server.RequestLog ;
 import org.apache.jena.fuseki.servlets.ActionErrorException ;
 import org.apache.jena.fuseki.servlets.ServletOps ;
+import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.delta.Delta ;
-import org.seaborne.delta.DeltaBadRequestException ;
-import org.seaborne.delta.DeltaHttpException ;
-import org.seaborne.delta.Id ;
+import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger ;
 
 /** Servlet and multiplexer for DeltaLinks */
-public abstract class DeltaServlet extends HttpServlet { 
+public abstract class DeltaServlet extends HttpServlet {
 
     protected static Logger logger = Delta.getDeltaLogger("DeltaServlet") ;
     // Switchable so the server does not need to be restarted (for tests and admin operations).
     protected final DeltaLink engine;
-    
+
     //protected final DeltaLinkMgr linkMgr = new DeltaLinkMgr();
-    
+
     // Static to catch cross contamination.
     protected final Map<Id, DeltaLink> links = new ConcurrentHashMap<>();
-    
+
     /** Automatically register when a RegToken is seen that is not recorded as registered.*/
     private static final boolean AutoRegistration = false;
-    
+
     protected DeltaServlet(DeltaLink engine) {
         this.engine = engine;
     }
-    
+
 //    @Override
 //    public void init(ServletConfig config) throws ServletException {
 //        super.init(config);
@@ -69,7 +68,7 @@ public abstract class DeltaServlet extends HttpServlet {
     public DeltaLink getLink() {
         return engine;
     }
-    
+
     protected abstract DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException;
     protected abstract void validateAction(DeltaAction action) throws IOException;
     protected abstract void executeAction(DeltaAction action) throws IOException;
@@ -97,7 +96,7 @@ public abstract class DeltaServlet extends HttpServlet {
             try { resp.sendError(ex.getStatusCode(), ex.getMessage()) ; } catch (IOException ex2) {}
         } catch (ActionErrorException ex) {
             // Should not happen - comes from ServletOps, not DeltaAction.
-            Delta.DELTA_LOG.error("HTTP exception: "+ex.getRC()+" -- "+ex.getMessage());
+            Delta.DELTA_LOG.error("HTTP exception (ActionError): "+ex.getRC()+" -- "+ex.getMessage());
             try { resp.sendError(ex.getRC(), ex.getMessage()) ; } catch (IOException ex2) {}
         } catch (Throwable ex) {
             Delta.DELTA_LOG.error(ex.getMessage(), ex);
@@ -107,7 +106,7 @@ public abstract class DeltaServlet extends HttpServlet {
     }
 
     // Default actions - do nothing.
-    
+
     protected void notSupported(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String protocol = req.getProtocol();
         String msg = "HTTP "+req.getMethod()+" not supported" ;
@@ -118,7 +117,7 @@ public abstract class DeltaServlet extends HttpServlet {
         }
     }
 
-    // Override in the actual operation to select which of GET/POST/PATCH is supported */  
+    // Override in the actual operation to select which of GET/POST/PATCH is supported */
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         notSupported(req, resp);
     }
@@ -127,12 +126,12 @@ public abstract class DeltaServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         notSupported(req, resp);
     }
-    
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         notSupported(req, resp);
     }
-    
+
     @Override
     public String getServletInfo() {
         return this.getClass().getSimpleName();
@@ -140,13 +139,18 @@ public abstract class DeltaServlet extends HttpServlet {
 
     @Override
     public void destroy() {}
-    
+
     /** The common lifecycle. */
     protected void doCommon(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             DeltaAction action = parseRequest(req, resp);
             validateAction(action);
             executeAction(action);
+        }
+        catch (DeltaPatchVersionException ex) {
+            resp.setStatus(ex.getStatusCode());
+            resp.addHeader(HttpNames.hContentType, WebContent.contentTypeJSON);
+            JSON.write(resp.getOutputStream(), ex.getBody());
         }
         catch (DeltaBadRequestException ex) {
             String msg = ex.getMessage();

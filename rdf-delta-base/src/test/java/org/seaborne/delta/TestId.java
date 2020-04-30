@@ -30,7 +30,7 @@ public class TestId {
         Id id2 = Id.create();
         assertNotEquals(id1, id2);
     }
-    
+
     @Test public void id_2() {
         Id id1 = Id.nullId();
         Id id2 = Id.create();
@@ -51,14 +51,14 @@ public class TestId {
         Id id2 = Id.fromString(id1.asParam());
         assertEquals(id1, id2);
     }
-    
+
     @Test public void id_fromNode() {
         Id id1 = Id.create();
         assertEquals(36, id1.asPlainString().length());
         Id id2 = Id.fromNode(id1.asNode());
         assertEquals(id1, id2);
     }
-    
+
     @Test public void id_fromBytes() {
         Id id1 = Id.create();
         byte[] bytes = id1.asBytes();
@@ -67,5 +67,5 @@ public class TestId {
         assertNotSame(id1, id2);
         assertEquals(id1, id2);
     }
-    
+
 }

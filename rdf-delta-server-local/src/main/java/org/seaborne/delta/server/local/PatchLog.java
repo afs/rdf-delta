@@ -62,9 +62,8 @@ public interface PatchLog {
     public PatchLogInfo getInfo();
 
     /**
-     * Return a description of the {@code PatchLog}. This is the state at a
-     * point in time and does not track subsequent changes to the patch log. In
-     * other words, it is not "live".
+     * Return a description of the {@code PatchLog} - the basic information without
+     * changing info like version number.
      */
     public DataSourceDescription getDescription();
 

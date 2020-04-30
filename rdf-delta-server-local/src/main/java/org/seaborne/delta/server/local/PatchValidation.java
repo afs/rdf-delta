@@ -19,11 +19,11 @@ package org.seaborne.delta.server.local;
 
 import java.util.Objects;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
-import org.seaborne.delta.DeltaBadPatchException;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
+import org.seaborne.delta.*;
+import org.seaborne.delta.lib.JSONX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.slf4j.Logger;
@@ -73,7 +73,14 @@ public class PatchValidation {
         Id logHead = log.getLatestId();
         // Works if previousId == null.
         if ( ! Objects.equals(logHead, previousId) ) {
-            action.bad("Previous not current: log head=%s : patch previous=%s",logHead, previousId);
+            PatchLogInfo info = new PatchLogInfo(log.getDescription(),  log.getEarliestVersion(), log.getLatestVersion(), logHead);
+            JsonObject body = JSONX.buildObject(b->{
+                b.pair(DeltaConst.F_ERROR, "patch-conflict");
+                b.key(DeltaConst.F_LOG_INFO);
+                info.addJsonObject(b);
+            });
+            FmtLog.warn(Delta.DELTA_LOG, "Conflict: Previous not current: patch=%s, log head=%s : patch previous=%s", patchId, logHead, previousId);
+            throw new DeltaPatchVersionException("Patch Conflict", body);
         }
     }
 

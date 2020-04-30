@@ -92,6 +92,10 @@ public class DeltaConst {
     // Some JSON array
     public static final String F_ARRAY         = "array";
 
+    // JSON field names, patch append errors.
+    public static final String F_ERROR         = "error";
+    public static final String F_LOG_INFO      = "log_info";
+
     /** Default choice of port */
     public static final int    PORT            = 1066;
     public static final int    SYSTEM_VERSION  = 1;

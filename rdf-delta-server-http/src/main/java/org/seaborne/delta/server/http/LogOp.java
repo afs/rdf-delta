@@ -95,7 +95,7 @@ public class LogOp {
             JSON.write(out, rslt);
             out.flush();
         } catch (DeltaBadPatchException ex) {
-            FmtLog.warn(LOG, ex, "[%d] Patch:append ds:%s patch:%s => %s", action.id, dsRef.toString(), Id.str(patchId), ex.getMessage());
+            FmtLog.warn(LOG, /*ex,*/ "[%d] Patch:append ds:%s patch:%s => %s", action.id, dsRef.toString(), Id.str(patchId), ex.getMessage());
             throw ex;
         } catch (IOException ex) {
             FmtLog.error(LOG, ex, "[%d] Patch:append ds:%s patch:%s => %s", action.id, dsRef.toString(), Id.str(patchId), ex.getMessage());

@@ -157,7 +157,7 @@ public abstract class AbstractTestDeltaLink {
             Version version1b = dLink.append(dsRef, patch1);
             fail("Managed to resend earlier patch");
             //assertEquals(-1, version1b);
-        } catch (DeltaBadPatchException ex) {
+        } catch (DeltaPatchVersionException ex) {
             assertEquals(HttpSC.BAD_REQUEST_400, ex.getStatusCode());
         }
     }

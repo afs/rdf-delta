@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong ;
 import java.util.function.Supplier;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse ;
 import org.apache.http.StatusLine ;
@@ -34,10 +35,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.io.IndentedWriter ;
+import org.apache.jena.atlas.json.JSON;
+import org.apache.jena.atlas.json.JsonException;
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
+import org.apache.jena.riot.WebContent;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX ;
+import org.seaborne.delta.lib.JSONX;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.slf4j.Logger;
@@ -59,6 +65,7 @@ public class RDFChangesHTTP extends RDFChangesWriter {
     private StatusLine statusLine       = null;
     private String response             = null;
     private Node patchId                = null;
+    private Node previousId             = null;
 
     /** Send changes to a specific URL */
     public RDFChangesHTTP(String urlstr) {
@@ -102,6 +109,8 @@ public class RDFChangesHTTP extends RDFChangesWriter {
         super.header(field, value);
         if ( field.equals(RDFPatchConst.ID) )
             patchId = value;
+        if ( field.equals(RDFPatchConst.PREV) )
+            previousId = value;
     }
 
     // Sent to the RDFChangesWriter
@@ -239,8 +248,34 @@ public class RDFChangesHTTP extends RDFChangesWriter {
                     throw new DeltaHttpException(sc, "HTTP Redirect");
                 }
                 if ( sc == 400 ) {
-                    // Bad request.
-                    // This includes being out of sync with the patch log due to a concurrent update.
+                    // Is there a JSON error response?
+                    if ( response != null ) {
+                        // This includes being out of sync with the patch log due to a concurrent update.
+                        Header ct = r.getEntity().getContentType();
+                        if ( ct != null && WebContent.contentTypeJSON.equals(ct.getValue()) ) {
+                            JsonObject object;
+                            try { object = JSON.parse(response); }
+                            catch (JsonException ex) {
+                                FmtLog.error(LOG, "Failed to parse JSON error response: "+ex.getMessage());
+                                throw new DeltaBadRequestException("Bad JSON request: "+ex.getMessage()) ;
+                            }
+
+                            String errStr = JSONX.getStrOrNull(object, DeltaConst.F_ERROR);
+                            JsonObject infoObj = object.getObj(DeltaConst.F_LOG_INFO);
+                            if ( errStr == null || infoObj == null ) {
+                                // XXX
+                                FmtLog.warn(LOG, "Bad error from patch %s : HTTP bad request: %s", idStr, r.getStatusLine().getReasonPhrase());
+                                throw new DeltaBadPatchException(r.getStatusLine().getReasonPhrase());
+                            }
+                            PatchLogInfo patchLogInfo = PatchLogInfo.fromJson(infoObj);
+                            String prevStr = (previousId == null)?"none": Id.str(previousId);
+                            // XXX Don't need two log messages
+                            FmtLog.warn(LOG, "Append conflict: patch=[%s,%s] log=%s", idStr, prevStr, patchLogInfo);
+                            throw new DeltaPatchVersionException(errStr, object);
+                        }
+                    }
+
+                    // Bad request - not a delta error body.
                     FmtLog.warn(LOG, "Patch %s : HTTP bad request: %s", idStr, r.getStatusLine().getReasonPhrase());
                     throw new DeltaBadPatchException(r.getStatusLine().getReasonPhrase());
                 }

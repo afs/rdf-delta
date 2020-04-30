@@ -275,7 +275,8 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             } catch (Exception ex) {
                 //Don't signal.  monitor.txnAbort() is a client-caused abort.
                 super.abort();
-                return;
+                throw ex;
+                //return;
             }
         }
         super.commit();

@@ -30,8 +30,6 @@ import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchStorage;
-import org.seaborne.delta.server.s3.PatchStorageS3;
-import org.seaborne.delta.server.s3.S3;
 
 public class TestPatchStorageS3 extends AbstractTestPatchStorage {
     static { LogCtl.setJavaLogging(); }
