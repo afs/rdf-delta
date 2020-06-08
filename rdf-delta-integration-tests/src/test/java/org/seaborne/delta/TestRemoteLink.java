@@ -17,12 +17,13 @@
 
 package org.seaborne.delta;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.*;
-
-public class TestRemoteLink extends AbstractTestDeltaLink {
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.seaborne.delta.lib.LogX;class TestRemoteLink extends AbstractTestDeltaLink {
     @BeforeClass public static void setForTesting() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     static Setup.LinkSetup setup = new Setup.RemoteSetup();

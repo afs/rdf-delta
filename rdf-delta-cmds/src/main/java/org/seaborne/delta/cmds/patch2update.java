@@ -35,7 +35,10 @@ import org.seaborne.patch.changes.RDFChangesWriteUpdate;
 /** Generate a SPARQL Update from a patches. */
 public class patch2update extends CmdGeneral
 {
-    static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
+    static {
+        LogCtl.setLogging();
+        JenaSystem.init();
+    }
 
     public static void main(String... args) {
         new patch2update(args).mainRun();

@@ -25,10 +25,13 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.sys.JenaSystem;
 
-/** Abstract base alss to work on patch files given on the command line */
+/** Abstract base class to work on patch files given on the command line */
 public abstract class CmdPatch extends CmdGeneral
 {
-    static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
+    static {
+        LogCtl.setLogging();
+        JenaSystem.init();
+    }
 
     protected CmdPatch(String[] argv) {
         super(argv) ;

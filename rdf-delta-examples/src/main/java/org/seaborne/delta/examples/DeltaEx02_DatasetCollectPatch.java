@@ -19,13 +19,13 @@ package org.seaborne.delta.examples;
 
 import java.io.OutputStream;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
@@ -37,7 +37,7 @@ import org.seaborne.patch.changes.RDFChangesCollector;
  * emitting the change log as changes occur in the transaction.
  */
 public class DeltaEx02_DatasetCollectPatch {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     public static void main(String ...args) {
         // -- Base dataset

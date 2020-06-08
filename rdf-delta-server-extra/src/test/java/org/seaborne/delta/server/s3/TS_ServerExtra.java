@@ -17,10 +17,10 @@
 
 package org.seaborne.delta.server.s3;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.seaborne.delta.lib.LogX;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
@@ -31,6 +31,6 @@ import org.junit.runners.Suite;
 
 public class TS_ServerExtra {
     @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 }

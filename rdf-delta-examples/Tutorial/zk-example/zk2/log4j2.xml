@@ -2,7 +2,7 @@
 <!-- Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0 -->
 <!--
     Logging setup for the patch server for RDF Delta and for Fuseki with RDF Delta.
-    This file is log4j XML, non-strict synatx.
+    This file is log4j XML, non-strict syntax.
     http://logging.apache.org/log4j/2.x/manual/configuration.html#XML
 -->
 

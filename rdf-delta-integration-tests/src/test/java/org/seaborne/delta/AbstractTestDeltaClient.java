@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotNull ;
 
 import org.apache.jena.atlas.iterator.Iter ;
 import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.query.ReadWrite ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
@@ -33,6 +32,7 @@ import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
 import org.seaborne.delta.client.*;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink ;
 
 public abstract class AbstractTestDeltaClient {
@@ -42,7 +42,7 @@ public abstract class AbstractTestDeltaClient {
     static protected Zone zone;
 
     @BeforeClass public static void setupZone() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
         Location loc = Location.create(DIR_ZONE);
         FileOps.ensureDir(DIR_ZONE);
         zone = Zone.connect(DIR_ZONE);

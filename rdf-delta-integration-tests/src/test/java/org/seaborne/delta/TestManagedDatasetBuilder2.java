@@ -21,23 +21,19 @@ import static org.junit.Assert.assertTrue;
 import static org.seaborne.delta.DeltaConst.symDeltaConnection;
 
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.LocalStorageType;
 import org.seaborne.delta.client.SyncPolicy;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.client.assembler.ManagedDatasetBuilder;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
@@ -53,7 +49,7 @@ public class TestManagedDatasetBuilder2 {
 
     @BeforeClass public static void setForTesting() {
         if ( System.getProperty("java.util.logging.configuration") == null )
-            LogCtl.setJavaLogging("src/test/resources/logging.properties");
+            LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     @BeforeClass public static void cleanStart() {

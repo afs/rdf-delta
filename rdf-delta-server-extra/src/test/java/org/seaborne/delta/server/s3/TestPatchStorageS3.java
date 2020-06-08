@@ -23,16 +23,16 @@ import java.net.ServerSocket;
 import com.amazonaws.services.s3.AmazonS3;
 
 import io.findify.s3mock.S3Mock;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.patchstores.AbstractTestPatchStorage;
 
 public class TestPatchStorageS3 extends AbstractTestPatchStorage {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     private static String testRegion = "uk-bristol-1";
     private static String testBucketName = "delta";

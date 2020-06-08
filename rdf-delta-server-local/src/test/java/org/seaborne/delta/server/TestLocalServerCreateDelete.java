@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -38,24 +37,28 @@ import org.junit.Test;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.server.local.*;
+import org.seaborne.delta.lib.LogX;
+import org.seaborne.delta.server.local.DPS;
+import org.seaborne.delta.server.local.LocalServer;
+import org.seaborne.delta.server.local.LocalServers;
+import org.seaborne.delta.server.local.PatchStoreProvider;
 
 /**
- * Tests of {@link LocalServer} for creating and 
+ * Tests of {@link LocalServer} for creating and
  * deleting a {@link LocalServer} area using a file {@link PatchStoreProvider}.
- * 
+ *
  * See {@link TestLocalServer} for tests involving
  * a static setup of data sources.
  */
 
 public class TestLocalServerCreateDelete {
-    // Testing area that is created and modified by tests. 
+    // Testing area that is created and modified by tests.
     private static String DIR = "target/testing/delta";
 
     @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
-    
+
     private static void initialize() {
         Location loc = Location.create(DIR);
         FileOps.clearAll(DIR);
@@ -73,11 +76,11 @@ public class TestLocalServerCreateDelete {
     @Before public void beforeTest() {
         initialize();
     }
-    
+
     @Test public void local_server_create_01() {
         LocalServer server = LocalServers.createFile(DIR);
     }
-    
+
 //    @Test public void local_server_create_02() {
 //        LocalServer server1 = LocalServer.attach(loc);
 //        LocalServer server2 = LocalServer.attach(loc);
@@ -89,18 +92,18 @@ public class TestLocalServerCreateDelete {
         Id newId = server.createDataSource("XYZ", "http://example/xyz");
         assertNotNull(newId);
     }
-    
+
     // Create does not overwrite
     @Test public void datasource_create_02() {
         LocalServer server = LocalServers.createFile(DIR);
-        
+
         Id newId1 = server.createDataSource("XYZ", "http://example/xyz");
         try {
             Id newId2 = server.createDataSource("XYZ", "http://example/xyz");
             fail("Expected createDataSource to fail");
         } catch (DeltaException ex) {}
     }
-    
+
     // Create does not overwrite persistent state.
     @Test public void local_server_create_03() {
         Location loc = Location.create(DIR);
@@ -114,26 +117,26 @@ public class TestLocalServerCreateDelete {
             fail("Expected createDataSource to fail");
         } catch (DeltaException ex) {}
     }
-    
+
     // "Restart" test.
     @Test public void local_server_restart_01() {
         Location loc = Location.create(DIR);
-        
+
         LocalServer server1 = LocalServers.createFile(DIR);
         assertEquals(2, server1.listDataSources().size());
-        
+
         Id newId1 = server1.createDataSource("AXYZ", "http://example/axyz");
         LocalServer.release(server1);
-        
+
         LocalServer server2 = LocalServers.createFile(DIR);
         // 3 - data1, data2 and the new XYZ.
-        
+
         assertEquals(3, server2.listDataSources().size());
         assertEquals(3, server2.listDataSourcesIds().size());
-        
+
         long z = server2.listDataSourcesIds().stream().filter(id->id.equals(newId1)).count();
         assertEquals("Count of newId occurences", 1, z);
-        
+
         Id id = server2.listDataSourcesIds().stream().filter(_id->_id.equals(newId1)).findFirst().get();
         assertEquals(newId1, id) ;
 

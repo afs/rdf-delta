@@ -22,13 +22,8 @@ import static org.junit.Assert.*;
 import java.util.List ;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.ext.com.google.common.base.Objects;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphListener;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.riot.system.StreamRDFLib ;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -36,6 +31,7 @@ import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.apache.jena.web.HttpSC;
 import org.junit.BeforeClass ;
 import org.junit.Test;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkCounter;
 import org.seaborne.delta.link.DeltaLinkEvents;
@@ -54,7 +50,7 @@ public abstract class AbstractTestDeltaLink {
     private static Version version_4 = Version.create(4);
 
     @BeforeClass public static void setForTesting() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     protected static final String FILES_DIR = DeltaTestLib.TDIR+"test_dlink/";

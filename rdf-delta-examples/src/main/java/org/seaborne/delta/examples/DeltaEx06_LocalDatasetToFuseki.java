@@ -17,7 +17,6 @@
 
 package org.seaborne.delta.examples;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.fuseki.servlets.ActionService;
@@ -33,6 +32,7 @@ import org.apache.jena.system.Txn;
 import org.seaborne.delta.client.DeltaClientLib;
 import org.seaborne.delta.fuseki.DeltaFuseki;
 import org.seaborne.delta.fuseki.PatchApplyService;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
 
@@ -49,7 +49,7 @@ import org.seaborne.patch.RDFPatchOps;
  * See {@link DeltaEx05_FusekiPatchOperation}.
  */
 public class DeltaEx06_LocalDatasetToFuseki {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     public static void main(String ...args) {
         try { main2(args) ; }

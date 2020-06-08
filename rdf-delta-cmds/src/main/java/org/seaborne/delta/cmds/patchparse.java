@@ -31,7 +31,10 @@ import org.seaborne.patch.changes.RDFChangesCounter;
 /** Parse patches as validation */
 public class patchparse extends CmdPatch
 {
-    static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
+    static {
+        LogCtl.setLogging();
+        JenaSystem.init();
+    }
 
     public static void main(String... args) {
         new patchparse(args).mainRun();

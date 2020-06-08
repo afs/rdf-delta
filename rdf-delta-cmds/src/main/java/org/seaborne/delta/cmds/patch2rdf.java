@@ -35,7 +35,10 @@ import org.seaborne.patch.RDFPatchOps;
 /** Apply patches to a base RDF file (or empty dataset). */
 public class patch2rdf extends CmdGeneral
 {
-    static { JenaSystem.init(); LogCtl.setCmdLogging(); }
+    static {
+        LogCtl.setLogging();
+        JenaSystem.init();
+    }
 
     protected ModDatasetAssembler modDataset  = new ModDatasetAssembler();
     protected ArgDecl dataDecl                = new ArgDecl(ArgDecl.HasValue, "data");

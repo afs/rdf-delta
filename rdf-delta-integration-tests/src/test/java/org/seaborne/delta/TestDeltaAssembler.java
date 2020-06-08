@@ -27,7 +27,6 @@ import java.net.BindException;
 
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
@@ -42,6 +41,7 @@ import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.client.assembler.ManagedDatasetBuilder;
 import org.seaborne.delta.client.assembler.VocabDelta;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -58,7 +58,7 @@ public class TestDeltaAssembler {
 
     @BeforeClass public static void setForTesting() {
         if ( System.getProperty("java.util.logging.configuration") == null )
-            LogCtl.setJavaLogging("src/test/resources/logging.properties");
+            LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     private static DeltaServer deltaServer = null;

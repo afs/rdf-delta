@@ -21,19 +21,14 @@ import java.net.BindException ;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.Pair ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.query.Dataset ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.apache.jena.system.Txn ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Id ;
-import org.seaborne.delta.client.DeltaClient ;
-import org.seaborne.delta.client.DeltaConnection ;
-import org.seaborne.delta.client.DeltaLinkHTTP ;
-import org.seaborne.delta.client.LocalStorageType ;
-import org.seaborne.delta.client.SyncPolicy ;
-import org.seaborne.delta.client.Zone ;
+import org.seaborne.delta.client.*;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink ;
 import org.seaborne.delta.server.http.DeltaServer;
 
@@ -44,7 +39,7 @@ import org.seaborne.delta.server.http.DeltaServer;
  * shared and all interaction is over HTTP.
  */
 public class DeltaEx07_TwoDatasetsPatchLogServer {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     final static int PLOG_PORT = 1066;
     final static String PLOG_DIR = "DeltaServer";

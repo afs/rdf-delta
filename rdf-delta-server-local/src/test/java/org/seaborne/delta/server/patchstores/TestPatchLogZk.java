@@ -22,24 +22,24 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.After;
 import org.junit.Before;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.local.*;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 
 public class TestPatchLogZk extends AbstractTestPatchLog {
 
-    static { LogCtl.setJavaLogging("src/test/resources/logging.properties"); }
-    
+    static { LogX.setJavaLogging("src/test/resources/logging.properties"); }
+
     private TestingServer server;
     private CuratorFramework client;
 
 //    @BeforeClass public static void beforeClass() { }
 //    @AfterClass public static void afterClass() {}
-    
+
     @Before public void before() {
         try {
             server = new TestingServer();
@@ -49,7 +49,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
             throw new RuntimeException(ex);
         }
     }
-    
+
     @After public void after() {
         client.close();
         try {
@@ -59,7 +59,7 @@ public class TestPatchLogZk extends AbstractTestPatchLog {
             throw new RuntimeException(ex);
         }
     }
-    
+
     @Override
     protected PatchLog patchLog() {
         try {

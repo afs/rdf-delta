@@ -26,6 +26,7 @@ import org.apache.jena.riot.lang.StreamRDFCounting ;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.apache.jena.riot.system.StreamRDFLib ;
 import org.apache.jena.sparql.core.DatasetGraph ;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.system.Txn ;
 import org.apache.jena.tdb.base.file.Location ;
 import org.seaborne.delta.Id ;
@@ -36,8 +37,8 @@ import org.slf4j.LoggerFactory ;
 
 public class load {
     static {
-        LogCtl.setCmdLogging() ;
-        LogCtl.setJavaLogging();
+        LogCtl.setLogging();
+        JenaSystem.init();
     }
 
     // Load a file into a managed dataset with timing.

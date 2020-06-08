@@ -23,7 +23,6 @@ import java.util.UUID ;
 import org.apache.http.entity.BasicHttpEntity ;
 import org.apache.jena.atlas.lib.DateTimeUtils ;
 import org.apache.jena.atlas.lib.StrUtils ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.server.Operation ;
 import org.apache.jena.fuseki.servlets.ActionService ;
@@ -39,6 +38,7 @@ import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.DeltaFuseki ;
 import org.seaborne.delta.fuseki.PatchApplyService ;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatchOps ;
 
@@ -51,7 +51,7 @@ import org.seaborne.patch.RDFPatchOps ;
  * transaction.
  */
 public class DeltaEx05_FusekiPatchOperation {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     public static void main(String ...args) {
         try { main2(args) ; }

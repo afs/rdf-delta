@@ -22,7 +22,6 @@ import java.net.BindException ;
 import java.net.ServerSocket ;
 
 import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.fuseki.FusekiException ;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.rdf.model.Model ;
@@ -30,6 +29,7 @@ import org.apache.jena.rdfconnection.RDFConnection ;
 import org.apache.jena.rdfconnection.RDFConnectionFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.http.DeltaServer;
 
 /**
@@ -50,7 +50,7 @@ import org.seaborne.delta.server.http.DeltaServer;
  */
 
 public class DeltaEx_FusekiHighAvailability {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     final static int    F1_PORT       = choosePort() ;
     final static String FUSEKI_CONF_1 = "ExampleFusekiConfigs/fuseki_conf_1.ttl" ;

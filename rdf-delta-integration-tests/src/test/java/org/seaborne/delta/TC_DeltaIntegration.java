@@ -17,12 +17,12 @@
 
 package org.seaborne.delta;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.seaborne.delta.integration.TS_DeltaZk;
+import org.seaborne.delta.lib.LogX;
 
 @RunWith(Suite.class)
 @SuiteClasses( {
@@ -32,6 +32,6 @@ import org.seaborne.delta.integration.TS_DeltaZk;
 
 public class TC_DeltaIntegration {
     @BeforeClass public static void setForTesting() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 }

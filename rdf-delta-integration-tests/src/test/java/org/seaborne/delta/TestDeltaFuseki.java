@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.net.BindException;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.graph.Triple;
@@ -33,6 +32,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
@@ -46,7 +46,7 @@ import org.seaborne.delta.server.local.LocalServers;
  */
 public class TestDeltaFuseki {
     @BeforeClass public static void setForTesting() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     @Before public void beforeClass() { DPS.resetSystem(); }

@@ -19,16 +19,16 @@ package org.seaborne.delta.examples;
 
 import java.util.List;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServers;
 
 /** Locally, create a new DataSource, remove it. */
 public class DeltaEx08_CreateDataSourceLocal {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     public static void main(String... args) {
         Location loc = Location.create("DeltaServer");

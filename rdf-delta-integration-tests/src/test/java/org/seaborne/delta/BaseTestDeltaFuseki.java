@@ -20,11 +20,11 @@ package org.seaborne.delta ;
 import java.net.BindException ;
 
 import org.apache.jena.atlas.lib.FileOps ;
-import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
 
@@ -36,7 +36,7 @@ import org.seaborne.delta.server.local.DPS;
  */
 public class BaseTestDeltaFuseki {
     @BeforeClass public static void setForTesting() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     protected static int F1_PORT  =    WebLib.choosePort();

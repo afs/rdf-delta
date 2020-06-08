@@ -33,7 +33,10 @@ import org.seaborne.patch.changes.RDFChangesBase;
 /** Converted  patch into reified triples (extended reification - adds "rdf:graph" to get quads) */
 /*public*/ class patchreif extends CmdPatch
 {
-    static { JenaSystem.init(); LogCtl.setCmdLogging() ; }
+    static {
+        LogCtl.setLogging();
+        JenaSystem.init();
+    }
 
     public static void main(String... args) {
         new patchreif(args).mainRun();

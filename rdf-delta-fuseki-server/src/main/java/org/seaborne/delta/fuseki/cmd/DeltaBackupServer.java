@@ -31,11 +31,11 @@ import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.main.JettyServer;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.PatchWriteServlet;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.patch.filelog.FilePolicy;
 import  org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class DeltaBackupServer {
     public static void main(String... args) {
         // Stop Fuseki trying to initialize logging using log4j.
         System.setProperty("log4j.configuration", "delta");
-        LogCtl.setJavaLogging();
+        LogX.setJavaLogging();
         new Inner(args).mainRun();
     }
 

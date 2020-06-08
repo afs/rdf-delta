@@ -18,11 +18,15 @@
 package org.seaborne.delta.cmds;
 
 import org.apache.jena.atlas.logging.LogCtl ;
+import org.apache.jena.sys.JenaSystem;
 
 /** Reread the on-disk state. */
 public class resync extends DeltaCmd {
 
-static { LogCtl.setCmdLogging() ; }
+    static {
+        LogCtl.setLogging();
+        JenaSystem.init();
+    }
 
     public static void main(String... args) {
         new resync(args).mainRun();

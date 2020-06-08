@@ -49,7 +49,7 @@ import org.seaborne.patch.RDFPatchOps;
 public class TestDeltaZk {
 
 //    @BeforeClass public static void beforeClassLogging() {
-//        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+//        LogX.setJavaLogging("src/test/resources/logging.properties");
 //    }
 
     @BeforeClass public static void beforeClass() { DeltaLinkSwitchable.silentSwitchOver = true; }

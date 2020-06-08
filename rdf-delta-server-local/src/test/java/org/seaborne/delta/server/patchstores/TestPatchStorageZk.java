@@ -19,16 +19,16 @@ package org.seaborne.delta.server.patchstores;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.junit.After;
 import org.junit.Before;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStorageZk;
 import org.seaborne.delta.zk.Zk;
 
 public class TestPatchStorageZk extends AbstractTestPatchStorage {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
      private static int counter = 0 ;
      private TestingServer server = null;

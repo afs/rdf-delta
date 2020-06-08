@@ -26,7 +26,6 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.http.client.HttpClient;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.build.FusekiConfig;
@@ -46,6 +45,7 @@ import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.update.UpdateAction;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaException;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.http.DeltaServer;
 
 /** Drive updates and reads */
@@ -73,7 +73,7 @@ public class Driver {
     protected static FusekiServer server2;
     private static HttpClient dftStdHttpClient = null;
 
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     public static void main(String[] args) throws InterruptedException {
         // Fix up fuseki config files.

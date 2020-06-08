@@ -17,7 +17,6 @@
 
 package org.seaborne.delta.examples;
 
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
@@ -25,12 +24,8 @@ import org.apache.jena.system.Txn;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.delta.client.DeltaClient;
-import org.seaborne.delta.client.DeltaConnection;
-import org.seaborne.delta.client.DeltaLinkHTTP;
-import org.seaborne.delta.client.LocalStorageType;
-import org.seaborne.delta.client.SyncPolicy;
-import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.client.*;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -39,7 +34,7 @@ import org.seaborne.delta.server.local.LocalServers;
 
 /** Connect to an HTTP server, create a new DataSource, remove it. */
 public class DeltaEx09_CreateDataSourceHTTP {
-    static { LogCtl.setJavaLogging(); }
+    static { LogX.setJavaLogging(); }
 
     public static Quad quad = SSE.parseQuad("(:g :s :p :o)");
 

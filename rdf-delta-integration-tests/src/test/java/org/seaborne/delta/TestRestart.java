@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
@@ -32,6 +31,7 @@ import org.apache.jena.system.Txn;
 import org.junit.*;
 import org.seaborne.delta.client.*;
 import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
@@ -143,7 +143,7 @@ public class TestRestart {
     }
 
     @BeforeClass public static void beforeClass() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     @AfterClass public static void afterClass() {

@@ -55,7 +55,7 @@ import org.seaborne.delta.server.local.LocalServers;
 public class TestManagedDatasetBuilder {
 
 //    @BeforeClass public static void setForTesting() {
-//        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+//        LogX.setJavaLogging("src/test/resources/logging.properties");
 //    }
 
     private DeltaLink deltaLink;

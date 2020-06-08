@@ -20,6 +20,7 @@ package org.seaborne.delta.server.http;
 import java.io.IOException ;
 import java.nio.charset.StandardCharsets ;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
@@ -37,24 +38,24 @@ public class HttpErrorHandler extends /*Jetty*/ErrorHandler {
     public static final String METHOD_PUT       = "PUT" ;
     public static final String METHOD_TRACE     = "TRACE" ;
     public static final String METHOD_PATCH     = "PATCH" ;
-    
+
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if ( request.getMethod().equals(METHOD_POST)) {
             response.setContentType(WebContent.contentTypeTextPlain);
             response.setCharacterEncoding(WebContent.charsetUTF8) ;
-            
+
             String reason=(response instanceof Response)?((Response)response).getReason():null;
             String msg = String.format("%03d %s\n", response.getStatus(), reason) ;
             response.getOutputStream().write(msg.getBytes(StandardCharsets.UTF_8)) ;
-            
+
             response.getOutputStream().flush() ;
             baseRequest.setHandled(true);
             return;
         }
-        super.handle(target, baseRequest, request, response); 
+        super.handle(target, baseRequest, request, response);
     }
-    
+
 //    // Single line for HTTP POST
 //    @Override
 //    protected void handleErrorPage(HttpServletRequest request, Writer writer, int code, String message) throws IOException {

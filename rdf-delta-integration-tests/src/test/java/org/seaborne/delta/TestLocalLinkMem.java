@@ -17,13 +17,16 @@
 
 package org.seaborne.delta;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.system.DeltaSystem;
 
 public class TestLocalLinkMem extends AbstractTestDeltaLink {
     @BeforeClass public static void setForTesting() {
-        LogCtl.setJavaLogging("src/test/resources/logging.properties");
+        LogX.setJavaLogging("src/test/resources/logging.properties");
         DeltaSystem.init();
     }
 
