@@ -95,6 +95,8 @@ public /*package*/ class PatchLogServer {
 
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
 
+        addServlet(handler, "/"+DeltaConst.EP_Metrics, new S_Metrics());
+
         // Initial data. "/init-data?datasource=..."
         addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.deltaLink));
 

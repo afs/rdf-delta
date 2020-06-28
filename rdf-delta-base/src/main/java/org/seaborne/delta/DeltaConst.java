@@ -43,6 +43,7 @@ public class DeltaConst {
 
     public static final String EP_InitData     = "init-data";
     public static final String EP_Ping         = "$/ping";
+    public static final String EP_Metrics      = "$/metrics";
     public static final String EP_RPC          = "$/rpc";
 
     // RPC calls - operation names.

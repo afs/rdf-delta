@@ -81,6 +81,7 @@
     <ver.aws-s3>1.11.734</ver.aws-s3>
     <ver.s3mock>0.2.5</ver.s3mock>
     <ver.awaitility>3.1.1</ver.awaitility>
+    <ver.micrometer>1.2.1</ver.micrometer>
   </properties>
   
   <modules>
@@ -286,6 +287,18 @@
             <artifactId>aws-java-sdk-s3</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-core</artifactId>
+        <version>${ver.micrometer}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+          <version>${ver.micrometer}</version>
       </dependency>
 
     </dependencies>
