@@ -5,11 +5,12 @@ nav_text: RDF Patch Logs
 section: 3
 ---
 
-A patch log is a sequence of [patched](rdf-patch) where one patch
+A patch log is a sequence of [patches](rdf-patch) where one patch
 is to be applied after another.
 
-The operations that can be performed on a a log are to append a new patch to
-the log and to fetch patches from the log. A patch in a log is never changed once appended.
+The operations that can be performed on a log are to append a new patch to
+the log, and to fetch patches from the log. A patch in a log is never changed once
+appended to the log.
 
 ## Identifying Patches
 
