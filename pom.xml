@@ -347,7 +347,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.1</version>
 
-          <!-- Needs maven run with java11 for release=8
+          <!-- Needs maven run with java11 for release=
                RDF Delta should work for compile and target Java 11 as well.
                It is client software that might require java8 class formats.
           -->
