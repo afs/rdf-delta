@@ -21,7 +21,9 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.seaborne.delta.lib.LogX;class TestRemoteLink extends AbstractTestDeltaLink {
+import org.seaborne.delta.lib.LogX;
+
+public class TestRemoteLink extends AbstractTestDeltaLink {
     @BeforeClass public static void setForTesting() {
         LogX.setJavaLogging("src/test/resources/logging.properties");
     }

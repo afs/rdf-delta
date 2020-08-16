@@ -19,13 +19,13 @@
 package org.seaborne.delta.lib;
 
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.jena.atlas.logging.LogJUL;
+import org.apache.jena.atlas.logging.LogCtlJUL;
 
 public class LogX {
 
     //Indirection for setting Java logging (used in tests)
     public static void setJavaLogging(String file) {
-        LogJUL.setJavaLogging(file);
+        LogCtlJUL.setJavaLogging(file);
     }
 
     //Indirection for setting Java logging (used in tests)

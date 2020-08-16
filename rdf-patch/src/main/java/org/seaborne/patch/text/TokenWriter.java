@@ -27,7 +27,6 @@ public interface TokenWriter {
     public void sendNode(Node node);
     public void sendString(String string);
     public void sendWord(String word);
-    public void sendControl(char character);
     public void sendNumber(long number);
 
     public void startTuple();

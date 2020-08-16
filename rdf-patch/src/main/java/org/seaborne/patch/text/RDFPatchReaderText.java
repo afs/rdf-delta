@@ -37,10 +37,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.SysRIOT;
 import org.apache.jena.riot.system.RiotLib;
-import org.apache.jena.riot.tokens.Token;
-import org.apache.jena.riot.tokens.TokenType;
-import org.apache.jena.riot.tokens.Tokenizer;
-import org.apache.jena.riot.tokens.TokenizerFactory;
+import org.apache.jena.riot.tokens.*;
 import org.seaborne.patch.PatchException;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.PatchProcessor;
@@ -59,7 +56,7 @@ public class RDFPatchReaderText implements PatchProcessor {
     }
 
     public RDFPatchReaderText(InputStream input) {
-        tokenizer = TokenizerFactory.makeTokenizerUTF8(input);
+        tokenizer = TokenizerText.create().source(input).build();
     }
 
     @Override
@@ -202,7 +199,7 @@ public class RDFPatchReaderText implements PatchProcessor {
 
     /** Read patch header. */
     public static PatchHeader readerHeader(InputStream input) {
-        Tokenizer tokenizer = TokenizerFactory.makeTokenizerUTF8(input);
+        Tokenizer tokenizer = TokenizerText.create().source(input).build();
         Map<String, Node> header = new LinkedHashMap<>();
         int lineNumber = 0;
         while(tokenizer.hasNext()) {

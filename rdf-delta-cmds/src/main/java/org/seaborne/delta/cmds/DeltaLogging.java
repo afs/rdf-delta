@@ -104,7 +104,6 @@ public class DeltaLogging {
 
     // Log4J2, non-strict XML format
     // Put it here in the code, not a classpath resource, to make it robust against repackaging (shading).
-    // This should the same as the copy in "rdf-delta-dist/Files/log4j2.xml"
     public static String getDefaultString() {
 
         String defaultLog4j2_xml = String.join("\n"
@@ -127,9 +126,9 @@ public class DeltaLogging {
             ,"    <Logger name='org.apache.jena' level='INFO'/>"
             // Built-in (co-resident) zookeeper
             ,"    <Logger name='org.apache.zookeeper' level='WARN'/>"
-            // Eclispe Jetty - logs at startuop at INFO
+            // Eclispe Jetty - logs at startup at INFO
             ,"    <Logger name='org.eclipse.jetty'    level='WARN'/>"
-            // Fusekie
+            // Fuseki
             ,"    <Logger name='org.apache.jena.fuseki.Server' level='INFO'/>"
             ,"    <Logger name='org.apache.jena.fuseki.Fuseki' level='INFO'/>"
             // The Fuseki NCSA request log

@@ -69,14 +69,12 @@
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <ver.jena>3.14.0</ver.jena>
-
-    <!-- Jena 3.15.0 <ver.jetty>9.4.26.v20200117</ver.jetty> -->
-    <ver.jetty>9.4.12.v20180830</ver.jetty> <!-- Keep in step with Jena -->
+    <ver.jena>3.17.0-SNAPSHOT</ver.jena>
+    <ver.jetty>9.4.26.v20200117</ver.jetty>
     <ver.junit>4.12</ver.junit>
     <ver.slf4j>1.7.30</ver.slf4j>
     <ver.log4j2>2.13.1</ver.log4j2>
-    <ver.rocksdb>6.6.4</ver.rocksdb>
+    <ver.rocksdb>6.11.4</ver.rocksdb>
     <ver.curator>4.3.0</ver.curator>
     <ver.aws-s3>1.11.734</ver.aws-s3>
     <ver.s3mock>0.2.5</ver.s3mock>
@@ -128,6 +126,10 @@
             <artifactId>slf4j-log4j12</artifactId>
           </exclusion>
           <exclusion>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
           </exclusion>
@@ -152,6 +154,10 @@
            <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
           </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
@@ -197,23 +203,25 @@
         <version>${ver.slf4j}</version>
       </dependency>
 
+      <!-- Jena 3.15.0 fix : JENA-1898
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.14</version>
+      </dependency>
+      -->
+
       <!-- Either this for JUL ... -->
+
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-jdk14</artifactId>
         <version>${ver.slf4j}</version>
       </dependency>
-      
-      <!-- or for log4j2 ... -->
-      <!--
-          org.apache.logging.log4j:log4j-api
-          org.apache.logging.log4j:log4j-core
-       slf4j 1.7:
-          org.apache.logging.log4j:log4j-slf4j-impl
-       slf4j 1.8: log4j-slf4j18-impl
-          org.apache.logging.log4j:log4j-slf4j18-impl
-       And maybe:
-          org.apache.logging.log4j:log4j-web
+
+      <!-- or 
+           slf4j 1.7: artifact::log4j-slf4j-impl
+           slf4j 1.8: artifact::log4j-slf4j18-impl 
       -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
@@ -344,13 +352,13 @@
                It is client software that might require java8 class formats.
           -->
           
-          <!-- Compile with java11
           <configuration>
             <release>11</release>
           </configuration>
-          -->
 
-          <!-- Run maven with java8, compile and target java 1.8 -->
+          <!-- 
+               Legacy - RDF Delta compiled with Java8.
+               Run maven with java8, compile and target java 1.8
           <configuration>
             <encoding>UTF-8</encoding>
             <debug>true</debug>
@@ -359,6 +367,7 @@
             <source>1.8</source>
             <target>1.8</target>
           </configuration>
+          -->
         </plugin>
 
         <plugin>

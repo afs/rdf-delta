@@ -31,6 +31,7 @@ import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.server.CounterName;
 import org.apache.jena.fuseki.servlets.*;
+import org.apache.jena.fuseki.system.ActionCategory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.riot.WebContent;
@@ -56,12 +57,12 @@ public class PatchWriteServlet extends ServletProcessor {
     private ManagedOutput output;
 
     public PatchWriteServlet(String dir, String fn, FilePolicy policy) {
-        super(Fuseki.actionLog);
+        super(Fuseki.actionLog, ActionCategory.ACTION);
         this.output = OutputMgr.create(Paths.get(dir), fn , policy);
     }
 
     public PatchWriteServlet(String filename, FilePolicy policy) {
-        super(Fuseki.actionLog);
+        super(Fuseki.actionLog, ActionCategory.ACTION);
         this.output = OutputMgr.create(filename, policy);
     }
 

@@ -17,9 +17,10 @@
 
 package org.seaborne.delta.client;
 
-import static org.seaborne.delta.DeltaConst.*;
+import static org.seaborne.delta.DeltaConst.F_ARG;
+import static org.seaborne.delta.DeltaConst.F_OP;
+import static org.seaborne.delta.DeltaConst.F_OP_ID;
 
-import java.io.IOException ;
 import java.util.Objects ;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,7 +37,6 @@ import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger ;
 
@@ -72,10 +72,8 @@ public class DRPC {
                 throw new JsonException("No response") ;
 
             if ( true ) {
-                try {
-                    String s = IO.readWholeFileAsUTF8(x) ;
-                    return JSON.parseAny(s) ;
-                } catch (IOException ex) { throw IOX.exception(ex); }
+                String s = IO.readWholeFileAsUTF8(x) ;
+                return JSON.parseAny(s) ;
             }
             else
                 return JSON.parseAny(x) ;

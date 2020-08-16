@@ -30,15 +30,14 @@ import org.seaborne.patch.RDFChanges;
  * Connect a {@link Graph} with {@link RDFChanges}. All operations on the {@link Graph}
  * that cause changes have the change sent to the {@link RDFChanges}.
  * <p>
- * The graph name is settable and
- * <p>
  * Use {@link GraphRealChanges} to get a graph that logs only changes that have a real
  * effect - that makes the changes log reversible (play delete for each add) to undo a
  * sequence of changes.
  * <p>
+ * The graph name is settable; it is arbitrary, or null, and not deduced from the graph.
+ * <p>
  * If the graph is a graph from a dataset and the same graph name is to be used, then
- * instead of this class, get a graph from {@link DatasetGraphChanges}. Using this class
- * does not preseve the graph name, it uses the name explciit set in the constructor.
+ * instead of this class, get a graph from {@link DatasetGraphChanges}.
  *
  * @see DatasetGraphChanges
  * @see RDFChanges
