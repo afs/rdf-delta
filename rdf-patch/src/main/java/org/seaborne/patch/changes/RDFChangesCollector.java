@@ -245,16 +245,16 @@ public class RDFChangesCollector implements RDFChanges {
 
     @Override
     public void txnBegin() {
-        collect(new TxnBegin());
+        collect(TxnBegin.object());
     }
 
     @Override
     public void txnCommit() {
-        collect(new TxnCommit());
+        collect(TxnCommit.object());
     }
 
     @Override
     public void txnAbort() {
-        collect(new TxnAbort());
+        collect(TxnAbort.object());
     }
 }

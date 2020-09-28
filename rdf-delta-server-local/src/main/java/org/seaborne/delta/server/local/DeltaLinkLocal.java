@@ -240,7 +240,7 @@ public class DeltaLinkLocal implements DeltaLink {
         devlog(LOG, "append : Patch=%s(>%s)[%s] ds=%s", str(rdfPatch.getId()), str(rdfPatch.getPrevious()), version, source);
     }
 
-    /** Called after writing the patch to the {@link PatchLog}. */
+    /** Called after attempting to write the patch to the {@link PatchLog}. */
     protected void badWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch, RuntimeException ex) {
         devlog(LOG, "Bad write: patch=%s ds=%s : msg=%s", str(rdfPatch.getId()), source, ex.getMessage());
     }

@@ -33,7 +33,7 @@ import org.slf4j.Logger;
  *    <tt>GET  /{name}/version</tt> -- get patch
  */
 public class S_Log extends HttpOperationBase {
-    
+
     public S_Log(DeltaLink engine) {
         super(engine);
     }
@@ -44,12 +44,12 @@ public class S_Log extends HttpOperationBase {
     protected Args parseArgs(HttpServletRequest request) {
         return Args.pathArgs(request);
     }
-    
+
     @Override
     protected void validateAction(Args httpArgs) {
         if ( isFetchOperation(httpArgs) ) return ;
         if ( isAppendOperation(httpArgs) ) return ;
-        DeltaAction.errorBadRequest("Not a log fetch or append operation : "+httpArgs.url); 
+        DeltaAction.errorBadRequest("Not a log fetch or append operation : "+httpArgs.url);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class S_Log extends HttpOperationBase {
             LogOp.append(action);
     }
 
-    // Supported as HTTP methods but then rejected in "validate axction" if not appropriate.
+    // Supported as HTTP methods but then rejected in "validate action" if not appropriate.
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doCommon(req, resp);
@@ -70,12 +70,12 @@ public class S_Log extends HttpOperationBase {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doCommon(req, resp);
     }
-    
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doCommon(req, resp);
     }
-    
+
     @Override
     protected String getOpName() {
         return "patch-log";
@@ -88,14 +88,14 @@ public class S_Log extends HttpOperationBase {
     private boolean isAppendOperation(DeltaAction action) {
         return isAppendOperation(action.httpArgs);
     }
-    
+
     // Minimum for a log operation.
     private boolean isLogOperation(Args args) {
         return args.datasourceName != null;
     }
-    
+
     private boolean isFetchOperation(Args args) {
-        return isLogOperation(args) 
+        return isLogOperation(args)
             && (args.patchId != null || args.version != null ) ;
     }
 

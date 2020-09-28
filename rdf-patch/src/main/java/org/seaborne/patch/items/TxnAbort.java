@@ -19,6 +19,14 @@ package org.seaborne.patch.items;
 
 public class TxnAbort extends ChangeItem {
 
+    private static final TxnAbort singleton = new TxnAbort();
+    public static TxnAbort object() {
+        if ( singleton == null )
+            // Harmless to have duplicate.
+            return new TxnAbort();
+        return singleton;
+    }
+
     @Override
     public int hashCode() {
         return 16;

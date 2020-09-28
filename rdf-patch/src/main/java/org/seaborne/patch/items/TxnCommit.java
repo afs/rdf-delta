@@ -18,6 +18,15 @@
 package org.seaborne.patch.items;
 
 public class TxnCommit extends ChangeItem {
+
+    private static final TxnCommit singleton = new TxnCommit();
+    public static TxnCommit object() {
+        if ( singleton == null )
+            // Harmless to have duplicate.
+            return new TxnCommit();
+        return singleton;
+    }
+
     @Override
     public int hashCode() {
         return 17;

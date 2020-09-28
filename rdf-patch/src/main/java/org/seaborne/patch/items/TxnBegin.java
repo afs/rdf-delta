@@ -18,6 +18,17 @@
 package org.seaborne.patch.items;
 
 public class TxnBegin extends ChangeItem {
+
+    private static final TxnBegin singleton = new TxnBegin();
+    public static TxnBegin object() {
+        if ( singleton == null )
+            // Harmless to have duplicate.
+            return new TxnBegin();
+        return singleton;
+    }
+
+    public TxnBegin() {}
+
     @Override
     public int hashCode() {
         return 15;

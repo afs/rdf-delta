@@ -35,7 +35,7 @@ import org.seaborne.delta.link.DeltaLink;
 
 /** Filter that catches requests for the form /{name} and /{id}
  * where the {name} or {id} is registered with the DeltaLink and
- * directs teh request to the given servlet.
+ * directs the request to the given servlet.
  * Otherwise it passes the request down the filter chain.
  */
 public class F_PatchFilter implements javax.servlet.Filter {

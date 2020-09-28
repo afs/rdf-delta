@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.jena.fuseki.jetty.FusekiErrorHandler1;
+import org.apache.jena.fuseki.jetty.FusekiErrorHandler;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.Lang;
 import org.eclipse.jetty.http.MimeTypes;
@@ -85,8 +85,8 @@ public /*package*/ class PatchLogServer {
 
         // Filter - this catches RDF Patch Log requests.
         addFilter(handler, "/*", new F_PatchFilter(dLink,
-                                                   (req, resp)->servletRDFPatchLog.service(req, resp),
-                                                   (req, resp)->servletPing.service(req, resp)
+                                                   servletRDFPatchLog::service,
+                                                   servletPing::service
                                                    ));
 
         // Other
@@ -110,7 +110,7 @@ public /*package*/ class PatchLogServer {
         HttpServlet servlet404 = new Servlet404();
         addServlet(handler, "/*", servlet404);
         // One line error message
-        handler.setErrorHandler(new FusekiErrorHandler1());
+        handler.setErrorHandler(new FusekiErrorHandler());
         // Wire up.
         server.setHandler(handler);
     }
