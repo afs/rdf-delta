@@ -39,7 +39,7 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
 
 /**
- * Other tests for Delta+Fuseki, not using the setup in {@link BaseTestDeltaFuseki}
+ * Other tests for Delta+Fuseki, not using the setup in {@link BaseTestDeltaFuseki},
  *
  * @see TestDeltaFusekiGood
  * @see TestDeltaFusekiBad
@@ -60,7 +60,6 @@ public class TestDeltaFuseki {
 
         // Know port in assembler file - 1077
         FusekiServer.Builder builder = FusekiServer.create().loopback(true).parseConfigFile("testing/fuseki/fuseki-assembler-ext.ttl");
-
 
         FusekiServer fusekiServer1 = builder.port(PORT1).build();
         FusekiServer fusekiServer2 = builder.port(PORT2).build();
@@ -85,6 +84,12 @@ public class TestDeltaFuseki {
 
         deltaServer.stop();
     }
+
+
+    @Test public void concurrent_update() {
+
+    }
+
 
     private static DeltaServer runServer() {
         LocalServerConfig localServerConfig = LocalServers.configMem();

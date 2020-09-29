@@ -181,4 +181,17 @@ public interface DeltaLink {
 
     /** Shutdown the link. */
     public void close();
+
+    /**
+     * Acquire the lock for a data source.
+     * Data source locks are not reentrant.
+     * This operation is blocking.
+     *
+     * Returns an {@link Id} for the lock ownership.<br/>
+     * Returns null for failure to get the lock.
+     */
+    public Id acquireLock(Id datasourceId);
+
+    /** Release the lock for a data source. This operation does not fail if there is no lock. */
+    public void releaseLock(Id datasourceId, Id lockOwnership);
 }

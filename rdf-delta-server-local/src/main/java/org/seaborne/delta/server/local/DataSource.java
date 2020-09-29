@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An item under the control of the server.
+ * An item under the control of a {@link LocalServer}.
  * <p>
  * These act as a record of the patch logs in a server, and are recorded in a {@link DataSourceRegistry}
  * so that routing by name or URI can be be done.

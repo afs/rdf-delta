@@ -39,17 +39,13 @@ import org.seaborne.delta.server.patchstores.*;
     //, TestPatchLogIndexRocks.class
     //, TestPatchLogIndexZk.class
 
-
-
     // TestPatchLog* and TestPatchStore* should be enough.
     , TestPatchLogMem.class
-    , TestPatchLogFileOriginal.class   // Original
     , TestPatchLogFile.class   // New
     , TestPatchLogZk.class
 
     , TestPatchStoreMem.class
     , TestPatchStoreFile.class
-    , TestPatchStoreFileOriginal.class
     , TestPatchStoreRocks.class
     , TestPatchStoreZk.class
 

@@ -21,8 +21,12 @@ package org.seaborne.delta.server.local.patchstores;
 import static java.lang.String.format;
 
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import org.apache.jena.atlas.logging.Log;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
@@ -172,4 +176,35 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
 
     @Override
     public void syncVersionInfo() {}
+
+    private Semaphore sema = new Semaphore(1);
+    private volatile Id lockToken = null;
+
+    // Implementation for transient, not replicated, locks
+    @Override
+    public Id acquireLock() {
+        try {
+            //sema.availablePermits();
+            boolean b = sema.tryAcquire(30, TimeUnit.SECONDS);
+            if (! b )
+                return null;
+        } catch (InterruptedException e) {
+            Log.warn(Delta.DELTA_LOG, "InterruptedException in "+this.getClass().getSimpleName()+".acquireLock");
+            return null;
+        }
+        // Only one thread possible at this point.
+        if ( lockToken != null )
+            throw new DeltaException("Inconsistent. Got Semaphore but ownership token was present");
+        lockToken = Id.create();
+        return lockToken;
+    }
+
+    @Override
+    public void releaseLock(Id lockOwnership) {
+        if ( lockOwnership == null ) { }
+        if ( lockToken == null ) {}
+        if ( ! lockOwnership.equals(lockToken) ) { }
+        lockToken = null;
+        sema.release();
+    }
 }

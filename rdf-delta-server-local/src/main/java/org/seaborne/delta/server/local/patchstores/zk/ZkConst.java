@@ -31,7 +31,7 @@ public class ZkConst {
      * /delta/logs/NAME/lock
      * /delta/logs/NAME/state               (first_version: ,  DataSourceDescription)
      * /delta/logs/NAME/versions/00000000   Patch ids.
-     * /delta/logs/NAME/header/00000000       Patches, JSON state (optional).
+     * /delta/logs/NAME/header/00000000     Patches, JSON state (optional).
      *
      *
      * When including patch storage:

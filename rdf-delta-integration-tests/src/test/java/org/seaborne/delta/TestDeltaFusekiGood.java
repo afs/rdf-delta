@@ -17,12 +17,21 @@
 
 package org.seaborne.delta ;
 
+import static org.apache.jena.atlas.lib.ThreadLib.async;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.seaborne.delta.BaseTestDeltaFuseki.Start.CLEAN;
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.client.HttpClient ;
 import org.apache.http.impl.client.CloseableHttpClient ;
 import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.lib.Lib;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
@@ -38,6 +47,7 @@ import org.seaborne.delta.server.http.DeltaServer;
 
 /**
  * Tests for Fuseki with Delta integration when things are going well.
+ * Based on config files so the port number is fixed.
  *
  * @see TestDeltaFusekiBad
  */
@@ -61,9 +71,8 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
 
             deltaServer = deltaServer(CLEAN);
 
-            // This needs testing.
             server1 = fuseki1(CLEAN);
-            server2 = fuseki2(CLEAN); // Can not create!
+            server2 = fuseki2(CLEAN);
 
             URL_DPS = "http://localhost:"+D_PORT+"/";
 
@@ -120,5 +129,42 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
         try ( QueryExecution qExec = conn1.query(PREFIX+"ASK { :s :p 'update_2_A', 'update_2_B' }") ) {
             Assert.assertEquals(true, qExec.execAsk());
         }
+    }
+
+    @Test
+    public void concurrent_update() {
+        String slowUpdate = "PREFIX afn: <http://jena.apache.org/ARQ/function#> INSERT { <x:s> <x:p> 'abc' } WHERE { FILTER(afn:wait(2000)) }";
+        String smallUpdate = "DELETE { <x:s> <x:p> ?X } INSERT { <x:s> <x:p> 'def' } WHERE {  <x:s> <x:p> ?X  }; INSERT DATA { <x:s> <x:p> 'xyz' }" ;
+
+        AtomicReference<Throwable> asyncOutcome = new AtomicReference<>();
+        Semaphore sema = new Semaphore(0);
+
+        // Slow.
+        Runnable slow = ()->{
+            try {
+                conn1.update(slowUpdate);
+            } catch (HttpException ex) {
+                asyncOutcome.set(ex);
+            }
+            sema.release();
+        };
+
+//            conn2.queryResultSet("SELECT * { ?s ?p ?o}" , ResultSetFormatter::out);
+
+        async(slow);
+        // Let the async go first. Then we get to send to Fuseki which blocks.
+        // This isn't great to make sure the slow update is now in the wait (lock held) point
+        // but (1) if it isn't the test passes (20 it gets run in many environments so some will fail sometime.
+        Lib.sleep(250);
+        conn2.update(smallUpdate);
+
+        try {
+            sema.tryAcquire(10,  TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("Failed to get semaphore");
+        }
+        if (asyncOutcome.get() != null )
+            asyncOutcome.get().printStackTrace();
+        assertNull(asyncOutcome.get());
     }
 }

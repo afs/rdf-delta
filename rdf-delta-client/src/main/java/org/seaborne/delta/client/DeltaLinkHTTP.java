@@ -28,22 +28,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier ;
 import java.util.stream.Collectors;
 
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonArray;
-import org.apache.jena.atlas.json.JsonObject ;
-import org.apache.jena.atlas.json.JsonValue ;
+import org.apache.jena.atlas.json.*;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC ;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Delta;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.DeltaOps;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.Version;
+import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkListener;
@@ -341,6 +331,33 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     @Override
+    public Id acquireLock(Id datasourceId) {
+        // Scope for improving JSON object building.
+        //   X.add(key,value).addId(field, id).
+        JsonObject arg = JSONX.buildObject(b->{
+            b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
+        });
+
+        JsonObject obj = rpcOnce(DeltaConst.OP_LOCK, arg);
+        Id lockOwnership = idOrNullFromField(obj, DeltaConst.F_LOCK_REF);
+        if ( lockOwnership == null ) {
+            // XXX
+        }
+
+
+        return lockOwnership;
+    }
+
+    @Override
+    public void releaseLock(Id datasourceId, Id lockOwnership) {
+        JsonObject arg = JSONX.buildObject(b->{
+            b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
+            b.key(DeltaConst.F_LOCK_REF).value(lockOwnership.asPlainString());
+        });
+        JsonObject obj = rpcOnce(DeltaConst.OP_UNLOCK, arg);
+    }
+
+    @Override
     public DataSourceDescription getDataSourceDescription(Id dsRef) {
         JsonObject arg = JSONX.buildObject((b) -> {
             b.key(DeltaConst.F_DATASOURCE).value(dsRef.asPlainString());
@@ -394,7 +411,27 @@ public class DeltaLinkHTTP implements DeltaLink {
     }
 
     private static Id idFromJson(JsonObject obj) {
-        String idStr = obj.get(DeltaConst.F_ID).getAsString().value();
+        return idFromField(obj, DeltaConst.F_ID);
+    }
+
+    /** Return an Id, from a field. Assumes the field is present. */
+    private static Id idFromField(JsonObject obj, String fieldName) {
+        try {
+            String idStr = obj.get(fieldName).getAsString().value();
+            Id id = Id.fromString(idStr);
+            return id;
+        } catch (NullPointerException | JsonException ex) {
+            throw new DeltaException("Failed to extract id from field '"+fieldName+"' in"+JSON.toStringFlat(obj));
+        }
+    }
+
+    private static Id idOrNullFromField(JsonObject obj, String fieldName) {
+        JsonValue jv = obj.get(fieldName);
+        if ( jv == null )
+            return null;
+        if ( ! jv.isString() )
+            throw new DeltaException("Strign expected for field '"+fieldName+"' in"+JSON.toStringFlat(obj));
+        String idStr = jv.getAsString().value();
         Id dsRef = Id.fromString(idStr);
         return dsRef;
     }
@@ -436,7 +473,6 @@ public class DeltaLinkHTTP implements DeltaLink {
     public void removeListener(DeltaLinkListener listener) {
         listeners.remove(listener);
     }
-
 
     @Override
     public String toString() {

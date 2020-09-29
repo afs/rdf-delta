@@ -30,10 +30,7 @@ import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
 import org.apache.jena.atlas.io.IndentedWriter;
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonException;
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.atlas.json.*;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
@@ -111,6 +108,8 @@ public class S_DRPC extends DeltaServlet {
             case OP_COPY_DS:
             case OP_RENAME_DS:
             case OP_REMOVE_DS:
+            case OP_LOCK:
+            case OP_UNLOCK:
                 break;
             default:
                 LOG.warn("Unknown operation: "+action.opName);
@@ -124,7 +123,7 @@ public class S_DRPC extends DeltaServlet {
         JsonValue rslt = null ;
         JsonObject arg = action.rpcArg;
         // Some operations are logged at DEBUG because they are high-volume polling.
-        // They shoudl all be "read" operations.
+        // They should all be "read" operations.
         boolean infoLogThisRPC = true;
         String recordOp = null;
         try {
@@ -169,6 +168,14 @@ public class S_DRPC extends DeltaServlet {
                     break;
                 case OP_REMOVE_DS:
                     rslt = removeDataSource(action);
+                    break;
+                case OP_LOCK:
+                    //infoLogThisRPC = false;
+                    rslt = acquirePatchLog(action);
+                    break;
+                case OP_UNLOCK:
+                    //infoLogThisRPC = false;
+                    rslt = releasePatchLog(action);
                     break;
                 default:
                     throw new InternalErrorException("Unknown operation: "+action.opName);
@@ -334,6 +341,21 @@ public class S_DRPC extends DeltaServlet {
         return noResults;
     }
 
+    private JsonValue acquirePatchLog(DeltaAction action) {
+        Id dsRef = getFieldAsId(action, F_DATASOURCE);
+        Id lockOwnership = action.dLink.acquireLock(dsRef);
+        if ( lockOwnership == null )
+            return JSONX.buildObject(b->b.key(F_LOCK_REF).value(JsonNull.instance));
+        return JSONX.buildObject(b->b.key(F_LOCK_REF).value(lockOwnership.asPlainString()));
+    }
+
+    private JsonValue releasePatchLog(DeltaAction action) {
+        Id dsRef = getFieldAsId(action, F_DATASOURCE);
+        Id lockOwnership = getFieldAsId(action, F_LOCK_REF);
+        action.dLink.releaseLock(dsRef, lockOwnership);
+        return noResults;
+    }
+
     private static String getFieldAsString(DeltaAction action, String field) {
         return getFieldAsString(action.rpcArg, field);
     }
@@ -378,7 +400,8 @@ public class S_DRPC extends DeltaServlet {
             }
             JsonValue jv = arg.get(field) ;
             if ( ! jv.isObject() ) {
-
+                LOG.warn("Bad request: Bad Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+                throw new DeltaBadRequestException("Field: "+field+" is not JSON object");
             }
             return jv.getAsObject();
         } catch (JsonException ex) {

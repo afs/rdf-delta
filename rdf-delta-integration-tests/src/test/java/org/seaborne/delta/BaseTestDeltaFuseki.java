@@ -17,11 +17,17 @@
 
 package org.seaborne.delta ;
 
+import java.io.StringReader;
 import java.net.BindException ;
 
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFParser;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.lib.LogX;
@@ -41,11 +47,14 @@ public class BaseTestDeltaFuseki {
 
     protected static int F1_PORT  =    WebLib.choosePort();
     protected static int F2_PORT  =    WebLib.choosePort();
-    // Needs to be fixed - it's in the Fuseki config files.
-    protected static int D_PORT   =    1068;
+    // Port in the configuration files. Text-replaced in tests.
+    protected static String D_PORT_MARKER   =    "%D_PORT%";
+    protected static int D_PORT   =    WebLib.choosePort();
 
     protected static String fuseki_conf1 = "testing/fuseki/fuseki_conf_1.ttl";
     protected static String fuseki_conf2 = "testing/fuseki/fuseki_conf_2.ttl";
+    protected static Model fuseki_conf_m1;
+    protected static Model fuseki_conf_m2;
     protected static String ds1          = "/ds1";
     protected static String ds2          = "/ds2";
     protected static String deltaServerBase = "target/DeltaServerFuseki";
@@ -92,14 +101,20 @@ public class BaseTestDeltaFuseki {
     }
 
     protected static FusekiServer fuseki1(Start state) {
-        return fuseki(state, F1_PORT, fuseki_conf1, "target/Zone1");
+        return fuseki(state, F1_PORT, D_PORT, fuseki_conf1, "target/Zone1");
     }
 
     protected static FusekiServer fuseki2(Start state) {
-        return fuseki(state, F2_PORT, fuseki_conf2, "target/Zone2");
+        return fuseki(state, F2_PORT, D_PORT, fuseki_conf2, "target/Zone2");
     }
 
-    private static FusekiServer fuseki(Start state, int port, String config, String zone) {
+    private static FusekiServer fuseki(Start state, int port, int deltaPort, String config, String zone) {
+        // Replace %D_PORT%
+        String text = IO.readWholeFileAsUTF8(config);
+        text = text.replace(D_PORT_MARKER, Integer.toString(deltaPort));
+        Model confModel = ModelFactory.createDefaultModel();
+        RDFParser.create().source(new StringReader(text)).lang(Lang.TTL).parse(confModel);
+
         switch (state) {
             case CLEAN : {
                 Zone.clearZoneCache();
@@ -109,7 +124,7 @@ public class BaseTestDeltaFuseki {
             case RESTART :
                 break;
         }
-        return FusekiServer.create().port(port).loopback(true).parseConfigFile(config).build().start();
+        return FusekiServer.create().port(port).loopback(true).parseConfig(confModel).build().start();
     }
 
 }

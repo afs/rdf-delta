@@ -81,4 +81,10 @@ public interface PatchLogIndex {
 
     /** Make sure the version information is up to date. */
     public void syncVersionInfo();
+
+    /** Acquire the mutex. */
+    public Id acquireLock();
+
+    /** Release the mutex. */
+    public void releaseLock(Id lockOwnership);
 }

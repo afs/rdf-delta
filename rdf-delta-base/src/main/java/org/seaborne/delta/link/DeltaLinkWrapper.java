@@ -124,6 +124,16 @@ public class DeltaLinkWrapper implements DeltaLink {
     }
 
     @Override
+    public void addListener(DeltaLinkListener listener) {
+        other.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(DeltaLinkListener listener) {
+        other.removeListener(listener);
+    }
+
+    @Override
     public JsonObject ping() { return execRtn(()->get().ping()); }
 
     @Override
@@ -133,12 +143,12 @@ public class DeltaLinkWrapper implements DeltaLink {
     public void close() { exec(()->get().close()); }
 
     @Override
-    public void addListener(DeltaLinkListener listener) {
-        other.addListener(listener);
+    public Id acquireLock(Id datasourceId) {
+        return execRtn(() -> get().acquireLock(datasourceId));
     }
 
     @Override
-    public void removeListener(DeltaLinkListener listener) {
-        other.removeListener(listener);
+    public void releaseLock(Id datasourceId, Id lockOwnership) {
+        exec(() -> get().releaseLock(datasourceId, lockOwnership));
     }
 }

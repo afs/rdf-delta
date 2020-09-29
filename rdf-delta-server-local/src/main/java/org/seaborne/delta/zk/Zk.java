@@ -18,6 +18,7 @@
 package org.seaborne.delta.zk;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,8 @@ public class Zk {
     private final static Logger LOG = LoggerFactory.getLogger(Zk.class);
 
     private static void zkException(String caller, String path, Exception ex) {
+        if ( path == null )
+            path = "";
         String msg = String.format("%s[%s] ZooKeeper exception: %s", caller, path, ex.getMessage(), ex);
         LOG.warn(msg, ex);
     }
@@ -185,8 +188,7 @@ public class Zk {
         });
     }
 
-    public static void zkLock(CuratorFramework client, String nLock, Runnable action) {
-        InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
+    public static void zkLock(InterProcessLock lock, String nLock, Runnable action) {
         try {
             lock.acquire();
             if ( ! lock.isAcquiredInThisProcess() )
@@ -201,8 +203,7 @@ public class Zk {
         }
     }
 
-    public static <X> X zkLockRtn(CuratorFramework client, String nLock, Supplier<X> action) {
-        InterProcessLock lock = new InterProcessSemaphoreMutex(client, nLock);
+    public static <X> X zkLockRtn(InterProcessLock lock, String nLock, Supplier<X> action) {
         try {
             lock.acquire();
             if ( ! lock.isAcquiredInThisProcess() )
@@ -218,6 +219,36 @@ public class Zk {
         }
     }
 
+    /** Create a named lock. */
+    public static InterProcessLock zkCreateLock(CuratorFramework client, String nLock) {
+        return new InterProcessSemaphoreMutex(client, nLock);
+    }
+
+    /** Basic operation : lock acquire. */
+    public static InterProcessLock zkAcquireLock(InterProcessLock lock, String nLock) {
+        try {
+            lock.acquire(30, TimeUnit.SECONDS);
+            if ( ! lock.isAcquiredInThisProcess() )
+                LOG.warn("zkAcquireLock: lock.isAcquiredInThisProcess() is false");
+            return lock;
+        } catch (Exception ex) {
+            zkException("zkAcquireLock", nLock, ex);
+            return null;
+        } finally {
+            try { lock.release(); } catch (Exception ex) {}
+        }
+    }
+
+    /** Basic operation : lock release. */
+    public static void zkReleaseLock(InterProcessLock lock, String nLock) {
+        try {
+            lock.release();
+        } catch (Exception ex) {
+            zkException("zkReleaseLock", nLock, ex);
+        } finally {
+            try { lock.release(); } catch (Exception ex) {}
+        }
+    }
 
     @FunctionalInterface
     public interface ZkRunnable { public void run() throws Exception; }

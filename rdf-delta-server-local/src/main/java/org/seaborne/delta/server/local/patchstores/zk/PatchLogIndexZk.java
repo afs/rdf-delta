@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.ListUtils;
@@ -54,6 +55,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final String lockPath;
     private final String versionsPath;
     private final String headersPath;
+    private final InterProcessLock zkLock;
 
     // null => no watching.
     //private Watcher logStateWatcher = null;
@@ -103,7 +105,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
               syncState();
           }
         };
-
+        this.zkLock = Zk.zkCreateLock(client, lockPath);
 
         // Find earliest.
         List<String> x = Zk.zkSubNodes(client, versionsPath);
@@ -400,7 +402,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     @Override
     public void runWithLock(Runnable action) {
         synchronized(lock) {
-            Zk.zkLock(client, lockPath, ()->{
+            Zk.zkLock(zkLock, lockPath, ()->{
                 syncVersionInfo();
                 try {
                     action.run();
@@ -418,7 +420,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     @Override
     public <X> X runWithLockRtn(Supplier<X> action) {
         synchronized(lock) {
-            return Zk.zkLockRtn(client, lockPath, ()->{
+            return Zk.zkLockRtn(zkLock, lockPath, ()->{
                 syncVersionInfo();
                 try {
                     return action.get();
@@ -431,5 +433,53 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 }
             });
         }
+    }
+
+//    private volatile Id lockToken = null;
+//
+//    // Implementation for transient, not replicated, locks
+//    @Override
+//    public Id acquireLock() {
+//        try {
+//            //sema.availablePermits();
+//            boolean b = sema.tryAcquire(30, TimeUnit.SECONDS);
+//            if (! b )
+//                return null;
+//        } catch (InterruptedException e) {
+//            Log.warn(Delta.DELTA_LOG, "InterruptedException in "+this.getClass().getSimpleName()+".acquireLock");
+//            return null;
+//        }
+//        // Only one thread possible at this point.
+//        if ( lockToken != null )
+//            throw new DeltaException("Inconsistent. Got Semaphore but ownership token was present");
+//        lockToken = Id.create();
+//        return lockToken;
+//    }
+//
+//    @Override
+//    public void releaseLock(Id lockOwnership) {
+//        if ( lockOwnership == null ) { }
+//        if ( lockToken == null ) {}
+//        if ( ! lockOwnership.equals(lockToken) ) { }
+//        lockToken = null;
+//        sema.release();
+//    }
+
+    private volatile Id lockToken = null;
+
+    @Override
+    public Id acquireLock() {
+        Zk.zkAcquireLock(zkLock, lockPath);
+        lockToken = Id.create();
+        return lockToken;
+    }
+
+    @Override
+    public void releaseLock(Id lockOwnership) {
+        if ( lockOwnership == null ) { }
+        if ( lockToken == null ) { }
+        if ( ! lockOwnership.equals(lockToken) ) { }
+        lockToken = null;
+        Zk.zkReleaseLock(zkLock, lockPath);
     }
 }

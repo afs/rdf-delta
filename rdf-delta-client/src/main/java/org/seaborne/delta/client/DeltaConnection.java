@@ -183,17 +183,58 @@ public class DeltaConnection implements AutoCloseable {
             throw new DeltaConfigException(format("[%s] DeltaConnection not valid", datasourceId));
     }
 
+    private static boolean LockMode = true;
+
+    /**
+     * Acquire the patch log lock else bail out.
+     */
+    private Id acquireLock() {
+        if ( ! LockMode )
+            // No cluster lock then optimistic (can fail) transactions.
+            return null;
+        try {
+            return dLink.acquireLock(datasourceId);
+        } catch (HttpException ex) {
+            FmtLog.warn(LOG, "Failed to accquire the patch log lock: %s", datasourceId);
+            if ( ex.getStatusCode() == -1 )
+                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+            throw ex;
+        }
+    }
+
+    /**
+     * Release the patch log lock.
+     * If there is an error, the patch service is probably down (single server version).
+     * All we can do is ignore, and resync later.
+     */
+    private void releaseLock(Id lockOwnership) {
+        if ( lockOwnership == null )
+            return;
+        try {
+            dLink.releaseLock(datasourceId, lockOwnership);
+        } catch (HttpException ex) {
+            FmtLog.warn(LOG, "Release lock failed: %s", datasourceId.toString());
+        }
+    }
+
     /**
      * An {@link RDFChanges} that adds "id", and "prev" as necessary.
      */
     private class RDFChangesDS extends RDFChangesCollector {
-        private Node currentTransactionId = null;
+        private volatile Node currentTransactionId = null;
+        private volatile Id localOwnership = null ;
 
         RDFChangesDS() {}
 
         // Auto-add an id.
         @Override
         public void txnBegin() {
+            // Without this line, the transaction is performed optimistically and may fail
+            // at the commit is another machine has sneaked in, doing a W transaction and
+            // made a log append.
+
+            localOwnership = acquireLock();
+
             super.txnBegin();
             if ( currentTransactionId == null ) {
                 currentTransactionId = Id.create().asNode();
@@ -225,15 +266,21 @@ public class DeltaConnection implements AutoCloseable {
                 FmtLog.warn(LOG, "Failed to commit: %s", ex.getMessage());
                 throw ex;
             } finally {
+                if ( localOwnership != null)
+                    releaseLock(localOwnership);
                 currentTransactionId = null;
+                localOwnership = null;
                 reset();
             }
         }
 
         @Override
         public void txnAbort() {
-            super.txnAbort();
+            if ( localOwnership != null)
+                releaseLock(localOwnership);
             currentTransactionId = null;
+            localOwnership = null;
+            super.txnAbort();
             reset();
         }
     }
@@ -277,7 +324,8 @@ public class DeltaConnection implements AutoCloseable {
         syncToVersion(logInfo.getMaxVersion());
     }
 
-    /** Sync if the policy is not NONE, the manual mode.
+    /**
+     * Sync if the policy is not NONE, the manual mode.
      * Return true is a sync succeeded, else false.
      * Return false if the SyncPolicy is NONE.
      */
@@ -501,7 +549,8 @@ public class DeltaConnection implements AutoCloseable {
         return managedDataset;
     }
 
-    /** The "record changes" version, suppresses empty commits on the RDFChanges.
+    /**
+     * The "record changes" version, suppresses empty commits on the RDFChanges.
      * @see RDFChangesSuppressEmpty
      */
     public DatasetGraph getDatasetGraphNoEmpty() {
@@ -509,7 +558,8 @@ public class DeltaConnection implements AutoCloseable {
         return managedNoEmpty;
     }
 
-    /** The "record changes" version, suppresses empty commits on the RDFChanges.
+    /**
+     * The "record changes" version, suppresses empty commits on the RDFChanges.
      * @see RDFChangesSuppressEmpty
      */
     public Dataset getDatasetNoEmpty() {
@@ -528,7 +578,6 @@ public class DeltaConnection implements AutoCloseable {
     public void removeListener(DeltaLinkListener listener) {
         dLink.removeListener(listener);
     }
-
 
     @Override
     public String toString() {

@@ -234,5 +234,11 @@ public class PatchLogBase implements PatchLog {
     public void delete() { }
 
     @Override
-    public void release() { }
+    public void releaseLog() { }
+
+    @Override
+    public Id acquireLock() { return logIndex.acquireLock(); }
+
+    @Override
+    public void releaseLock(Id lockOwnership) { logIndex.releaseLock(lockOwnership); }
 }

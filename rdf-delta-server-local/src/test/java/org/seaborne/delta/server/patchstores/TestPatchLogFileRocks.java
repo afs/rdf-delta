@@ -40,7 +40,7 @@ public class TestPatchLogFileRocks extends AbstractTestPatchLog {
     }
 
     @After public void after() {
-        patchLog.release();
+        patchLog.releaseLog();
     }
 
     @Override

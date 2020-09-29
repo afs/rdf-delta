@@ -53,7 +53,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 
     protected final Runnable syncHandler;
     protected final Consumer<ReadWrite> txnSyncHandler;
-    protected final RDFChanges monitor;
+    protected final RDFChanges changesMonitor;
     private static Runnable identityRunnable = ()->{};
     private static <X> Consumer<X> identityConsumer() { return (x)->{}; }
 
@@ -68,14 +68,14 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
      *
      *  Transactional usage preferred.
      */
-    public DatasetGraphChanges(DatasetGraph dsg, RDFChanges monitor, Runnable syncHandler, Consumer<ReadWrite> txnSyncHandler) {
+    public DatasetGraphChanges(DatasetGraph dsg, RDFChanges changesMonitor, Runnable syncHandler, Consumer<ReadWrite> txnSyncHandler) {
         super(dsg);
-        this.monitor = monitor;
+        this.changesMonitor = changesMonitor;
         this.syncHandler = syncHandler == null ? identityRunnable : syncHandler;
         this.txnSyncHandler = txnSyncHandler == null ? identityConsumer() : txnSyncHandler;
     }
 
-    public RDFChanges getMonitor() { return monitor; }
+    public RDFChanges getMonitor() { return changesMonitor; }
 
     @Override public void sync() {
         syncHandler.run();
@@ -96,14 +96,14 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     @Override
     public void add(Node g, Node s, Node p, Node o) {
         requireWriteTxn();
-        monitor.add(g, s, p, o);
+        changesMonitor.add(g, s, p, o);
         super.add(g, s, p, o);
     }
 
     @Override
     public void delete(Node g, Node s, Node p, Node o) {
         requireWriteTxn();
-        monitor.delete(g, s, p, o);
+        changesMonitor.delete(g, s, p, o);
         super.delete(g, s, p, o);
     }
 
@@ -118,11 +118,11 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 
     @Override
     public Graph getDefaultGraph()
-    { return new GraphChanges(get().getDefaultGraph(), null, monitor) ; }
+    { return new GraphChanges(get().getDefaultGraph(), null, changesMonitor) ; }
 
     @Override
     public Graph getGraph(Node graphNode)
-    { return new GraphChanges(get().getGraph(graphNode), graphNode, monitor) ; }
+    { return new GraphChanges(get().getGraph(graphNode), graphNode, changesMonitor) ; }
 
     @Override
     public void addGraph(Node graphName, Graph data) {
@@ -177,7 +177,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             txnSyncHandler.accept(ReadWrite.WRITE);
             super.begin();
             if ( transactionMode() == ReadWrite.WRITE )
-                monitor.txnBegin();
+                changesMonitor.txnBegin();
         } finally {
             insideBegin.set(false);
         }
@@ -196,12 +196,12 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 
         insideBegin.set(true);
         try {
-            // For the sync, we have to assume it will write.
-            ReadWrite readWrite = ( txnType == TxnType.READ) ? ReadWrite.READ : ReadWrite.WRITE;
-            txnSyncHandler.accept(readWrite);
-            super.begin(txnType);
-            if ( transactionMode() == ReadWrite.WRITE )
-                monitor.txnBegin();
+          // For the sync, we have to assume it will write.
+          ReadWrite readWrite = ( txnType == TxnType.READ) ? ReadWrite.READ : ReadWrite.WRITE;
+          if ( readWrite == ReadWrite.WRITE )
+              changesMonitor.txnBegin();
+          txnSyncHandler.accept(readWrite);
+          super.begin(txnType);
         } finally {
             insideBegin.set(false);
         }
@@ -210,20 +210,8 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 
     @Override
     public void begin(ReadWrite readWrite) {
-        if ( insideBegin.get() ) {
-            super.begin(readWrite);
-            return;
-        }
-        insideBegin.set(true);
-        try {
-            txnSyncHandler.accept(readWrite);
-            super.begin(readWrite);
-            if ( transactionMode() == ReadWrite.WRITE )
-                monitor.txnBegin();
-        } finally {
-            insideBegin.set(false);
-        }
-        internalBegin();
+        TxnType txnType = TxnType.convert(readWrite);
+        begin(txnType);
     }
 
     @Override
@@ -257,7 +245,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 //                if ( transactionType() == TxnType.READ_COMMITTED_PROMOTE )
 //                    txnSyncHandler.accept(ReadWrite.WRITE);
                 // We have gone ReadWrite.READ -> ReadWrite.WRITE
-                monitor.txnBegin();
+                changesMonitor.txnBegin();
             }
             return b;
         }
@@ -271,7 +259,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         // If the monitor.txnCommit fails, the commit should not happen
         if ( isWriteMode() ) {
             try {
-                monitor.txnCommit();
+                changesMonitor.txnCommit();
             } catch (Exception ex) {
                 //Don't signal.  monitor.txnAbort() is a client-caused abort.
                 super.abort();
@@ -286,7 +274,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
     public void abort() {
         // Assume abort will work - signal first.
         if ( isWriteMode() )
-            monitor.txnAbort();
+            changesMonitor.txnAbort();
         super.abort();
     }
 

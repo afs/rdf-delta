@@ -69,12 +69,12 @@ public interface RDFChanges {
 //    }
 
     /**
-     * Add a prefix.  The graph name follows the same rules as {@link #add}.
+     * Add a prefix. The graph name follows the same rules as {@link #add}.
      */
     public void addPrefix(Node gn, String prefix, String uriStr);
 
     /**
-     * Delete a prefix.  The graph name follows the same rules as {@link #add}.
+     * Delete a prefix. The graph name follows the same rules as {@link #add}.
      */
     public void deletePrefix(Node gn, String prefix);
 

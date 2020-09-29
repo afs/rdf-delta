@@ -27,5 +27,3 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
     delta:zone     "%ZONE_NAME%";
     delta:storage "mem";
     .
-
-

@@ -43,6 +43,7 @@ import org.seaborne.delta.server.http.DeltaServer ;
 
 /**
  * Tests for Fuseki with Delta integration when things are not going well.
+ * Based on config files so the port number is fixed.
  *
  * @see TestDeltaFusekiBad
  */
@@ -59,7 +60,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
     }
 
     @BeforeClass
-    public static void cpatureHttpOp() {
+    public static void captureHttpOp() {
         dftStdHttpClient = HttpOp.getDefaultHttpClient() ;
     }
 
@@ -127,9 +128,10 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
                 conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
                 Assert.fail("Should not be able to update at the moment");
             } catch (HttpException ex) {
+                // Ideally, 503 - comms failure caught and made a 503.
                 assertEquals(503, ex.getStatusCode());
                 // Expected - ignore.
-                //assertTrue(ex.getResponseCode()>= 500);
+                //assertTrue(ex.getStatusCode()>= 500);
             }
 
             deltaServer = deltaServer(Start.RESTART);

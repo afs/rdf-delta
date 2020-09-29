@@ -230,7 +230,6 @@ public abstract class AbstractTestDeltaConnection {
             Version ver4 = dConn.getRemoteVersionLatest();
             assertEquals(patchId3, patchId4);
             assertEquals(ver3, ver4);
-
         }
     }
 

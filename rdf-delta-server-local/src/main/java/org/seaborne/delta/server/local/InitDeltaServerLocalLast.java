@@ -32,8 +32,8 @@ public class InitDeltaServerLocalLast implements DeltaSubsystemLifecycle {
     @Override
     public void stop() {}
 
-    // Make this late (but before extras liek ZkS3) so DPS can do setup
-    // all normal registrations.
+    // Make this late (but before extras like ZkS3)
+    // so DPS can do setup all normal registrations.
     @Override
     public int level() { return 9000 ; }
 }

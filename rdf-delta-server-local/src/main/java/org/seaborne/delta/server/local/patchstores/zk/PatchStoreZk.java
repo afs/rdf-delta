@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
@@ -67,6 +68,7 @@ public class PatchStoreZk extends PatchStore {
 
     private static AtomicInteger counter = new AtomicInteger(1);
     private final CuratorFramework client;
+    private final InterProcessLock zkStoreLock;
     private final String instance;
 
     // Our view of all the patch logs in the store.
@@ -76,16 +78,17 @@ public class PatchStoreZk extends PatchStore {
         super(psp);
         this.instance = "zk-"+(counter.getAndIncrement());
         this.client = client;
+        zkStoreLock = Zk.zkCreateLock(client, ZkConst.pStoreLock);
     }
 
     public CuratorFramework getClient() { return client; }
     public String getInstance() { return instance; }
 
-    private static void formatPatchStore(CuratorFramework client) throws Exception {
+    private void formatPatchStore(CuratorFramework client) throws Exception {
         zkEnsure(client, ZkConst.pRoot);
         zkEnsure(client, ZkConst.pStoreLock);
-        // It does not matter if this holds up multiple log stores then they all run - it happens rarely.
-        Zk.zkLock(client, ZkConst.pStoreLock, ()->{
+        // It does not matter if this holds up multiple log stores when they all run - it happens rarely.
+        Zk.zkLock(zkStoreLock, ZkConst.pStoreLock, ()->{
             if ( ! zkExists(client, ZkConst.pLogs) )
                 zkCreate(client, ZkConst.pLogs);
             if ( ! zkExists(client, ZkConst.pActiveLogs) )
@@ -454,7 +457,7 @@ public class PatchStoreZk extends PatchStore {
     // Execute an action with a local lock and store-wide lock.
     private void clusterLock(ZkRunnable action, Consumer<Exception> onThrow) {
         synchronized(storeLock) {
-            Zk.zkLock(client, ZkConst.pStoreLock, ()->{
+            Zk.zkLock(zkStoreLock, ZkConst.pStoreLock, ()->{
                 try {
                     action.run();
                 } catch(Exception ex) {
@@ -469,7 +472,7 @@ public class PatchStoreZk extends PatchStore {
     private <X> X clusterLock(ZkSupplier<X> action, Consumer<Exception> onThrow) {
         synchronized(storeLock) {
             X x =
-                Zk.zkLockRtn(client, ZkConst.pStoreLock, ()->{
+                Zk.zkLockRtn(zkStoreLock, ZkConst.pStoreLock, ()->{
                     try {
                         return action.run();
                     } catch(Exception ex) {

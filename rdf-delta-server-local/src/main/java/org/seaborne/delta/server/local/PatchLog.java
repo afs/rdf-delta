@@ -67,7 +67,6 @@ public interface PatchLog {
      */
     public DataSourceDescription getDescription();
 
-
     /**
      * Return the {@link PatchStore} responsible for this {@code PatchLog}.
      */
@@ -131,5 +130,11 @@ public interface PatchLog {
     public void delete();
 
     /** Free in-process resources */
-    public void release();
+    public void releaseLog();
+
+    /** Acquire the PatchLog mutex. */
+    public Id acquireLock();
+
+    /** Release the PatchLog mutex. */
+    public void releaseLock(Id lockOwnership);
 }

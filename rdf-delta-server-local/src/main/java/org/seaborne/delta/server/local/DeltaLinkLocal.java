@@ -204,13 +204,11 @@ public class DeltaLinkLocal implements DeltaLink {
         PatchLog patchLog = source.getPatchLog();
         try {
             beforeWrite(source, patchLog, rdfPatch);
-            // log(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()),
-            // source);
+
             long t1 = System.currentTimeMillis();
-
             Version version = patchLog.append(rdfPatch);
-
             long t2 = System.currentTimeMillis();
+
             afterWrite(source, rdfPatch, version, (t2 - t1));
             event(listener-> listener.append(dsRef, version, rdfPatch));
             return version;
@@ -224,12 +222,11 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     /**
-     * Called before writing the patch to the {@link PatchLog}. There is no guaranttee
-     * that the patch is valid and will be commited to the PatchLog.
+     * Called before writing the patch to the {@link PatchLog}. There is no guarantee
+     * that the patch is valid and will be committed to the PatchLog.
      */
     protected void beforeWrite(DataSource source, PatchLog patchLog, RDFPatch rdfPatch) {
-        // log(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()),
-        // patchLog.getLogId().toString());
+        // devlog(LOG, "append: start: Patch=%s ds=%s", str(rdfPatch.getId()),
     }
 
     /** Called after writing the patch to the {@link PatchLog}. */
@@ -328,5 +325,25 @@ public class DeltaLinkLocal implements DeltaLink {
     @Override
     public void removeListener(DeltaLinkListener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public Id acquireLock(Id datasourceId) {
+        checkLink();
+        DataSource source = getDataSourceOrNull(datasourceId);
+        if ( source == null )
+            return null;
+        Id lockOwnership = source.getPatchLog().acquireLock();
+        return lockOwnership;
+    }
+
+    @Override
+    public void releaseLock(Id datasourceId, Id lockOwnership) {
+        checkLink();
+        DataSource source = getDataSourceOrNull(datasourceId);
+        if ( source == null )
+            return;
+        PatchLog log = source.getPatchLog();
+        log.releaseLock(lockOwnership);
     }
 }
