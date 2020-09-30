@@ -33,26 +33,26 @@ import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
 import org.slf4j.Logger ;
 
-/** Respond with JSON object */
-public abstract class S_JSON extends HttpServlet {
+/** Base class for responds with JSON object */
+public abstract class S_ReplyJSON extends HttpServlet {
     static private Logger LOG = Delta.DELTA_LOG ;
-    
-    public S_JSON() { }
-    
+
+    public S_ReplyJSON() { }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        json(req, resp, json());
+        json(req, resp, json(req));
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        json(req, resp, json());
+        json(req, resp, json(req));
     }
-    
-    protected abstract JsonValue json() ;
-    
+
+    protected abstract JsonValue json(HttpServletRequest req) ;
+
     public static void json(HttpServletRequest req, HttpServletResponse resp, JsonValue responseContent) {
-        try { 
+        try {
             resp.setHeader(HttpNames.hCacheControl, "no-cache");
             resp.setHeader(HttpNames.hContentType,  WebContent.contentTypeJSON);
             resp.setStatus(HttpSC.OK_200);
@@ -65,7 +65,7 @@ public abstract class S_JSON extends HttpServlet {
             }
         } catch (IOException ex) {
             LOG.warn("json: IOException", ex);
-            try { 
+            try {
                 resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Internal server error");
             } catch (IOException ex2) {}
         }

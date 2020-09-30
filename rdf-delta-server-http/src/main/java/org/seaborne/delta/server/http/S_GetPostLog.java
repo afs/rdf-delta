@@ -28,13 +28,13 @@ import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 
 /** Servlet for both append and fetch patches - the RDF Patch protocol.
- *    <tt>POST /{name}/</tt> -- append patch.
  *    <tt>GET  /{name}/id</tt> -- get patch
  *    <tt>GET  /{name}/version</tt> -- get patch
+ *    <tt>POST /{name}/</tt> -- append patch.
  */
-public class S_Log extends HttpOperationBase {
+public class S_GetPostLog extends HttpOperationBase {
 
-    public S_Log(DeltaLink engine) {
+    public S_GetPostLog(DeltaLink engine) {
         super(engine);
     }
 
@@ -47,8 +47,10 @@ public class S_Log extends HttpOperationBase {
 
     @Override
     protected void validateAction(Args httpArgs) {
-        if ( isFetchOperation(httpArgs) ) return ;
-        if ( isAppendOperation(httpArgs) ) return ;
+        if ( isFetchOperation(httpArgs) )
+            return ;
+        if ( isAppendOperation(httpArgs) )
+            return ;
         DeltaAction.errorBadRequest("Not a log fetch or append operation : "+httpArgs.url);
     }
 

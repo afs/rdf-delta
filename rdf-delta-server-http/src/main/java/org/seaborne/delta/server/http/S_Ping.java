@@ -17,13 +17,15 @@
 
 package org.seaborne.delta.server.http;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.jena.atlas.json.JsonValue ;
 import org.seaborne.delta.DeltaLib;
 
 /** Respond with a ping as a JSON object */
-public class S_Ping extends S_JSON {
+public class S_Ping extends S_ReplyJSON {
     public S_Ping() { }
 
     @Override
-    protected JsonValue json() { return DeltaLib.ping() ; }
+    protected JsonValue json(HttpServletRequest req) { return DeltaLib.ping() ; }
 }

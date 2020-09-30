@@ -79,7 +79,7 @@ public /*package*/ class PatchLogServer {
         this.deltaLink = dLink;
         ServletContextHandler handler = buildServletContext("/");
 
-        HttpServlet servletRDFPatchLog = new S_Log(dLink);
+        HttpServlet servletRDFPatchLog = new S_GetPostLog(dLink);
         HttpServlet servletPing = new S_Ping();
         //HttpServlet servlet404 = new ServletHandler.Default404Servlet();
 
@@ -96,7 +96,7 @@ public /*package*/ class PatchLogServer {
         addServlet(handler, "/"+DeltaConst.EP_Ping, new S_Ping());  //-- See also the "ping" DRPC.
 
         // Initial data. "/init-data?datasource=..."
-        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_Data(this.deltaLink));
+        addServlet(handler, "/"+DeltaConst.EP_InitData, new S_FetchData(this.deltaLink));
 
 
         // ---- A default servlet at the end of the chain.

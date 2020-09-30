@@ -41,10 +41,10 @@ import org.seaborne.delta.server.local.DataSource;
 import org.slf4j.Logger ;
 
 /** Data over HTTP. */
-public class S_Data extends HttpOperationBase {
+public class S_FetchData extends HttpOperationBase {
     static private Logger LOG = Delta.getDeltaLogger("Data") ;
 
-    public S_Data(DeltaLink engine) {
+    public S_FetchData(DeltaLink engine) {
         super(engine);
     }
 
