@@ -39,6 +39,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
@@ -153,7 +154,10 @@ public /*package*/ class PatchLogServer {
 
     /** Build a Jetty server */
     private static Server jettyServer(int port, boolean loopback) {
-        Server server = new Server();
+        // Threads, (max, min) : default is set low.
+        // Normal Jetty default is (200,8).
+        QueuedThreadPool threadPool = new QueuedThreadPool(50, 4);
+        Server server = new Server(threadPool);
         HttpConnectionFactory f1 = new HttpConnectionFactory();
         f1.getHttpConfiguration().setRequestHeaderSize(512 * 1024);
         f1.getHttpConfiguration().setOutputBufferSize(5 * 1024 * 1024);

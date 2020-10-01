@@ -32,7 +32,6 @@ import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaConst ;
 import org.slf4j.Logger ;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.DiskSpaceMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
@@ -44,8 +43,7 @@ import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 
-
-/** Respond with prometheus metrics */
+/** Respond with Prometheus metrics */
 public class S_Metrics extends HttpServlet {
     static private Logger LOG = Delta.DELTA_LOG ;
     private PrometheusMeterRegistry meterRegistry;
@@ -58,7 +56,7 @@ public class S_Metrics extends HttpServlet {
         new ProcessorMetrics().bindTo(meterRegistry);
         new ClassLoaderMetrics().bindTo(meterRegistry);
         new UptimeMetrics().bindTo(meterRegistry);
-        for (File root : File.listRoots()) {
+        for ( File root : File.listRoots() ) {
             new DiskSpaceMetrics(root).bindTo(meterRegistry);
         }
         // Has a warning about resource closing.
@@ -80,7 +78,7 @@ public class S_Metrics extends HttpServlet {
     }
 
     protected void metrics(ServletOutputStream out) throws IOException {
-	out.write(meterRegistry.scrape().getBytes());
+        out.write(meterRegistry.scrape().getBytes());
     }
 
     private void text(HttpServletRequest req, HttpServletResponse resp) {
