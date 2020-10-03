@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.seaborne.delta.DataSourceDescription;
+import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
@@ -69,12 +70,22 @@ public class PatchStoreMem extends PatchStore {
     @Override
     protected void shutdownSub() {}
 
+
+
     @Override
     protected PatchLog renamePatchLog(PatchLog patchLog, String oldName, String newName) {
-        // No need to copy. Retain id and URI.
-        DataSourceDescription dsd0 = patchLog.getDescription();
-        DataSourceDescription dsd = new DataSourceDescription(dsd0.getId(), newName, dsd0.getUri());
+        DataSourceDescription dsd1 = patchLog.getDescription();
+        Id dsRef2;
+
+        if ( false )
+            // No need to copy. Retain id and URI.
+            dsRef2 = dsd1.getId();
+        else
+            // Simulate other store that do rename as copy-delete.
+            dsRef2 = Id.create();
+
+        DataSourceDescription dsd2 = new DataSourceDescription(dsRef2, newName, dsd1.getUri());
         PatchLogBase plb = (PatchLogBase)patchLog;
-        return new PatchLogBase(dsd, plb.getPatchLogIndex(), plb.getPatchLogStorage(), plb.getPatchStore());
+        return new PatchLogBase(dsd2, plb.getPatchLogIndex(), plb.getPatchLogStorage(), plb.getPatchStore());
     }
 }
