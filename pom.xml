@@ -638,6 +638,11 @@
             <!-- MSHADE-124 -->
             <exclude>**/dependency-reduced-pom.xml</exclude>
             <exclude>.travis.yml</exclude>
+
+            <!-- ZooKeeper files -->
+            <exclude>**/Tutorial/**/zoo.dynamic</exclude>
+            <exclude>**/Tutorial/**/myid</exclude>
+
           </excludes>
         </configuration>
       </plugin>
