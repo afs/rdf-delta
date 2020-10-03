@@ -57,3 +57,9 @@ Copyright (c) 2005 Brian Goetz and Tim Peierls. See http://www.jcip.net
      - voluntary contributions made by Paul Eng on behalf of the 
        Apache Software Foundation that were originally developed at iClick, Inc.,
        software copyright (c) 1999.
+
+- - - - - - - - - - - - - - - - - - - - - - -
+This product includes the following binary code:
+
+javax.xml.bind:jaxb-api
+Licensed under CDDL-1.1 (https://spdx.org/licenses/CDDL-1.1.html)

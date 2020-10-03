@@ -6,6 +6,9 @@ hs_err_pid*
 
 delta.classpath
 
+## Local
+NOTES
+
 ### Maven ###
 target/
 pom.xml.tag
