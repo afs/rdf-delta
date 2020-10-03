@@ -135,6 +135,7 @@ public class dcmd {
 
             case "patchserver":
                 delta.server.DeltaServerCmd.main(argsSub); break;
+            case "monitor" :        monitor.main(argsSub); break;
 
             case "fuseki":
                 FusekiMainCmd.main(argsSub);

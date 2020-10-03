@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Optional ;
 
 import jena.cmd.CmdException ;
-import org.seaborne.delta.Id ;
+import org.seaborne.delta.DataSourceDescription;
 
 /** Base for operations referring to two logs.
- *  dmc op2 --server SERVER LOG1 LOG2
+ *  dcmd op2 --server SERVER LOG1 LOG2
  */
 public abstract class DeltaCmd_2 extends DeltaCmd {
 
@@ -65,7 +65,7 @@ public abstract class DeltaCmd_2 extends DeltaCmd {
     protected abstract void execCmd(String name1, String name2);
 
     protected boolean logExists(String name) {
-        Optional<Id> opt = findByName(name);
+        Optional<DataSourceDescription> opt = findByName(name);
         return opt.isPresent();
     }
 }

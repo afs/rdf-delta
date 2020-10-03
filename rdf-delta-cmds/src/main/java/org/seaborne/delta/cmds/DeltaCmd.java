@@ -18,9 +18,7 @@
 package org.seaborne.delta.cmds;
 
 import java.util.List ;
-import java.util.Objects ;
 import java.util.Optional ;
-import java.util.function.Predicate ;
 
 import jena.cmd.ArgDecl ;
 import jena.cmd.CmdException ;
@@ -30,6 +28,7 @@ import org.apache.jena.atlas.web.HttpException ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id ;
+import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
 
@@ -98,8 +97,6 @@ abstract public class DeltaCmd extends CmdGeneral {
     protected String    dataSourceURI       = null ;
     protected DeltaLink dLink               = null ;
     protected Id clientId                   = Id.create() ;
-    protected List<DataSourceDescription> descriptions = null ;
-    protected DataSourceDescription       description = null ;
 
     @Override
     protected void exec() {
@@ -122,21 +119,27 @@ abstract public class DeltaCmd extends CmdGeneral {
     protected abstract void execCmd();
 
     protected List<DataSourceDescription> getDescriptions() {
-        if ( descriptions == null )
-            descriptions = dLink.listDescriptions();
-        return descriptions;
+        return dLink.listDescriptions();
+    }
+
+    protected List<PatchLogInfo> getPatchLogInfo() {
+        return dLink.listPatchLogInfo();
     }
 
     protected DataSourceDescription getDescription() {
-        if ( description == null ) {
-            description =
-                getDescriptions().stream()
-                    .filter(dsd-> Objects.equals(dsd.getName(), dataSourceName) || Objects.equals(dsd.getUri(), dataSourceURI))
-                    .findFirst().orElse(null);
-            if ( description == null )
-                throw new CmdException("Source '"+dataSourceName+"' does not exist");
+        if ( dataSourceName != null ) {
+            DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(dataSourceName);
+            if ( dsd != null )
+                return dsd;
+            throw new CmdException("Source '"+dataSourceName+"' does not exist");
         }
-        return description;
+        if ( dataSourceURI != null ) {
+            DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI(dataSourceURI);
+            if ( dsd != null )
+                return dsd;
+            throw new CmdException("Source '"+dataSourceURI+"' does not exist");
+        }
+        throw new CmdException("No data source name and no data source URI");
     }
 
     protected String messageFromHttpException(HttpException ex) {
@@ -146,7 +149,7 @@ abstract public class DeltaCmd extends CmdGeneral {
         return ex2.getMessage();
     }
 
-    protected Optional<Id> find(String name, String url) {
+    protected Optional<DataSourceDescription> find(String name, String url) {
         if ( name != null )
             return findByName(name);
         if ( url != null )
@@ -154,20 +157,22 @@ abstract public class DeltaCmd extends CmdGeneral {
         throw new CmdException("No name or URI for the source");
     }
 
-    protected Optional<Id> findByURI(String uri) {
-        return find(dsd-> Objects.equals(dsd.getName(), uri)) ;
+    protected Optional<DataSourceDescription> findByURI(String uri) {
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI(uri);
+        return Optional.ofNullable(dsd);
     }
 
-    protected Optional<Id> findByName(String name) {
-        return find(dsd-> Objects.equals(dsd.getName(), name)) ;
+    protected Optional<DataSourceDescription> findByName(String name) {
+        DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(name);
+        return Optional.ofNullable(dsd);
     }
 
-    protected Optional<Id> find(Predicate<DataSourceDescription> predicate) {
-        List <DataSourceDescription> all = dLink.listDescriptions();
-        return
-            all.stream()
-               .filter(predicate)
-               .findFirst()
-               .map(dsd->dsd.getId());
-    }
+//    protected Optional<Id> find(Predicate<DataSourceDescription> predicate) {
+//        List <DataSourceDescription> all = dLink.listDescriptions();
+//        return
+//            all.stream()
+//               .filter(predicate)
+//               .findFirst()
+//               .map(dsd->dsd.getId());
+//    }
 }

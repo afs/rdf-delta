@@ -113,7 +113,7 @@ public class DeltaLinkLocal implements DeltaLink {
             throw new IllegalArgumentException("Invalid data source name : '" + dstName + "'");
         DataSource dSrc = localServer.getDataSource(dsRef);
         Id dsRef2 = localServer.copyDataSource(dsRef, srcName, dstName);
-        event(listener->listener.copyDataSource(dsRef, srcName, dstName));
+        event(listener->listener.copyDataSource(dsRef, dsRef2, srcName, dstName));
         return dsRef2;
     }
 
@@ -129,9 +129,9 @@ public class DeltaLinkLocal implements DeltaLink {
             throw new IllegalArgumentException("Invalid data source name : '" + newName + "'");
         DataSource dSrc = localServer.getDataSource(dsRef);
 
-        localServer.renameDataSource(dsRef, oldName, newName);
-        event(listener->listener.renameDataSource(dsRef, oldName, newName));
-        return dsRef;
+        Id dsRef2 = localServer.renameDataSource(dsRef, oldName, newName);
+        event(listener->listener.renameDataSource(dsRef, dsRef2, oldName, newName));
+        return dsRef2;
     }
 
     @Override

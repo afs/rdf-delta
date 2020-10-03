@@ -85,6 +85,13 @@ public class list extends DeltaCmd {
             return ;
         }
         all.forEach(this::detailsByDSD);
+
+//        List<PatchLogInfo> logs = getPatchLogInfo();
+//        if ( logs.isEmpty()) {
+//            System.out.println("-- No logs --");
+//            return ;
+//        }
+//        logs.forEach(System.out::println);
     }
 
     private void detailsByDSD(DataSourceDescription dsd) {
@@ -94,6 +101,11 @@ public class list extends DeltaCmd {
             System.out.printf("[%s %s <%s> [no info] %s]\n", dsd.getId(), dsd.getName(), dsd.getUri());
             return;
         }
+        details(logInfo);
+    }
+
+    private void details(PatchLogInfo logInfo) {
+        DataSourceDescription dsd = logInfo.getDataSourceDescr();
         if ( Version.INIT.equals(logInfo.getMinVersion()) && Version.INIT.equals(logInfo.getMaxVersion()) ) {
             if ( logInfo.getLatestPatch() != null )
                 // Should not happen.

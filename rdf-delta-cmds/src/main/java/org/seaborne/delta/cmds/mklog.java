@@ -19,7 +19,7 @@ package org.seaborne.delta.cmds;
 
 import java.util.List ;
 import java.util.Objects ;
-import java.util.Optional ;
+import java.util.Optional;
 
 import jena.cmd.CmdException ;
 import org.seaborne.delta.DataSourceDescription ;
@@ -70,14 +70,14 @@ public class mklog extends DeltaCmdServerOp {
 
     @Override
     protected void checkCmdName(String name) {
-        Optional<Id> opt = findByName(name);
+        Optional<DataSourceDescription> opt = findByName(name);
         if ( opt.isPresent() )
             throw new CmdException("Source '"+name+"' already exists");
     }
 
     @Override
     protected void checkCmdURI(String uriStr) {
-        Optional<Id> opt = findByURI(uriStr);
+        Optional<DataSourceDescription> opt = findByURI(uriStr);
         if ( opt.isPresent() )
             throw new CmdException("Source <"+uriStr+"> already exists");
     }

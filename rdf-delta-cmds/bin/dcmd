@@ -56,7 +56,7 @@ DELTA_CP="$D:$DELTA_CP"
 
 function usage() {
     echo "Commands:"
-    echo "    server, fuseki, ping" 1>&2
+    echo "    server, fuseki, ping, monitor" 1>&2
     echo "    ls, mk, mv, rm, cp" 1>&2
     echo "    get, add" 1>&2
     echo "    parse (p), r2p, p2r, p2u" 1>&2

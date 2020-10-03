@@ -304,7 +304,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         });
         JsonObject obj = rpc(DeltaConst.OP_COPY_DS, arg);
         Id dsRef2 = idFromJson(obj);
-        listeners.forEach(listener->listener.copyDataSource(dsRef, oldName, newName));
+        listeners.forEach(listener->listener.copyDataSource(dsRef, dsRef2, oldName, newName));
         return dsRef2;
     }
 
@@ -317,7 +317,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         });
         JsonObject obj = rpc(DeltaConst.OP_RENAME_DS, arg);
         Id dsRef2 = idFromJson(obj);
-        listeners.forEach(listener->listener.renameDataSource(dsRef, oldName, newName));
+        listeners.forEach(listener->listener.renameDataSource(dsRef, dsRef2, oldName, newName));
         return dsRef2;
     }
 
@@ -332,19 +332,15 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public Id acquireLock(Id datasourceId) {
-        // Scope for improving JSON object building.
-        //   X.add(key,value).addId(field, id).
         JsonObject arg = JSONX.buildObject(b->{
             b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
+            //b.key(DeltaConst.F_TIMEOUT).value(datasourceId.asPlainString());
         });
 
         JsonObject obj = rpcOnce(DeltaConst.OP_LOCK, arg);
         Id lockOwnership = idOrNullFromField(obj, DeltaConst.F_LOCK_REF);
-        if ( lockOwnership == null ) {
-            // XXX
-        }
-
-
+        if ( lockOwnership == null )
+            throw new DeltaException("Failed to get the patch server lock.");
         return lockOwnership;
     }
 

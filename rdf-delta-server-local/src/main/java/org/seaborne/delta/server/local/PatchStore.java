@@ -246,7 +246,6 @@ public abstract class PatchStore {
         }
     }
 
-
     /*package*/ PatchLog rename(PatchLog patchLog, String oldName, String newName) {
         // This is "overlocking" - we're inside the LocalServer lock.
         // But this operation is not performance critical and not commonly used.
@@ -275,7 +274,7 @@ public abstract class PatchStore {
             "(Z|(\\+|-)((0[0-9]|1[0-3]).[0-5][0-9]|14.00))?";
     private static Pattern pattern = Pattern.compile("/[^/]*(_"+xsdRegex+")$");
 
-    /** Basic copy version */
+    /** Basic copy version - cause change of id and URI*/
     protected PatchLog copyPatchLog(PatchLog patchLog, String oldName, String newName) {
         Id dsRef2 = Id.create();
         String uri = patchLog.getDescription().getUri();

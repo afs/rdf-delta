@@ -27,8 +27,8 @@ import org.seaborne.patch.RDFPatch;
  */
 public interface DeltaLinkListener {
     public default void newDataSource(Id dsRef, String name) {}
-    public default void copyDataSource(Id dsRef, String oldName, String newName) {}
-    public default void renameDataSource(Id dsRef, String oldName, String newName) {}
+    public default void copyDataSource(Id dsRef, Id dsRef2, String oldName, String newName) {}
+    public default void renameDataSource(Id dsRef, Id dsRef2, String oldName, String newName) {}
     public default void removeDataSource(Id dsRef) {}
 
     /** {@code patch} is null for "not found". */

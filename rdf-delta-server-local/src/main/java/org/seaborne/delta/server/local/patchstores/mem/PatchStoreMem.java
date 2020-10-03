@@ -25,6 +25,7 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
+import org.seaborne.delta.server.local.patchstores.PatchLogBase;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 
@@ -70,7 +71,10 @@ public class PatchStoreMem extends PatchStore {
 
     @Override
     protected PatchLog renamePatchLog(PatchLog patchLog, String oldName, String newName) {
-        // No-op - the logs don't know their "location" - it's all in the PatchStore DataSourceRegistry
-        return patchLog;
+        // No need to copy. Retain id and URI.
+        DataSourceDescription dsd0 = patchLog.getDescription();
+        DataSourceDescription dsd = new DataSourceDescription(dsd0.getId(), newName, dsd0.getUri());
+        PatchLogBase plb = (PatchLogBase)patchLog;
+        return new PatchLogBase(dsd, plb.getPatchLogIndex(), plb.getPatchLogStorage(), plb.getPatchStore());
     }
 }

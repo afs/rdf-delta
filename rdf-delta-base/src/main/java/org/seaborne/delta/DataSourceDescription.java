@@ -30,21 +30,21 @@ import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.lib.JSONX;
 
 /** The fixed information about a {@code DataSource}.
- * 
- * @see PatchLogInfo 
+ *
+ * @see PatchLogInfo
  */
 public class DataSourceDescription {
     private final Id id;
     private final String uri;
     private final String name;
-    
+
     public DataSourceDescription(Id id, String name, String uri) {
         super();
         this.id = Objects.requireNonNull(id);
         this.name = Objects.requireNonNull(name);
         this.uri = uri;
     }
-    
+
     /*
      * {
      *    id:
@@ -52,11 +52,11 @@ public class DataSourceDescription {
      *    uri:
      * }
      */
-    
+
     public JsonObject asJson() {
         return JSONX.buildObject(b->addJsonFields(b));
     }
-    
+
     public void addJsonObject(JsonBuilder b) {
         b.startObject();
         addJsonFields(b);
@@ -69,32 +69,32 @@ public class DataSourceDescription {
         if ( uri != null )
             b.key(F_URI).value(uri);
     }
-    
+
     public static DataSourceDescription fromJson(JsonObject obj) {
         String idStr = JSONX.getStrOrNull(obj, F_ID);
         if ( idStr == null )
             throw new DeltaException("Missing \"id:\" in DataSourceDescription JSON");
-        
+
         String name = JSONX.getStrOrNull(obj, F_NAME);
         if ( name == null ) {
             @SuppressWarnings("deprecation")
-            String n = JSONX.getStrOrNull(obj, F_BASE); 
+            String n = JSONX.getStrOrNull(obj, F_BASE);
             // Compatibility.
             Log.warn(DataSourceDescription.class, "Deprecated: Use of field name \"base\" - change to \"name\"");
             name = n;
         }
         if ( name == null )
             throw new DeltaException("Missing \"name:\" in DataSourceDescription JSON");
-        
+
         String uri = JSONX.getStrOrNull(obj, F_URI);
         return new DataSourceDescription(Id.fromString(idStr), name, uri);
     }
-    
+
     @Override
     public String toString() {
         return String.format("[%s, %s, <%s>]", id, name, uri);
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;

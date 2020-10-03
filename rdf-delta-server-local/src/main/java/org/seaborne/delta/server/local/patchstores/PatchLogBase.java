@@ -52,9 +52,8 @@ public class PatchLogBase implements PatchLog {
     private final DataSourceDescription dsd;
     private final Id logId;
     private final PatchLogIndex logIndex;
-    private final PatchStore patchStore;
-
     private final PatchStorage patchStorage;
+    private final PatchStore patchStore;
 
     // Use one-way linked list from latest to earliest.
     // it is a cache of the patch log details.
@@ -131,6 +130,14 @@ public class PatchLogBase implements PatchLog {
     @Override
     public PatchStore getPatchStore() {
         return patchStore;
+    }
+
+    public PatchLogIndex getPatchLogIndex() {
+        return logIndex;
+    }
+
+    public PatchStorage getPatchLogStorage() {
+        return patchStorage;
     }
 
     @Override
@@ -241,4 +248,9 @@ public class PatchLogBase implements PatchLog {
 
     @Override
     public void releaseLock(Id lockOwnership) { logIndex.releaseLock(lockOwnership); }
+
+    @Override
+    public String toString() {
+        return "PatchLog: "+dsd;
+    }
 }

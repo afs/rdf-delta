@@ -57,6 +57,12 @@ public class DeltaConnection implements AutoCloseable {
     // The version of the remote copy.
     private final DeltaLink dLink ;
 
+    /**
+     * Locking in begin => true.
+     * Optimistic transactions, no locking => set False
+     */
+    private final boolean LockMode = true;
+
     // Last seen PatchLogInfo in getPatchLogInfo()
     // null when not started
     private final AtomicReference<PatchLogInfo> remote = new AtomicReference<>(null);
@@ -183,8 +189,6 @@ public class DeltaConnection implements AutoCloseable {
             throw new DeltaConfigException(format("[%s] DeltaConnection not valid", datasourceId));
     }
 
-    private static boolean LockMode = true;
-
     /**
      * Acquire the patch log lock else bail out.
      */
@@ -229,11 +233,11 @@ public class DeltaConnection implements AutoCloseable {
         // Auto-add an id.
         @Override
         public void txnBegin() {
-            // Without this line, the transaction is performed optimistically and may fail
-            // at the commit is another machine has sneaked in, doing a W transaction and
+            // Without the acquireLock, the transaction is performed optimistically and may fail
+            // at the commit if another machine has sneaked in, doing a W transaction and
             // made a log append.
-
-            localOwnership = acquireLock();
+            if ( LockMode )
+                localOwnership = acquireLock();
 
             super.txnBegin();
             if ( currentTransactionId == null ) {

@@ -391,11 +391,11 @@ public class LocalServer {
                 FmtLog.info(Delta.DELTA_LOG, "Rename: %s : %s -> %s", dsRef, oldName, newName);
                 PatchLog newPatchLog = datasource.getPatchStore().rename(datasource.getPatchLog(), oldName, newName);
                 // Reset registry
-                DataSourceDescription dsd = new DataSourceDescription(dsRef, newName, datasource.getURI());
-                DataSource newDatasource = new DataSource(dsd, newPatchLog);
+                DataSourceDescription dsd = new DataSourceDescription(newPatchLog.getLogId(), newName, datasource.getURI());
+                DataSource newDatasource = new DataSource(newPatchLog.getDescription(), newPatchLog);
                 dataSourceRegistry.remove(dsRef);
                 dataSourceRegistry.add(newDatasource);
-                return dsRef;
+                return newPatchLog.getLogId();
             } catch (DeltaException ex) {
                 throw new DeltaBadRequestException("Exception during rename: "+ex.getMessage());
             }

@@ -17,6 +17,7 @@
 
 package org.seaborne.delta.server.local;
 
+import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.slf4j.Logger;
@@ -38,6 +39,8 @@ public class DataSource {
         super();
         this.dsDescription = dsd;
         this.patchLog = patchLog;
+        if ( ! dsd.equals(patchLog.getDescription()) )
+            FmtLog.warn(LOG, "DSD %s not the same as in PatchLog %s", dsd, patchLog);
     }
 
     public Id getId() {

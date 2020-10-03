@@ -20,6 +20,7 @@ package org.seaborne.delta.cmds;
 import java.util.Optional ;
 
 import jena.cmd.CmdException ;
+import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id ;
 
 /** Remove a log */
@@ -35,19 +36,23 @@ public class rmlog extends DeltaCmdServerOp {
 
     @Override
     protected void execCmdName(String name) {
-        Optional<Id> opt = findByName(name);
+        Optional<DataSourceDescription> opt = findByName(name);
         if ( ! opt.isPresent() )
             throw new CmdException("Source '"+name+"' does not exist");
-        Id dsRef = opt.get();
-        dLink.removeDataSource(dsRef);
+        DataSourceDescription dsd = opt.get();
+        execRm(dsd);
     }
+
+    private void execRm(DataSourceDescription dsd) { Id dsRef = dsd.getId();
+    dLink.removeDataSource(dsRef);
+    System.out.println("Deleted "+dsd);}
 
     @Override
     protected void execCmdURI(String uriStr) {
-        Optional<Id> opt = findByURI(uriStr);
+        Optional<DataSourceDescription> opt = findByURI(uriStr);
         if ( ! opt.isPresent() )
             throw new CmdException("Source <"+uriStr+"> does not exist");
-        Id dsRef = opt.get();
-        dLink.removeDataSource(dsRef);
+        DataSourceDescription dsd = opt.get();
+        execRm(dsd);
     }
 }

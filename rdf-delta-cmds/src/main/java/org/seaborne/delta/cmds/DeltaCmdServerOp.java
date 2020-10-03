@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional ;
 
 import jena.cmd.CmdException ;
-import org.seaborne.delta.Id ;
+import org.seaborne.delta.DataSourceDescription;
 
 /** Base for operations of the form:
  *   cmd --server= ds1 ds2 ds3
@@ -77,13 +77,13 @@ public abstract class DeltaCmdServerOp extends DeltaCmd {
     // default implementation - check exists.
 
     protected void checkCmdName(String name) {
-        Optional<Id> opt = findByName(name);
+        Optional<DataSourceDescription> opt = findByName(name);
         if ( ! opt.isPresent() )
             throw new CmdException("Source '"+name+"' does not exist");
     }
 
     protected void checkCmdURI(String uriStr) {
-        Optional<Id> opt = findByURI(uriStr);
+        Optional<DataSourceDescription> opt = findByURI(uriStr);
         if ( ! opt.isPresent() )
             throw new CmdException("Source <"+uriStr+"> does not exist");
     }

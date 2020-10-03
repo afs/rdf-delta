@@ -330,8 +330,8 @@ public class S_DRPC extends DeltaServlet {
         String oldName = getFieldAsString(action, F_SRC_NAME);
         String newName = getFieldAsString(action, F_DST_NAME);
         Id dsRef = Id.fromString(dataSourceId);
-        action.dLink.renameDataSource(dsRef, oldName, newName);
-        return JSONX.buildObject(b->b.key(F_ID).value(dataSourceId));
+        Id dsRef2 = action.dLink.renameDataSource(dsRef, oldName, newName);
+        return JSONX.buildObject(b->b.key(F_ID).value(dsRef2.asPlainString()));
     }
 
     private JsonValue removeDataSource(DeltaAction action) {
