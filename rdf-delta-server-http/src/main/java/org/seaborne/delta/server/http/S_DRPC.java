@@ -25,6 +25,7 @@ import java.io.InputStream ;
 import java.io.OutputStream ;
 import java.io.PrintStream ;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
@@ -96,6 +97,7 @@ public class S_DRPC extends DeltaServlet {
 
     @Override
     protected void validateAction(DeltaAction action) throws IOException {
+        // XXX
         // Checking once basic parsing of the request has been done to produce the JsonAction
         switch(action.opName) {
             case OP_PING:
@@ -109,6 +111,7 @@ public class S_DRPC extends DeltaServlet {
             case OP_RENAME_DS:
             case OP_REMOVE_DS:
             case OP_LOCK:
+            case OP_LOCK_REFRESH:
             case OP_UNLOCK:
                 break;
             default:
@@ -170,12 +173,16 @@ public class S_DRPC extends DeltaServlet {
                     rslt = removeDataSource(action);
                     break;
                 case OP_LOCK:
-                    //infoLogThisRPC = false;
-                    rslt = acquirePatchLog(action);
+                    infoLogThisRPC = false;
+                    rslt = acquirePatchLogLock(action);
+                    break;
+                case OP_LOCK_REFRESH:
+                    infoLogThisRPC = false;
+                    rslt = refreshPatchLogLock(action);
                     break;
                 case OP_UNLOCK:
-                    //infoLogThisRPC = false;
-                    rslt = releasePatchLog(action);
+                    infoLogThisRPC = false;
+                    rslt = releasePatchLogLock(action);
                     break;
                 default:
                     throw new InternalErrorException("Unknown operation: "+action.opName);
@@ -216,15 +223,6 @@ public class S_DRPC extends DeltaServlet {
                 return ;
             }
         } catch (IOException ex) { throw IOX.exception(ex); }
-    }
-
-    static class DRPPEception extends RuntimeException {
-        private int code;
-
-        public DRPPEception(int code, String message) {
-            super(message);
-            this.code = code ;
-        }
     }
 
     // {} -> { "value" ; "...now..."}
@@ -341,7 +339,7 @@ public class S_DRPC extends DeltaServlet {
         return noResults;
     }
 
-    private JsonValue acquirePatchLog(DeltaAction action) {
+    private JsonValue acquirePatchLogLock(DeltaAction action) {
         Id dsRef = getFieldAsId(action, F_DATASOURCE);
         Id lockOwnership = action.dLink.acquireLock(dsRef);
         if ( lockOwnership == null )
@@ -349,7 +347,39 @@ public class S_DRPC extends DeltaServlet {
         return JSONX.buildObject(b->b.key(F_LOCK_REF).value(lockOwnership.asPlainString()));
     }
 
-    private JsonValue releasePatchLog(DeltaAction action) {
+    private static JsonObject emptyObjectArray =
+        JSONX.buildObject(b->{
+            b.key(F_ARRAY);
+            b.startArray();
+            b.finishArray();
+        });
+
+    private JsonValue refreshPatchLogLock(DeltaAction action) {
+        JsonArray array = getFieldAsArray(action, DeltaConst.F_ARRAY);
+        if ( array.isEmpty() ) {
+            LOG.warn("Empty array in lock refresh "+ JSON.toStringFlat(action.rpcArg)) ;
+            return emptyObjectArray;
+            //throw new DeltaBadRequestException("Empty array in lock refresh "+ JSON.toStringFlat(action.rpcArg)) ;
+        }
+        List<JsonObject> rslt =
+                array.stream().map(JsonValue::getAsObject).map(arg->{
+                    Id dsRef = getFieldAsId(arg, F_DATASOURCE);
+                    Id lockOwnership = getFieldAsId(arg, F_LOCK_REF);
+                    boolean bRslt = action.dLink.refreshLock(dsRef, lockOwnership);
+                    // If it did not refresh, pass arg back.
+                    return bRslt ? null : arg ;
+                })
+                .filter(x -> x != null )
+                .collect(Collectors.toList());
+        return JSONX.buildObject(b->{
+            b.key(F_ARRAY);
+            b.startArray();
+            rslt.forEach(obj->b.value(obj));
+            b.finishArray();
+        });
+    }
+
+    private JsonValue releasePatchLogLock(DeltaAction action) {
         Id dsRef = getFieldAsId(action, F_DATASOURCE);
         Id lockOwnership = getFieldAsId(action, F_LOCK_REF);
         action.dLink.releaseLock(dsRef, lockOwnership);
@@ -366,6 +396,10 @@ public class S_DRPC extends DeltaServlet {
 
     private static JsonObject getFieldAsObject(DeltaAction action, String field) {
         return getFieldAsObject(action.rpcArg, field);
+    }
+
+    private static JsonArray getFieldAsArray(DeltaAction action, String field) {
+        return getFieldAsArray(action.rpcArg, field);
     }
 
     private static Id getFieldAsId(DeltaAction action, String field) {
@@ -401,9 +435,27 @@ public class S_DRPC extends DeltaServlet {
             JsonValue jv = arg.get(field) ;
             if ( ! jv.isObject() ) {
                 LOG.warn("Bad request: Bad Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
-                throw new DeltaBadRequestException("Field: "+field+" is not JSON object");
+                throw new DeltaBadRequestException("Field: "+field+" is not a JSON object");
             }
             return jv.getAsObject();
+        } catch (JsonException ex) {
+            LOG.warn("Bad request: Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+            throw new DeltaBadRequestException("Bad field '"+field+"' : "+arg.get(field)) ;
+        }
+    }
+
+    private static JsonArray getFieldAsArray(JsonObject arg, String field) {
+        try {
+            if ( ! arg.hasKey(field) ) {
+                LOG.warn("Bad request: Missing Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+                throw new DeltaBadRequestException("Missing field: "+field) ;
+            }
+            JsonValue jv = arg.get(field) ;
+            if ( ! jv.isArray() ) {
+                LOG.warn("Bad request: Bad Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
+                throw new DeltaBadRequestException("Field: "+field+" is not a JSON array");
+            }
+            return jv.getAsArray();
         } catch (JsonException ex) {
             LOG.warn("Bad request: Field: "+field+" Arg: "+JSON.toStringFlat(arg)) ;
             throw new DeltaBadRequestException("Bad field '"+field+"' : "+arg.get(field)) ;

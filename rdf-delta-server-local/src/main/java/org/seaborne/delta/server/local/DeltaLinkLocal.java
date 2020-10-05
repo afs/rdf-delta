@@ -338,6 +338,24 @@ public class DeltaLinkLocal implements DeltaLink {
     }
 
     @Override
+    public boolean refreshLock(Id datasourceId, Id lockOwnership) {
+        checkLink();
+        DataSource source = getDataSourceOrNull(datasourceId);
+        if ( source == null )
+            return false;
+        boolean status = source.getPatchLog().refreshLock(lockOwnership);
+        return status;
+    }
+
+//    @Override
+//    public Set<Id> refreshLocks(Set<Id> lockSet) {
+//        //Need Id -> datasource.
+//        // TEMP
+//        LOG.warn("refreshLocks - implementation required");
+//        return Collections.emptySet();
+//    }
+
+    @Override
     public void releaseLock(Id datasourceId, Id lockOwnership) {
         checkLink();
         DataSource source = getDataSourceOrNull(datasourceId);

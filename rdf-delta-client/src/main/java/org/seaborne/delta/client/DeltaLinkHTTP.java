@@ -18,10 +18,14 @@
 package org.seaborne.delta.client;
 
 import static java.lang.String.format;
+import static org.seaborne.delta.DeltaConst.F_ARRAY;
+import static org.seaborne.delta.DeltaConst.F_DATASOURCE;
+import static org.seaborne.delta.DeltaConst.F_LOCK_REF;
 
 import java.io.InputStream ;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -339,10 +343,67 @@ public class DeltaLinkHTTP implements DeltaLink {
 
         JsonObject obj = rpcOnce(DeltaConst.OP_LOCK, arg);
         Id lockOwnership = idOrNullFromField(obj, DeltaConst.F_LOCK_REF);
-        if ( lockOwnership == null )
-            throw new DeltaException("Failed to get the patch server lock.");
+//        if ( lockOwnership == null )
+//            throw new DeltaException("Failed to get the patch server lock.");
         return lockOwnership;
     }
+
+    @Override
+    public boolean refreshLock(Id datasourceId, Id lockRef) {
+        // DRY with S_DRPC
+        JsonObject x = JSONX.buildObject(b->{
+            b.pair(F_DATASOURCE, datasourceId.asPlainString());
+            b.pair(F_LOCK_REF, lockRef.asPlainString());
+        });
+        JsonArray array = new JsonArray();
+        array.add(x);
+        JsonObject args = JSONX.buildObject(b->b.pair(F_ARRAY, array));
+        JsonObject rtn = rpcOnce(DeltaConst.OP_LOCK_REFRESH, args);
+        // One  lock.
+        Optional<JsonValue> foo = rtn.getArray(F_ARRAY).findFirst();
+        // NB Return locks that do not exist
+        if ( foo.isEmpty() )
+            return true;
+        JsonObject rtnLock = foo.get().getAsObject();
+        rtnLock.get(F_DATASOURCE);
+        rtnLock.get(F_LOCK_REF);
+        return false;
+    }
+
+//    @Override
+//    public Set refreshLocks(Set<Id> lockSet) {
+//        JsonObject arg = buildRefreshArg(lockSet);
+//        JsonObject obj = rpcOnce(DeltaConst.OP_LOCK_REFRESH, arg);
+//        // ???
+//    }
+//
+//    // batch refresh operation { array: [ { datasource: "", lock: ""} ] }
+//    /*package*/ static JsonObject buildRefreshArg(Set<Id> locks) {
+//        List<JsonObject> x = locks.stream().map(lockId->{
+//            return JSONX.buildObject(b->{
+//                b.pair(F_DATASOURCE, lockId.asPlainString());
+//                b.pair(F_LOCK_REF, lockId.asPlainString());
+//            });
+//        }).collect(toList());
+//        JsonArray array = new JsonArray();
+//        array.addAll(x);
+//        return JSONX.buildObject(b->b.pair(F_ARRAY, array));
+//    }
+//
+//    /*package*/ static Set<Id> buildRefreshRtn(JsonObject obj) {
+//        obj.getArray(F_ARRAY).
+//
+//        List<JsonObject> x = locks.stream().map(lockId->{
+//            return JSONX.buildObject(b->{
+//                b.pair(F_DATASOURCE, lockId.asPlainString());
+//                b.pair(F_LOCK_REF, lockId.asPlainString());
+//            });
+//        }).collect(toList());
+//        JsonArray array = new JsonArray();
+//        array.addAll(x);
+//        return JSONX.buildObject(b->b.pair(F_ARRAY, array));
+//    }
+
 
     @Override
     public void releaseLock(Id datasourceId, Id lockOwnership) {
@@ -399,13 +460,6 @@ public class DeltaLinkHTTP implements DeltaLink {
         return PatchLogInfo.fromJson(obj);
     }
 
-    private JsonObject rpc(String opName, JsonObject arg) {
-        JsonValue r = rpcToValue(opName, arg);
-        if ( ! r.isObject() )
-            throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
-        return r.getAsObject();
-    }
-
     private static Id idFromJson(JsonObject obj) {
         return idFromField(obj, DeltaConst.F_ID);
     }
@@ -425,13 +479,24 @@ public class DeltaLinkHTTP implements DeltaLink {
         JsonValue jv = obj.get(fieldName);
         if ( jv == null )
             return null;
+        if ( jv.isNull() )
+            return null;
         if ( ! jv.isString() )
-            throw new DeltaException("Strign expected for field '"+fieldName+"' in"+JSON.toStringFlat(obj));
+            throw new DeltaException("String expected for field '"+fieldName+"' in"+JSON.toStringFlat(obj));
         String idStr = jv.getAsString().value();
         Id dsRef = Id.fromString(idStr);
         return dsRef;
     }
 
+    /** Normal RPC primitive */
+    private JsonObject rpc(String opName, JsonObject arg) {
+        JsonValue r = rpcToValue(opName, arg);
+        if ( ! r.isObject() )
+            throw new DeltaException("Bad result to '"+opName+"': "+JSON.toStringFlat(r));
+        return r.getAsObject();
+    }
+
+    /** RPC primitive returning JsonValue */
     private JsonValue rpcToValue(String opName, JsonObject arg) {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         // [NET] Network point
@@ -442,7 +507,7 @@ public class DeltaLinkHTTP implements DeltaLink {
                      );
     }
 
-    // Perform an RPC, once - no retries, no logging.
+    /** Perform an RPC, once - no retries, no logging. */
     private JsonObject rpcOnce(String opName, JsonObject arg) {
         JsonValue r = rpcOnceToValue(opName, arg);
         if ( ! r.isObject() )
@@ -450,6 +515,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         return r.getAsObject();
     }
 
+    /** Perform an RPC, once - no retries, no logging. */
     private JsonValue rpcOnceToValue(String opName, JsonObject arg) {
         JsonObject argx = ( arg == null ) ? emptyObject : arg;
         // [NET] Network point

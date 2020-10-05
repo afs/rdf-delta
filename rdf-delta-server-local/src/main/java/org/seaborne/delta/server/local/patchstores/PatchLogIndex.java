@@ -85,6 +85,9 @@ public interface PatchLogIndex {
     /** Acquire the mutex. */
     public Id acquireLock();
 
+    /** Refresh the mutex. */
+    public boolean refreshLock(Id lockOwnership);
+
     /** Release the mutex. */
     public void releaseLock(Id lockOwnership);
 }

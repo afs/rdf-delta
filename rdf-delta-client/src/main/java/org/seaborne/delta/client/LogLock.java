@@ -18,11 +18,6 @@
 
 package org.seaborne.delta.client;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.jena.atlas.logging.FmtLog;
@@ -33,6 +28,7 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 
+/** A patch log lock */
 public class LogLock {
 
     private static Logger LOG = Delta.DELTA_CLIENT;
@@ -41,16 +37,9 @@ public class LogLock {
     private DeltaConnection dConn;
 
     private final DeltaLink dLink;
+
     private final Id dataSourceId;
     private final AtomicReference<Id> lockSessionId = new AtomicReference<>();
-
-    static Set<LogLock> active = ConcurrentHashMap.newKeySet();
-    static Runnable lockRefresher = ()-> active.forEach(lock->lock.refreshLock());
-
-    static ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-    static {
-        executor.schedule(lockRefresher, 10, TimeUnit.SECONDS);
-    }
 
     public LogLock(DeltaConnection dConn) {
         this(dConn.getLink(), dConn.getDataSourceId());
@@ -62,18 +51,49 @@ public class LogLock {
         this.dataSourceId = datasourceId;
     }
 
-    public void acquireLock() {}
-    public void refreshLock() {}
-    public void releaseLock() {}
+    public DeltaConnection getConnection() {
+        return dConn;
+    }
 
+    public DeltaLink getLink() {
+        return dLink;
+    }
 
+    public Id getDataSourceId() {
+        return dataSourceId;
+    }
+
+    public Id getLockSessionId() {
+        return lockSessionId.get();
+    }
+
+    public void acquireLock() {
+        _acquireLock();
+    }
+
+    public boolean refreshLock() {
+        // Normally, the LogLockMgr does batches of lock refreshes.
+        //Set<Id> arg = Collections.singleton(lockSessionId.get());
+        boolean result = dLink.refreshLock(dataSourceId, lockSessionId.get());
+        return result;
+    }
+
+    public boolean isLocked() { return false; }
+    public Id lookupLock() { return null; }
+
+    public void releaseLock() {
+        // Sync? To separate from a refresh?
+        releaseLock(lockSessionId.get());
+    }
+
+    private void failedConnection() {}
 
     /**
      * Acquire the patch log lock else bail out.
      */
     private Id _acquireLock() {
         try {
-            Id lockId = dLink.acquireLock(dConn.getDataSourceId());
+            Id lockId = getLink().acquireLock(dConn.getDataSourceId());
             lockSessionId.set(lockId);
             return lockId;
         } catch (HttpException ex) {
@@ -104,7 +124,7 @@ public class LogLock {
             return;
         }
         try {
-            dLink.releaseLock(dConn.getDataSourceId(), lockOwnership);
+            getLink().releaseLock(dConn.getDataSourceId(), lockOwnership);
         } catch (HttpException ex) {
             FmtLog.warn(LOG, "Release lock failed: %s", dConn.getDataSourceId());
         }

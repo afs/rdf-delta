@@ -596,6 +596,7 @@
           <excludes>
             <exclude>**/hs_err_pid*.log</exclude>
             <exclude>docs/**</exclude>
+            <exclude>local/**</exclude>
 
             <exclude>**/.project</exclude>
             <exclude>**/.settings/**</exclude>

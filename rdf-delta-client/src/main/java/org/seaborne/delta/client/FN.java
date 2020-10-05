@@ -17,13 +17,11 @@
 
 package org.seaborne.delta.client;
 
-/** File names for the client-side zone state. */ 
+/** File names for the client-side zone state. */
 class FN {
-    /** The database area - client side directory (TDB or with files) */  
+    /** The database area - client side directory (TDB or with files) */
     public static final String DATA       = "data";
-    
+
     /** Name of the file holding the persistent state, client DeltaConnection. */
     public static final String STATE      = "state";
-    
-
 }

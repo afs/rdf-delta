@@ -59,6 +59,7 @@ public class DeltaConst {
     public static final String OP_REMOVE_DS      = "remove_datasource";
     public static final String OP_LOCK           = "lock";
     public static final String OP_UNLOCK         = "unlock";
+    public static final String OP_LOCK_REFRESH   = "lock-refresh";
 
     // JSON field names, in RPC and configuration files.
     public static final String F_OP            = "operation";
@@ -66,6 +67,7 @@ public class DeltaConst {
     public static final String F_DATASOURCE    = "datasource";
     public static final String F_STORAGE       = "storage";
     public static final String F_CLIENT        = "client";
+    public static final String F_LOCK          = "lock";
     public static final String F_TOKEN         = "token";
     // Two arg operations.
     public static final String F_SRC_NAME      = "src";

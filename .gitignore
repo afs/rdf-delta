@@ -7,7 +7,7 @@ hs_err_pid*
 delta.classpath
 
 ## Local
-NOTES
+/local/
 
 ### Maven ###
 target/

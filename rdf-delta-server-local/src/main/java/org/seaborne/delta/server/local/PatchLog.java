@@ -135,6 +135,9 @@ public interface PatchLog {
     /** Acquire the PatchLog mutex. */
     public Id acquireLock();
 
+    /** Refresh the PatchLog mutex. */
+    public boolean refreshLock(Id lockOwnership);
+
     /** Release the PatchLog mutex. */
     public void releaseLock(Id lockOwnership);
 }

@@ -475,6 +475,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
+    public boolean refreshLock(Id lockOwnership) {
+        Log.info(this, "Lock timeout not implemented yet");
+        // Lock timeout not yet implemented
+        return true;
+    }
+
+    @Override
     public void releaseLock(Id lockOwnership) {
         if ( lockOwnership == null ) { }
         if ( lockToken == null ) { }

@@ -90,7 +90,6 @@ public class Zone {
         Location location = (area == null) ? Location.mem() : Location.create(area);
         return connect(location);
     }
-
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
     public static Zone connect(Location area) {
         synchronized(zones) {
@@ -101,6 +100,16 @@ public class Zone {
             return zone;
         }
     }
+
+    /**
+     * Create a in-memory zone; this will disappear when the JVM exits. Use carefully,
+     * e.g. only with in-memory patch logs, or where client-side state is rebuilt every
+     * run.
+     */
+    public static Zone connectMem() {
+        return connect((String)null);
+    }
+
 
     private Zone(Location area) {
         this.stateLocation = area;

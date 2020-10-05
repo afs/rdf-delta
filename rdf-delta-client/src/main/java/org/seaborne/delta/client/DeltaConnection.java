@@ -61,7 +61,7 @@ public class DeltaConnection implements AutoCloseable {
      * Locking in begin => true.
      * Optimistic transactions, no locking => set False
      */
-    private final boolean LockMode = true;
+    private static final boolean LockMode = true;
 
     // Last seen PatchLogInfo in getPatchLogInfo()
     // null when not started
@@ -189,17 +189,48 @@ public class DeltaConnection implements AutoCloseable {
             throw new DeltaConfigException(format("[%s] DeltaConnection not valid", datasourceId));
     }
 
+    private static int LOCK_WAIT_MS = 250;
+    private static int LOCK_RETRIES = 10;
+
     /**
      * Acquire the patch log lock else bail out.
      */
-    private Id acquireLock() {
+    public Id acquireLock() {
         if ( ! LockMode )
             // No cluster lock then optimistic (can fail) transactions.
             return null;
+        checkDeltaConnection();
+
         try {
-            return dLink.acquireLock(datasourceId);
+            int attempts = 0 ;
+            for(;;) {
+                Id lockOwnership = dLink.acquireLock(datasourceId);
+                if ( lockOwnership != null )
+                    return lockOwnership;
+                attempts++;
+                if ( attempts >= LOCK_RETRIES ) {
+                    LOG.debug("Failed to get lock after "+attempts+" attempts");
+                    return null;
+                }
+                Lib.sleep(LOCK_WAIT_MS);
+            }
         } catch (HttpException ex) {
             FmtLog.warn(LOG, "Failed to accquire the patch log lock: %s", datasourceId);
+            if ( ex.getStatusCode() == -1 )
+                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+            throw ex;
+        }
+    }
+
+    public boolean refreshLock(Id lockOwnership) {
+        if ( ! LockMode )
+            // No cluster lock then optimistic (can fail) transactions.
+            return true;
+        checkDeltaConnection();
+        try {
+            return dLink.refreshLock(datasourceId, lockOwnership);
+        } catch (HttpException ex) {
+            FmtLog.warn(LOG, "Failed to refresh the patch log lock: %s", datasourceId);
             if ( ex.getStatusCode() == -1 )
                 throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
             throw ex;
@@ -211,9 +242,10 @@ public class DeltaConnection implements AutoCloseable {
      * If there is an error, the patch service is probably down (single server version).
      * All we can do is ignore, and resync later.
      */
-    private void releaseLock(Id lockOwnership) {
+    public void releaseLock(Id lockOwnership) {
         if ( lockOwnership == null )
             return;
+        checkDeltaConnection();
         try {
             dLink.releaseLock(datasourceId, lockOwnership);
         } catch (HttpException ex) {
@@ -236,9 +268,11 @@ public class DeltaConnection implements AutoCloseable {
             // Without the acquireLock, the transaction is performed optimistically and may fail
             // at the commit if another machine has sneaked in, doing a W transaction and
             // made a log append.
-            if ( LockMode )
+            if ( LockMode ) {
                 localOwnership = acquireLock();
-
+                if ( localOwnership == null )
+                    throw new DeltaException("Can't obtain the cluster lock (cluster busy?)");
+            }
             super.txnBegin();
             if ( currentTransactionId == null ) {
                 currentTransactionId = Id.create().asNode();

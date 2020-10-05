@@ -148,6 +148,16 @@ public class DeltaLinkWrapper implements DeltaLink {
     }
 
     @Override
+    public boolean refreshLock(Id datasourceId, Id lockRef) {
+        return execRtn(()->get().refreshLock(datasourceId, lockRef));
+    }
+
+//    @Override
+//    public Set<Id> refreshLocks(Set<Id> lockSet) {
+//        return execRtn(()->get().refreshLocks(lockSet));
+//    }
+
+    @Override
     public void releaseLock(Id datasourceId, Id lockOwnership) {
         exec(() -> get().releaseLock(datasourceId, lockOwnership));
     }

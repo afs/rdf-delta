@@ -192,6 +192,24 @@ public interface DeltaLink {
      */
     public Id acquireLock(Id datasourceId);
 
+    /**
+     * Refresh a set of locks. This operation is blocking.
+     *
+     * Return true if the lock is still valid, false if not (lock has been released or has
+     * timed-out).
+     */
+    public boolean refreshLock(Id datasourceId, Id lockOwnership);
+
+    // FUTURE
+
+//    /**
+//     * Refresh a set of locks. This operation is blocking.
+//     *
+//     * Returns a set of {@link Id} for locks in the lock set that no longer exist, either
+//     * because they have been released or have timed-out.
+//     */
+//    public Set<Id> refreshLocks(Set<Id> lockSet);
+
     /** Release the lock for a data source. This operation does not fail if there is no lock. */
     public void releaseLock(Id datasourceId, Id lockOwnership);
 }

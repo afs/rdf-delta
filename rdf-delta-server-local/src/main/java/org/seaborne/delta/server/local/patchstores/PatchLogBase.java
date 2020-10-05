@@ -247,6 +247,9 @@ public class PatchLogBase implements PatchLog {
     public Id acquireLock() { return logIndex.acquireLock(); }
 
     @Override
+    public boolean refreshLock(Id lockOwnership) { return logIndex.refreshLock(lockOwnership); }
+
+    @Override
     public void releaseLock(Id lockOwnership) { logIndex.releaseLock(lockOwnership); }
 
     @Override
