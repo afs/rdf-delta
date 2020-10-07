@@ -22,15 +22,14 @@ import static org.apache.jena.atlas.lib.ThreadLib.async;
 import java.io.IOException;
 
 import org.apache.jena.atlas.RuntimeIOException;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl;
-import org.apache.zookeeper.server.ContainerManager;
-import org.apache.zookeeper.server.ServerCnxnFactory;
-import org.apache.zookeeper.server.ServerConfig;
-import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.zookeeper.server.*;
 import org.apache.zookeeper.server.admin.AdminServer;
 import org.apache.zookeeper.server.admin.AdminServer.AdminServerException;
 import org.apache.zookeeper.server.persistence.FileTxnSnapLog;
 import org.apache.zookeeper.server.quorum.QuorumPeerMain;
+import org.apache.zookeeper.server.util.JvmPauseMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,8 +93,17 @@ public class ZooServer {
         }
         catch (IOException e) {
             e.printStackTrace();
+            IO.exception(e);
         }
-        zkServer = new ZooKeeperServer(txnLog, config.getTickTime(), config.getMinSessionTimeout(), config.getMaxSessionTimeout(), null);
+        ZKDatabase zkDB = new ZKDatabase(txnLog);
+        JvmPauseMonitor jvmPauseMonitor = null;
+//        if (config.jvmPauseMonitorToRun) {
+//            jvmPauseMonitor = new JvmPauseMonitor(config);
+//        }
+        zkServer = new ZooKeeperServer(jvmPauseMonitor, txnLog,
+                                       config.getTickTime(), config.getMinSessionTimeout(),
+                                       config.getMaxSessionTimeout(), config.getClientPortListenBacklog(),
+                                       zkDB, null);
     }
 
     public void start() {
@@ -107,14 +115,14 @@ public class ZooServer {
         try {
             if (config.getClientPortAddress() != null) {
                 cnxnFactory = ServerCnxnFactory.createFactory();
-                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), false);
+                cnxnFactory.configure(config.getClientPortAddress(), config.getMaxClientCnxns(), -1, false);
                 cnxnFactory.startup(zkServer);
                 // zkServer has been started. So we don't need to start it again in secureCnxnFactory.
                 needStartZKServer = false;
             }
             if (config.getSecureClientPortAddress() != null) {
                 secureCnxnFactory = ServerCnxnFactory.createFactory();
-                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), true);
+                secureCnxnFactory.configure(config.getSecureClientPortAddress(), config.getMaxClientCnxns(), -1, true);
                 secureCnxnFactory.startup(zkServer, needStartZKServer);
             }
 

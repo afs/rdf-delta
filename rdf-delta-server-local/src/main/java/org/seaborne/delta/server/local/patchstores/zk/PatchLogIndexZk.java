@@ -435,58 +435,32 @@ public class PatchLogIndexZk implements PatchLogIndex {
         }
     }
 
-//    private volatile Id lockToken = null;
-//
-//    // Implementation for transient, not replicated, locks
-//    @Override
-//    public Id acquireLock() {
-//        try {
-//            //sema.availablePermits();
-//            boolean b = sema.tryAcquire(30, TimeUnit.SECONDS);
-//            if (! b )
-//                return null;
-//        } catch (InterruptedException e) {
-//            Log.warn(Delta.DELTA_LOG, "InterruptedException in "+this.getClass().getSimpleName()+".acquireLock");
-//            return null;
-//        }
-//        // Only one thread possible at this point.
-//        if ( lockToken != null )
-//            throw new DeltaException("Inconsistent. Got Semaphore but ownership token was present");
-//        lockToken = Id.create();
-//        return lockToken;
-//    }
-//
-//    @Override
-//    public void releaseLock(Id lockOwnership) {
-//        if ( lockOwnership == null ) { }
-//        if ( lockToken == null ) {}
-//        if ( ! lockOwnership.equals(lockToken) ) { }
-//        lockToken = null;
-//        sema.release();
-//    }
 
+    // Token not zk cluster wide and not checked.
+    // Be trusting of client behaviour.
+    // The ownership token is used to check the client works properly.
     private volatile Id lockToken = null;
 
     @Override
     public Id acquireLock() {
-        Zk.zkAcquireLock(zkLock, lockPath);
+        boolean b = Zk.zkAcquireLock(zkLock, lockPath);
+        if ( !b )
+            return null;
         lockToken = Id.create();
         return lockToken;
     }
 
     @Override
     public boolean refreshLock(Id lockOwnership) {
-        Log.info(this, "Lock timeout not implemented yet");
-        // Lock timeout not yet implemented
         return true;
     }
 
     @Override
     public void releaseLock(Id lockOwnership) {
-        if ( lockOwnership == null ) { }
-        if ( lockToken == null ) { }
-        if ( ! lockOwnership.equals(lockToken) ) { }
-        lockToken = null;
+//        if ( lockOwnership == null ) { }
+//        if ( lockToken == null ) { }
+//        if ( ! lockOwnership.equals(lockToken) ) { }
+//        lockToken = null;
         Zk.zkReleaseLock(zkLock, lockPath);
     }
 }

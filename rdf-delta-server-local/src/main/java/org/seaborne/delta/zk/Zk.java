@@ -224,16 +224,18 @@ public class Zk {
         return new InterProcessSemaphoreMutex(client, nLock);
     }
 
-    /** Basic operation : lock acquire. */
-    public static InterProcessLock zkAcquireLock(InterProcessLock lock, String nLock) {
+    /** Basic operation : lock acquire. Return true if we got the lock, false if we did not. */
+    public static boolean zkAcquireLock(InterProcessLock lock, String nLock) {
         try {
-            lock.acquire(30, TimeUnit.SECONDS);
-            if ( ! lock.isAcquiredInThisProcess() )
+            lock.acquire(10, TimeUnit.SECONDS);
+            if ( ! lock.isAcquiredInThisProcess() ) {
                 LOG.warn("zkAcquireLock: lock.isAcquiredInThisProcess() is false");
-            return lock;
+                return false;
+            }
+            return true;
         } catch (Exception ex) {
             zkException("zkAcquireLock", nLock, ex);
-            return null;
+            return false;
         } finally {
             try { lock.release(); } catch (Exception ex) {}
         }
