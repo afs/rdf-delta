@@ -63,6 +63,7 @@ import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Two DeltaServers, one testing Zk server */
 public class Matrix {
 
     static Logger LOG = LoggerFactory.getLogger("Matrix");
@@ -82,7 +83,7 @@ public class Matrix {
     public static String deltaServerURL1 = null;
     public static String deltaServerURL2 = null;
 
-    // The local links to the severs.
+    // The local links to the servers.
     public static DeltaLink deltaServerLink1 = null;
     public static DeltaLink deltaServerLink2 = null;
 
@@ -128,8 +129,14 @@ public class Matrix {
             deltaServer1.stop();
         if ( deltaServer2 != null )
             deltaServer2.stop();
-        if ( zkServer != null )
-            try { zkServer.close(); } catch (IOException ex) { }
+        if ( zkServer != null ) {
+            try {
+                zkServer.stop();
+                zkServer.close();
+            } catch (IOException ex) {
+                System.err.println("Failed to stop/close zkServer");
+            }
+        }
         deltaServer1 = null;
         deltaServer2 = null;
         deltaPort1 = -1;

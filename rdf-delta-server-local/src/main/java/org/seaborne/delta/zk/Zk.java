@@ -32,6 +32,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.StrUtils;
+import org.apache.jena.shared.WrappedException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -94,9 +95,9 @@ public class Zk {
         }
     }
 
-
     private static void zkException(Exception ex) {
         LOG.warn("ZooKeeper exception: "+ex.getMessage(), ex);
+        throw new ZkException(ex.getMessage(), ex);
     }
 
     /** Create the string for a path from the root, with first child and optional more children */
@@ -263,6 +264,7 @@ public class Zk {
             action.run();
         } catch (Exception ex) {
             zkException(ex);
+            throw new WrappedException(ex);
         }
     }
 

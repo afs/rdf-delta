@@ -112,6 +112,8 @@ public class S_DRPC extends DeltaServlet {
             case OP_REMOVE_DS:
             case OP_LOCK:
             case OP_LOCK_REFRESH:
+            case OP_LOCK_READ:
+            case OP_LOCK_GRAB:
             case OP_UNLOCK:
                 break;
             default:
@@ -121,6 +123,14 @@ public class S_DRPC extends DeltaServlet {
     }
 
     private String lastOpName = null;
+    private static JsonObject emptyObject = new JsonObject();
+    private static JsonObject emptyObjectArray =
+    JSONX.buildObject(b->{
+        b.key(F_ARRAY);
+        b.startArray();
+        b.finishArray();
+    });
+
     @Override
     protected void executeAction(DeltaAction action) throws IOException {
         JsonValue rslt = null ;
@@ -179,6 +189,14 @@ public class S_DRPC extends DeltaServlet {
                 case OP_LOCK_REFRESH:
                     infoLogThisRPC = false;
                     rslt = refreshPatchLogLock(action);
+                    break;
+                case OP_LOCK_READ:
+                    infoLogThisRPC = false;
+                    rslt = readPatchLogLock(action);
+                    break;
+                case OP_LOCK_GRAB:
+                    infoLogThisRPC = true;
+                    rslt = grabPatchLogLock(action);
                     break;
                 case OP_UNLOCK:
                     infoLogThisRPC = false;
@@ -341,18 +359,32 @@ public class S_DRPC extends DeltaServlet {
 
     private JsonValue acquirePatchLogLock(DeltaAction action) {
         Id dsRef = getFieldAsId(action, F_DATASOURCE);
-        Id lockOwnership = action.dLink.acquireLock(dsRef);
-        if ( lockOwnership == null )
+        Id session = action.dLink.acquireLock(dsRef);
+        if ( session == null )
             return JSONX.buildObject(b->b.key(F_LOCK_REF).value(JsonNull.instance));
-        return JSONX.buildObject(b->b.key(F_LOCK_REF).value(lockOwnership.asPlainString()));
+        return JSONX.buildObject(b->b.key(F_LOCK_REF).value(session.asPlainString()));
     }
 
-    private static JsonObject emptyObjectArray =
-        JSONX.buildObject(b->{
-            b.key(F_ARRAY);
-            b.startArray();
-            b.finishArray();
+    private JsonValue readPatchLogLock(DeltaAction action) {
+        Id dsRef = getFieldAsId(action, F_DATASOURCE);
+        LockState x = action.dLink.readLock(dsRef);
+        if ( LockState.isFree(x) )
+            return emptyObject;
+        return JSONX.buildObject(b-> {
+            b.key(F_LOCK_REF).value(x.session.asPlainString());
+            b.key(F_LOCK_TICKS).value(x.ticks);
         });
+    }
+
+    private JsonValue grabPatchLogLock(DeltaAction action) {
+        Id dsRef = getFieldAsId(action, F_DATASOURCE);
+        Id session1 = getFieldAsId(action, F_LOCK_REF);
+
+        Id session2 = action.dLink.grabLock(dsRef, session1);
+        if ( session2 == null )
+            return JSONX.buildObject(b->b.key(F_LOCK_REF).value(JsonNull.instance));
+        return JSONX.buildObject(b->b.key(F_LOCK_REF).value(session2.asPlainString()));
+    }
 
     private JsonValue refreshPatchLogLock(DeltaAction action) {
         JsonArray array = getFieldAsArray(action, DeltaConst.F_ARRAY);
@@ -364,8 +396,8 @@ public class S_DRPC extends DeltaServlet {
         List<JsonObject> rslt =
                 array.stream().map(JsonValue::getAsObject).map(arg->{
                     Id dsRef = getFieldAsId(arg, F_DATASOURCE);
-                    Id lockOwnership = getFieldAsId(arg, F_LOCK_REF);
-                    boolean bRslt = action.dLink.refreshLock(dsRef, lockOwnership);
+                    Id session = getFieldAsId(arg, F_LOCK_REF);
+                    boolean bRslt = action.dLink.refreshLock(dsRef, session);
                     // If it did not refresh, pass arg back.
                     return bRslt ? null : arg ;
                 })
@@ -381,8 +413,8 @@ public class S_DRPC extends DeltaServlet {
 
     private JsonValue releasePatchLogLock(DeltaAction action) {
         Id dsRef = getFieldAsId(action, F_DATASOURCE);
-        Id lockOwnership = getFieldAsId(action, F_LOCK_REF);
-        action.dLink.releaseLock(dsRef, lockOwnership);
+        Id session = getFieldAsId(action, F_LOCK_REF);
+        action.dLink.releaseLock(dsRef, session);
         return noResults;
     }
 

@@ -27,6 +27,7 @@ import org.seaborne.delta.lib.LogX;
 @Suite.SuiteClasses( {
     TestDeltaZk.class
     , TestDeltaZkFuseki.class
+    , TestZkExtra.class
     })
 
 public class TS_DeltaZk {

@@ -58,6 +58,8 @@ public class DeltaConst {
     public static final String OP_RENAME_DS      = "rename_datasource";
     public static final String OP_REMOVE_DS      = "remove_datasource";
     public static final String OP_LOCK           = "lock";
+    public static final String OP_LOCK_READ      = "lock-read";
+    public static final String OP_LOCK_GRAB      = "lock-grab";
     public static final String OP_UNLOCK         = "unlock";
     public static final String OP_LOCK_REFRESH   = "lock-refresh";
 
@@ -94,6 +96,8 @@ public class DeltaConst {
     public static final String F_STORE         = "store";
     // Lock ownership
     public static final String F_LOCK_REF      = "lock-ref";
+    public static final String F_LOCK_GRAB     = "lock-grab";
+    public static final String F_LOCK_TICKS    = "lock-ticks";
     // Some atomic JSON value.
     public static final String F_VALUE         = "value";
     // Some JSON array

@@ -57,7 +57,8 @@ public class PatchLogBase implements PatchLog {
 
     // Use one-way linked list from latest to earliest.
     // it is a cache of the patch log details.
-    // May be truncated - the earliest entry points to a patch not in the list - need to get from the storage an look fo rthe previous patch.
+    // May be truncated - the earliest entry points to a patch not in the list - need to
+    // get from the storage an look for the previous patch.
 
     public PatchLogBase(DataSourceDescription dsd,
                         PatchLogIndex logIndex,
@@ -244,13 +245,19 @@ public class PatchLogBase implements PatchLog {
     public void releaseLog() { }
 
     @Override
-    public Id acquireLock() { return logIndex.acquireLock(); }
+    public Id acquireLock()                 { return logIndex.acquireLock(); }
 
     @Override
-    public boolean refreshLock(Id lockOwnership) { return logIndex.refreshLock(lockOwnership); }
+    public boolean refreshLock(Id session)  { return logIndex.refreshLock(session); }
 
     @Override
-    public void releaseLock(Id lockOwnership) { logIndex.releaseLock(lockOwnership); }
+    public LockState readLock()             { return logIndex.readLock(); }
+
+    @Override
+    public Id grabLock(Id oldSession)       { return logIndex.grabLock(oldSession); }
+
+    @Override
+    public void releaseLock(Id session)     { logIndex.releaseLock(session); }
 
     @Override
     public String toString() {

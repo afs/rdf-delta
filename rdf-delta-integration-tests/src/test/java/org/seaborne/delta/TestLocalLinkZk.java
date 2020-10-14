@@ -32,7 +32,6 @@ public class TestLocalLinkZk extends AbstractTestDeltaLink {
 
     static Setup.LinkSetup setup = Setup.LocalSetup.createZkMem();
 
-
     @Override
     public Setup.LinkSetup getSetup() {
         return setup;

@@ -47,6 +47,13 @@ import org.seaborne.delta.lib.LogX;
     TestManagedDatasetBuilder2.class,
     TestDeltaAssembler.class,
 
+    TestLogLockMem.class,
+    TestLogLockFile.class,
+    TestLogLockZk.class,
+    TestDeltaLogLockMem.class,
+    TestDeltaLogLockFile.class,
+    TestDeltaLogLockZk.class,
+
     // Includes assembler tests.
     TestDeltaFusekiGood.class ,
     TestDeltaFusekiBad.class ,

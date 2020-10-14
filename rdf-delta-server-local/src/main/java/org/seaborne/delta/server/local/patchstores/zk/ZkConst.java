@@ -40,15 +40,18 @@ public class ZkConst {
 
     // Convention: p* is a path, n* is a zNode name.
 
+    // Server
     static final String pRoot           = "/delta";
     static final String pLogs           = zkPath(pRoot, "logs");
     static final String pStoreLock      = zkPath(pRoot, "lock");
     static final String pActiveLogs     = zkPath(pRoot, "activeLogs");
 
+    // Per patch log names.
     static final String nDsd            = "dsd";
-    static final String nLock           = "lock";
     static final String nState          = "state";
     static final String nPatches        = "patches";
+    static final String nLock           = "lock";
+    static final String nLockState      = "noprefixlockState";
 
     // Version to id.
     static final String nVersions       = "versions";

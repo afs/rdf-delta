@@ -18,35 +18,56 @@
 
 package org.seaborne.delta.client;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.jena.atlas.json.*;
-import org.apache.jena.atlas.logging.Log;
-import static org.seaborne.delta.DeltaConst.*;
-
-import org.seaborne.delta.Id;
-import org.seaborne.delta.lib.JSONX;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.atlas.logging.LogCtl;
+import org.seaborne.delta.LockState;
 import org.seaborne.delta.link.DeltaLink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Client-side manager of locks for one {@link DeltaLink}, that is all locks on one server. */
 public class LogLockMgr {
+
+    private static Logger LOG = LoggerFactory.getLogger(LogLockMgr.class);
+
     // Manage logs per server. LogLockMgr.
     private Set<LogLock> active = ConcurrentHashMap.newKeySet();
-    private Set<Id> activeLocks = ConcurrentHashMap.newKeySet();
-    private Runnable lockRefresher1 = ()-> active.forEach(lock->lock.refreshLock());
+
+    // Development only!
+    private static boolean DEBUG = false;
+
+    public static void verbose() {
+        LogCtl.enable(LOG);
+        DEBUG = true;
+    }
+
+    private static void DEV(String fmt, Object... args) {
+        if ( DEBUG )
+            FmtLog.debug(LOG,  fmt,  args);
+    }
 
     // Ideal: batch refresh operation { array: [ { datasource: "", lock: ""} ] }
     private Runnable lockRefresher = ()-> {
-        //Set<Id> y = getLink().refreshLocks(activeLocks);
-
+        DEV("Refresh %d", active.size());
+        active.forEach(lock-> {
+            if ( lock.isLocked() ) {
+                lock.refreshLock();
+                if ( DEBUG ) {
+                    LockState state = lock.readLock();
+                    DEV("Refresh %s : %s", lock.getDataSourceId(), state);
+                }
+            }
+        });
     };
+
+    private static int LOCK_REFRESH_MS                  = 1000;
+    private static int LOCK_REFRESH_INITIAL_DELAY_MS    = 500;
 
     private ScheduledExecutorService executor = null;
     private final DeltaLink dLink;
@@ -54,47 +75,37 @@ public class LogLockMgr {
 
     public LogLockMgr(DeltaLink dLink) {
         this.dLink = dLink;
-        executor.schedule(lockRefresher, 5, TimeUnit.SECONDS);
+    }
+
+    public void refresh() {
+        lockRefresher.run();
     }
 
     public void start() {
         executor = Executors.newScheduledThreadPool(1);
-        executor.schedule(lockRefresher, 5, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(lockRefresher, LOCK_REFRESH_INITIAL_DELAY_MS, LOCK_REFRESH_MS, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
-        try {
-            boolean cleanShutdown = executor.awaitTermination(30, TimeUnit.SECONDS);
-            if ( ! cleanShutdown )
-                Log.warn(this,  "Did not cleanly shutdown: timeout awaitTermination");
-        } catch (InterruptedException ex) {
-            Log.warn(this,  "Did not cleanly shutdown: "+ex.getMessage());
-        }
+        if ( executor == null )
+            return;
+        executor.shutdownNow();
         executor = null;
+        return ;
     }
 
+//    /** Stop refreshing all locks - this operation does not cancel the lock. */
+//    public void dropAll() {
+//        active.clear();
+//    }
 
-    /** Stop refreshing all locks - this operation does not cancel the lock. */
-    public void dropAll() {
-
-    }
-
-    private void add(LogLock logLock) {
+    public void add(LogLock logLock) {
+        DEV("add lock");
         active.add(logLock);
     }
-    private void remove(LogLock logLock) {
-        active.remove(logLock);
-    }
 
-    /*package*/ static JsonObject buildRefreshArg(Set<LogLock> locks) {
-        List<JsonObject> x = locks.stream().map(lock->{
-            return JSONX.buildObject(b->{
-                b.pair(F_DATASOURCE, lock.getDataSourceId().asPlainString());
-                b.pair(F_LOCK_REF, lock.getLockSessionId().asPlainString());
-            });
-        }).collect(toList());
-        JsonArray array = new JsonArray();
-        array.addAll(x);
-        return JSONX.buildObject(b->b.pair(F_ARRAY, array));
+    public void remove(LogLock logLock) {
+        DEV("remove lock");
+        active.remove(logLock);
     }
 }

@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.LockState;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.PatchStore;
@@ -82,12 +83,28 @@ public interface PatchLogIndex {
     /** Make sure the version information is up to date. */
     public void syncVersionInfo();
 
-    /** Acquire the mutex. */
+    /**
+     * Acquire the mutex and return the session id.
+     * Returns null for failure to get the lock.
+     */
     public Id acquireLock();
 
     /** Refresh the mutex. */
-    public boolean refreshLock(Id lockOwnership);
+    public boolean refreshLock(Id session);
+
+    /**
+     * Read the details of the mutex.
+     * Returns {@link LockState#UNLOCKED} when the lock is not held by anyone.
+     */
+    public LockState readLock();
+
+    /**
+     * Take the mutex even if already held.
+     * Returns new lock ownership/session Id or null if the "oldSession" did not match (someone else has grabbed the lock).
+     */
+    public Id grabLock(Id oldSession);
+
 
     /** Release the mutex. */
-    public void releaseLock(Id lockOwnership);
+    public void releaseLock(Id session);
 }

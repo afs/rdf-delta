@@ -20,10 +20,7 @@ package org.seaborne.delta.server.local;
 import java.util.Objects ;
 import java.util.stream.Stream;
 
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Id ;
-import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.Version;
+import org.seaborne.delta.*;
 import org.seaborne.patch.PatchHeader ;
 import org.seaborne.patch.RDFPatch;
 
@@ -136,8 +133,24 @@ public interface PatchLog {
     public Id acquireLock();
 
     /** Refresh the PatchLog mutex. */
-    public boolean refreshLock(Id lockOwnership);
+    public boolean refreshLock(Id session);
+
+    /**
+     * Read the details of lock: the session/ownership id and the refresh index.
+     * Return {@link LockState#UNLOCKED} if the lock is no longer held by anyone.
+     */
+    public LockState readLock();
+
+    /**
+     * Take the lock even if already held.
+     * This changes the owner.
+     * This resets the refresh index.
+     *
+     * Return new lock ownership/session Id or null if if the "oldSession" did
+     * not match (someone else has grabbed the lock).
+     */
+    public Id grabLock(Id oldSession);
 
     /** Release the PatchLog mutex. */
-    public void releaseLock(Id lockOwnership);
+    public void releaseLock(Id session);
 }

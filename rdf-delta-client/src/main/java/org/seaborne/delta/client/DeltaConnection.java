@@ -79,9 +79,12 @@ public class DeltaConnection implements AutoCloseable {
     private final Id datasourceId;
     // Note: the contents of DataState change - it is the current state and is updated.
     private final DataState state;
+    private final LogLock logLock;
 
     private boolean valid = false;
     private final SyncPolicy syncPolicy;
+
+    private final LogLockMgr logLockMgr;
 
     /**
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
@@ -113,6 +116,12 @@ public class DeltaConnection implements AutoCloseable {
         this.datasourceId = dataState.getDataSourceId();
         this.datasourceName = dataState.getDatasourceName();
         this.dLink = link;
+        this.logLock = new LogLock(link, datasourceId);
+
+        this.logLockMgr = new LogLockMgr(dLink);
+        logLockMgr.start();
+        logLockMgr.add(logLock);
+
         this.valid = true;
         this.syncPolicy = syncTxnBegin;
         if ( basedsg == null ) {
@@ -189,52 +198,15 @@ public class DeltaConnection implements AutoCloseable {
             throw new DeltaConfigException(format("[%s] DeltaConnection not valid", datasourceId));
     }
 
-    private static int LOCK_WAIT_MS = 250;
-    private static int LOCK_RETRIES = 10;
-
     /**
      * Acquire the patch log lock else bail out.
      */
-    public Id acquireLock() {
-        if ( ! LockMode )
-            // No cluster lock then optimistic (can fail) transactions.
-            return null;
-        checkDeltaConnection();
-
-        try {
-            int attempts = 0 ;
-            for(;;) {
-                Id lockOwnership = dLink.acquireLock(datasourceId);
-                if ( lockOwnership != null )
-                    return lockOwnership;
-                attempts++;
-                if ( attempts >= LOCK_RETRIES ) {
-                    LOG.debug("Failed to get lock after "+attempts+" attempts");
-                    return null;
-                }
-                Lib.sleep(LOCK_WAIT_MS);
-            }
-        } catch (HttpException ex) {
-            FmtLog.warn(LOG, "Failed to accquire the patch log lock: %s", datasourceId);
-            if ( ex.getStatusCode() == -1 )
-                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
-            throw ex;
-        }
-    }
-
-    public boolean refreshLock(Id lockOwnership) {
+    public boolean acquireLock() {
         if ( ! LockMode )
             // No cluster lock then optimistic (can fail) transactions.
             return true;
         checkDeltaConnection();
-        try {
-            return dLink.refreshLock(datasourceId, lockOwnership);
-        } catch (HttpException ex) {
-            FmtLog.warn(LOG, "Failed to refresh the patch log lock: %s", datasourceId);
-            if ( ex.getStatusCode() == -1 )
-                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
-            throw ex;
-        }
+        return logLock.acquireLock();
     }
 
     /**
@@ -242,15 +214,11 @@ public class DeltaConnection implements AutoCloseable {
      * If there is an error, the patch service is probably down (single server version).
      * All we can do is ignore, and resync later.
      */
-    public void releaseLock(Id lockOwnership) {
-        if ( lockOwnership == null )
+    public void releaseLock() {
+        if ( ! LockMode )
             return;
         checkDeltaConnection();
-        try {
-            dLink.releaseLock(datasourceId, lockOwnership);
-        } catch (HttpException ex) {
-            FmtLog.warn(LOG, "Release lock failed: %s", datasourceId.toString());
-        }
+        logLock.releaseLock();
     }
 
     /**
@@ -258,19 +226,18 @@ public class DeltaConnection implements AutoCloseable {
      */
     private class RDFChangesDS extends RDFChangesCollector {
         private volatile Node currentTransactionId = null;
-        private volatile Id localOwnership = null ;
 
         RDFChangesDS() {}
 
         // Auto-add an id.
         @Override
         public void txnBegin() {
-            // Without the acquireLock, the transaction is performed optimistically and may fail
-            // at the commit if another machine has sneaked in, doing a W transaction and
-            // made a log append.
+            // Without the acquireLock, the transaction is performed optimistically
+            // and may fail at the commit if another machine has sneaked in,
+            // doing a W transaction and making a log append.
             if ( LockMode ) {
-                localOwnership = acquireLock();
-                if ( localOwnership == null )
+                boolean b = acquireLock();
+                if ( ! b )
                     throw new DeltaException("Can't obtain the cluster lock (cluster busy?)");
             }
             super.txnBegin();
@@ -284,9 +251,8 @@ public class DeltaConnection implements AutoCloseable {
         @Override
         public void txnCommit() {
             super.txnCommit();
-            if ( currentTransactionId == null ) {
+            if ( currentTransactionId == null )
                 throw new DeltaException(format("[%s] No id in txnCommit - either txnBegin not called or txnCommit called twice", datasourceId));
-            }
             if ( super.header(RDFPatchConst.PREV) == null ) {
                 Id x = state.latestPatchId();
                 if ( x != null )
@@ -304,22 +270,18 @@ public class DeltaConnection implements AutoCloseable {
                 FmtLog.warn(LOG, "Failed to commit: %s", ex.getMessage());
                 throw ex;
             } finally {
-                if ( localOwnership != null)
-                    releaseLock(localOwnership);
                 currentTransactionId = null;
-                localOwnership = null;
                 reset();
+                releaseLock();
             }
         }
 
         @Override
         public void txnAbort() {
-            if ( localOwnership != null)
-                releaseLock(localOwnership);
             currentTransactionId = null;
-            localOwnership = null;
             super.txnAbort();
             reset();
+            releaseLock();
         }
     }
 

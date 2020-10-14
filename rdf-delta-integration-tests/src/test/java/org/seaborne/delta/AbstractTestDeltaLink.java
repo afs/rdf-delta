@@ -455,6 +455,17 @@ public abstract class AbstractTestDeltaLink {
     }
 
     @Test
+    public void datasource_create_remove_create01() {
+        DeltaLink dLink = getLink();
+        Id dsRef1 = dLink.newDataSource("datasource_create_remove_create01", "http://example/uri");
+        dLink.removeDataSource(dsRef1);
+        Id dsRef2 = dLink.newDataSource("datasource_create_remove_create01", "http://example/uri");
+        assertNotNull(dsRef1);
+        assertNotNull(dsRef2);
+        assertNotEquals(dsRef1, dsRef2);
+    }
+
+    @Test
     public void datasource_not_found_01() {
         DeltaLink dLink = getLink();
         Id dsRef = dLink.newDataSource("datasource_06", "http://example/uri");

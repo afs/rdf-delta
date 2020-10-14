@@ -96,7 +96,7 @@ public class PatchStoreZk extends PatchStore {
         });
     }
 
-    private void init() {
+    private void initPatchStoreZk() {
         // Also sets watcher.
         List<String> names = getWatchLogs();
         updateLogChanges(names, false);
@@ -124,19 +124,19 @@ public class PatchStoreZk extends PatchStore {
 
     // Update based on a set of active logs.
     private void updateLogChanges(Set<String> names) {
-        // ?? Better could be to queue all request, have one worker do the updates then
+        // Might be better to queue all requests, and have one worker do the updates then
         // release all waiting threads.  However, logs don't get created and deleted very often
         // so the work here is usually calculating empty sets.
 
-        // Overlapping actions, and any inconsistency they generate, don'tmatter too much because
-        // as the system settles down, the correct view will in-place.
+        // Overlapping actions, and any inconsistency they generate, don't matter too much because
+        // as the system settles down, the correct view will be in-place.
 
         Set<String> lastSeenLocal = patchLogs.keySet();
         Set<String> newLogs = SetUtils.difference(names, lastSeenLocal);
         Set<String> deletedLogs = SetUtils.difference(lastSeenLocal, names);
 
-//        System.out.printf("[%s] Last=%s Now=%s\n", instance, lastSeenLocal, names);
-//        System.out.printf("[%s] New=%s : Deleted=%s\n", instance, newLogs, deletedLogs);
+//       System.out.printf("[%s] Last=%s Now=%s\n", instance, lastSeenLocal, names);
+//       System.out.printf("[%s] New=%s : Deleted=%s\n", instance, newLogs, deletedLogs);
 
         if ( newLogs.isEmpty() && deletedLogs.isEmpty() )
             return;
@@ -161,13 +161,15 @@ public class PatchStoreZk extends PatchStore {
             PatchLog patchLog = patchLogs.get(name);
             if ( patchLog == null )
                 return;
-            releasePatchLog(patchLog.getLogId());
+            notifyDeletionPatchLog(patchLog.getLogId());
         });
+        FmtLog.debug(LOGZK, "[%s] Done", instance);
+        //FmtLog.info(LOGZK, "[%s] Done", instance);
     }
     // ---- Watching for logs
 
     private List<String> getWatchLogs() {
-        // This can happen too early when /delta/activeLogs is beging setup.
+        // This can happen too early when /delta/activeLogs is being setup.
         // Just ignore that and sync later.
         try {
             return client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pActiveLogs);
@@ -214,7 +216,7 @@ public class PatchStoreZk extends PatchStore {
                 FmtLog.info(LOGZK, "[%s] Format new PatchStoreZk", instance);
                 formatPatchStore(client);
             } else
-                init();
+                initPatchStoreZk();
             getWatchLogs();
         }
         catch (Exception ex) {
@@ -227,7 +229,6 @@ public class PatchStoreZk extends PatchStore {
         // This is sync'ed to the Zk state.
         return listDataSourcesZk();
     }
-
 
     private void connectToZookeeper() {
         try {
@@ -366,14 +367,14 @@ public class PatchStoreZk extends PatchStore {
     }
 
     @Override
-    public PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+    protected PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
         String logPath = zkPath(ZkConst.pLogs, dsd.getName());
         return new PatchLogIndexZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), dsd, logPath);
     }
 
     @Override
-    public PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
+    protected PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
         String logPath = zkPath(ZkConst.pLogs, dsd.getName());
         return new PatchStorageZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), logPath);
@@ -433,6 +434,7 @@ public class PatchStoreZk extends PatchStore {
         String versionsPath   = zkPath(logPath, nVersions);
         String headersPath    = zkPath(logPath, nHeaders);
         String lockPath       = zkPath(logPath, nLock);
+        String lockStatePath  = zkPath(logPath, nLockState);
 
         // Paths.
         zkCreateSetJson(client, dsdPath, dsdJson);
@@ -440,6 +442,7 @@ public class PatchStoreZk extends PatchStore {
         zkCreate(client, versionsPath);
         zkCreate(client, headersPath);
         zkCreate(client, lockPath);
+        zkCreate(client, lockStatePath);
     }
 
     private static byte[] jsonBytes(JsonValue json) {

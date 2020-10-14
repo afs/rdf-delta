@@ -317,35 +317,44 @@ public abstract class PatchStore {
 
     /**
      * Release ("delete") the {@link PatchLog}.
-     * Called from (1) LocalServer/client request and (2) releasePatchLog, cluster change.
+     * This call removes both the local registration and the persistent state (in the case of a cluster
+     * that means this call is used by the initiator of the removal of a patch log).
+     * Called from LocalServer/client request.
      * This method calls {@link #delete} provided by the subclass.
      */
     public void release(PatchLog patchLog) {
         Id dsRef = patchLog.getLogId();
-        // See also LocalServer.removeDataSource$
         if ( ! dataSourceRegistry.contains(dsRef) ) {
             FmtLog.warn(LOG, "PatchLog not known to PatchStore: dsRef=%s", dsRef);
             return;
         }
-        dataSourceRegistry.remove(dsRef);
-        logs.remove(dsRef);
+        removeLocalRegistration(patchLog);
         delete(patchLog);
     }
 
-    /**
-     * Remove and properly de-register a {@link PatchLog}.
-     * Call this from subclasses notifying the deletion of a patch log elsewhere.
-     */
-    final
-    protected void releasePatchLog(Id dsRef) {
-        DataSource ds = dataSourceRegistry.get(dsRef);
-        if ( ds == null )
-            return ;
-        release(ds.getPatchLog());
+    /** Remove the local registration */
+    private void removeLocalRegistration(PatchLog  patchLog) {
+        Id dsRef = patchLog.getLogId();
+        dataSourceRegistry.remove(dsRef);
+        logs.remove(dsRef);
     }
 
     /**
-     * Delete a {@link PatchLog}.
+     * Remove locally and properly de-register a {@link PatchLog}.
+     * Call this from subclasses notifying the deletion of a patch log elsewhere.
+     * This operation does not clear-up external state.
+     */
+    final
+    protected void notifyDeletionPatchLog(Id dsRef) {
+        DataSource ds = dataSourceRegistry.get(dsRef);
+        if ( ds == null )
+            return ;
+        removeLocalRegistration(ds.getPatchLog());
+    }
+
+    /**
+     * Delete a {@link PatchLog} - remove the persistent state
+     * (local server registration is handled elsewhere).
      * @param patchLog
      */
     protected abstract void delete(PatchLog patchLog);

@@ -25,25 +25,25 @@ import org.seaborne.patch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Server-wide cache of patches */ 
+/** Server-wide cache of patches */
 public class PatchCache {
     private static Logger  LOG     = LoggerFactory.getLogger(PatchCache.class);
-    
+
 //    private Cache<Node, RDFPatch> patchCache;
-//    private PatchCache() { 
+//    private PatchCache() {
 //        patchCache = CacheFactory.createCache(DPConst.PATCH_CACHE_SIZE);
 //        patchCache.setDropHandler((node,patch)->LOG.info("Cache drop patch: "+Id.fromNode(node)));
 //    }
-    
+
     private ConcurrentHashMap<Node, RDFPatch> patchCache;
-    private PatchCache() { 
+    private PatchCache() {
         patchCache = new ConcurrentHashMap<>();
         //patchCache.setDropHandler((node,patch)->LOG.info("Cache drop patch: "+Id.fromNode(node)));
     }
     private static PatchCache singleton = new PatchCache();
-    
-    public static  PatchCache get() { return singleton ; } 
-    
+
+    private static  PatchCache get() { return singleton ; }
+
     public RDFPatch get(Id id) {
         //return patchCache.getIfPresent(id.asNode());
         return patchCache.get(id.asNode());

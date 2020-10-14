@@ -20,12 +20,14 @@ package org.seaborne.delta.server.local.patchstores.zk;
 import static org.seaborne.delta.zk.Zk.zkPath;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
@@ -53,6 +55,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final String logName;
     private final String statePath;
     private final String lockPath;
+    private final String lockStatePath;
     private final String versionsPath;
     private final String headersPath;
     private final InterProcessLock zkLock;
@@ -90,13 +93,17 @@ public class PatchLogIndexZk implements PatchLogIndex {
      * </ul>
      */
 
+    private static AtomicInteger counter = new AtomicInteger(0);
+
     public PatchLogIndexZk(CuratorFramework client, String instance, DataSourceDescription dsd, String logPath) {
+        // THis gets called twice in the creator - sees its own create via ZK watcher.
         this.client = client ;
         this.instance = instance;
         this.dsd = dsd;
         this.logName = dsd.getName();
         this.statePath      = zkPath(logPath, ZkConst.nState);
         this.lockPath       = zkPath(logPath, ZkConst.nLock);
+        this.lockStatePath  = zkPath(logPath, ZkConst.nLockState);
         this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
         this.headersPath    = zkPath(logPath, ZkConst.nHeaders);
         this.logStateWatcher = (event)->{
@@ -438,29 +445,100 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     // Token not zk cluster wide and not checked.
     // Be trusting of client behaviour.
-    // The ownership token is used to check the client works properly.
-    private volatile Id lockToken = null;
+    // (The ownership token is used to check the client works properly.)
+
+    // Timeouts:
+    // Need to write!
+    private static String jTimestamp = "timestamp";
+    private static String jLockId =    "lockid";
+    private static String jTicks =     "ticks";
 
     @Override
     public Id acquireLock() {
-        boolean b = Zk.zkAcquireLock(zkLock, lockPath);
-        if ( !b )
-            return null;
-        lockToken = Id.create();
+        // And createSet
+
+        // Short or long term lock?
+        Id lockToken =
+            Zk.zkLockRtn(zkLock, lockPath, ()->{
+                LockState lockState = readLock();
+                if ( ! LockState.isFree(lockState) )
+                    // Not free.
+                    return null;
+
+                Id lockTokenAlloc = Id.create();
+                writeLockState(lockTokenAlloc, 1);
+                return lockTokenAlloc;
+            });
         return lockToken;
     }
 
     @Override
-    public boolean refreshLock(Id lockOwnership) {
+    public boolean refreshLock(Id session) {
+        return Zk.zkLockRtn(zkLock, lockPath, ()->refreshLock$(session));
+    }
+
+    private boolean refreshLock$(Id session) {
+        LockState lockState = readLock();
+        if ( LockState.isFree(lockState) )
+            // Free
+            return false;
+        if ( ! session.equals(lockState.session) )
+            return false;
+        writeLockState(session, lockState.ticks+1);
         return true;
     }
 
+    private void writeLockState(Id session, long ticks) {
+        JsonObject value = JSON.buildObject(builder->{
+            builder.pair(jTimestamp, DateTimeUtils.nowAsXSDDateTimeString());
+            builder.pair(jLockId, session.asPlainString());
+            builder.pair(jTicks, ticks);
+        });
+        Zk.zkSetJson(client, lockStatePath, value);
+    }
+
     @Override
-    public void releaseLock(Id lockOwnership) {
-//        if ( lockOwnership == null ) { }
-//        if ( lockToken == null ) { }
-//        if ( ! lockOwnership.equals(lockToken) ) { }
-//        lockToken = null;
-        Zk.zkReleaseLock(zkLock, lockPath);
+    public LockState readLock() {
+        JsonObject value = Zk.zkFetchJson(client, lockStatePath);
+        if ( value == null || value.isEmpty() )
+            return LockState.UNLOCKED;
+        String dt = value.getString(jTimestamp);
+        // Validate?
+        String lockId = value.getString(jLockId);
+        if ( dt == null || lockId == null ) {} // XXX
+        long ticks = value.get(jTicks).getAsNumber().value().longValue();
+        LockState lockState = LockState.create(Id.fromString(lockId), ticks);
+        return lockState;
+    }
+
+    @Override
+    public Id grabLock(Id oldSession) {
+        return Zk.zkLockRtn(zkLock, lockPath, ()->{
+            LockState lockState = readLock();
+//            if ( ! LockState.isFree(lockState) && ! oldSession.equals(lockState.session) )
+//                return null;
+          if (  LockState.isFree(lockState) )
+              return null;
+          if ( ! oldSession.equals(lockState.session) )
+              return null;
+
+            // DRY with acquire
+            Id lockTokenAlloc = Id.create();
+            writeLockState(lockTokenAlloc, 1);
+            return lockTokenAlloc;
+        });
+    }
+
+    @Override
+    public void releaseLock(Id session) {
+        Objects.requireNonNull(session);
+        Zk.zkLock(zkLock, lockPath, ()->{
+            LockState lockState = readLock();
+            if ( LockState.isFree(lockState) )
+                return;
+            if ( ! session.equals(lockState.session) )
+                return;
+            Zk.zkSet(client, lockStatePath, null);
+        });
     }
 }

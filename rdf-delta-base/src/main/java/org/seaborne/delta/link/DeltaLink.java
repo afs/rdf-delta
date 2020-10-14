@@ -20,10 +20,7 @@ package org.seaborne.delta.link;
 import java.util.List;
 
 import org.apache.jena.atlas.json.JsonObject;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo;
-import org.seaborne.delta.Version;
+import org.seaborne.delta.*;
 import org.seaborne.patch.RDFPatch;
 
 /**
@@ -182,6 +179,9 @@ public interface DeltaLink {
     /** Shutdown the link. */
     public void close();
 
+    // Get Lock?
+    // Lock = owner + timestamp (owner clock)
+
     /**
      * Acquire the lock for a data source.
      * Data source locks are not reentrant.
@@ -198,7 +198,24 @@ public interface DeltaLink {
      * Return true if the lock is still valid, false if not (lock has been released or has
      * timed-out).
      */
-    public boolean refreshLock(Id datasourceId, Id lockOwnership);
+    public boolean refreshLock(Id datasourceId, Id lockSession);
+
+    /**
+     * Read the details of lock: the session/ownership id and the refresh index.
+     *
+     * Return true if the lock is still valid; return null if the lock is no longer held.
+     */
+    public LockState readLock(Id datasourceId);
+
+    /**
+     * Take the lock even if already held.
+     * This changes the owner.
+     * This resets the refresh index.
+     *
+     * Return new lock ownership/session Id or null if if the "oldlockSession" did not match (someone else has grabbed the lock).
+     */
+    public Id /*new ownership */ grabLock(Id datasourceId, Id oldlockSession);
+
 
     // FUTURE
 
@@ -211,5 +228,5 @@ public interface DeltaLink {
 //    public Set<Id> refreshLocks(Set<Id> lockSet);
 
     /** Release the lock for a data source. This operation does not fail if there is no lock. */
-    public void releaseLock(Id datasourceId, Id lockOwnership);
+    public void releaseLock(Id datasourceId, Id lockSession);
 }
