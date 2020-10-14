@@ -27,6 +27,7 @@ import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.ListUtils;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
@@ -105,6 +106,12 @@ public class PatchLogIndexZk implements PatchLogIndex {
               syncState();
           }
         };
+
+//        // Watcher?
+////      InterProcessLock x1;
+////      InterProcessSemaphoreMutex x2;
+//        InterProcessMutex x3;// Reentrat
+
         this.zkLock = Zk.zkCreateLock(client, lockPath);
 
         // Find earliest.
@@ -438,11 +445,18 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     // Token not zk cluster wide and not checked.
     // Be trusting of client behaviour.
-    // The ownership token is used to check the client works properly.
+    // (The ownership token is used to check the client works properly.)
+
+    // Timeouts:
+
     private volatile Id lockToken = null;
 
     @Override
     public Id acquireLock() {
+        // And cerateSet
+
+        Zk.zkSet(client, headersPath, null);
+
         boolean b = Zk.zkAcquireLock(zkLock, lockPath);
         if ( !b )
             return null;
@@ -451,15 +465,25 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public boolean refreshLock(Id lockOwnership) {
+    public boolean refreshLock(Id session) {
         return true;
     }
 
     @Override
-    public void releaseLock(Id lockOwnership) {
-//        if ( lockOwnership == null ) { }
+    public LockState readLock() {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public Id grabLock(Id oldSession) {
+        throw new NotImplemented();
+    }
+
+    @Override
+    public void releaseLock(Id session) {
+//        if ( session == null ) { }
 //        if ( lockToken == null ) { }
-//        if ( ! lockOwnership.equals(lockToken) ) { }
+//        if ( ! session.equals(lockToken) ) { }
 //        lockToken = null;
         Zk.zkReleaseLock(zkLock, lockPath);
     }

@@ -1,5 +1,5 @@
 /*
- *  Licensed under the Apache License, Version 2.0 (the "License");
+LockState *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
@@ -329,21 +329,24 @@ public class DeltaLinkLocal implements DeltaLink {
 
     @Override
     public Id acquireLock(Id datasourceId) {
+        Objects.requireNonNull(datasourceId);
         checkLink();
-        DataSource source = getDataSourceOrNull(datasourceId);
+        DataSource source = getDataSource(datasourceId);
         if ( source == null )
             return null;
-        Id lockOwnership = source.getPatchLog().acquireLock();
-        return lockOwnership;
+        Id session = source.getPatchLog().acquireLock();
+        return session;
     }
 
     @Override
-    public boolean refreshLock(Id datasourceId, Id lockOwnership) {
+    public boolean refreshLock(Id datasourceId, Id session) {
+        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(session);
         checkLink();
         DataSource source = getDataSourceOrNull(datasourceId);
         if ( source == null )
             return false;
-        boolean status = source.getPatchLog().refreshLock(lockOwnership);
+        boolean status = source.getPatchLog().refreshLock(session);
         return status;
     }
 
@@ -356,12 +359,31 @@ public class DeltaLinkLocal implements DeltaLink {
 //    }
 
     @Override
-    public void releaseLock(Id datasourceId, Id lockOwnership) {
+    public LockState readLock(Id datasourceId) {
+        Objects.requireNonNull(datasourceId);
+        checkLink();
+        DataSource source = getDataSource(datasourceId);
+        return source.getPatchLog().readLock();
+    }
+
+    @Override
+    public Id grabLock(Id datasourceId, Id oldSession) {
+        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(oldSession);
+        checkLink();
+        DataSource source = getDataSource(datasourceId);
+        return source.getPatchLog().grabLock(oldSession);
+    }
+
+    @Override
+    public void releaseLock(Id datasourceId, Id session) {
+        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(session);
         checkLink();
         DataSource source = getDataSourceOrNull(datasourceId);
         if ( source == null )
             return;
         PatchLog log = source.getPatchLog();
-        log.releaseLock(lockOwnership);
+        log.releaseLock(session);
     }
 }

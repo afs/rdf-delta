@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
+import org.seaborne.delta.LockState;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.LogEntry;
 
@@ -174,8 +175,12 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     @Override
     public void syncVersionInfo() {}
 
+
+    private final Object lockSync = new Object();
+
     private Semaphore sema = new Semaphore(1);
-    private volatile Id lockToken = null;
+    private Id lockToken = null;
+    private long refresh = -1;
 
     // Implementation as single-machine and transient, not replicated, locks
     @Override
@@ -190,31 +195,76 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
 //        }
 
         // No wait
-        boolean b = sema.tryAcquire();
-        if (! b )
-            return null;
-        // Only one thread possible at this point.
-        if ( lockToken != null )
-            throw new DeltaException("Inconsistent. Got Semaphore but ownership token was present");
-        lockToken = Id.create();
-        return lockToken;
+        synchronized(lockSync) {
+            boolean b = sema.tryAcquire();
+            if (! b )
+                return null;
+            Id here = lockToken;
+            if ( here != null )
+                throw new DeltaException("Inconsistent. Got Semaphore but ownership token was present");
+            // May be readers/grabbers
+            Id token = Id.create();
+            refresh = 1;
+            lockToken = token;
+            return token;
+        }
     }
 
     @Override
-    public boolean refreshLock(Id lockOwnership) {
+    public boolean refreshLock(Id session) {
         // read once
-        Id here = lockToken;
-        if ( lockToken != null && lockToken.equals(lockOwnership) )
+        synchronized(lockSync) {
+            Id here = lockToken;
+            if ( here == null || ! here.equals(session) )
+                return false;
+            refresh++;
             return true;
-        return false;
+        }
     }
 
     @Override
-    public void releaseLock(Id lockOwnership) {
-        if ( lockOwnership == null ) { }
-        if ( lockToken == null ) return;
-        if ( ! lockOwnership.equals(lockToken) ) { }
-        lockToken = null;
-        sema.release();
+    public LockState readLock() {
+        synchronized(lockSync) {
+            Id here = lockToken;
+            if ( here == null )
+                return null;
+            return LockState.create(here, refresh);
+        }
+    }
+
+    @Override
+    public Id grabLock(Id oldLockSession) {
+        // Grab if and only if the presented session token matches.
+        synchronized(lockSync) {
+            Id here = lockToken;
+            if ( here == null )
+                // No lock.
+                return null;
+            if ( here != null ) {
+                // Release if taken.
+                if ( ! here.equals(oldLockSession) )
+                    return null;
+                releaseLock(oldLockSession);
+            }
+            // New lock session.
+            return acquireLock();
+        }
+     }
+
+    @Override
+    public void releaseLock(Id lockSession) {
+        synchronized(lockSync) {
+            if ( lockSession == null )
+                return;
+            Id here = lockToken;
+            if ( here == null )
+                return;
+            if ( ! lockSession.equals(here) )
+                // Ignore.
+                return;
+            lockToken = null;
+            refresh = -1;
+            sema.release();
+        }
     }
 }

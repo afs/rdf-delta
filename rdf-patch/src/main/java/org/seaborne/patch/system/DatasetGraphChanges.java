@@ -172,12 +172,13 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         }
         insideBegin.set(true);
         try {
-            // For the sync, we have to assume it will write.
-            // Any potential write causes a write-sync to be done in "begin".
-            txnSyncHandler.accept(ReadWrite.WRITE);
-            super.begin();
+            // If a write, start the changedMonitor including get the patch log lock.
             if ( transactionMode() == ReadWrite.WRITE )
                 changesMonitor.txnBegin();
+            // For the sync, we have to assume it will write.
+            // Any transaction causes a write-sync to be done in "begin".
+            txnSyncHandler.accept(ReadWrite.WRITE);
+            super.begin();
         } finally {
             insideBegin.set(false);
         }

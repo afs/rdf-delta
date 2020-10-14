@@ -21,10 +21,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.apache.jena.atlas.json.JsonObject;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PatchLogInfo ;
-import org.seaborne.delta.Version;
+import org.seaborne.delta.*;
 import org.seaborne.patch.RDFPatch ;
 
 /** Wrapper for {@link DeltaLink} which can be subclassed to provide
@@ -158,7 +155,17 @@ public class DeltaLinkWrapper implements DeltaLink {
 //    }
 
     @Override
-    public void releaseLock(Id datasourceId, Id lockOwnership) {
-        exec(() -> get().releaseLock(datasourceId, lockOwnership));
+    public LockState readLock(Id datasourceId) {
+        return execRtn(()->get().readLock(datasourceId));
+    }
+
+    @Override
+    public Id grabLock(Id datasourceId, Id oldSession) {
+        return execRtn(()->get().grabLock(datasourceId, oldSession));
+    }
+
+    @Override
+    public void releaseLock(Id datasourceId, Id session) {
+        exec(() -> get().releaseLock(datasourceId, session));
     }
 }

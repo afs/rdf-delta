@@ -154,7 +154,7 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
         async(slow);
         // Let the async go first. Then we get to send to Fuseki which blocks.
         // This isn't great to make sure the slow update is now in the wait (lock held) point
-        // but (1) if it isn't the test passes (20 it gets run in many environments so some will fail sometime.
+        // but (1) if it isn't the test passes (2) it gets run in many environments so some will fail sometime.
         Lib.sleep(250);
         conn2.update(smallUpdate);
 

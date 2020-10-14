@@ -21,6 +21,7 @@ import static java.lang.String.format;
 import static org.seaborne.delta.DeltaConst.F_ARRAY;
 import static org.seaborne.delta.DeltaConst.F_DATASOURCE;
 import static org.seaborne.delta.DeltaConst.F_LOCK_REF;
+import static org.seaborne.delta.DeltaConst.F_LOCK_TICKS;
 
 import java.io.InputStream ;
 import java.util.List;
@@ -336,20 +337,23 @@ public class DeltaLinkHTTP implements DeltaLink {
 
     @Override
     public Id acquireLock(Id datasourceId) {
+        Objects.requireNonNull(datasourceId);
         JsonObject arg = JSONX.buildObject(b->{
             b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
             //b.key(DeltaConst.F_TIMEOUT).value(datasourceId.asPlainString());
         });
 
         JsonObject obj = rpcOnce(DeltaConst.OP_LOCK, arg);
-        Id lockOwnership = idOrNullFromField(obj, DeltaConst.F_LOCK_REF);
-//        if ( lockOwnership == null )
+        Id lockSession = idOrNullFromField(obj, DeltaConst.F_LOCK_REF);
+//        if ( lockSession == null )
 //            throw new DeltaException("Failed to get the patch server lock.");
-        return lockOwnership;
+        return lockSession;
     }
 
     @Override
     public boolean refreshLock(Id datasourceId, Id lockRef) {
+        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(lockRef);
         // DRY with S_DRPC
         JsonObject x = JSONX.buildObject(b->{
             b.pair(F_DATASOURCE, datasourceId.asPlainString());
@@ -406,10 +410,42 @@ public class DeltaLinkHTTP implements DeltaLink {
 
 
     @Override
-    public void releaseLock(Id datasourceId, Id lockOwnership) {
+    public LockState readLock(Id datasourceId) {
+        Objects.requireNonNull(datasourceId);
         JsonObject arg = JSONX.buildObject(b->{
             b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
-            b.key(DeltaConst.F_LOCK_REF).value(lockOwnership.asPlainString());
+        });
+        JsonObject rtn = rpcOnce(DeltaConst.OP_LOCK_READ, arg);
+        if ( rtn.isEmpty() )
+            return LockState.FREE;
+        Id lockSession = idFromField(rtn, F_LOCK_REF);
+        long ticks = rtn.get(F_LOCK_TICKS).getAsNumber().value().longValue();
+        return LockState.create(lockSession, ticks);
+    }
+
+    @Override
+    public Id grabLock(Id datasourceId, Id session) {
+        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(session);
+        JsonObject arg = JSONX.buildObject(b->{
+            b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
+            b.key(DeltaConst.F_LOCK_REF).value(session.asPlainString());
+        });
+
+        JsonObject obj = rpcOnce(DeltaConst.F_LOCK_GRAB, arg);
+        Id lockSession = idOrNullFromField(obj, DeltaConst.F_LOCK_REF);
+//        if ( lockSession == null )
+//            throw new DeltaException("Failed to get the patch server lock.");
+        return lockSession;
+    }
+
+    @Override
+    public void releaseLock(Id datasourceId, Id lockSession) {
+        Objects.requireNonNull(datasourceId);
+        Objects.requireNonNull(lockSession);
+        JsonObject arg = JSONX.buildObject(b->{
+            b.key(DeltaConst.F_DATASOURCE).value(datasourceId.asPlainString());
+            b.key(DeltaConst.F_LOCK_REF).value(lockSession.asPlainString());
         });
         JsonObject obj = rpcOnce(DeltaConst.OP_UNLOCK, arg);
     }

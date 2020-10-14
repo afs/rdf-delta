@@ -126,7 +126,7 @@ public class DeltaLogging {
             ,"    <Logger name='org.apache.jena' level='INFO'/>"
             // Built-in (co-resident) zookeeper
             ,"    <Logger name='org.apache.zookeeper' level='WARN'/>"
-            // Eclispe Jetty - logs at startup at INFO
+            // Eclipse Jetty - logs at startup at INFO
             ,"    <Logger name='org.eclipse.jetty'    level='WARN'/>"
             // Fuseki
             ,"    <Logger name='org.apache.jena.fuseki.Server' level='INFO'/>"
