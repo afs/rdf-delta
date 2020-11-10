@@ -82,7 +82,7 @@
     <ver.aws-s3>1.11.876</ver.aws-s3>
     <ver.s3mock>0.2.5</ver.s3mock>
     <ver.awaitility>3.1.1</ver.awaitility>
-    <ver.micrometer>1.2.1</ver.micrometer>
+    <ver.micrometer>1.6.0</ver.micrometer>
     <ver.jaxb-api>2.3.1</ver.jaxb-api>
   </properties>
   
