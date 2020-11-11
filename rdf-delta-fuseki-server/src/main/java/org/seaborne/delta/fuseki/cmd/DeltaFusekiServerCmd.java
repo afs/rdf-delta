@@ -35,7 +35,7 @@ public class DeltaFusekiServerCmd {
                 break;
             }
         }
-        FusekiLogging.allowLoggingReset(false);
+        FusekiLogging.markInitialized(true);
         FusekiMainCmd.main(args);
     }
 }
