@@ -24,7 +24,6 @@ import static org.seaborne.delta.DeltaConst.F_OP_ID;
 import java.util.Objects ;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
@@ -37,6 +36,7 @@ import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.DeltaNotFoundException;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger ;
 
@@ -72,7 +72,7 @@ public class DRPC {
                 throw new DeltaNotFoundException("Not found: "+JSON.toStringFlat(object));
 
             if ( true ) {
-                String s = IO.readWholeFileAsUTF8(x) ;
+                String s = IOX.readWholeFileAsUTF8(x) ;
                 return JSON.parseAny(s) ;
             }
             else

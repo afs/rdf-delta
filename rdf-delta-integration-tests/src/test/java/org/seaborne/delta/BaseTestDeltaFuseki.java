@@ -20,7 +20,6 @@ package org.seaborne.delta ;
 import java.io.StringReader;
 import java.net.BindException ;
 
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
@@ -30,6 +29,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.junit.BeforeClass ;
 import org.seaborne.delta.client.Zone;
+import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
@@ -110,7 +110,7 @@ public class BaseTestDeltaFuseki {
 
     private static FusekiServer fuseki(Start state, int port, int deltaPort, String config, String zone) {
         // Replace %D_PORT%
-        String text = IO.readWholeFileAsUTF8(config);
+        String text = IOX.readWholeFileAsUTF8(config);
         text = text.replace(D_PORT_MARKER, Integer.toString(deltaPort));
         Model confModel = ModelFactory.createDefaultModel();
         RDFParser.create().source(new StringReader(text)).lang(Lang.TTL).parse(confModel);

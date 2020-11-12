@@ -19,6 +19,7 @@ package org.seaborne.delta.lib;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -26,14 +27,15 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.function.Function ;
 
 import org.apache.jena.atlas.RuntimeIOException;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.tdb.base.file.Location;
 import org.seaborne.delta.DeltaFileException ;
 
 public class IOX {
-    
+
     public static Path currentDirectory = Paths.get(".");
-    
+
     /** A Consumer that can throw {@link IOException}. */
     public interface IOConsumer<X> {
         void actionEx(X arg) throws IOException;
@@ -43,7 +45,7 @@ public class IOX {
      * <p>
      * Idiom:
      * <pre>
-     *     catch(IOException ex) { throw new exception(ex); } 
+     *     catch(IOException ex) { throw new exception(ex); }
      * </pre>
      * @param ioException
      * @return RuntimeIOException
@@ -51,25 +53,25 @@ public class IOX {
     public static RuntimeIOException exception(IOException ioException) {
         return new RuntimeIOException(ioException);
     }
-    
+
     @FunctionalInterface
     public interface ActionIO { void run() throws IOException; }
-    
+
     /** Run an action. converting an {@link IOException} into a {@link RuntimeIOException}.
      * <p>
      * Idiom:
      * <pre>
-     *     run(()->...)); 
+     *     run(()->...));
      * </pre>
      */
     public static void run(ActionIO action) {
         try { action.run(); }
         catch (IOException e) { throw exception(e); }
     }
-    
+
     /** Write a file safely - the change happens (the function returns true) or
      * something went wrong (the function throws a runtime exception) and the file is not changed.
-     * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.  
+     * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.
      */
     public static boolean safeWrite(Path file, IOConsumer<OutputStream> writerAction) {
         Path tmp = createTempFile(file.getParent(), file.getFileName().toString(), ".tmp");
@@ -78,7 +80,7 @@ public class IOX {
 
     /** Write a file safely - the change happens (the function returns true) or
      * somthing went wrong (the function throws a runtime exception) and the file is not changed.
-     * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.  
+     * Note that the tempfile must be in the same direct as the actual file so an OS-atomic rename can be done.
      */
     public static boolean safeWrite(Path file, Path tmpFile, IOConsumer<OutputStream> writerAction) {
         try {
@@ -98,7 +100,7 @@ public class IOX {
             throw IOX.exception(ex);
         }
     }
-    
+
     /** Copy a file, not atomic. *
      * Can copy to a directory or over an existing file.
      * @param srcFilename
@@ -108,11 +110,11 @@ public class IOX {
         Path src = Paths.get(srcFilename);
         if ( ! Files.exists(src) )
             throw new RuntimeIOException("No such file: "+srcFilename);
-        
+
         Path dst = Paths.get(dstFilename);
         if ( Files.isDirectory(dst) )
             dst = dst.resolve(src.getFileName());
-        
+
         try { Files.copy(src, dst); }
         catch (IOException ex) {
             FmtLog.error(IOX.class, ex, "IOException copying %s to %s", srcFilename, dstFilename);
@@ -126,7 +128,7 @@ public class IOX {
             throw new RuntimeIOException("Path is not naming a directory: "+path);
         return Location.create(path.toString());
     }
-    
+
     /** Convert a {@link Location} to a {@link Path}. */
     public static Path asPath(Location location) {
         if ( location.isMem() )
@@ -140,7 +142,7 @@ public class IOX {
             return Files.readAllBytes(pathname);
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
-    
+
     /** Write the whole of a file */
     public static void writeAll(Path pathname, byte[] value) {
         try {
@@ -151,13 +153,13 @@ public class IOX {
     public static void deleteAll(String start) {
         deleteAll(Paths.get(start));
     }
-    
+
     /** Delete everything from a {@code Path} start point, including the path itself.
      * Works on files or directories.
      * Walks down the tree and deletes directories on the way backup.
-     */  
+     */
     public static void deleteAll(Path start) {
-        try { 
+        try {
             Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -190,7 +192,7 @@ public class IOX {
         try { Files.createDirectories(dir, attrs); }
         catch (IOException ex) { new DeltaFileException("Failed to create directory: "+dir, ex);}
     }
-    
+
     /**
      * Ensure a file exists - create an empty one if not. This operation does
      * not create a directory path to the file.
@@ -215,21 +217,45 @@ public class IOX {
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
-    /** Generate a unique place related to path; 
+    /** Generate a unique place related to path;
      * Optionally, provide a mapping of old name to new nae base.
-     * This method always adds "-1", "-2" etc. 
-     */  
+     * This method always adds "-1", "-2" etc.
+     */
     public static Path uniqueDerivedPath(Path path, Function<String, String> basenameMapping) {
         String base = path.getFileName().toString();
         if ( basenameMapping != null )
             base = basenameMapping.apply(base);
         // Some large limit "just in case"
         for(int x = 0 ; x < 10_000 ; x++ ) {
-            String destname = base+"-"+x; 
+            String destname = base+"-"+x;
             Path destpath = path.resolveSibling(destname);
             if ( ! Files.exists(destpath) )
                 return destpath;
         }
         return null ;
     }
+
+    // Adapters for IO.readWholeFileAsUTF8
+    // Jena 3.16.0 and before this call has a checked exception.
+    // Jena 3.17.0 and after, it becomes a runtime exception.
+    // Put everything in one place then clean up at 3.17.0 release.
+
+    public static String readWholeFileAsUTF8(String filename)  {
+        try {
+            return IO.readWholeFileAsUTF8(filename);
+        } catch (IOException ex) {
+            IO.exception(ex);
+            return null;
+        }
+    }
+
+   public static String readWholeFileAsUTF8(InputStream in) {
+       // Don't buffer - we're going to read in large chunks anyway
+       try {
+           return IO.readWholeFileAsUTF8(in);
+       } catch (IOException ex) {
+           IO.exception(ex);
+           return null;
+       }
+   }
 }
