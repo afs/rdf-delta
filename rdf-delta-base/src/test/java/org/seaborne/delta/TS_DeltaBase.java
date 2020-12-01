@@ -24,7 +24,6 @@ import org.junit.runners.Suite ;
 @Suite.SuiteClasses( {
     TestId.class
     , TestVersion.class
-    , TestDatasetGraphWithAbort.class
     , TestPersistentState.class
 })
 

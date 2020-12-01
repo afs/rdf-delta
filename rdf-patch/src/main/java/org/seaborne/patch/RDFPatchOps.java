@@ -35,7 +35,7 @@ import org.seaborne.patch.binary.RDFPatchReaderBinary;
 import org.seaborne.patch.changes.*;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.GraphChanges;
-import org.seaborne.patch.system.N;
+import org.seaborne.patch.system.URNs;
 import org.seaborne.patch.system.RDFPatchAltHeader;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.seaborne.patch.text.TokenWriter;
@@ -65,7 +65,7 @@ public class RDFPatchOps {
 
     private static class RDFPatchEmpty implements RDFPatch {
         // id, no previous.
-        private final Node id = N.unique();
+        private final Node id = URNs.unique();
         private final PatchHeader header = new PatchHeader(Collections.singletonMap(RDFPatchConst.ID, id));
 
         RDFPatchEmpty() {}

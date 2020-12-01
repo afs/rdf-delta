@@ -17,9 +17,9 @@
 
 package org.seaborne.delta;
 
-import static org.seaborne.patch.system.N.SchemeUrnUuid;
-import static org.seaborne.patch.system.N.SchemeUuid;
-import static org.seaborne.patch.system.N.genUUID;
+import static org.seaborne.patch.system.URNs.SchemeUrnUuid;
+import static org.seaborne.patch.system.URNs.SchemeUuid;
+import static org.seaborne.patch.system.URNs.genUUID;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;

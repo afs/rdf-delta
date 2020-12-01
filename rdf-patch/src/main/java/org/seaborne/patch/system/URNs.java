@@ -26,7 +26,7 @@ import org.apache.jena.graph.NodeFactory;
  * Some functions to do with URN {@link Node Nodes}.
  * All UUID generation should go though this class.
  */
-public class N {
+public class URNs {
     public static final String SchemeUuid = "uuid:";
     public static final String SchemeUrnUuid = "urn:uuid:";
 

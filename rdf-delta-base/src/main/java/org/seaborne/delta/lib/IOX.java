@@ -241,21 +241,11 @@ public class IOX {
     // Put everything in one place then clean up at 3.17.0 release.
 
     public static String readWholeFileAsUTF8(String filename)  {
-        try {
-            return IO.readWholeFileAsUTF8(filename);
-        } catch (IOException ex) {
-            IO.exception(ex);
-            return null;
-        }
+        return IO.readWholeFileAsUTF8(filename);
     }
 
    public static String readWholeFileAsUTF8(InputStream in) {
        // Don't buffer - we're going to read in large chunks anyway
-       try {
-           return IO.readWholeFileAsUTF8(in);
-       } catch (IOException ex) {
-           IO.exception(ex);
-           return null;
-       }
+       return IO.readWholeFileAsUTF8(in);
    }
 }

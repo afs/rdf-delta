@@ -25,7 +25,7 @@ import org.apache.jena.graph.Node;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.filelog.rotate.ManagedOutput;
-import org.seaborne.patch.system.N;
+import org.seaborne.patch.system.URNs;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 
@@ -74,7 +74,7 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
         currentStream = managedOutput.output();
         TokenWriter tokenWriter = new TokenWriterText(currentStream);
         super.tok = tokenWriter;
-        Node id = N.unique();
+        Node id = URNs.unique();
         header(RDFPatchConst.ID, id);
         if ( previous != null )
             header(RDFPatchConst.PREV, previous);
