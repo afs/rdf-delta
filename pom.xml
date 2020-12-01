@@ -69,8 +69,7 @@
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <!--<ver.jena>3.17.0-SNAPSHOT</ver.jena>-->
-    <ver.jena>3.16.0</ver.jena>
+    <ver.jena>3.17.0</ver.jena>
     <ver.jetty>9.4.35.v20201120</ver.jetty>
     <ver.junit>4.13.1</ver.junit>
     <ver.slf4j>1.7.30</ver.slf4j>
@@ -456,10 +455,6 @@
               </execution>
             </executions>
             <configuration>
-            <!-- Java 10 - - >
-                 <additionalOptions>-html5</additionalOptions>
-            -->
-
             <!-- <doclint>none</doclint> -->
             <!-- To allow the build to keep going despite javadoc problems:
                  <failOnError>false</failOnError>
