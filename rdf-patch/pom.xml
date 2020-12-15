@@ -31,6 +31,10 @@
     <version>0.9.1-SNAPSHOT</version>
   </parent>
 
+  <properties>
+    <automatic.module.name>org.seaborne.rdf_patch</automatic.module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.jena</groupId>

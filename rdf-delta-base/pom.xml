@@ -30,6 +30,10 @@
     <version>0.9.1-SNAPSHOT</version>
   </parent> 
 
+  <properties>
+    <automatic.module.name>org.seaborne.rdf_delta.base</automatic.module.name>
+  </properties>
+
   <dependencies>
     <dependency> 
       <groupId>org.seaborne.rdf-delta</groupId>
@@ -44,7 +48,7 @@
   </dependencies>
 
   <build>
-     <resources>
+    <resources>
       <resource>
         <filtering>false</filtering>
         <directory>src/main/resources</directory>
