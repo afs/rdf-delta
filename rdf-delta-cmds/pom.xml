@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1-SNAPSHOT</version>
   </parent> 
 
   <dependencies>
@@ -71,32 +71,32 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-client</artifactId>
-      <version>0.9.0</version>
+      <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-local</artifactId>
-      <version>0.9.0</version>
+      <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-http</artifactId>
-      <version>0.9.0</version>
+      <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-extra</artifactId>
-      <version>0.9.0</version>
+      <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
     <!-- Only for the patch service -->
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-fuseki</artifactId>
-      <version>0.9.0</version>
+      <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -118,7 +118,7 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-extra</artifactId>
-      <version>0.9.0</version>
+      <version>0.9.1-SNAPSHOT</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
