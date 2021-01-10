@@ -565,6 +565,8 @@
             <exclude>**/hs_err_pid*.log</exclude>
             <exclude>docs/**</exclude>
             <exclude>local/**</exclude>
+            <exclude>.github/**</exclude>
+            <exclude>.travis.yml</exclude>
 
             <exclude>**/.project</exclude>
             <exclude>**/.settings/**</exclude>
@@ -606,7 +608,6 @@
             <exclude>**/target/**/*</exclude>
             <!-- MSHADE-124 -->
             <exclude>**/dependency-reduced-pom.xml</exclude>
-            <exclude>.travis.yml</exclude>
 
             <!-- ZooKeeper files -->
             <exclude>**/Tutorial/**/zoo.dynamic</exclude>
