@@ -50,7 +50,7 @@ hardware.
 
 The software is available as a single package from:
 
-[`repo1.maven.org::rdf-delta-dist`](https://repo1.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist/)
+[repo1.maven.org::rdf-delta-dist](https://repo1.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist/)
 
 Download the latest version and unpack the zip file: there will be a
 directory `rdf-delta-VER`.
