@@ -29,12 +29,12 @@ https://afs.github.io/rdf-delta/ha-fuseki.html
 
 ## Software
 
-Artifacts: http://central.maven.org/maven2/org/seaborne/rdf-delta
+Artifacts: https://repo1.maven.org/maven2/org/seaborne/rdf-delta
 
 RDF Delta distribution (patch log server and Apache Jena Fuseki with
 replicated dataset support)
 
-http://central.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
+https://repo1.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
 
 ### RDF Patch:
 
