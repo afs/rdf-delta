@@ -21,7 +21,7 @@ import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.Timer ;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.riot.RDFDataMgr ;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.lang.StreamRDFCounting ;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.apache.jena.riot.system.StreamRDFLib ;
@@ -74,7 +74,7 @@ public class load {
             Txn.executeWrite(dsg, ()->{
                 for ( String fn : args ) {
                     System.out.printf("File: %s\n", fn);
-                    RDFDataMgr.parse(cdest, fn);
+                    RDFParser.source(fn).parse(cdest);
                 }
             });
             count = cdest.count();

@@ -19,7 +19,8 @@ package org.seaborne.delta.cmds;
 
 import java.util.Objects;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.cmd.CmdException;
+
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id ;

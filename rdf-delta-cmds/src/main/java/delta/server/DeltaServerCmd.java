@@ -24,15 +24,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import jena.cmd.ArgDecl;
-import jena.cmd.CmdException;
-import jena.cmd.CmdLineArgs;
-import jena.cmd.TerminationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.web.WebLib;
+import org.apache.jena.cmd.ArgDecl;
+import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdLineArgs;
+import org.apache.jena.cmd.TerminationException;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
@@ -262,7 +262,6 @@ public class DeltaServerCmd {
             if ( cla.contains(argFile) ) provider = FILE;
             if ( cla.contains(argRocks) ) provider = ROCKS;
         }
-
 
         DeltaServerConfig serverConfig = new DeltaServerConfig();
 

@@ -21,9 +21,9 @@ import static org.junit.Assert.assertEquals;
 
 import delta.server.DeltaServerCmd;
 import delta.server.DeltaServerConfig;
-import jena.cmd.CmdException;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.cmd.CmdException;
 import org.junit.Test;
 
 public class TestDeltaServerConfig {
@@ -103,7 +103,7 @@ public class TestDeltaServerConfig {
         roundTrip(c);
         return c;
     }
-    
+
     private void roundTrip(DeltaServerConfig c) {
         JsonObject obj = c.asJSON();
         DeltaServerConfig c2 = DeltaServerConfig.create(obj);

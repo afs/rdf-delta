@@ -21,7 +21,7 @@ import java.util.List ;
 import java.util.Objects ;
 import java.util.Optional;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.cmd.CmdException ;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.Id ;
 

@@ -20,7 +20,7 @@ package org.seaborne.delta.cmds;
 import java.util.List;
 import java.util.Optional ;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.cmd.CmdException ;
 import org.seaborne.delta.DataSourceDescription;
 
 /** Base for operations referring to two logs.

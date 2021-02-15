@@ -19,8 +19,8 @@ package org.seaborne.delta.cmds;
 
 import java.io.InputStream ;
 
-import jena.cmd.CmdException;
-import jena.cmd.CmdGeneral ;
+import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl ;

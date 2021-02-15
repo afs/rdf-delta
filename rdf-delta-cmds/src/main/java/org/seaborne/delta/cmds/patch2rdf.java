@@ -18,9 +18,9 @@
 package org.seaborne.delta.cmds;
 
 import arq.cmdline.ModDatasetAssembler;
-import jena.cmd.ArgDecl;
-import jena.cmd.CmdException;
-import jena.cmd.CmdGeneral;
+import org.apache.jena.cmd.ArgDecl;
+import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;

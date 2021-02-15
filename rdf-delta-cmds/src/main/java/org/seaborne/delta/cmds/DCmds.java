@@ -21,7 +21,7 @@ import java.util.List ;
 import java.util.Objects ;
 import java.util.Optional ;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.cmd.CmdException ;
 import org.apache.jena.atlas.json.JsonException ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.seaborne.delta.DataSourceDescription ;
