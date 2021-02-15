@@ -24,13 +24,13 @@ import java.util.List;
 
 import javax.servlet.http.HttpServlet;
 
-import jena.cmd.ArgDecl;
-import jena.cmd.CmdException;
-import jena.cmd.CmdGeneral;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
+import org.apache.jena.cmd.ArgDecl;
+import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.fuseki.main.JettyServer;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.PatchWriteServlet;

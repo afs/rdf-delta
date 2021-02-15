@@ -19,7 +19,7 @@ package org.seaborne.delta.cmds;
 
 import java.util.Arrays;
 
-import jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdException;
 import org.apache.jena.Jena;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;

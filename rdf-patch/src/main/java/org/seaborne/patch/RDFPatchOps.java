@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.patch.binary.RDFChangesWriterBinary;
@@ -35,8 +35,8 @@ import org.seaborne.patch.binary.RDFPatchReaderBinary;
 import org.seaborne.patch.changes.*;
 import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.GraphChanges;
-import org.seaborne.patch.system.URNs;
 import org.seaborne.patch.system.RDFPatchAltHeader;
+import org.seaborne.patch.system.URNs;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
@@ -134,8 +134,7 @@ public class RDFPatchOps {
     public static RDFPatch rdf2patch(String rdfDataFile) {
         RDFChangesCollector x = new RDFChangesCollector();
         RDF2Patch dest  = new RDF2Patch(x);
-        RDFDataMgr.parse(dest, rdfDataFile);
-        // Headers.
+        RDFParser.source(rdfDataFile).parse(dest);
         RDFPatch patch = x.getRDFPatch();
         return patch;
     }

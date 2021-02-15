@@ -19,10 +19,10 @@ package org.seaborne.delta.cmds;
 
 import java.io.InputStream ;
 
-import jena.cmd.CmdException;
-import jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.riot.RDFDataMgr ;
+import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdGeneral ;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.patch.RDFPatchOps;
@@ -61,7 +61,7 @@ public class rdf2patch extends CmdGeneral
         dest.start();
         if ( getPositional().isEmpty() )
             execOne(System.in);
-        getPositional().forEach(fn->RDFDataMgr.parse(dest, fn));
+        getPositional().forEach(fn->RDFParser.source(fn).parse(dest));
         dest.finish();
     }
 

@@ -21,6 +21,7 @@ import java.io.StringReader;
 import java.net.BindException ;
 
 import org.apache.jena.atlas.lib.FileOps ;
+import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.rdf.model.Model;
@@ -111,9 +112,10 @@ public class BaseTestDeltaFuseki {
     private static FusekiServer fuseki(Start state, int port, int deltaPort, String config, String zone) {
         // Replace %D_PORT%
         String text = IOX.readWholeFileAsUTF8(config);
+        String baseIRI = IRILib.filenameToIRI(text);
         text = text.replace(D_PORT_MARKER, Integer.toString(deltaPort));
         Model confModel = ModelFactory.createDefaultModel();
-        RDFParser.create().source(new StringReader(text)).lang(Lang.TTL).parse(confModel);
+        RDFParser.create().base(baseIRI).source(new StringReader(text)).lang(Lang.TTL).parse(confModel);
 
         switch (state) {
             case CLEAN : {
