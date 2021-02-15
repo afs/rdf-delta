@@ -23,11 +23,11 @@ import java.nio.file.Files ;
 import java.nio.file.Path ;
 import java.nio.file.Paths ;
 
-import jena.cmd.CmdException ;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.cmd.CmdException;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.Id ;
@@ -86,7 +86,7 @@ public class append extends DeltaCmd {
             RDFChangesCollector x = new RDFChangesCollector();
             StreamRDF dest  = new RDF2Patch(x);
             // dest will do the start-finish on the RDFChangesCollector via parsing.
-            RDFDataMgr.parse(dest, fn);
+            RDFParser.source(fn).parse(dest);
             return x.getRDFPatch();
         }
 

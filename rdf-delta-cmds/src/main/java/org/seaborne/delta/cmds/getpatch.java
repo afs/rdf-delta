@@ -17,7 +17,7 @@
 
 package org.seaborne.delta.cmds;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.cmd.CmdException ;
 import org.seaborne.delta.*;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;

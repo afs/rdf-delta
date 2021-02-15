@@ -17,7 +17,7 @@
 
 package org.seaborne.delta.cmds;
 
-import jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdException;
 import org.apache.jena.atlas.json.JsonException;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.web.HttpException;

@@ -21,7 +21,7 @@ import static java.lang.String.format;
 
 import java.util.Collections;
 
-import jena.cmd.CmdException ;
+import org.apache.jena.cmd.CmdException;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;

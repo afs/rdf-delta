@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.graph.*;
-import org.apache.jena.riot.RDFDataMgr ;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDFLib ;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
@@ -493,7 +493,7 @@ public abstract class AbstractTestDeltaLink {
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByURI("http://example/uri-not-present");
         String url = dLink.initialState(dsRef);
         assertNotNull(url);
-        RDFDataMgr.parse(StreamRDFLib.sinkNull(), url);
+        RDFParser.source(url).parse(StreamRDFLib.sinkNull());
     }
 
     @Test
