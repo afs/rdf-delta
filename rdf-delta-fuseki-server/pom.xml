@@ -64,7 +64,6 @@
       <artifactId>jena-text</artifactId>
     </dependency>
 
-
   </dependencies>
 
   <build>
