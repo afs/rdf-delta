@@ -20,7 +20,6 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 ## A Fuseki service offering all SPARQL protocols.
 <#service1> rdf:type fuseki:Service ;
     fuseki:name                        "ds" ;
-    fuseki:endpoint [ fuskei:operation 
     fuseki:serviceQuery                "query" ;
     fuseki:serviceUpdate               "update" ;
     fuseki:serviceUpload               "upload" ;

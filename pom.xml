@@ -128,6 +128,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-text</artifactId>
+        <version>${ver.jena}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-xml</artifactId>
         <version>${ver.jetty}</version>

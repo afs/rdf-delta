@@ -99,7 +99,7 @@
     <!-- Only for the patch service -->
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-delta-fuseki</artifactId>
+      <artifactId>rdf-delta-fuseki-server</artifactId>
       <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
