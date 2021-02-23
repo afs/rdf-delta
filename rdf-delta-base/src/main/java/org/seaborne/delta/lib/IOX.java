@@ -61,7 +61,7 @@ public class IOX {
      * <p>
      * Idiom:
      * <pre>
-     *     run(()->...));
+     *     run(()-&gt;...));
      * </pre>
      */
     public static void run(ActionIO action) {

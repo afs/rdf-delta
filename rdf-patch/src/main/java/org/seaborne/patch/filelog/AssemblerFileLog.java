@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Assembler for a dataset that wraps another and provides change logging to a file.
  * <pre>
- *     <#dataset> rdf:type patch:LoggedDataset;
+ *     &lt;#dataset&gt; rdf:type patch:LoggedDataset;
  *         patch:logFile "Dir/BaseFilename";
  *         patch:logPolicy "
  *

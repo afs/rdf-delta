@@ -32,5 +32,4 @@ public class LogX {
     public static void setJavaLogging() {
         LogCtl.setJavaLogging();
     }
-
 }

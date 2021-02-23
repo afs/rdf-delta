@@ -96,13 +96,17 @@
       <version>0.9.1-SNAPSHOT</version>
     </dependency>
 
-    <!-- Only for the patch service -->
+     <!-- Only for the patch service -->
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-delta-fuseki-server</artifactId>
+      <artifactId>rdf-delta-fuseki</artifactId>
       <version>0.9.1-SNAPSHOT</version>
     </dependency>
-
+    <!-- With jena-text -->
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-text</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-main</artifactId>
