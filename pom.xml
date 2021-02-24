@@ -655,7 +655,22 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.2.0</version>
+            <configuration>
+              <!-- Fixes for Javadoc when bulding for Java11. Both these are needed. -->
+
+              <!-- (1) Fix for:
+                   Named / unnamed modules error/warning
+              -->
+              <detectJavaApiLink>false</detectJavaApiLink>
+
+              <!-- (2) Fix for:
+                   [ERROR] error: the unnamed module reads package PKG from both A and B
+              -->
+              <source>8</source>
+
+              <!-- End Java11 fixes (2021-01) -->
+              <version>3.2.0</version>
+            </configuration>
           </plugin>
 
           <plugin>
