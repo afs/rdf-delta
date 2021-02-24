@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
 
+import javax.servlet.http.HttpServlet;
+
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.server.CounterName;
@@ -45,9 +47,9 @@ import org.seaborne.patch.filelog.OutputMgr;
 import org.seaborne.patch.filelog.rotate.ManagedOutput;
 
 /**
- * A patch receiver. This server writes patches to a log file according to a
- * {@link FilePolicy} and so it functions as a backup server
- *
+ * A patch receiver. This {@link HttpServlet servlet} writes patches to a log file
+ * according to a {@link FilePolicy} and so it functions as a backup server
+ * <p>
  * It is a Fuseki servlet and not a dataset service.
  */
 public class PatchWriteServlet extends ServletProcessor {
