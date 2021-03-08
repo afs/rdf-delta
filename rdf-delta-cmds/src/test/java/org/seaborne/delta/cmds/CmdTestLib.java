@@ -45,8 +45,16 @@ public class CmdTestLib {
     }
 
     public static String server(String... args) {
-        int port = WebLib.choosePort();
-        String[] serverArgs = {"--port="+port};
+        return server(args, WebLib.choosePort());
+    }
+
+    public static String serverJettyConfig(String... args) {
+        return server(args, null);
+    }
+
+    private static String server(String[] args, Integer port) {
+        int finalPort = (port == null ? 1068 : port);
+        String[] serverArgs = (port == null ? new String[0] : new String[] {"--port="+finalPort});
 
         String[] cmdLine = new String[args.length+serverArgs.length];
         System.arraycopy(args, 0, cmdLine, serverArgs.length, args.length);
@@ -56,7 +64,7 @@ public class CmdTestLib {
         } catch (BindException e) {
             throw new RuntimeException(e);
         }
-        return "http://localhost:"+port+"/";
+        return "http://localhost:"+finalPort+"/";
     }
 
 }

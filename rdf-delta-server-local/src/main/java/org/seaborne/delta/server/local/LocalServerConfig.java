@@ -127,6 +127,7 @@ public class LocalServerConfig {
         public Builder(LocalServerConfig other) {
             this.configFile = other.configFile;
             this.logProvider = other.logProvider;
+            this.jettyConfigFile = other.jettyConf;
             copyPropertiesInto(other.properties, this.properties);
         }
 

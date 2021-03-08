@@ -68,22 +68,22 @@ public /*package*/ class ServerBuildLib {
         switch (deltaServerConfig.provider) {
             case FILE :
                 psp = installProvider(new PatchStoreProviderFile());
-                localServerConfig = LocalServers.configFile(deltaServerConfig.fileBase);
+                localServerConfig = LocalServers.configFile(deltaServerConfig.fileBase, deltaServerConfig.jettyConf);
                 providerLabel = "file["+deltaServerConfig.fileBase+"]";
                 break;
             case ROCKS :
                 psp = installProvider(new PatchStoreProviderRocks());
-                localServerConfig = LocalServers.configRDB(deltaServerConfig.fileBase);
+                localServerConfig = LocalServers.configRDB(deltaServerConfig.fileBase, deltaServerConfig.jettyConf);
                 providerLabel = "rdb["+deltaServerConfig.fileBase+"]";
                 break;
             case LOCAL:
                 psp = installProvider(new PatchStoreProviderAnyLocal());
-                localServerConfig = LocalServers.configLocal(deltaServerConfig.fileBase);
+                localServerConfig = LocalServers.configLocal(deltaServerConfig.fileBase, deltaServerConfig.jettyConf);
                 providerLabel = "local["+deltaServerConfig.fileBase+"]";
                 break;
             case MEM :
                 psp = installProvider(new PatchStoreProviderMem());
-                localServerConfig = LocalServers.configMem();
+                localServerConfig = LocalServers.configMem(deltaServerConfig.jettyConf);
                 providerLabel = "mem";
                 break;
             case ZKZK :
@@ -132,7 +132,7 @@ public /*package*/ class ServerBuildLib {
         if ( config.zkConnectionString == null )
             throw new DeltaConfigException("No connection string for ZooKeeper");
         // If zk+S3, there isn't a provider name set yet.
-        LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString);
+        LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString, config.jettyConf);
         return localServerConfig;
     }
 
@@ -197,7 +197,7 @@ public /*package*/ class ServerBuildLib {
     }
 
     // --> DeltaServer.start()
-    private static DeltaServer buildServer(int port, Supplier<LocalServerConfig> startup) {
+    private static DeltaServer buildServer(Integer port, Supplier<LocalServerConfig> startup) {
         LocalServerConfig localServerConfig = startup.get();
         // Scope for further properties.
         Properties properties = new Properties();

@@ -74,6 +74,12 @@ public class TestCmdServer {
         serverAndVerify(args);
     }
 
+    @Test public void server5_jettyConfig() {
+        String[] args = {"--jetty=testing/jetty.xml", "--mem"};
+        String serverURL = CmdTestLib.serverJettyConfig(args);
+        verifyServer(serverURL);
+    }
+
     public static void serverAndVerify(String[] args) {
         String serverURL = CmdTestLib.server(args);
         verifyServer(serverURL);
