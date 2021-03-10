@@ -23,6 +23,8 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.ensemble.EnsembleProvider;
+import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.GetDataBuilder;
@@ -56,28 +58,28 @@ public class Zk {
         LOG.warn(msg, ex);
     }
 
-    /** Connect a curator client to a running ZooKepper server. */
+    /** Connect a curator client to a running ZooKeeper server. */
     public static CuratorFramework curator(String connectString) {
         CuratorFramework client = createCuratorClient(connectString);
         connect(client);
         return client;
     }
 
-    /** Connect a curator client to a running ZooKepper server. */
+    /** Connect a curator client to a running ZooKeeper server. */
     public static CuratorFramework createCuratorClient(String connectString) {
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
-        CuratorFramework client =
-            CuratorFrameworkFactory.newClient(connectString, 10000, 10000, policy);
-//                CuratorFrameworkFactory.builder()
-//                //.namespace("delta")
-//                .connectString(connectString)
-//                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
-//                .retryPolicy(policy)
-//                .build();
+        CuratorFramework client = CuratorFrameworkFactory
+                .builder()
+                .connectString(connectString)
+                .ensembleTracker(true)
+                .sessionTimeoutMs(10000)
+                .connectionTimeoutMs(10000)
+                .retryPolicy(policy)
+                .build();
         return client;
     }
 
-    /** Connect a curator client to a running ZooKepper server. */
+    /** Connect a curator client to a running ZooKeeper server. */
     public static void connect(CuratorFramework client) {
         switch(client.getState()) {
             case LATENT :
