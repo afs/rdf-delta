@@ -23,8 +23,6 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
-import org.apache.curator.ensemble.EnsembleProvider;
-import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.GetDataBuilder;
