@@ -33,32 +33,56 @@ public class LocalServers {
 
     /** {@link LocalServerConfig} for a {@link LocalServer} with a local storage patch store. */
     public static LocalServerConfig configLocal(String directory) {
+        return configLocal(directory, null);
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a local storage patch store. */
+    public static LocalServerConfig configLocal(String directory, String jettyConf) {
         return LocalServerConfig.create()
             .setProperty(DeltaConst.pDeltaStore, directory)
             .setLogProvider(Provider.LOCAL)
+            .jettyConfigFile(jettyConf)
             .build();
     }
 
     /** {@link LocalServerConfig} for a {@link LocalServer} with a file-based patch store. */
     public static LocalServerConfig configFile(String directory) {
+        return configFile(directory, null);
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a file-based patch store. */
+    public static LocalServerConfig configFile(String directory, String jettyConf) {
         return LocalServerConfig.create()
             .setProperty(DeltaConst.pDeltaStore, directory)
             .setLogProvider(Provider.FILE)
+            .jettyConfigFile(jettyConf)
             .build();
     }
 
     /** {@link LocalServerConfig} for a {@link LocalServer} with a RockDB-based patch store. */
     public static LocalServerConfig configRDB(String directory) {
+        return configRDB(directory, null);
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a RockDB-based patch store. */
+    public static LocalServerConfig configRDB(String directory, String jettyConf) {
         return LocalServerConfig.create()
             .setProperty(DeltaConst.pDeltaStore, directory)
             .setLogProvider(Provider.ROCKS)
+            .jettyConfigFile(jettyConf)
             .build();
     }
 
     /** {@link LocalServerConfig} for a {@link LocalServer} with a memory-based patch store. */
     public static LocalServerConfig configMem() {
+        return configMem(null);
+    }
+
+    /** {@link LocalServerConfig} for a {@link LocalServer} with a memory-based patch store. */
+    public static LocalServerConfig configMem(String jettyConf) {
         return LocalServerConfig.create()
             .setLogProvider(Provider.MEM)
+            .jettyConfigFile(jettyConf)
             .build();
     }
 
@@ -67,8 +91,17 @@ public class LocalServers {
      * and zookeeper-based index patch store.
      */
     public static LocalServerConfig configZk(String connectionString) {
+        return configZk(connectionString, null);
+    }
+
+    /**
+     * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
+     * and zookeeper-based index patch store.
+     */
+    public static LocalServerConfig configZk(String connectionString, String jettyConf) {
         LocalServerConfig.Builder builder = LocalServerConfig.create()
-            .setLogProvider(Provider.ZKZK);
+            .setLogProvider(Provider.ZKZK)
+            .jettyConfigFile(jettyConf);
         if ( connectionString != null )
             builder.setProperty(DeltaConst.pDeltaZk, connectionString);
         return builder.build();

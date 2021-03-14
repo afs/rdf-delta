@@ -63,6 +63,12 @@ public class TestLocalServerCmdSetup {
         assertEquals(Provider.FILE, server.getPatchStore().getProvider().getType());
     }
 
+    @Test public void localServer3_jettyConfig() {
+        String[] args = {"--jetty=testing/jetty.xml", "--mem"};
+        LocalServer server = buildLocalServer(args);
+        assertEquals("testing/jetty.xml", server.getConfig().getJettyConfigFile());
+    }
+
     /** The essential steps from DeltaServerCmd/ServerBuildLib to build a {@link LocalServer} */
     private LocalServer buildLocalServer(String[] args) {
         DeltaServerConfig deltaServerConfig = DeltaServerCmd.config(args);
