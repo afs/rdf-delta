@@ -50,14 +50,11 @@ public class LocalServerConfig {
     /** Delta properties */
     private final Properties properties;
 
-    private final String jettyConf;
-
-    private LocalServerConfig(Provider logProvider, Properties properties, String configFile, String jettyConf) {
+    private LocalServerConfig(Provider logProvider, Properties properties, String configFile) {
         Objects.requireNonNull(logProvider);
         this.logProvider = logProvider;
         this.configFile = configFile;
         this.properties = properties;
-        this.jettyConf = jettyConf;
     }
 
     /** Name of the default PatchStore provider */
@@ -73,11 +70,6 @@ public class LocalServerConfig {
     /** Get property, return null for no found. */
     public String getProperty(String key) {
         return properties.getProperty(key);
-    }
-
-    /** Get the Jetty server configuration file, if any. */
-    public String getJettyConfigFile() {
-        return jettyConf;
     }
 
     @Override
@@ -127,7 +119,6 @@ public class LocalServerConfig {
         public Builder(LocalServerConfig other) {
             this.configFile = other.configFile;
             this.logProvider = other.logProvider;
-            this.jettyConfigFile = other.jettyConf;
             copyPropertiesInto(other.properties, this.properties);
         }
 
@@ -211,7 +202,7 @@ public class LocalServerConfig {
         }
 
         public LocalServerConfig build() {
-            return new LocalServerConfig(logProvider, properties, configFile, jettyConfigFile);
+            return new LocalServerConfig(logProvider, properties, configFile);
         }
     }
 

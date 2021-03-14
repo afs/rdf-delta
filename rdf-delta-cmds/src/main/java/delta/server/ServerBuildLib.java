@@ -55,7 +55,13 @@ public /*package*/ class ServerBuildLib {
             startEnvirionment(deltaServerConfig);
             return setupLocalServerConfig(deltaServerConfig);
         };
-        DeltaServer deltaServer = buildServer(deltaServerConfig.serverPort, startup);
+        if ( deltaServerConfig.serverPort == null && deltaServerConfig.jettyConf == null )
+            throw new DeltaConfigException("No and no Jetty config file");
+        if ( deltaServerConfig.serverPort != null && deltaServerConfig.jettyConf != null )
+            throw new DeltaConfigException("Both port and Jetty config file provided");
+
+        int serverPort = (deltaServerConfig.serverPort != null) ? deltaServerConfig.serverPort : -1;
+        DeltaServer deltaServer = buildServer(serverPort, deltaServerConfig.jettyConf, startup);
         return deltaServer;
     }
 
@@ -197,7 +203,7 @@ public /*package*/ class ServerBuildLib {
     }
 
     // --> DeltaServer.start()
-    private static DeltaServer buildServer(Integer port, Supplier<LocalServerConfig> startup) {
+    private static DeltaServer buildServer(int port, String jettyConfigFile, Supplier<LocalServerConfig> startup) {
         LocalServerConfig localServerConfig = startup.get();
         // Scope for further properties.
         Properties properties = new Properties();
@@ -208,9 +214,9 @@ public /*package*/ class ServerBuildLib {
         DeltaLink link = DeltaLinkLocal.connect(server);
 
         DeltaServer deltaServer;
-        if ( localServerConfig.getJettyConfigFile() != null ) {
-            FmtLog.info(LOG, "Delta Server jetty config=%s", localServerConfig.getJettyConfigFile());
-            deltaServer = DeltaServer.create(localServerConfig.getJettyConfigFile(), link);
+        if ( jettyConfigFile != null ) {
+            FmtLog.info(LOG, "Delta Server jetty config=%s", jettyConfigFile);
+            deltaServer = DeltaServer.create(jettyConfigFile, link);
         } else {
             FmtLog.info(LOG, "Delta Server port=%d", port);
             deltaServer = DeltaServer.create(port, link);

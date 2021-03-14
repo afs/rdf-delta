@@ -76,7 +76,9 @@ public class TestCmdServer {
 
     @Test public void server5_jettyConfig() {
         String[] args = {"--jetty=testing/jetty.xml", "--mem"};
-        String serverURL = CmdTestLib.serverJettyConfig(args);
+        String serverURL = CmdTestLib.server(args);
+        // jetty.xml has port 1070
+        serverURL = serverURL.replaceAll(":\\d+", ":1070");
         verifyServer(serverURL);
     }
 
