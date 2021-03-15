@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
  * ... except for eventually consistent stores, where the viewed {@code PatchStorage} may be behind,
  * in which case the only alternative is to poll/wait for the patch to show up.
  */
-
 public class PatchLogBase implements PatchLog {
     private final static Logger LOG = LoggerFactory.getLogger(PatchLogBase.class);
 
@@ -175,12 +174,8 @@ public class PatchLogBase implements PatchLog {
         });
     }
 
-    protected void patchLogLock(Runnable action) {
-        logIndex.runWithLock(action);
-    }
-
     protected <X> X patchLogLockRtn(Supplier<X> action) {
-        return logIndex.runWithLockRtn(action);
+        return logIndex.runWithLock(action);
     }
 
     @Override

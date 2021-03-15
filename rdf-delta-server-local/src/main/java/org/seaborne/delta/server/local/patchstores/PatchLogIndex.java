@@ -30,81 +30,81 @@ import org.seaborne.delta.server.local.PatchStore;
 public interface PatchLogIndex {
 
     /** Run action inside a patch log wide lock. */
-    public void runWithLock(Runnable action);
+    void runWithLock(Runnable action);
 
     /** Run action inside a patch log wide lock; return a result. */
-    public <X> X runWithLockRtn(Supplier<X> action);
+    <X> X runWithLock(Supplier<X> action);
 
     /** Return whether the log is empty. */
-    public boolean isEmpty();
+    boolean isEmpty();
 
     /**
      * Return the next version number.
      * Returns the same value until {@link #save(Version, Id, Id)} is called.
      */
-    public Version nextVersion();
+    Version nextVersion();
 
     /** Save the new head of log information. */
-    public void save(Version newVersion, Id newCurrentId, Id newPreviousId);
+    void save(Version newVersion, Id newCurrentId, Id newPreviousId);
 
     /**
      * Get the earliest version in the log.
      * Returns {@link DeltaConst#VERSION_INIT} when the log is empty.
      * Returns {@link DeltaConst#VERSION_UNSET} when the log has not been initialized yet.
      */
-    public Version getEarliestVersion();
+    Version getEarliestVersion();
 
     /**
      * Get the {@code Id} of the earliest entry in the log or null if the log is empty.
      */
-    public Id getEarliestId();
+    Id getEarliestId();
 
     /**
      * Get the {@code version} of the current head of the log.
      * Returns {@link DeltaConst#VERSION_INIT} when the log is empty.
      */
-    public Version getCurrentVersion();
+    Version getCurrentVersion();
 
     /** Get the {@code Id} of the current head of the log, or null if there isn't one. */
-    public Id getCurrentId();
+    Id getCurrentId();
 
     /** Get the {@code Id} of the previous entry, or null if there isn't one. */
-    public Id getPreviousId();
+    Id getPreviousId();
 
     /** Map version number to the {@link Id} for the patch it refers to. */
-    public Id versionToId(Version version);
+    Id versionToId(Version version);
 
     /** Map {@link Id} to version for the patch it refers to. */
-    public Version idToVersion(Id id);
+    Version idToVersion(Id id);
 
     /** Map {@link Id} to information about the patch. */
-    public LogEntry getPatchInfo(Id id);
+    LogEntry getPatchInfo(Id id);
 
     /** Make sure the version information is up to date. */
-    public void syncVersionInfo();
+    void syncVersionInfo();
 
     /**
      * Acquire the mutex and return the session id.
      * Returns null for failure to get the lock.
      */
-    public Id acquireLock();
+    Id acquireLock();
 
     /** Refresh the mutex. */
-    public boolean refreshLock(Id session);
+    boolean refreshLock(Id session);
 
     /**
      * Read the details of the mutex.
      * Returns {@link LockState#UNLOCKED} when the lock is not held by anyone.
      */
-    public LockState readLock();
+    LockState readLock();
 
     /**
      * Take the mutex even if already held.
      * Returns new lock ownership/session Id or null if the "oldSession" did not match (someone else has grabbed the lock).
      */
-    public Id grabLock(Id oldSession);
+    Id grabLock(Id oldSession);
 
 
     /** Release the mutex. */
-    public void releaseLock(Id session);
+    void releaseLock(Id session);
 }

@@ -60,7 +60,7 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
             s3.client.createBucket(s3.bucketName);
         }
         // The usual PatchStoreZk for the index, but remembering DetailsS3
-        CuratorFramework client = curator(config);
+        CuratorFramework client = zk(config);
         return new PatchStoreZkS3(client, this, s3);
     }
 

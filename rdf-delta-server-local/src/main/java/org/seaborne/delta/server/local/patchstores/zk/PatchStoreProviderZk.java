@@ -25,7 +25,9 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.zk.Zk;
+import org.seaborne.delta.zk.UncheckedZkConnection;
+import org.seaborne.delta.zk.curator.CuratorZkConnection;
+import org.seaborne.delta.zk.WrappedUncheckedZkConnection;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
@@ -33,17 +35,17 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
 
     @Override
     public PatchStore create(LocalServerConfig config) {
-        CuratorFramework client = curator(config);
+        UncheckedZkConnection client = zk(config);
         return new PatchStoreZk(client, this);
     }
 
-    /** Build a {@link CuratorFramework} from the {@link LocalServerConfig}. */
-    protected CuratorFramework curator(LocalServerConfig config) {
+    /** Build a {@link CuratorFramework} from the {@link LocalServerConfig}.
+     * @return*/
+    protected UncheckedZkConnection zk(LocalServerConfig config) {
         String connectionString = config.getProperty(DeltaConst.pDeltaZk);
         if ( connectionString == null )
             Log.error(this, "No connection string in configuration");
-        CuratorFramework client = Zk.curator(connectionString);
-        return client;
+        return new WrappedUncheckedZkConnection(CuratorZkConnection.connect(connectionString));
     }
 
     @Override

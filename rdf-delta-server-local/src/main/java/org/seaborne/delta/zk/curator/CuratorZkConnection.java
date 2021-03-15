@@ -9,15 +9,18 @@ import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.zk.ZkConnection;
 import org.seaborne.delta.zk.ZkLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
-
-import static org.seaborne.delta.server.local.DPS.LOG;
+import java.util.function.Supplier;
 
 /**
  * This is an Object-Oriented implementation of the previous Zk utility class. This class is being introduced
@@ -25,6 +28,8 @@ import static org.seaborne.delta.server.local.DPS.LOG;
  * either a heavily patched Curator or discards Curator altogether.
  */
 public final class CuratorZkConnection implements ZkConnection {
+    private static final Logger LOG = LoggerFactory.getLogger(CuratorZkConnection.class);
+
     /**
      * Encapsulated {@link CuratorFramework}.
      * This is intended to live inside the boundaries of a blackbox. Therefore, it is not exposed to the outside world
@@ -171,6 +176,29 @@ public final class CuratorZkConnection implements ZkConnection {
             LOG.warn("zkLock: lock.isAcquiredInThisProcess() is false");
         }
         return new CuratorZkLock(lock);
+    }
+
+    @Override
+    public void runWithLock(final String path, final Runnable action) {
+        this.runWithLock(path, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    @Override
+    public <X> X runWithLock(final String path, final Supplier<X> action) {
+        try (var ignored = this.acquireLock(path)) {
+            return action.get();
+        } catch(DeltaException ex) {
+            throw ex;
+        } catch(RuntimeException ex) {
+            FmtLog.warn(LOG, "RuntimeException in runWithLock");
+            ex.printStackTrace();
+            throw ex;
+        } catch (Exception ignore) {
+            return null;
+        }
     }
 
     @Override

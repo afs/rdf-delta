@@ -89,7 +89,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     final
     public LogEntry getPatchInfo(Id id) {
         // Get the three values inside a lock so they are consistent with "save".
-        return runWithLockRtn(()->{
+        return runWithLock(()->{
                 if ( Objects.equals(currentId, id) )
                     return new LogEntry(currentId, currentVersion, previousId);
                 return logIndex.getPatchInfo(id);
@@ -110,7 +110,7 @@ public abstract class PatchLogIndexBase implements PatchLogIndex {
     }
 
     @Override
-    public <X> X runWithLockRtn(Supplier<X> action) {
+    public <X> X runWithLock(Supplier<X> action) {
         synchronized(lock) {
             return action.get();
         }

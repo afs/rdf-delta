@@ -5,6 +5,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public interface ZkConnection extends AutoCloseable {
     boolean pathExists(String path) throws Exception;
@@ -38,4 +39,8 @@ public interface ZkConnection extends AutoCloseable {
     void deleteZNode(String path) throws Exception;
 
     ZkLock acquireLock(String path) throws Exception;
+
+    void runWithLock(String path, Runnable action);
+
+    <X> X runWithLock(String path, Supplier<X> action);
 }

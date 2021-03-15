@@ -20,9 +20,7 @@ package org.seaborne.delta.server;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
-import org.seaborne.delta.zk.Zk;
 
 /** Zookeeper testing support */
 public class ZkT {
@@ -48,13 +46,5 @@ public class ZkT {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }
-    
-    /** Setup a fresh ZooKeeper test server and return a curator client for it.
-     * The test server is added to {@link ZkT#servers}. */
-    public static CuratorFramework curator() {
-        TestingServer server = localServer();
-        String connectString = "localhost:" + server.getPort();
-        return Zk.curator(connectString); 
     }
 }
