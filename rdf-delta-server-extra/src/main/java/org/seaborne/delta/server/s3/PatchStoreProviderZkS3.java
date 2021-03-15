@@ -24,7 +24,6 @@ import static org.seaborne.delta.server.s3.S3Const.pRegion;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.util.StringUtils;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.Provider;

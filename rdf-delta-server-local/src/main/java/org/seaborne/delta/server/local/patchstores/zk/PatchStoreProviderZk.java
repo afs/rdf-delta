@@ -17,7 +17,6 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.Log;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
@@ -39,7 +38,7 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
         return new PatchStoreZk(client, this);
     }
 
-    /** Build a {@link CuratorFramework} from the {@link LocalServerConfig}.
+    /** Build an {@link UncheckedZkConnection} from the {@link LocalServerConfig}.
      * @return*/
     protected UncheckedZkConnection zk(LocalServerConfig config) {
         String connectionString = config.getProperty(DeltaConst.pDeltaZk);
