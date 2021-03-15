@@ -1,6 +1,5 @@
 package org.seaborne.delta.zk;
 
-import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -9,12 +8,21 @@ import java.util.List;
 import static org.seaborne.delta.server.local.DPS.LOG;
 
 /**
- *
+ * Wraps a {@link ZkConnection} and handles {@link Exception}s in its methods according to how they were handled
+ * in the old Zk utility class. This ensures consistency of handling without requiring that the handling be duplicated
+ * in every implementation of {@link ZkConnection}.
  */
-public final class ZkUnchecked implements UncheckedZk {
-    private final Zk decorated;
+public final class WrappedUncheckedZkConnection implements UncheckedZkConnection {
+    /**
+     * The underlying {@link ZkConnection}.
+     */
+    private final ZkConnection decorated;
 
-    public ZkUnchecked(final Zk decorated) {
+    /**
+     * Constructor.
+     * @param decorated The {@link ZkConnection} to decorate.
+     */
+    public WrappedUncheckedZkConnection(final ZkConnection decorated) {
         this.decorated = decorated;
     }
 
@@ -107,8 +115,8 @@ public final class ZkUnchecked implements UncheckedZk {
     }
 
     @Override
-    public InterProcessLock createLock(final String nLock) {
-        return this.decorated.createLock(nLock);
+    public ZkLock acquireLock(final String path) {
+        return this.decorated.acquireLock(path);
     }
 
     @Override

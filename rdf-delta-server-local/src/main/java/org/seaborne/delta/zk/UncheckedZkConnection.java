@@ -1,13 +1,12 @@
 package org.seaborne.delta.zk;
 
-import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
 
 import java.util.List;
 
-public interface UncheckedZk extends Zk {
+public interface UncheckedZkConnection extends ZkConnection {
     @Override
     boolean pathExists(String path);
 
@@ -54,7 +53,7 @@ public interface UncheckedZk extends Zk {
     void deleteZNode(String path);
 
     @Override
-    InterProcessLock createLock(String nLock);
+    ZkLock acquireLock(String path);
 
     @Override
     void close();

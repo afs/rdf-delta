@@ -1,13 +1,12 @@
 package org.seaborne.delta.zk;
 
-import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
 
 import java.util.List;
 
-public interface Zk extends AutoCloseable {
+public interface ZkConnection extends AutoCloseable {
     boolean pathExists(String path) throws Exception;
 
     String ensurePathExists(String path) throws Exception;
@@ -38,5 +37,5 @@ public interface Zk extends AutoCloseable {
 
     void deleteZNode(String path) throws Exception;
 
-    InterProcessLock createLock(String nLock);
+    ZkLock acquireLock(String path) throws Exception;
 }

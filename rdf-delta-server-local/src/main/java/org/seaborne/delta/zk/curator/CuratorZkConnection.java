@@ -1,4 +1,4 @@
-package org.seaborne.delta.zk;
+package org.seaborne.delta.zk.curator;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -12,14 +12,19 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
 import org.seaborne.delta.lib.JSONX;
+import org.seaborne.delta.zk.ZkConnection;
+import org.seaborne.delta.zk.ZkLock;
+
 import java.util.List;
+
+import static org.seaborne.delta.server.local.DPS.LOG;
 
 /**
  * This is an Object-Oriented implementation of the previous Zk utility class. This class is being introduced
  * to replicate the functionality of the previous design in transition to a more reliable implementation that uses
  * either a heavily patched Curator or discards Curator altogether.
  */
-public final class ZkCurator implements Zk {
+public final class CuratorZkConnection implements ZkConnection {
     /**
      * Encapsulated {@link CuratorFramework}.
      * This is intended to live inside the boundaries of a blackbox. Therefore, it is not exposed to the outside world
@@ -32,8 +37,8 @@ public final class ZkCurator implements Zk {
      * @param connectString The string to bootstrap the connection with.
      * @return An instantiated and started ZkCurator.
      */
-    public static ZkCurator connect(final String connectString) {
-        final var curator = new ZkCurator(
+    public static CuratorZkConnection connect(final String connectString) {
+        final var curator = new CuratorZkConnection(
             CuratorFrameworkFactory.builder()
                 .connectString(connectString)
                 .ensembleTracker(true)
@@ -54,7 +59,7 @@ public final class ZkCurator implements Zk {
      * Private constructor used by the factory method for instantiation.
      * @param curator The {@link CuratorFramework} to encapsulate in the resulting object.
      */
-    private ZkCurator(final CuratorFramework curator) {
+    private CuratorZkConnection(final CuratorFramework curator) {
         this.curator = curator;
     }
 
@@ -159,8 +164,13 @@ public final class ZkCurator implements Zk {
     }
 
     @Override
-    public InterProcessLock createLock(final String nLock) {
-        return new InterProcessSemaphoreMutex(this.curator, nLock);
+    public ZkLock acquireLock(final String path) throws Exception {
+        final InterProcessLock lock = new InterProcessSemaphoreMutex(this.curator, path);
+        lock.acquire();
+        if ( ! lock.isAcquiredInThisProcess() ) {
+            LOG.warn("zkLock: lock.isAcquiredInThisProcess() is false");
+        }
+        return new CuratorZkLock(lock);
     }
 
     @Override
