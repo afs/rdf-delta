@@ -32,6 +32,7 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.zk.UncheckedZkConnection;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
 
@@ -60,7 +61,7 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
             s3.client.createBucket(s3.bucketName);
         }
         // The usual PatchStoreZk for the index, but remembering DetailsS3
-        CuratorFramework client = zk(config);
+        UncheckedZkConnection client = zk(config);
         return new PatchStoreZkS3(client, this, s3);
     }
 

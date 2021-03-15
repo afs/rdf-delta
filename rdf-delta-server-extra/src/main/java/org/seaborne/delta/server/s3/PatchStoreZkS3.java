@@ -17,7 +17,6 @@
 
 package org.seaborne.delta.server.s3;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
@@ -25,12 +24,13 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3.DetailsS3;
+import org.seaborne.delta.zk.UncheckedZkConnection;
 
 public class PatchStoreZkS3 extends PatchStoreZk {
 
     private final DetailsS3 s3;
 
-    PatchStoreZkS3(CuratorFramework client, PatchStoreProvider psp, DetailsS3 s3) {
+    PatchStoreZkS3(UncheckedZkConnection client, PatchStoreProvider psp, DetailsS3 s3) {
         super(client, psp);
         this.s3 = s3;
     }
