@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Library of Zookeeper server operations.
- * @see Zk 
+ * @see ZkLegacy
  */
 public class ZkS {
     private final static Logger LOG = LoggerFactory.getLogger(ZkS.class);
