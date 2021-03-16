@@ -20,14 +20,12 @@ package org.seaborne.delta.zk.direct;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.ACL;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.zk.ZkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -39,7 +37,9 @@ public final class DirectZkConnection implements ZkConnection {
 
     public static DirectZkConnection connect(final String connectString) throws IOException {
         return new DirectZkConnection(
-            new ZooKeeper(connectString, 10_000, null)
+            new ZooKeeper(connectString, 10_000, watchedEvent -> {
+                // nop
+            })
         );
     }
 
