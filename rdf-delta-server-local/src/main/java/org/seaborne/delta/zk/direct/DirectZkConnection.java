@@ -99,7 +99,7 @@ public final class DirectZkConnection implements ZkConnection {
         return this.client.create(
             path,
             new byte[0],
-            List.of(new ACL(ZooDefs.Perms.ALL, ZooDefs.Ids.ANYONE_ID_UNSAFE)),
+            ZooDefs.Ids.OPEN_ACL_UNSAFE,
             mode
         );
     }
@@ -114,7 +114,7 @@ public final class DirectZkConnection implements ZkConnection {
         return this.client.create(
             path,
             bytes,
-            List.of(new ACL(ZooDefs.Perms.ALL, ZooDefs.Ids.ANYONE_ID_UNSAFE)),
+            ZooDefs.Ids.OPEN_ACL_UNSAFE,
             CreateMode.PERSISTENT
         );
     }

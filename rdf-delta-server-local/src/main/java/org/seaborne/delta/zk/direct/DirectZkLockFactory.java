@@ -53,7 +53,7 @@ public final class DirectZkLockFactory {
         final String lockPath = this.client.create(
             String.format("%s/%s", path, "directZkLock"),
             new byte[0],
-            List.of(new ACL(ZooDefs.Perms.ALL, ZooDefs.Ids.ANYONE_ID_UNSAFE)),
+            ZooDefs.Ids.OPEN_ACL_UNSAFE,
             CreateMode.EPHEMERAL_SEQUENTIAL
         );
         final String lockNodeName = lockPath.replace(String.format("%s/", path), "");
