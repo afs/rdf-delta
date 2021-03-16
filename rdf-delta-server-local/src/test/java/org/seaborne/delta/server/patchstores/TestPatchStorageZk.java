@@ -27,6 +27,7 @@ import org.seaborne.delta.server.local.patchstores.zk.PatchStorageZk;
 import org.seaborne.delta.zk.UncheckedZkConnection;
 import org.seaborne.delta.zk.WrappedUncheckedZkConnection;
 import org.seaborne.delta.zk.curator.CuratorZkConnection;
+import org.seaborne.delta.zk.direct.DirectZkConnection;
 
 public class TestPatchStorageZk extends AbstractTestPatchStorage {
     static { LogX.setJavaLogging(); }
@@ -40,12 +41,12 @@ public class TestPatchStorageZk extends AbstractTestPatchStorage {
         try {
             server = ZkT.localServer();
             server.start();
+            String connectionString = "localhost:"+server.getPort();
+            client = new WrappedUncheckedZkConnection(DirectZkConnection.connect(connectionString));
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
         }
-        String connectionString = "localhost:"+server.getPort();
-        client = new WrappedUncheckedZkConnection(CuratorZkConnection.connect(connectionString));
     }
 
     @After public void after() {

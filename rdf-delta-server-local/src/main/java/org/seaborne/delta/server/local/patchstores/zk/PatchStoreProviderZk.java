@@ -25,8 +25,11 @@ import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.zk.UncheckedZkConnection;
-import org.seaborne.delta.zk.curator.CuratorZkConnection;
+import org.seaborne.delta.zk.ZkException;
 import org.seaborne.delta.zk.WrappedUncheckedZkConnection;
+import org.seaborne.delta.zk.direct.DirectZkConnection;
+
+import java.io.IOException;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
@@ -44,7 +47,14 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
         String connectionString = config.getProperty(DeltaConst.pDeltaZk);
         if ( connectionString == null )
             Log.error(this, "No connection string in configuration");
-        return new WrappedUncheckedZkConnection(CuratorZkConnection.connect(connectionString));
+        try {
+            return new WrappedUncheckedZkConnection(DirectZkConnection.connect(connectionString));
+        } catch (IOException e) {
+            throw new ZkException(
+                String.format("Unable to connect to ZooKeeper with connect string %s", connectionString),
+                e
+            );
+        }
     }
 
     @Override
