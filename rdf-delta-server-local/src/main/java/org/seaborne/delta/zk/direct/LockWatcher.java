@@ -24,12 +24,18 @@ import org.apache.zookeeper.Watcher;
  * Watcher to monitor for the deletion of the predecessor to the current lock.
  */
 public final class LockWatcher implements Watcher {
+    private boolean lockAcquired = false;
     @Override
     public void process(final WatchedEvent watchedEvent) {
         if (watchedEvent.getType() == Event.EventType.NodeDeleted) {
             synchronized(this) {
+                this.lockAcquired = true;
                 this.notify();
             }
         }
+    }
+
+    public boolean isLockAcquired() {
+        return this.lockAcquired;
     }
 }

@@ -61,13 +61,17 @@ public final class DirectZkLockFactory {
             .filter(x -> x.compareTo(lockNodeName) < 0)
             .max(Comparator.naturalOrder());
         if (predecessor.isPresent()) {
-            final Watcher watcher = new LockWatcher();
+            final LockWatcher watcher = new LockWatcher();
             this.client.addWatch(
                 String.format("%s/%s", path, predecessor.get()),
                 watcher,
                 AddWatchMode.PERSISTENT
             );
-            watcher.wait();
+            synchronized (watcher) {
+                do {
+                    watcher.wait();
+                } while (!watcher.isLockAcquired());
+            }
             this.client.removeWatches(predecessor.get(), watcher, Watcher.WatcherType.Any, true);
         }
         return new DirectZkLock(this.client, lockPath);
