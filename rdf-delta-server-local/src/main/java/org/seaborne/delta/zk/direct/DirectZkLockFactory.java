@@ -17,11 +17,8 @@
 
 package org.seaborne.delta.zk.direct;
 
-import org.apache.zookeeper.AddWatchMode;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.ACL;
 
 import java.util.Comparator;
 import java.util.List;
@@ -56,7 +53,7 @@ public final class DirectZkLockFactory {
         final String lockPath = this.client.create(
             String.format("%s/%s", path, "directZkLock"),
             new byte[0],
-            List.of(),
+            List.of(new ACL(ZooDefs.Perms.ALL, ZooDefs.Ids.ANYONE_ID_UNSAFE)),
             CreateMode.EPHEMERAL_SEQUENTIAL
         );
         final String lockNodeName = lockPath.replace(String.format("%s/", path), "");

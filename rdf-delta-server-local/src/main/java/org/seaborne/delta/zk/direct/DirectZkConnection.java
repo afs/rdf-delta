@@ -19,10 +19,8 @@ package org.seaborne.delta.zk.direct;
 
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.ACL;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.zk.ZkConnection;
 import org.slf4j.Logger;
@@ -98,7 +96,12 @@ public final class DirectZkConnection implements ZkConnection {
 
     @Override
     public String createZNode(final String path, CreateMode mode) throws KeeperException, InterruptedException {
-        return this.client.create(path, new byte[0], new ArrayList<>(0), mode);
+        return this.client.create(
+            path,
+            new byte[0],
+            List.of(new ACL(ZooDefs.Perms.ALL, ZooDefs.Ids.ANYONE_ID_UNSAFE)),
+            mode
+        );
     }
 
     @Override
@@ -108,7 +111,12 @@ public final class DirectZkConnection implements ZkConnection {
 
     @Override
     public String createAndSetZNode(final String path, byte[] bytes) throws KeeperException, InterruptedException {
-        return this.client.create(path, bytes, new ArrayList<>(0), CreateMode.PERSISTENT);
+        return this.client.create(
+            path,
+            bytes,
+            List.of(new ACL(ZooDefs.Perms.ALL, ZooDefs.Ids.ANYONE_ID_UNSAFE)),
+            CreateMode.PERSISTENT
+        );
     }
 
     @Override
