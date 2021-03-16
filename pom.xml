@@ -579,7 +579,7 @@
             <exclude>**/.classpath</exclude>
             <exclude>**/*.recommenders/**/*</exclude>
 
-            <exclude>**/delta.classpath</exclude>
+            <exclude>**/delta.classpath*</exclude>
             <exclude>**/README.*</exclude>
             <exclude>**/*.cfg</exclude>
 

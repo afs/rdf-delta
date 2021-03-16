@@ -4,7 +4,7 @@
 *.war
 hs_err_pid*
 
-delta.classpath
+delta.classpath*
 
 ## Local
 /local/
