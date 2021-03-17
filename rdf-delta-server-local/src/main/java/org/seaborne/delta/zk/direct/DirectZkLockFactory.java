@@ -17,17 +17,24 @@
 
 package org.seaborne.delta.zk.direct;
 
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.AddWatchMode;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 
 /**
  * Acquires distributed locks.
  */
 public final class DirectZkLockFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(DirectZkLockFactory.class);
+
     /**
      * ZooKeeper connection.
      */
@@ -50,17 +57,22 @@ public final class DirectZkLockFactory {
      * @throws InterruptedException if the server transaction is interrupted.
      */
     public DirectZkLock acquire(final String path) throws KeeperException, InterruptedException {
+        LOG.debug("Path: {}", path);
         final String lockPath = this.client.create(
             String.format("%s/%s", path, "directZkLock"),
             new byte[0],
             ZooDefs.Ids.OPEN_ACL_UNSAFE,
             CreateMode.EPHEMERAL_SEQUENTIAL
         );
+        LOG.debug("LockPath: {}", lockPath);
         final String lockNodeName = lockPath.replace(String.format("%s/", path), "");
+        LOG.debug("LockNodeName: {}", lockNodeName);
         final Optional<String> predecessor = this.client.getChildren(path, false).stream()
             .filter(x -> x.compareTo(lockNodeName) < 0)
             .max(Comparator.naturalOrder());
+        LOG.debug("Will wait? {}", predecessor.isPresent());
         if (predecessor.isPresent()) {
+            LOG.debug("Setting a watcher on predecessor: {}", predecessor.get());
             final LockWatcher watcher = new LockWatcher();
             this.client.addWatch(
                 String.format("%s/%s", path, predecessor.get()),
@@ -69,9 +81,12 @@ public final class DirectZkLockFactory {
             );
             synchronized (watcher) {
                 do {
+                    LOG.debug("Going to sleep.");
                     watcher.wait();
+                    LOG.debug("Waking up.");
                 } while (!watcher.isLockAcquired());
             }
+            LOG.debug("Cleaning up the watcher.");
             this.client.removeWatches(predecessor.get(), watcher, Watcher.WatcherType.Any, true);
         }
         return new DirectZkLock(this.client, lockPath);

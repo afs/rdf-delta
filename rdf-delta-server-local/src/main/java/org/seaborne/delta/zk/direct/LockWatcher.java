@@ -19,18 +19,25 @@ package org.seaborne.delta.zk.direct;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Watcher to monitor for the deletion of the predecessor to the current lock.
  */
 public final class LockWatcher implements Watcher {
+    private static final Logger LOG = LoggerFactory.getLogger(LockWatcher.class);
+
     private boolean lockAcquired = false;
+
     @Override
     public void process(final WatchedEvent watchedEvent) {
+        LOG.debug("Event received: {}", watchedEvent.getType());
         if (watchedEvent.getType() == Event.EventType.NodeDeleted) {
             synchronized(this) {
+                LOG.debug("Signaling that the lock is acquired.");
                 this.lockAcquired = true;
-                this.notify();
+                this.notifyAll();
             }
         }
     }
