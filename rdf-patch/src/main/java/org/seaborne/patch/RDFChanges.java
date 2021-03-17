@@ -24,7 +24,6 @@ import org.apache.jena.sparql.core.Quad;
  * For an RDF graph, the "graph name" will be null.
  */
 public interface RDFChanges {
-    // XXX
     // Consider the triples versions.
 
     /** Header field.
@@ -115,6 +114,4 @@ public interface RDFChanges {
      * This should be paired with a {@link #start}.
      */
     public void finish();
-
-
 }
