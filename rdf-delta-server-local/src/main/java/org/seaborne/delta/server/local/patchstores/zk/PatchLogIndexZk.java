@@ -124,9 +124,11 @@ public class PatchLogIndexZk implements PatchLogIndex {
             earliestVersion = Version.create(1);
         else {
             try {
-                long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+                long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).orElseThrow();
                 earliestVersion = Version.create(ver);
-            } catch (NoSuchElementException ex) {  }
+            } catch (NoSuchElementException ex) {
+                FmtLog.warn(LOG, "Failed to find the earliest value when thee is at least one version");
+            }
         }
         earliestId = versionToId(earliestVersion);
         // Initialize, start watching

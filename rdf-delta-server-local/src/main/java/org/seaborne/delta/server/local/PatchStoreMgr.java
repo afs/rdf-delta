@@ -17,11 +17,13 @@
 
 package org.seaborne.delta.server.local;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
-import org.apache.jena.ext.com.google.common.collect.BiMap ;
-import org.apache.jena.ext.com.google.common.collect.HashBiMap ;
 import org.seaborne.delta.server.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,34 +39,6 @@ public class PatchStoreMgr {
 
     private static Map<Provider, PatchStoreProvider> providers = new HashMap<>();
 
-    // ---- Short name / long name.
-    private static BiMap<String, Provider> shortName2LongName = HashBiMap.create();
-
-    public static void registerShortName(String shortName, Provider provider) {
-        shortName2LongName.put(shortName, provider);
-    }
-
-    /** Short name to {@link Provider}
-     *  A return of null means "don't know".
-     */
-    public static Provider shortName2LongName(String shortName) {
-        if ( shortName == null )
-            return null;
-        return shortName2LongName.get(shortName);
-    }
-
-    public static String longName2ShortName(Provider provider) {
-        return shortName2LongName.inverse().get(provider);
-    }
-    // ----
-
-    public static Collection<PatchStoreProvider> registered() {
-        return new HashSet<>(providers.values());
-    }
-
-    public static boolean isRegistered(Provider provider) {
-        return providers.containsKey(provider);
-    }
 
     /**
      * Add a {@link PatchStore} using the given {@link PatchStoreProvider} for details and
@@ -72,7 +46,7 @@ public class PatchStoreMgr {
      */
     public static void register(PatchStoreProvider patchStoreProvider) {
         Provider provider = patchStoreProvider.getType();
-        registerShortName(patchStoreProvider.getShortName(), provider);
+        DPS.registerShortName(patchStoreProvider.getShortName(), provider);
         providers.put(provider, patchStoreProvider);
     }
 
@@ -84,6 +58,16 @@ public class PatchStoreMgr {
         PatchStoreProvider psp = providers.remove(provider);
     }
 
+    // ----
+
+    public static Collection<PatchStoreProvider> registered() {
+        return new HashSet<>(providers.values());
+    }
+
+    public static boolean isRegistered(Provider provider) {
+        return providers.containsKey(provider);
+    }
+
     /**
      * Get the {@link PatchStoreProvider} by enum-name.
      */
@@ -92,7 +76,6 @@ public class PatchStoreMgr {
     }
 
     public static void reset() {
-        shortName2LongName.clear();
         providers.clear();
     }
 }
