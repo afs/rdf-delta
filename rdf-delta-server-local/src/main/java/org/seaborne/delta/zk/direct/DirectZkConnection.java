@@ -20,6 +20,7 @@ package org.seaborne.delta.zk.direct;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.zookeeper.*;
+import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.zk.ZkConnection;
 import org.slf4j.Logger;
@@ -150,6 +151,8 @@ public final class DirectZkConnection implements ZkConnection {
     public <X> X runWithLock(final String path, final Supplier<X> action) {
         try (var ignored = this.lockFactory.acquire(path)) {
             return action.get();
+        } catch(DeltaException ex) {
+            throw ex;
         } catch (InterruptedException e) {
             LOG.error("Interrupted while attempting to acquire a lock.", e);
         } catch (KeeperException e) {
