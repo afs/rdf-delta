@@ -27,44 +27,44 @@ import java.util.function.Consumer ;
  * All initialization should be concurrent and thread-safe.  In particular,
  * some subsystems need initialization in some sort of order (e.g. ARQ before TDB).
  * <p>
- * This is achieved by "levels": levels less than 100 are considered "Delta system levels" 
- * and are reserved. 
+ * This is achieved by "levels": levels less than 100 are considered "Delta system levels"
+ * and are reserved.
  * <ul>
  * <li>0 - reserved
- * <li>10 - 
- * <li>20 - 
- * <li>30 - 
- * <li>40 - 
+ * <li>10 -
+ * <li>20 -
+ * <li>30 -
+ * <li>40 -
  * <li>9999 - other
  * </ul>
  * See also the <a href="http://jena.apache.org/documentation/notes/system-initialization.html">notes on Jena initialization</a>.
  * <p>
- * This jiggery-pokery because generics are by erasure.
+ * This jiggery-pokery is because generics are by erasure.
  */
 class Initializer<T extends SubsystemLifecycle> {
     private final boolean DEBUG_INIT ;
     private final T level0 ;
     private final Class<T> cls ;
     private final String NAME ;
-    
+
     // A correct way to manage without synchonized using the double checked locking pattern.
     //   http://en.wikipedia.org/wiki/Double-checked_locking
-    //   http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html 
+    //   http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html
     static volatile boolean initialized = false ;
     static Object initLock = new Object() ;
-    
+
     Initializer(Class<T> cls, T level0, boolean DEBUG_INIT, String NAME) {
         this.cls = cls;
         this.level0 = level0;
         this.DEBUG_INIT = DEBUG_INIT;
         this.NAME = NAME;
     }
-    
+
     /** Initialize.
      * <p>
      * This function is cheap to call when already initialized so can be called to be sure.
      * A commonly used idiom is a static initializer in key classes.
-     * <p> 
+     * <p>
      * By default, initialization happens by using {@code ServiceLoader.load} to find
      * {@link SubsystemLifecycle} objects.
      * See {@link #setSubsystemRegistry} to intercept that choice.
@@ -72,7 +72,7 @@ class Initializer<T extends SubsystemLifecycle> {
 
     void init() {
         // Any other thread attempting to initialize as well will
-        // first test the volatile outside the lock; if it's 
+        // first test the volatile outside the lock; if it's
         // not INITIALIZED, the thread will attempt to grab the lock
         // and hence wait, then see initialized as true.
 
@@ -80,7 +80,7 @@ class Initializer<T extends SubsystemLifecycle> {
         // The same thread will not stop at the lock.
         // Set initialized to true before a recursive call is possible
         // handles this.  The recursive call will see initialized true and
-        // and returnn on the first test.
+        // and return on the first test.
 
         // Net effect:
         // After a top level call of DeltaSystem.init() returns, Delta has
@@ -93,7 +93,7 @@ class Initializer<T extends SubsystemLifecycle> {
             if ( initialized )  {
                 logLifecycle("init - return");
                 return ;
-            } 
+            }
             // Catches recursive calls, same thread.
             initialized = true ;
             logLifecycle("init - start");
@@ -133,7 +133,7 @@ class Initializer<T extends SubsystemLifecycle> {
             return ;
         }
         synchronized(initLock) {
-            if ( ! initialized ) { 
+            if ( ! initialized ) {
                 logLifecycle("shutdown - return");
                 return ;
             }
@@ -168,7 +168,7 @@ class Initializer<T extends SubsystemLifecycle> {
      * Call an action on each item in the registry. Calls are made sequentially
      * and in increasing level order. The exact order within a level is not
      * specified; it is not registration order.
-     * 
+     *
      * @param action
      */
     void forEach(Consumer<T> action) {
@@ -180,7 +180,7 @@ class Initializer<T extends SubsystemLifecycle> {
      * enumeration order. Calls are made sequentially and in decreasing level
      * order. The "reverse" is opposite order to {@link #forEach}, which may not
      * be stable within a level. It is not related to registration order.
-     * 
+     *
      * @param action
      */
     void forEachReverse(Consumer<T> action) {
@@ -202,7 +202,7 @@ class Initializer<T extends SubsystemLifecycle> {
     void logLifecycle(String fmt, Object ...args) {
         logLifecycle(DEBUG_INIT, NAME, fmt, args);
     }
-    
+
     /** Output a debugging message if DEBUG_INIT is set */
     static void logLifecycle(boolean DEBUG_INIT, String NAME, String fmt, Object ...args) {
         if ( ! DEBUG_INIT )

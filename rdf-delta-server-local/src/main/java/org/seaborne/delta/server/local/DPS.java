@@ -18,6 +18,7 @@
 package org.seaborne.delta.server.local;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.Provider;
@@ -32,6 +33,7 @@ import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.system.DeltaSystem;
 import org.slf4j.Logger;
 
+/** Delta Patch Server */
 public class DPS {
 
     public static Logger LOG = Delta.DELTA_LOG;
@@ -40,32 +42,34 @@ public class DPS {
     private static volatile boolean initializedFirst = false;
     private static volatile boolean initializedLast = false;
 
-//    public static String PatchStoreFileProvider     = "PatchStore/File";
-//    public static String PatchStoreDatabaseProvider = "PatchStore/DB";
-//    public static String PatchStoreMemProvider      = "PatchStore/Mem";
-//    public static String PatchStoreZkProvider       = "PatchStore/Zk";
-
-    // Short names.
+    // Constants for PatchStoreProvider names.
     public static final String pspFile    = "file";
     public static final String pspRocks   = "rdb";
     public static final String pspMem     = "mem";
     public static final String pspZk      = "zk";
     public static final String pspZkS3    = "zks3";
     public static final String pspLocal   = "local";
-    private static final Map<String, Provider> providerByName = new HashMap<>();
 
-    static {
-        providerByName.put(pspMem,   Provider.MEM);
-        providerByName.put(pspFile,  Provider.FILE);
-        providerByName.put(pspRocks, Provider.ROCKS);
-        providerByName.put(pspZk,    Provider.ZKZK);
-        providerByName.put(pspZkS3,  Provider.ZKS3);
-        providerByName.put(pspLocal, Provider.LOCAL);
+    // ---- Provider name registry.
+    private static Map<String, Provider> providerByName = new ConcurrentHashMap<>();
+
+    /** Register provided by name (name used in log_type). */
+    public static void registerShortName(String name, Provider provider) {
+        String cname = canonicalProviderName(name);
+        providerByName.put(cname, provider);
     }
+
+    /**
+     * Return the {@link Provider} registered with the given name.
+     * A return of null means "no such provider registered".
+     */
     public static Provider providerByName(String name) {
-        if ( name == null) return null;
-        return providerByName.get(name.toLowerCase(Locale.ROOT));
+        if ( name == null )
+            return null;
+        String cname = canonicalProviderName(name);
+        return providerByName.get(cname);
     }
+    // ----
 
     public static void initFirst() {
         if ( initializedFirst )
@@ -102,37 +106,43 @@ public class DPS {
      */
     public static void resetSystem() {
         DeltaSystem.init();
-        DPS.initFirst();
+        initFirst();
 
         // Clear any state.
         LocalServer.releaseAll();
         FileStore.resetTracked();
         PatchStoreFile.resetTracked();
         PatchStoreRocks.resetTracked();
-        // PatchStoreMgr.reset clears the patch store providers
+
+        providerByName.clear();
         PatchStoreMgr.reset();
 
         initPatchStoreProviders();
-        // And ZkS3?
+        // Does not cover ZkS3.
 
-        DPS.initLast();
+        initLast();
     }
 
-    // Things to do once.
+    // Things to do once per initialization
     private static void initPatchStoreProviders() {
-        List<PatchStoreProvider> providers = new ArrayList<>();
-
-        // Hard coded the discovery.
-        providers.add(new PatchStoreProviderFile());
-        //providers.add(new PatchStoreProviderFileOriginal());
-        providers.add(new PatchStoreProviderRocks());
-        providers.add(new PatchStoreProviderMem());
-        providers.add(new PatchStoreProviderZk());
-        providers.add(new PatchStoreProviderAnyLocal());
+        // The standard set of PatchStoreProviders
+        List<PatchStoreProvider> providers = Arrays.asList(
+            new PatchStoreProviderFile(),
+            new PatchStoreProviderRocks(),
+            new PatchStoreProviderMem(),
+            new PatchStoreProviderZk(),
+            new PatchStoreProviderAnyLocal()
+        );
 
         providers.forEach(psp->{
-            LOG.debug("Provider: "+psp.getType().toString().toLowerCase()+"{"+psp.getShortName()+"}");
+            LOG.debug("Provider: "+psp.getShortName());
             PatchStoreMgr.register(psp);
         });
+    }
+
+    private static String canonicalProviderName(String name) {
+        if ( name== null )
+            return null;
+        return name.toLowerCase(Locale.ROOT).trim();
     }
 }
