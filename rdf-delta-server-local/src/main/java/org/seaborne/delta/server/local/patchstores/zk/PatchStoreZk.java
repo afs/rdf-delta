@@ -321,11 +321,11 @@ public class PatchStoreZk extends PatchStore {
             // This triggers watchers.
             String zkActiveLog = ZKPaths.makePath(ZkConst.pActiveLogs, dsName, new String[]{});
             if ( this.client.pathExists(zkActiveLog) ) {
-                this.client.deleteZNode(zkActiveLog);
+                this.client.deleteZNodeAndChildren(zkActiveLog);
             }
             String logPath = ZKPaths.makePath(ZkConst.pLogs, dsName, new String[]{});
             // Clear up.
-            this.client.deleteZNode(logPath);
+            this.client.deleteZNodeAndChildren(logPath);
         });
     }
 

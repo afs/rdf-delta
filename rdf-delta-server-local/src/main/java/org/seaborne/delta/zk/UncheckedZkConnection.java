@@ -67,7 +67,7 @@ public interface UncheckedZkConnection extends ZkConnection {
     void setZNode(String path, byte[] bytes);
 
     @Override
-    void deleteZNode(String path);
+    void deleteZNodeAndChildren(String path);
 
     @Override
     void close();

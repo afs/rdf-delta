@@ -53,7 +53,7 @@ public interface ZkConnection extends AutoCloseable {
 
     void setZNode(String path, byte[] bytes) throws Exception;
 
-    void deleteZNode(String path) throws Exception;
+    void deleteZNodeAndChildren(String path) throws Exception;
 
     void runWithLock(String path, Runnable action);
 

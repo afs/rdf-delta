@@ -131,14 +131,18 @@ public final class DirectZkConnection implements ZkConnection {
     }
 
     @Override
-    public void deleteZNode(final String path) throws KeeperException, InterruptedException {
+    public void deleteZNodeAndChildren(final String path) throws KeeperException, InterruptedException {
         final Transaction transaction = this.client.transaction();
+        this.deleteZNodeAndChildren(transaction, path);
+        transaction.commit();
+    }
+
+    private void deleteZNodeAndChildren(final Transaction transaction, final String path) throws KeeperException, InterruptedException {
         for (final String child : this.client.getChildren(path, false)) {
             final String childPath = String.format("%s/%s", path, child);
-            transaction.delete(childPath, this.client.exists(childPath, false).getVersion());
+            this.deleteZNodeAndChildren(transaction, childPath);
         }
         transaction.delete(path, this.client.exists(path, false).getVersion());
-        transaction.commit();
     }
 
     @Override

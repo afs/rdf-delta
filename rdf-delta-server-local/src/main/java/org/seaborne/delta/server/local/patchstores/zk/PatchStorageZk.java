@@ -80,7 +80,7 @@ public class PatchStorageZk implements PatchStorage {
     @Override
     public void delete(Id id) {
         String p = ZKPaths.makePath(patches, id.asPlainString(), new String[]{});
-        this.client.deleteZNode(p);
+        this.client.deleteZNodeAndChildren(p);
     }
 
     @Override

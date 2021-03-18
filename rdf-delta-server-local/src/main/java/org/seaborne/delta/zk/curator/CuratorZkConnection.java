@@ -181,7 +181,7 @@ public final class CuratorZkConnection implements ZkConnection {
     }
 
     @Override
-    public void deleteZNode(final String path) throws Exception {
+    public void deleteZNodeAndChildren(final String path) throws Exception {
         this.curator.delete().deletingChildrenIfNeeded().forPath(path);
     }
 

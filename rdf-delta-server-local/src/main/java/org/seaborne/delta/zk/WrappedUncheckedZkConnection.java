@@ -124,10 +124,10 @@ public final class WrappedUncheckedZkConnection implements UncheckedZkConnection
     }
 
     @Override
-    public void deleteZNode(final String path) {
+    public void deleteZNodeAndChildren(final String path) {
         wrapException(
             () -> {
-                this.decorated.deleteZNode(path);
+                this.decorated.deleteZNodeAndChildren(path);
                 return null;
             }
         );
