@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Acquires distributed locks.
@@ -38,13 +39,13 @@ public final class DirectZkLockFactory {
     /**
      * ZooKeeper connection.
      */
-    private final ZooKeeper client;
+    private final Supplier<ZooKeeper> client;
 
     /**
      * Constructs an instance from a ZooKeeper connection.
      * @param client Zookeeper connection.
      */
-    public DirectZkLockFactory(final ZooKeeper client) {
+    public DirectZkLockFactory(final Supplier<ZooKeeper> client) {
         this.client = client;
     }
 
@@ -58,7 +59,7 @@ public final class DirectZkLockFactory {
      */
     public DirectZkLock acquire(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Path: {}", path);
-        final String lockPath = this.client.create(
+        final String lockPath = this.client.get().create(
             String.format("%s/%s", path, "directZkLock"),
             new byte[0],
             ZooDefs.Ids.OPEN_ACL_UNSAFE,
@@ -67,14 +68,14 @@ public final class DirectZkLockFactory {
         LOG.debug("LockPath: {}", lockPath);
         final String lockNodeName = lockPath.replace(String.format("%s/", path), "");
         LOG.debug("LockNodeName: {}", lockNodeName);
-        final Optional<String> predecessor = this.client.getChildren(path, false).stream()
+        final Optional<String> predecessor = this.client.get().getChildren(path, false).stream()
             .filter(x -> x.compareTo(lockNodeName) < 0)
             .max(Comparator.naturalOrder());
         LOG.debug("Will wait? {}", predecessor.isPresent());
         if (predecessor.isPresent()) {
             LOG.debug("Setting a watcher on predecessor: {}", predecessor.get());
             final LockWatcher watcher = new LockWatcher();
-            this.client.addWatch(
+            this.client.get().addWatch(
                 String.format("%s/%s", path, predecessor.get()),
                 watcher,
                 AddWatchMode.PERSISTENT
@@ -87,7 +88,7 @@ public final class DirectZkLockFactory {
                 } while (!watcher.isLockAcquired());
             }
             LOG.debug("Cleaning up the watcher.");
-            this.client.removeWatches(predecessor.get(), watcher, Watcher.WatcherType.Any, true);
+            this.client.get().removeWatches(predecessor.get(), watcher, Watcher.WatcherType.Any, true);
         }
         return new DirectZkLock(this.client, lockPath);
     }

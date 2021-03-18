@@ -26,7 +26,6 @@ import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStorageZk;
 import org.seaborne.delta.zk.UncheckedZkConnection;
 import org.seaborne.delta.zk.WrappedUncheckedZkConnection;
-import org.seaborne.delta.zk.curator.CuratorZkConnection;
 import org.seaborne.delta.zk.direct.DirectZkConnection;
 
 public class TestPatchStorageZk extends AbstractTestPatchStorage {

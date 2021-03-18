@@ -18,6 +18,7 @@
 package org.seaborne.delta.server.local.patchstores.zk;
 
 import org.apache.jena.atlas.logging.Log;
+import org.apache.zookeeper.KeeperException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
@@ -49,7 +50,7 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
             Log.error(this, "No connection string in configuration");
         try {
             return new WrappedUncheckedZkConnection(DirectZkConnection.connect(connectionString));
-        } catch (IOException e) {
+        } catch (final IOException | KeeperException | InterruptedException e) {
             throw new ZkException(
                 String.format("Unable to connect to ZooKeeper with connect string %s", connectionString),
                 e

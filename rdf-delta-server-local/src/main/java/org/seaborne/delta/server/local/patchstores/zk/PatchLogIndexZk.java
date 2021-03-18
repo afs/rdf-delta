@@ -414,7 +414,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
                     return;
                 if ( ! session.equals(lockState.session) )
                     return;
-                this.client.setZNode(lockStatePath, (byte[]) null);
+                this.client.setZNode(lockStatePath, new byte[0]);
             }
         );
     }
