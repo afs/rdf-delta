@@ -96,7 +96,7 @@ public final class DirectZkConnection implements ZkConnection {
     }
 
     @Override
-    public String createZNode(final String path, CreateMode mode) throws KeeperException, InterruptedException {
+    public String createZNode(final String path, final CreateMode mode) throws KeeperException, InterruptedException {
         return this.client.create(
             path,
             new byte[0],
@@ -106,7 +106,7 @@ public final class DirectZkConnection implements ZkConnection {
     }
 
     @Override
-    public String createAndSetZNode(final String path, JsonObject object) throws Exception {
+    public String createAndSetZNode(final String path, final JsonObject object) throws Exception {
         return this.createAndSetZNode(path, JSONX.asBytes(object));
     }
 
@@ -121,22 +121,24 @@ public final class DirectZkConnection implements ZkConnection {
     }
 
     @Override
-    public void setZNode(final String path, JsonObject object) throws Exception {
+    public void setZNode(final String path, final JsonObject object) throws Exception {
         this.setZNode(path, JSONX.asBytes(object));
     }
 
     @Override
-    public void setZNode( final String path, byte[] bytes) throws KeeperException, InterruptedException {
+    public void setZNode(final String path, byte[] bytes) throws KeeperException, InterruptedException {
         this.client.setData(path, bytes, this.client.exists(path, false).getVersion());
     }
 
     @Override
     public void deleteZNode(final String path) throws KeeperException, InterruptedException {
+        final Transaction transaction = this.client.transaction();
         for (final String child : this.client.getChildren(path, false)) {
             final String childPath = String.format("%s/%s", path, child);
-            this.client.delete(childPath, this.client.exists(childPath, false).getVersion());
+            transaction.delete(childPath, this.client.exists(childPath, false).getVersion());
         }
-        this.client.delete(path, this.client.exists(path, false).getVersion());
+        transaction.delete(path, this.client.exists(path, false).getVersion());
+        transaction.commit();
     }
 
     @Override
