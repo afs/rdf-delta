@@ -207,7 +207,7 @@ public class LogLock {
      * Number of attempts watching for the session to change or ticks not to change.
      *
      * This is the inner loop.
-     * Related: retry frequency in {@link LogLockMgr#REFRESH_MS}.
+     * @see LogLockMgr
      */
     private static int LOCK_SAME_TICKS_RETRIES          = 60;
 

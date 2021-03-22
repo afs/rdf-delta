@@ -300,7 +300,7 @@ public abstract class PatchStore {
 
     /** Create and properly register a new {@link PatchLog}.
      *  Call this to add new patch logs including remote changes.
-     *  This method calls {@link #create} provided by the subclass.
+     *  This method calls {@link #newPatchLog(DataSourceDescription)} provided by the subclass.
      *  This method called by PatchStoreZk when a new log appears.
      */
     final

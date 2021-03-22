@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Filename policy where files are "filebase-yyyy-mm-dd_hh-mm-ss"
- *  and do not rollover automatically, only when prompted via {@link #forceRollover}.
+ *  and do not rollover automatically, only when prompted via {@link #rotate()}.
  */
 class RollerTimestamp implements Roller {
     private final static Logger LOG = LoggerFactory.getLogger(RollerTimestamp.class);

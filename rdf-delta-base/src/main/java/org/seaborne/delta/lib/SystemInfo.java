@@ -28,7 +28,7 @@ public class SystemInfo {
 
     /**
      * Object which holds metadata specified within
-     * {@link Fuseki#metadataLocation}
+     * {@link org.apache.jena.fuseki.Fuseki}#metadataLocation.
      */
     static private Metadata metadata                     = initMetadata();
 

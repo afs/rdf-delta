@@ -75,7 +75,7 @@ public abstract class DeltaServlet extends HttpServlet {
 
     /**
      * {@code HttpServlet.service} : add PATCH, add protection for exceptions.
-     * ({@link doCommon} should handle these).
+     * ({@link #doCommon(HttpServletRequest, HttpServletResponse)} should handle these).
      */
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
