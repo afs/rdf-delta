@@ -18,10 +18,6 @@
 package org.seaborne.patch.binary.thrift;
 
 
-import java.util.Map;
-import java.util.HashMap;
-import org.apache.thrift.TEnum;
-
 @SuppressWarnings("all")
 public enum Transaction implements org.apache.thrift.TEnum {
   TX(0),

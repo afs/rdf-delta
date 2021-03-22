@@ -51,8 +51,6 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.zk.Zk;
-import org.seaborne.delta.zk.Zk.ZkRunnable;
-import org.seaborne.delta.zk.Zk.ZkSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
