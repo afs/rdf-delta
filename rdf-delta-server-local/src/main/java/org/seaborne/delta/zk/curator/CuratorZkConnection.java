@@ -40,9 +40,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * This is an Object-Oriented implementation of the previous Zk utility class. This class is being introduced
- * to replicate the functionality of the previous design in transition to a more reliable implementation that uses
- * either a heavily patched Curator or discards Curator altogether.
+ * An Object-Oriented implementation of the previous Zk utility class.
+ *
+ * <p>
+ *     This class is being introduced to replicate the functionality of the previous design in transition to a more
+ *     reliable implementation that uses either a heavily patched Curator or discards Curator altogether.
+ * </p>
  */
 public final class CuratorZkConnection implements ZkConnection {
     private static final Logger LOG = LoggerFactory.getLogger(CuratorZkConnection.class);
@@ -185,6 +188,12 @@ public final class CuratorZkConnection implements ZkConnection {
         this.curator.delete().deletingChildrenIfNeeded().forPath(path);
     }
 
+    /**
+     * Acquires a distributed lock.
+     * @param path The path of the lock.
+     * @return A handle to the lock.
+     * @throws Exception if something goes wrong in Curator.
+     */
     private ZkLock acquireLock(final String path) throws Exception {
         final InterProcessLock lock = new InterProcessSemaphoreMutex(this.curator, path);
         lock.acquire();

@@ -17,5 +17,13 @@
 
 package org.seaborne.delta.zk;
 
+/**
+ * A handle to a distributed lock that has already been acquired.
+ *
+ * <p>
+ *     This interface is introduced to provide an abstract way of managing the lock lifecycle to facilitate replacing
+ *     the implementation.
+ * </p>
+ */
 public interface ZkLock extends AutoCloseable {
 }

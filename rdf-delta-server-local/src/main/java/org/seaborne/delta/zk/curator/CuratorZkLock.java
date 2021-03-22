@@ -20,9 +20,19 @@ package org.seaborne.delta.zk.curator;
 import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.seaborne.delta.zk.ZkLock;
 
+/**
+ * A lock handle to an Apache Curator distributed lock.
+ */
 public final class CuratorZkLock implements ZkLock {
+    /**
+     * The lock represented by this handle.
+     */
     private final InterProcessLock lock;
 
+    /**
+     * Instantiates a new {@link CuratorZkLock} with the supplied {@link InterProcessLock}.
+     * @param lock The lock represented by this handle.
+     */
     CuratorZkLock(final InterProcessLock lock) {
         this.lock = lock;
     }

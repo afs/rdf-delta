@@ -23,52 +23,60 @@ import org.apache.zookeeper.Watcher;
 
 import java.util.List;
 
+/**
+ * A version of {@link ZkConnection} that does not throw checked exceptions.
+ *
+ * <p>
+ *     This is introduced for compatibility with the old setup. Ideally, exception handling should be deferred to the
+ *     highest level of interest rather than logging and discarding exceptions and returning {@code null}.
+ * </p>
+ */
 public interface UncheckedZkConnection extends ZkConnection {
     @Override
-    boolean pathExists(String path);
+    public boolean pathExists(String path);
 
     @Override
-    String ensurePathExists(String path);
+    public String ensurePathExists(String path);
 
     @Override
-    byte[] fetch(String path);
+    public byte[] fetch(String path);
 
     @Override
-    byte[] fetch(Watcher watcher, String path);
+    public byte[] fetch(Watcher watcher, String path);
 
     @Override
-    JsonObject fetchJson(String path);
+    public JsonObject fetchJson(String path);
 
     @Override
-    JsonObject fetchJson(Watcher watcher, String path);
+    public JsonObject fetchJson(Watcher watcher, String path);
 
     @Override
-    List<String> fetchChildren(String path);
+    public List<String> fetchChildren(String path);
 
     @Override
-    List<String> fetchChildren(Watcher watcher, String path);
+    public List<String> fetchChildren(Watcher watcher, String path);
 
     @Override
-    String createZNode(String path);
+    public String createZNode(String path);
 
     @Override
-    String createZNode(String path, CreateMode mode);
+    public String createZNode(String path, CreateMode mode);
 
     @Override
-    String createAndSetZNode(String path, JsonObject object);
+    public String createAndSetZNode(String path, JsonObject object);
 
     @Override
-    String createAndSetZNode(String path, byte[] bytes);
+    public String createAndSetZNode(String path, byte[] bytes);
 
     @Override
-    void setZNode(String path, JsonObject object);
+    public void setZNode(String path, JsonObject object);
 
     @Override
-    void setZNode(String path, byte[] bytes);
+    public void setZNode(String path, byte[] bytes);
 
     @Override
-    void deleteZNodeAndChildren(String path);
+    public void deleteZNodeAndChildren(String path);
 
     @Override
-    void close();
+    public void close();
 }

@@ -42,8 +42,10 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
         return new PatchStoreZk(client, this);
     }
 
-    /** Build an {@link UncheckedZkConnection} from the {@link LocalServerConfig}.
-     * @return*/
+    /**
+     * Build an {@link UncheckedZkConnection} from the {@link LocalServerConfig}.
+     * @return A new {@link UncheckedZkConnection}.
+     * */
     protected UncheckedZkConnection zk(LocalServerConfig config) {
         String connectionString = config.getProperty(DeltaConst.pDeltaZk);
         if ( connectionString == null )

@@ -42,18 +42,18 @@ import org.slf4j.LoggerFactory;
  */
 public class PatchStorageZk implements PatchStorage {
     private static Logger LOG = LoggerFactory.getLogger(PatchStorageZk.class);
-    private final UncheckedZkConnection client;
+    private final UncheckedZkConnection zk;
     private final String patches;
 
     public PatchStorageZk(UncheckedZkConnection client, String instance, String logPath) {
-        this.client = client;
+        this.zk = client;
         this.patches = ZKPaths.makePath(logPath, ZkConst.nPatches, new String[]{});
         client.ensurePathExists(patches);
     }
 
     @Override
     public Stream<Id> find() {
-        List<String> x = this.client.fetchChildren(patches);
+        List<String> x = this.zk.fetchChildren(patches);
         return x.stream().map(s-> Id.fromString(s));
     }
 
@@ -63,13 +63,13 @@ public class PatchStorageZk implements PatchStorage {
         ByteArrayOutputStream out = new ByteArrayOutputStream(10*1024);
         RDFPatchOps.write(out, value);
         byte[] b = out.toByteArray();
-        this.client.createAndSetZNode(p, b);
+        this.zk.createAndSetZNode(p, b);
     }
 
     @Override
     public RDFPatch fetch(Id key) {
         String p = ZKPaths.makePath(patches, key.asPlainString(), new String[]{});
-        byte[] b = this.client.fetch(p);
+        byte[] b = this.zk.fetch(p);
         if ( b == null )
             return null;
         if ( b.length == 0 )
@@ -80,7 +80,7 @@ public class PatchStorageZk implements PatchStorage {
     @Override
     public void delete(Id id) {
         String p = ZKPaths.makePath(patches, id.asPlainString(), new String[]{});
-        this.client.deleteZNodeAndChildren(p);
+        this.zk.deleteZNodeAndChildren(p);
     }
 
     @Override

@@ -26,8 +26,14 @@ import org.slf4j.LoggerFactory;
  * Watcher to monitor for the deletion of the predecessor to the current lock.
  */
 public final class LockWatcher implements Watcher {
+    /**
+     * Logger.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(LockWatcher.class);
 
+    /**
+     * Is the lock acquired?
+     */
     private boolean lockAcquired = false;
 
     @Override
@@ -42,6 +48,10 @@ public final class LockWatcher implements Watcher {
         }
     }
 
+    /**
+     * Is the lock acquired?
+     * @return true if yes, false if no.
+     */
     public boolean isLockAcquired() {
         return this.lockAcquired;
     }

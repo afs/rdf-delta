@@ -42,7 +42,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private static final Logger LOG = LoggerFactory.getLogger(PatchLogIndexZk.class);
 
     private final Object lock = new Object();
-    private final UncheckedZkConnection client;
+    private final UncheckedZkConnection zk;
 
     private final String logName;
     private final String statePath;
@@ -56,7 +56,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     private final Watcher logStateWatcher;
 
     private Version earliestVersion = Version.UNSET;
-    private Id earliestId;
+    private Id earliestId = null;
 
     // Set by newState
     private volatile long version = Version.UNSET.value();
@@ -71,7 +71,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
      */
     public PatchLogIndexZk(UncheckedZkConnection client, String instance, DataSourceDescription dsd, String logPath) {
         // THis gets called twice in the creator - sees its own create via ZK watcher.
-        this.client = client ;
+        this.zk = client;
         this.logName = dsd.getName();
         this.statePath      = ZKPaths.makePath(logPath, ZkConst.nState, new String[]{});
         this.lockPath       = ZKPaths.makePath(logPath, ZkConst.nLock, new String[]{});
@@ -94,11 +94,10 @@ public class PatchLogIndexZk implements PatchLogIndex {
             // Fast-track the "obvious" answer
             earliestVersion = Version.create(1);
         else {
-            x.stream()
-                .map(this::versionFromName)
-                .filter(v->(v>0))
-                .min(Long::compare)
-                .ifPresent(version -> earliestVersion = Version.create(version));
+            try {
+                long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+                earliestVersion = Version.create(ver);
+            } catch (NoSuchElementException ex) {  }
         }
         earliestId = versionToId(earliestVersion);
         // Initialize, start watching
@@ -163,11 +162,11 @@ public class PatchLogIndexZk implements PatchLogIndex {
              * This isn't necessary for operation.
              * It can be used to check the patch store.
              */
-            this.client.createAndSetZNode(headerPath(patch), bytes);
+            this.zk.createAndSetZNode(headerPath(patch), bytes);
             // Write version->id mapping.
-            this.client.createAndSetZNode(versionPath(version), patch.asBytes());
+            this.zk.createAndSetZNode(versionPath(version), patch.asBytes());
         }
-        this.client.setZNode(statePath, bytes);
+        this.zk.setZNode(statePath, bytes);
     }
 
     private void syncState() {
@@ -177,7 +176,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     private JsonObject getWatchedState() {
-        return this.client.fetchJson(logStateWatcher, statePath);
+        return this.zk.fetchJson(logStateWatcher, statePath);
     }
 
     @Override
@@ -263,7 +262,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         // Cache?
         if ( ! Version.isValid(ver) )
             return null;
-        byte[] b = this.client.fetch(versionPath(ver));
+        byte[] b = this.zk.fetch(versionPath(ver));
         if ( b == null )
             return null;
         return Id.fromBytes(b);
@@ -272,7 +271,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     @Override
     public Version idToVersion(Id id) {
         String p = headerPath(id);
-        JsonObject obj = this.client.fetchJson(p);
+        JsonObject obj = this.zk.fetchJson(p);
         LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
         return entry.getVersion();
     }
@@ -280,17 +279,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
     @Override
     public LogEntry getPatchInfo(Id id) {
         String p = headerPath(id);
-        JsonObject obj = this.client.fetchJson(p);
+        JsonObject obj = this.zk.fetchJson(p);
         return JsonLogEntry.jsonToLogEntry(obj);
    }
 
     private String versionPath(Version ver) { return versionPath(ver.value()) ; }
-    private String versionPath(long ver) {
-        return ZKPaths.makePath(versionsPath, String.format("%08d", ver), new String[]{});
-    }
-    private String headerPath(Id id) {
-        return ZKPaths.makePath(headersPath, id.asPlainString(), new String[]{});
-    }
+    private String versionPath(long ver) { return ZKPaths.makePath(versionsPath, String.format("%08d", ver), new String[]{}); }
+    private String headerPath(Id id) { return ZKPaths.makePath(headersPath, id.asPlainString(), new String[]{}); }
 
     private long versionFromName(String name) {
         try {
@@ -315,7 +310,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     public <X> X runWithLock(Supplier<X> action) {
         synchronized(lock) {
             syncVersionInfo();
-            return this.client.runWithLock(this.lockPath, action);
+            return this.zk.runWithLock(this.lockPath, action);
         }
     }
 
@@ -372,12 +367,12 @@ public class PatchLogIndexZk implements PatchLogIndex {
             builder.pair(jLockId, session.asPlainString());
             builder.pair(jTicks, ticks);
         });
-        this.client.setZNode(lockStatePath, value);
+        this.zk.setZNode(lockStatePath, value);
     }
 
     @Override
     public LockState readLock() {
-        JsonObject value = this.client.fetchJson(lockStatePath);
+        JsonObject value = this.zk.fetchJson(lockStatePath);
         if ( value == null || value.isEmpty() )
             return LockState.UNLOCKED;
         // Validate?
@@ -414,7 +409,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
                     return;
                 if ( ! session.equals(lockState.session) )
                     return;
-                this.client.setZNode(lockStatePath, new byte[0]);
+                this.zk.setZNode(lockStatePath, new byte[0]);
             }
         );
     }

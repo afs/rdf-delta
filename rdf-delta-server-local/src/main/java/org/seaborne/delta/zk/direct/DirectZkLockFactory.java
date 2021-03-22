@@ -23,6 +23,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import org.seaborne.delta.zk.ZkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +43,26 @@ public final class DirectZkLockFactory {
     private final Supplier<ZooKeeper> client;
 
     /**
-     * Constructs an instance from a ZooKeeper connection.
+     * The amount of time to wait to acquire the lock in milliseconds.
+     */
+    private final long timeout;
+
+    /**
+     * Constructs an instance from a ZooKeeper connection with a timeout of 10000 milliseconds.
      * @param client Zookeeper connection.
      */
     public DirectZkLockFactory(final Supplier<ZooKeeper> client) {
+        this(client, 10000);
+    }
+
+    /**
+     * Constructs an instance from a ZooKeeper connection.
+     * @param client Zookeeper connection.
+     * @param timeout The amount of time to wait to acquire the lock in milliseconds.
+     */
+    public DirectZkLockFactory(final Supplier<ZooKeeper> client, final long timeout) {
         this.client = client;
+        this.timeout = timeout;
     }
 
     /**
@@ -81,11 +97,12 @@ public final class DirectZkLockFactory {
                 AddWatchMode.PERSISTENT
             );
             synchronized (watcher) {
-                do {
-                    LOG.debug("Going to sleep.");
-                    watcher.wait();
-                    LOG.debug("Waking up.");
-                } while (!watcher.isLockAcquired());
+                watcher.wait(this.timeout);
+                if (!watcher.isLockAcquired()) {
+                    throw new ZkException(
+                        String.format("Failed to acquire the lock after %d milliseconds.", this.timeout)
+                    );
+                }
             }
             LOG.debug("Cleaning up the watcher.");
             this.client.get().removeWatches(predecessor.get(), watcher, Watcher.WatcherType.Any, true);

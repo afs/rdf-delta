@@ -22,10 +22,26 @@ import org.seaborne.delta.zk.ZkLock;
 
 import java.util.function.Supplier;
 
+/**
+ * A handle to a distributed lock in ZooKeeper.
+ * {@see DirectZkLockFactory}
+ */
 public final class DirectZkLock implements ZkLock {
+    /**
+     * A ZooKeeper client connection.
+     */
     private final Supplier<ZooKeeper> client;
+
+    /**
+     * The ZooKeeper path to the lock.
+     */
     private final String lock;
 
+    /**
+     * Constructs a new instance of {@link DirectZkLock} with the given client at the given lock path.
+     * @param client A ZooKeeper client connection.
+     * @param lock The ZooKeeper path to the lock.
+     */
     public DirectZkLock(final Supplier<ZooKeeper> client, final String lock) {
         this.client = client;
         this.lock = lock;

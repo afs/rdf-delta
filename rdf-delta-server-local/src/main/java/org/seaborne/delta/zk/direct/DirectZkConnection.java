@@ -30,25 +30,48 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * Establishes and maintains a {@link ZkConnection} using ZooKeeper's classes directly.
+ */
 public final class DirectZkConnection implements ZkConnection {
+    /**
+     * Logger.
+     */
     private static final Logger LOG = LoggerFactory.getLogger(DirectZkConnection.class);
 
+    /**
+     * Static factory method to connect to a ZooKeeper Ensemble.
+     * @param connectString A comma-separated list of host:port pairs (e.g. {@code localhost:2181,localhost:2281}).
+     * @return a new {@link DirectZkConnection}.
+     * @throws IOException if a problem occurs while attempting to connect to the ZooKeeper Ensemble.
+     * @throws KeeperException if a problem occurs getting the current ZooKeeper Ensemble configuration.
+     * @throws InterruptedException if the current thread is interrupted while waiting.
+     */
     public static DirectZkConnection connect(final String connectString) throws IOException, KeeperException, InterruptedException {
         return new DirectZkConnection(
             new ValidZooKeeperSupplier(connectString)
         );
     }
 
+    /**
+     * A factory to produce {@link org.seaborne.delta.zk.ZkLock} handles.
+     */
     private final DirectZkLockFactory lockFactory;
 
+    /**
+     * A supplier that either provides a valid {@link ZooKeeper} or throws a {@link org.seaborne.delta.zk.ZkException}.
+     */
     private final ValidZooKeeperSupplier client;
 
+    /**
+     * Instantiates a new {@link DirectZkConnection} with the provided {@link ValidZooKeeperSupplier}.
+     * @param client A supplier that either provides a valid {@link ZooKeeper} or throws a
+     *  {@link org.seaborne.delta.zk.ZkException}.
+     */
     private DirectZkConnection(final ValidZooKeeperSupplier client) {
         this.client = client;
         this.lockFactory = new DirectZkLockFactory(client);
     }
-
-
 
     @Override
     public boolean pathExists(final String path) throws KeeperException, InterruptedException {
