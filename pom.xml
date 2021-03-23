@@ -107,9 +107,9 @@
   <!-- for mvn versions:display-plugin-updates,
        but generates a warning otherwise.
        - - >
-  <prerequisites>
-    <maven>3.5.3</maven>
-  </prerequisites>
+	  <prerequisites>
+    	<maven>3.6.3</maven>
+	  </prerequisites>
   -->
 
   <dependencyManagement>
@@ -177,14 +177,6 @@
         <artifactId>jcl-over-slf4j</artifactId>
         <version>${ver.slf4j}</version>
       </dependency>
-
-      <!-- Jena 3.15.0 fix : JENA-1898
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>1.14</version>
-      </dependency>
-      -->
 
       <!-- Either this for JUL ... -->
 
@@ -254,6 +246,11 @@
           <exclusion>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <!-- Use Jena dependecny choice. -->
+          <exclusion>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

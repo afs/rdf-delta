@@ -74,8 +74,7 @@ public abstract class DeltaServlet extends HttpServlet {
     protected abstract void executeAction(DeltaAction action) throws IOException;
 
     /**
-     * {@code HttpServlet.service} : add PATCH, add protection for exceptions.
-     * ({@link doCommon} should handle these).
+     * {@code HttpServlet.service} : add PATCH, add protection for exceptions as a fallback.
      */
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {

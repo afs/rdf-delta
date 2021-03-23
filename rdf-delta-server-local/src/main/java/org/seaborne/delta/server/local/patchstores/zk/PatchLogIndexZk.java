@@ -371,8 +371,8 @@ public class PatchLogIndexZk implements PatchLogIndex {
         // Cache?
         if ( ! Version.isValid(ver) )
             return null;
-        String p = versionPath(ver);
-        byte[] b = Zk.zkFetch(client, versionPath(ver));
+        String pathVer = versionPath(ver);
+        byte[] b = Zk.zkFetch(client, pathVer);
         if ( b == null )
             return null;
         Id id = Id.fromBytes(b);

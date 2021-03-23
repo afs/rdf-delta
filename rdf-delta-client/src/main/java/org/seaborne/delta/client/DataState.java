@@ -205,7 +205,8 @@ public class DataState {
     private static void setFromJsonObject(DataState dataState, JsonObject sourceObj) {
         Version version = Version.fromJson(sourceObj, F_VERSION, Version.UNSET);
         if ( ! Version.isValid(version) ) {
-            LOG.warn("No version: "+JSON.toStringFlat(sourceObj));
+            if ( ! version.equals(Version.INIT) )
+                LOG.warn("Bad version: "+JSON.toStringFlat(sourceObj));
         }
         dataState.version = version;
 
