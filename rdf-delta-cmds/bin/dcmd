@@ -27,6 +27,7 @@ rdf-delta-server-local
 rdf-delta-server-extra
 rdf-delta-system
 rdf-delta-test
+rdf-delta-fuseki
 rdf-patch 
 rdf-delta-cmds
 dev-rdf-delta
@@ -71,7 +72,13 @@ fi
 
 if [[ $1 = path ]]
 then
-    echo "$DELTA_CP"
+    #echo "$DELTA_CP"
+  # "uniq" because of classes and test-classes.
+    CP_DEV=$(echo "$DELTA_CP" | sed -e 's/:/\n/g' | grep target | sed -e "s!^${DELTA_HOME%/}/!dev: !" | sed -e 's!/target/.*!!' | uniq)
+    CP_JAR=$(echo "$DELTA_CP" | sed -e 's/:/\n/g' | grep "^${M2_REPO}" | sed -e "s!^${M2_REPO%/}/!jar: !")
+    echo "$CP_DEV"
+##     echo
+##     echo "$CP_JAR"
     exit
 fi
 

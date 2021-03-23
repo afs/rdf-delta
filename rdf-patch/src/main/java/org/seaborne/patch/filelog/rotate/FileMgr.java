@@ -112,7 +112,7 @@ public class FileMgr {
         return filenames;
     }
 
-    /** Create a {@link FileName} */
+    /** Create a {@link Filename} */
     private static Filename fromPath(Path directory, Path filepath, Pattern pattern) {
         filepath = directory.resolve(filepath).getFileName();
         directory = directory.resolve(filepath).getParent();

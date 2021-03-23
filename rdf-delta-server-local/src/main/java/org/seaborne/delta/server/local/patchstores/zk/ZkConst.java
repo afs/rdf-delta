@@ -17,8 +17,6 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.zk.Zk.zkPath;
-
 public class ZkConst {
 
     /* The ZooKeeper naming:

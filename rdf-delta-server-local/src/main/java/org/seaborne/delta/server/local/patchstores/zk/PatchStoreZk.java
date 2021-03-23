@@ -50,9 +50,6 @@ import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.delta.zk.Zk;
-import org.seaborne.delta.zk.Zk.ZkRunnable;
-import org.seaborne.delta.zk.Zk.ZkSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +90,7 @@ public class PatchStoreZk extends PatchStore {
 
         this.instance = "zk-"+(counter.getAndIncrement());
         this.client = client;
-        zkStoreLock = Zk.zkCreateLock(client, storeLockRootPath);
+        zkStoreLock = zkCreateLock(client, storeLockRootPath);
     }
 
     public CuratorFramework getClient() { return client; }
@@ -103,7 +100,7 @@ public class PatchStoreZk extends PatchStore {
         zkEnsure(client, rootPath);
         zkEnsure(client, storeLockRootPath);
         // It does not matter if this holds up multiple log stores when they all run - it happens rarely.
-        Zk.zkLock(zkStoreLock, storeLockRootPath, ()->{
+        zkLock(zkStoreLock, storeLockRootPath, ()->{
             if ( ! zkExists(client, logsRootPath) )
                 zkCreate(client, logsRootPath);
             if ( ! zkExists(client, activeLogsRootPath) )
@@ -161,7 +158,7 @@ public class PatchStoreZk extends PatchStore {
         newLogs.forEach(name->{
             // Read DSD.
             String newLogPath = zkPath(activeLogsRootPath, name);
-            JsonObject obj = Zk.zkFetchJson(client, newLogPath);
+            JsonObject obj = zkFetchJson(client, newLogPath);
             if ( obj == null ) {
                 FmtLog.info(LOGZK, "[%s] New=%s : DSD not found", instance, name);
                 return;
@@ -284,7 +281,7 @@ public class PatchStoreZk extends PatchStore {
     // Get all logs named by the path zNode.
     private List<DataSourceDescription> listDataSourcesZkPath(String logsPath) {
         List<DataSourceDescription> descriptions = new ArrayList<>();
-        List<String> logNames = Zk.zkSubNodes(client, logsPath);
+        List<String> logNames = zkSubNodes(client, logsPath);
         if ( logNames == null )
             return Collections.emptyList();
         for ( String name: logNames) {
@@ -302,7 +299,7 @@ public class PatchStoreZk extends PatchStore {
 
     // Compare and contrast.
     private List<DataSourceDescription> listDataSourcesZkPath_alt(String logsPath) {
-        List<String> logNames = Zk.zkSubNodes(client, logsPath);
+        List<String> logNames = zkSubNodes(client, logsPath);
         Stream<DataSourceDescription> descriptions =
             logNames.stream()
                 .map(name->{
@@ -475,7 +472,7 @@ public class PatchStoreZk extends PatchStore {
     // Execute an action with a local lock and store-wide lock.
     private void clusterLock(ZkRunnable action, Consumer<Exception> onThrow) {
         synchronized(storeLock) {
-            Zk.zkLock(zkStoreLock, storeLockRootPath, ()->{
+            zkLock(zkStoreLock, storeLockRootPath, ()->{
                 try {
                     action.run();
                 } catch(Exception ex) {
@@ -489,16 +486,15 @@ public class PatchStoreZk extends PatchStore {
     // Execute an action with a local lock and store-wide lock.
     private <X> X clusterLock(ZkSupplier<X> action, Consumer<Exception> onThrow) {
         synchronized(storeLock) {
-            X x =
-                Zk.zkLockRtn(zkStoreLock, storeLockRootPath, ()->{
-                    try {
-                        return action.run();
-                    } catch(Exception ex) {
-                        if ( onThrow != null )
-                            onThrow.accept(ex);
-                        return null;
-                    }
-                });
+            X x = zkLockRtn(zkStoreLock, storeLockRootPath, ()->{
+                try {
+                    return action.run();
+                } catch(Exception ex) {
+                    if ( onThrow != null )
+                        onThrow.accept(ex);
+                    return null;
+                }
+            });
             return x;
 
         }

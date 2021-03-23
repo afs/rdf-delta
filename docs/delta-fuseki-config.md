@@ -69,8 +69,8 @@ For a persistent dataset:
     .
 ```
 
-For a configuration where the Fuseki serverfails over to another patch
-log server:
+For a configuration where the Fuseki server fails over to
+another patch log server:
 ```
 <#dataset> rdf:type delta:DeltaDataset ;
 

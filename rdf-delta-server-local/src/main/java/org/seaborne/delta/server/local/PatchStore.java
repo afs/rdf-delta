@@ -298,10 +298,11 @@ public abstract class PatchStore {
         return patchLog2;
     }
 
-    /** Create and properly register a new {@link PatchLog}.
-     *  Call this to add new patch logs including remote changes.
-     *  This method calls {@link #create} provided by the subclass.
-     *  This method called by PatchStoreZk when a new log appears.
+    /**
+     * Create and properly register a new {@link PatchLog}.
+     * Call this to add new patch logs including remote changes.
+     * This method calls {@link #newPatchLog} provided by the subclass.
+     * This method is called by {@code PatchStoreZk} when a new log appears.
      */
     final
     protected PatchLog createPatchLog(DataSourceDescription dsd) {
