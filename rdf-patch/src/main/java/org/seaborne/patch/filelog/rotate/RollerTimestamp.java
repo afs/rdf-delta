@@ -32,8 +32,9 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Filename policy where files are "filebase-yyyy-mm-dd_hh-mm-ss"
- *  and do not rollover automatically, only when prompted via {@link #forceRollover}.
+/**
+ * Filename policy where files are "filebase-yyyy-mm-dd_hh-mm-ss"
+ * and do not rollover automatically, only when prompted via {@link #rotate}.
  */
 class RollerTimestamp implements Roller {
     private final static Logger LOG = LoggerFactory.getLogger(RollerTimestamp.class);
@@ -54,7 +55,6 @@ class RollerTimestamp implements Roller {
         return xdt.compareTo(ydt);
     };
     private static int RETRIES = 5;
-
 
     private static LocalDateTime filenameToDateTime(Filename filename) {
         return LocalDateTime.parse(filename.modifier, fmtDateTime);

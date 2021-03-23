@@ -26,10 +26,6 @@ public class SystemInfo {
      */
     static private String   metadataLocation             = "org/seaborne/delta/delta-properties.xml";
 
-    /**
-     * Object which holds metadata specified within
-     * {@link Fuseki#metadataLocation}
-     */
     static private Metadata metadata                     = initMetadata();
 
     private static Metadata initMetadata() {
