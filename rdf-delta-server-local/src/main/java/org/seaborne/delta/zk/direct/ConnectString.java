@@ -76,12 +76,12 @@ public final class ConnectString implements CharSequence {
     }
 
     @Override
-    public char charAt(int index) {
+    public char charAt(final int index) {
         return this.connectString.charAt(index);
     }
 
     @Override
-    public CharSequence subSequence(int start, int end) {
+    public CharSequence subSequence(final int start, final int end) {
         return this.connectString.subSequence(start, end);
     }
 

@@ -89,7 +89,7 @@ public final class WrappedUncheckedZkConnection implements UncheckedZkConnection
     }
 
     @Override
-    public List<String> fetchChildren(Watcher watcher, String path) {
+    public List<String> fetchChildren(final Watcher watcher, final String path) {
         return hideException(() -> this.decorated.fetchChildren(watcher, path));
     }
 
@@ -134,12 +134,12 @@ public final class WrappedUncheckedZkConnection implements UncheckedZkConnection
     }
 
     @Override
-    public void runWithLock(String path, Runnable action) {
+    public void runWithLock(final String path, final Runnable action) {
         this.decorated.runWithLock(path, action);
     }
 
     @Override
-    public <X> X runWithLock(String path, Supplier<X> action) {
+    public <X> X runWithLock(final String path, final Supplier<X> action) {
         return this.decorated.runWithLock(path, action);
     }
 
