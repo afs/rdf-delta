@@ -53,10 +53,12 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
         try {
             return new WrappedUncheckedZkConnection(DirectZkConnection.connect(connectionString));
         } catch (final IOException | KeeperException | InterruptedException e) {
-            throw new ZkException(
-                String.format("Unable to connect to ZooKeeper with connect string %s", connectionString),
-                e
+            final String message = String.format(
+                "Unable to connect to ZooKeeper with connect string %s",
+                connectionString
             );
+            Log.error(this, message, e);
+            throw new ZkException(message, e);
         }
     }
 
