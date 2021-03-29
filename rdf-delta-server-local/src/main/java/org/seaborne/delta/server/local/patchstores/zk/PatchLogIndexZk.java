@@ -86,18 +86,18 @@ public class PatchLogIndexZk implements PatchLogIndex {
         };
 
         // Find earliest.
-        List<String> x = client.fetchChildren(versionsPath);
+        List<String> versions = client.fetchChildren(versionsPath);
         //Guess: 1
-        if ( x.isEmpty() )
+        if (versions.isEmpty())
             earliestVersion = Version.INIT;
-        else if ( x.contains("00000001") )
+        else if (versions.contains("00000001"))
             // Fast-track the "obvious" answer
             earliestVersion = Version.create(1);
         else {
             try {
-                long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+                long ver = versions.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
                 earliestVersion = Version.create(ver);
-            } catch (NoSuchElementException ex) {  }
+            } catch (final NoSuchElementException ignored) {  }
         }
         earliestId = versionToId(earliestVersion);
         // Initialize, start watching
