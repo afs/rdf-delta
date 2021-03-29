@@ -23,7 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Watcher to monitor for the deletion of the predecessor to the current lock.
+ * Watcher to monitor for the acquisition of a lock.
+ *
+ * A lock is represented by an ephemeral sequential node. The lock is said to be acquired when the predecessor node in
+ * the sequence is deleted, indicating the holder of that lock has released it.
+ *
+ * This {@link Watcher} is meant to be applied to a predecessor lock to signal through the {@link #notify()} mechanism
+ * that code waiting to acquire a lock has acquired the lock and can now proceed. This mechanism is used to bridge the
+ * inherently asynchronous {@link Watcher} mechanism with the inherently synchronous locking calls.
  */
 public final class LockWatcher implements Watcher {
     /**

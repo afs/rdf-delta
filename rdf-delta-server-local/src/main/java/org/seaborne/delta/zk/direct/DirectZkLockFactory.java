@@ -32,7 +32,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Acquires distributed locks.
+ * Acquires distributed locks from ZooKeeper.
+ *
+ * Locks in ZooKeeper rely on ephemeral sequential nodes which act as a sort of primary key that is automatically
+ * deleted in the event the client that created it disconnects. This prevents clients from erroneously holding locks
+ * after they die. The sequential nature of these nodes is used as a kind of queue to order who gets the lock when.
+ * Essentially, a process seeking to acquire a lock creates a node and waits for all of its predecessors to release
+ * locks to proceed.
  */
 public final class DirectZkLockFactory {
     private static final Logger LOG = LoggerFactory.getLogger(DirectZkLockFactory.class);
