@@ -48,7 +48,7 @@ public class S3 {
      * Create {@link LocalServerConfig} for a Zookeeper and S3 based patch log server.
      */
     public static LocalServerConfig configZkS3(String zkConnectionString, S3Config s3Cfg) {
-        LocalServerConfig c = LocalServers.configZk(zkConnectionString);
+        LocalServerConfig c = LocalServers.configZk(zkConnectionString, null);
         return configZkS3(c, s3Cfg);
     }
 

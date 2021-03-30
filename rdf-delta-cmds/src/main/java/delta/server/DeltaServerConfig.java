@@ -47,6 +47,7 @@ public class DeltaServerConfig {
 
     // Zookeeper provider
     public String zkConnectionString = null ;
+    public String zkRootDirName = null ;
 
     // Co-hosted Zookeeper server type, if any.
     public ZkMode zkMode = ZkMode.NONE;
@@ -72,6 +73,7 @@ public class DeltaServerConfig {
 
     // The Zookeeper provider
     private static String fZkConnectionString = "zk.connect";
+    private static String fZkRootDirName      = "zk.rootDirName";
     private static String fZkConfig           = "zk.config";
     private static String fZkPort             = "zk.port";
     private static String fZkData             = "zk.data";
@@ -126,6 +128,9 @@ public class DeltaServerConfig {
         if ( obj.hasKey(fZkConnectionString) )
             conf.zkConnectionString = JSONX.getStrOrNull(obj, fZkConnectionString);
 
+        if ( obj.hasKey(fZkRootDirName) )
+            conf.zkRootDirName = JSONX.getStrOrNull(obj, fZkRootDirName);
+
         if ( obj.hasKey(fZkConfig) )
             conf.zkConf = JSONX.getStrOrNull(obj, fZkConfig);
 
@@ -176,6 +181,9 @@ public class DeltaServerConfig {
 
                 if ( zkConnectionString != null )
                     b.pair(fZkConnectionString, zkConnectionString);
+
+                if ( zkRootDirName != null )
+                    b.pair(fZkRootDirName, zkRootDirName);
 
                 if ( zkPort != null )
                     b.pair(fZkPort, zkPort);
@@ -234,6 +242,7 @@ public class DeltaServerConfig {
         result = prime * result + ((serverPort == null) ? 0 : serverPort.hashCode());
         result = prime * result + ((zkConf == null) ? 0 : zkConf.hashCode());
         result = prime * result + ((zkConnectionString == null) ? 0 : zkConnectionString.hashCode());
+        result = prime * result + ((zkRootDirName == null) ? 0 : zkRootDirName.hashCode());
         result = prime * result + ((zkData == null) ? 0 : zkData.hashCode());
         result = prime * result + ((zkMode == null) ? 0 : zkMode.hashCode());
         result = prime * result + ((zkPort == null) ? 0 : zkPort.hashCode());
@@ -300,6 +309,11 @@ public class DeltaServerConfig {
             if ( other.zkConnectionString != null )
                 return false;
         } else if ( !zkConnectionString.equals(other.zkConnectionString) )
+            return false;
+        if ( zkRootDirName == null ) {
+            if ( other.zkRootDirName != null )
+                return false;
+        } else if ( !zkRootDirName.equals(other.zkRootDirName) )
             return false;
         if ( zkData == null ) {
             if ( other.zkData != null )

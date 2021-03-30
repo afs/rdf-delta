@@ -68,7 +68,13 @@ The Embedded Zookeeper form has several additional arguments:
 |-----------|---------|
 | `--zkConf` | Configuration file |
 | `--zkData`  | Storage for the embedded Zookeeper |
-| `--zkPort` | Port for the embedded Zookeeper |
+| `--zkPort` | Port for the embedded Zookeeper | |
+
+When using an external Zookeeper connection, the following arguments are available:
+
+| Argument for <br/>External<br/>Zookeeper   |  |
+|-----------|---------|
+| `--zkRootDir` | Root directory to use in<br/>Zookeeper to store patch<br/>info _(defaults to `/delta`<br/>and is ignored if embedded<br/>Zookeeper is used)_
 
 Patches can be stored in the Zookeeper database or externally in AWS S3, or a
 storage that provides the S3 API (other objects store may be supported in the

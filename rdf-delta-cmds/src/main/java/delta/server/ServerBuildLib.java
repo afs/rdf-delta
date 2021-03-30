@@ -33,6 +33,7 @@ import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.server.local.patchstores.zk.ZkConst;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
 import org.seaborne.delta.server.s3.S3;
 import org.seaborne.delta.server.s3.S3Config;
@@ -137,8 +138,15 @@ public /*package*/ class ServerBuildLib {
 
         if ( config.zkConnectionString == null )
             throw new DeltaConfigException("No connection string for ZooKeeper");
+
+        Properties props = null;
+        if ( config.zkRootDirName != null ) {
+            props = new Properties();
+            props.setProperty(ZkConst.prRootDirName, config.zkRootDirName);
+        }
+
         // If zk+S3, there isn't a provider name set yet.
-        LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString, config.jettyConf);
+        LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString, config.jettyConf, props);
         return localServerConfig;
     }
 

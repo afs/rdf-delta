@@ -30,8 +30,8 @@ public class PatchStoreZkS3 extends PatchStoreZk {
 
     private final DetailsS3 s3;
 
-    PatchStoreZkS3(CuratorFramework client, PatchStoreProvider psp, DetailsS3 s3) {
-        super(client, psp);
+    PatchStoreZkS3(CuratorFramework client, PatchStoreProvider psp, DetailsS3 s3, String rootDirName) {
+        super(client, psp, rootDirName);
         this.s3 = s3;
     }
 

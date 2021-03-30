@@ -18,6 +18,7 @@
 package org.seaborne.delta.server.local;
 
 import java.nio.file.Path;
+import java.util.Properties;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
@@ -91,19 +92,31 @@ public class LocalServers {
      * and zookeeper-based index patch store.
      */
     public static LocalServerConfig configZk(String connectionString) {
-        return configZk(connectionString, null);
+        return configZk(connectionString, null, null);
     }
 
     /**
      * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
      * and zookeeper-based index patch store.
      */
-    public static LocalServerConfig configZk(String connectionString, String jettyConf) {
+    public static LocalServerConfig configZk(String connectionString, Properties props) {
+        return configZk(connectionString, null, props);
+    }
+
+    /**
+     * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
+     * and zookeeper-based index patch store.
+     */
+    public static LocalServerConfig configZk(String connectionString, String jettyConf, Properties props) {
         LocalServerConfig.Builder builder = LocalServerConfig.create()
             .setLogProvider(Provider.ZKZK)
             .jettyConfigFile(jettyConf);
-        if ( connectionString != null )
+        if ( connectionString != null ) {
+            if ( props != null ) {
+                builder.setProperties(props);
+            }
             builder.setProperty(DeltaConst.pDeltaZk, connectionString);
+        }
         return builder.build();
     }
 
@@ -143,8 +156,8 @@ public class LocalServers {
     }
 
     /** Create a {@link LocalServer} with a Apache ZooKeeper based {@link PatchStore}. */
-    public static LocalServer createZk(String connectionString) {
-        return create(configZk(connectionString));
+    public static LocalServer createZk(String connectionString, Properties props) {
+        return create(configZk(connectionString, props));
     }
 
 //    /** Create a {@link LocalServer} using an existing {@link CuratorFramework}.

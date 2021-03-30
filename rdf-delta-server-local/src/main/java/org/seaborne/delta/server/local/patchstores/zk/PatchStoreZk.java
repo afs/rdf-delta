@@ -71,28 +71,43 @@ public class PatchStoreZk extends PatchStore {
     private final InterProcessLock zkStoreLock;
     private final String instance;
 
+    private final String rootPath;
+    private final String logsRootPath;
+    private final String storeLockRootPath;
+    private final String activeLogsRootPath;
+
     // Our view of all the patch logs in the store.
     private Map<String, PatchLog> patchLogs = new ConcurrentHashMap<>();
 
-    protected PatchStoreZk(CuratorFramework client, PatchStoreProvider psp) {
+    protected PatchStoreZk(CuratorFramework client, PatchStoreProvider psp, String rootDirName) {
         super(psp);
+
+        this.rootPath = (
+            (rootDirName == null)
+                ? ZkConst.pRootDefault
+                : (rootDirName.startsWith("/") ? rootDirName : ("/" + rootDirName))
+        );
+        this.logsRootPath = zkPath(this.rootPath, ZkConst.pLogs);
+        this.storeLockRootPath = zkPath(this.rootPath, ZkConst.pStoreLock);
+        this.activeLogsRootPath = zkPath(this.rootPath, ZkConst.pActiveLogs);
+
         this.instance = "zk-"+(counter.getAndIncrement());
         this.client = client;
-        zkStoreLock = Zk.zkCreateLock(client, ZkConst.pStoreLock);
+        zkStoreLock = Zk.zkCreateLock(client, storeLockRootPath);
     }
 
     public CuratorFramework getClient() { return client; }
     public String getInstance() { return instance; }
 
     private void formatPatchStore(CuratorFramework client) throws Exception {
-        zkEnsure(client, ZkConst.pRoot);
-        zkEnsure(client, ZkConst.pStoreLock);
+        zkEnsure(client, rootPath);
+        zkEnsure(client, storeLockRootPath);
         // It does not matter if this holds up multiple log stores when they all run - it happens rarely.
-        Zk.zkLock(zkStoreLock, ZkConst.pStoreLock, ()->{
-            if ( ! zkExists(client, ZkConst.pLogs) )
-                zkCreate(client, ZkConst.pLogs);
-            if ( ! zkExists(client, ZkConst.pActiveLogs) )
-                zkCreate(client, ZkConst.pActiveLogs);
+        Zk.zkLock(zkStoreLock, storeLockRootPath, ()->{
+            if ( ! zkExists(client, logsRootPath) )
+                zkCreate(client, logsRootPath);
+            if ( ! zkExists(client, activeLogsRootPath) )
+                zkCreate(client, activeLogsRootPath);
         });
     }
 
@@ -145,7 +160,7 @@ public class PatchStoreZk extends PatchStore {
 
         newLogs.forEach(name->{
             // Read DSD.
-            String newLogPath = zkPath(ZkConst.pActiveLogs, name);
+            String newLogPath = zkPath(activeLogsRootPath, name);
             JsonObject obj = Zk.zkFetchJson(client, newLogPath);
             if ( obj == null ) {
                 FmtLog.info(LOGZK, "[%s] New=%s : DSD not found", instance, name);
@@ -172,7 +187,7 @@ public class PatchStoreZk extends PatchStore {
         // This can happen too early when /delta/activeLogs is being setup.
         // Just ignore that and sync later.
         try {
-            return client.getChildren().usingWatcher(patchLogWatcher).forPath(ZkConst.pActiveLogs);
+            return client.getChildren().usingWatcher(patchLogWatcher).forPath(activeLogsRootPath);
         }
         catch (KeeperException.NoNodeException ex) {}
         catch (KeeperException ex) {}
@@ -183,7 +198,7 @@ public class PatchStoreZk extends PatchStore {
     private List<String> activeLogs() {
         try {
             // No "usingWatcher"
-            return client.getChildren().forPath(ZkConst.pActiveLogs);
+            return client.getChildren().forPath(activeLogsRootPath);
         }  catch (KeeperException.NoNodeException ex) {}
         catch (KeeperException ex) {}
         catch (Exception ex) {}
@@ -210,7 +225,7 @@ public class PatchStoreZk extends PatchStore {
         }
         connectToZookeeper();
 
-        boolean isEmpty = zkCalc(()->client.checkExists().forPath(ZkConst.pRoot)==null);
+        boolean isEmpty = zkCalc(()->client.checkExists().forPath(rootPath)==null);
         try {
             if ( isEmpty ) {
                 FmtLog.info(LOGZK, "[%s] Format new PatchStoreZk", instance);
@@ -258,12 +273,12 @@ public class PatchStoreZk extends PatchStore {
 
     // Guaranteed to look in zookeeper, no local caching.
     private List<DataSourceDescription> listDataSourcesZk() {
-        return listDataSourcesZkPath(ZkConst.pActiveLogs);
+        return listDataSourcesZkPath(activeLogsRootPath);
     }
 
     // Guaranteed to look in the logs area, not the active logs, with no local caching.
     private List<DataSourceDescription> listDataSourcesZkAll() {
-        return listDataSourcesZkPath(ZkConst.pLogs);
+        return listDataSourcesZkPath(logsRootPath);
     }
 
     // Get all logs named by the path zNode.
@@ -273,7 +288,7 @@ public class PatchStoreZk extends PatchStore {
         if ( logNames == null )
             return Collections.emptyList();
         for ( String name: logNames) {
-            String logDsd = zkPath(ZkConst.pLogs, name, ZkConst.nDsd);
+            String logDsd = zkPath(logsRootPath, name, ZkConst.nDsd);
             JsonObject obj = zkFetchJson(client, logDsd);
             if ( obj == null ) {
                 FmtLog.info(LOGZK, "[%d] listDataSourcesZkPath: %s: no DSD", instance, name);
@@ -292,7 +307,7 @@ public class PatchStoreZk extends PatchStore {
             logNames.stream()
                 .map(name->{
                     FmtLog.info(LOGZK, "[%d] listDataSources: %s", instance, name);
-                    String logDsd = ZKPaths.makePath(ZkConst.pLogs, name, ZkConst.nDsd);
+                    String logDsd = ZKPaths.makePath(logsRootPath, name, ZkConst.nDsd);
                     JsonObject obj = zkFetchJson(client, logDsd);
                     if ( obj == null ) {
                         FmtLog.info(LOGZK, "[%d] listDataSourcesZkPath: %s: no DSD", instance, name);
@@ -336,7 +351,7 @@ public class PatchStoreZk extends PatchStore {
         }
         // format
 
-        String logPath = zkPath(ZkConst.pLogs, dsName);
+        String logPath = zkPath(logsRootPath, dsName);
         if ( ! zkExists(client, logPath) ) {
             FmtLog.debug(LOGZK, "[%d] Does not exist: format", instance);
             clusterLock(()->{
@@ -353,7 +368,7 @@ public class PatchStoreZk extends PatchStore {
                 // We are still inside the clusterLock and also the storeLock.
                 // Our own watcher will wait until we leave storeLock, and then find
                 // that "patchLogs.containsKey(dsd.getName())"
-                String zkActiveLog = zkPath(ZkConst.pActiveLogs, dsName);
+                String zkActiveLog = zkPath(activeLogsRootPath, dsName);
                 JsonObject dsdJson = dsd.asJson();
                 zkCreateSetJson(client, zkActiveLog, dsdJson);
                 //FmtLog.debug(LOGZK, "[%d] format done", instance);
@@ -369,14 +384,14 @@ public class PatchStoreZk extends PatchStore {
     @Override
     protected PatchLogIndex newPatchLogIndex(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
-        String logPath = zkPath(ZkConst.pLogs, dsd.getName());
+        String logPath = zkPath(logsRootPath, dsd.getName());
         return new PatchLogIndexZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), dsd, logPath);
     }
 
     @Override
     protected PatchStorage newPatchStorage(DataSourceDescription dsd, PatchStore patchStore, LocalServerConfig configuration) {
         PatchStoreZk patchStoreZk = (PatchStoreZk)patchStore;
-        String logPath = zkPath(ZkConst.pLogs, dsd.getName());
+        String logPath = zkPath(logsRootPath, dsd.getName());
         return new PatchStorageZk(patchStoreZk.getClient(), patchStoreZk.getInstance(), logPath);
     }
 
@@ -391,11 +406,11 @@ public class PatchStoreZk extends PatchStore {
             FmtLog.info(LOGZK,  "[%s] delete patch log '%s'", instance, dsName);
             // Remove from activeLogs, leave in the "logs" area.
             // This triggers watchers.
-            String zkActiveLog = zkPath(ZkConst.pActiveLogs, dsName);
+            String zkActiveLog = zkPath(activeLogsRootPath, dsName);
             if ( zkExists(client, zkActiveLog) ) {
                 zkDelete(client, zkActiveLog);
             }
-            String logPath = zkPath(ZkConst.pLogs, dsName);
+            String logPath = zkPath(logsRootPath, dsName);
             // Clear up.
             zkDelete(client, logPath);
         }, null);
@@ -460,7 +475,7 @@ public class PatchStoreZk extends PatchStore {
     // Execute an action with a local lock and store-wide lock.
     private void clusterLock(ZkRunnable action, Consumer<Exception> onThrow) {
         synchronized(storeLock) {
-            Zk.zkLock(zkStoreLock, ZkConst.pStoreLock, ()->{
+            Zk.zkLock(zkStoreLock, storeLockRootPath, ()->{
                 try {
                     action.run();
                 } catch(Exception ex) {
@@ -475,7 +490,7 @@ public class PatchStoreZk extends PatchStore {
     private <X> X clusterLock(ZkSupplier<X> action, Consumer<Exception> onThrow) {
         synchronized(storeLock) {
             X x =
-                Zk.zkLockRtn(zkStoreLock, ZkConst.pStoreLock, ()->{
+                Zk.zkLockRtn(zkStoreLock, storeLockRootPath, ()->{
                     try {
                         return action.run();
                     } catch(Exception ex) {

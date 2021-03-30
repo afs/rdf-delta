@@ -66,6 +66,7 @@ public class DeltaServerCmd {
     private static ArgDecl argMem               = new ArgDecl(false, "mem");
     private static ArgDecl argStore             = new ArgDecl(true, "store", "rdb");
     private static ArgDecl argZk                = new ArgDecl(true, "zk");
+    private static ArgDecl argZkRootDir         = new ArgDecl(true, "zkRootDir", "zkrootdir", "zkRoot", "zkroot");
     private static ArgDecl argZkPort            = new ArgDecl(true, "zkPort", "zkport");
     private static ArgDecl argZkData            = new ArgDecl(true, "zkData", "zkdata");
     private static ArgDecl argZkConf            = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
@@ -164,6 +165,7 @@ public class DeltaServerCmd {
         cla.add(argStore);
 
         cla.add(argZk);
+        cla.add(argZkRootDir);
         cla.add(argZkConf);
         cla.add(argZkPort);
         cla.add(argZkData);
@@ -194,6 +196,7 @@ public class DeltaServerCmd {
                 ,"        --mem               Run a single server with in-memory index and patch storage."
                 ,"Zookeeper index server:"
                 ,"        --zk=               Zookeeper connection string (e.g. \"host1:port1,host2:port2,host3:port3\")"
+                ,"        --zkRootDir=        Zookeeper root directory (defaults to \"delta\")"
                 ,"   Embedded Zookeeper server"
                 ,"        --zkConf=FILE       Zookeeper configuration file. Runs a Zookeeper Server as part of a quorum ensemble. Must be in the connection string."
                 ,"        --zkData            Storage for the embedded zookeeper"
@@ -359,8 +362,8 @@ public class DeltaServerCmd {
         if ( connectionString.equalsIgnoreCase("mem") ) {
             // Memory test mode. No other arguments.
             serverConfig.zkMode = ZkMode.MEM;
-            if ( cla.contains(argZkPort) || cla.contains(argZkData) || cla.contains(argZkConf) ) {
-                cmdLineWarning("WARNING: Local zookeeper with test memory mode: --zkPort, --zkData and --zkConf ignored");
+            if ( cla.contains(argZkPort) || cla.contains(argZkData) || cla.contains(argZkConf) || cla.contains(argZkRootDir) ) {
+                cmdLineWarning("WARNING: Local zookeeper with test memory mode: --zkPort, --zkData, --zkRootDir, and --zkConf ignored");
             }
         } else if ( cla.contains(argZkConf) ) {
 
@@ -368,6 +371,8 @@ public class DeltaServerCmd {
                 cmdLineWarning("WARNING: Local zookeeper: --zkConf present: ignoring --zkPort");
             if ( cla.contains(argZkData) )
                 cmdLineWarning("WARNING: Local zookeeper: --zkConf present: ignoring --zkData");
+            if ( cla.contains(argZkRootDir) )
+                cmdLineWarning("WARNING: Local zookeeper: --zkRootDir ignored");
 
             serverConfig.zkConf = cla.getValue(argZkConf);
             serverConfig.zkMode = ZkMode.QUORUM;
@@ -383,6 +388,8 @@ public class DeltaServerCmd {
             if ( cla.contains(argZkConf) ) {
                 cmdLineWarning("WARNING: Local zookeeper: --zkConf not allowed with --zkPort, --zkData");
             }
+            if ( cla.contains(argZkRootDir) )
+                cmdLineWarning("WARNING: Local zookeeper: --zkRootDir ignored");
 
             serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
             serverConfig.zkData = cla.getValue(argZkData);
@@ -392,7 +399,9 @@ public class DeltaServerCmd {
             if ( ! connectionString.contains(Integer.toString(serverConfig.zkPort)) )
                 cmdLineWarning("WARNING: Local zookeeper not in the connection string. (string=%s, port=%d)", connectionString, serverConfig.zkPort);
         } else {
-
+            if ( cla.contains(argZkRootDir) ) {
+                serverConfig.zkRootDirName = cla.getValue(argZkRootDir);
+            }
         }
 
         FmtLog.debug(LOG,"Connection string: %s", connectionString);

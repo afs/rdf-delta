@@ -32,6 +32,7 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.server.local.patchstores.zk.ZkConst;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
 
@@ -61,7 +62,7 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
         }
         // The usual PatchStoreZk for the index, but remembering DetailsS3
         CuratorFramework client = curator(config);
-        return new PatchStoreZkS3(client, this, s3);
+        return new PatchStoreZkS3(client, this, s3, config.getProperty(ZkConst.prRootDirName));
     }
 
     private static DetailsS3 accessS3(LocalServerConfig configuration) {

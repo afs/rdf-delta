@@ -38,13 +38,16 @@ public class ZkConst {
      *   /delta/logs/NAME/patches/
      */
 
+    // Properties
+    public static final String prRootDirName = "delta.zk.root_dir_name";
+
     // Convention: p* is a path, n* is a zNode name.
 
     // Server
-    static final String pRoot           = "/delta";
-    static final String pLogs           = zkPath(pRoot, "logs");
-    static final String pStoreLock      = zkPath(pRoot, "lock");
-    static final String pActiveLogs     = zkPath(pRoot, "activeLogs");
+    static final String pRootDefault    = "/delta";
+    static final String pLogs           = "logs";
+    static final String pStoreLock      = "lock";
+    static final String pActiveLogs     = "activeLogs";
 
     // Per patch log names.
     static final String nDsd            = "dsd";
