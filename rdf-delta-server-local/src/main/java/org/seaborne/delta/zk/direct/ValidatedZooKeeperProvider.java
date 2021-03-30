@@ -23,6 +23,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.EnumSet;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Supplies valid, connected {@link ZooKeeper} instances or throws an exception.
@@ -50,11 +56,6 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
     private static final Logger LOG = LoggerFactory.getLogger(ValidatedZooKeeperProvider.class);
 
     /**
-     * {@link Object} used for synchronizing asynchronous callbacks.
-     */
-    private final Object token = new Object();
-
-    /**
      * The number of times to retry reconnect attempts before throwing a {@link ZkException}.
      */
     private final int retries;
@@ -72,12 +73,17 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
     /**
      * The current validity of the connection as determined by the connection monitor.
      */
-    private volatile boolean isValid = false;
+    private final CyclicBarrier connectedSignal;
+
+    /**
+     * The set of states considered valid. Used to check the current connection state.
+     */
+    private final EnumSet<ZooKeeper.States> validStates;
 
     /**
      * Indicates whether {@link #close()} has been called.
      */
-    private volatile boolean isClosed = false;
+    private final AtomicBoolean isClosed;
 
     /**
      * Instantiates a {@link ValidatedZooKeeperProvider} with the given connectString specifying a default retry limit of 5.
@@ -101,6 +107,9 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
     public ValidatedZooKeeperProvider(final CharSequence connectString, final int retries) throws IOException, KeeperException, InterruptedException {
         this.connectString = connectString;
         this.retries = retries;
+        this.connectedSignal = new CyclicBarrier(2);
+        this.validStates = EnumSet.of(ZooKeeper.States.CONNECTED, ZooKeeper.States.CONNECTEDREADONLY, ZooKeeper.States.ASSOCIATING);
+        this.isClosed = new AtomicBoolean(false);
         this.connect();
     }
 
@@ -115,20 +124,18 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
             this.connectString.toString(),
             10_000,
             watchedEvent -> {
-                synchronized (this.token) {
-                    switch (watchedEvent.getState()) {
-                        case SyncConnected:
-                        case SaslAuthenticated:
-                        case ConnectedReadOnly:
-                            this.isValid = true;
-                            break;
-                        case Closed:
-                        case Expired:
-                        case AuthFailed:
-                        case Disconnected:
-                            this.isValid = false;
-                    }
-                    this.token.notifyAll();
+                switch (watchedEvent.getState()) {
+                    case SyncConnected:
+                    case SaslAuthenticated:
+                    case ConnectedReadOnly:
+                        if (this.connectedSignal.getNumberWaiting() == 1) {
+                            try {
+                                this.connectedSignal.await();
+                            } catch (final InterruptedException | BrokenBarrierException e) {
+                                LOG.error("The unthinkable has happened.", e);
+                                throw new IllegalStateException(e);
+                            }
+                        }
                 }
             }
         );
@@ -138,57 +145,48 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
     @Override
     public ZooKeeper zooKeeper() {
         try {
-            long tries = 1;
-            synchronized (this.token) {
-                while (!this.isValid) {
-                    if (this.isClosed) {
-                        throw new ZkException("ValidZooKeeperSupplier instance has been closed.");
-                    }
-                    // Unfortunately, the ZooKeeper states are not well-documented. This represents the
-                    // best guess with an incomplete understanding.
-                    LOG.info("Connection flagged as invalid with state: {}", this.zooKeeper.getState());
-                    switch (this.zooKeeper.getState()) {
-                        case CONNECTING:
-                            LOG.info("Waiting until connected...");
-                            this.token.wait(3000);
-                            break;
-                        case AUTH_FAILED:
-                            // No point in retrying
-                            throw new ZkException("Authentication to the ZooKeeper Ensemble failed.");
-                        case CLOSED:
-                        case NOT_CONNECTED:
-                            // These states indicate session expiration among
-                            // other things.
-                            try {
-                                LOG.info("Attempting to reconnect...");
-                                this.connect();
-                            } catch (final IOException | KeeperException e) {
-                                LOG.error("Unable to connect to the ZooKeeper Ensemble.", e);
-                            }
-                        case CONNECTED:
-                        case ASSOCIATING:
-                        case CONNECTEDREADONLY:
-                            // This check ensures that connections made
-                            // after the start of this synchronization block
-                            // but before the call to zooKeeper#getState()
-                            // are detected. Not sure about ASSOCIATING.
-                            LOG.info("Misflagged. Marking the connection as valid.");
-                            this.isValid = true;
-                    }
-                    if (tries == this.retries) {
-                        throw new ZkException(
-                            String.format(
-                                "Failed after %d attempts to connect to the ZooKeeper Ensemble.",
-                                this.retries
-                            )
-                        );
-                    } else {
-                        ++tries;
-                    }
+            long tries = 0;
+            while (!this.validStates.contains(this.zooKeeper.getState())) {
+                if (this.isClosed.get()) {
+                    throw new ZkException("ValidZooKeeperSupplier instance has been closed.");
+                }
+                // Unfortunately, the ZooKeeper states are not well-documented. This represents the
+                // best guess with an incomplete understanding.
+                LOG.info("Connection flagged as invalid with state: {}", this.zooKeeper.getState());
+                switch (this.zooKeeper.getState()) {
+                    case CONNECTING:
+                        LOG.info("Waiting until connected...");
+                        try {
+                            this.connectedSignal.await(3, TimeUnit.SECONDS);
+                        } catch (final TimeoutException ignored) { }
+                        break;
+                    case AUTH_FAILED:
+                        // No point in retrying
+                        throw new ZkException("Authentication to the ZooKeeper Ensemble failed.");
+                    case CLOSED:
+                    case NOT_CONNECTED:
+                        // These states indicate session expiration among
+                        // other things.
+                        try {
+                            LOG.info("Attempting to reconnect...");
+                            this.connect();
+                        } catch (final IOException | KeeperException e) {
+                            LOG.error("Unable to connect to the ZooKeeper Ensemble.", e);
+                        }
+                }
+                if (tries == this.retries) {
+                    throw new ZkException(
+                        String.format(
+                            "Failed after %d attempts to connect to the ZooKeeper Ensemble.",
+                            this.retries
+                        )
+                    );
+                } else {
+                    ++tries;
                 }
             }
             return this.zooKeeper;
-        } catch (final InterruptedException e) {
+        } catch (final InterruptedException | BrokenBarrierException e) {
             throw new ZkException("Interrupted while attempting to connect to the ZooKeeper Ensemble.", e);
         }
     }
@@ -212,16 +210,9 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
             )
         );
         if (newConnectString.length() > 0) {
-            synchronized (this.token) {
-                this.connectString = newConnectString;
-                LOG.info("Setting the connectString to {}", this.connectString);
-                this.zooKeeper().updateServerList(this.connectString.toString());
-                int tries = 0;
-                do {
-                    ++tries;
-                    this.token.wait(5000);
-                } while (!this.isValid && tries < this.retries);
-            }
+            this.connectString = newConnectString;
+            LOG.info("Setting the connectString to {}", this.connectString);
+            this.zooKeeper().updateServerList(this.connectString.toString());
         }
     }
 
@@ -241,12 +232,7 @@ public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watc
 
     @Override
     public void close() throws Exception {
-        // Synchronizing on the token to ensure
-        // this method plays nice with the above
-        synchronized (this.token) {
-            this.zooKeeper.close();
-            this.isValid = false;
-            this.isClosed = true;
-        }
+        this.zooKeeper.close();
+        this.isClosed.set(true);
     }
 }
