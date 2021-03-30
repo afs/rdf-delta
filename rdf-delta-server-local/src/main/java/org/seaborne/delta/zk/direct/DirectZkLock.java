@@ -17,10 +17,7 @@
 
 package org.seaborne.delta.zk.direct;
 
-import org.apache.zookeeper.ZooKeeper;
 import org.seaborne.delta.zk.ZkLock;
-
-import java.util.function.Supplier;
 
 /**
  * A handle to a distributed lock in ZooKeeper.
@@ -30,7 +27,7 @@ public final class DirectZkLock implements ZkLock {
     /**
      * A ZooKeeper client connection.
      */
-    private final Supplier<ZooKeeper> client;
+    private final ZooKeeperProvider client;
 
     /**
      * The ZooKeeper path to the lock.
@@ -42,13 +39,13 @@ public final class DirectZkLock implements ZkLock {
      * @param client A ZooKeeper client connection.
      * @param lock The ZooKeeper path to the lock.
      */
-    public DirectZkLock(final Supplier<ZooKeeper> client, final String lock) {
+    public DirectZkLock(final ZooKeeperProvider client, final String lock) {
         this.client = client;
         this.lock = lock;
     }
 
     @Override
     public void close() throws Exception {
-        this.client.get().delete(this.lock, this.client.get().exists(this.lock, false).getVersion());
+        this.client.zooKeeper().delete(this.lock, this.client.zooKeeper().exists(this.lock, false).getVersion());
     }
 }

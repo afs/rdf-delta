@@ -42,7 +42,7 @@ public final class DirectZkLockFactory {
     /**
      * ZooKeeper connection.
      */
-    private final Supplier<ZooKeeper> client;
+    private final ZooKeeperProvider client;
 
     /**
      * The amount of time to wait to acquire the lock in milliseconds.
@@ -53,7 +53,7 @@ public final class DirectZkLockFactory {
      * Constructs an instance from a ZooKeeper connection with a timeout of 10000 milliseconds.
      * @param client Zookeeper connection.
      */
-    public DirectZkLockFactory(final Supplier<ZooKeeper> client) {
+    public DirectZkLockFactory(final ZooKeeperProvider client) {
         this(client, 10000);
     }
 
@@ -62,7 +62,7 @@ public final class DirectZkLockFactory {
      * @param client Zookeeper connection.
      * @param timeout The amount of time to wait to acquire the lock in milliseconds.
      */
-    public DirectZkLockFactory(final Supplier<ZooKeeper> client, final long timeout) {
+    public DirectZkLockFactory(final ZooKeeperProvider client, final long timeout) {
         this.client = client;
         this.timeout = timeout;
     }
@@ -78,7 +78,7 @@ public final class DirectZkLockFactory {
     public DirectZkLock acquire(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Path: {}", path);
         // Creates the ephemeral sequential node that represents the lock we're trying to acquire
-        final String lockPath = this.client.get().create(
+        final String lockPath = this.client.zooKeeper().create(
             String.format("%s/%s", path, "directZkLock"),
             new byte[0],
             ZooDefs.Ids.OPEN_ACL_UNSAFE,
@@ -112,12 +112,12 @@ public final class DirectZkLockFactory {
         synchronized (token) {
             // Add a permanent watch at the path. If we add it in the getChildren() call below, it will clear the first
             // time it is triggered preventing us from receiving future notifications.
-            this.client.get().addWatch(path, watcher, AddWatchMode.PERSISTENT);
+            this.client.zooKeeper().addWatch(path, watcher, AddWatchMode.PERSISTENT);
             // Here we get all lock nodes at the given path. We then put each lock that precedes the one we made above
             // into the predecessors map with an initial value of false, indicating that they haven't released their
             // locks yet. Being synchronized, we can be sure any predecessors that may release their locks between when
             // we query for locks and when they are put into the map will be updated once we wait on the token below.
-            this.client.get().getChildren(path, false).stream()
+            this.client.zooKeeper().getChildren(path, false).stream()
                 .filter(lock -> lock.compareTo(lockNodeName) < 0)
                 .forEach(lock -> predecessors.put(lock, false));
             if (!isLockAcquired.get()) {
@@ -135,7 +135,7 @@ public final class DirectZkLockFactory {
                 }
             }
             // Clear the watch as it is no longer useful.
-            this.client.get().removeAllWatches(path, Watcher.WatcherType.Any, true);
+            this.client.zooKeeper().removeAllWatches(path, Watcher.WatcherType.Any, true);
         }
         return new DirectZkLock(this.client, lockPath);
     }

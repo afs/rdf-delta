@@ -49,7 +49,7 @@ public final class DirectZkConnection implements ZkConnection {
      */
     public static DirectZkConnection connect(final String connectString) throws IOException, KeeperException, InterruptedException {
         return new DirectZkConnection(
-            new ValidZooKeeperSupplier(connectString)
+            new ValidatedZooKeeperProvider(connectString)
         );
     }
 
@@ -61,14 +61,14 @@ public final class DirectZkConnection implements ZkConnection {
     /**
      * A supplier that either provides a valid {@link ZooKeeper} or throws a {@link org.seaborne.delta.zk.ZkException}.
      */
-    private final ValidZooKeeperSupplier client;
+    private final ValidatedZooKeeperProvider client;
 
     /**
-     * Instantiates a new {@link DirectZkConnection} with the provided {@link ValidZooKeeperSupplier}.
+     * Instantiates a new {@link DirectZkConnection} with the provided {@link ValidatedZooKeeperProvider}.
      * @param client A supplier that either provides a valid {@link ZooKeeper} or throws a
      *  {@link org.seaborne.delta.zk.ZkException}.
      */
-    private DirectZkConnection(final ValidZooKeeperSupplier client) {
+    private DirectZkConnection(final ValidatedZooKeeperProvider client) {
         this.client = client;
         this.lockFactory = new DirectZkLockFactory(client);
     }
@@ -76,26 +76,26 @@ public final class DirectZkConnection implements ZkConnection {
     @Override
     public boolean pathExists(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Checking if {} exists.", path);
-        return this.client.get().exists(path, false) != null;
+        return this.client.zooKeeper().exists(path, false) != null;
     }
 
     @Override
     public  final String ensurePathExists(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Ensuring {} exists.", path);
-        ZKPaths.mkdirs(this.client.get(), path, true);
+        ZKPaths.mkdirs(this.client.zooKeeper(), path, true);
         return path;
     }
 
     @Override
     public byte[] fetch(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Fetching {}.", path);
-        return this.client.get().getData(path, false, this.client.get().exists(path, false));
+        return this.client.zooKeeper().getData(path, false, this.client.zooKeeper().exists(path, false));
     }
 
     @Override
     public byte[] fetch(final Watcher watcher,  final String path) throws KeeperException, InterruptedException {
         LOG.debug("Fetching {}.", path);
-        return this.client.get().getData(path, watcher, this.client.get().exists(path, false));
+        return this.client.zooKeeper().getData(path, watcher, this.client.zooKeeper().exists(path, false));
     }
 
     @Override
@@ -111,13 +111,13 @@ public final class DirectZkConnection implements ZkConnection {
     @Override
     public List<String> fetchChildren(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Fetching the children of {}.", path);
-        return this.client.get().getChildren(path, false);
+        return this.client.zooKeeper().getChildren(path, false);
     }
 
     @Override
     public List<String> fetchChildren(final Watcher watcher,  final String path) throws KeeperException, InterruptedException {
         LOG.debug("Fetching the children of {}.", path);
-        return this.client.get().getChildren(path, watcher);
+        return this.client.zooKeeper().getChildren(path, watcher);
     }
 
     @Override
@@ -128,7 +128,7 @@ public final class DirectZkConnection implements ZkConnection {
     @Override
     public String createZNode(final String path, final CreateMode mode) throws KeeperException, InterruptedException {
         LOG.debug("Creating {}.", path);
-        return this.client.get().create(
+        return this.client.zooKeeper().create(
             path,
             new byte[0],
             ZooDefs.Ids.OPEN_ACL_UNSAFE,
@@ -144,7 +144,7 @@ public final class DirectZkConnection implements ZkConnection {
     @Override
     public String createAndSetZNode(final String path, byte[] bytes) throws KeeperException, InterruptedException {
         LOG.debug("Creating {} and setting it to {}.", path, new String(bytes));
-        return this.client.get().create(
+        return this.client.zooKeeper().create(
             path,
             bytes,
             ZooDefs.Ids.OPEN_ACL_UNSAFE,
@@ -160,23 +160,23 @@ public final class DirectZkConnection implements ZkConnection {
     @Override
     public void setZNode(final String path, byte[] bytes) throws KeeperException, InterruptedException {
         LOG.debug("Setting {} to {}.", path, new String(bytes));
-        this.client.get().setData(path, bytes, this.client.get().exists(path, false).getVersion());
+        this.client.zooKeeper().setData(path, bytes, this.client.zooKeeper().exists(path, false).getVersion());
     }
 
     @Override
     public void deleteZNodeAndChildren(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Deleting {} and its children.", path);
-        final Transaction transaction = this.client.get().transaction();
+        final Transaction transaction = this.client.zooKeeper().transaction();
         this.deleteZNodeAndChildren(transaction, path);
         transaction.commit();
     }
 
     private void deleteZNodeAndChildren(final Transaction transaction, final String path) throws KeeperException, InterruptedException {
-        for (final String child : this.client.get().getChildren(path, false)) {
+        for (final String child : this.client.zooKeeper().getChildren(path, false)) {
             final String childPath = String.format("%s/%s", path, child);
             this.deleteZNodeAndChildren(transaction, childPath);
         }
-        transaction.delete(path, this.client.get().exists(path, false).getVersion());
+        transaction.delete(path, this.client.zooKeeper().exists(path, false).getVersion());
     }
 
     @Override

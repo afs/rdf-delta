@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 /**
  * Supplies valid, connected {@link ZooKeeper} instances or throws an exception.
@@ -40,15 +39,15 @@ import java.util.function.Supplier;
  * This crash is essential to enabling the detection and replacement of a failed RDF Delta node.
  * </p>
  * <p>
- * If {@link #close()} is called, calls to {@link #get()} will yield a {@link ZkException} that should crash the
- * system. Only call {@link #close()} when you are done with this {@link ValidZooKeeperSupplier}.
+ * If {@link #close()} is called, calls to {@link #zooKeeper()} will yield a {@link ZkException} that should crash the
+ * system. Only call {@link #close()} when you are done with this {@link ValidatedZooKeeperProvider}.
  * </p>
  */
-public final class ValidZooKeeperSupplier implements Supplier<ZooKeeper>, Watcher, AutoCloseable {
+public final class ValidatedZooKeeperProvider implements ZooKeeperProvider, Watcher, AutoCloseable {
     /**
      * {@link Logger}.
      */
-    private static final Logger LOG = LoggerFactory.getLogger(ValidZooKeeperSupplier.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ValidatedZooKeeperProvider.class);
 
     /**
      * {@link Object} used for synchronizing asynchronous callbacks.
@@ -81,25 +80,25 @@ public final class ValidZooKeeperSupplier implements Supplier<ZooKeeper>, Watche
     private volatile boolean isClosed = false;
 
     /**
-     * Instantiates a {@link ValidZooKeeperSupplier} with the given connectString specifying a default retry limit of 5.
+     * Instantiates a {@link ValidatedZooKeeperProvider} with the given connectString specifying a default retry limit of 5.
      * @param connectString A comma-separated list of host:port pairs pointing to ZooKeeper Ensemble members.
      * @throws IOException if a problem occurs while attempting to connect to the ZooKeeper Ensemble.
      * @throws KeeperException if a problem occurs getting the current ZooKeeper Ensemble configuration.
      * @throws InterruptedException if the current thread is interrupted while waiting.
      */
-    public ValidZooKeeperSupplier(final CharSequence connectString) throws IOException, KeeperException, InterruptedException {
+    public ValidatedZooKeeperProvider(final CharSequence connectString) throws IOException, KeeperException, InterruptedException {
         this(connectString, 5);
     }
 
     /**
-     * Instantiates a {@link ValidZooKeeperSupplier} with the given connectString and the given retry limit.
+     * Instantiates a {@link ValidatedZooKeeperProvider} with the given connectString and the given retry limit.
      * @param connectString A comma-separated list of host:port pairs pointing to ZooKeeper Ensemble members.
      * @param retries The number of times to try to connect to a ZooKeeper Ensemble before giving up.
      * @throws IOException if a problem occurs while attempting to connect to the ZooKeeper Ensemble.
      * @throws KeeperException if a problem occurs getting the current ZooKeeper Ensemble configuration.
      * @throws InterruptedException if the current thread is interrupted while waiting.
      */
-    public ValidZooKeeperSupplier(final CharSequence connectString, final int retries) throws IOException, KeeperException, InterruptedException {
+    public ValidatedZooKeeperProvider(final CharSequence connectString, final int retries) throws IOException, KeeperException, InterruptedException {
         this.connectString = connectString;
         this.retries = retries;
         this.connect();
@@ -137,7 +136,7 @@ public final class ValidZooKeeperSupplier implements Supplier<ZooKeeper>, Watche
     }
 
     @Override
-    public ZooKeeper get() {
+    public ZooKeeper zooKeeper() {
         try {
             long tries = 1;
             synchronized (this.token) {
@@ -204,9 +203,9 @@ public final class ValidZooKeeperSupplier implements Supplier<ZooKeeper>, Watche
      */
     private void updateConfig() throws KeeperException, InterruptedException, IOException {
         final CharSequence newConnectString = new ConnectString(
-            this.get().getConfig(
+            this.zooKeeper().getConfig(
                 this,
-                this.get().exists(
+                this.zooKeeper().exists(
                     ZooDefs.CONFIG_NODE,
                     false
                 )
@@ -216,7 +215,7 @@ public final class ValidZooKeeperSupplier implements Supplier<ZooKeeper>, Watche
             synchronized (this.token) {
                 this.connectString = newConnectString;
                 LOG.info("Setting the connectString to {}", this.connectString);
-                this.get().updateServerList(this.connectString.toString());
+                this.zooKeeper().updateServerList(this.connectString.toString());
                 int tries = 0;
                 do {
                     ++tries;
