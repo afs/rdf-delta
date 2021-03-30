@@ -50,13 +50,6 @@ public final class DirectZkLockFactory {
     private final long timeout;
 
     /**
-     * Token used to synchronize actions between {@link #acquire(String)} and {@link LockAcquiredWatcher}.
-     */
-    private final Object token = new Object();
-
-    private final Map<String, Boolean> predecessors;
-
-    /**
      * Constructs an instance from a ZooKeeper connection with a timeout of 10000 milliseconds.
      * @param client Zookeeper connection.
      */
@@ -72,12 +65,6 @@ public final class DirectZkLockFactory {
     public DirectZkLockFactory(final Supplier<ZooKeeper> client, final long timeout) {
         this.client = client;
         this.timeout = timeout;
-        this.predecessors = new HashMap<>(0);
-    }
-
-    private boolean isLockAcquired() {
-        final var isAcquired = this.predecessors.values().stream().reduce(Boolean::logicalAnd);
-        return isAcquired.isPresent() && isAcquired.get();
     }
 
     /**
@@ -90,6 +77,7 @@ public final class DirectZkLockFactory {
      */
     public DirectZkLock acquire(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Path: {}", path);
+        // Creates the ephemeral sequential node that represents the lock we're trying to acquire
         final String lockPath = this.client.get().create(
             String.format("%s/%s", path, "directZkLock"),
             new byte[0],
@@ -99,28 +87,55 @@ public final class DirectZkLockFactory {
         LOG.debug("LockPath: {}", lockPath);
         final String lockNodeName = lockPath.replace(String.format("%s/", path), "");
         LOG.debug("LockNodeName: {}", lockNodeName);
+        // Token used to synchronize with LockAcquiredWatcher.
+        final Object token = new Object();
+        // The key is the path to a lock node that is a predecessor to the lock we're trying to acquire.
+        // The value answers the question, "has this lock been released?"
+        final Map<String, Boolean> predecessors= new HashMap<>(0);
+        // Answers the question, "have all the predecessor locks been released?"
+        final Supplier<Boolean> isLockAcquired = () -> predecessors.values().stream()
+            .reduce(Boolean::logicalAnd)
+            .orElse(true); // No values indicates no predecessor locks; therefore, true
+        // Updates the state of the predecessors when their nodes are deleted
         final LockAcquiredWatcher watcher = new LockAcquiredWatcher(
-            this.token,
-            predecessor -> this.predecessors.put(predecessor, true),
-            this::isLockAcquired
+            token,
+            predecessor -> {
+                if (predecessors.containsKey(predecessor)) {
+                    predecessors.put(predecessor, true);
+                }
+            },
+            isLockAcquired
         );
-        // Synchronizing on the token here to ensure consistent reads from isLockAcquired()
-        synchronized (this.token) {
-            this.client.get().getChildren(path, watcher).stream()
-                .filter(x -> x.compareTo(lockNodeName) < 0)
-                .forEach(key -> this.predecessors.put(key, false));
-            if (!this.isLockAcquired()) {
+        // Synchronizing on the token here to ensure consistent reads from isLockAcquired.
+        // We are synchronizing on a local variable because all the actions that need synchronization are completed
+        // before this method exits.
+        synchronized (token) {
+            // Add a permanent watch at the path. If we add it in the getChildren() call below, it will clear the first
+            // time it is triggered preventing us from receiving future notifications.
+            this.client.get().addWatch(path, watcher, AddWatchMode.PERSISTENT);
+            // Here we get all lock nodes at the given path. We then put each lock that precedes the one we made above
+            // into the predecessors map with an initial value of false, indicating that they haven't released their
+            // locks yet. Being synchronized, we can be sure any predecessors that may release their locks between when
+            // we query for locks and when they are put into the map will be updated once we wait on the token below.
+            this.client.get().getChildren(path, false).stream()
+                .filter(lock -> lock.compareTo(lockNodeName) < 0)
+                .forEach(lock -> predecessors.put(lock, false));
+            if (!isLockAcquired.get()) {
                 // Waiting here yields the synchronization lock to allow the watcher to update the state used in the
-                // isLockAcquired() calculation. Doing it this way ensures consistent reads from isLockAcquired() since
-                // even if the timeout is reached, the code must obtain a synchronization lock before proceeding
-                // which allows any ongoing watcher update to finish before this code resumes.
-                watcher.wait(this.timeout);
-                if (!this.isLockAcquired()) {
+                // isLockAcquired calculation. Doing it this way ensures consistent reads from isLockAcquired since
+                // even if the timeout is reached, the code must reobtain the synchronization lock before proceeding
+                // which allows any ongoing watcher update to finish before this code resumes. We're ignoring the risk
+                // of a spurious wakeup because the relative simplicity of treating it like a timeout outweighs the
+                // benefit of looping and trying to track the timeout independently.
+                token.wait(this.timeout);
+                if (!isLockAcquired.get()) {
                     throw new ZkException(
                         String.format("Failed to acquire the lock after %d milliseconds.", this.timeout)
                     );
                 }
             }
+            // Clear the watch as it is no longer useful.
+            this.client.get().removeAllWatches(path, Watcher.WatcherType.Any, true);
         }
         return new DirectZkLock(this.client, lockPath);
     }
@@ -177,14 +192,14 @@ public final class DirectZkLockFactory {
         public void process(final WatchedEvent watchedEvent) {
             LOG.debug("Event received: {}", watchedEvent.getType());
             if (watchedEvent.getType() == Event.EventType.NodeDeleted) {
-                // This synchronization ensures consistent reads of isLockAcquired() by preventing the state of the
-                // locks from being updated while the synchronization block starting at 109 has control.
+                // This synchronization ensures consistent reads of isLockAcquired by preventing the state of the
+                // locks from being updated while the synchronization block in the acquired method has control.
                 synchronized(this.token) {
                     LOG.info("Predecessor lock {} has been released.", watchedEvent.getPath());
                     this.onLockReleased.accept(watchedEvent.getPath());
                     if (this.isLockAcquired.get()) {
                         LOG.info("The lock is acquired.");
-                        // This wakes the thread waiting at 118 above.
+                        // This wakes the thread waiting in the acquired method.
                         this.token.notifyAll();
                     }
                 }
