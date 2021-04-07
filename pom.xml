@@ -69,7 +69,7 @@
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <ver.jena>4.0.0-SNAPSHOT</ver.jena>
+    <ver.jena>4.0.0</ver.jena>
     <ver.jetty>9.4.39.v20210325</ver.jetty>
     <ver.junit>4.13.2</ver.junit>
     <ver.slf4j>1.7.30</ver.slf4j>
@@ -463,18 +463,18 @@
               </execution>
             </executions>
             <configuration>
-            <!-- <doclint>none</doclint> -->
-            <!-- To allow the build to keep going despite javadoc problems:
-                 <failOnError>false</failOnError>
-            -->
-            <version>true</version>
-            <quiet>true</quiet>
-            <show>public</show>
-            <encoding>UTF-8</encoding>
-            <windowtitle>${project.name} ${project.version}</windowtitle>
-            <doctitle>${project.name} ${project.version}</doctitle>
-            <bottom>Licensed under the Apache License, Version 2.0</bottom>
-          </configuration>
+              <!-- <doclint>none</doclint> -->
+              <!-- To allow the build to keep going despite javadoc problems:
+                   <failOnError>false</failOnError>
+              -->
+              <version>true</version>
+              <quiet>true</quiet>
+              <show>public</show>
+              <encoding>UTF-8</encoding>
+              <windowtitle>${project.name} ${project.version}</windowtitle>
+              <doctitle>${project.name} ${project.version}</doctitle>
+              <bottom>Licensed under the Apache License, Version 2.0</bottom>
+            </configuration>
         </plugin>
 
         <plugin>
@@ -553,6 +553,11 @@
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <version>0.13</version>
+        <!-- 
+             Run only if maven is running from this POM,
+             not when run in a sub-module with this as parent.
+        -->
+        <inherited>false</inherited>
         <executions>
           <execution>
             <id>rat-checks</id>
@@ -563,13 +568,12 @@
           </execution>
         </executions>
         <configuration>
-          <excludeSubProjects>true</excludeSubProjects>
+          <excludeSubProjects>false</excludeSubProjects>
           <excludes>
             <exclude>**/hs_err_pid*.log</exclude>
             <exclude>docs/**</exclude>
             <exclude>local/**</exclude>
             <exclude>.github/**</exclude>
-            <exclude>.travis.yml</exclude>
 
             <exclude>**/.project</exclude>
             <exclude>**/.settings/**</exclude>
