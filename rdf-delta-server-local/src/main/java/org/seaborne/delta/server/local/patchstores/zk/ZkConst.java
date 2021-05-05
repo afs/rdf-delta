@@ -17,7 +17,7 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.zk.Zk.zkPath;
+import org.apache.curator.utils.ZKPaths;
 
 public class ZkConst {
 
@@ -42,9 +42,9 @@ public class ZkConst {
 
     // Server
     static final String pRoot           = "/delta";
-    static final String pLogs           = zkPath(pRoot, "logs");
-    static final String pStoreLock      = zkPath(pRoot, "lock");
-    static final String pActiveLogs     = zkPath(pRoot, "activeLogs");
+    static final String pLogs           = ZKPaths.makePath(pRoot, "logs", new String[]{});
+    static final String pStoreLock      = ZKPaths.makePath(pRoot, "lock", new String[]{});
+    static final String pActiveLogs     = ZKPaths.makePath(pRoot, "activeLogs", new String[]{});
 
     // Per patch log names.
     static final String nDsd            = "dsd";

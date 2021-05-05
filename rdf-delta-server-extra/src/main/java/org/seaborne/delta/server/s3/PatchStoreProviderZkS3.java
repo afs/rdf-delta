@@ -24,7 +24,6 @@ import static org.seaborne.delta.server.s3.S3Const.pRegion;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.util.StringUtils;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.server.Provider;
@@ -32,6 +31,7 @@ import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
+import org.seaborne.delta.zk.UncheckedZkConnection;
 
 public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
 
@@ -60,7 +60,7 @@ public class PatchStoreProviderZkS3 extends PatchStoreProviderZk {
             s3.client.createBucket(s3.bucketName);
         }
         // The usual PatchStoreZk for the index, but remembering DetailsS3
-        CuratorFramework client = curator(config);
+        UncheckedZkConnection client = zk(config);
         return new PatchStoreZkS3(client, this, s3);
     }
 

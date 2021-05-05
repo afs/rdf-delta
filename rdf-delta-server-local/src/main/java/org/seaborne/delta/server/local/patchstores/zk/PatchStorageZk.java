@@ -22,11 +22,11 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.delta.zk.Zk;
+import org.seaborne.delta.zk.UncheckedZkConnection;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.slf4j.Logger;
@@ -42,34 +42,34 @@ import org.slf4j.LoggerFactory;
  */
 public class PatchStorageZk implements PatchStorage {
     private static Logger LOG = LoggerFactory.getLogger(PatchStorageZk.class);
-    private final CuratorFramework client;
+    private final UncheckedZkConnection zk;
     private final String patches;
 
-    public PatchStorageZk(CuratorFramework client, String instance, String logPath) {
-        this.client = client;
-        this.patches = Zk.zkPath(logPath, ZkConst.nPatches);
-        Zk.zkEnsure(client, patches);
+    public PatchStorageZk(UncheckedZkConnection client, String instance, String logPath) {
+        this.zk = client;
+        this.patches = ZKPaths.makePath(logPath, ZkConst.nPatches, new String[]{});
+        client.ensurePathExists(patches);
     }
 
     @Override
     public Stream<Id> find() {
-        List<String> x = Zk.zkSubNodes(client, patches);
+        List<String> x = this.zk.fetchChildren(patches);
         return x.stream().map(s-> Id.fromString(s));
     }
 
     @Override
     public void store(Id key, RDFPatch value) {
-        String p = Zk.zkPath(patches, key.asPlainString());
+        String p = ZKPaths.makePath(patches, key.asPlainString(), new String[]{});
         ByteArrayOutputStream out = new ByteArrayOutputStream(10*1024);
         RDFPatchOps.write(out, value);
         byte[] b = out.toByteArray();
-        Zk.zkCreateSet(client, p, b);
+        this.zk.createAndSetZNode(p, b);
     }
 
     @Override
     public RDFPatch fetch(Id key) {
-        String p = Zk.zkPath(patches, key.asPlainString());
-        byte[] b = Zk.zkFetch(client, p);
+        String p = ZKPaths.makePath(patches, key.asPlainString(), new String[]{});
+        byte[] b = this.zk.fetch(p);
         if ( b == null )
             return null;
         if ( b.length == 0 )
@@ -79,8 +79,8 @@ public class PatchStorageZk implements PatchStorage {
 
     @Override
     public void delete(Id id) {
-        String p = Zk.zkPath(patches, id.asPlainString());
-        Zk.zkRun(()->client.delete().forPath(p));
+        String p = ZKPaths.makePath(patches, id.asPlainString(), new String[]{});
+        this.zk.deleteZNodeAndChildren(p);
     }
 
     @Override

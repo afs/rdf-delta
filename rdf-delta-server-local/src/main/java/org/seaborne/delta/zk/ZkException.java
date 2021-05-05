@@ -22,7 +22,7 @@ import org.seaborne.delta.DeltaException;
 
 public class ZkException extends DeltaException {
 //    public ZkException()                          { super() ; }
-//    public ZkException(String msg)                { super(msg) ; }
+    public ZkException(String msg)                { super(msg) ; }
 //    public ZkException(Throwable th)              { super(th) ; }
     public ZkException(String msg, Throwable th)  { super(msg, th) ; }
 }

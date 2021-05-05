@@ -28,7 +28,6 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -57,7 +56,6 @@ import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.zk.Zk;
 import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
@@ -146,12 +144,6 @@ public class Matrix {
         deltaServerLink1 = null;
         deltaServerLink2 = null;
         zkServer = null;
-    }
-
-    public static void zk(Consumer<CuratorFramework> action) {
-        CuratorFramework client = Zk.curator(zookeeperConnectionString);
-        curatorClients.add(client);
-        Zk.zkRun(()->action.accept(client));
     }
 
     public static Pair<DeltaLink, DeltaServer> startDeltaServer(int port, String connectionString) {

@@ -17,15 +17,20 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.zookeeper.KeeperException;
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchStoreProvider;
-import org.seaborne.delta.zk.Zk;
+import org.seaborne.delta.zk.UncheckedZkConnection;
+import org.seaborne.delta.zk.ZkException;
+import org.seaborne.delta.zk.WrappedUncheckedZkConnection;
+import org.seaborne.delta.zk.direct.DirectZkConnection;
+
+import java.io.IOException;
 
 public class PatchStoreProviderZk implements PatchStoreProvider {
 
@@ -33,17 +38,28 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
 
     @Override
     public PatchStore create(LocalServerConfig config) {
-        CuratorFramework client = curator(config);
+        UncheckedZkConnection client = zk(config);
         return new PatchStoreZk(client, this);
     }
 
-    /** Build a {@link CuratorFramework} from the {@link LocalServerConfig}. */
-    protected CuratorFramework curator(LocalServerConfig config) {
+    /**
+     * Build an {@link UncheckedZkConnection} from the {@link LocalServerConfig}.
+     * @return A new {@link UncheckedZkConnection}.
+     * */
+    protected UncheckedZkConnection zk(LocalServerConfig config) {
         String connectionString = config.getProperty(DeltaConst.pDeltaZk);
         if ( connectionString == null )
             Log.error(this, "No connection string in configuration");
-        CuratorFramework client = Zk.curator(connectionString);
-        return client;
+        try {
+            return new WrappedUncheckedZkConnection(DirectZkConnection.connect(connectionString));
+        } catch (final IOException | KeeperException | InterruptedException e) {
+            final String message = String.format(
+                "Unable to connect to ZooKeeper with connect string %s",
+                connectionString
+            );
+            Log.error(this, message, e);
+            throw new ZkException(message, e);
+        }
     }
 
     @Override

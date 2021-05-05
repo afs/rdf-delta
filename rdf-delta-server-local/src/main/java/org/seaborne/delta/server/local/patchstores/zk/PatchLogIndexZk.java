@@ -17,18 +17,13 @@
 
 package org.seaborne.delta.server.local.patchstores.zk;
 
-import static org.seaborne.delta.zk.Zk.zkPath;
-
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.locks.InterProcessLock;
+import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
@@ -38,45 +33,27 @@ import org.seaborne.delta.server.local.JsonLogEntry;
 import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.delta.zk.Zk;
+import org.seaborne.delta.zk.UncheckedZkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** State control for a {@link PatchStore} */
 public class PatchLogIndexZk implements PatchLogIndex {
-    private static Logger LOG = LoggerFactory.getLogger(PatchLogIndexZk.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PatchLogIndexZk.class);
 
     private final Object lock = new Object();
-    private final CuratorFramework client;
+    private final UncheckedZkConnection zk;
 
-    private /*final*/ String instance;
-
-    private final DataSourceDescription dsd;
     private final String logName;
     private final String statePath;
     private final String lockPath;
     private final String lockStatePath;
     private final String versionsPath;
     private final String headersPath;
-    private final InterProcessLock zkLock;
 
     // null => no watching.
     //private Watcher logStateWatcher = null;
     private final Watcher logStateWatcher;
-
-    /* Keep header info - the (version, id, prev) is saved in /headers/<id> when a patch is stored in addition to the
-     * /versions/NNNN which as just id.
-     * This isn't necessary for operation.
-     * It can be used to check the patch store.
-     */
-    private final boolean keepHeaderInfo = true;
-
-    /*
-     * Verification can only happen if basic header information is stored.
-     * Requires header information to have been kept.
-     */
-    // Could write a verifier that went to the PatchStorage to get header info.
-    private final boolean startupVerification = false && keepHeaderInfo ;
 
     private Version earliestVersion = Version.UNSET;
     private Id earliestId = null;
@@ -92,127 +69,39 @@ public class PatchLogIndexZk implements PatchLogIndex {
      * <li>{@code versionsPath} - directory where the meta data JSON object is stored as name "%08d"
      * </ul>
      */
-
-    private static AtomicInteger counter = new AtomicInteger(0);
-
-    public PatchLogIndexZk(CuratorFramework client, String instance, DataSourceDescription dsd, String logPath) {
+    public PatchLogIndexZk(UncheckedZkConnection client, String instance, DataSourceDescription dsd, String logPath) {
         // THis gets called twice in the creator - sees its own create via ZK watcher.
-        this.client = client ;
-        this.instance = instance;
-        this.dsd = dsd;
+        this.zk = client;
         this.logName = dsd.getName();
-        this.statePath      = zkPath(logPath, ZkConst.nState);
-        this.lockPath       = zkPath(logPath, ZkConst.nLock);
-        this.lockStatePath  = zkPath(logPath, ZkConst.nLockState);
-        this.versionsPath   = zkPath(logPath, ZkConst.nVersions);
-        this.headersPath    = zkPath(logPath, ZkConst.nHeaders);
+        this.statePath      = ZKPaths.makePath(logPath, ZkConst.nState, new String[]{});
+        this.lockPath       = ZKPaths.makePath(logPath, ZkConst.nLock, new String[]{});
+        this.lockStatePath  = ZKPaths.makePath(logPath, ZkConst.nLockState, new String[]{});
+        this.versionsPath   = ZKPaths.makePath(logPath, ZkConst.nVersions, new String[]{});
+        this.headersPath    = ZKPaths.makePath(logPath, ZkConst.nHeaders, new String[]{});
         this.logStateWatcher = (event)->{
           synchronized(lock) {
               FmtLog.debug(LOG, "++ [%s:%s] Log watcher", instance, logName);
               syncState();
           }
         };
-        this.zkLock = Zk.zkCreateLock(client, lockPath);
 
         // Find earliest.
-        List<String> x = Zk.zkSubNodes(client, versionsPath);
+        List<String> versions = client.fetchChildren(versionsPath);
         //Guess: 1
-        if ( x.isEmpty() )
+        if (versions.isEmpty())
             earliestVersion = Version.INIT;
-        else if ( x.contains("00000001") )
+        else if (versions.contains("00000001"))
             // Fast-track the "obvious" answer
             earliestVersion = Version.create(1);
         else {
             try {
-                long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
+                long ver = versions.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).get();
                 earliestVersion = Version.create(ver);
-            } catch (NoSuchElementException ex) {  }
+            } catch (final NoSuchElementException ignored) {  }
         }
         earliestId = versionToId(earliestVersion);
         // Initialize, start watching
         stateOrInit();
-
-        if ( startupVerification ) {
-            if ( ! keepHeaderInfo )
-                FmtLog.warn(LOG, "Not keeping header information. Verification may fail if any previous runs also did not keep header information.");
-            verify(client, x);
-        }
-    }
-
-    private void verify(CuratorFramework client, List<String> versions) {
-        List<String> headers = Zk.zkSubNodes(client, headersPath);
-
-        if ( versions.isEmpty() ) {
-            if ( ! headers.isEmpty() ) { /*msg*/ }
-            if ( version != Version.INIT.value() ) { /*msg*/ }
-            if ( current != null ) { /*msg*/ }
-            if ( previous != null ) { /*msg*/ }
-            return ;
-        }
-        // Create the threaded patches
-        Map<Id, Id> mapIdToPrev = new HashMap<>();
-        Map<Id, Id> mapPrevToId = new HashMap<>();
-        Map<Version, Id> mapVersionToId = new HashMap<>();
-
-        headers.forEach(idStr->{
-            Id id = Id.fromString(idStr);
-            String path = zkPath(headersPath, idStr);
-            JsonObject obj = Zk.zkFetchJson(client, path);
-            LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
-            Id patchId = entry.getPatchId();
-            //if ( ! Objects.equals(id, patchId) ) { /*msg*/ }
-
-            Id prevId = entry.getPrevious();
-            Version ver = entry.getVersion();
-            if ( patchId == null ) {
-                FmtLog.error(LOG, "Null patch id (%s, %s)", patchId, prevId);
-                return;
-            }
-            if ( mapIdToPrev.containsKey(patchId) )
-                FmtLog.error(LOG, "Duplicate for %s: was %s : now %s", patchId, mapIdToPrev.get(patchId), prevId);
-
-            mapIdToPrev.put(patchId, prevId);
-            mapPrevToId.put(prevId, patchId);
-            mapVersionToId.put(ver, patchId);
-        });
-
-        // Find all the ids with no prev.
-        List<Id> firsts = ListUtils.toList(mapIdToPrev.entrySet().stream().filter(e->e.getValue()==null).map(e->e.getKey()));
-        if ( firsts.isEmpty() ) {
-            FmtLog.error(LOG, "No initial patch found");
-            return;
-        }
-        if ( firsts.size() > 2 ) {
-            FmtLog.error(LOG, "Multiple patchs with no prev: %s", firsts);
-            return;
-        }
-        // Off by one!
-        List<Id> versionsCalc = new ArrayList<>();
-        Id initialId = firsts.get(0);
-        Id id = initialId;
-        long count = 0;
-
-        for(;;) {
-            versionsCalc.add(id);
-            Id next = mapPrevToId.get(id);
-            if ( next == null )
-                break;
-            id = next;
-        }
-
-        if ( versionsCalc.size() != versions.size() ) { /*msg*/ }
-        if ( versionsCalc.size()+1 != version ) { /*msg*/ }
-
-        Id mostRecent = versionsCalc.get(versionsCalc.size()-1);
-        if ( ! mostRecent.equals(current) ) { /*msg*/ }
-
-        if ( previous != null ) {
-            if ( versionsCalc.size() == 1 ) {}
-            Id mostRecentPrev = versionsCalc.get(versionsCalc.size()-2);
-            if ( mostRecentPrev.equals(previous) ) { /*msg*/ }
-        } else {
-            if ( versionsCalc.size() != 1 ) { /*msg*/ }
-        }
     }
 
     @Override
@@ -268,12 +157,16 @@ public class PatchLogIndexZk implements PatchLogIndex {
         if ( patch != null ) {
             // [META]
             // Record the basic header - (version, id, prev) - for validation.
-            if ( keepHeaderInfo )
-                Zk.zkCreateSet(client, headerPath(patch), bytes);
+            /* Keep header info - the (version, id, prev) is saved in /headers/<id> when a patch is stored in addition to the
+             * /versions/NNNN which as just id.
+             * This isn't necessary for operation.
+             * It can be used to check the patch store.
+             */
+            this.zk.createAndSetZNode(headerPath(patch), bytes);
             // Write version->id mapping.
-            Zk.zkCreateSet(client, versionPath(version), patch.asBytes());
+            this.zk.createAndSetZNode(versionPath(version), patch.asBytes());
         }
-        Zk.zkSet(client, statePath, bytes);
+        this.zk.setZNode(statePath, bytes);
     }
 
     private void syncState() {
@@ -283,7 +176,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     private JsonObject getWatchedState() {
-        return Zk.zkFetchJson(client, logStateWatcher, statePath);
+        return this.zk.fetchJson(logStateWatcher, statePath);
     }
 
     @Override
@@ -369,18 +262,16 @@ public class PatchLogIndexZk implements PatchLogIndex {
         // Cache?
         if ( ! Version.isValid(ver) )
             return null;
-        String p = versionPath(ver);
-        byte[] b = Zk.zkFetch(client, versionPath(ver));
+        byte[] b = this.zk.fetch(versionPath(ver));
         if ( b == null )
             return null;
-        Id id = Id.fromBytes(b);
-        return id;
+        return Id.fromBytes(b);
     }
 
     @Override
     public Version idToVersion(Id id) {
         String p = headerPath(id);
-        JsonObject obj = Zk.zkFetchJson(client, p);
+        JsonObject obj = this.zk.fetchJson(p);
         LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
         return entry.getVersion();
     }
@@ -388,14 +279,13 @@ public class PatchLogIndexZk implements PatchLogIndex {
     @Override
     public LogEntry getPatchInfo(Id id) {
         String p = headerPath(id);
-        JsonObject obj = Zk.zkFetchJson(client, p);
-        LogEntry entry = JsonLogEntry.jsonToLogEntry(obj);
-        return entry;
+        JsonObject obj = this.zk.fetchJson(p);
+        return JsonLogEntry.jsonToLogEntry(obj);
    }
 
     private String versionPath(Version ver) { return versionPath(ver.value()) ; }
-    private String versionPath(long ver) { return Zk.zkPath(versionsPath, String.format("%08d", ver)); }
-    private String headerPath(Id id) { return Zk.zkPath(headersPath, id.asPlainString()); }
+    private String versionPath(long ver) { return ZKPaths.makePath(versionsPath, String.format("%08d", ver), new String[]{}); }
+    private String headerPath(Id id) { return ZKPaths.makePath(headersPath, id.asPlainString(), new String[]{}); }
 
     private long versionFromName(String name) {
         try {
@@ -407,38 +297,20 @@ public class PatchLogIndexZk implements PatchLogIndex {
     }
 
     @Override
-    public void runWithLock(Runnable action) {
-        synchronized(lock) {
-            Zk.zkLock(zkLock, lockPath, ()->{
-                syncVersionInfo();
-                try {
-                    action.run();
-                }
-                catch(DeltaException ex) { throw ex; }
-                catch(RuntimeException ex) {
-                    FmtLog.warn(LOG, "RuntimeException in runWithLock");
-                    ex.printStackTrace();
-                    throw ex;
-                }
-            });
-        }
+    public void runWithLock(final Runnable action) {
+        this.runWithLock(
+            () -> {
+                action.run();
+                return null;
+            }
+        );
     }
 
     @Override
-    public <X> X runWithLockRtn(Supplier<X> action) {
+    public <X> X runWithLock(Supplier<X> action) {
         synchronized(lock) {
-            return Zk.zkLockRtn(zkLock, lockPath, ()->{
-                syncVersionInfo();
-                try {
-                    return action.get();
-                }
-                catch(DeltaException ex) { throw ex; }
-                catch(RuntimeException ex) {
-                    FmtLog.warn(LOG, "RuntimeException in runWithLock");
-                    ex.printStackTrace();
-                    throw ex;
-                }
-            });
+            syncVersionInfo();
+            return this.zk.runWithLock(this.lockPath, action);
         }
     }
 
@@ -449,32 +321,33 @@ public class PatchLogIndexZk implements PatchLogIndex {
 
     // Timeouts:
     // Need to write!
-    private static String jTimestamp = "timestamp";
-    private static String jLockId =    "lockid";
-    private static String jTicks =     "ticks";
+    private static final String jTimestamp = "timestamp";
+    private static final String jLockId =    "lockid";
+    private static final String jTicks =     "ticks";
 
     @Override
     public Id acquireLock() {
         // And createSet
 
         // Short or long term lock?
-        Id lockToken =
-            Zk.zkLockRtn(zkLock, lockPath, ()->{
+        return this.runWithLock(
+            ()-> {
                 LockState lockState = readLock();
-                if ( ! LockState.isFree(lockState) )
+                if ( ! LockState.isFree(lockState) ) {
                     // Not free.
                     return null;
+                }
 
                 Id lockTokenAlloc = Id.create();
                 writeLockState(lockTokenAlloc, 1);
                 return lockTokenAlloc;
-            });
-        return lockToken;
+            }
+        );
     }
 
     @Override
     public boolean refreshLock(Id session) {
-        return Zk.zkLockRtn(zkLock, lockPath, ()->refreshLock$(session));
+        return this.runWithLock(()->refreshLock$(session));
     }
 
     private boolean refreshLock$(Id session) {
@@ -494,51 +367,50 @@ public class PatchLogIndexZk implements PatchLogIndex {
             builder.pair(jLockId, session.asPlainString());
             builder.pair(jTicks, ticks);
         });
-        Zk.zkSetJson(client, lockStatePath, value);
+        this.zk.setZNode(lockStatePath, value);
     }
 
     @Override
     public LockState readLock() {
-        JsonObject value = Zk.zkFetchJson(client, lockStatePath);
+        JsonObject value = this.zk.fetchJson(lockStatePath);
         if ( value == null || value.isEmpty() )
             return LockState.UNLOCKED;
-        String dt = value.getString(jTimestamp);
         // Validate?
         String lockId = value.getString(jLockId);
-        if ( dt == null || lockId == null ) {} // XXX
         long ticks = value.get(jTicks).getAsNumber().value().longValue();
-        LockState lockState = LockState.create(Id.fromString(lockId), ticks);
-        return lockState;
+        return LockState.create(Id.fromString(lockId), ticks);
     }
 
     @Override
     public Id grabLock(Id oldSession) {
-        return Zk.zkLockRtn(zkLock, lockPath, ()->{
-            LockState lockState = readLock();
-//            if ( ! LockState.isFree(lockState) && ! oldSession.equals(lockState.session) )
-//                return null;
-          if (  LockState.isFree(lockState) )
-              return null;
-          if ( ! oldSession.equals(lockState.session) )
-              return null;
+        return this.runWithLock(
+            ()-> {
+                LockState lockState = readLock();
+                if (  LockState.isFree(lockState) )
+                  return null;
+                if ( ! oldSession.equals(lockState.session) )
+                  return null;
 
-            // DRY with acquire
-            Id lockTokenAlloc = Id.create();
-            writeLockState(lockTokenAlloc, 1);
-            return lockTokenAlloc;
-        });
+                // DRY with acquire
+                Id lockTokenAlloc = Id.create();
+                this.writeLockState(lockTokenAlloc, 1);
+                return lockTokenAlloc;
+            }
+        );
     }
 
     @Override
     public void releaseLock(Id session) {
         Objects.requireNonNull(session);
-        Zk.zkLock(zkLock, lockPath, ()->{
-            LockState lockState = readLock();
-            if ( LockState.isFree(lockState) )
-                return;
-            if ( ! session.equals(lockState.session) )
-                return;
-            Zk.zkSet(client, lockStatePath, null);
-        });
+        this.runWithLock(
+            ()-> {
+                LockState lockState = readLock();
+                if ( LockState.isFree(lockState) )
+                    return;
+                if ( ! session.equals(lockState.session) )
+                    return;
+                this.zk.setZNode(lockStatePath, new byte[0]);
+            }
+        );
     }
 }

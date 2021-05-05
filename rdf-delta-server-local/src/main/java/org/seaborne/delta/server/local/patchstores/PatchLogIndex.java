@@ -33,7 +33,7 @@ public interface PatchLogIndex {
     public void runWithLock(Runnable action);
 
     /** Run action inside a patch log wide lock; return a result. */
-    public <X> X runWithLockRtn(Supplier<X> action);
+    public <X> X runWithLock(Supplier<X> action);
 
     /** Return whether the log is empty. */
     public boolean isEmpty();
