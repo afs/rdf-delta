@@ -42,7 +42,7 @@ import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
 
-/** Library of fucntiosn relating to S3 */
+/** Library of functions relating to S3 */
 public class S3 {
     /**
      * Create {@link LocalServerConfig} for a Zookeeper and S3 based patch log server.

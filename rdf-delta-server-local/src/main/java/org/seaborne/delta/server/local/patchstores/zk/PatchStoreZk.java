@@ -79,11 +79,9 @@ public class PatchStoreZk extends PatchStore {
     protected PatchStoreZk(CuratorFramework client, PatchStoreProvider psp, String rootDirName) {
         super(psp);
 
-        this.rootPath = (
-            (rootDirName == null)
-                ? ZkConst.pRootDefault
-                : (rootDirName.startsWith("/") ? rootDirName : ("/" + rootDirName))
-        );
+        this.rootPath = (rootDirName == null)
+            ? ZkConst.pRootDefault
+            : rootDirName.startsWith("/") ? rootDirName : ("/" + rootDirName) ;
         this.logsRootPath = zkPath(this.rootPath, ZkConst.pLogs);
         this.storeLockRootPath = zkPath(this.rootPath, ZkConst.pStoreLock);
         this.activeLogsRootPath = zkPath(this.rootPath, ZkConst.pActiveLogs);

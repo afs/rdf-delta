@@ -119,7 +119,10 @@ public class DeltaConst {
 
     // Properties used to define patch store providers.
     public static final String pDeltaStore     = "delta.store";
+    // Connection string
     public static final String pDeltaZk        = "delta.zk";
+    // Optional name of the root of the namspace in Zk.
+    public static final String pRootDirName    = "delta.zk.root_dir_name";
 
     // HTTP query string.
     // Registration

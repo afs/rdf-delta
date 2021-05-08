@@ -34,7 +34,7 @@ public class PatchStoreProviderZk implements PatchStoreProvider {
     @Override
     public PatchStore create(LocalServerConfig config) {
         CuratorFramework client = curator(config);
-        return new PatchStoreZk(client, this, config.getProperty(ZkConst.prRootDirName));
+        return new PatchStoreZk(client, this, config.getProperty(DeltaConst.pRootDirName));
     }
 
     /** Build a {@link CuratorFramework} from the {@link LocalServerConfig}. */

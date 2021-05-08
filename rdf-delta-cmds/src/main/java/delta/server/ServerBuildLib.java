@@ -24,6 +24,7 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
+import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
@@ -33,7 +34,6 @@ import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
-import org.seaborne.delta.server.local.patchstores.zk.ZkConst;
 import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
 import org.seaborne.delta.server.s3.S3;
 import org.seaborne.delta.server.s3.S3Config;
@@ -142,7 +142,7 @@ public /*package*/ class ServerBuildLib {
         Properties props = null;
         if ( config.zkRootDirName != null ) {
             props = new Properties();
-            props.setProperty(ZkConst.prRootDirName, config.zkRootDirName);
+            props.setProperty(DeltaConst.pRootDirName, config.zkRootDirName);
         }
 
         // If zk+S3, there isn't a provider name set yet.

@@ -36,9 +36,6 @@ public class ZkConst {
      *   /delta/logs/NAME/patches/
      */
 
-    // Properties
-    public static final String prRootDirName = "delta.zk.root_dir_name";
-
     // Convention: p* is a path, n* is a zNode name.
 
     // Server
