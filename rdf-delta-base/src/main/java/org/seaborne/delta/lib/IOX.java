@@ -213,7 +213,7 @@ public class IOX {
      */
     public static Path createTempFile(Path dir, String prefix, String suffix, FileAttribute<? >... attrs) {
         try {
-            return Files.createTempFile(dir, prefix, suffix, attrs);
+            return Files.createTempFile(prefix, suffix, attrs);
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
