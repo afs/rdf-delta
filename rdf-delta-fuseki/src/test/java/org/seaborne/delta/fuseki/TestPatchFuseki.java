@@ -21,7 +21,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.jena.atlas.lib.Pair;
-import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.web.HttpOp;
@@ -34,14 +33,22 @@ import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
 
 public class TestPatchFuseki {
+//    @BeforeClass public static void setForTesting() {
+//        LogX.setJavaLogging("src/test/resources/logging.properties");
+//    }
+
     private Pair<FusekiServer, DatasetGraph> create() {
-        int port = WebLib.choosePort();
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         String dsName = "/ds";
         FusekiServer server =
-            DeltaFuseki.fusekiWithPatch()
+            DeltaFuseki.fusekiWithPatchApply()
+                //.verbose(true)
+                .port(0)
                 .add(dsName, dsg)
+                // Makes content type dispatch work.
                 .addOperation(dsName, DeltaFuseki.patchOp)
+                // Makes /patch work.
+                .addEndpoint(dsName, "patch", DeltaFuseki.patchOp)
                 .build();
         return Pair.create(server, dsg);
     }
@@ -69,12 +76,13 @@ public class TestPatchFuseki {
 
     @Test
     public void apply_1() {
+        // Fuseki + patch apply service.
         Pair<FusekiServer, DatasetGraph> p = create();
         FusekiServer server = p.getLeft();
         DatasetGraph dsg = p.getRight();
 
         server.start();
-        String url = "http://localhost:"+server.getPort()+"/";
+        String url = "http://localhost:"+server.getPort();
         try {
             assertFalse(dsg.contains(node(":g"), node(":s"), node(":p"), node(":o")));
 
