@@ -43,11 +43,11 @@ import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatchOps ;
 
 /**
- * Create Fuseki server with a "patch" service,inaddition to the usual "sparql",
+ * Create Fuseki server with a "patch" service, in addition to the usual "sparql",
  * "update" etc services.
  * <p>
  * A patch file {@code POST}ed, or {@code PATCH}ed, to the url
- * {@code http://host:port/dataset/patch} wil be applied as a single
+ * {@code http://host:port/dataset/patch} will be applied as a single
  * transaction.
  */
 public class DeltaEx05_FusekiPatchOperation {
@@ -66,7 +66,7 @@ public class DeltaEx05_FusekiPatchOperation {
         DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
 
         FusekiServer server =
-            DeltaFuseki.fusekiWithPatch()
+            DeltaFuseki.fusekiWithPatchApply()
                 .port(PORT)
                 .add("/ds", dsg)
                 .addOperation("/ds", DeltaFuseki.patchOp)
