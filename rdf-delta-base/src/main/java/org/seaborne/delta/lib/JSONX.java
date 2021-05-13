@@ -47,10 +47,14 @@ public class JSONX {
 
     /** Access a field of a JSON object : return a string or null */
     public static String getStrOrNull(JsonObject obj, String field) {
-        if ( obj == null )
+        final JsonValue jv;
+        if ( obj == null ) {
             System.err.println("getStrOrNull: null object");
-
-        JsonValue jv = obj.get(field);
+            jv = null;
+        } else {
+            jv = obj.get(field);
+        }
+        
         if ( jv == null )
             return null;
         if ( jv.isString() )
@@ -105,7 +109,7 @@ public class JSONX {
      */
     public static JsonValue copy(JsonValue arg) {
         JsonBuilder builder = builder(arg) ;
-        return builder==null ? arg : builder.build() ;
+        return builder.build() ;
     }
 
     /** Create a builder from a {@link JsonValue}.

@@ -190,7 +190,9 @@ public class IOX {
                 throw new DeltaFileException("Exists but not a directory: "+dir);
         }
         try { Files.createDirectories(dir, attrs); }
-        catch (IOException ex) { new DeltaFileException("Failed to create directory: "+dir, ex);}
+        catch (IOException ex) { 
+            throw new DeltaFileException("Failed to create directory: "+dir, ex);
+        }
     }
 
     /**
@@ -203,7 +205,9 @@ public class IOX {
                 throw new DeltaFileException("Exists but not a regular file: "+filePath);
         }
         try { Files.createFile(filePath); }
-        catch (IOException ex) { new DeltaFileException("Failed to create file: "+filePath, ex);}
+        catch (IOException ex) {
+            throw new DeltaFileException("Failed to create file: "+filePath, ex);
+        }
     }
 
     /**
