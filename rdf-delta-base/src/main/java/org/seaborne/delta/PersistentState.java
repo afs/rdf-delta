@@ -45,7 +45,7 @@ public class PersistentState implements RefLong, RefString {
 
     
     public PersistentState(String stateFile) {
-        this(Paths.get((stateFile)));
+        this(Paths.get(stateFile));
     }
     
     public PersistentState(Path stateFilePath) {

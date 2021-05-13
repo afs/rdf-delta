@@ -19,21 +19,24 @@ package org.seaborne.delta;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import org.apache.jena.atlas.lib.Bytes;
-import org.apache.jena.atlas.lib.FileOps;
-import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class TestPersistentState {
-    static final String filename = "target/persistentState"; 
+    // Creates a temporary directory before each test method and deletes it after every test method.
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    private Path filename;
     
-    @Before public void before() {
-        FileOps.deleteSilent(filename); 
-    }
-    
-    @AfterClass public static void afterClass() {
-        
+    @Before public void before() throws IOException {
+        this.filename = folder.newFile().toPath();
     }
 
     @Test public void pState_01() {
