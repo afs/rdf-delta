@@ -103,7 +103,7 @@ public interface DeltaLink {
         return new DeltaLog(this, dsRef);
     }
 
-    /** Return the name of a dataset, or "<null>" if not registered. */
+    /** Return the name of a dataset, or "&lt;null&gt;" if not registered. */
     public default String getDataSourceName(Id dsRef) {
         DataSourceDescription dsd = getDataSourceDescription(dsRef);
         if ( dsd == null )

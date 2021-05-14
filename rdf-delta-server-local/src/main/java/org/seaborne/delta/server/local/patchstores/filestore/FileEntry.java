@@ -45,7 +45,7 @@ import org.seaborne.delta.lib.IOX.IOConsumer;
  * </pre>
  * and made convenient with:
  * <pre>
- * fileStore.writeNewFile(IOConsumer<OutoutStream>)
+ * fileStore.writeNewFile(IOConsumer&lt;OutoutStream&gt;)
  * </pre>
  */
 public class FileEntry {
