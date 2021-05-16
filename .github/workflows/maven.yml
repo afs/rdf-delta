@@ -1,4 +1,4 @@
-name: RDF Delta Project CI
+name: Project CI
 
 on:
   push:
@@ -8,7 +8,9 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -16,4 +18,4 @@ jobs:
       with:
         java-version: '11'
     - name: Build with Maven
-      run: mvn --batch-mode verify --file pom.xml
+      run: mvn -B verify --file pom.xml
