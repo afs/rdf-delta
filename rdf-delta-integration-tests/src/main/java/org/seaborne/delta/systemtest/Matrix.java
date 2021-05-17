@@ -301,19 +301,20 @@ public class Matrix {
     /**
      * Choose an unused port, not already allocated by this process. Imperfect but close
      * so try to use the port quite soon. {@code new ServerSocket(0)} does tend to return
-     * different ports each time so it is rare to not be able to use th eport due to
+     * different ports each time so it is rare to not be able to use the port due to
      * another process on the machine.
      */
     public static int choosePort() {
-        // FusekiLib.choosePort();
-        try (ServerSocket s = new ServerSocket(0)) {
-            int port = s.getLocalPort();
-            if ( ! ports.contains(port) ) {
-                ports.add(port);
-                return port;
+        for (int i = 0; i < 10; i++) {
+            try (ServerSocket s = new ServerSocket(0)) {
+                int port = s.getLocalPort();
+                if (!ports.contains(port)) {
+                    ports.add(port);
+                    return port;
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException("Failed to find a port");
             }
-        } catch (IOException ex) {
-            throw new RuntimeException("Failed to find a port");
         }
         throw new RuntimeException("Failed to find a fresh port");
     }
