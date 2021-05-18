@@ -9,7 +9,7 @@ plugins {
 dependencies {
     implementation(project(":rdf-delta-server-http"))
     implementation(project(":rdf-delta-cmds"))
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
 }
 
 description = "RDF Delta :: Delta server combined jar"
