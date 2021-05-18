@@ -15,3 +15,11 @@ dependencies {
 }
 
 description = "RDF Delta :: Apache Jena Fuseki Integration"
+
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+        csv.isEnabled = false
+        html.isEnabled = false
+    }
+}

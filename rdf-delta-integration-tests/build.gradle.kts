@@ -23,3 +23,11 @@ dependencies {
 }
 
 description = "RDF Delta :: Integration Tests"
+
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+        csv.isEnabled = false
+        html.isEnabled = false
+    }
+}

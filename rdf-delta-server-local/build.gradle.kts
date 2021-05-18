@@ -34,3 +34,11 @@ tasks {
 artifacts {
     add("testJar", tasks.getByName("testJar"))
 }
+
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+        csv.isEnabled = false
+        html.isEnabled = false
+    }
+}

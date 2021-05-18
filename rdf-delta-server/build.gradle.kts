@@ -21,3 +21,11 @@ val testsJar by tasks.registering(Jar::class) {
 }
 
 (publishing.publications["maven"] as MavenPublication).artifact(testsJar)
+
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+        csv.isEnabled = false
+        html.isEnabled = false
+    }
+}
