@@ -7,9 +7,14 @@ on:
     branches:
       - main
     types: [opened, synchronize, reopened]
+
 jobs:
-  build:
-    name: Build
+
+  gradle:
+    name: Gradle and Analysis
+    if: >
+      github.event.sender.login != 'dependabot[bot]' ||
+      ( startsWith(github.head_ref, 'dependabot/gradle' )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -51,5 +56,35 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonarqube --info
       - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+  
+  maven:
+    name: Maven and CodeQL
+    if: >
+      github.event.sender.login != 'dependabot[bot]' ||
+      ( startsWith(github.head_ref, 'dependabot/maven' )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Initialize CodeQL
+        if: github.event.sender.login == 'dependabot[bot]'
+        uses: github/codeql-action/init@v1
+        with:
+          languages: java
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build
+        run: mvn clean verify --file pom.xml
+      - name: Perform CodeQL Analysis
+        if: github.event.sender.login == 'dependabot[bot]'
         uses: github/codeql-action/analyze@v1
       
