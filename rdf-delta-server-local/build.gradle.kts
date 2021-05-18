@@ -13,7 +13,7 @@ configurations {
 dependencies {
     implementation(project(":rdf-patch"))
     implementation(project(":rdf-delta-base"))
-    implementation("org.rocksdb:rocksdbjni:6.15.2")
+    implementation("org.rocksdb:rocksdbjni:6.20.3")
     implementation("org.apache.curator:curator-recipes:5.1.0")
     testImplementation("org.apache.curator:curator-test:5.1.0")
     testImplementation("org.slf4j:slf4j-jdk14:1.7.30")
