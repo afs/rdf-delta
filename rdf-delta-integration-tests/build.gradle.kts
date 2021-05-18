@@ -15,7 +15,7 @@ dependencies {
     implementation(project(":rdf-delta-server-http"))
     implementation(project(":rdf-delta-client"))
     implementation("org.apache.jena:jena-fuseki-main:3.17.0")
-    implementation("org.awaitility:awaitility:4.0.3")
+    implementation("org.awaitility:awaitility:4.1.0")
     implementation("org.slf4j:slf4j-jdk14:1.7.30")
     implementation("org.apache.curator:curator-recipes:5.1.0")
     implementation("org.apache.curator:curator-test:5.1.0")
