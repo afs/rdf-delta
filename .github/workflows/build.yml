@@ -62,7 +62,7 @@ jobs:
     name: Maven and CodeQL
     if: >
       github.event.sender.login != 'dependabot[bot]' ||
-      ( startsWith(github.head_ref, 'dependabot/maven' )
+      ( startsWith(github.head_ref, 'dependabot/maven') )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
