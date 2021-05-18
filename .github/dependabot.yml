@@ -13,7 +13,91 @@ updates:
     reviewers:
       - mjulianotq
   - package-ecosystem: "gradle"
-    directory: "/"
+    directory: "/rdf-patch"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-base"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-client"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-cmds"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-dist"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-examples"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-fuseki"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-fuseki-server"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-integration-tests"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-server"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-server-extra"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-server-http"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - mjulianotq
+  - package-ecosystem: "gradle"
+    directory: "/rdf-delta-server-local"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
