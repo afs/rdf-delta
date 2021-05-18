@@ -11,7 +11,7 @@ dependencies {
     implementation(project(":rdf-delta-base"))
     implementation(project(":rdf-delta-server-local"))
     implementation(project(path = ":rdf-delta-server-local", configuration = "testJar"))
-    implementation("com.amazonaws:aws-java-sdk-s3:1.11.908")
+    implementation("com.amazonaws:aws-java-sdk-s3:1.11.1020")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
     implementation("org.slf4j:jcl-over-slf4j:1.7.30")
     testImplementation(project(":rdf-delta-server-local"))
