@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":rdf-delta-fuseki"))
     implementation(project(":rdf-delta-client"))
     implementation("org.apache.jena:jena-fuseki-main:3.17.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
     implementation("org.apache.jena:jena-text:3.17.0")
 }
 
