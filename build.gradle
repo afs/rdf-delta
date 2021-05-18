@@ -1,12 +1,12 @@
 /*
- *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  Licensed under the Apache License, Version 2.0 (the 'License');
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  distributed under the License is distributed on an 'AS IS' BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
@@ -16,8 +16,8 @@
  */
 
 plugins {
-    id "org.sonarqube" version "3.2.0"
-    id "org.nosphere.apache.rat" version "0.7.0"
+    id 'org.sonarqube' version '3.2.0'
+    id 'org.nosphere.apache.rat' version '0.7.0'
 }
 
 repositories {
@@ -26,38 +26,38 @@ repositories {
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "TopQuadrant-DevOps_rdf-delta"
-        property "sonar.organization", "topquadrant-devops"
-        property "sonar.host.url", "https://sonarcloud.io"
+        property 'sonar.projectKey', 'TopQuadrant-DevOps_rdf-delta'
+        property 'sonar.organization', 'topquadrant-devops'
+        property 'sonar.host.url', 'https://sonarcloud.io'
     }
 }
 
 rat {
-    excludes.add("**/hs_err_pid*.log")
-    excludes.add("docs/**")
-    excludes.add("local/**")
-    excludes.add(".github/**")
-    excludes.add(".travis.yml")
+    excludes.add('**/hs_err_pid*.log')
+    excludes.add('docs/**')
+    excludes.add('local/**')
+    excludes.add('.github/**')
+    excludes.add('.travis.yml')
 
-    excludes.add("**/.project")
-    excludes.add("**/.settings/**")
-    excludes.add("**/.classpath")
-    excludes.add("**/*.recommenders/**/*")
+    excludes.add('**/.project')
+    excludes.add('**/.settings/**')
+    excludes.add('**/.classpath')
+    excludes.add('**/*.recommenders/**/*')
 
-    excludes.add("**/delta.classpath*")
-    excludes.add("**/README.*")
-    excludes.add("**/*.cfg")
+    excludes.add('**/delta.classpath*')
+    excludes.add('**/README.*')
+    excludes.add('**/*.cfg')
 
-    excludes.add(".idea/")
+    excludes.add('.idea/')
 
-    excludes.add(".gradle/**")
-    excludes.add("gradle/**")
-    excludes.add("buildSrc/**")
-    excludes.add("**/build.gradle.kts")
-    excludes.add("**/settings.gradle.kts")
-    excludes.add("**/build/**")
+    excludes.add('.gradle/**')
+    excludes.add('gradle/**')
+    excludes.add('buildSrc/**')
+    excludes.add('**/build.gradle.kts')
+    excludes.add('**/settings.gradle.kts')
+    excludes.add('**/build/**')
 
-    excludes.add("**/.factorypath")
+    excludes.add('**/.factorypath')
 
     /*
         Javadoc add-ons files are required to be simple and our javadoc configuration
@@ -65,33 +65,33 @@ rat {
         into generated documentation anyway so no need to put license statements in these
         files
     */
-    excludes.add("**/src/main/**/*.html")
-    excludes.add("**/src/**/package-info.java")
+    excludes.add('**/src/main/**/*.html')
+    excludes.add('**/src/**/package-info.java')
     
     /*
         Text and Markdown files are typically used only for documentation purposes
         and license declarations are usually spurious in these files since often they
         will refer to the LICENSE/NOTICE for users to find the actual licenses
     */
-    excludes.add("**/*.txt")
-    excludes.add("**/*.md")
+    excludes.add('**/*.txt')
+    excludes.add('**/*.md')
     
     /*
         META-INF services files can include comments but a license header would be
         unnecessarily clutter so we exclude these
     */
-    excludes.add("**/META-INF/services/*")
+    excludes.add('**/META-INF/services/*')
     
-    excludes.add("**/testing/**/*")
-    excludes.add("**/log4j*.properties")
-    excludes.add("**/logging*.properties")
+    excludes.add('**/testing/**/*')
+    excludes.add('**/log4j*.properties')
+    excludes.add('**/logging*.properties')
 
     /* Exclude anything created during the build (plugin generated files) ->*/
-    excludes.add("**/target/**/*")
+    excludes.add('**/target/**/*')
     /* MSHADE-124 */
-    excludes.add("**/dependency-reduced-pom.xml")
+    excludes.add('**/dependency-reduced-pom.xml')
 
     /* ZooKeeper files */
-    excludes.add("**/Tutorial/**/zoo.dynamic")
-    excludes.add("**/Tutorial/**/myid")
+    excludes.add('**/Tutorial/**/zoo.dynamic')
+    excludes.add('**/Tutorial/**/myid')
 }

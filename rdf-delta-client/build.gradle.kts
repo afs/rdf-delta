@@ -3,6 +3,7 @@
  */
 
 plugins {
+    `jacoco`
     id("org.seaborne.rdf-delta.java-conventions")
 }
 
