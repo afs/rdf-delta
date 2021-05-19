@@ -16,3 +16,15 @@ include(":rdf-delta-fuseki")
 include(":rdf-delta-server-http")
 include(":rdf-delta-cmds")
 include(":rdf-delta-fuseki-server")
+
+plugins {
+    id("com.gradle.enterprise") version("3.6.1")
+}
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
+        publishAlways()
+    }
+}

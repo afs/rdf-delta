@@ -20,7 +20,6 @@ plugins {
     id 'org.nosphere.apache.rat' version '0.7.0'
     id 'org.nosphere.gradle.github.actions' version '1.2.0'
 }
-}
 
 repositories {
     mavenCentral()
@@ -96,11 +95,4 @@ rat {
     /* ZooKeeper files */
     excludes.add('**/Tutorial/**/zoo.dynamic')
     excludes.add('**/Tutorial/**/myid')
-}
-
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = "https://gradle.com/terms-of-service"
-        termsOfServiceAgree = "yes"
-    }
 }
