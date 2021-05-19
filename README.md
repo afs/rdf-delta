@@ -57,7 +57,8 @@ https://repo1.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
 
 ## Status
 
-[![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg)](https://travis-ci.org/afs/rdf-delta)
+[![Build](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/build.yml/badge.svg)](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/build.yml)
+[![CodeQL](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/codeql-analysis.yml)
 
 ## Contributing
 
