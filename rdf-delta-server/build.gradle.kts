@@ -5,12 +5,13 @@
 plugins {
     `jacoco`
     id("org.seaborne.rdf-delta.java-conventions")
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 dependencies {
     implementation(project(":rdf-delta-server-http"))
     implementation(project(":rdf-delta-cmds"))
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:${project.property("ver.log4j2")}")
 }
 
 description = "RDF Delta :: Delta server combined jar"

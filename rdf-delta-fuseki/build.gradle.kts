@@ -11,7 +11,9 @@ dependencies {
     implementation(project(":rdf-patch"))
     implementation(project(":rdf-delta-base"))
     implementation(project(":rdf-delta-client"))    
-    implementation("org.apache.jena:jena-fuseki-main:3.17.0")
+    implementation("org.apache.jena:jena-fuseki-main:${project.property("ver.jena")}")
+    implementation("io.micrometer:micrometer-core:${project.property("ver.micrometer")}")
+    implementation("io.micrometer:micrometer-registry-prometheus:${project.property("ver.micrometer")}")
 }
 
 description = "RDF Delta :: Apache Jena Fuseki Integration"

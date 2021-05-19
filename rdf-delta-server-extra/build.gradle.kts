@@ -16,9 +16,9 @@ dependencies {
     implementation("javax.xml.bind:jaxb-api:2.3.1")
     implementation("org.slf4j:jcl-over-slf4j:1.7.30")
     testImplementation(project(":rdf-delta-server-local"))
-    testImplementation("org.apache.curator:curator-test:5.1.0")
+    testImplementation("org.apache.curator:curator-test:${project.property("ver.curator")}")
     testImplementation("io.findify:s3mock_2.12:0.2.6")
-    testImplementation("org.slf4j:slf4j-jdk14:1.7.30")
+    testImplementation("org.slf4j:slf4j-jdk14:${project.property("ver.slf4j")}")
 }
 
 description = "RDF Delta :: Server (Extra Components)"

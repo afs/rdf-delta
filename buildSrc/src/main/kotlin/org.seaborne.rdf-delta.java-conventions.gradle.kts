@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.apache.jena:apache-jena-libs:3.17.0")
+    implementation("org.apache.jena:apache-jena-libs:${project.property("ver.jena")}")
     implementation("org.slf4j:slf4j-api:1.7.30")
     testImplementation("junit:junit:4.13.2")
 }

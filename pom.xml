@@ -289,7 +289,7 @@
         <artifactId>micrometer-registry-prometheus</artifactId>
           <version>${ver.micrometer}</version>
       </dependency>
-
+      
     </dependencies>
       
   </dependencyManagement>

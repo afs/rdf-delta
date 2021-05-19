@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation("org.slf4j:slf4j-jdk14:1.7.30")
+    testImplementation("org.slf4j:slf4j-jdk14:${project.property("ver.slf4j")}")
 }
 
 description = "RDF Patch"

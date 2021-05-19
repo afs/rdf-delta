@@ -8,8 +8,8 @@ plugins {
 }
 
 dependencies {
-    implementation("org.apache.jena:jena-cmds:3.17.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
+    implementation("org.apache.jena:jena-cmds:${project.property("ver.jena")}")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:${project.property("ver.log4j2")}")
     implementation("org.apache.logging.log4j:log4j-api:2.14.1")
     implementation("org.apache.logging.log4j:log4j-core:2.14.1")
     implementation(project(":rdf-patch"))
@@ -19,9 +19,11 @@ dependencies {
     implementation(project(":rdf-delta-server-http"))
     implementation(project(":rdf-delta-server-extra"))
     implementation(project(":rdf-delta-fuseki"))
-    implementation("org.apache.jena:jena-text:3.17.0")
-    implementation("org.apache.jena:jena-fuseki-main:3.17.0")
-    implementation("org.apache.curator:curator-test:5.1.0")
+    implementation("org.apache.jena:jena-text:${project.property("ver.jena")}")
+    implementation("org.apache.jena:jena-fuseki-main:${project.property("ver.jena")}")
+    implementation("io.micrometer:micrometer-core:${project.property("ver.micrometer")}")
+    implementation("io.micrometer:micrometer-registry-prometheus:${project.property("ver.micrometer")}")
+    implementation("org.apache.curator:curator-test:${project.property("ver.curator")}")
     testImplementation("io.findify:s3mock_2.12:0.2.6")
     testImplementation(project(":rdf-delta-server-extra"))
 }
