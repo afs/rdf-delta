@@ -95,3 +95,10 @@ rat {
     excludes.add('**/Tutorial/**/zoo.dynamic')
     excludes.add('**/Tutorial/**/myid')
 }
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
+    }
+}
