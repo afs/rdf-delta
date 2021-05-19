@@ -27,23 +27,18 @@ import org.apache.jena.riot.web.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.sse.SSE;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
 
 public class TestPatchFuseki {
-//    @BeforeClass public static void setForTesting() {
-//        LogX.setJavaLogging("src/test/resources/logging.properties");
-//    }
 
     private Pair<FusekiServer, DatasetGraph> create() {
         DatasetGraph dsg = DatasetGraphFactory.createTxnMem();
         String dsName = "/ds";
         FusekiServer server =
             DeltaFuseki.fusekiWithPatchApply()
-                //.verbose(true)
                 .port(0)
                 .add(dsName, dsg)
                 // Makes content type dispatch work.
@@ -75,11 +70,6 @@ public class TestPatchFuseki {
         return SSE.parseNode(string);
     }
 
-    // This test doesn't run with Maven for some reason,
-    // so it was been silently broken. Rather than fix it
-    // just to get Gradle to build, we're ignoring this
-    // and hoping that Andy fixes it in the main repo
-    @Ignore
     @Test
     public void apply_1() {
         // Fuseki + patch apply service.
