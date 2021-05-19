@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.jena.atlas.lib.Pair;
+import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.web.HttpOp;
@@ -39,7 +40,6 @@ public class TestPatchFuseki {
         String dsName = "/ds";
         FusekiServer server =
             DeltaFuseki.fusekiWithPatchApply()
-                .port(0)
                 .add(dsName, dsg)
                 // Makes content type dispatch work.
                 .addOperation(dsName, DeltaFuseki.patchOp)
@@ -61,9 +61,17 @@ public class TestPatchFuseki {
         return changes.getRDFPatch();
     }
 
-    private static void applyPatch(String dest, RDFPatch patch) {
+    private static void applyPatch(String dest, RDFPatch patch) throws Exception {
         String body = RDFPatchOps.str(patch);
-        HttpOp.execHttpPost(dest, DeltaFuseki.patchContentType, body);
+        for (var i = 0; i < 10; i++) {
+            try {
+                HttpOp.execHttpPost(dest, DeltaFuseki.patchContentType, body);
+                return;
+            } catch (final HttpException e) {
+                // Failed attempt
+            }
+        }
+        throw new Exception("Fuseki failed to start in time for the test.");
     }
 
     private static Node node(String string) {
@@ -71,7 +79,7 @@ public class TestPatchFuseki {
     }
 
     @Test
-    public void apply_1() {
+    public void apply_1() throws Exception {
         // Fuseki + patch apply service.
         Pair<FusekiServer, DatasetGraph> p = create();
         FusekiServer server = p.getLeft();
