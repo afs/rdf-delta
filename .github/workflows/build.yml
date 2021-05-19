@@ -71,7 +71,6 @@ jobs:
         with:
           java-version: 11
       - name: Initialize CodeQL
-        if: github.event.sender.login == 'dependabot[bot]'
         uses: github/codeql-action/init@v1
         with:
           languages: java
@@ -85,6 +84,5 @@ jobs:
       - name: Build
         run: mvn clean verify --file pom.xml
       - name: Perform CodeQL Analysis
-        if: github.event.sender.login == 'dependabot[bot]'
         uses: github/codeql-action/analyze@v1
       
