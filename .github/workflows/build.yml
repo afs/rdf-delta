@@ -35,7 +35,10 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Build
-        run: ./gradlew build rat jacocoTestReport --info --scan
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: build rat jacocoTestReport --info
+        id: build
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: >
@@ -54,7 +57,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarqube --info --scan
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: build
+        id: sonar
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
   
