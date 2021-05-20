@@ -42,6 +42,9 @@ tasks.jacocoTestReport {
 }
 
 tasks.shadowJar {
+    minimize {
+        exclude(project(":rdf-delta-cmds"))
+    }
     mergeServiceFiles()
     transform(ApacheLicenseResourceTransformer::class.java)
     transform(ApacheNoticeResourceTransformer::class.java)
