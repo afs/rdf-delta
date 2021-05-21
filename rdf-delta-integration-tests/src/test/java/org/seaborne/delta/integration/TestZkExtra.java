@@ -23,6 +23,8 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.systemtest.Matrix;
 
+import java.io.IOException;
+
 /** Additional tests for Zookeeper based RDF Delta */
 public class TestZkExtra {
 
@@ -30,7 +32,7 @@ public class TestZkExtra {
     @AfterClass public static void afterClass() {}
 
     @Before public void before() { Matrix.setup(); }
-    @After  public void after()  { Matrix.teardown(); }
+    @After  public void after() throws IOException { Matrix.teardown(); }
 
     @Test public void twoLinks() {
         DeltaLink dLink1 = Matrix.deltaServerLink1;
