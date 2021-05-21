@@ -17,10 +17,8 @@
 
 package org.seaborne.delta.systemtest;
 
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.jena.atlas.lib.ThreadLib.async;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -38,7 +36,6 @@ import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 import org.awaitility.Awaitility;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
@@ -56,8 +53,6 @@ import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.zk.ZkS;
-import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
