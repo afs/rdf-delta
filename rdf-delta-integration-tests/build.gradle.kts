@@ -3,7 +3,6 @@
  */
 
 plugins {
-    `jacoco`
     id("org.seaborne.rdf-delta.java-conventions")
 }
 
@@ -25,11 +24,3 @@ dependencies {
 }
 
 description = "RDF Delta :: Integration Tests"
-
-tasks.jacocoTestReport {
-    reports {
-        xml.isEnabled = true
-        csv.isEnabled = false
-        html.isEnabled = false
-    }
-}

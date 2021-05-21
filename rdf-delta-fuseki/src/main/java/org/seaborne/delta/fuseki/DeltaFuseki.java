@@ -46,12 +46,6 @@ public class DeltaFuseki {
     public static Operation patchOp = Operation.alloc(Delta.namespace+"patch", "rdf-patch", "RDF Patch Service");
     public static String patchContentType = "application/rdf-patch";
 
-    /** @deprecated Use {@link #fusekiWithPatchApply} */
-    @Deprecated
-    public static FusekiServer.Builder fusekiWithPatch() {
-        return fusekiWithPatchApply();
-    }
-
     /** Create a {@code FusekiServer.Builder} with registered patch operation.
      *  To enable it, on a dataset "name", use {@code addOperation(name, "patch", DeltaFuseki.patchOp)}.
      *  This makes it available by POST to {@code /name/patch} or {@code /name} with content-type "application/rdf-patch".

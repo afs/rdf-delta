@@ -25,6 +25,8 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.systemtest.Matrix;
 
+import java.io.IOException;
+
 public class TestLogLockZk extends AbstractTestLogLock {
     private static int PORT = WebLib.choosePort();
     private static DeltaServer deltaServer;
@@ -37,7 +39,7 @@ public class TestLogLockZk extends AbstractTestLogLock {
     }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws IOException {
         Matrix.teardown();
     }
 

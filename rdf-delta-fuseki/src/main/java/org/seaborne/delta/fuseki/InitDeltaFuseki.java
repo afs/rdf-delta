@@ -32,7 +32,9 @@ public class InitDeltaFuseki implements JenaSubsystemLifecycle {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        // Do nothing
+    }
 
     @Override
     public int level() { return 1000; }

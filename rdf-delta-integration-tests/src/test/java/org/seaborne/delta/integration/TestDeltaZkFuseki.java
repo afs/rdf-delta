@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.seaborne.delta.systemtest.Matrix.deltaServerURL1;
 import static org.seaborne.delta.systemtest.Matrix.deltaServerURL2;
 
+import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.apache.jena.atlas.lib.Lib;
@@ -56,7 +57,7 @@ public class TestDeltaZkFuseki {
     @AfterClass public static void afterClass()   { DeltaLinkSwitchable.silentSwitchOver = false; } 
     
     @Before public void before() { Matrix.setup(); }
-    @After  public void after()  { Matrix.teardown(); }
+    @After  public void after() throws IOException { Matrix.teardown(); }
 
     // Fuseki switch over tests.
     // Two DeltaServers, one Zookeeper.

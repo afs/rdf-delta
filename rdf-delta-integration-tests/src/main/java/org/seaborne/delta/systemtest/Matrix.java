@@ -17,10 +17,8 @@
 
 package org.seaborne.delta.systemtest;
 
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.jena.atlas.lib.ThreadLib.async;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -38,7 +36,6 @@ import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 import org.awaitility.Awaitility;
 import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
@@ -56,8 +53,6 @@ import org.seaborne.delta.server.local.DeltaLinkLocal;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.LocalServerConfig;
 import org.seaborne.delta.server.local.LocalServers;
-import org.seaborne.delta.zk.ZkS;
-import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,21 +80,11 @@ public class Matrix {
     public static DeltaLink deltaServerLink1 = null;
     public static DeltaLink deltaServerLink2 = null;
 
-    private static List<CuratorFramework> curatorClients = new ArrayList<>();
-    private static List<LocalServer> localServers = new ArrayList<>();
+    private static final List<CuratorFramework> curatorClients = new ArrayList<>();
+    private static final List<LocalServer> localServers = new ArrayList<>();
 
     public static void setup() {
         zookeeperConnectionString = startZooJVM();
-//      // In-process, persistent, full server/standalone.
-//      String connectionString = startZoo("ZkData");
-//      // External zookeeper.
-//      String connectionString = "localhost:2181,localhost:2182,localhost:2183";
-
-      // In process 3-server ensemble.
-//      String connectionString = startZooQ();
-
-      // Start Delta servers
-      // Replace with a start-stop helper.
 
         deltaPort1 = choosePort();
         deltaServerURL1 = "http://localhost:"+deltaPort1+"/";
@@ -117,23 +102,17 @@ public class Matrix {
         deltaServer2 = p2.getRight();
     }
 
-    public static void teardown() {
-        curatorClients.forEach(c->c.close());
+    public static void teardown() throws IOException {
+        curatorClients.forEach(CuratorFramework::close);
         curatorClients.clear();
-        localServers.forEach(srv->srv.shutdown());
+        localServers.forEach(LocalServer::shutdown);
         DPS.resetSystem();
 
-        if ( deltaServer1 != null )
-            deltaServer1.stop();
-        if ( deltaServer2 != null )
-            deltaServer2.stop();
+        deltaServer1.stop();
+        deltaServer2.stop();
         if ( zkServer != null ) {
-            try {
-                zkServer.stop();
-                zkServer.close();
-            } catch (IOException ex) {
-                System.err.println("Failed to stop/close zkServer");
-            }
+            zkServer.stop();
+            zkServer.close();
         }
         deltaServer1 = null;
         deltaServer2 = null;
@@ -149,7 +128,6 @@ public class Matrix {
     public static Pair<DeltaLink, DeltaServer> startDeltaServer(int port, String connectionString) {
         LocalServerConfig config = LocalServers.configZk(connectionString);
         return startDeltaServer(port, config);
-        //L.async(()->DeltaServer.main("--port="+port, "--zk="+connectionString));
     }
 
     public static Pair<DeltaLink, DeltaServer> startDeltaServer(int port, LocalServerConfig config) {
@@ -161,16 +139,7 @@ public class Matrix {
         catch(BindException ex) {
             FmtLog.error(LOG, "Address in use: port=%d", port);
         }
-        //dps.join();
         return Pair.create(link,  deltaServer);
-    }
-
-    private static String startZoo(String dataDir) {
-        ZkS.zkSystemProps();
-        int zkPort1 = choosePort();
-        ZooServer zk1 = ZkS.runZookeeperServer(zkPort1, dataDir);
-        zk1.start();
-        return "localhost:"+zkPort1;
     }
 
     public static String startZooJVM() {
@@ -183,47 +152,9 @@ public class Matrix {
         }
     }
 
-    // Start a whole ensemble.
-    // Really messy logging.
-    public static String startZooQ(boolean clean) {
-        ZkS.zkSystemProps();
-        String connectionString = format("localhost:2181,localhost:2182,localhost:2183");
-        String [] args1 = {"./../zk/zk1/zoo.cfg"};
-        String [] args2 = {"./../zk/zk2/zoo.cfg"};
-        String [] args3 = {"./../zk/zk3/zoo.cfg"};
-
-        // Port 2180
-        //ZkS.runZookeeperServer("./../zk/single/zoo.cfg");
-
-        //System.out.println("Server1 ...");
-        async(()->QuorumPeerMain.main(args1));
-        //System.out.println("Server2 ...");
-        async(()->QuorumPeerMain.main(args2));
-        //System.out.println("Server3 ...");
-        async(()->QuorumPeerMain.main(args3));
-        return connectionString;
-    }
-
-    /** One external zoo keeper */
-    public static String startZooQ_single(boolean clean) {
-        ZkS.zkSystemProps();
-        String connectionString = format("localhost:2180");
-        if ( clean )
-            FileOps.clearDirectory("./../zk/single/zk-data/version-2");
-        String [] args1 = {"./../zk/single/zoo.cfg"};
-        async(()->QuorumPeerMain.main(args1));
-        return connectionString;
-    }
-
     public static DeltaLink setupFuseki(String dsName, String zoneDir, int fusekiPort, String...deltaServers) {
-        if ( deltaServers.length == 0 ) {
-            System.err.println("setupFuseki: no deltaServers");
-            System.exit(1);
-        }
-
         List<DeltaLink> links = new ArrayList<>(deltaServers.length);
         for ( String destURL  : deltaServers ) {
-            //System.out.printf("Fuseki server: port=%d, link=%s\n", fusekiPort, destURL);
             DeltaLink link = DeltaLinkHTTP.connect(destURL);
             links.add(link);
         }
@@ -233,7 +164,6 @@ public class Matrix {
     }
 
     private static void setupFuseki(int fusekiPort, String dsName, String zoneDir, DeltaLink deltaLink) {
-        //deltaLink.register(Id.create());
         FileOps.ensureDir(zoneDir);
         FileOps.clearAll(zoneDir);
 
@@ -258,12 +188,6 @@ public class Matrix {
         server.start();
     }
 
-    // From ex7.
-    private static DeltaClient setup_dataset(String dsName, String zoneDir, String deltaServerURL) {
-        DeltaLink dLink = DeltaLinkHTTP.connect(deltaServerURL);
-        return setup_dataset(dsName, zoneDir, dLink);
-    }
-
     private static DeltaClient setup_dataset(String dsName, String zoneDir, DeltaLink dLink) {
         // Probe to see if it exists.
         DataSourceDescription dsd = dLink.getDataSourceDescriptionByName(dsName);
@@ -273,29 +197,8 @@ public class Matrix {
 
         // Ephemeral Zone not supported.
         Zone zone = Zone.connect(zoneDir);
-//        DataState dataState = zone.create(dsd.getId(), "", null, LocalStorageType.MEM);
         DeltaClient dClient = DeltaClient.create(zone, dLink);
         return dClient;
-
-//        FileOps.exists(zoneDir);
-//        FileOps.clearAll(zoneDir);
-//        Zone zone = Zone.connect(zoneDir);
-//        DeltaClient dClient = DeltaClient.create(zone, dLink);
-//
-//        // Get the Id.
-//        Id dsRef;
-//        if ( dsd == null )
-//            dsRef = dClient.newDataSource(DS_NAME, "http://example/"+DS_NAME);
-//        else
-//            dsRef = dsd.getId();
-//        // Create and setup locally.
-//        dClient.register(dsRef, LocalStorageType.TDB, SyncPolicy.TXN_RW);
-//        return dClient;
-    }
-
-    private static void cleanDirectory(String dir) {
-        FileOps.ensureDir(dir);
-        FileOps.clearAll(dir);
     }
 
     /**
@@ -305,7 +208,7 @@ public class Matrix {
      * another process on the machine.
      */
     public static int choosePort() {
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             try (ServerSocket s = new ServerSocket(0)) {
                 int port = s.getLocalPort();
                 if (!ports.contains(port)) {
