@@ -305,7 +305,7 @@ public class Matrix {
      * another process on the machine.
      */
     public static int choosePort() {
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             try (ServerSocket s = new ServerSocket(0)) {
                 int port = s.getLocalPort();
                 if (!ports.contains(port)) {
