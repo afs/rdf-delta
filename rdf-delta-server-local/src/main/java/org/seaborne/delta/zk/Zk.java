@@ -56,28 +56,32 @@ public class Zk {
         LOG.warn(msg, ex);
     }
 
-    /** Connect a curator client to a running ZooKepper server. */
+    /** Connect a curator client to a running ZooKeeper server. */
     public static CuratorFramework curator(String connectString) {
         CuratorFramework client = createCuratorClient(connectString);
         connect(client);
         return client;
     }
 
-    /** Connect a curator client to a running ZooKepper server. */
+    /** Connect a curator client to a running ZooKeeper server. */
     public static CuratorFramework createCuratorClient(String connectString) {
         RetryPolicy policy = new ExponentialBackoffRetry(10000, 5);
         CuratorFramework client =
-            CuratorFrameworkFactory.newClient(connectString, 10000, 10000, policy);
-//                CuratorFrameworkFactory.builder()
-//                //.namespace("delta")
-//                .connectString(connectString)
-//                //.connectionHandlingPolicy(ConnectionHandlingPolicy.)
-//                .retryPolicy(policy)
-//                .build();
+            CuratorFrameworkFactory.builder()
+                .connectString(connectString)
+                .sessionTimeoutMs(10000)
+                .connectionTimeoutMs(10000)
+                .retryPolicy(policy)
+                // See also DeltaConst.pRootDir
+                //  .namespace("delta")
+                //  .connectionHandlingPolicy(ConnectionHandlingPolicy.)
+                //  .ensembleTracker(true)                  // Default. See method javadoc if set to false.
+                //  .ensembleProvider(EnsembleProvider.)    // Pair for ensembleTracker(false)
+                .build();
         return client;
     }
 
-    /** Connect a curator client to a running ZooKepper server. */
+    /** Connect a curator client to a running ZooKeeper server. */
     public static void connect(CuratorFramework client) {
         switch(client.getState()) {
             case LATENT :

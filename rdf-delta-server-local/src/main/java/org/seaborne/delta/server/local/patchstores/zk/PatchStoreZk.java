@@ -79,6 +79,8 @@ public class PatchStoreZk extends PatchStore {
     protected PatchStoreZk(CuratorFramework client, PatchStoreProvider psp, String rootDirName) {
         super(psp);
 
+        //rootDirName should probably have been handled by client.getNamespace.
+        // See Zk.createCuratorClient
         this.rootPath = (rootDirName == null)
             ? ZkConst.pRootDefault
             : rootDirName.startsWith("/") ? rootDirName : ("/" + rootDirName) ;
