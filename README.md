@@ -58,6 +58,8 @@ https://repo1.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
 ## Status
 
 [![Build](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/build.yml/badge.svg)](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/build.yml)
+[![Maintainability](https://api.codeclimate.com/v1/badges/ad193935ef7aaa2d3ec1/maintainability)](https://codeclimate.com/github/TopQuadrant-DevOps/rdf-delta/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/ad193935ef7aaa2d3ec1/test_coverage)](https://codeclimate.com/github/TopQuadrant-DevOps/rdf-delta/test_coverage)
 [![CodeQL](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/TopQuadrant-DevOps/rdf-delta/actions/workflows/codeql-analysis.yml)
 
 ## Contributing
