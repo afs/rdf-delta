@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.ApacheLicenseReso
 import com.github.jengelman.gradle.plugins.shadow.transformers.ApacheNoticeResourceTransformer
 
 plugins {
-    `jacoco`
+    jacoco
     id("org.seaborne.rdf-delta.java-conventions")
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }

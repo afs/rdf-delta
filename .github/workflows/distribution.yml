@@ -1,10 +1,7 @@
 name: Distribution
-on:
-  workflow_dispatch:
-
+on: workflow_dispatch
 jobs:
-
-  gradle:
+  dist:
     name: Gradle Distribution
     runs-on: ubuntu-latest
     steps:
@@ -13,10 +10,19 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
       - name: Package
         uses: eskatos/gradle-command-action@v1
         with:
-          arguments: :rdf-delta-dist:packageDistribution
+          arguments: :rdf-delta-dist:dockerPush
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
@@ -26,3 +32,4 @@ jobs:
         with:
           name: distribution
           path: rdf-delta-dist/build/distributions/rdf-delta-*.zip
+      

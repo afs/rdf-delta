@@ -17,9 +17,10 @@
 
 plugins {
     base
+    //id("com.palantir.docker") version "0.26.0"
 }
 
-tasks.register<Zip>("packageDistribution") {
+tasks.register<Tar>("packageDistribution") {
     dependsOn(":rdf-delta-server:shadowJar")
     dependsOn(":rdf-delta-fuseki-server:shadowJar")
     archiveBaseName.set("rdf-delta")
@@ -41,3 +42,26 @@ tasks.register<Zip>("packageDistribution") {
     into("rdf-delta-${project.version}")
 }
 
+tasks.register<Copy>("prepareDocker") {
+    from(tasks.getByPath(":rdf-delta-dist:packageDistribution"))
+    with(copySpec {
+        from("Dockerfile")
+        expand(hashMapOf("version" to version))
+    })
+    into(layout.buildDirectory.dir("docker"))
+}
+
+tasks.register<Exec>("docker") {
+    dependsOn(":rdf-delta-dist:prepareDocker")
+    workingDir = layout.buildDirectory.dir("docker").get().getAsFile()
+    commandLine("docker", "build", "-t", "319739866089.dkr.ecr.us-east-1.amazonaws.com/topquadrant/rdf-delta:${version}", ".")
+}
+
+tasks.register<Exec>("dockerLogin") {
+    commandLine("")
+}
+
+tasks.register<Exec>("dockerPush") {
+    dependsOn(":rdf-delta-dist:docker")
+    commandLine("docker", "push", "319739866089.dkr.ecr.us-east-1.amazonaws.com/topquadrant/rdf-delta:${version}")
+}
