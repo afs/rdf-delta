@@ -29,7 +29,7 @@ description = "RDF Delta :: Server (Local)"
 
 tasks {
     register<Jar>("testJar") {
-        archiveFileName.set("rdf-delta-server-local-test-${archiveVersion}.jar")
+        archiveFileName.set("rdf-delta-server-local-test-${version}.jar")
         from(project.the<SourceSetContainer>()["test"].output)
     }
 
