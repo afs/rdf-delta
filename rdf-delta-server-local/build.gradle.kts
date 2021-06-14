@@ -3,7 +3,7 @@
  */
 
 plugins {
-    `jacoco`
+    jacoco
     id("org.seaborne.rdf-delta.java-conventions")
 }
 
@@ -16,6 +16,11 @@ dependencies {
     implementation(project(":rdf-delta-base"))
     implementation("org.rocksdb:rocksdbjni:6.20.3")
     implementation("org.apache.curator:curator-recipes:${project.property("ver.curator")}")
+    implementation("org.apache.zookeeper:zookeeper") {
+        version {
+            strictly("3.7.0")
+        }
+    }
     testImplementation("org.apache.curator:curator-test:${project.property("ver.curator")}")
     testImplementation("org.slf4j:slf4j-jdk14:${project.property("ver.slf4j")}")
 }
@@ -24,7 +29,7 @@ description = "RDF Delta :: Server (Local)"
 
 tasks {
     register<Jar>("testJar") {
-        archiveFileName.set("rdf-delta-server-local-test-$version.jar")
+        archiveFileName.set("rdf-delta-server-local-test-${archiveVersion}.jar")
         from(project.the<SourceSetContainer>()["test"].output)
     }
 

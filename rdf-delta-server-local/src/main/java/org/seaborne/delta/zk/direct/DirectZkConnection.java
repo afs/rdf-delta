@@ -89,13 +89,13 @@ public final class DirectZkConnection implements ZkConnection {
     @Override
     public byte[] fetch(final String path) throws KeeperException, InterruptedException {
         LOG.debug("Fetching {}.", path);
-        return this.client.zooKeeper().getData(path, false, this.client.zooKeeper().exists(path, false));
+        return this.client.zooKeeper().getData(path, false, null);
     }
 
     @Override
     public byte[] fetch(final Watcher watcher,  final String path) throws KeeperException, InterruptedException {
         LOG.debug("Fetching {}.", path);
-        return this.client.zooKeeper().getData(path, watcher, this.client.zooKeeper().exists(path, false));
+        return this.client.zooKeeper().getData(path, watcher, null);
     }
 
     @Override
