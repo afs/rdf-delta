@@ -71,12 +71,12 @@ public class DeltaServerCmd {
     private static ArgDecl argZkData            = new ArgDecl(true, "zkData", "zkdata");
     private static ArgDecl argZkConf            = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
 
-    private static ArgDecl argS3Bucket          = new ArgDecl(true, "s3bucket");
-    private static ArgDecl argS3Region          = new ArgDecl(true, "s3region");
-    private static ArgDecl argS3KeysFile        = new ArgDecl(true, "s3keys");
-    private static ArgDecl argS3KeysProfile     = new ArgDecl(true, "s3profile");
+    private static ArgDecl argS3Bucket          = new ArgDecl(true, "s3Bucket",   "s3bucket");
+    private static ArgDecl argS3Region          = new ArgDecl(true, "s3Region",   "s3region");
+    private static ArgDecl argS3KeysFile        = new ArgDecl(true, "s3Keys",     "s3keys");
+    private static ArgDecl argS3KeysProfile     = new ArgDecl(true, "s3Profile",  "s3profile");
     // Allow alternative endpoints (e.g. a mock S3 store)
-    private static ArgDecl argS3Endpoint        = new ArgDecl(true, "s3endpoint");
+    private static ArgDecl argS3Endpoint        = new ArgDecl(true, "s3Endpoint", "s3endpoint");
 
     private static ArgDecl argJetty             = new ArgDecl(true, "jetty");
 
