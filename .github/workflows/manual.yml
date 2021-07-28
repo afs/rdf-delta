@@ -1,10 +1,7 @@
-name: RDF Delta Project CI
+name: RDF Delta Manual
 
-on:
-  push:
-    branches: [ main ]
-#  pull_request:
-#    branches: [ main ]
+# Manual
+on: workflow_dispatch
 
 jobs:
   build:
