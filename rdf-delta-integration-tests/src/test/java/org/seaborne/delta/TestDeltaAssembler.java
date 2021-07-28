@@ -27,7 +27,6 @@ import java.net.BindException;
 
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;

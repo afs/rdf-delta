@@ -307,7 +307,6 @@ public class DeltaConnection implements AutoCloseable {
             // Run (almost) immediately and then every 5 minutes
             scheduledExecutionService.scheduleAtFixedRate(this::asyncOneSync, 0, 5*60, TimeUnit.SECONDS);
         }
-
     }
 
     /*package*/ void finish() {
@@ -397,28 +396,39 @@ public class DeltaConnection implements AutoCloseable {
         }
 
         Version localVer = getLocalVersion();
+        if (  localVer.isUnset() ) {
+            FmtLog.warn(LOG, "[%s] Local version is UNSET : sync to %s not done", datasourceId, version);
+            return;
+        }
 
         if ( localVer.value() > version.value() )
             FmtLog.info(LOG, "[%s] Local version ahead of remote : [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());
         if ( localVer.value() >= version.value() )
             return;
-        // bring up-to-date.
-
-        FmtLog.info(LOG, "Sync: Versions [%s, %s]", localVer, version);
-        playPatches(localVer.value()+1, version.value()) ;
+        // localVer is not UNSET so next version to fetch is +1 (INIT is version 0)
+        FmtLog.info(LOG, "[%s:%s] Sync: Versions [%s, %s]", datasourceId, datasourceName, localVer, version);
+        playPatches(localVer, localVer.value()+1, version.value()) ;
         //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
     }
 
     /** Play the patches (range is inclusive at both ends) */
-    private void playPatches(long firstPatchVer, long lastPatchVer) {
-        Pair<Version, Node> p = play(datasourceId, base, target, dLink, firstPatchVer, lastPatchVer);
+    private void playPatches(Version currentVersion, long firstPatchVer, long lastPatchVer) {
+        Pair<Version, Node> p = play(datasourceId, base, target, dLink, currentVersion, firstPatchVer, lastPatchVer);
+        if ( p == null )
+            // Didn't make progress for some reason.
+            return;
         Version patchLastVersion = p.car();
         Node patchLastIdNode = p.cdr();
+        if ( patchLastIdNode == null || patchLastVersion.equals(currentVersion) )
+            // No progress.
+            return;
         setLocalState(patchLastVersion, patchLastIdNode);
     }
 
     /** Play patches, return details of the the last successfully applied one */
-    private static Pair<Version, Node> play(Id datasourceId, DatasetGraph base, RDFChanges target, DeltaLink dLink, long minVersion, long maxVersion) {
+    private static Pair<Version, Node> play(Id datasourceId, DatasetGraph base, RDFChanges target, DeltaLink dLink,
+                                            Version currentVersion,
+                                            long minVersion, long maxVersion) {
         // [Delta] replace with a one-shot "get all patches" operation.
         //FmtLog.debug(LOG, "Patch range [%d, %d]", minVersion, maxVersion);
 
@@ -429,7 +439,7 @@ public class DeltaConnection implements AutoCloseable {
         try {
             return Txn.calculateWrite(base, ()->{
                 Node patchLastIdNode = null;
-                Version patchLastVersion = Version.UNSET;
+                Version patchLastVersion = currentVersion;
 
                 for ( long ver = minVersion ; ver <= maxVersion ; ver++ ) {
                     //FmtLog.debug(LOG, "Play: patch=%s", ver);
@@ -438,9 +448,11 @@ public class DeltaConnection implements AutoCloseable {
                     try {
                         patch = dLink.fetch(datasourceId, verObj);
                         if ( patch == null ) {
-                            base.commit();
+                            // No patch. Patches have no gaps.
+                            // But a storage like S3 is only eventually consistent so stop
+                            // now and resync next time.
                             FmtLog.info(LOG, "Play: %s patch=%s : not found", datasourceId, verObj);
-                            continue;
+                            break;
                         }
                     } catch (DeltaNotFoundException ex) {
                         // Which ever way it is signalled.  This way means "bad datasourceId"
