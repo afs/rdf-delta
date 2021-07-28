@@ -20,6 +20,7 @@ package org.seaborne.delta.client;
 import static java.lang.String.format;
 
 import java.util.Objects;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference ;
 import java.util.function.Consumer ;
 
@@ -85,6 +86,15 @@ public class DeltaConnection implements AutoCloseable {
     private final SyncPolicy syncPolicy;
 
     private final LogLockMgr logLockMgr;
+
+    // Synchronize patches asynchronously to the caller.
+    // (ExecutorService in case we change the policy details in the future.)
+
+    // Test start and stop servers very quickly and ports are know (in assembler files)
+    // Test: TestDeltaAssembler.assembler_delta_3
+    public static boolean TestModeNoAsync = false;
+
+    private ScheduledExecutorService scheduledExecutionService = Executors.newScheduledThreadPool(1);
 
     /**
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.
@@ -287,10 +297,22 @@ public class DeltaConnection implements AutoCloseable {
 
     /*package*/ void start() {
         checkDeltaConnection();
-        trySyncIfAuto();
+        // Allow for "async sync" - don't hold up "start()".
+        if ( TestModeNoAsync ) {
+            trySyncIfAuto();
+            return;
+        }
+
+        if ( syncPolicy != SyncPolicy.NONE ) {
+            // Run (almost) immediately and then every 5 minutes
+            scheduledExecutionService.scheduleAtFixedRate(this::asyncOneSync, 0, 5*60, TimeUnit.SECONDS);
+        }
+
     }
 
-    /*package*/ void finish() { /*reset();*/ }
+    /*package*/ void finish() {
+        /*reset();*/
+    }
 
     /** Send a patch to log server. */
     public synchronized void append(RDFPatch patch) {
@@ -355,6 +377,11 @@ public class DeltaConnection implements AutoCloseable {
         }
     }
 
+    /** Execute a DeltaConnection sync once. */
+    private void asyncOneSync() {
+        trySyncIfAuto();
+    }
+
     // Attempt an operation and return true/false as to whether it succeeded or not.
     private boolean attempt(Runnable action) {
         try { action.run(); return true ; }
@@ -370,14 +397,6 @@ public class DeltaConnection implements AutoCloseable {
         }
 
         Version localVer = getLocalVersion();
-
-//        // -1 ==> no entries, uninitialized.
-//        if ( DeltaConst.versionUninitialized(localVer) ) {
-//            FmtLog.info(LOG, "Sync: No log entries");
-//            localVer = DeltaConst.VERSION_INIT;
-//            setLocalState(localVer, (Node)null);
-//            return;
-//        }
 
         if ( localVer.value() > version.value() )
             FmtLog.info(LOG, "[%s] Local version ahead of remote : [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());

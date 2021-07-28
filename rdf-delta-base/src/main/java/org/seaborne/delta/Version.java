@@ -115,8 +115,6 @@ public class Version implements Comparable<Version> {
         return Version.create(version+1);
     }
 
-
-
     public Version dec() {
         if ( this == INIT || this == UNSET )
             throw new DeltaException("Attempt to get version before a non-version number: "+this);
@@ -141,6 +139,10 @@ public class Version implements Comparable<Version> {
     public boolean isValid() {
         //return this != Version.UNSET && this != Version.INIT ;
         return version != Version.UNSET.value() && version != Version.INIT.value() ;
+    }
+
+    public boolean isUnset() {
+        return version == Version.UNSET.value();
     }
 
     public JsonValue asJson() {
