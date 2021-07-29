@@ -81,7 +81,7 @@
     <ver.rocksdb>6.20.3</ver.rocksdb>
 
     <!-- Determines the Zookeeper version -->
-    <ver.curator>5.1.0</ver.curator>
+    <ver.curator>5.2.0</ver.curator>
 
     <ver.aws-s3>1.12.19</ver.aws-s3>
     <ver.s3mock>0.2.6</ver.s3mock>
