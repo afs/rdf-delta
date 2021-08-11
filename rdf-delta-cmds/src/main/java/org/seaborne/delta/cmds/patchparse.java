@@ -22,7 +22,6 @@ import java.io.InputStream ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.PatchSummary;
@@ -51,15 +50,10 @@ public class patchparse extends CmdPatch
 
     @Override
     protected void execOne(String source, InputStream input) {
-        //System.err.println("Source = "+source);
         RDFPatch patch = RDFPatchOps.read(input);
 //        if ( patch.getId() == null )
 //            System.err.printf("No patch source=%s\n", source);
-
-        //RDFChanges changes = RDFPatchOps.changesPrinter();
-        RDFChanges changes = RDFPatchOps.textWriter(System.out);
-        patch.apply(changes);
-        System.out.flush();
+        RDFPatchOps.write(System.out, patch);
 
         if ( isVerbose() ) {
             System.err.printf("# Patch id=%s", Id.str(patch.getId()));

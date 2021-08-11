@@ -28,16 +28,16 @@ import org.seaborne.patch.text.TokenWriterText ;
 import org.slf4j.Logger ;
 
 public class DeltaOps {
-    
+
     public static void printer(String fmt, Object... args) {
         System.out.printf(fmt, args);
         System.out.println();
     }
-    
+
     public static Printer printerToLog(Logger log) {
         return (fmt, args) -> log.info(String.format(fmt, args));
     }
-    
+
     public static String verString(Version version) {
         if ( version == null )
             return "<null>";
@@ -52,17 +52,17 @@ public class DeltaOps {
             return false;
         return DeltaConst.DataSourceRegex.matcher(dsName).matches();
     }
-    
+
     /** Add a printer to a {@link RDFChanges} */
     public static RDFChanges print(RDFChanges changes) {
         return RDFChangesN.multi(changes, new RDFChangesLog(DeltaOps::printer)) ;
     }
-    
+
     /** Create a {@link TokenWriter} */
     public static TokenWriter tokenWriter(OutputStream out) {
         // Placeholder for text/binary choice.
         // IO ops to buffer
-        TokenWriter tokenWriter = new TokenWriterText(out) ;
+        TokenWriter tokenWriter = TokenWriterText.create(out) ;
         return tokenWriter ;
     }
 }

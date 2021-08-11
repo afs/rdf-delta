@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,11 +30,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.StrUtils;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.TransactionHandler;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
@@ -43,10 +38,6 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
-import org.seaborne.patch.changes.RDFChangesWriter;
-import org.seaborne.patch.system.GraphChanges;
-import org.seaborne.patch.text.TokenWriter;
-import org.seaborne.patch.text.TokenWriterText;
 
 public class TestRDFChangesGraph {
 
@@ -72,17 +63,6 @@ public class TestRDFChangesGraph {
 
     private static Triple triple1 = SSE.parseTriple("(_:sx <p1> 11)");
     private static Triple triple2 = SSE.parseTriple("(_:sx <p2> 22)");
-
-    // -- RDFPatchOps
-    public static Graph changesGraph(Graph graph, OutputStream out) {
-        TokenWriter tokenWriter = new TokenWriterText(out);
-        RDFChanges changeLog = new RDFChangesWriter(tokenWriter);
-        return changesGraph(graph, changeLog);
-    }
-
-    public static Graph changesGraph(Graph graph, RDFChanges changes) {
-        return new GraphChanges(graph, changes);
-    }
 
     // Bytes for changes
     private ByteArrayOutputStream bout;
@@ -140,13 +120,13 @@ public class TestRDFChangesGraph {
     private void setup() {
         this.bout = new ByteArrayOutputStream();
         this.baseGraph = txnGraph();
-        this.graph = changesGraph(baseGraph, bout);
+        this.graph = RDFPatchOps.textWriter(baseGraph, bout);
     }
 
     private void setup(String graphName) {
         this.bout = new ByteArrayOutputStream();
         this.baseGraph = txnGraph(graphName);
-        this.graph = changesGraph(baseGraph, bout);
+        this.graph = RDFPatchOps.textWriter(baseGraph, bout);
     }
 
     @Test public void record_00() {

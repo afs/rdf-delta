@@ -32,6 +32,7 @@ import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch ;
 import org.seaborne.patch.RDFPatchOps ;
 import org.seaborne.patch.changes.RDFChangesExternalTxn;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /** Output all the patches of a log as a single patch. */
 public class catpatch extends DeltaCmd {
@@ -58,40 +59,41 @@ public class catpatch extends DeltaCmd {
 
         PatchHeader noHeader = new PatchHeader(Collections.emptyMap());
 
-        RDFChanges cw = RDFPatchOps.textWriter(System.out);
-        // Strip transactions.
-        RDFChanges c = new RDFChangesExternalTxn(cw);
+        try ( RDFChangesWriterText cw = RDFPatchOps.textWriter(System.out) ) {
+            // Strip transactions.
+            RDFChanges c = new RDFChangesExternalTxn(cw);
 
-        Version minVer = logInfo.getMinVersion();
-        Version maxVer = logInfo.getMaxVersion();
-        if ( ! minVer.isValid() ) {
-            System.out.println("# No patches");
-            return;
+            Version minVer = logInfo.getMinVersion();
+            Version maxVer = logInfo.getMaxVersion();
+            if ( ! minVer.isValid() ) {
+                System.out.println("# No patches");
+                return;
+            }
+            if ( ! maxVer.isValid() ) {
+                System.out.printf("# Bad log: minVer=%s maxVer=%s\n", minVer, maxVer);
+                return;
+            }
+
+            // Outer TX - TC.
+            cw.txnBegin();
+            // Meta data.
+
+            // Fetch max version for the id.
+            RDFPatch patchMax = fetchPatch(dsRef, maxVer);
+            Node catLatest = patchMax.getId();
+            cw.header(RDFPatch.PREVIOUS, catLatest);
+
+            // All but last.
+            for ( long ver = minVer.value() ; ver < maxVer.value() ; ver++ ) {
+                Version verObj = Version.create(ver);
+                RDFPatch patch = fetchPatch(dsRef, verObj);
+                // No header.
+                RDFPatchOps.withHeader(noHeader, patch).apply(c);
+            }
+            // Last.
+            RDFPatchOps.withHeader(noHeader, patchMax).apply(c);
+            cw.txnCommit();
         }
-        if ( ! maxVer.isValid() ) {
-            System.out.printf("# Bad log: minVer=%s maxVer=%s\n", minVer, maxVer);
-            return;
-        }
-
-        // Outer TX - TC.
-        cw.txnBegin();
-        // Meta data.
-
-        // Fetch max version for the id.
-        RDFPatch patchMax = fetchPatch(dsRef, maxVer);
-        Node catLatest = patchMax.getId();
-        cw.header(RDFPatch.PREVIOUS, catLatest);
-
-        // All but last.
-        for ( long ver = minVer.value() ; ver < maxVer.value() ; ver++ ) {
-            Version verObj = Version.create(ver);
-            RDFPatch patch = fetchPatch(dsRef, verObj);
-            // No header.
-            RDFPatchOps.withHeader(noHeader, patch).apply(c);
-        }
-        // Last.
-        RDFPatchOps.withHeader(noHeader, patchMax).apply(c);
-        cw.txnCommit();
         return;
     }
 

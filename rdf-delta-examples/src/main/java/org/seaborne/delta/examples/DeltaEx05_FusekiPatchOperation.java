@@ -39,8 +39,8 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.DeltaFuseki ;
 import org.seaborne.delta.fuseki.PatchApplyService ;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFChanges ;
 import org.seaborne.patch.RDFPatchOps ;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /**
  * Create Fuseki server with a "patch" service, in addition to the usual "sparql",
@@ -62,58 +62,57 @@ public class DeltaEx05_FusekiPatchOperation {
         int PORT = 2020 ;
         // In-memory dataset
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
-        RDFChanges changeLog = RDFPatchOps.textWriter(System.out);
-        DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
+        try ( RDFChangesWriterText changeLog = RDFPatchOps.textWriter(System.out) ) {
+            DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
 
-        FusekiServer server =
-            DeltaFuseki.fusekiWithPatchApply()
-                .port(PORT)
-                .add("/ds", dsg)
-                .addOperation("/ds", DeltaFuseki.patchOp)
-                .build();
+            FusekiServer server =
+                DeltaFuseki.fusekiWithPatchApply()
+                    .port(PORT)
+                    .add("/ds", dsg)
+                    .addOperation("/ds", DeltaFuseki.patchOp)
+                    .build();
 
-        // Long hand version of the same:
-        if ( false ) {
-            Operation patchOp = Operation.alloc(Delta.namespace+"patch", "rdf-Patch", "RDF Patch Service");
-            String patchContentType = "application/rdf-patch";
-            ActionService handler = new PatchApplyService();
-            FusekiServer serverAlt =  FusekiServer.create()
-                .registerOperation(patchOp, patchContentType, handler)
-                .port(PORT)
-                .add("/ds", dsg)
-                .addOperation("/ds", DeltaFuseki.patchOp)
-                .build();
+            // Long hand version of the same:
+            if ( false ) {
+                Operation patchOp = Operation.alloc(Delta.namespace+"patch", "rdf-Patch", "RDF Patch Service");
+                String patchContentType = "application/rdf-patch";
+                ActionService handler = new PatchApplyService();
+                FusekiServer serverAlt =  FusekiServer.create()
+                    .registerOperation(patchOp, patchContentType, handler)
+                    .port(PORT)
+                    .add("/ds", dsg)
+                    .addOperation("/ds", DeltaFuseki.patchOp)
+                    .build();
+            }
+
+            server.start();
+
+            String patch = StrUtils.strjoinNL
+                ("H id <uuid:"+UUID.randomUUID()+"> ."
+                ,"TB ."
+                ,"A <http://example/s> <http://example/p> '"+DateTimeUtils.nowAsString()+"' ."
+                ,"TC ."
+                );
+
+            // -- Create patch operation.
+            // (without library calls)
+            BasicHttpEntity entity = new BasicHttpEntity();
+            // See also "ByteArrayEntity"
+            entity.setContentType(DeltaFuseki.patchContentType);
+            // From file ..
+            //entity.setContent(IO.openFile("data1.rdfp"));
+            entity.setContent(new ByteArrayInputStream(StrUtils.asUTF8bytes(patch)));
+
+            // -- Send to the server.
+            HttpOp.execHttpPost("http://localhost:"+PORT+"/ds/patch", entity);
+
+            // -- See if it is there.
+            RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
+            Query query = QueryFactory.create("SELECT * { ?s ?p ?o}");
+            QueryExecution qExec = conn.query(query);
+            ResultSetFormatter.out(qExec.execSelect());
+            server.stop();
         }
-
-        server.start();
-
-        String patch = StrUtils.strjoinNL
-            ("H id <uuid:"+UUID.randomUUID()+"> ."
-            ,"TB ."
-            ,"A <http://example/s> <http://example/p> '"+DateTimeUtils.nowAsString()+"' ."
-            ,"TC ."
-            );
-
-        // -- Create patch operation.
-        // (without library calls)
-        BasicHttpEntity entity = new BasicHttpEntity();
-        // See also "ByteArrayEntity"
-        entity.setContentType(DeltaFuseki.patchContentType);
-        // From file ..
-        //entity.setContent(IO.openFile("data1.rdfp"));
-        entity.setContent(new ByteArrayInputStream(StrUtils.asUTF8bytes(patch)));
-
-        // -- Send to the server.
-        HttpOp.execHttpPost("http://localhost:"+PORT+"/ds/patch", entity);
-
-        // -- See if it is there.
-        RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
-        Query query = QueryFactory.create("SELECT * { ?s ?p ?o}");
-        QueryExecution qExec = conn.query(query);
-        ResultSetFormatter.out(qExec.execSelect());
-
-        server.stop();
         System.exit(0);
     }
-
 }

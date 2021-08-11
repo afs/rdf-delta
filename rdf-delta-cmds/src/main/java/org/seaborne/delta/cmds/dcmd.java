@@ -23,13 +23,17 @@ import org.apache.jena.cmd.CmdException;
 import org.apache.jena.Jena;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.fuseki.main.cmds.FusekiMainCmd;
+import org.seaborne.delta.Delta;
 import org.seaborne.delta.lib.SystemInfo;
 
 /** Subcommand dispatch.
  *  Usage: "dcmd SUB ARGS...
  */
 public class dcmd {
-    static { DeltaLogging.setLogging(true); }
+    static {
+        DeltaLogging.setLogging(true);
+        Delta.init();
+    }
 
     public static class RDF_Delta {
         // For org.apache.jena.atlas.lib.Version

@@ -19,6 +19,7 @@ package org.seaborne.patch.text;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.io.Writer;
 
 import org.apache.jena.atlas.io.AWriter;
@@ -45,20 +46,38 @@ public class TokenWriterText implements TokenWriter {
 
     private String               label;
 
+    public static TokenWriter create(OutputStream out) {
+        return new TokenWriterText(out);
+    }
+
+    public static TokenWriter create(StringWriter out) {
+        return new TokenWriterText(out);
+    }
+
+    public static TokenWriter create(AWriter out) {
+        return new TokenWriterText(out);
+    }
+
     /**
      * Create a TokenOutputStreamWriter going to a OutputStream.
      *
      * @param out
      */
-    public TokenWriterText(OutputStream out) {
+    private TokenWriterText(OutputStream out) {
         this(writer(out));
     }
 
     private static Writer writer(OutputStream out) {
-        // IO.wrap(out) -- need buffering version,
-        Writer w1 = IO.asBufferedUTF8(out);
-        Writer w2 = new BufferingWriter(w1, 1024 * 1024);
-        return w2;
+        return IO.asUTF8(out);
+    }
+
+    /**
+     * Create a TokenOutputStreamWriter going to a StringWriter.
+     *
+     * @param out
+     */
+    private TokenWriterText(Writer out) {
+        this(null, null, IO.wrap(out));
     }
 
     /**
@@ -67,17 +86,7 @@ public class TokenWriterText implements TokenWriter {
      *
      * @param out
      */
-    public TokenWriterText(Writer out) {
-        this(null, null, out);
-    }
-
-    /**
-     * Create a TokenOutputStreamWriter going to a Writer, ideally one that
-     * buffers (e.g. {@linkplain BufferingWriter}).
-     *
-     * @param out
-     */
-    public TokenWriterText(AWriter out) {
+    private TokenWriterText(AWriter out) {
         this(null, null, out);
     }
 
@@ -85,50 +94,21 @@ public class TokenWriterText implements TokenWriter {
      * Create a TokenOutputStreamWriter going to a Writer, with a given
      * NodeFormatter policy ideally one that buffers (e.g.
      * {@linkplain BufferingWriter}).
-     *
-     * @param out
      */
-    public TokenWriterText(NodeFormatter formatter, Writer out) {
-        this(null, formatter, out);
-    }
 
-    /**
-     * Create a TokenOutputStreamWriter going to a Writer, with a given
-     * NodeFormatter policy ideally one that buffers (e.g.
-     * {@linkplain BufferingWriter}).
-     *
-     * @param out
-     */
-    public TokenWriterText(NodeFormatter formatter, AWriter out) {
-        this(null, formatter, out);
-    }
-
-    public TokenWriterText(String label, NodeFormatter formatter, Writer out) {
-        this(label, formatter, IO.wrap(out));
-    }
-
-    public TokenWriterText(String label, NodeFormatter formatter, AWriter out) {
-        if ( formatter == null )
-            // For the number abbreviations.
-            formatter = new NodeFormatterTTL(null, PrefixMapFactory.emptyPrefixMap());
-        // Must write bNodes as <_:....>
-        formatter = new NodeFormatterBNode(formatter);
+    private TokenWriterText(String label, NodeFormatter formatter, AWriter out) {
+        //formatter = new NodeFormatterBNode(formatter);
+        formatter = new NodeFormatterBNode1();
         this.fmt = formatter;
         this.out = out;
         this.label = label;
     }
 
-    static class NodeFormatterBNode extends NodeFormatterWrapper {
-        public NodeFormatterBNode(NodeFormatter other) {
-            super(other);
-        }
+    // NodeFormatterTTL to get the number abbreviations.
+    static class NodeFormatterBNode1 extends NodeFormatterTTL {
 
-        @Override
-        public void format(AWriter w, Node n) {
-            if ( n.isBlank() )
-                formatBNode(w, n);
-            else
-                super.format(w, n);
+        public NodeFormatterBNode1() {
+            super(null, PrefixMapFactory.emptyPrefixMap());
         }
 
         @Override
@@ -144,68 +124,114 @@ public class TokenWriterText implements TokenWriter {
         }
     }
 
-    static class NodeFormatterWrapper implements NodeFormatter {
-        private final NodeFormatter fmt;
+    // Temporary - for reference.
+    // See notes about NodeTriple
 
-        public NodeFormatterWrapper(NodeFormatter other) {
-            this.fmt = other;
-        }
-
-        @Override
-        public void format(AWriter w, Node n) {
-            fmt.format(w, n);
-        }
-
-        @Override
-        public void formatURI(AWriter w, Node n) {
-            fmt.formatURI(w, n);
-        }
-
-        @Override
-        public void formatURI(AWriter w, String uriStr) {
-            fmt.formatURI(w, uriStr);
-        }
-
-        @Override
-        public void formatVar(AWriter w, Node n) {
-            fmt.formatVar(w, n);
-        }
-
-        @Override
-        public void formatVar(AWriter w, String name) {
-            fmt.formatVar(w, name);
-        }
-
-        @Override
-        public void formatBNode(AWriter w, Node n) {
-            fmt.formatBNode(w, n);
-        }
-
-        @Override
-        public void formatBNode(AWriter w, String label) {
-            fmt.formatBNode(w, label);
-        }
-
-        @Override
-        public void formatLiteral(AWriter w, Node n) {
-            fmt.formatLiteral(w, n);
-        }
-
-        @Override
-        public void formatLitString(AWriter w, String lex) {
-            fmt.formatLitString(w, lex);
-        }
-
-        @Override
-        public void formatLitLang(AWriter w, String lex, String langTag) {
-            fmt.formatLitLang(w, lex, langTag);
-        }
-
-        @Override
-        public void formatLitDT(AWriter w, String lex, String datatypeURI) {
-            fmt.formatLitDT(w, lex, datatypeURI);
-        }
-    }
+//    static class NodeFormatterBNode extends NodeFormatterWrapper {
+//        public NodeFormatterBNode(NodeFormatter other) {
+//            super(other);
+//        }
+//
+//        @Override
+//        public void format(AWriter w, Node n) {
+//            if ( n.isBlank() ) {
+//                formatBNode(w, n);
+//                return;
+//            }
+//            // Wrapped does not work with RDF-star because we need to override the bnode format recusively.
+//            // IF wrapped.
+////            if ( n.isNodeTriple() ) {
+////                // Need to print blank nodes with this code.
+////                Triple t = n.getTriple();
+////                w.print("<< ");
+////                format(w, t.getSubject());
+////                w.print(" ");
+////                format(w, t.getPredicate());
+////                w.print(" ");
+////                format(w, t.getObject());
+////                // Need to write bnodes "our way".
+////                w.print(" >>");
+////                return;
+////            }
+//
+//            super.format(w, n);
+//        }
+//
+//        @Override
+//        public void formatBNode(AWriter w, Node n) {
+//            formatBNode(w, n.getBlankNodeLabel());
+//        }
+//
+//        @Override
+//        public void formatBNode(AWriter w, String label) {
+//            w.print("<_:");
+//            w.print(label);
+//            w.print(">");
+//        }
+//    }
+//
+//    static class NodeFormatterWrapper implements NodeFormatter {
+//        private final NodeFormatter fmt;
+//
+//        public NodeFormatterWrapper(NodeFormatter other) {
+//            this.fmt = other;
+//        }
+//
+//        @Override
+//        public void format(AWriter w, Node n) {
+//            fmt.format(w, n);
+//        }
+//
+//        @Override
+//        public void formatURI(AWriter w, Node n) {
+//            fmt.formatURI(w, n);
+//        }
+//
+//        @Override
+//        public void formatURI(AWriter w, String uriStr) {
+//            fmt.formatURI(w, uriStr);
+//        }
+//
+//        @Override
+//        public void formatVar(AWriter w, Node n) {
+//            fmt.formatVar(w, n);
+//        }
+//
+//        @Override
+//        public void formatVar(AWriter w, String name) {
+//            fmt.formatVar(w, name);
+//        }
+//
+//        @Override
+//        public void formatBNode(AWriter w, Node n) {
+//            fmt.formatBNode(w, n);
+//        }
+//
+//        @Override
+//        public void formatBNode(AWriter w, String label) {
+//            fmt.formatBNode(w, label);
+//        }
+//
+//        @Override
+//        public void formatLiteral(AWriter w, Node n) {
+//            fmt.formatLiteral(w, n);
+//        }
+//
+//        @Override
+//        public void formatLitString(AWriter w, String lex) {
+//            fmt.formatLitString(w, lex);
+//        }
+//
+//        @Override
+//        public void formatLitLang(AWriter w, String lex, String langTag) {
+//            fmt.formatLitLang(w, lex, langTag);
+//        }
+//
+//        @Override
+//        public void formatLitDT(AWriter w, String lex, String datatypeURI) {
+//            fmt.formatLitDT(w, lex, datatypeURI);
+//        }
+//    }
 
     @Override
     public void sendToken(Token token) {
@@ -255,6 +281,9 @@ public class TokenWriterText implements TokenWriter {
         out.write(Chars.CH_DOT);
         out.write("\n");
         inTuple = false;
+        // If setup so that any added layers are not buffering, only the passed-in
+        // InputStream or Writer, then this is not necessary.
+        // flush();
     }
 
     @Override

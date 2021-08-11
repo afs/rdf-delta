@@ -15,7 +15,7 @@
  *  information regarding copyright ownership.
  */
 
-// Encoding in Thrift iof RDF terms and other items 
+// Encoding in Thrift of RDF terms and other items 
 // for Graph, Datasets, Result Set and Patches
 
 // Taken from Jena BinaryRDF
@@ -79,26 +79,27 @@ union RDF_Term {
 6: RDF_ANY          any
 7: RDF_UNDEF        undefined
 8: RDF_REPEAT       repeat
+9: RDF_Triple       tripleTerm  # RDF-star
 # Value forms of literals.
 10: i64             valInteger
 11: double          valDouble
 12: RDF_Decimal     valDecimal
 }
 
-// // === Stream RDF items 
-// 
-// struct RDF_Triple {
-// 1: required RDF_Term S
-// 2: required RDF_Term P
-// 3: required RDF_Term O
-// }
-// 
-// struct RDF_Quad {
-// 1: required RDF_Term S
-// 2: required RDF_Term P
-// 3: required RDF_Term O
-// 4: optional RDF_Term G
-// }
+// === Stream RDF items 
+
+struct RDF_Triple {
+1: required RDF_Term S
+2: required RDF_Term P
+3: required RDF_Term O
+}
+
+struct RDF_Quad {
+1: required RDF_Term S
+2: required RDF_Term P
+3: required RDF_Term O
+4: optional RDF_Term G
+}
 // 
 // # Prefix declaration
 // struct RDF_PrefixDecl {
@@ -176,7 +177,7 @@ union RDF_Patch_Row {
 3: Patch_Data_Del     dataDel;
 4: Patch_Prefix_Add   prefixAdd;
 5: Patch_Prefix_Del   prefixDel;
-6: Transaction                txn;
+6: Transaction        txn;
 }
 
 // Local Variables:

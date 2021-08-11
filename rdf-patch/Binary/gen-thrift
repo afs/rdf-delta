@@ -14,7 +14,8 @@ rm -f "$PKG"/*.java
 
 thrift -r -out ../src/main/java -gen java "$@"
 
+# Also fixup Transaction.java for missing @Override.
 for f in "$PKG"/*.java
 do
-    perl -i -p -e 's/^public (class|enum)/\@SuppressWarnings("all")\npublic $1/' $f
+    perl -i -p -e 's/\@SuppressWarnings.*/\@SuppressWarnings("all")/' $f
 done

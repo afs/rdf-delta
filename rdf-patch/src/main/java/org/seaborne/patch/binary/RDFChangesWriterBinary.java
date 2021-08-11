@@ -26,6 +26,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.datatypes.xsd.impl.RDFLangString;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.thrift.TRDF;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
@@ -33,14 +34,14 @@ import org.seaborne.patch.PatchException;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.binary.thrift.*;
-import org.seaborne.patch.changes.RDFChangesWriter;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /**
  * Write RDF Patch in binary (thrift encoded).
  * <p>
  * This class is not thread safe.
  *
- * @see RDFChangesWriter
+ * @see RDFChangesWriterText
  */
 public class RDFChangesWriterBinary implements RDFChanges {
     public static void write(RDFPatch patch, String filename) {
@@ -249,6 +250,24 @@ public class RDFChangesWriterBinary implements RDFChanges {
             term.setVariable(var);
             return;
         }
+
+        if ( node.isNodeTriple() ) {
+            Triple triple = node.getTriple();
+
+            RDF_Term sTerm = new RDF_Term();
+            toThrift(triple.getSubject(), sTerm);
+
+            RDF_Term pTerm = new RDF_Term();
+            toThrift(triple.getPredicate(), pTerm);
+
+            RDF_Term oTerm = new RDF_Term();
+            toThrift(triple.getObject(), oTerm);
+
+            RDF_Triple tripleTerm = new RDF_Triple(sTerm, pTerm, oTerm);
+            term.setTripleTerm(tripleTerm);
+            return ;
+        }
+
 //        if ( Node.ANY.equals(node)) {
 //            term.setAny(ANY);
 //            return;

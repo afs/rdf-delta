@@ -20,6 +20,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.function.Consumer;
 
@@ -32,7 +33,8 @@ import org.seaborne.patch.changes.RDFChangesCollector;
 import org.seaborne.patch.changes.RDFChangesCounter;
 import org.seaborne.patch.changes.RDFChangesN;
 
-public class TestRDFChanges {
+public class TestRDFChangesBinary {
+    // Write read in binary.
     private static Node g1 = SSE.parseNode(":g1");
     private static Node g2 = SSE.parseNode("_:g2");
     private static Node s1 = SSE.parseNode(":s1");
@@ -61,7 +63,7 @@ public class TestRDFChanges {
     }
 
     // test basic mechanism
-    @Test public void changes_01() {
+    @Test public void changes_write_read_01() {
         RDFChangesCollector changes = new RDFChangesCollector();
         changes.start();
         changes.txnBegin();
@@ -70,7 +72,7 @@ public class TestRDFChanges {
         changes.finish();
     }
 
-    @Test public void changes_02() {
+    @Test public void changes_write_read_02() {
         RDFPatch patch = makePatch(changes->{
             changes.add(g1, s1, p1, o1);
             changes.add(g1, s1, p1, o1);
@@ -81,7 +83,7 @@ public class TestRDFChanges {
         byte[] output = out.toByteArray();
     }
 
-    @Test public void changes_03() {
+    @Test public void changes_write_read_03() {
         RDFPatch patch = makePatch(changes->{
             changes.add(g1, s1, p1, o1);
             changes.add(g1, s1, p1, o1);
@@ -96,13 +98,13 @@ public class TestRDFChanges {
         assertArrayEquals(output, output2);
     }
 
-    @Test public void changes_04() {
+    @Test public void changes_write_read_04() {
         byte[] output = write(changes->{});
         assertEquals(0, output.length);
         String x = StrUtils.fromUTF8bytes(output);
     }
 
-    @Test public void changes_05() {
+    @Test public void changes_write_read_05() {
         byte[] output = write(changes->{
             changes.txnBegin();
             changes.txnCommit();
@@ -110,6 +112,30 @@ public class TestRDFChanges {
         assertNotEquals(0, output.length);
         String x = StrUtils.fromUTF8bytes(output);
         assertEquals("TX .\nTC .\n", x);
+    }
+
+    @Test public void changes_write_read_06() {
+        byte[] output = write(changes->{
+            changes.txnBegin();
+            changes.add(g1, s1, p1, o1);
+            changes.delete(g1, s1, p1, o1);
+            changes.txnCommit();
+        });
+        ByteArrayInputStream in = new ByteArrayInputStream(output);
+
+        RDFPatch patch2 = RDFPatchOps.read(in);
+        RDFChangesCounter changes2 = new RDFChangesCounter();
+
+        patch2.apply(changes2);
+        PatchSummary ps = changes2.summary();
+
+        assertEquals(1, ps.getCountAddData());
+        assertEquals(1, ps.getCountDeleteData());
+        assertEquals(1, ps.getCountTxnBegin());
+        assertEquals(1, ps.getCountTxnCommit());
+        assertEquals(0, ps.getCountTxnAbort());
+        assertEquals(0, ps.getCountAddPrefix());
+        assertEquals(0, ps.getCountDeletePrefix());
     }
 
     @Test public void changes_prefix_01() {

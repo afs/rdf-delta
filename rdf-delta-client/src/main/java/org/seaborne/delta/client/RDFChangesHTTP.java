@@ -45,11 +45,11 @@ import org.seaborne.delta.*;
 import org.seaborne.delta.lib.IOX ;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.patch.RDFPatchConst;
-import org.seaborne.patch.changes.RDFChangesWriter;
+import org.seaborne.patch.text.RDFChangesWriterText;
 import org.slf4j.Logger;
 
 /** Collect the bytes of a change stream, then write to HTTP */
-public class RDFChangesHTTP extends RDFChangesWriter {
+public class RDFChangesHTTP extends RDFChangesWriterText {
     // This should have control of text/binary.
 
     private static final Logger LOG = Delta.DELTA_HTTP_LOG;
