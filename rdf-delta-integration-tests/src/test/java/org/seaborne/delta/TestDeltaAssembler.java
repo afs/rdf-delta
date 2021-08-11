@@ -72,6 +72,7 @@ public class TestDeltaAssembler {
         FileOps.clearAll("target/Zone1");
         FileOps.clearAll("target/Zone2");
     }
+
     @Before public void before() throws BindException {
         LocalServerConfig config = LocalServers.configMem();
         LocalServer localServer = LocalServer.create(config);
@@ -83,6 +84,7 @@ public class TestDeltaAssembler {
 
     @After public void after() {
         deltaServer.stop();
+        Zone.clearZoneCache();
     }
 
     @Test public void assembler_delta_1() {
@@ -93,14 +95,39 @@ public class TestDeltaAssembler {
         assertNotNull(dataset.getContext().get(symDeltaClient));
     }
 
+    /*
+     * Sequence: second test fails if DeltaConnection.TestModeNoAsync = false;
+     * assembler_delta_2
+     * assembler_delta_3
+     * assembler_ext_good_1
+     * assembler_ext_good_2
+     */
+
+    private static void protect(Runnable r) {
+        boolean value = DeltaConnection.TestModeNoAsync;
+        DeltaConnection.TestModeNoAsync = true;
+        // Or it needs a long time (5 seconds) to finish cleanup.
+        // Lib.sleep(5000);
+        try {
+            r.run();
+        } finally {
+            DeltaConnection.TestModeNoAsync = value;
+        }
+    }
+
     @Test public void assembler_delta_2() {
+        protect(this::assembler_delta_2_work);
+    }
+
+    private void assembler_delta_2_work() {
         // TDB1
         Quad q1 = SSE.parseQuad("(:g :s :p 1)");
         Quad q2 = SSE.parseQuad("(:g :s :p 2)");
         {
             Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
-            try ( DeltaConnection conn = connection(dataset) ) {
-                Txn.executeWrite(conn.getDatasetGraph(), ()->conn.getDatasetGraph().add(q1));
+            try ( DeltaConnection conn = connectionForDataset(dataset) ) {
+                dataset.executeWrite(()->conn.getDatasetGraph().add(q1));
+                dataset.executeRead(()->conn.getDatasetGraph().contains(q1));
             }
             Zone zone = (Zone)(dataset.getContext().get(symDeltaZone));
         }
@@ -108,20 +135,26 @@ public class TestDeltaAssembler {
         // Build again.
         {
             Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
-            try ( DeltaConnection conn = connection(dataset) ) {
-                Txn.executeRead(conn.getDatasetGraph(), ()->assertTrue(conn.getDatasetGraph().contains(q1)));
+            try ( DeltaConnection conn = connectionForDataset(dataset) ) {
+                dataset.executeWrite(()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
         }
     }
 
     @Test public void assembler_delta_3() {
+        protect(this::assembler_delta_3_work);
+    }
+
+    private void assembler_delta_3_work() {
         // TDB2
         Quad q1 = SSE.parseQuad("(:g :s :p 1)");
         Quad q2 = SSE.parseQuad("(:g :s :p 2)");
         {
+            // If not protected and second run, fails here.
             Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
-            try ( DeltaConnection conn = connection(dataset) ) {
-                Txn.executeWrite(conn.getDatasetGraph(), ()->conn.getDatasetGraph().add(q1));
+            try ( DeltaConnection conn = connectionForDataset(dataset) ) {
+                dataset.executeWrite(()->conn.getDatasetGraph().add(q1));
+                dataset.executeRead(()->conn.getDatasetGraph().contains(q1));
             }
             Zone zone = (Zone)(dataset.getContext().get(symDeltaZone));
         }
@@ -131,13 +164,13 @@ public class TestDeltaAssembler {
         // Build again.
         {
             Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
-            try ( DeltaConnection conn = connection(dataset) ) {
-                Txn.executeRead(conn.getDatasetGraph(), ()->assertTrue(conn.getDatasetGraph().contains(q1)));
+            try ( DeltaConnection conn = connectionForDataset(dataset) ) {
+                dataset.executeWrite(()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
         }
     }
 
-    private static DeltaConnection connection(Dataset dataset) {
+    private static DeltaConnection connectionForDataset(Dataset dataset) {
         return (DeltaConnection)(dataset.getContext().get(symDeltaConnection));
     }
 
@@ -146,12 +179,25 @@ public class TestDeltaAssembler {
     //Need two zones? Windows-isms?
 
     @Test public void assembler_ext_good_1() {
+        protect(this::assembler_ext_good_1_work);
+    }
+
+    private void assembler_ext_good_1_work() {
         Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-good-1.ttl", VocabDelta.tDatasetDelta);
-        // @@ Use it.
+        try ( DeltaConnection conn = connectionForDataset(dataset) ) {
+            dataset.executeRead(()->assertTrue(conn.getDatasetGraph().isEmpty()));
+        }
     }
 
     @Test public void assembler_ext_good_2() {
+        protect(this::assembler_ext_good_2_work);
+    }
+
+    private void assembler_ext_good_2_work() {
         Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-good-2.ttl", VocabDelta.tDatasetDelta);
+        try ( DeltaConnection conn = connectionForDataset(dataset) ) {
+            Txn.executeRead(conn.getDatasetGraph(), ()->assertTrue(conn.getDatasetGraph().isEmpty()));
+        }
     }
 
     @Test(expected = AssemblerException.class)
@@ -168,11 +214,7 @@ public class TestDeltaAssembler {
 
     @Test(expected = AssemblerException.class)
     public void assembler_ext_bad_3() {
-        //
+        // delta:storage = "external" but no delta:dataset.
         Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-assembler-ext-bad-3.ttl", VocabDelta.tDatasetDelta);
     }
-
-    // XXX External bad1 - :storage!=external
-    // XXX External bad2 - no :storage, no :dataset
-
 }
