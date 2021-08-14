@@ -26,8 +26,8 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /**
  * Set up a dataset and write out a log of changes as they happen.
@@ -49,19 +49,20 @@ public class DeltaEx01_DatasetWithPatchLog {
         // Text form of output.
         OutputStream out = System.out;
         // Create an RDFChanges that writes to "out".
-        RDFChanges changeLog = RDFPatchOps.textWriter(out);
+        try ( RDFChangesWriterText changeLog = RDFPatchOps.textWriter(out) ) {
 
-        // Combined datasetgraph and changes.
-        DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
+            // Combined DatasetGraph and changes.
+            DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
 
-        // Wrap in the Dataset API
-        Dataset ds = DatasetFactory.wrap(dsg);
+            // Wrap in the Dataset API
+            Dataset ds = DatasetFactory.wrap(dsg);
 
-        // --------
-        // Do something. Read in data.ttl inside a transaction.
-        // (data.ttl is in src/main/resources/)
-        Txn.executeWrite(ds,
-            ()->RDFDataMgr.read(dsg, "data.ttl")
-            );
+            // --------
+            // Do something. Read in data.ttl inside a transaction.
+            // (data.ttl is in src/main/resources/)
+            Txn.executeWrite(ds,
+                ()->RDFDataMgr.read(dsg, "data.ttl")
+                );
+        }
     }
 }

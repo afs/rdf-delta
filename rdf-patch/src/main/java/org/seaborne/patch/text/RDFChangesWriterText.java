@@ -15,30 +15,28 @@
  *  information regarding copyright ownership.
  */
 
-package org.seaborne.patch.changes;
+package org.seaborne.patch.text;
 
-import static org.seaborne.patch.changes.PatchCodes.ADD_DATA;
-import static org.seaborne.patch.changes.PatchCodes.ADD_PREFIX;
-import static org.seaborne.patch.changes.PatchCodes.DEL_DATA;
-import static org.seaborne.patch.changes.PatchCodes.DEL_PREFIX;
-import static org.seaborne.patch.changes.PatchCodes.SEGMENT;
-import static org.seaborne.patch.changes.PatchCodes.TXN_ABORT;
-import static org.seaborne.patch.changes.PatchCodes.TXN_BEGIN;
-import static org.seaborne.patch.changes.PatchCodes.TXN_COMMIT;
+import static org.seaborne.patch.changes.PatchCodes.*;
+
+import java.io.OutputStream;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Quad;
 import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.text.TokenWriter;
 
 /**
  * Write out a changes as a stream of syntax tokens.
- * The provided {@link TokenWriter} determines the concrete syntax - binary or text.
  */
-public class RDFChangesWriter implements RDFChanges {
+public class RDFChangesWriterText implements RDFChanges, AutoCloseable {
     protected TokenWriter tok;
 
-    public RDFChangesWriter(TokenWriter out) {
+    /** Create a {@code RDFChangesWriter} with standard text output. */
+    public static RDFChangesWriterText create(OutputStream out) {
+        return new RDFChangesWriterText(TokenWriterText.create(out));
+    }
+
+    public RDFChangesWriterText(TokenWriter out) {
         this.tok = out;
     }
 
@@ -46,7 +44,7 @@ public class RDFChangesWriter implements RDFChanges {
     public void start() { }
 
     @Override
-    public void finish() { }
+    public void finish() { tok.flush(); }
 
     @Override
     public void header(String field, Node value) {
@@ -57,10 +55,7 @@ public class RDFChangesWriter implements RDFChanges {
         tok.endTuple();
     }
 
-    public void flush() {
-        tok.flush();
-    }
-
+    @Override
     public void close() {
         tok.close();
     }
@@ -79,11 +74,10 @@ public class RDFChangesWriter implements RDFChanges {
         if ( g != null && ! Quad.isDefaultGraph(g) )
             output(g);
         tok.endTuple();
-        tok.flush();
     }
 
-    private void output(Node g) {
-        tok.sendNode(g);
+    private void output(Node node) {
+        tok.sendNode(node);
     }
 
     private void outputWord(String code) {
@@ -104,7 +98,6 @@ public class RDFChangesWriter implements RDFChanges {
         if ( gn != null )
             tok.sendNode(gn);
         tok.endTuple();
-        tok.flush();
     }
 
     @Override
@@ -115,14 +108,12 @@ public class RDFChangesWriter implements RDFChanges {
         if ( gn != null )
             tok.sendNode(gn);
         tok.endTuple();
-        tok.flush();
     }
 
     private void oneline(String code) {
         tok.startTuple();
         tok.sendWord(code);
         tok.endTuple();
-        tok.flush();
     }
 
     @Override
@@ -133,11 +124,13 @@ public class RDFChangesWriter implements RDFChanges {
     @Override
     public void txnCommit() {
         oneline(TXN_COMMIT);
+        tok.flush();
     }
 
     @Override
     public void txnAbort() {
         oneline(TXN_ABORT);
+        tok.flush();
     }
 
     @Override

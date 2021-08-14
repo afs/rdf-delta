@@ -32,9 +32,7 @@ import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.changes.RDFChangesWriter;
-import org.seaborne.patch.text.TokenWriter;
-import org.seaborne.patch.text.TokenWriterText;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /**
  * Example of a client that polls the log for changes. The client keeps a persistent
@@ -87,16 +85,11 @@ public class DeltaEx10_PollingClient {
                     for ( long version = versionLocal.value()+1; version <= versionRemote.value() ; version ++ ) {
                         RDFPatch patch = dLink.fetch(dsRef, Version.create(version));
                         System.out.println("Patch Version = "+version);
-                        // ** Process patch **
-                        // patch.apply(** application code implements RDFChanges**);
-
                         // Example: Print the patch.
                         // RDFPatchOps.write(System.out, patch1);
                         // which is:
-                        TokenWriter tw = new TokenWriterText(System.out);
-                        RDFChanges c = new RDFChangesWriter(tw);
+                        RDFChanges c = RDFChangesWriterText.create(System.out) ;
                         patch.apply(c);
-                        tw.flush();
                     }
                     // Move the local version forward.
                     dataState.updateState(versionRemote, dsRef);

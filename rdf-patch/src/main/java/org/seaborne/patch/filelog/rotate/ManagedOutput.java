@@ -34,7 +34,7 @@ public interface ManagedOutput {
      */
     public OutputStream output();
 
-    /** Current output stream, or null if theer hasn't been one yet */
+    /** Current output stream, or null if there hasn't been one yet */
     public OutputStream currentOutput();
 
     /** The most recent output file name, only valid during an output section, else null. */

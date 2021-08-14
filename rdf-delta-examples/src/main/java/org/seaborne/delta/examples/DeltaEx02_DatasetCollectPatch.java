@@ -26,10 +26,10 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
 import org.seaborne.patch.changes.RDFChangesCollector;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /** Set up a dataset, collect the changes as they happen, then write the changes.
  * <p>
@@ -47,27 +47,27 @@ public class DeltaEx02_DatasetCollectPatch {
         // Text form of output.
         OutputStream out = System.out;
         // Create an RDFChanges that writes to "out".
-        RDFChanges changeLog = RDFPatchOps.textWriter(out);
+        try ( RDFChangesWriterText changeLog = RDFPatchOps.textWriter(out) ) {
 
+            // ---- Collect up changes.
+            //RDFPatchOps.collect();
+            RDFChangesCollector rcc = new RDFChangesCollector();
+            DatasetGraph dsg = RDFPatchOps.changes(dsgBase, rcc);
+            Dataset ds = DatasetFactory.wrap(dsg);
+            Txn.executeWrite(ds,
+                ()->RDFDataMgr.read(dsg, "data.ttl")
+                );
+            // Again - different bnodes.
+            // Note all changes are recorded - even if they have no effect
+            // (e.g the prefix, the triple "ex:s ex:p ex:o").
+            Txn.executeWrite(ds,
+                ()->RDFDataMgr.read(dsg, "data.ttl")
+                );
 
-        // ---- Collect up changes.
-        //RDFPatchOps.collect();
-        RDFChangesCollector rcc = new RDFChangesCollector();
-        DatasetGraph dsg = RDFPatchOps.changes(dsgBase, rcc);
-        Dataset ds = DatasetFactory.wrap(dsg);
-        Txn.executeWrite(ds,
-                         ()->RDFDataMgr.read(dsg, "data.ttl")
-                         );
-        // Again - different bnodes.
-        // Note all changes are recorded - even if they have no effect
-        // (e.g the prefix, the triple "ex:s ex:p ex:o").
-        Txn.executeWrite(ds,
-                         ()->RDFDataMgr.read(dsg, "data.ttl")
-                         );
-
-        // Collected (in-memory) patch.
-        RDFPatch patch = rcc.getRDFPatch();
-        // Write it.
-        patch.apply(changeLog);
+            // Collected (in-memory) patch.
+            RDFPatch patch = rcc.getRDFPatch();
+            // Write it.
+            patch.apply(changeLog);
+        }
     }
 }

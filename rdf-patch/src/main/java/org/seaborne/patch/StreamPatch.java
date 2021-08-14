@@ -43,6 +43,7 @@ public class StreamPatch implements StreamRDF {
     public void start() {
         depth++;
         if ( depth == 1 ) {
+            changes.start();
             // Header
             // Node n = NodeFactory.createURI(JenaUUID.getFactory().generate().asURI());
             Node n = NodeFactory.createURI("uuid:"+UUID.randomUUID().toString());
@@ -54,8 +55,10 @@ public class StreamPatch implements StreamRDF {
 
     @Override
     public void finish() {
-        if ( depth == 1 )
+        if ( depth == 1 ) {
             changes.txnCommit();
+            changes.finish();
+        }
         --depth;
     }
 

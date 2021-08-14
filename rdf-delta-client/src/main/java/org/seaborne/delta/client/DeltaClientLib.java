@@ -22,9 +22,7 @@ import java.io.OutputStream ;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.changes.RDFChangesWriter ;
-import org.seaborne.patch.text.TokenWriter ;
-import org.seaborne.patch.text.TokenWriterText ;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 public class DeltaClientLib {
 
@@ -33,8 +31,7 @@ public class DeltaClientLib {
         // TODO text vs binary
         if ( dest.startsWith("file:") ) {
             OutputStream out = IO.openOutputFile(dest) ;
-            TokenWriter tokenWriter = new TokenWriterText(out) ;
-            RDFChanges sc = new RDFChangesWriter(tokenWriter) ;
+            RDFChanges sc = RDFChangesWriterText.create(out) ;
             return sc ;
         }
 

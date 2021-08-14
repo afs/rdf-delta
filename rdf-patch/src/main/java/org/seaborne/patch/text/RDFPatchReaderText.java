@@ -17,16 +17,8 @@
 
 package org.seaborne.patch.text;
 
-import static org.apache.jena.riot.tokens.TokenType.DOT;
-import static org.seaborne.patch.changes.PatchCodes.ADD_DATA;
-import static org.seaborne.patch.changes.PatchCodes.ADD_PREFIX;
-import static org.seaborne.patch.changes.PatchCodes.DEL_DATA;
-import static org.seaborne.patch.changes.PatchCodes.DEL_PREFIX;
-import static org.seaborne.patch.changes.PatchCodes.HEADER;
-import static org.seaborne.patch.changes.PatchCodes.SEGMENT;
-import static org.seaborne.patch.changes.PatchCodes.TXN_ABORT;
-import static org.seaborne.patch.changes.PatchCodes.TXN_BEGIN;
-import static org.seaborne.patch.changes.PatchCodes.TXN_COMMIT;
+import static org.apache.jena.riot.tokens.TokenType.*;
+import static org.seaborne.patch.changes.PatchCodes.*;
 
 import java.io.InputStream;
 import java.util.LinkedHashMap;
@@ -37,7 +29,10 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.SysRIOT;
 import org.apache.jena.riot.system.RiotLib;
-import org.apache.jena.riot.tokens.*;
+import org.apache.jena.riot.tokens.Token;
+import org.apache.jena.riot.tokens.TokenType;
+import org.apache.jena.riot.tokens.Tokenizer;
+import org.apache.jena.riot.tokens.TokenizerText;
 import org.seaborne.patch.PatchException;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.PatchProcessor;
@@ -256,7 +251,17 @@ public class RDFPatchReaderText implements PatchProcessor {
     }
 
     private static Node nextNode(Tokenizer tokenizer) {
-        return tokenToNode(nextToken(tokenizer));
+        Token tok = nextToken(tokenizer);
+        if ( tok.hasType(LT2) ) {
+            Node s = nextNode(tokenizer);
+            Node p = nextNode(tokenizer);
+            Node o = nextNode(tokenizer);
+            Token tok2 = nextToken(tokenizer);
+            if ( ! tok2.hasType(GT2) )
+                exception(tok2, "Expected token type: "+GT2+": got "+tok2);
+            return NodeFactory.createTripleNode(s, p, o);
+        }
+        return tokenToNode(tok);
     }
 
     private static PatchException exception(Tokenizer tokenizer, String fmt, Object... args) {

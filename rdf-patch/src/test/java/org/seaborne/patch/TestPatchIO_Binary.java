@@ -15,26 +15,21 @@
  *  information regarding copyright ownership.
  */
 
+
 package org.seaborne.patch;
 
-import org.apache.jena.atlas.logging.LogCtl;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.seaborne.patch.filelog.TestAssemblerFileLog;
-import org.seaborne.patch.filelog.TestRotate;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestPatchIO_Text.class
-    , TestPatchIO_Binary.class
-    , TestRDFChanges.class
-    , TestRDFChangesDataset.class
-    , TestRDFChangesGraph.class
-    , TestRDFChangesCancel.class
-    , TestRotate.class
-    , TestAssemblerFileLog.class
-})
+public class TestPatchIO_Binary extends AbstractTestPatchIO {
 
-public class TS_RDFPatch {
-    static { LogCtl.setJavaLogging(); }
+    @Override
+    protected void write(OutputStream out, RDFPatch path) {
+        RDFPatchOps.writeBinary(out, path);
+    }
+
+    @Override
+    protected RDFPatch read(InputStream in) {
+        return RDFPatchOps.readBinary(in);
+    }
 }

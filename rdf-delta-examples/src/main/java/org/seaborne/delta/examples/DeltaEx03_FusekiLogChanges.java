@@ -24,8 +24,8 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFChanges;
 import org.seaborne.patch.RDFPatchOps;
+import org.seaborne.patch.text.RDFChangesWriterText;
 
 /**
  * Example of a Fuseki server, with a dataset that writes out changes as they happen.
@@ -41,26 +41,27 @@ public class DeltaEx03_FusekiLogChanges {
     public static void main2(String ...args) {
         int PORT = 2020;
         DatasetGraph dsgBase = DatasetGraphFactory.createTxnMem();
-        RDFChanges changeLog = RDFPatchOps.textWriter(System.out);
-        DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
+        try ( RDFChangesWriterText changeLog = RDFPatchOps.textWriter(System.out) ) {
 
-        // Create a server with the changes-enables dataset.
-        // Plain server. No other registration necessary.
-        FusekiServer server =
-            FusekiServer.create()
+            DatasetGraph dsg = RDFPatchOps.changes(dsgBase, changeLog);
+
+            // Create a server with the changes-enables dataset.
+            // Plain server. No other registration necessary.
+            FusekiServer server =
+                FusekiServer.create()
                 .port(PORT)
                 .add("/ds", dsg)
                 .build();
-        server.start();
+            server.start();
 
-        RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
-        UpdateRequest update = UpdateFactory.create("PREFIX : <http://example/> INSERT DATA { :s :p 123 }");
-        // Note - no prefix in changes. The SPARQL Update prefix is not a chnage to the dataset prefixes.
-        conn.update(update);
-
-        server.stop();
+            RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
+            UpdateRequest update = UpdateFactory.create("PREFIX : <http://example/> INSERT DATA { :s :p 123 }");
+            // Note - no prefix in changes. The SPARQL Update prefix is not a chnage to the dataset prefixes.
+            conn.update(update);
+            server.stop();
 //        // Server in the background so explicitly exit.
 //        System.exit(0);
+        }
     }
 
 }

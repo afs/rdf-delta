@@ -41,7 +41,7 @@ import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDFPatch;
 import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesWriter;
+import org.seaborne.patch.text.RDFChangesWriterText;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
@@ -83,8 +83,8 @@ public class PatchStorageFile implements PatchStorage {
     @Override
     public void store(Version version, Id key, RDFPatch patch) {
         IOConsumer<OutputStream> action = out -> {
-            TokenWriter tw = new TokenWriterText(out) ;
-            RDFChangesWriter dest = new RDFChangesWriter(tw) ;
+            TokenWriter tw = TokenWriterText.create(out) ;
+            RDFChangesWriterText dest = new RDFChangesWriterText(tw) ;
             patch.apply(dest);
         };
 

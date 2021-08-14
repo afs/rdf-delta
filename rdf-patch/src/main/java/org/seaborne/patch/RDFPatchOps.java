@@ -37,6 +37,7 @@ import org.seaborne.patch.system.DatasetGraphChanges;
 import org.seaborne.patch.system.GraphChanges;
 import org.seaborne.patch.system.RDFPatchAltHeader;
 import org.seaborne.patch.system.URNs;
+import org.seaborne.patch.text.RDFChangesWriterText;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
@@ -252,11 +253,12 @@ public class RDFPatchOps {
      */
     public static RDFChanges changesPrinter() { return new RDFChangesLog((fmt, args)->printer(System.out, fmt, args)); }
 
-    /** An {@link RDFChanges} that prints RDFPatch syntax to an {@code OutputStream} in text format. */
-    public static RDFChanges textWriter(OutputStream output) {
-        TokenWriter tokenWriter = new TokenWriterText(output);
-        RDFChanges changes = new RDFChangesWriter(tokenWriter);
-        return changes;
+    /**
+     * An {@link RDFChanges} that prints RDFPatch syntax to an {@code OutputStream} in text format.
+     * The application must call {@code RDFChanges.start} and {@code RDFChanges.finish}.
+     */
+    public static RDFChangesWriterText textWriter(OutputStream output) {
+        return RDFChangesWriterText.create(output);
     }
 
     /** Create a {@link Graph} that sends changes to a {@link RDFChanges} stream */
@@ -272,12 +274,20 @@ public class RDFPatchOps {
         return changes(dsgBase, changeLog);
     }
 
+    /** Create a {@link Graph} that writes changes to an {@link OutputStream} in text format.
+     *  The caller is responsible for closing the {@link OutputStream}.
+     */
+    public static Graph textWriter(Graph graph, OutputStream out) {
+        RDFChanges changeLog = textWriter(out);
+        return changes(graph, changeLog);
+    }
+
     /** Write a {@link RDFPatch} in text format */
     public static void write(OutputStream out, RDFPatch patch) {
-        TokenWriter tw = new TokenWriterText(out);
-        RDFChanges c = new RDFChangesWriter(tw);
+        RDFChanges c = RDFChangesWriterText.create(out);
+        c.start();
         patch.apply(c);
-        tw.flush();
+        c.finish();
     }
 
     /** Write a {@link RDFPatch} in binary format */
@@ -291,8 +301,7 @@ public class RDFPatchOps {
      *  {@code TX} and {@code TC}.
      */
     public static StreamRDF write(OutputStream out) {
-        TokenWriter tw = new TokenWriterText(out);
-        RDFChanges rdfChanges = new RDFChangesWriter(tw);
+        RDFChanges rdfChanges = RDFChangesWriterText.create(out);
         return new StreamPatch(rdfChanges);
     }
 
@@ -310,8 +319,8 @@ public class RDFPatchOps {
 
     public static String str(RDFPatch patch) {
         StringWriter sw = new StringWriter();
-        TokenWriter tw = new TokenWriterText(sw);
-        RDFChanges c = new RDFChangesWriter(tw);
+        TokenWriter tw = TokenWriterText.create(sw);
+        RDFChanges c = new RDFChangesWriterText(tw);
         patch.apply(c);
         tw.flush();
         return sw.toString();

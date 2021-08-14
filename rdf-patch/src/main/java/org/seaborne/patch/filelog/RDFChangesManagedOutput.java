@@ -23,16 +23,16 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Node;
 import org.seaborne.patch.RDFPatchConst;
-import org.seaborne.patch.changes.RDFChangesWriter;
 import org.seaborne.patch.filelog.rotate.ManagedOutput;
 import org.seaborne.patch.system.URNs;
+import org.seaborne.patch.text.RDFChangesWriterText;
 import org.seaborne.patch.text.TokenWriter;
 import org.seaborne.patch.text.TokenWriterText;
 
 /** Log changes to a {@link ManagedOutput}.
  * {@link ManagedOutput} sections
  * */
-public class RDFChangesManagedOutput extends RDFChangesWriter {
+public class RDFChangesManagedOutput extends RDFChangesWriterText {
 
     private final ManagedOutput managedOutput;
     private OutputStream currentStream = null;
@@ -72,7 +72,7 @@ public class RDFChangesManagedOutput extends RDFChangesWriter {
             return;
         }
         currentStream = managedOutput.output();
-        TokenWriter tokenWriter = new TokenWriterText(currentStream);
+        TokenWriter tokenWriter = TokenWriterText.create(currentStream);
         super.tok = tokenWriter;
         Node id = URNs.unique();
         header(RDFPatchConst.ID, id);
