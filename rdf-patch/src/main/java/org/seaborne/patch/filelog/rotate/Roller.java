@@ -43,9 +43,10 @@ public interface Roller {
     /** Finished an output section. */
     public void finishSection();
 
-    /** Latest filename, either curently being written or the last one written.
-     *  The path includes the directory name to the file.
-     *  Returns null if there isn't one (nothing written at this location).
+    /**
+     * Latest filename, either currently being written or the last one written.
+     * The path includes the directory name to the file.
+     * Returns null if there isn't one (nothing written at this location).
      */
     public Path latestFilename();
 

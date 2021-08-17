@@ -98,7 +98,7 @@ public class Filename {
         if ( ! isBasename() )
             fn = fn + MARK + separator + MARK + modifier;
         if ( isCompressed() )
-            fn = fn + MARK +compression;
+            fn = fn + MARK + compression;
         return fn;
     }
 

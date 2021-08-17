@@ -183,7 +183,7 @@ public class FileMgr {
         if ( increment <= 0 )
             throw new IllegalArgumentException("Increment must be positive: got "+increment);
 
-        // Move files of the form "NAME" and "NAME.num" up  s
+        // Move files of the form "NAME" and "NAME.num" up
         List<Filename> files = scanForIncrement(directory, filename);
         Collections.sort(files, cmpNumericModifier.reversed());
         // Guava: Lists.reverse(List) -- is a view.

@@ -17,6 +17,7 @@
 
 package org.seaborne.patch.filelog;
 
+import java.util.Locale;
 import java.util.Objects;
 
 import org.seaborne.patch.filelog.rotate.FileRotateException;
@@ -46,17 +47,21 @@ public enum FilePolicy {
      * Use a fixed file
      */
     FIXED
-   ;
+    ;
 
     public static FilePolicy policy(String name) {
         Objects.requireNonNull(name);
-        if ( name.equalsIgnoreCase("date") ) return DATE;
-        if ( name.equalsIgnoreCase("timestamp") ) return TIMESTAMP;
-        if ( name.equalsIgnoreCase("index") ) return INDEX;
-        if ( name.equalsIgnoreCase("rotate") ) return SHIFT;
-        if ( name.equalsIgnoreCase("shift") ) return SHIFT;
-        if ( name.equalsIgnoreCase("fixed") ) return FIXED;
-        if ( name.equalsIgnoreCase("none") ) return FIXED;
-        throw new FileRotateException("Unknown policy name: "+name);
+        String nameLC = name.toLowerCase(Locale.ROOT);
+        switch(nameLC) {
+            case "date" :       return DATE;
+            case "timestamp" :  return TIMESTAMP;
+            case "index" :      return INDEX;
+            case "rotate" :     return SHIFT;
+            case "shift" :      return SHIFT;
+            case "fixed" :      return FIXED;
+            case "none" :       return FIXED;
+            default:
+                throw new FileRotateException("Unknown policy name: "+name);
+        }
     }
 }

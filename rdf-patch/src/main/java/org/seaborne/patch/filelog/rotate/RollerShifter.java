@@ -17,7 +17,9 @@
 
 package org.seaborne.patch.filelog.rotate;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -62,7 +64,12 @@ class RollerShifter implements Roller {
     @Override
     public Stream<Filename> files() {
         List<Filename> filenames = FileMgr.scan(directory, baseFilename, patternIncremental);
-        return filenames.stream().sorted(cmpNumericModifier);
+        Collections.sort(filenames, cmpNumericModifier);
+        if (Files.exists(filename) ) {
+            Filename base = new Filename(directory, baseFilename, null, null, null);
+            filenames.add(base);
+        }
+        return filenames.stream();
     }
 
     @Override
