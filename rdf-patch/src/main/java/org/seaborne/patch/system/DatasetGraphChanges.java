@@ -172,12 +172,13 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
         }
         insideBegin.set(true);
         try {
+            ReadWrite readWrite = transactionMode();
             // If a write, start the changedMonitor including get the patch log lock.
-            if ( transactionMode() == ReadWrite.WRITE )
+            if ( readWrite == ReadWrite.WRITE )
                 changesMonitor.txnBegin();
             // For the sync, we have to assume it will write.
             // Any transaction causes a write-sync to be done in "begin".
-            txnSyncHandler.accept(ReadWrite.WRITE);
+            txnSyncHandler.accept(readWrite);
             super.begin();
         } finally {
             insideBegin.set(false);
@@ -194,14 +195,17 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
             super.begin(txnType);
             return;
         }
-
         insideBegin.set(true);
         try {
-          // For the sync, we have to assume it will write.
-          ReadWrite readWrite = ( txnType == TxnType.READ) ? ReadWrite.READ : ReadWrite.WRITE;
-          if ( readWrite == ReadWrite.WRITE )
+          if ( txnType == TxnType.WRITE)
               changesMonitor.txnBegin();
-          txnSyncHandler.accept(readWrite);
+          // For the sync, we have to assume it will write.
+          // Sync: do as if a WRITE if the transaction is a "promote"
+          // There isn't a sync during promotion.
+          if ( txnType != TxnType.READ )
+              txnSyncHandler.accept(ReadWrite.WRITE);
+          else
+              txnSyncHandler.accept(ReadWrite.READ);
           super.begin(txnType);
         } finally {
             insideBegin.set(false);
@@ -217,7 +221,7 @@ public class DatasetGraphChanges extends DatasetGraphWrapper {
 
     @Override
     public boolean promote() {
-        // Do not use the wrapper which will redirect to the wrapped DSG
+        // Do not use the wrapper code which will redirect to the wrapped DSG
         // bypassing promote(Promote) below.
         // This is copied :-( from "Transactional"
         TxnType txnType = transactionType();
