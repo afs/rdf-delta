@@ -374,7 +374,7 @@ public class TokenWriterText implements TokenWriter {
                 return "@" + token.getImage();
             case VBAR :
                 return Chars.S_VBAR;
-            case AMPHERSAND :
+            case AMPERSAND :
                 return Chars.S_AMPHERSAND;
             case EQUALS :
                 return Chars.S_EQUALS;

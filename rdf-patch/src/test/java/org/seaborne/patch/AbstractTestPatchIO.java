@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.util.function.Consumer;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.Test;
 import org.seaborne.patch.changes.RDFChangesCollector;
@@ -43,6 +44,12 @@ public abstract class AbstractTestPatchIO {
     private static Node o2 = SSE.parseNode("123");
     private static Node o3 = SSE.parseNode("<< <<_:b :q _:b>> :prop _:b >>");
 
+    // Dubious
+    private static Node zo1 = SSE.parseNode("'abc\uFFFDdef'");
+    // Dubious
+    private static Node zs1 = NodeFactory.createURI("http://example/space uri");
+
+
     protected abstract void write(OutputStream out, RDFPatch patch);
     protected abstract RDFPatch read(InputStream in);
 
@@ -52,7 +59,7 @@ public abstract class AbstractTestPatchIO {
         return out.toByteArray();
     }
 
-    private RDFPatch read(byte[] bytes) {
+    protected RDFPatch read(byte[] bytes) {
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         return read(in);
     }
@@ -78,13 +85,13 @@ public abstract class AbstractTestPatchIO {
         byte[] bytes = write(patch1);
         RDFPatch patch2 = read(bytes);
 
-//        if ( ! patch1.equals(patch2) ) {
-//            System.out.println("<<<<");
-//            RDFPatchOps.write(System.out, patch1);
-//            System.out.println("----");
-//            RDFPatchOps.write(System.out, patch2);
-//            System.out.println(">>>>");
-//        }
+        if ( ! patch1.equals(patch2) ) {
+            System.out.println("<<<<");
+            RDFPatchOps.write(System.out, patch1);
+            System.out.println("----");
+            RDFPatchOps.write(System.out, patch2);
+            System.out.println(">>>>");
+        }
 
         // Stored patches have .equals by value.
         // Need recursion on <<>>

@@ -31,7 +31,6 @@ import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.*;
 import org.seaborne.delta.Id;
@@ -80,7 +79,7 @@ public class TestDeltaZkFuseki {
         int fusekiPort = Matrix.choosePort();
         DeltaLinkSwitchable dLinkFuseki = (DeltaLinkSwitchable)Matrix.setupFuseki("ABC", "target/Zone", fusekiPort, deltaServerURL1, deltaServerURL2);
         String fusekiURL = "http://localhost:"+fusekiPort+"/ABC";
-        RDFConnection conn = RDFConnectionFactory.connect(fusekiURL);
+        RDFConnection conn = RDFConnection.connect(fusekiURL);
 
         conn.update("PREFIX : <http://delta/> INSERT DATA { :s :p :o }");
         assertCount("Count, before failover", conn, 1);
@@ -125,8 +124,8 @@ public class TestDeltaZkFuseki {
 //        System.err.printf("Fuseki servers %s , %s\n", fusekiURL1, fusekiURL2);
 //        System.err.printf("Delta servers %s , %s\n", deltaServerURL1, deltaServerURL2);
         
-        RDFConnection conn1 = RDFConnectionFactory.connect(fusekiURL1);
-        RDFConnection conn2 = RDFConnectionFactory.connect(fusekiURL2);
+        RDFConnection conn1 = RDFConnection.connect(fusekiURL1);
+        RDFConnection conn2 = RDFConnection.connect(fusekiURL2);
         
         //boolean b = conn1.queryAsk("ASK{}");
         

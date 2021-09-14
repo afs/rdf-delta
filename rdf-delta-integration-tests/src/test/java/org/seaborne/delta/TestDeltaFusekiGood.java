@@ -27,22 +27,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.client.HttpClient ;
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
-import org.apache.jena.rdfconnection.RDFConnectionFactory ;
-import org.apache.jena.riot.web.HttpOp ;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.seaborne.delta.server.http.DeltaServer;
 
 /**
@@ -64,11 +54,6 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
     @BeforeClass
     public static void beforeClass() {
         try {
-
-            dftStdHttpClient = HttpOp.getDefaultHttpClient();
-
-            HttpOp.setDefaultHttpClient(HttpClients.createMinimal());
-
             deltaServer = deltaServer(CLEAN);
 
             server1 = fuseki1(CLEAN);
@@ -76,8 +61,8 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
 
             URL_DPS = "http://localhost:"+D_PORT+"/";
 
-            conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
-            conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+ds2) ;
+            conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+ds1) ;
+            conn2 = RDFConnection.connect("http://localhost:"+F2_PORT+ds2) ;
 
         } catch (Throwable th) {
             th.printStackTrace();
@@ -91,8 +76,6 @@ public class TestDeltaFusekiGood extends BaseTestDeltaFuseki {
         if ( server2 != null )
             server2.stop();
         deltaServer.stop();
-        IO.close( ((CloseableHttpClient)HttpOp.getDefaultHttpClient()) );
-        HttpOp.setDefaultHttpClient(dftStdHttpClient);
     }
 
     @Before public void before() {}

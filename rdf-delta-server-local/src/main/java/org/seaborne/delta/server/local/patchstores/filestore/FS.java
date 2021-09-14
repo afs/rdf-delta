@@ -27,7 +27,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.text.RDFPatchReaderText;
 import org.slf4j.Logger;

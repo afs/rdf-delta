@@ -78,9 +78,9 @@ public class PatchWriteServlet extends ServletProcessor {
 
     @Override
     public void execOptions(HttpAction action) {
-        ActionLib.setCommonHeadersForOptions(action.response);
-        action.response.setHeader(HttpNames.hAllow, "OPTIONS,POST");
-        action.response.setHeader(HttpNames.hContentLength, "0");
+        ActionLib.setCommonHeadersForOptions(action);
+        action.getResponse().setHeader(HttpNames.hAllow, "OPTIONS,POST");
+        action.getResponse().setHeader(HttpNames.hContentLength, "0");
     }
 
     protected void validate(HttpAction action) {
@@ -91,10 +91,10 @@ public class PatchWriteServlet extends ServletProcessor {
             default:
                 ServletOps.errorMethodNotAllowed(method+" : Patch must use POST");
         }
-        String ctStr = action.request.getContentType();
+        String ctStr = action.getRequest().getContentType();
         // Must be UTF-8 or unset. But this is wrong so often,
         // it is less trouble to just force UTF-8.
-        String charset = action.request.getCharacterEncoding();
+        String charset = action.getRequest().getCharacterEncoding();
         if ( charset != null && ! WebContent.charsetUTF8.equals(charset) )
             ServletOps.error(HttpSC.UNSUPPORTED_MEDIA_TYPE_415, "Charset must be omitted or must be UTF-8, not "+charset);
 
@@ -130,7 +130,7 @@ public class PatchWriteServlet extends ServletProcessor {
     private void actOnRDFPatch(HttpAction action) {
         try {
             String ct = action.getRequest().getContentType();
-            InputStream input = action.request.getInputStream();
+            InputStream input = action.getRequestInputStream();
 
             RDFPatch patch = RDFPatchOps.read(input);
             try ( OutputStream out = output.output() ) {

@@ -30,7 +30,6 @@ import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.FileOps ;
 import org.apache.jena.atlas.lib.InternalErrorException ;
 import org.apache.jena.atlas.logging.Log ;
-import org.seaborne.delta.lib.IOX;
 
 /** A persistent integer value */
 public class PersistentCounter {
@@ -101,7 +100,7 @@ public class PersistentCounter {
     // This should really be checksum'ed or other internal check to make sure IO worked.
     private static long read(String filename) {
         try {
-            String str = IOX.readWholeFileAsUTF8(filename) ;
+            String str = IO.readWholeFileAsUTF8(filename) ;
             if ( str.endsWith("\n") ) {
                 str = str.substring(0, str.length()-1) ;
             }
@@ -151,7 +150,4 @@ public class PersistentCounter {
         w.flush();
         // Not close.
     }
-
-    // ==> IO.writeWholeFileAsUTF8
-
 }

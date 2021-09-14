@@ -17,14 +17,15 @@
 
 package org.seaborne.delta.server.local.handlers;
 
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.ArrayList ;
 import java.util.List ;
 
 import org.apache.jena.atlas.io.IndentedLineBuffer ;
 import org.apache.jena.atlas.web.HttpException ;
+import org.apache.jena.http.HttpOp;
 import org.apache.jena.query.ARQ ;
 import org.apache.jena.riot.WebContent ;
-import org.apache.jena.riot.web.HttpOp ;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
@@ -33,27 +34,27 @@ import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
 
 /** Convert a patch to SPARQL Update and send to some endpoints */
 public class PHandlerSPARQLUpdate implements PatchHandler {
-    
+
     // SPARQL Update services to poke
     private List<String> updateEndpoints = new ArrayList<>() ;
     public PHandlerSPARQLUpdate addEndpoint(String url) {
         updateEndpoints.add(url) ;
         return this ;
     }
-    
+
     public PHandlerSPARQLUpdate() { }
-    
+
     private Object dft = ARQ.getContext().get(ARQ.constantBNodeLabels) ;
-    
+
     @Override
-    public void handle(Patch patch) { 
+    public void handle(Patch patch) {
         IndentedLineBuffer x = new IndentedLineBuffer() ;
         RDFChanges scData = new RDFChangesWriteUpdate(x) ;
         patch.play(scData);
         x.flush();
         String reqStr = x.asString() ;
         updateEndpoints.forEach((ep)->{
-            try { HttpOp.execHttpPost(ep, WebContent.contentTypeSPARQLUpdate, reqStr) ; }
+            try { HttpOp.httpPost(ep, WebContent.contentTypeSPARQLUpdate, BodyPublishers.ofString(reqStr)) ; }
             catch (HttpException ex) { DPS.LOG.warn("Failed to send to "+ep) ; }
         }) ;
     }

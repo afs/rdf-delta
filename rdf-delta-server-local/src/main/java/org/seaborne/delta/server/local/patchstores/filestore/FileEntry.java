@@ -24,8 +24,8 @@ import java.nio.file.Path;
 
 import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IO;
-import org.seaborne.delta.lib.IOX;
-import org.seaborne.delta.lib.IOX.IOConsumer;
+import org.apache.jena.atlas.io.IOX;
+import org.apache.jena.atlas.io.IOX.IOConsumer;
 
 /**
  * Record of a file in a {@link FileStore}.

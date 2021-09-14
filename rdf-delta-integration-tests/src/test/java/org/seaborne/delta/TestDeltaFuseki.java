@@ -25,13 +25,12 @@ import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.DPS;
@@ -69,14 +68,14 @@ public class TestDeltaFuseki {
 
         Triple t = SSE.parseTriple("(<x:s> <x:p> <x:o>)");
 
-        RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+PORT1+"/ds");
+        RDFConnection conn1 = RDFConnection.connect("http://localhost:"+PORT1+"/ds");
         try ( RDFConnection conn1a = conn1 ) {
             conn1.update("INSERT DATA { <x:s> <x:p> <x:o> }");
             boolean b = conn1.queryAsk("ASK { <x:s> <x:p> <x:o> }");
             assertTrue(b);
         }
 
-        RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+PORT2+"/ds");
+        RDFConnection conn2 = RDFConnection.connect("http://localhost:"+PORT2+"/ds");
         try ( RDFConnection conn2a = conn2 ) {
             boolean b = conn2.queryAsk("ASK { <x:s> <x:p> <x:o> }");
             assertTrue(b);

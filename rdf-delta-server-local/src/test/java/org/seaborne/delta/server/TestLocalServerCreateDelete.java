@@ -29,14 +29,14 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.tdb.base.file.Location;
+import org.apache.jena.dboe.base.file.Location;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.LocalServer;

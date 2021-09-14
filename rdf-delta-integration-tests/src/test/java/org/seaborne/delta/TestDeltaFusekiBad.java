@@ -22,23 +22,13 @@ import static org.junit.Assert.fail;
 import static org.seaborne.delta.BaseTestDeltaFuseki.Start.CLEAN;
 
 import org.apache.http.client.HttpClient ;
-import org.apache.http.impl.client.CloseableHttpClient ;
-import org.apache.http.impl.client.HttpClients ;
 import org.apache.jena.assembler.exceptions.AssemblerException ;
-import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.rdfconnection.RDFConnection ;
-import org.apache.jena.rdfconnection.RDFConnectionFactory ;
-import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.sparql.engine.http.QueryExceptionHTTP ;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.seaborne.delta.server.http.DeltaServer ;
 
 /**
@@ -51,23 +41,23 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 
     private static HttpClient dftStdHttpClient;
 
-    @Before
-    public void before() { HttpOp.setDefaultHttpClient(HttpClients.createMinimal()); }
-
-    @After
-    public void after() {
-        IO.close( ((CloseableHttpClient)HttpOp.getDefaultHttpClient()) );
-    }
-
-    @BeforeClass
-    public static void captureHttpOp() {
-        dftStdHttpClient = HttpOp.getDefaultHttpClient() ;
-    }
-
-    @AfterClass
-    public static void resetHttpOp() {
-        HttpOp.setDefaultHttpClient(dftStdHttpClient) ;
-    }
+//    @Before
+//    public void before() { HttpOp1.setDefaultHttpClient(HttpClients.createMinimal()); }
+//
+//    @After
+//    public void after() {
+//        IO.close( ((CloseableHttpClient)HttpOp1.getDefaultHttpClient()) );
+//    }
+//
+//    @BeforeClass
+//    public static void captureHttpOp() {
+//        dftStdHttpClient = HttpOp1.getDefaultHttpClient() ;
+//    }
+//
+//    @AfterClass
+//    public static void resetHttpOp() {
+//        HttpOp1.setDefaultHttpClient(dftStdHttpClient) ;
+//    }
 
     @Test(expected=QueryExceptionHTTP.class)
     public void fuseki_stop() {
@@ -75,7 +65,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
         FusekiServer server1 = fuseki1(CLEAN);
         try {
             server1.stop();
-            RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
+            RDFConnection conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+ds1) ;
             QueryExecution qExec = conn1.query("ASK{}");
             qExec.execAsk();
         } finally {
@@ -102,7 +92,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
         try {
             server1.stop();
 
-            RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ;
+            RDFConnection conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+ds1) ;
             QueryExecution qExec = conn1.query("ASK{}");
             try { qExec.execAsk(); fail(); } catch(QueryExceptionHTTP ex) {}
             // Restart, same port.
@@ -124,7 +114,7 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
             deltaServer = null;
 
             // Should fail
-            try (RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ) {
+            try (RDFConnection conn0 = RDFConnection.connect("http://localhost:"+F1_PORT+ds1) ) {
                 conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
                 Assert.fail("Should not be able to update at the moment");
             } catch (HttpException ex) {
@@ -136,12 +126,12 @@ public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 
             deltaServer = deltaServer(Start.RESTART);
 
-            try (RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1)) {
+            try (RDFConnection conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+ds1)) {
                 conn1.query("ASK{}").execAsk();
             }
 
             // Should be able to update.
-            try (RDFConnection conn0 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+ds1) ) {
+            try (RDFConnection conn0 = RDFConnection.connect("http://localhost:"+F1_PORT+ds1) ) {
                 conn0.update(PREFIX+"INSERT DATA { :s :p 'update_patchserver_stop_start' }");
             }
         } finally {

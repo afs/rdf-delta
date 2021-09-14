@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.ListUtils;
@@ -38,7 +39,6 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.server.local.DataSource;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.patchstores.FileNames;

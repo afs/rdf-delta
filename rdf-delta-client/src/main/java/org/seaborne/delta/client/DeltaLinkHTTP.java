@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import org.apache.jena.atlas.json.*;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.atlas.web.HttpException ;
-import org.apache.jena.riot.web.HttpOp ;
+import org.apache.jena.http.HttpOp;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
@@ -203,7 +203,7 @@ public class DeltaLinkHTTP implements DeltaLink {
         try {
             RDFPatch patch =  retry(()->{
                 // [NET] Network point
-                InputStream in = HttpOp.execHttpGet(s) ;
+                InputStream in = HttpOp.httpGet(s) ;
                 if ( in == null )
                     return null ;
                 RDFPatchReaderText pr = new RDFPatchReaderText(in) ;

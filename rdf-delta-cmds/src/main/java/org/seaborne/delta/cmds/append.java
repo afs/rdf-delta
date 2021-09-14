@@ -33,7 +33,7 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.patch.PatchHeader;
 import org.seaborne.patch.RDF2Patch;
 import org.seaborne.patch.RDFPatch;

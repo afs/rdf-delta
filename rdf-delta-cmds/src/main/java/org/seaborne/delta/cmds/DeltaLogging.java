@@ -27,7 +27,7 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 
 /**
  * Initialize logging for Delta.

@@ -39,5 +39,4 @@ public class StateLongString implements RefLong, RefString {
     public long inc() {
         return 0;
     }
-
 }

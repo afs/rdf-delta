@@ -37,7 +37,7 @@ import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.* ;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.link.DeltaLink;

@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.tdb.base.file.Location;
+import org.apache.jena.dboe.base.file.Location;
 import org.seaborne.delta.client.DeltaClient;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.client.DeltaLinkSwitchable;

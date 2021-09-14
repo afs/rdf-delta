@@ -24,7 +24,6 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
@@ -86,7 +85,7 @@ public class DeltaEx06_LocalDatasetToFuseki {
             );
 
         // ---- Query Fuseki
-        RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
+        RDFConnection conn = RDFConnection.connect("http://localhost:"+PORT+"/ds");
         try( QueryExecution qExec = conn.query("PREFIX ex: <http://example.org/> SELECT * { ?s ?p ?o }") ) {
             ResultSet rs = qExec.execSelect();
             ResultSetFormatter.out(rs, qExec.getQuery());

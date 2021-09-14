@@ -30,7 +30,7 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.junit.*;
 import org.seaborne.delta.client.*;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;

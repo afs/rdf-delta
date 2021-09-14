@@ -17,7 +17,9 @@
 
 package org.seaborne.patch.text;
 
-import static org.apache.jena.riot.tokens.TokenType.*;
+import static org.apache.jena.riot.tokens.TokenType.DOT;
+import static org.apache.jena.riot.tokens.TokenType.GT2;
+import static org.apache.jena.riot.tokens.TokenType.LT2;
 import static org.seaborne.patch.changes.PatchCodes.*;
 
 import java.io.InputStream;
@@ -28,6 +30,8 @@ import java.util.function.BiConsumer;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.riot.SysRIOT;
+import org.apache.jena.riot.system.ErrorHandler;
+import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.riot.tokens.Token;
 import org.apache.jena.riot.tokens.TokenType;
@@ -51,7 +55,11 @@ public class RDFPatchReaderText implements PatchProcessor {
     }
 
     public RDFPatchReaderText(InputStream input) {
-        tokenizer = TokenizerText.create().source(input).build();
+        this(input, ErrorHandlerFactory.errorHandlerExceptionOnError());
+    }
+
+    public RDFPatchReaderText(InputStream input, ErrorHandler errorHandler) {
+        tokenizer = TokenizerText.create().source(input).errorHandler(errorHandler).build();
     }
 
     @Override
@@ -73,9 +81,8 @@ public class RDFPatchReaderText implements PatchProcessor {
                 if ( oneTransaction && b )
                     return true;
             } catch (Exception ex) {
-                ex.printStackTrace(System.err);
                 sink.txnAbort();
-                return false;
+                throw ex;
             }
         }
         return false;

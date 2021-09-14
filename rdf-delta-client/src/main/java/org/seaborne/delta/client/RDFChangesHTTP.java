@@ -42,7 +42,7 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.WebContent;
 import org.seaborne.delta.*;
-import org.seaborne.delta.lib.IOX ;
+import org.apache.jena.atlas.io.IOX ;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.patch.RDFPatchConst;
 import org.seaborne.patch.text.RDFChangesWriterText;

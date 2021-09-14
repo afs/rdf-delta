@@ -28,7 +28,7 @@ import org.apache.jena.riot.system.StreamRDFLib ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.system.Txn ;
-import org.apache.jena.tdb.base.file.Location ;
+import org.apache.jena.dboe.base.file.Location ;
 import org.seaborne.delta.Id ;
 import org.seaborne.delta.client.* ;
 import org.seaborne.delta.link.DeltaLink ;

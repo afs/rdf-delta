@@ -18,10 +18,19 @@
 
 package org.seaborne.patch;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.jena.atlas.lib.Bytes;
+import org.apache.jena.riot.system.ErrorHandler;
+import org.apache.jena.riot.system.ErrorHandlerFactory;
+import org.junit.Test;
+
 public class TestPatchIO_Text extends AbstractTestPatchIO {
+
+    private static void noWarning(Runnable action) {
+    }
 
     @Override
     protected void write(OutputStream out, RDFPatch path) {
@@ -30,6 +39,34 @@ public class TestPatchIO_Text extends AbstractTestPatchIO {
 
     @Override
     protected RDFPatch read(InputStream in) {
-        return RDFPatchOps.read(in);
+        return RDFPatchOps.read(in, ErrorHandlerFactory.errorHandlerExceptionOnError());
+    }
+
+    private static String DIR = "testing/files/";
+
+    @Test
+    public void readPatch_1() {
+        RDFPatchOps.read(DIR+"syntax-1.rdfp");
+    }
+
+    private static ErrorHandler ehExceptions = ErrorHandlerTestLib.asExceptions();
+
+    private static RDFPatch parseSyntax(String string) {
+        byte[] bytes = Bytes.string2bytes(string);
+        InputStream input = new ByteArrayInputStream(bytes);
+        RDFPatch patch = RDFPatchOps.read(input, ehExceptions);
+        return patch;
+    }
+
+    @Test(expected=ErrorHandlerTestLib.ExWarning.class)
+    public void read_warning_01() {
+        String str = "A <http://example/s1> <http://example/p1> 'abc\uFFFDdef' <http://example/g1> .";
+        parseSyntax(str);
+    }
+
+    @Test public void read_no_warning_01() {
+        // Explicit escape - accepted.
+        String str = "A <http://example/s1> <http://example/p1> 'abc\\uFFFDdef' <http://example/g1> .";
+        parseSyntax(str);
     }
 }

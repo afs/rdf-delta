@@ -38,7 +38,6 @@ import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 import org.apache.jena.sparql.util.graph.GraphUtils;
@@ -139,10 +138,10 @@ public class Driver {
     }
 
     static void client(int loops, CountDownLatch cdlStart, CountDownLatch cdlFinish) {
-        //conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+DS_NAME) ;
+        //conn2 = RDFConnection.connect("http://localhost:"+F2_PORT+DS_NAME) ;
 
         Runnable r = ()->{
-            RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+DS_NAME) ;
+            RDFConnection conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+DS_NAME) ;
             try {
                 cdlStart.countDown();
                 cdlStart.await();

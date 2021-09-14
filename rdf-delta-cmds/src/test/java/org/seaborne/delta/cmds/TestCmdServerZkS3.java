@@ -28,7 +28,7 @@ import io.findify.s3mock.S3Mock;
 import org.apache.jena.atlas.io.NullOutputStream;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.atlas.web.WebLib;
-import org.apache.jena.riot.web.HttpOp;
+import org.apache.jena.http.HttpOp;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class TestCmdServerZkS3 {
 
     @Test public void deltaZkS3_2() {
         runtest(
-            (endpoint)->HttpOp.execHttpGet(endpoint+"$/ping"),
+            (endpoint)->HttpOp.httpGet(endpoint+"$/ping"),
             endpointURL);
     }
 
@@ -73,7 +73,7 @@ public class TestCmdServerZkS3 {
             (endpoint)-> {
                 // Would cause a 404 log message.
                 // Hidden by the logging configuration.
-                HttpOp.execHttpGet(endpoint+"$/noSuch");
+                HttpOp.httpGet(endpoint+"$/noSuch");
             },
             endpointURL);
     }

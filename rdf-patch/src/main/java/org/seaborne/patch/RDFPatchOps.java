@@ -28,6 +28,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.system.ErrorHandler;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.patch.binary.RDFChangesWriterBinary;
@@ -177,6 +178,13 @@ public class RDFPatchOps {
      */
     public static RDFPatch read(InputStream input) {
         RDFPatchReaderText pr = new RDFPatchReaderText(input);
+        RDFChangesCollector c = new RDFChangesCollector();
+        pr.apply(c);
+        return c.getRDFPatch();
+    }
+
+    public static RDFPatch read(InputStream input, ErrorHandler errorHandler) {
+        RDFPatchReaderText pr = new RDFPatchReaderText(input, errorHandler);
         RDFChangesCollector c = new RDFChangesCollector();
         pr.apply(c);
         return c.getRDFPatch();

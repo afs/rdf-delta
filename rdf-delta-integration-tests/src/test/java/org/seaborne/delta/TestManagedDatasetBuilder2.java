@@ -25,7 +25,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
-import org.apache.jena.tdb.base.file.Location;
+import org.apache.jena.dboe.base.file.Location;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.seaborne.delta.client.DeltaConnection;

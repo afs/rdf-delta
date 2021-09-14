@@ -19,7 +19,7 @@ package org.seaborne.delta.examples;
 
 import java.util.List;
 
-import org.apache.jena.tdb.base.file.Location;
+import org.apache.jena.dboe.base.file.Location;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.server.local.DataSource;

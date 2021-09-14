@@ -20,10 +20,12 @@ package org.seaborne.delta.fuseki;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.http.HttpRequest.BodyPublishers;
+
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.graph.Node;
-import org.apache.jena.riot.web.HttpOp;
+import org.apache.jena.http.HttpOp;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.sse.SSE;
@@ -67,7 +69,9 @@ public class TestPatchFuseki {
 
     private static void applyPatch(String dest, RDFPatch patch) {
         String body = RDFPatchOps.str(patch);
-        HttpOp.execHttpPost(dest, DeltaFuseki.patchContentType, body);
+        // Undo at Jena 4.3.0
+        //HttpOp.httpPost(dest, DeltaFuseki.patchContentType, body);
+        HttpOp.httpPost(dest, DeltaFuseki.patchContentType, BodyPublishers.ofString(body));
     }
 
     private static Node node(String string) {

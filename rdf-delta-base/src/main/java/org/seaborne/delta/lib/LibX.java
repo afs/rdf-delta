@@ -26,7 +26,8 @@ import java.nio.file.Paths;
 import java.util.Arrays ;
 
 import org.apache.jena.atlas.io.IO ;
-import org.apache.jena.tdb.base.file.Location;
+import org.apache.jena.dboe.base.file.Location;
+import org.apache.jena.dboe.sys.IO_DB;
 
 public class LibX {
 
@@ -69,7 +70,7 @@ public class LibX {
             return location.getDirectoryPath();
         else if ( path.getNameCount() == 1 )
             return location.getPath(pathStr);
-        Path locationPath = IOX.asPath(location);
+        Path locationPath = IO_DB.asPath(location);
         return locationPath.resolve(pathStr).toAbsolutePath().toString();
     }
 

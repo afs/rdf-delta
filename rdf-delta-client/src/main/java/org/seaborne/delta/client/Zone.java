@@ -21,30 +21,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption ;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern ;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.io.IO;
+import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.NotImplemented ;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.dboe.base.file.Location;
+import org.apache.jena.dboe.sys.IO_DB;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.apache.jena.tdb.TDBFactory ;
-import org.apache.jena.tdb.base.file.Location;
 import org.apache.jena.tdb2.DatabaseMgr;
-import org.seaborne.delta.DeltaConfigException;
-import org.seaborne.delta.DeltaException;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.PersistentState;
-import org.seaborne.delta.Version;
-import org.seaborne.delta.lib.IOX;
+import org.seaborne.delta.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +69,7 @@ public class Zone {
         Location location = (area == null) ? Location.mem() : Location.create(area);
         return connect(location);
     }
+
     /** Create a zone; connect to an existing one if it exists in the JVM or on-disk */
     public static Zone connect(Location area) {
         synchronized(zones) {
@@ -94,7 +89,6 @@ public class Zone {
     public static Zone connectMem() {
         return connect((String)null);
     }
-
 
     private Zone(Location area) {
         this.stateLocation = area;
@@ -164,7 +158,7 @@ public class Zone {
                 stateArea = null;
                 return ;
             }
-            stateArea = IOX.asPath(stateLocation);
+            stateArea = IO_DB.asPath(stateLocation);
             List<Path> x = scanForDataState(stateLocation);
             x.forEach(p->LOG.info("Connection : "+p));
             x.forEach(p->fromOnDiskState(p));
@@ -304,7 +298,7 @@ public class Zone {
             case EXTERNAL:     return null;
             case MEM:          return DatasetGraphFactory.createTxnMem();
             case TDB:
-                return TDBFactory.createDatasetGraph(IOX.asLocation(dataPath));
+                return TDBFactory.createDatasetGraph(dataPath.toString());
             case TDB2:
                 return DatabaseMgr.connectDatasetGraph(dataPath.toString());
             case NONE:         return null;
@@ -344,7 +338,7 @@ public class Zone {
                 Path path = stateArea.resolve(dataState.getDatasourceName());
                 if ( true ) {
                     // Really delete.
-                    IOX.deleteAll(path);
+                    IO.deleteAll(path);
                 } else {
                     // Move aside.
                     Path path2 = IOX.uniqueDerivedPath(path, (x)->x+DELETE_MARKER);
@@ -433,7 +427,7 @@ public class Zone {
      * See {@code LocalServer.scanDirectory} for a similar operation on the server side.
      */
     private static List<Path> scanForDataState(Location workarea) {
-        Path dir = IOX.asPath(workarea);
+        Path dir = Path.of(workarea.getDirectoryPath());
         try (Stream<Path> paths = Files.list(dir)) {
             List<Path> datasources = paths
                 .filter(p->Files.isDirectory(p))
@@ -442,8 +436,7 @@ public class Zone {
                 .filter(Zone::isFormattedDataState)
                 .collect(Collectors.toList());
             return datasources;
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             DataState.LOG.error("Exception while reading "+dir);
             throw IOX.exception(ex);
         }

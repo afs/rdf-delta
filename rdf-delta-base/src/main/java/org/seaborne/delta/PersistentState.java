@@ -23,19 +23,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths ;
 import java.util.Objects;
 
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 
 /**
  * Persistent bytes, with some additional code to make
  * working with strings easier.
- * 
- * "State" is a number of bytes, assumed to be "small", (makes sense to read and write the whole state as one blob).  
+ *
+ * "State" is a number of bytes, assumed to be "small", (makes sense to read and write the whole state as one blob).
  */
 public class PersistentState implements RefLong, RefString {
     private static final long DEFAULT = 0;
-    private final Object lock = new Object(); 
+    private final Object lock = new Object();
     private final Path pathname;
-    
+
     private byte[] value = null;
     private String valueStr = null;
 
@@ -43,11 +43,10 @@ public class PersistentState implements RefLong, RefString {
         return new PersistentState();
     }
 
-    
     public PersistentState(String stateFile) {
         this(Paths.get((stateFile)));
     }
-    
+
     public PersistentState(Path stateFilePath) {
         Objects.requireNonNull(stateFilePath);
         pathname = stateFilePath.toAbsolutePath();
@@ -59,9 +58,9 @@ public class PersistentState implements RefLong, RefString {
         pathname = null;
         reset();
     }
-    
+
     public Path getPath() { return pathname; }
-    
+
     public void reset() {
         if ( pathname != null && Files.exists(pathname) ) {
             value = readLocation();
@@ -69,10 +68,10 @@ public class PersistentState implements RefLong, RefString {
         } else {
             value = new byte[0];
             valueStr = null;
-            writeLocation(); 
+            writeLocation();
         }
     }
-    
+
     public byte[] get() {
         return value ;
     }
@@ -99,7 +98,7 @@ public class PersistentState implements RefLong, RefString {
     public long getInteger() {
         String s = getString();
         if ( s.isEmpty() )
-            return DEFAULT; 
+            return DEFAULT;
         return Long.parseLong(getString().trim());
     }
 
@@ -107,7 +106,7 @@ public class PersistentState implements RefLong, RefString {
     public void setInteger(long value) {
         setString(Long.toString(value));
     }
-    
+
     // increment and return the new value.
     @Override
     public long inc() {
@@ -118,18 +117,18 @@ public class PersistentState implements RefLong, RefString {
             return x ;
         }
     }
-    
+
     // The access to on-disk (or not) bytes.
-    
+
     private byte[] readLocation() {
         if ( pathname == null )
-            return null; 
+            return null;
         return IOX.readAll(pathname) ;
     }
-    
+
     private void writeLocation() {
         if ( pathname == null )
-            return; 
+            return;
         // Does not need synchronizing.
         IOX.safeWrite(pathname, out->out.write(value));
     }

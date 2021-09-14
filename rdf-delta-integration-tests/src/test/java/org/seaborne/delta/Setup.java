@@ -20,12 +20,8 @@ package org.seaborne.delta;
 import java.net.BindException;
 
 import org.apache.curator.test.TestingServer;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.Creator;
 import org.apache.jena.atlas.web.WebLib;
-import org.apache.jena.riot.web.HttpOp;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.Provider;
@@ -155,7 +151,6 @@ public class Setup {
 
         @Override
         public void beforeTest() {
-            resetDefaultHttpClient();
             testPort = WebLib.choosePort();
             localServer = DeltaTestLib.createEmptyTestServerRocks();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
@@ -178,7 +173,6 @@ public class Setup {
 
         @Override
         public void relink() {
-            resetDefaultHttpClient();
             dlink = createLink();
         }
 
@@ -190,7 +184,6 @@ public class Setup {
             LocalServerConfig config = localServer.getConfig() ;
             LocalServer.release(localServer);
             localServer = LocalServer.create(config);
-            resetDefaultHttpClient();
             DeltaLink localLink = DeltaLinkLocal.connect(localServer);
             server = DeltaServer.create(testPort, localLink);
             try {
@@ -214,19 +207,6 @@ public class Setup {
         @Override
         public DeltaLink createLink() {
             return DeltaLinkHTTP.connect("http://localhost:"+testPort+"/");
-        }
-
-        private static void resetDefaultHttpClient() {
-            setHttpClient(HttpOp.createDefaultHttpClient());
-        }
-
-        /** Set the HttpClient - close the old one if appropriate */
-        /*package*/ static void setHttpClient(HttpClient newHttpClient) {
-            HttpClient hc = HttpOp.getDefaultHttpClient() ;
-            if ( hc instanceof CloseableHttpClient )
-                IO.close((CloseableHttpClient)hc) ;
-            HttpOp.setDefaultHttpClient(newHttpClient) ;
-
         }
     }
 }

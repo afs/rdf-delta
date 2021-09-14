@@ -17,22 +17,20 @@
 
 package org.seaborne.delta.examples;
 
-import java.io.ByteArrayInputStream ;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.UUID ;
 
-import org.apache.http.entity.BasicHttpEntity ;
 import org.apache.jena.atlas.lib.DateTimeUtils ;
 import org.apache.jena.atlas.lib.StrUtils ;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.server.Operation ;
 import org.apache.jena.fuseki.servlets.ActionService ;
+import org.apache.jena.http.HttpOp;
 import org.apache.jena.query.Query ;
 import org.apache.jena.query.QueryExecution ;
 import org.apache.jena.query.QueryFactory ;
 import org.apache.jena.query.ResultSetFormatter ;
 import org.apache.jena.rdfconnection.RDFConnection ;
-import org.apache.jena.rdfconnection.RDFConnectionFactory ;
-import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
 import org.seaborne.delta.Delta;
@@ -94,20 +92,11 @@ public class DeltaEx05_FusekiPatchOperation {
                 ,"TC ."
                 );
 
-            // -- Create patch operation.
-            // (without library calls)
-            BasicHttpEntity entity = new BasicHttpEntity();
-            // See also "ByteArrayEntity"
-            entity.setContentType(DeltaFuseki.patchContentType);
-            // From file ..
-            //entity.setContent(IO.openFile("data1.rdfp"));
-            entity.setContent(new ByteArrayInputStream(StrUtils.asUTF8bytes(patch)));
-
             // -- Send to the server.
-            HttpOp.execHttpPost("http://localhost:"+PORT+"/ds/patch", entity);
+            HttpOp.httpPost("http://localhost:"+PORT+"/ds/patch", DeltaFuseki.patchContentType, BodyPublishers.ofString(patch));
 
             // -- See if it is there.
-            RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
+            RDFConnection conn = RDFConnection.connect("http://localhost:"+PORT+"/ds");
             Query query = QueryFactory.create("SELECT * { ?s ?p ?o}");
             QueryExecution qExec = conn.query(query);
             ResultSetFormatter.out(qExec.execSelect());

@@ -27,7 +27,7 @@ import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.Quad ;
 import org.apache.jena.sparql.sse.SSE ;
 import org.apache.jena.system.Txn ;
-import org.apache.jena.tdb.base.file.Location ;
+import org.apache.jena.dboe.base.file.Location ;
 import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
@@ -45,6 +45,7 @@ public abstract class AbstractTestDeltaClient {
         LogX.setJavaLogging("src/test/resources/logging.properties");
         Location loc = Location.create(DIR_ZONE);
         FileOps.ensureDir(DIR_ZONE);
+        FileOps.clearAll(DIR_ZONE);
         zone = Zone.connect(DIR_ZONE);
     }
 

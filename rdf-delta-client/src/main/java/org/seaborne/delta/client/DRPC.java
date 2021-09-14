@@ -21,22 +21,23 @@ import static org.seaborne.delta.DeltaConst.F_ARG;
 import static org.seaborne.delta.DeltaConst.F_OP;
 import static org.seaborne.delta.DeltaConst.F_OP_ID;
 
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.Objects ;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonObject ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.atlas.web.TypedInputStream ;
+import org.apache.jena.http.HttpOp;
 import org.apache.jena.riot.WebContent ;
-import org.apache.jena.riot.web.HttpOp ;
 import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.Delta ;
 import org.seaborne.delta.DeltaBadRequestException;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.DeltaNotFoundException;
-import org.seaborne.delta.lib.IOX;
 import org.seaborne.delta.lib.JSONX;
 import org.slf4j.Logger ;
 
@@ -66,13 +67,16 @@ public class DRPC {
 
         String argStr = JSON.toString(object) ;
         try (TypedInputStream x =
-                 HttpOp.execHttpPostStream(url, WebContent.contentTypeJSON, argStr, WebContent.contentTypeJSON)
+                 HttpOp.httpPostStream(
+                     url, WebContent.contentTypeJSON,
+                     BodyPublishers.ofString(argStr),
+                     WebContent.contentTypeJSON)
             ) {
             if ( x == null )
                 throw new DeltaNotFoundException("Not found: "+JSON.toStringFlat(object));
 
             if ( true ) {
-                String s = IOX.readWholeFileAsUTF8(x) ;
+                String s = IO.readWholeFileAsUTF8(x) ;
                 return JSON.parseAny(s) ;
             }
             else

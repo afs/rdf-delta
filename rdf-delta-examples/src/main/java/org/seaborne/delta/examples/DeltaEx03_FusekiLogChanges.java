@@ -18,7 +18,6 @@
 package org.seaborne.delta.examples;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.update.UpdateFactory;
@@ -54,7 +53,7 @@ public class DeltaEx03_FusekiLogChanges {
                 .build();
             server.start();
 
-            RDFConnection conn = RDFConnectionFactory.connect("http://localhost:"+PORT+"/ds");
+            RDFConnection conn = RDFConnection.connect("http://localhost:"+PORT+"/ds");
             UpdateRequest update = UpdateFactory.create("PREFIX : <http://example/> INSERT DATA { :s :p 123 }");
             // Note - no prefix in changes. The SPARQL Update prefix is not a chnage to the dataset prefixes.
             conn.update(update);

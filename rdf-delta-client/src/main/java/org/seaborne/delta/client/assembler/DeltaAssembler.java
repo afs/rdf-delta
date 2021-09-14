@@ -40,7 +40,7 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.util.graph.GraphUtils;
-import org.apache.jena.tdb.base.file.Location;
+import org.apache.jena.dboe.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;

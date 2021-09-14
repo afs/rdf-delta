@@ -26,7 +26,6 @@ import org.apache.jena.fuseki.FusekiException ;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.rdf.model.Model ;
 import org.apache.jena.rdfconnection.RDFConnection ;
-import org.apache.jena.rdfconnection.RDFConnectionFactory ;
 import org.apache.jena.riot.Lang ;
 import org.apache.jena.riot.RDFDataMgr ;
 import org.seaborne.delta.lib.LogX;
@@ -88,11 +87,11 @@ public class DeltaEx_FusekiHighAvailability {
 
         // Fuseki server 1
         FusekiServer fuseki1 = fuseki1();
-        RDFConnection conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+"/ds1") ;
+        RDFConnection conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+"/ds1") ;
 
         // Fuseki server 2
         FusekiServer fuseki2 = fuseki2();
-        RDFConnection conn2 = RDFConnectionFactory.connect("http://localhost:"+F2_PORT+"/ds2") ;
+        RDFConnection conn2 = RDFConnection.connect("http://localhost:"+F2_PORT+"/ds2") ;
 
         // Some data (data.ttl is in src/main/resources).
         Model model = RDFDataMgr.loadModel("data.ttl");
@@ -113,7 +112,7 @@ public class DeltaEx_FusekiHighAvailability {
         // Restart Fuseki1.
         fuseki1 = fuseki1();
         // Not necesary.
-        // conn1 = RDFConnectionFactory.connect("http://localhost:"+F1_PORT+"/ds1") ;
+        // conn1 = RDFConnection.connect("http://localhost:"+F1_PORT+"/ds1") ;
         Model model1 = conn1.fetch();
         System.out.println();
         // Data in Fuseki1. One less triple.

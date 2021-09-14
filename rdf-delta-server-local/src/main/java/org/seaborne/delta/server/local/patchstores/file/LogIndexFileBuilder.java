@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.delta.lib.IOX;
+import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.patch.PatchHeader;

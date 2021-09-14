@@ -28,7 +28,7 @@ import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.delta.lib.IOX.IOConsumer;
+import org.apache.jena.atlas.io.IOX.IOConsumer;
 import org.slf4j.Logger ;
 
 /** Utility servlet that responds 200 and a plain text message */
