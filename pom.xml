@@ -69,7 +69,7 @@
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <ver.jena>4.1.0</ver.jena>
+    <ver.jena>4.2.0</ver.jena>
     <ver.jetty>9.4.43.v20210629</ver.jetty>
     <!-- Apache jena 4.2.0 uses Eclipse Jetty 10 -->
     <!--<ver.jetty>10.0.5</ver.jetty>-->
