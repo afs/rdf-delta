@@ -55,10 +55,6 @@ https://repo1.maven.org/maven2/org/seaborne/rdf-delta/rdf-delta-dist
     </dependency>
 ```
 
-## Status
-
-[![Build Status](https://api.travis-ci.org/afs/rdf-delta.svg)](https://travis-ci.org/afs/rdf-delta)
-
 ## Contributing
 
 See [CONTRIBUTING](.github/CONTRIBUTING.md).
