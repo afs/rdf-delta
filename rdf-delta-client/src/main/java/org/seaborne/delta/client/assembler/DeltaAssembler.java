@@ -95,15 +95,19 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
         String storageTypeStr = getAsStringValue(root, pDeltaStorage);
         LocalStorageType storage = LocalStorageType.fromString(storageTypeStr);
+
+        // dataset implicitly means external.
         if ( storage == null ) {
             if ( hasExternalDataset )
                 storage = LocalStorageType.EXTERNAL;
             else
                 throw new AssemblerException(root, "Unrecognized storage type '"+storageTypeStr+"'");
-        } else {
-            if ( hasExternalDataset && ( storage != LocalStorageType.EXTERNAL ) )
-                throw new AssemblerException(root, "Storage type must be 'external' or absent when using delta:dataset");
         }
+
+        if ( hasExternalDataset && ( storage != LocalStorageType.EXTERNAL ) )
+            throw new AssemblerException(root, "Storage type must be 'external' or absent when using delta:dataset");
+        if ( ( storage == LocalStorageType.EXTERNAL ) && (externalDataset == null) )
+            throw new AssemblerException(root, "Storage type 'external' but no delta:dataset provided");
 
         // delta:zone.
         // The zone is ephemeral if the storage is ephemeral.
