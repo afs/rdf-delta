@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
   </parent> 
 
   <properties>
@@ -38,7 +38,7 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-base</artifactId>
-      <version>1.0.2-SNAPSHOT</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
