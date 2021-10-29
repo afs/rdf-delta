@@ -59,7 +59,6 @@ import org.seaborne.delta.lib.LogX;
     TestDeltaFusekiBad.class ,
 
     TestReleaseSetup.class
-
 })
 
 public class TS_Delta {

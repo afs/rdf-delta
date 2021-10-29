@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest ;
 import javax.servlet.http.HttpServletResponse ;
 
+import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.json.*;
 import org.apache.jena.atlas.lib.InternalErrorException;
@@ -233,14 +234,36 @@ public class S_DRPC extends DeltaServlet {
                 }
             }
             catch (Throwable ex) {
+                if ( looksLikeEOF(ex) ) {
+                    LOG.warn("Jetty EofException (client has left?)");
+                    return;
+                }
                 LOG.warn("500 "+ex.getMessage(), ex) ;
-                resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Exception: "+ex.getMessage()) ;
-                PrintStream ps = new PrintStream(out) ;
-                ex.printStackTrace(ps);
-                ps.flush();
+                try {
+                    // Try to send information.
+                    resp.sendError(HttpSC.INTERNAL_SERVER_ERROR_500, "Exception: "+ex.getMessage()) ;
+                    PrintStream ps = new PrintStream(out) ;
+                    ex.printStackTrace(ps);
+                    ps.flush();
+                } catch (Throwable ex2) {}
                 return ;
             }
         } catch (IOException ex) { throw IOX.exception(ex); }
+    }
+
+    // Is the theowable
+    private static boolean looksLikeEOF(Throwable ex) {
+        if ( ex instanceof org.eclipse.jetty.io.EofException )
+            return true;
+        if ( ex.getCause() == null )
+            return false;
+        // Wrapped?
+        if ( ! ( ex instanceof RuntimeIOException ) && ! ( ex instanceof org.eclipse.jetty.io.RuntimeIOException) )
+            return false;
+        Throwable ex2 = ex.getCause();
+        if ( ex2 instanceof org.eclipse.jetty.io.EofException )
+            return true;
+        return false;
     }
 
     // {} -> { "value" ; "...now..."}
