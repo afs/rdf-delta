@@ -45,6 +45,7 @@ public abstract class AbstractTestDeltaClient {
         LogX.setJavaLogging("src/test/resources/logging.properties");
         Location loc = Location.create(DIR_ZONE);
         FileOps.ensureDir(DIR_ZONE);
+        FileOps.clearAll(DIR_ZONE);
         zone = Zone.connect(DIR_ZONE);
     }
 

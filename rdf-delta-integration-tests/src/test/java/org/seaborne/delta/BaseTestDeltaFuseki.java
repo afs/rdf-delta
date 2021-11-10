@@ -112,7 +112,7 @@ public class BaseTestDeltaFuseki {
     private static FusekiServer fuseki(Start state, int port, int deltaPort, String config, String zone) {
         // Replace %D_PORT%
         String text = IOX.readWholeFileAsUTF8(config);
-        String baseIRI = IRILib.filenameToIRI(text);
+        String baseIRI = IRILib.filenameToIRI(config);
         text = text.replace(D_PORT_MARKER, Integer.toString(deltaPort));
         Model confModel = ModelFactory.createDefaultModel();
         RDFParser.create().base(baseIRI).source(new StringReader(text)).lang(Lang.TTL).parse(confModel);
