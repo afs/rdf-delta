@@ -675,15 +675,9 @@
   </profiles>
 
   <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh.snapshots</id>
-      <name>Sonatype Snapshots Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
     <repository>
-      <id>ossrh.releases</id>
-      <name>Sonatype Gateway to Maven Central</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <id>tq-all</id>
+      <url>https://nexus.topquadrant.com/repository/tq-all</url>
     </repository>
   </distributionManagement>
   
