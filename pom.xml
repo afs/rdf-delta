@@ -702,6 +702,11 @@
       </snapshots>
     </repository>
 
+    <repository>
+      <id>tq-all</id>
+      <url>https://nexus.topquadrant.com/repository/tq-all</url>
+    </repository>
+
     <!-- Only needed for Jena snapshots - - >
     <repository>
       <id>apache.snapshots</id>
