@@ -17,6 +17,8 @@
 
 package org.seaborne.delta.client;
 
+import static org.seaborne.delta.client.DeltaClientLib.threadFactoryDaemon;
+
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -81,7 +83,7 @@ public class LogLockMgr {
     }
 
     public void start() {
-        executor = Executors.newScheduledThreadPool(1);
+        executor = Executors.newScheduledThreadPool(1, threadFactoryDaemon);
         executor.scheduleAtFixedRate(lockRefresher, LOCK_REFRESH_INITIAL_DELAY_MS, LOCK_REFRESH_MS, TimeUnit.MILLISECONDS);
     }
 

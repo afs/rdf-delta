@@ -18,6 +18,7 @@
 package org.seaborne.delta.client;
 
 import static java.lang.String.format;
+import static org.seaborne.delta.client.DeltaClientLib.threadFactoryDaemon;
 
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -94,7 +95,7 @@ public class DeltaConnection implements AutoCloseable {
     // Test: TestDeltaAssembler.assembler_delta_3
     public static boolean TestModeNoAsync = false;
 
-    private ScheduledExecutorService scheduledExecutionService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService scheduledExecutionService = Executors.newScheduledThreadPool(1, threadFactoryDaemon);
 
     /**
      * Connect to an existing {@code DataSource} with the {@link DatasetGraph} as local state.

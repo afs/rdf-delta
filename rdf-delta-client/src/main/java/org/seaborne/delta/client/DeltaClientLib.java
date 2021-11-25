@@ -18,6 +18,8 @@
 package org.seaborne.delta.client;
 
 import java.io.OutputStream ;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
@@ -45,6 +47,14 @@ public class DeltaClientLib {
         }
         throw new IllegalArgumentException("Not understood: "+dest) ;
     }
+
+    /** A thread factory that creates {@link Thread#setDaemon daemon} threads. */
+    public static ThreadFactory threadFactoryDaemon =
+                  r -> {
+                      Thread thread = Executors.defaultThreadFactory().newThread(r);
+                      thread.setDaemon(true);
+                      return thread;
+                  };
 
 //    Currently copied to DeltaLibHTTP.initialState
 //    public static String makeURL(String url, String paramName1, Object paramValue1) {
