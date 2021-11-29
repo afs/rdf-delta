@@ -110,8 +110,21 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+		  <!--
+		    Some of the test data files are not closed properly during test
+			teardown and, on Windows, cannot be deleted by subsequent test
+			setups, causing those subsequent tests to fail,
+			typically during setup.
+			A workaround is to configure the Maven Surefire plugin to execute
+			every "test suite class" in a new JVM instance; as done below.
+			As a result, all the test data files are closed when the JVM is
+			terminated at the completion of each test suite and subsequent
+			test suites can perform their setups without any problems.
+			https://github.com/afs/rdf-delta/issues/120
+		  -->
+		  <reuseForks>false</reuseForks>
           <includes>
-            <include>**/TC_*.java</include>
+            <include>Test*.java</include>
           </includes>
         </configuration>
       </plugin>
