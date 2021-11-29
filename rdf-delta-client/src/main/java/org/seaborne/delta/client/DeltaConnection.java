@@ -473,7 +473,22 @@ public class DeltaConnection implements AutoCloseable {
 
     @Override
     public void close() {
-        // Return to pool if pooled.
+        this.logLockMgr.stop();
+        this.shutdownSyncExecutorService();
+    }
+
+    private void shutdownSyncExecutorService() {
+    	this.scheduledExecutionService.shutdown();
+    	boolean ok = false;
+    	try {
+    		ok = this.scheduledExecutionService.awaitTermination(30, TimeUnit.SECONDS);
+		} catch (InterruptedException ex) {
+			LOG.warn("DeltaConnection.scheduledExecutionService.awaitTermination(30, TimeUnit.SECONDS) interrupted", ex);
+			return; // skip OK check below
+		}
+    	if ( ! ok) {
+    		LOG.warn("DeltaConnection.scheduledExecutionService.awaitTermination(30, TimeUnit.SECONDS) timed out");
+    	}
     }
 
     public boolean isValid() {
