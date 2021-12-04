@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern ;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.NotImplemented ;
@@ -433,8 +434,8 @@ public class Zone {
      */
     private static List<Path> scanForDataState(Location workarea) {
         Path dir = IOX.asPath(workarea);
-        try {
-            List<Path> datasources = Files.list(dir)
+        try (Stream<Path> paths = Files.list(dir)) {
+            List<Path> datasources = paths
                 .filter(p->Files.isDirectory(p))
                 // Not deleted and moved aside.
                 .filter(p->!isDeleted(p))

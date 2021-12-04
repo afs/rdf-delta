@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
@@ -84,8 +85,8 @@ public class FileArea {
      * May not be formatted properly.
      */
     private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Path directory) {
-        try {
-            List<Path> directoryEntries = ListUtils.toList( Files.list(directory).filter(p->Files.isDirectory(p)).sorted() );
+        try (Stream<Path> paths = Files.list(directory)) {
+            List<Path> directoryEntries = ListUtils.toList( paths.filter(p->Files.isDirectory(p)).sorted() );
             List<Path> enabled = directoryEntries.stream()
                 .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());
