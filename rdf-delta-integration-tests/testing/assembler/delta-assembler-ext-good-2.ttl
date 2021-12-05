@@ -12,7 +12,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
      delta:changes  "http://localhost:1069/" ;
      delta:patchlog "ABC" ;
      delta:zone     "--mem--" ;
-     delta:storeage "external" ;
+     delta:storage "external" ;
      delta:dataset  :dataset ;
      .
 
