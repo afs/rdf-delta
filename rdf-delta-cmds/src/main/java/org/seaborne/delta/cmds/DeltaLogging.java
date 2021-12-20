@@ -21,13 +21,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.StrUtils;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.ConfigurationFactory;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.jena.atlas.io.IOX;
+import org.apache.jena.atlas.logging.LogCtlLog4j2;
 
 /**
  * Initialize logging for Delta.
@@ -92,10 +89,7 @@ public class DeltaLogging {
     private static void defaultLogging() {
         byte b[] = StrUtils.asUTF8bytes(getDefaultString());
         try (InputStream input = new ByteArrayInputStream(b)) {
-            ConfigurationSource source = new ConfigurationSource(input);
-            ConfigurationFactory factory = ConfigurationFactory.getInstance();
-            Configuration configuration = factory.getConfiguration(null, source);
-            Configurator.initialize(configuration);
+            LogCtlLog4j2.resetLogging(input, ".xml");
         }
         catch (IOException ex) {
             IOX.exception(ex);
