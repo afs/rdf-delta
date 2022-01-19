@@ -74,16 +74,15 @@
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.11.0</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
-    <ver.slf4j>1.7.32</ver.slf4j>
+    <ver.slf4j>1.7.33</ver.slf4j>
     <ver.log4j2>2.17.1</ver.log4j2>
     <ver.rocksdb>6.27.3</ver.rocksdb>
     <!-- Determines the Zookeeper version -->
     <ver.curator>5.2.0</ver.curator>
 
-    <ver.aws-s3>1.12.19</ver.aws-s3>
+    <ver.aws-s3>1.12.142</ver.aws-s3>
     <ver.s3mock>0.2.6</ver.s3mock>
     <ver.awaitility>4.1.1</ver.awaitility>
-    <ver.jaxb-api>2.3.1</ver.jaxb-api>
   </properties>
   
   <modules>
@@ -265,13 +264,6 @@
         </exclusions>
       </dependency>
 
-      <dependency>
-        <groupId>javax.xml.bind</groupId>
-        <artifactId>jaxb-api</artifactId>
-        <version>${ver.jaxb-api}</version>
-      </dependency>
-
-
       <!-- Control the version of com.amazonaws:aws-java-sdk-s3 -->
       <dependency>
         <groupId>io.findify</groupId>
@@ -395,7 +387,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.2.2</version>
           <configuration> 
             <archive>
               <manifestEntries>
@@ -479,6 +471,9 @@
                 <message>No SNAPSHOT dependencies are allowed!</message>
                 <onlyWhenRelease>true</onlyWhenRelease>
               </requireReleaseDeps>
+              <requireMavenVersion>
+                <version>3.5.0</version>
+              </requireMavenVersion>
             </rules>
             <fail>true</fail>
           </configuration>
