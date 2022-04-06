@@ -137,7 +137,7 @@ public class PatchWriteServlet extends ServletProcessor {
                 String fn = output.currentFilename().getFileName().toString();
                 if ( action.verbose ) {
                     Node id = patch.getId();
-                    String idStr = id == null ? "<unset>" : NodeFmtLib.str(id);
+                    String idStr = id == null ? "<unset>" : NodeFmtLib.strNT(id);
                     action.log.info(format("[%d] Log: %s ==>> %s", action.id, idStr, fn));
                 } else {
                     action.log.info(format("[%d] Log: %s", action.id, fn));
