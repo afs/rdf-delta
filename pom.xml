@@ -76,7 +76,7 @@
     <ver.junit>4.13.2</ver.junit>
     <ver.slf4j>1.7.36</ver.slf4j>
     <ver.log4j2>2.17.2</ver.log4j2>
-    <ver.rocksdb>7.0.4</ver.rocksdb>
+    <ver.rocksdb>7.1.2</ver.rocksdb>
     <!-- Determines the Zookeeper version -->
     <ver.curator>5.2.1</ver.curator>
 
