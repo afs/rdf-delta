@@ -127,7 +127,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
                 long ver = x.stream().map(this::versionFromName).filter(v->(v>0)).min(Long::compare).orElseThrow();
                 earliestVersion = Version.create(ver);
             } catch (NoSuchElementException ex) {
-                FmtLog.warn(LOG, "Failed to find the earliest value when thee is at least one version");
+                FmtLog.warn(LOG, "Failed to find the earliest value when there is at least one version");
             }
         }
         earliestId = versionToId(earliestVersion);
@@ -337,7 +337,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
             Id newPrevious = entry.getPrevious();
             newState(ver, newCurrent, newPrevious);
         } catch (RuntimeException ex) {
-            FmtLog.error(this.getClass(), "Failed to load the patch log index state", ex);
+            FmtLog.error(this.getClass(), ex, "Failed to load the patch log index state");
         }
     }
 

@@ -467,7 +467,7 @@ public class DeltaConnection implements AutoCloseable {
                 return Pair.create(patchLastVersion, patchLastIdNode);
             });
         } catch (Throwable th) {
-            FmtLog.warn(LOG, "Play: Problem for %s", datasourceId, th);
+            FmtLog.warn(LOG, th, "Play: Problem for %s", datasourceId);
             throw th;
         }
     }
