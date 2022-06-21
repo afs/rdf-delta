@@ -29,7 +29,7 @@ to record changes and be able to fetch them later to apply to copies to being
 them up-to-date.
 
 This is an evolution of the original RDF Patch described in
-"[RDF Patch &ndash; Describing Changes to an RDF Dataset](https://afs.github.io/rdf-patch/)".
+"[RDF Patch &ndash; Describing Changes to an RDF Dataset](https://afs.github.io/rdf-delta/rdf-patch.html)".
 This new version is changed in the light of experience of using the
 format. It is not compatible with the previous version.  The changes
 simplify the design by remove unnecessary features, add support for
