@@ -48,9 +48,6 @@ public class DeltaLogging {
             return ;
         INITIALIZED = true;
 
-        // Stop Apache Jena command line logging initialization (Jena uses log4j1 for command line logging by default).
-        System.setProperty("log4j.configuration", "off");
-
         // Log4j2 configuration set from outside. Leave to log4j2 itself.
         if ( System.getProperty("log4j.configurationFile") != null )
             return;
@@ -89,50 +86,78 @@ public class DeltaLogging {
     private static void defaultLogging() {
         byte b[] = StrUtils.asUTF8bytes(getDefaultString());
         try (InputStream input = new ByteArrayInputStream(b)) {
-            LogCtlLog4j2.resetLogging(input, ".xml");
+            LogCtlLog4j2.resetLogging(input, ".properties");
         }
         catch (IOException ex) {
             IOX.exception(ex);
         }
     }
 
-    // Log4J2, non-strict XML format
     // Put it here in the code, not a classpath resource, to make it robust against repackaging (shading).
     public static String getDefaultString() {
+        String defaultLog4j2 = String.join
+                ("\n",
+                 "## Command default log4j2 setup : log4j2 properties syntax."
+                 , "status = error"
+                 , "name = DeltaLoggingDft"
 
-        String defaultLog4j2_xml = String.join("\n"
-            ,"<?xml version='1.0' encoding='UTF-8'?>"
-            ,"<Configuration status='WARN'>"
-            ,"  <Appenders>"
-            ,"    <Console name='STDOUT' target='SYSTEM_OUT'>"
-            ,"      <PatternLayout pattern='[%d{yyyy-MM-dd HH:mm:ss}] %-10c{1} %-5p %m%n'/>"
-            ,"    </Console>"
-            ,"    <Console name='PLAIN' target='SYSTEM_OUT'>"
-            ,"      <PatternLayout pattern='%m%n' />"
-            ,"    </Console>"
-            ,"  </Appenders>"
-            ,"  <Loggers>"
-            ,"    <Root level='WARN'>"
-            ,"      <AppenderRef ref='STDOUT'/>"
-            ,"    </Root>"
-            ,"    <Logger name='Delta' level='INFO'/>"
-            ,"    <Logger name='org.seaborne.delta' level='INFO'/>"
-            ,"    <Logger name='org.apache.jena' level='INFO'/>"
-            // Built-in (co-resident) zookeeper
-            ,"    <Logger name='org.apache.zookeeper' level='WARN'/>"
-            // Eclipse Jetty - logs at startup at INFO
-            ,"    <Logger name='org.eclipse.jetty'    level='WARN'/>"
-            // Fuseki
-            ,"    <Logger name='org.apache.jena.fuseki.Server' level='INFO'/>"
-            ,"    <Logger name='org.apache.jena.fuseki.Fuseki' level='INFO'/>"
-            // The Fuseki NCSA request log
-            ,"    <Logger name='org.apache.jena.fuseki.Request'"
-            ,"            additivity='false' level='OFF'>"
-            ,"       <AppenderRef ref='PLAIN'/>"
-            ,"    </Logger>"
-            ,"  </Loggers>"
-            ,"</Configuration>"
-            );
-        return defaultLog4j2_xml;
+                 , "filters = threshold"
+                 , "filter.threshold.type = ThresholdFilter"
+                 , "filter.threshold.level = ALL"
+
+                 , "appender.console.type = Console"
+                 , "appender.console.name = OUT"
+                 , "appender.console.target = SYSTEM_OUT"
+                 , "appender.console.layout.type = PatternLayout"
+                 , "appender.console.layout.pattern = [%d{yyyy-MM-dd HH:mm:ss}] %-10c{1} %-5p %m%n"
+
+                 , "rootLogger.level                  = INFO"
+                 , "rootLogger.appenderRef.stdout.ref = OUT"
+
+                 , "// Delta"
+                 , "logger.delta.name = Delta"
+                 , "logger.delta.level = INFO"
+
+                 , "logger.x0.name  = org.seaborne.delta"
+                 , "logger.x0.level = INFO"
+
+                 , "logger.x1.name  = Delta.HTTP"
+                 , "logger.x1.level = WARN"
+
+                 , "logger.x2.name  = org.apache.jena"
+                 , "logger.x2.level = WARN"
+
+                 , "logger.x3.name  = org.apache.jena.arq.info"
+                 , "logger.x3.level = INFO"
+
+                 , "logger.x4.name  = org.apache.jena.riot"
+                 , "logger.x4.level = INFO"
+
+                 , "logger.jetty.name = org.eclipse.jetty"
+                 , "logger.jetty.level = WARN"
+
+                 , "logger.zk.name = org.apache.zookeeper"
+                 , "logger.zk.level = WARN"
+
+                 , "logger.curator.name = org.apache.curator"
+                 , "logger.curator.level = WARN"
+
+                 , "## logger.zk1.name = org.apache.zookeeper.server.ServerCnxnFactory"
+                 , "## logger.zk1.level = ERROR"
+
+                 , "# Fuseki NCSA Request log."
+                 , "appender.plain.type = Console"
+                 , "appender.plain.name = PLAIN"
+                 , "appender.plain.layout.type = PatternLayout"
+                 , "appender.plain.layout.pattern = %m%n"
+
+                 , "logger.fuseki-request.name                   = org.apache.jena.fuseki.Request"
+                 , "logger.fuseki-request.additivity             = false"
+                 , "logger.fuseki-request.level                  = OFF"
+                 , "logger.fuseki-request.appenderRef.plain.ref  = PLAIN"
+                        );
+
+        return defaultLog4j2;
+
     }
 }

@@ -31,6 +31,7 @@ import org.seaborne.delta.lib.SystemInfo;
  */
 public class dcmd {
     static {
+        //JenaSystem.init();
         DeltaLogging.setLogging(true);
         Delta.init();
     }
