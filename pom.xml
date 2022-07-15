@@ -80,7 +80,7 @@
     <!-- Determines the Zookeeper version -->
     <ver.curator>5.3.0</ver.curator>
 
-    <ver.aws-s3>1.12.142</ver.aws-s3>
+    <ver.aws-s3>1.12.261</ver.aws-s3>
     <ver.s3mock>0.2.6</ver.s3mock>
     <ver.awaitility>4.2.0</ver.awaitility>
   </properties>
