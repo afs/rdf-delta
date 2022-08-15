@@ -22,6 +22,7 @@ import static org.seaborne.delta.client.DeltaClientLib.threadFactoryDaemon;
 
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference ;
 import java.util.function.Consumer ;
 
@@ -87,11 +88,16 @@ public class DeltaConnection implements AutoCloseable {
     private final SyncPolicy syncPolicy;
 
     private final LogLockMgr logLockMgr;
+    // Synchronization within this DeltaConnection.
+    private final Object localLock;
+
+    // Indicator of whether a sync is in-progress.
+    private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
 
     // Synchronize patches asynchronously to the caller.
     // (ExecutorService in case we change the policy details in the future.)
 
-    // Test start and stop servers very quickly and ports are know (in assembler files)
+    // Test start and stop servers very quickly and ports are known (in assembler files)
     // Test: TestDeltaAssembler.assembler_delta_3
     public static boolean TestModeNoAsync = false;
 
@@ -134,6 +140,7 @@ public class DeltaConnection implements AutoCloseable {
         logLockMgr.add(logLock);
 
         this.valid = true;
+        this.localLock = new Object();
         this.syncPolicy = syncTxnBegin;
         if ( basedsg == null ) {
             this.target = null;
@@ -298,33 +305,60 @@ public class DeltaConnection implements AutoCloseable {
 
     /*package*/ void start() {
         checkDeltaConnection();
-        // Allow for "async sync" - don't hold up "start()".
+        // Allow for "async sync" - don't hold up "start".
+
         if ( TestModeNoAsync ) {
             trySyncIfAuto();
             return;
         }
+        boolean withBackgroundSync = (syncPolicy != SyncPolicy.NONE);
+        start(withBackgroundSync);
+    }
 
-        if ( syncPolicy != SyncPolicy.NONE ) {
+    /*package*/ void start(boolean withBackgroundSync) {
+        checkDeltaConnection();
+        if ( withBackgroundSync ) {
             // Run (almost) immediately and then every 5 minutes
-            scheduledExecutionService.scheduleAtFixedRate(this::asyncOneSync, 0, 5*60, TimeUnit.SECONDS);
+            scheduledExecutionService.scheduleAtFixedRate(this::oneSyncAttempt, 0, 5*60, TimeUnit.SECONDS);
         }
     }
 
+
     /*package*/ void finish() {
-        /*reset();*/
+        if ( isValid() ) {
+            this.logLockMgr.stop();
+            this.shutdownSyncExecutorService();
+            this.valid = false;
+        }
+    }
+
+
+    /** Execute a DeltaConnection sync once. */
+    private void oneSyncAttempt() {
+        trySyncIfAuto();
+    }
+
+    /**
+     * No-op end-to-end operation. This operation succeeds or throws an exception.
+     * This operation makes one attempt only to perform the ping.
+     */
+    public void ping() {
+        dLink.ping();
     }
 
     /** Send a patch to log server. */
-    public synchronized void append(RDFPatch patch) {
-        checkDeltaConnection();
-        Version ver = dLink.append(datasourceId, patch);
-        if ( ! Version.isValid(ver) )
-            // Didn't happen.
-            return ;
-        Version ver0 = state.version();
-        if ( ver0.value() >= ver.value() )
-            FmtLog.warn(LOG, "[%s] Version did not advance: %d -> %d", datasourceId.toString(), ver0 , ver);
-        state.updateState(ver, Id.fromNode(patch.getId()));
+    public void append(RDFPatch patch) {
+        synchronized(localLock) {
+            checkDeltaConnection();
+            Version ver = dLink.append(datasourceId, patch);
+            if ( ! Version.isValid(ver) )
+                // Didn't happen.
+                return ;
+            Version ver0 = state.version();
+            if ( ver0.value() >= ver.value() )
+                FmtLog.warn(LOG, "[%s] Version did not advance: %d -> %d", datasourceId.toString(), ver0 , ver);
+            state.updateState(ver, Id.fromNode(patch.getId()));
+        }
     }
 
     public RDFPatch fetch(Version version) {
@@ -341,6 +375,7 @@ public class DeltaConnection implements AutoCloseable {
         return attempt(()->sync(logInfo));
     }
 
+    /** Sync to a specific log state. */
     public void sync(PatchLogInfo logInfo) {
         checkDeltaConnection();
         syncToVersion(logInfo.getMaxVersion());
@@ -357,14 +392,6 @@ public class DeltaConnection implements AutoCloseable {
         return trySync();
     }
 
-    /**
-     * No-op end-to-end operation. This operation succeeds or throws an exception.
-     * This operation makes one attempt only to perform the ping.
-     */
-    public void ping() {
-        dLink.ping();
-    }
-
     public void sync() {
         try {
             checkDeltaConnection();
@@ -377,43 +404,72 @@ public class DeltaConnection implements AutoCloseable {
         }
     }
 
-    /** Execute a DeltaConnection sync once. */
-    private void asyncOneSync() {
-        trySyncIfAuto();
-    }
-
     // Attempt an operation and return true/false as to whether it succeeded or not.
     private boolean attempt(Runnable action) {
         try { action.run(); return true ; }
         catch (RuntimeException ex ) { return false ; }
     }
 
-    /** Sync until some version */
+    /**
+     * Indicator of whether a sync is in-progress on another thread.
+     * This is not gauranteed to be accurate.
+     * Synchronization may stil block or it may still skip a sync.
+     */
+    public boolean syncInProgress() {
+        return syncInProgress.get();
+    }
+
+    /**
+     * Sync until some version.
+     * sync does not happen if another sync is in-progress.
+     * This operation takes the connection lock.
+     * Calls may wish to skip sync()
+     */
     private void syncToVersion(Version version) {
-        //long remoteVer = getRemoteVersionLatestOrDefault(VERSION_UNSET);
         if ( ! Version.isValid(version) ) {
             FmtLog.debug(LOG, "Sync: Asked for no patches to sync");
             return;
         }
-
-        Version localVer = getLocalVersion();
-        if (  localVer.isUnset() ) {
-            FmtLog.warn(LOG, "[%s] Local version is UNSET : sync to %s not done", datasourceId, version);
+        if ( syncInProgress() )
             return;
-        }
-
-        if ( localVer.value() > version.value() )
-            FmtLog.info(LOG, "[%s] Local version ahead of remote : [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());
-        if ( localVer.value() >= version.value() )
-            return;
-        // localVer is not UNSET so next version to fetch is +1 (INIT is version 0)
-        FmtLog.info(LOG, "[%s:%s] Sync: Versions [%s, %s]", datasourceId, datasourceName, localVer, version);
-        playPatches(localVer, localVer.value()+1, version.value()) ;
-        //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
+        syncToVersion(version, false);
     }
 
-    /** Play the patches (range is inclusive at both ends) */
+    /**
+     * Sync until some version.
+     * This is the work of sychronization.
+     * This operation takes the connection lock.
+     */
+    private void syncToVersion(Version version, boolean allowOverlap) {
+        synchronized(localLock) {
+            // Inside lock - only one thread.
+            if ( !allowOverlap && syncInProgress() )
+                return ;
+            try {
+                syncInProgress.set(true);
+                Version localVer = getLocalVersion();
+                if ( localVer.isUnset() ) {
+                    FmtLog.warn(LOG, "[%s] Local version is UNSET : sync to %s not done", datasourceId, version);
+                    return;
+                }
+                if ( localVer.value() > version.value() )
+                    FmtLog.info(LOG, "[%s] Local version ahead of remote : [local=%d, remote=%d]", datasourceId, getLocalVersion(), getRemoteVersionCached());
+                if ( localVer.value() >= version.value() )
+                    return;
+                // localVer is not UNSET so next version to fetch is +1 (INIT is version 0)
+                FmtLog.info(LOG, "[%s:%s] Sync: Versions [%s, %s]", datasourceId, datasourceName, localVer, version);
+                // This updates the local state.
+                playPatches(localVer, localVer.value()+1, version.value()) ;
+                //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
+            } finally {
+                syncInProgress.set(false);
+            }
+        }
+    }
+
+    /** Play the patches (range is inclusive at both ends); set the new local state on exit. */
     private void playPatches(Version currentVersion, long firstPatchVer, long lastPatchVer) {
+        // Inside synchronized of syncToVersion
         Pair<Version, Node> p = play(datasourceId, base, target, dLink, currentVersion, firstPatchVer, lastPatchVer);
         if ( p == null )
             // Didn't make progress for some reason.
@@ -474,8 +530,9 @@ public class DeltaConnection implements AutoCloseable {
 
     @Override
     public void close() {
-        this.logLockMgr.stop();
-        this.shutdownSyncExecutorService();
+        // Send of try-with-resources block.
+        // The connection is still usable so don't throw away the
+        // Call finish() when a connection is not going to be used again.
     }
 
     private void shutdownSyncExecutorService() {

@@ -19,12 +19,12 @@ package org.seaborne.delta.client;
 
 /**
  * When to synchronize with a patch log.
- * {@link DeltaConnection} provide the option of syncing automagtically on transaction begin.
- * The application call also call {@link DeltaConnection#sync} itself. 
+ * {@link DeltaConnection} provides the option of syncing automatically on transaction begin.
+ * The application call also call {@link DeltaConnection#sync} itself.
  * <ul>
  * <li>{@code NONE} No automatic sync, all done by the application.
- * <li>{@code TXN_RW} When a transaction starts (sync attempt for a READ transaction suppresses network errors). 
- * <li>{@code TXN_W} When a write-transaction starts. 
+ * <li>{@code TXN_RW} When a transaction starts (sync attempt for a READ transaction suppresses network errors).
+ * <li>{@code TXN_W} When a write-transaction starts.
  * </ul>
  */
 public enum SyncPolicy { NONE, TXN_RW, TXN_W }
