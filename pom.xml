@@ -68,6 +68,7 @@
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>11</java.version>
 
     <ver.jena>4.5.0</ver.jena>
     <ver.jetty>10.0.9</ver.jetty>
@@ -335,7 +336,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.10.1</version>
           <configuration>
-            <release>11</release>
+            <release>${java.version}</release>
           </configuration>
         </plugin>
 
