@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * ZooKeeper server for running a <b>standalone</b> zookeeper server asynchronously.
- * @implNote
+ * <p>
  * Based on ZooKeeperServerMain which runs the server synchronously.
  */
 public class ZooServer {

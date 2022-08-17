@@ -36,11 +36,11 @@ import org.seaborne.delta.Id;
  * <p>
  * The query string is used for arguments.
  *  <ul>
- *  <li><tt>dataset</tt> &ndash; Id or URI for the datasource
- *  <li><tt>patch</tt> &ndash; patch id (for fetch)
- *  <li><tt>version</tt> &ndash; version number
- *  <li><tt>ref</tt> &ndash; pointer to predefined arguments [Not Implemented]
- *  <li><tt>zone</tt> &ndash; pointer to predefined arguments [Not Implemented]
+ *  <li>{@code dataset} &ndash; Id or URI for the datasource
+ *  <li>{@code patch} &ndash; patch id (for fetch)
+ *  <li>{@code version} &ndash; version number
+ *  <li>{@code ref} &ndash; pointer to predefined arguments [Not Implemented]
+ *  <li>{@code zone} &ndash; pointer to predefined arguments [Not Implemented]
  *  </ul>
  */
 public class Args {
@@ -71,15 +71,15 @@ public class Args {
     /** Process an HTTP request to extract the arguments.
      * Two styles are supported: the preferred RESTful coatainer style:
      *      * <ul>
-     * <li>Append patch: {@code POST} to <tt>/{name}/</tt>
-     * <li>Get patch: {@code GET} from <tt>/{name}/log/{id or version}</tt>
+     * <li>Append patch: {@code POST} to {@code /{name}/}
+     * <li>Get patch: {@code GET} from {@code /{name}/log/{id or version}}
      * </ul>
      * but also the same information using query string parameters:
      * <ul>
-     * <li>Append patch: {@code POST} to <tt>/{srvName}?datasource={name}</tt>
-     * <li>Get patch:    {@code GET} from <tt>/{srvName}?datasource={name}&amp;id={id}</tt> or <tt>/{srcName}?datasource={name}&amp;version={version}</tt>.
+     * <li>Append patch: {@code POST} to {@code /{srvName}?datasource={name}}
+     * <li>Get patch:    {@code GET} from {@code /{srvName}?datasource={name}&amp;id={id}} or {@code /{srcName}?datasource={name}&amp;version={version}}.
      * </ul>
-     * where <tt>{srvName}</tt> is the service name.
+     * where {@code {srvName}} is the service name.
      * <p>
      * The registration token is always a query string parameter.
      */

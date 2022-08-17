@@ -45,7 +45,7 @@ import org.apache.jena.atlas.io.IOX.IOConsumer;
  * </pre>
  * and made convenient with:
  * <pre>
- * fileStore.writeNewFile(IOConsumer<OutoutStream>)
+ * fileStore.writeNewFile(IOConsumer&lt;OutputStream&gt;)
  * </pre>
  */
 public class FileEntry {

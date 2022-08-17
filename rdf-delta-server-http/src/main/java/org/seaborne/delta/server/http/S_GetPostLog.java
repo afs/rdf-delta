@@ -28,9 +28,9 @@ import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 
 /** Servlet for both append and fetch patches - the RDF Patch protocol.
- *    <tt>GET  /{name}/id</tt> -- get patch
- *    <tt>GET  /{name}/version</tt> -- get patch
- *    <tt>POST /{name}/</tt> -- append patch.
+ *    {@code GET  /{name}/id} -- get patch
+ *    {@code GET  /{name}/version} -- get patch
+ *    {@code POST /{name}/} -- append patch.
  */
 public class S_GetPostLog extends HttpOperationBase {
 

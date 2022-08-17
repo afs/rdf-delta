@@ -47,11 +47,10 @@ public class DSG {
     }
 
     /**
-     * Delete all quads matching the Node arguments trated as a pattern. This is done
+     * Delete all quads matching the Node arguments treated as a pattern. This is done
      * without use of {@code Iterator.remove()}.
      *
-     * @implNote
-     * Implemented by repeated execution of {@code find(g, s, p, o)}, take a slice of the
+     * Implemented is by repeated execution of {@code find(g, s, p, o)}, take a slice of the
      * results into an array and then delete the quads in the array from the dataset.
      * Exit the loop if the slice is short at which point the next {@code find(g, s, p, o)} would return no matches.
      */

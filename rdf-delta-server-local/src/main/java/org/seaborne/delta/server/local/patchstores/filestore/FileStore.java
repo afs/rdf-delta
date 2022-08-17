@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * and the files are stored in the same location.
  * <p>
  * The set of files is from a basename, with new files being "BASE-0001", "BASE-0002",
- * etc. The basename must match the pattern <tt>[a-zA-Z]([_a-zA-Z0-9])*</tt> and not end with the "-".
+ * etc. The basename must match the pattern {@code [a-zA-Z]([_a-zA-Z0-9])*} and not end with the "-".
  * <p>
  * In addition, it is possible to allocate a fresh filename (no file with that name existed before) and an
  * associated temporary file. This supports atomically writing new data; see {@link #writeNewFile}.
@@ -264,7 +264,7 @@ public class FileStore {
      * This operation writes to a temporary file on the same filesystem, then moves it to
      * the new location. Therefore it is atomic.
      * @param action The code to write the contents.
-     * @returns Path to the new file.
+     * @return Path to the new file.
      */
     public FileEntry writeNewFile(IOConsumer<OutputStream> action) {
         FileEntry file = allocateFilename();

@@ -76,7 +76,7 @@ public class FileMgr {
      * @param directory Path
      * @param namebase base name of interest
      * @param pattern Regex to extract the part of the filename for a {@link Filename}
-     * @return Unsorted List<Filename> of matches.
+     * @return Unsorted List&lt;Filename&gt; of matches.
      */
     public static <X> List<Filename> scan(Path directory, String namebase, Pattern pattern) {
         // pattern must have 3 groups.

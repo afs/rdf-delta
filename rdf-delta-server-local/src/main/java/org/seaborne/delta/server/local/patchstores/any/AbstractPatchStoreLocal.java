@@ -35,7 +35,6 @@ import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
  * This case is the base for {@link PatchStoreAnyLocal "any"} as well as
  * the storage implementations {@link PatchStoreFile "file"} and
  * {@link PatchStoreRocks "RocksDB"}.
- * <p>
  */
 public abstract class AbstractPatchStoreLocal extends PatchStore {
 

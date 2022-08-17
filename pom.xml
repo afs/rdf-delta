@@ -442,7 +442,11 @@
               </execution>
             </executions>
             <configuration>
-              <!-- <doclint>none</doclint> -->
+              <!-- 
+                   Java17+ : javadoc linting is quite strict.
+                   e.g. Javadoc on every class.
+              -->
+              <doclint>syntax,html</doclint>
               <!-- To allow the build to keep going despite javadoc problems:
                    <failOnError>false</failOnError>
               -->
