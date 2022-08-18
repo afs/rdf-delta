@@ -412,8 +412,8 @@ public class DeltaConnection implements AutoCloseable {
 
     /**
      * Indicator of whether a sync is in-progress on another thread.
-     * This is not gauranteed to be accurate.
-     * Synchronization may stil block or it may still skip a sync.
+     * This is not guaranteed to be accurate.
+     * Synchronization may still block or it may still skip a sync.
      */
     public boolean syncInProgress() {
         return syncInProgress.get();
@@ -437,7 +437,7 @@ public class DeltaConnection implements AutoCloseable {
 
     /**
      * Sync until some version.
-     * This is the work of sychronization.
+     * This is the work of synchronization.
      * This operation takes the connection lock.
      */
     private void syncToVersion(Version version, boolean allowOverlap) {
@@ -457,10 +457,11 @@ public class DeltaConnection implements AutoCloseable {
                 if ( localVer.value() >= version.value() )
                     return;
                 // localVer is not UNSET so next version to fetch is +1 (INIT is version 0)
-                FmtLog.info(LOG, "[%s:%s] Sync: Versions [%s, %s]", datasourceId, datasourceName, localVer, version);
+                FmtLog.info(LOG, "[%s:%s] Sync start: Versions [%s, %s]", datasourceId, datasourceName, localVer, version);
                 // This updates the local state.
                 playPatches(localVer, localVer.value()+1, version.value()) ;
-                //FmtLog.info(LOG, "Now: Versions [%d, %d]", getLocalVersion(), remoteVer);
+                Version localVer2 = getLocalVersion();
+                FmtLog.info(LOG, "[%s:%s] Sync finish: Version [%s]", datasourceId, datasourceName, localVer2);
             } finally {
                 syncInProgress.set(false);
             }
