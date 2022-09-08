@@ -70,7 +70,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>11</java.version>
 
-    <ver.jena>4.5.0</ver.jena>
+    <ver.jena>4.6.1</ver.jena>
     <ver.jetty>10.0.9</ver.jetty>
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.11.0</ver.commons-io>
