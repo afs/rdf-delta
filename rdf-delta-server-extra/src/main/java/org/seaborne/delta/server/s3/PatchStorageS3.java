@@ -27,6 +27,8 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
+import org.apache.jena.atlas.lib.Lib;
+import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
@@ -83,15 +85,17 @@ public class PatchStorageS3 implements PatchStorage {
 
     @Override
     public void store(Id key, RDFPatch value) {
-        String s3Key = idToKey(key);
-        ByteArrayOutputStream out = new ByteArrayOutputStream(10*1024);
-        RDFPatchOps.write(out, value);
-        byte[] bytes = out.toByteArray();
-        InputStream in = new ByteArrayInputStream(bytes);
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(DeltaConst.contentTypePatchText);
-        metadata.setContentLength(bytes.length);
-        client.putObject(bucketName, s3Key, in, metadata);
+        retry(5, () -> {
+            String s3Key = idToKey(key);
+            ByteArrayOutputStream out = new ByteArrayOutputStream(10 * 1024);
+            RDFPatchOps.write(out, value);
+            byte[] bytes = out.toByteArray();
+            InputStream in = new ByteArrayInputStream(bytes);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(DeltaConst.contentTypePatchText);
+            metadata.setContentLength(bytes.length);
+            client.putObject(bucketName, s3Key, in, metadata);
+        });
     }
 
     @Override
@@ -120,5 +124,27 @@ public class PatchStorageS3 implements PatchStorage {
     }
 
     @Override
-    public void delete(Id id) {}
+    public void delete(Id id) {
+        client.deleteObject(new DeleteObjectRequest(bucketName, idToKey(id)));
+    }
+
+    private void retry(int maxRetryCount, Runnable action) {
+        int retryCount = 0;
+
+        while (true) {
+            try {
+                action.run();
+            } catch (Exception ex) {
+                if (++retryCount <= maxRetryCount) {
+                    Log.warn(this, ("Action failed, but will retry " + (maxRetryCount - retryCount + 1) + " more times."), ex);
+                    Lib.sleep(1000);
+                    continue;
+                }
+
+                throw ex;
+            }
+
+            break;
+        }
+    }
 }

@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.*;
@@ -169,8 +170,21 @@ public class PatchLogBase implements PatchLog {
             // Commit. One or other of these must be the true "commit point.
             // We can inside the patchlog wide lock at this point.
             Version version = logIndex.nextVersion();
-            logIndex.save(version, thisId, prevId);
+
             patchStorage.store(version, thisId, patch);
+
+            try {
+                logIndex.save(version, thisId, prevId);
+            } catch (Exception ex) {
+                try {
+                    patchStorage.delete(thisId);
+                } catch (Exception deleteEx) {
+                    FmtLog.error(LOG, ("Error occurred while attempting to delete patch file after failure to save log index info. patchId=" + thisId), deleteEx);
+                }
+
+                throw ex;
+            }
+
             return version;
         });
     }
