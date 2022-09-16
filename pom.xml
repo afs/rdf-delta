@@ -82,13 +82,13 @@
          slf4j 2.0: artifact::log4j-slf4j18-impl :: property "log4j-slf4j18"
     -->
 
-    <!--
     <ver.slf4j>2.0.1</ver.slf4j>
     <log4j.slf4j>log4j-slf4j18</log4j.slf4j>
-    -->
 
+    <!--
     <ver.slf4j>1.7.36</ver.slf4j>
     <log4j.slf4j>log4j-slf4j</log4j.slf4j>
+    -->
 
     <ver.rocksdb>7.5.3</ver.rocksdb>
     <!-- Determines the Zookeeper version -->
