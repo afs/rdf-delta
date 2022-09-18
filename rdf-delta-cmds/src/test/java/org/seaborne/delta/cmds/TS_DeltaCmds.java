@@ -17,10 +17,6 @@
 
 package org.seaborne.delta.cmds;
 
-import java.io.File;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.LoggerContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -40,11 +36,6 @@ public class TS_DeltaCmds {
     @BeforeClass public static void beforeClass() {
         // Our choice.
         System.setProperty("log4j.configurationFile", "src/test/resources/log4j2-test.xml");
-        // And force if a reset ...
-        LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
-        File file = new File("src/test/resources/log4j2-test.xml");
-        // this will force a reconfiguration
-        context.setConfigLocation(file.toURI());
     }
 
     @AfterClass public static void afterClass() {}
