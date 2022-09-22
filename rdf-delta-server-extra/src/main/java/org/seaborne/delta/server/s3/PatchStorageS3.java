@@ -28,7 +28,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
 import org.apache.jena.atlas.lib.Lib;
-import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
@@ -128,22 +127,20 @@ public class PatchStorageS3 implements PatchStorage {
         client.deleteObject(new DeleteObjectRequest(bucketName, idToKey(id)));
     }
 
-    private void retry(int maxRetryCount, Runnable action) {
-        int retryCount = 0;
-
+    private void retry(int maxAttempts, Runnable action) {
+        int failedAttempts = 0;
         while (true) {
             try {
                 action.run();
             } catch (Exception ex) {
-                if (++retryCount <= maxRetryCount) {
-                    Log.warn(this, ("Action failed, but will retry " + (maxRetryCount - retryCount + 1) + " more times."), ex);
+                failedAttempts++;
+                if (failedAttempts < maxAttempts) {
+                    Log.warn(this, "Action failed, but will retry " + (maxAttempts - failedAttempts) + " more times.", ex);
                     Lib.sleep(1000);
                     continue;
                 }
-
                 throw ex;
             }
-
             break;
         }
     }
