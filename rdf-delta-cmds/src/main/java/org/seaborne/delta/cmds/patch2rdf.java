@@ -29,8 +29,8 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /** Apply patches to a base RDF file (or empty dataset). */
 public class patch2rdf extends CmdGeneral

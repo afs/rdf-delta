@@ -18,7 +18,7 @@
 package org.seaborne.delta;
 
 import org.apache.jena.graph.Node;
-import org.seaborne.patch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFChanges;
 
 /** Any call to the class causes a runtime exception */
 class RDFChangesNotExpected implements RDFChanges {

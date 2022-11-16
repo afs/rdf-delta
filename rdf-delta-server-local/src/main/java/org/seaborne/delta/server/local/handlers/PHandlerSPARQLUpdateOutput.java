@@ -20,8 +20,8 @@ package org.seaborne.delta.server.local.handlers;
 import org.apache.jena.atlas.io.IndentedWriter ;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
+import org.apache.jena.rdfpatch.RDFChanges ;
+import org.apache.jena.rdfpatch.changes.RDFChangesWriteUpdate ;
 
 /** Convert a patch to SPARQL Update and output to the console */
 public class PHandlerSPARQLUpdateOutput implements PatchHandler {

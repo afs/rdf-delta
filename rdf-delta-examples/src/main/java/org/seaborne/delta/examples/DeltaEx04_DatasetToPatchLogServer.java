@@ -28,8 +28,8 @@ import org.seaborne.delta.client.*;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink ;
 import org.seaborne.delta.server.http.DeltaServer;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchOps ;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
 
 /**
  * This example shows changes to a dataset being sent to a patch log server. For

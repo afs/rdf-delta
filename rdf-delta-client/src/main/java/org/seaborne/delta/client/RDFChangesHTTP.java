@@ -44,8 +44,8 @@ import org.apache.jena.riot.WebContent;
 import org.seaborne.delta.*;
 import org.apache.jena.atlas.io.IOX ;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.patch.RDFPatchConst;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.RDFPatchConst;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 import org.slf4j.Logger;
 
 /** Collect the bytes of a change stream, then write to HTTP */

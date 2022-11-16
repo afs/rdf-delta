@@ -19,7 +19,7 @@ package org.seaborne.delta.sys;
 
 import org.apache.jena.sys.JenaSubsystemLifecycle ;
 import org.seaborne.delta.Delta ;
-import org.seaborne.patch.system.InitPatch ;
+import org.apache.jena.rdfpatch.system.InitPatch ;
 
 /** General subsystem initialization using Jena system initialization.
  * <p>

@@ -27,12 +27,12 @@ import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchOps ;
-import org.seaborne.patch.changes.RDFChangesExternalTxn;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
+import org.apache.jena.rdfpatch.changes.RDFChangesExternalTxn;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 
 /** Output all the patches of a log as a single patch. */
 public class catpatch extends DeltaCmd {

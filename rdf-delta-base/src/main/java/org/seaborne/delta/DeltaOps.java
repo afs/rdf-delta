@@ -19,12 +19,12 @@ package org.seaborne.delta;
 
 import java.io.OutputStream ;
 
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.changes.RDFChangesLog ;
-import org.seaborne.patch.changes.RDFChangesN ;
-import org.seaborne.patch.system.Printer ;
-import org.seaborne.patch.text.TokenWriter ;
-import org.seaborne.patch.text.TokenWriterText ;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.changes.RDFChangesLog ;
+import org.apache.jena.rdfpatch.changes.RDFChangesN ;
+import org.apache.jena.rdfpatch.system.Printer ;
+import org.apache.jena.rdfpatch.text.TokenWriter ;
+import org.apache.jena.rdfpatch.text.TokenWriterText ;
 import org.slf4j.Logger ;
 
 public class DeltaOps {

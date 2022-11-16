@@ -32,8 +32,8 @@ import org.seaborne.delta.client.DeltaClientLib;
 import org.seaborne.delta.fuseki.DeltaFuseki;
 import org.seaborne.delta.fuseki.PatchApplyService;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /**
  * Set up a dataset and write changes to Fuseki using the patch operation. When

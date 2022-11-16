@@ -37,9 +37,9 @@ import org.junit.Test;
 import org.seaborne.delta.client.*;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesCollector;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.RDFChangesCollector;
 
 /** Test a client connection over a link */
 public abstract class AbstractTestDeltaConnection {

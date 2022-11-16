@@ -20,8 +20,8 @@ package org.seaborne.delta.server.local.handlers;
 import org.apache.jena.atlas.logging.FmtLog ;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.PatchSummary;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.PatchSummary;
 import org.slf4j.Logger ;
 
 /** Log a infroamtion about a patch */

@@ -31,8 +31,8 @@ import org.seaborne.delta.Version;
 import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.text.RDFPatchReaderText;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.text.RDFPatchReaderText;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

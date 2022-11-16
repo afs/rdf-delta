@@ -34,12 +34,12 @@ import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.patch.PatchException;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.changes.PatchTxnAbortException;
-import org.seaborne.patch.changes.RDFChangesApply;
-import org.seaborne.patch.changes.RDFChangesExternalTxn;
-import org.seaborne.patch.text.RDFPatchReaderText ;
+import org.apache.jena.rdfpatch.PatchException;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.changes.PatchTxnAbortException;
+import org.apache.jena.rdfpatch.changes.RDFChangesApply;
+import org.apache.jena.rdfpatch.changes.RDFChangesExternalTxn;
+import org.apache.jena.rdfpatch.text.RDFPatchReaderText ;
 
 /** A Fuseki service to receive and apply a patch. */
 public class PatchApplyService extends ActionREST {

@@ -20,8 +20,8 @@ package org.seaborne.delta.server.local.handlers;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.changes.RDFChangesApply ;
+import org.apache.jena.rdfpatch.RDFChanges ;
+import org.apache.jena.rdfpatch.changes.RDFChangesApply ;
 
 /** Write a patch to a {@link DatasetGraph}. */ 
 public class PHandlerLocalDB implements PatchHandler {

@@ -23,8 +23,8 @@ import java.util.concurrent.ThreadFactory;
 
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.lib.NotImplemented ;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.RDFChanges ;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 
 public class DeltaClientLib {
 

@@ -30,9 +30,9 @@ import org.seaborne.delta.client.LocalStorageType;
 import org.seaborne.delta.client.Zone;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 
 /**
  * Example of a client that polls the log for changes. The client keeps a persistent

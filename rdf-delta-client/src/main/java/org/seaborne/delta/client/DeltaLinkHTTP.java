@@ -43,9 +43,9 @@ import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.delta.link.DeltaNotConnectedException ;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.changes.RDFChangesCollector ;
-import org.seaborne.patch.text.RDFPatchReaderText ;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.changes.RDFChangesCollector ;
+import org.apache.jena.rdfpatch.text.RDFPatchReaderText ;
 
 /**
  * Implementation of {@link DeltaLink} that encodes operations
@@ -132,6 +132,35 @@ public class DeltaLinkHTTP implements DeltaLink {
             // Any other exception - don't retry.
         }
     }
+
+    // ---- OLD CODE
+//    private static int RETRIES_REGISTRATION = 2 ;
+//
+//    private <T> T retry2(Action<T> callable, Supplier<String> retryMsg, Supplier<String> failureMsg) {
+//        for ( int i = 1 ; ; i++ ) {
+//            try {
+//                return callable.action();
+//            } catch (HttpException ex) {
+//                if ( ex.getStatusCode() == HttpSC.UNAUTHORIZED_401 ) {
+//                    if ( i < RETRIES_REGISTRATION ) {
+//                        if ( retryMsg != null  )
+//                            Delta.DELTA_HTTP_LOG.warn(retryMsg.get());
+//                        reregister();
+//                        continue;
+//                    }
+//                    if ( failureMsg != null )
+//                        throw new DeltaNotRegisteredException(failureMsg.get());
+//                    else
+//                        throw new DeltaNotRegisteredException(ex.getMessage());
+//                }
+//                if ( failureMsg != null )
+//                    // Other...
+//                    Delta.DELTA_HTTP_LOG.warn(failureMsg.get());
+//                throw ex;
+//            }
+//        }
+//    }
+    // ---- OLD CODE
 
     private RDFChangesHTTP createRDFChanges(Id dsRef) {
         Objects.requireNonNull(dsRef);

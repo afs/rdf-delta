@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.*;
-import org.seaborne.patch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatch ;
 
 /** Wrapper for {@link DeltaLink} which can be subclassed to provide
  *  the other {@code DeltaLink} dynamically (see protected operation {@link #get})

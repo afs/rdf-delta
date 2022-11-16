@@ -41,8 +41,8 @@ import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.LocalServer;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
 import org.seaborne.delta.systemtest.Matrix;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 // These tests build from simple to complex.
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)

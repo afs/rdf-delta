@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.*;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /**
  * Interface to the server for the operations.

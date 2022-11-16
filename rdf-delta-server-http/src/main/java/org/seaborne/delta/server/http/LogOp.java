@@ -41,9 +41,9 @@ import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.DeltaNotFoundException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.patch.PatchException;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchOps ;
+import org.apache.jena.rdfpatch.PatchException;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
 import org.slf4j.Logger ;
 
 /** Patch Log operations */

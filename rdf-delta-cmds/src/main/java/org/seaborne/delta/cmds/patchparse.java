@@ -22,10 +22,10 @@ import java.io.InputStream ;
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.PatchSummary;
-import org.seaborne.patch.changes.RDFChangesCounter;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.PatchSummary;
+import org.apache.jena.rdfpatch.changes.RDFChangesCounter;
 
 /** Parse patches as validation */
 public class patchparse extends CmdPatch

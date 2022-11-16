@@ -29,8 +29,8 @@ import org.apache.jena.riot.WebContent ;
 import org.seaborne.delta.server.local.DPS;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.changes.RDFChangesWriteUpdate ;
+import org.apache.jena.rdfpatch.RDFChanges ;
+import org.apache.jena.rdfpatch.changes.RDFChangesWriteUpdate ;
 
 /** Convert a patch to SPARQL Update and send to some endpoints */
 public class PHandlerSPARQLUpdate implements PatchHandler {

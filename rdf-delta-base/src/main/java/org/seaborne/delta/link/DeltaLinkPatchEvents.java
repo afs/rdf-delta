@@ -21,8 +21,8 @@ import java.util.Objects;
 
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /**
  * A {@link DeltaLinkListener} that listens for patch fetch requests on the
