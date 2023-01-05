@@ -27,10 +27,10 @@ import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sys.JenaSystem;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesWriteUpdate;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.RDFChangesWriteUpdate;
 
 /** Generate a SPARQL Update from a patches. */
 public class patch2update extends CmdGeneral

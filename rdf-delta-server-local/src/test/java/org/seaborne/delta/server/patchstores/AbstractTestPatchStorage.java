@@ -26,8 +26,8 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class AbstractTestPatchStorage {

@@ -40,11 +40,11 @@ import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.riot.web.HttpNames;
 import org.apache.jena.web.HttpSC;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.filelog.FilePolicy;
-import org.seaborne.patch.filelog.OutputMgr;
-import org.seaborne.patch.filelog.rotate.ManagedOutput;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.filelog.FilePolicy;
+import org.apache.jena.rdfpatch.filelog.OutputMgr;
+import org.apache.jena.rdfpatch.filelog.rotate.ManagedOutput;
 
 /**
  * A patch receiver. This {@link HttpServlet servlet} writes patches to a log file

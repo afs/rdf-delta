@@ -28,8 +28,8 @@ import org.seaborne.delta.server.local.DataSourceRegistry;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.system.DeltaSystem;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class AbstractTestPatchStore {

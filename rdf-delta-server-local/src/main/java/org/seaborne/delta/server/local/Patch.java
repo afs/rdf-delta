@@ -20,9 +20,9 @@ package org.seaborne.delta.server.local;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.filestore.FileEntry;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFPatch ;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDFChanges ;
+import org.apache.jena.rdfpatch.RDFPatch ;
 
 /** Holder for an {@link RDFPatch}. This carries with it system information
  * such as where the patch is stored and any local version number. 

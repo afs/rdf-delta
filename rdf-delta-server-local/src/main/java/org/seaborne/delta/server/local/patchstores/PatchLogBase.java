@@ -31,7 +31,7 @@ import org.seaborne.delta.*;
 import org.seaborne.delta.server.local.PatchLog;
 import org.seaborne.delta.server.local.PatchStore;
 import org.seaborne.delta.server.local.PatchValidation;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

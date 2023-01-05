@@ -24,9 +24,9 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.changes.RDFChangesWrapper;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.changes.RDFChangesWrapper;
 
 /**
  * Wrapper for another {@link RDFChanges}

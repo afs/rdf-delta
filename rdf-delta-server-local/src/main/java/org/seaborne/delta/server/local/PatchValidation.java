@@ -24,8 +24,8 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.*;
 import org.seaborne.delta.lib.JSONX;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

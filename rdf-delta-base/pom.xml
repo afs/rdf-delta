@@ -16,7 +16,9 @@
    information regarding copyright ownership.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>rdf-delta-base</artifactId>
@@ -35,11 +37,6 @@
   </properties>
 
   <dependencies>
-    <dependency> 
-      <groupId>org.seaborne.rdf-delta</groupId>
-      <artifactId>rdf-patch</artifactId>
-      <version>1.1.3-SNAPSHOT</version>
-    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>

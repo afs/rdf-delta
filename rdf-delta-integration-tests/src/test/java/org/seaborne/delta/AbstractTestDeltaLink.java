@@ -35,12 +35,12 @@ import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkCounter;
 import org.seaborne.delta.link.DeltaLinkEvents;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.PatchSummary;
-import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.changes.RDFChangesCounter;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.PatchSummary;
+import org.apache.jena.rdfpatch.changes.RDFChangesCollector;
+import org.apache.jena.rdfpatch.changes.RDFChangesCounter;
 
 /** Tests for the link (multiplex connection to the server or local engine) */
 public abstract class AbstractTestDeltaLink {

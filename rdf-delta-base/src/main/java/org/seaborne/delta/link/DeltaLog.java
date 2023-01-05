@@ -23,7 +23,7 @@ import org.seaborne.delta.DataSourceDescription;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /**
  * Operations on a single patch log. This is a pairing of a {@link DeltaLink} (connection

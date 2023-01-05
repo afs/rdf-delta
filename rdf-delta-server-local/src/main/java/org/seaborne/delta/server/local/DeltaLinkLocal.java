@@ -32,7 +32,7 @@ import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.delta.link.DeltaNotConnectedException;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

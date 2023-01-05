@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.jena.graph.Node;
 import org.seaborne.delta.Id;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

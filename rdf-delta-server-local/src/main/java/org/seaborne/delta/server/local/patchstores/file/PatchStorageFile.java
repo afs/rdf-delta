@@ -38,13 +38,13 @@ import org.apache.jena.atlas.io.IOX.IOConsumer;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
 import org.seaborne.delta.server.local.patchstores.filestore.FileEntry;
 import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.text.RDFChangesWriterText;
-import org.seaborne.patch.text.RDFPatchReaderText;
-import org.seaborne.patch.text.TokenWriter;
-import org.seaborne.patch.text.TokenWriterText;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.text.RDFPatchReaderText;
+import org.apache.jena.rdfpatch.text.TokenWriter;
+import org.apache.jena.rdfpatch.text.TokenWriterText;
 
 /** Storage of patches using files. */
 public class PatchStorageFile implements PatchStorage {

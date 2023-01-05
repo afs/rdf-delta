@@ -24,11 +24,11 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sys.JenaSystem;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesBase;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.RDFChangesBase;
 
 /** Converted  patch into reified triples (extended reification - adds "rdf:graph" to get quads) */
 /*public*/ class patchreif extends CmdPatch

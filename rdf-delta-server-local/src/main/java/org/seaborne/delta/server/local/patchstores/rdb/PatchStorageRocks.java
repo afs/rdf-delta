@@ -31,8 +31,8 @@ import org.rocksdb.RocksIterator;
 import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /**
  * Patch store in-memory, nothing persisted.

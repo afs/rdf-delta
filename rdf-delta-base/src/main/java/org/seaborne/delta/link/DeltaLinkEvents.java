@@ -24,8 +24,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.lib.DSG;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.changes.RDFChangesNoOp;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.changes.RDFChangesNoOp;
 
 /** Event related operations on a {@link DeltaLink}. */
 public class DeltaLinkEvents {

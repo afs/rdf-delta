@@ -25,8 +25,8 @@ import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
 import org.seaborne.delta.server.local.LogEntry;
 import org.seaborne.delta.server.local.patchstores.PatchLogIndex;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /**
  * Some basic test to make sure a patch log works.

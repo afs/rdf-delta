@@ -40,7 +40,7 @@ import org.seaborne.delta.DeltaException;
 import org.seaborne.delta.DeltaNotFoundException ;
 import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.io.IOX.IOConsumer;
-import org.seaborne.patch.PatchException;
+import org.apache.jena.rdfpatch.PatchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

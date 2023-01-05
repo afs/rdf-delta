@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.LongAdder;
 
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /**
  * {@link DeltaLink} listener that counts operations.

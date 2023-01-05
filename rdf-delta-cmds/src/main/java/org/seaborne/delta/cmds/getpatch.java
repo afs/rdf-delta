@@ -19,8 +19,8 @@ package org.seaborne.delta.cmds;
 
 import org.apache.jena.cmd.CmdException ;
 import org.seaborne.delta.*;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchOps ;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
 
 /** GET a patch */
 public class getpatch extends DeltaCmd {

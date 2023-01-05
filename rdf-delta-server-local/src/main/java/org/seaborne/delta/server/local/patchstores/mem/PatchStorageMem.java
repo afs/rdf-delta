@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /**
  * Patch store in-memory, nothing persisted.

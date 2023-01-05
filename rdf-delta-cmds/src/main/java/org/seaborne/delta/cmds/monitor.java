@@ -29,8 +29,8 @@ import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.web.HttpException;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /** Listen to a patch log and print what's happening. */
 public class monitor extends DeltaCmd {

@@ -21,8 +21,8 @@ import java.util.Objects ;
 import java.util.stream.Stream;
 
 import org.seaborne.delta.*;
-import org.seaborne.patch.PatchHeader ;
-import org.seaborne.patch.RDFPatch;
+import org.apache.jena.rdfpatch.PatchHeader ;
+import org.apache.jena.rdfpatch.RDFPatch;
 
 /** A {@code PatchLog} is the sequence of {@link RDFPatch}es for one {@link DataSource}.
  * <p>

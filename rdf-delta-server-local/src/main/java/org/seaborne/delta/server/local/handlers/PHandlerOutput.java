@@ -22,8 +22,8 @@ import java.io.OutputStream ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.server.local.Patch;
 import org.seaborne.delta.server.local.PatchHandler;
-import org.seaborne.patch.text.RDFChangesWriterText;
-import org.seaborne.patch.text.TokenWriter ;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.text.TokenWriter ;
 
 /** Write a patch to an {@code OutputStream}. */
 public class PHandlerOutput implements PatchHandler {

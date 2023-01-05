@@ -34,11 +34,11 @@ import org.seaborne.delta.Id ;
 import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.Version;
 import org.apache.jena.atlas.io.IOX;
-import org.seaborne.patch.PatchHeader;
-import org.seaborne.patch.RDF2Patch;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesCollector;
+import org.apache.jena.rdfpatch.PatchHeader;
+import org.apache.jena.rdfpatch.RDF2Patch;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.RDFChangesCollector;
 
 /** Append a new patch file to a log */
 public class append extends DeltaCmd {

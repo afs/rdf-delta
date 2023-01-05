@@ -23,8 +23,8 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 
 /**
  * Example of a Fuseki server, with a dataset that writes out changes as they happen.

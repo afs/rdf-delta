@@ -22,8 +22,8 @@ import org.apache.jena.fuseki.server.Operation ;
 import org.apache.jena.fuseki.servlets.ActionService ;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.seaborne.delta.Delta;
-import org.seaborne.patch.RDFChanges ;
-import org.seaborne.patch.RDFPatchOps ;
+import org.apache.jena.rdfpatch.RDFChanges ;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
 
 /** Library of operations. */
 public class DeltaFuseki {

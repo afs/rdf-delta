@@ -36,7 +36,7 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.PatchWriteServlet;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.filelog.FilePolicy;
+import org.apache.jena.rdfpatch.filelog.FilePolicy;
 import  org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

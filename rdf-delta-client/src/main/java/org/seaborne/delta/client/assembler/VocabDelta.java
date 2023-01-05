@@ -21,7 +21,7 @@ import org.apache.jena.rdf.model.Property ;
 import org.apache.jena.rdf.model.Resource ;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils ;
 import org.apache.jena.sparql.core.assembler.DatasetAssemblerVocab;
-import org.apache.jena.tdb.assembler.Vocab ;
+import org.apache.jena.system.Vocab ;
 
 public class VocabDelta {
     // Initaization - care needed:
@@ -41,7 +41,7 @@ public class VocabDelta {
     public static String getURI() { return NS ; }
 
     // Add feature to another (sub) dataset.
-    // Thsi is ja:dataset.
+    // This is a ja:dataset.
     public static final Property pDeltaDataset          = Vocab.property(DatasetAssemblerVocab.getURI(), "dataset") ;
 
     //---- Sync'ed dataset.

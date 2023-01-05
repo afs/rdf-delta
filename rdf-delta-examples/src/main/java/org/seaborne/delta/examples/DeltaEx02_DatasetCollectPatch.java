@@ -26,10 +26,10 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFPatch;
-import org.seaborne.patch.RDFPatchOps;
-import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
+import org.apache.jena.rdfpatch.changes.RDFChangesCollector;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 
 /** Set up a dataset, collect the changes as they happen, then write the changes.
  * <p>

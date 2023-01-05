@@ -37,8 +37,8 @@ import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.DeltaFuseki ;
 import org.seaborne.delta.fuseki.PatchApplyService ;
 import org.seaborne.delta.lib.LogX;
-import org.seaborne.patch.RDFPatchOps ;
-import org.seaborne.patch.text.RDFChangesWriterText;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
+import org.apache.jena.rdfpatch.text.RDFChangesWriterText;
 
 /**
  * Create Fuseki server with a "patch" service, in addition to the usual "sparql",

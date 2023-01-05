@@ -25,7 +25,7 @@ import org.apache.jena.cmd.CmdGeneral ;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.apache.jena.sys.JenaSystem;
-import org.seaborne.patch.RDFPatchOps;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /** Write an RDF file as a patch file of "adds" (prefixes and triples/quads). */
 public class rdf2patch extends CmdGeneral

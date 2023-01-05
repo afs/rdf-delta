@@ -40,14 +40,14 @@ import org.apache.jena.web.HttpSC;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkListener;
-import org.seaborne.patch.RDFChanges;
-import org.seaborne.patch.RDFPatch ;
-import org.seaborne.patch.RDFPatchConst;
-import org.seaborne.patch.changes.RDFChangesApply ;
-import org.seaborne.patch.changes.RDFChangesCollector;
-import org.seaborne.patch.changes.RDFChangesExternalTxn;
-import org.seaborne.patch.system.DatasetGraphChanges;
-import org.seaborne.patch.system.RDFChangesSuppressEmpty;
+import org.apache.jena.rdfpatch.RDFChanges;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatchConst;
+import org.apache.jena.rdfpatch.changes.RDFChangesApply ;
+import org.apache.jena.rdfpatch.changes.RDFChangesCollector;
+import org.apache.jena.rdfpatch.changes.RDFChangesExternalTxn;
+import org.apache.jena.rdfpatch.system.DatasetGraphChanges;
+import org.apache.jena.rdfpatch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
 
 /** Provides an interface to a specific dataset over the general {@link DeltaLink} API.
