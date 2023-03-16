@@ -232,8 +232,8 @@
         <version>${ver.curator}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
           </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
@@ -247,6 +247,11 @@
         <artifactId>curator-test</artifactId>
         <version>${ver.curator}</version>
         <exclusions>
+          <exclusion>
+            <!-- JUnit 5.6.2 does not play with JUnit 4.13.2 -->
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -367,6 +372,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0</version> 
           <configuration>
+            <useSystemClassLoader>false</useSystemClassLoader>
             <includes>
               <include>**/TS_*.java</include>
             </includes>
