@@ -94,7 +94,7 @@
     <ver.slf4j>1.7.36</ver.slf4j>
     <log4j.slf4j>log4j-slf4j</log4j.slf4j>
 
-    <ver.rocksdb>8.0.0</ver.rocksdb>
+    <ver.rocksdb>8.1.1</ver.rocksdb>
     <!-- Determines the Zookeeper version -->
     <ver.curator>5.4.0</ver.curator>
 
