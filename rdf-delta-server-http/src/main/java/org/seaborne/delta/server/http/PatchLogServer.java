@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.jena.fuseki.jetty.FusekiErrorHandler;
+import org.apache.jena.fuseki.main.sys.FusekiErrorHandler;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.Lang;
 import org.eclipse.jetty.http.MimeTypes;
