@@ -94,9 +94,9 @@
     <ver.slf4j>1.7.36</ver.slf4j>
     <log4j.slf4j>log4j-slf4j</log4j.slf4j>
 
-    <ver.rocksdb>8.1.1</ver.rocksdb>
+    <ver.rocksdb>8.1.1.1</ver.rocksdb>
     <!-- Determines the Zookeeper version -->
-    <ver.curator>5.4.0</ver.curator>
+    <ver.curator>5.5.0</ver.curator>
 
     <ver.aws-s3>1.12.261</ver.aws-s3>
     <ver.s3mock>0.2.6</ver.s3mock>
