@@ -49,7 +49,7 @@ import org.seaborne.delta.link.DeltaLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Assembler for a locally managed dataset with changes set to a remote log */
+/** Assembler for a locally managed dataset with changes sent to a remote log */
 public class DeltaAssembler extends AssemblerBase implements Assembler {
     static private Logger LOG = LoggerFactory.getLogger(DeltaAssembler.class) ;
 
@@ -62,7 +62,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
      *     delta:storage "mem", "file", "tdb" zone info.
      *
      * If delta:changes is a list with more than one element, then that is used to build a
-     * switchable DelatLink to replicated delta servers.
+     * switchable DeltaLink to replicated delta servers.
      */
     @Override
     public Dataset open(Assembler a, Resource root, Mode mode) {
@@ -162,6 +162,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     }
 
     // Poll for changes.
+    // Currnetly, polling happens in the DeltaConnection, initiated from DeltaConnection.start
     private static void UNUSED_CURRENTLY_forkUpdateFetcher(String source, DatasetGraph dsg) {
         if ( true ) {
             Log.warn(DeltaAssembler.class, "forkUpdateFetcher not set up");
@@ -175,7 +176,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
             catch (Exception ex) {
                 Delta.DELTA_LOG.warn("Failed to sync with the change server: "+ex.getMessage()) ;
 //                // Delay this task ; extra 3s + the time interval of 2s.
-//                Dones not work as expected.
+//                Does not work as expected.
 //                Lib.sleep(5*1000);
             }
         } ;

@@ -50,7 +50,8 @@ import org.apache.jena.rdfpatch.system.DatasetGraphChanges;
 import org.apache.jena.rdfpatch.system.RDFChangesSuppressEmpty;
 import org.slf4j.Logger;
 
-/** Provides an interface to a specific dataset over the general {@link DeltaLink} API.
+/**
+ * Provides an interface to a specific dataset over the general {@link DeltaLink} API.
  * This is the client API, c.f. JDBC connection
  */
 public class DeltaConnection implements AutoCloseable {
@@ -323,7 +324,6 @@ public class DeltaConnection implements AutoCloseable {
         }
     }
 
-
     /*package*/ void finish() {
         if ( isValid() ) {
             this.logLockMgr.stop();
@@ -331,7 +331,6 @@ public class DeltaConnection implements AutoCloseable {
             this.valid = false;
         }
     }
-
 
     /** Execute a DeltaConnection sync once. */
     private void oneSyncAttempt() {
