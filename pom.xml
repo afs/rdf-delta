@@ -83,7 +83,6 @@
          NOT log4j-slf4j18-impl
          Using slf4j2:
          Requires log4j 2.19.0
-         Requires Jena 2.17.0
     -->
 
     <!--
