@@ -185,7 +185,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 <#dataset> rdf:type delta:DeltaDataset ;
 
     ## The patch log server
-    delta:changes  "http://localhost:1068/" ;
+    delta:changes  "http://localhost:1066/" ;
     
     ## The log name for this dataset.
     delta:patchlog "ABC";
