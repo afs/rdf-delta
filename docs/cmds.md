@@ -82,7 +82,7 @@ Local operation to convert an RDF file into a patch consisting of `A` or
 `PA` record (add triple or quad, add prefix).
 
 ```bash
-    dcmd rdf2patch FILE
+dcmd rdf2patch FILE
 ```
 
 ## `p2r`
