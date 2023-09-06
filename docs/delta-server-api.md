@@ -20,7 +20,7 @@ applications.
 
 The request is a JSON document of the form:
 
-```json
+```
 {
    "op" : "..."
    "arg" : { ... }
