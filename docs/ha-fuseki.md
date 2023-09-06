@@ -40,13 +40,13 @@ server has logging to the console to show what is happening.
 Run the patch log server which keeps persistent logs on-disk:
 
 ```
- java -jar delta-server.jar --base DeltaSever
+ java -jar delta-server.jar --base DeltaServer
 ```
 
 Run one Fuseki server:
 
 ```
- java -jar delta-fuseki.jar --conf config-1.ttl.
+ java -jar delta-fuseki.jar --conf config-1.ttl
 ```
 
 `config-1.ttl` is a Fuseki configuration file with an in-memory dataset
