@@ -35,7 +35,7 @@ The server jar file also contains the comands
 
 List the patch logs on the server.
 
-```
+```bash
 dcmd ls --server URL
 dcmd list --server URL
 ```
