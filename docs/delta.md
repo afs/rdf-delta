@@ -135,9 +135,9 @@ In the example below the same URL "patch-log" is used.
 Patches are sent to the server by POST:
 
 ```
-    POST http://host/.../{NAME}/
+POST http://host/.../{NAME}/
 ```
 with a `Location:` in the response and retrieved by
 ```
-    GET http://host/.../{NAME}/patch/{id}
+GET http://host/.../{NAME}/patch/{id}
 ```

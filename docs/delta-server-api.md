@@ -20,7 +20,7 @@ applications.
 
 The request is a JSON document of the form:
 
-```
+```json
 {
    "op" : "..."
    "arg" : { ... }
@@ -52,7 +52,7 @@ its patch log.
 @@ DeltaClient.
 @@ When to sync
 
-```
+```java
 // Connect to a server.
 DeltaLink dLink = DeltaLinkHTTP.connect("http://localhost:1066/");
 DeltaClient dClient =

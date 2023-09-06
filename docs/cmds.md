@@ -35,8 +35,10 @@ The server jar file also contains the comands
 
 List the patch logs on the server.
 
-    dcmd ls --server URL
-    dcmd list --server URL
+```
+dcmd ls --server URL
+dcmd list --server URL
+```
 
 ## `mklog`
 
@@ -44,7 +46,9 @@ Create new patch log, supplying a name and, optionally, a URI for the log.
 
 `--server URL` is the URL of the patch log server.
 
-    dcmd mklog --server URL [--uri=uri] NAME ....
+```bash
+dcmd mklog --server URL [--uri=uri] NAME ....
+```
 
 ## `rmlog`
 
@@ -60,20 +64,26 @@ has been removed.
 
 Fetch a patch from a patch log with name 'NAME'.
 
-    dcmd get --server URL --dsrc NAME id
+```bash
+dcmd get --server URL --dsrc NAME id
+```
 
 ## `add`
 
 Append a patch to the named log.
 
-    dcmd get --server URL --dsrc NAME PATCH ...
+```bash
+dcmd get --server URL --dsrc NAME PATCH ...
+```
 
 ## `r2p`
 
 Local operation to convert an RDF file into a patch consisting of `A` or
 `PA` record (add triple or quad, add prefix).
 
+```bash
     dcmd rdf2patch FILE
+```
 
 ## `p2r`
 
@@ -86,13 +96,17 @@ If the `--desc ASSEMBLER` arguemnt is given, the assembler is called to
 construct an RDF dataset which may be a persistent one. The patches in
 `FILE ...` are applied. The result is not written out.
 
-    dcmd patch2rdf [--data QUADS | --desc ASSEMBLER ] FILE ...
+```bash
+dcmd patch2rdf [--data QUADS | --desc ASSEMBLER ] FILE ...
+```
 
 ## `parse`
 
 Parse a patch file - this tests the synatx for validity.
 
-    dcmd parse FILE ...
+```bash
+dcmd parse FILE ...
+```
 
 ## `patchserver`
 
@@ -100,6 +114,8 @@ Run a patch server on this machine. The default port is 1066.
 Basic use for a single patch server running with patch log store
 in directory `DIR`:
 
-    dcmd patchserver [--port=NNNN] --store=DIR
+```bash
+dcmd patchserver [--port=NNNN] --store=DIR
+```
 
 The [full description of RDF Delta Server operation](delta-server) gives more details.
