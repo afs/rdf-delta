@@ -162,7 +162,7 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
     }
 
     // Poll for changes.
-    // Currnetly, polling happens in the DeltaConnection, initiated from DeltaConnection.start
+    // Currently, polling happens in the DeltaConnection, initiated from DeltaConnection.start
     private static void UNUSED_CURRENTLY_forkUpdateFetcher(String source, DatasetGraph dsg) {
         if ( true ) {
             Log.warn(DeltaAssembler.class, "forkUpdateFetcher not set up");
