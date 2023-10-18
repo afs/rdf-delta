@@ -89,7 +89,7 @@ public class TestDeltaAssembler {
 
     @Test public void assembler_delta_1() {
         // In-memory
-        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-mem.ttl", DatasetAssembler.getType());
+        Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-mem.ttl", DatasetAssembler.getGeneralType());
         assertNotNull(dataset.getContext().get(symDeltaZone));
         assertNotNull(dataset.getContext().get(symDeltaConnection));
         assertNotNull(dataset.getContext().get(symDeltaClient));
@@ -124,7 +124,7 @@ public class TestDeltaAssembler {
         Quad q1 = SSE.parseQuad("(:g :s :p 1)");
         Quad q2 = SSE.parseQuad("(:g :s :p 2)");
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getGeneralType());
             try ( DeltaConnection conn = connectionForDataset(dataset) ) {
                 dataset.executeWrite(()->conn.getDatasetGraph().add(q1));
                 dataset.executeRead(()->conn.getDatasetGraph().contains(q1));
@@ -134,7 +134,7 @@ public class TestDeltaAssembler {
         // Don't clear zone setup.
         // Build again.
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb1.ttl", DatasetAssembler.getGeneralType());
             try ( DeltaConnection conn = connectionForDataset(dataset) ) {
                 dataset.executeWrite(()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
@@ -151,7 +151,7 @@ public class TestDeltaAssembler {
         Quad q2 = SSE.parseQuad("(:g :s :p 2)");
         {
             // If not protected and second run, fails here.
-            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getGeneralType());
             try ( DeltaConnection conn = connectionForDataset(dataset) ) {
                 dataset.executeWrite(()->conn.getDatasetGraph().add(q1));
                 dataset.executeRead(()->conn.getDatasetGraph().contains(q1));
@@ -163,7 +163,7 @@ public class TestDeltaAssembler {
         Zone.clearZoneCache();
         // Build again.
         {
-            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getType());
+            Dataset dataset = (Dataset)AssemblerUtils.build(DIR+"/delta-dataset-tdb2.ttl", DatasetAssembler.getGeneralType());
             try ( DeltaConnection conn = connectionForDataset(dataset) ) {
                 dataset.executeWrite(()->assertTrue(conn.getDatasetGraph().contains(q1)));
             }
