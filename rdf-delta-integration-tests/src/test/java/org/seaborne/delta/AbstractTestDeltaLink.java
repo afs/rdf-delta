@@ -20,27 +20,27 @@ package org.seaborne.delta;
 import static org.junit.Assert.*;
 
 import java.util.List ;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.graph.*;
-import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.system.StreamRDFLib ;
-import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.sparql.util.graph.GraphListenerBase;
-import org.apache.jena.web.HttpSC;
-import org.junit.BeforeClass ;
-import org.junit.Test;
-import org.seaborne.delta.lib.LogX;
-import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.link.DeltaLinkCounter;
-import org.seaborne.delta.link.DeltaLinkEvents;
 import org.apache.jena.rdfpatch.RDFChanges;
 import org.apache.jena.rdfpatch.RDFPatch;
 import org.apache.jena.rdfpatch.RDFPatchOps;
 import org.apache.jena.rdfpatch.changes.PatchSummary;
 import org.apache.jena.rdfpatch.changes.RDFChangesCollector;
 import org.apache.jena.rdfpatch.changes.RDFChangesCounter;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.system.StreamRDFLib ;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.web.HttpSC;
+import org.junit.BeforeClass ;
+import org.junit.Test;
+import org.seaborne.delta.lib.GraphListenerBase;
+import org.seaborne.delta.lib.LogX;
+import org.seaborne.delta.link.DeltaLink;
+import org.seaborne.delta.link.DeltaLinkCounter;
+import org.seaborne.delta.link.DeltaLinkEvents;
 
 /** Tests for the link (multiplex connection to the server or local engine) */
 public abstract class AbstractTestDeltaLink {
@@ -651,6 +651,6 @@ public abstract class AbstractTestDeltaLink {
         patch2.apply(c2);
         RDFChangesCollector.RDFPatchStored p2 = (RDFChangesCollector.RDFPatchStored)c2.getRDFPatch();
 
-        return Objects.equal(p1, p2);
+        return Objects.equals(p1, p2);
     }
 }

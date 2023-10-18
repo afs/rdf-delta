@@ -70,10 +70,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>11</java.version>
 
-    <ver.jena>4.8.0</ver.jena>
+    <ver.jena>4.9.0</ver.jena>
     <ver.jetty>10.0.17</ver.jetty>
     <!-- Ensure we get a version compatible with Jena. -->
-    <ver.commons-io>2.11.0</ver.commons-io>
+    <ver.commons-io>2.14.0</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
     <ver.log4j2>2.20.0</ver.log4j2>
 
@@ -97,7 +97,7 @@
     <!-- Determines the Zookeeper version -->
     <ver.curator>5.5.0</ver.curator>
 
-    <ver.aws-s3>1.12.261</ver.aws-s3>
+    <ver.aws-s3>1.12.568</ver.aws-s3>
     <ver.s3mock>0.2.6</ver.s3mock>
     <ver.awaitility>4.2.0</ver.awaitility>
   </properties>

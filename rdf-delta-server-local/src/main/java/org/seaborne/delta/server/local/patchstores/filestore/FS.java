@@ -24,9 +24,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.ext.com.google.common.collect.BiMap;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
+import org.apache.commons.collections4.BidiMap;
 import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.rdfpatch.PatchHeader;
 import org.apache.jena.rdfpatch.text.RDFPatchReaderText;
@@ -40,7 +40,7 @@ public class FS {
      */
     public static Version initFromFileStore(Logger LOG,
                                             FileStore fileStore,
-                                            BiMap<Id, Version> idToVersion,
+                                            BidiMap<Id, Version> idToVersion,
                                             Map<Id, PatchHeader> headers) {
         // Iterator is sorted.
         Iterator<Long> iter = fileStore.getIndexes().iterator();

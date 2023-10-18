@@ -19,13 +19,13 @@ package org.seaborne.delta;
 
 import static org.junit.Assert.*;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger ;
 import java.util.stream.LongStream;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
-import org.apache.jena.ext.com.google.common.base.Objects;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
@@ -553,6 +553,6 @@ public abstract class AbstractTestDeltaConnection {
         RDFChangesCollector c2 = new RDFChangesCollector();
         RDFChangesCollector.RDFPatchStored p2 = (RDFChangesCollector.RDFPatchStored)c2.getRDFPatch();
 
-        return Objects.equal(p1, p2);
+        return Objects.equals(p1, p2);
     }
 }

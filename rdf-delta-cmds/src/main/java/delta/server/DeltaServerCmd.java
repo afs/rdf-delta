@@ -36,9 +36,9 @@ import org.apache.jena.cmd.TerminationException;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.DeltaConfigException;
 import org.seaborne.delta.DeltaConst;
+import org.seaborne.delta.RDF_Delta;
 import org.seaborne.delta.cmds.DeltaLogging;
 import org.seaborne.delta.lib.LibX;
-import org.seaborne.delta.lib.SystemInfo;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.http.ZkMode;
@@ -81,7 +81,7 @@ public class DeltaServerCmd {
     private static ArgDecl argJetty             = new ArgDecl(true, "jetty");
 
 //    private static ArgDecl argProvider = new ArgDecl(true, "provider");
-//    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");
+//    private static ArgDecl argConf = new ArgDecl(true, "conf", "config");RR
 
     // Switch for command line testing to be able to run the server,
     // know it has started on return, and it is not blocking.
@@ -97,7 +97,7 @@ public class DeltaServerCmd {
             }
             // And away we go.
             try {
-                FmtLog.info(Delta.DELTA_LOG, "%s %s %s", SystemInfo.systemName(), SystemInfo.version(), SystemInfo.buildDate());
+                FmtLog.info(Delta.DELTA_LOG, "%s %s", RDF_Delta.NAME, RDF_Delta.version());
                 deltaServer.start();
                 deltaServer.join();
                 System.exit(0);
