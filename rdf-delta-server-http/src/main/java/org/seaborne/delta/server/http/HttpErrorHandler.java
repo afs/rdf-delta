@@ -18,50 +18,33 @@
 package org.seaborne.delta.server.http;
 
 import java.io.IOException ;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets ;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest ;
-import javax.servlet.http.HttpServletResponse ;
+import java.util.List;
 
 import org.apache.jena.riot.WebContent ;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Request ;
 import org.eclipse.jetty.server.Response ;
 import org.eclipse.jetty.server.handler.ErrorHandler ;
+import org.eclipse.jetty.util.Callback;
 
 public class HttpErrorHandler extends /*Jetty*/ErrorHandler {
-    public static final String METHOD_DELETE    = "DELETE" ;
-    public static final String METHOD_HEAD      = "HEAD" ;
-    public static final String METHOD_GET       = "GET" ;
-    public static final String METHOD_OPTIONS   = "OPTIONS" ;
-    public static final String METHOD_POST      = "POST" ;
-    public static final String METHOD_PUT       = "PUT" ;
-    public static final String METHOD_TRACE     = "TRACE" ;
-    public static final String METHOD_PATCH     = "PATCH" ;
+    private static List<Charset> utf8List = List.of(StandardCharsets.UTF_8);
+
+    // Only used if ServletOps.responseSendError calls Servlet API response.sendError
+    // or a non-Fuseki error occurs.
+    public HttpErrorHandler() {}
 
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if ( request.getMethod().equals(METHOD_POST)) {
-            response.setContentType(WebContent.contentTypeTextPlain);
-            response.setCharacterEncoding(WebContent.charsetUTF8) ;
-
-            String reason=(response instanceof Response)?((Response)response).getReason():null;
-            String msg = String.format("%03d %s\n", response.getStatus(), reason) ;
-            response.getOutputStream().write(msg.getBytes(StandardCharsets.UTF_8)) ;
-
-            response.getOutputStream().flush() ;
-            baseRequest.setHandled(true);
-            return;
+    protected boolean generateAcceptableResponse(Request request, Response response, Callback callback, String contentType, List<Charset> charsets, int code, String message, Throwable cause) throws IOException {
+        // Fix Jetty GH-10474 : (12.0.0, 12.0.1)
+        // ContentType application/json cause illegal state exception
+        if ( contentType != null && contentType.equals(WebContent.contentTypeJSON) ) {
+            contentType = MimeTypes.Type.TEXT_PLAIN.asString();
+            charsets = utf8List;
         }
-        super.handle(target, baseRequest, request, response);
+        //ServletOps.setNoCache(response);
+        return super.generateAcceptableResponse(request, response, callback, contentType, utf8List, code, message, cause);
     }
-
-//    // Single line for HTTP POST
-//    @Override
-//    protected void handleErrorPage(HttpServletRequest request, Writer writer, int code, String message) throws IOException {
-//        if ( request.getMethod().equals(METHOD_POST)) {
-//        } else {
-//            super.handleErrorPage(request, writer, code, message);
-//        }
-//    }
 }

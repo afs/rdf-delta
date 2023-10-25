@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.UUID ;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.jena.riot.web.HttpNames ;
 import org.seaborne.delta.DeltaBadRequestException ;

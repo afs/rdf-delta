@@ -17,7 +17,7 @@
 
 package org.seaborne.delta.server.http;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.jena.atlas.json.JsonValue ;
 import org.seaborne.delta.DeltaLib;

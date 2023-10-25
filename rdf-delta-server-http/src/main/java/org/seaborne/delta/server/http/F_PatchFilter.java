@@ -19,13 +19,13 @@ package org.seaborne.delta.server.http;
 
 import java.io.IOException;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.seaborne.delta.DataSourceDescription;
@@ -39,7 +39,7 @@ import org.seaborne.delta.link.DeltaLink;
  * directs the request to the given servlet.
  * Otherwise it passes the request down the filter chain.
  */
-public class F_PatchFilter implements javax.servlet.Filter {
+public class F_PatchFilter implements jakarta.servlet.Filter {
     public interface Dispatch { void dispatch(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException ; }
 
     private final DeltaLink dLink;

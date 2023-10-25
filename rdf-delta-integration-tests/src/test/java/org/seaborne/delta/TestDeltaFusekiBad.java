@@ -35,7 +35,7 @@ import org.seaborne.delta.server.http.DeltaServer ;
  * Tests for Fuseki with Delta integration when things are not going well.
  * Based on config files so the port number is fixed.
  *
- * @see TestDeltaFusekiBad
+ * @see TestDeltaFusekiGood
  */
 public class TestDeltaFusekiBad extends BaseTestDeltaFuseki {
 

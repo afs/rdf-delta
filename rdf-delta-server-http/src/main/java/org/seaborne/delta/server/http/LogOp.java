@@ -21,7 +21,7 @@ import java.io.IOException ;
 import java.io.OutputStream ;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.jena.atlas.io.IO ;

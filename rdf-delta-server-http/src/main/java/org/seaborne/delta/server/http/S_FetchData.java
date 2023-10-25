@@ -25,8 +25,8 @@ import java.nio.file.NoSuchFileException ;
 import java.nio.file.Path ;
 import java.nio.file.Paths ;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils ;
 import org.apache.jena.atlas.lib.IRILib ;

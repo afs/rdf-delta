@@ -19,8 +19,8 @@ package org.seaborne.delta.server.http;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.jena.atlas.json.JsonObject;
 import org.seaborne.delta.DeltaBadRequestException ;

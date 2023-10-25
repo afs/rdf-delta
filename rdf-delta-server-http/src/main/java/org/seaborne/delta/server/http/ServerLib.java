@@ -17,7 +17,7 @@
 
 package org.seaborne.delta.server.http;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class ServerLib {
     /** URL string, including query string */

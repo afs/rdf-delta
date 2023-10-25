@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.http.client.HttpClient;
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.web.WebLib;
@@ -70,7 +69,6 @@ public class Driver {
 
     protected static FusekiServer server1;
     protected static FusekiServer server2;
-    private static HttpClient dftStdHttpClient = null;
 
     static { LogX.setJavaLogging(); }
 

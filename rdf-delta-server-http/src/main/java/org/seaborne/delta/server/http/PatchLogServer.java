@@ -20,25 +20,25 @@ package org.seaborne.delta.server.http;
 import java.io.IOException;
 import java.net.BindException;
 
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.Filter;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.jena.fuseki.main.sys.FusekiErrorHandler;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.Lang;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.seaborne.delta.Delta;
@@ -134,19 +134,18 @@ public /*package*/ class PatchLogServer {
             contextPath = "/" + contextPath;
         ServletContextHandler context = new ServletContextHandler();
         context.setDisplayName("PatchLogServer");
-        MimeTypes mt = new MimeTypes();
+        MimeTypes.Mutable mt = context.getMimeTypes();
         addMimeType(mt, Lang.TTL);
         addMimeType(mt, Lang.NT);
         addMimeType(mt, Lang.TRIG);
         addMimeType(mt, Lang.NQ);
         addMimeType(mt, Lang.RDFXML);
-        context.setMimeTypes(mt);
         ErrorHandler eh = new HttpErrorHandler();
         context.setErrorHandler(eh);
         return context;
     }
 
-    private static void addMimeType(MimeTypes mt, Lang lang) {
+    private static void addMimeType(MimeTypes.Mutable mt, Lang lang) {
         lang.getFileExtensions().forEach(ext->
             mt.addMimeMapping(ext, lang.getContentType().getContentTypeStr())
         );
@@ -177,7 +176,7 @@ public /*package*/ class PatchLogServer {
         try {
             LOG.info("Jetty server config file = " + jettyConfig);
             Server server = new Server();
-            Resource configXml = Resource.newResource(jettyConfig);
+            Resource configXml = ResourceFactory.root().newResource(jettyConfig);
             XmlConfiguration configuration = new XmlConfiguration(configXml);
             configuration.configure(server);
             return server;

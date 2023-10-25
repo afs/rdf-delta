@@ -36,7 +36,7 @@ import org.apache.jena.dboe.base.file.Location;
 import org.apache.jena.dboe.sys.IO_DB;
 import org.apache.jena.sparql.core.DatasetGraph ;
 import org.apache.jena.sparql.core.DatasetGraphFactory ;
-import org.apache.jena.tdb.TDBFactory ;
+import org.apache.jena.tdb1.TDB1Factory;
 import org.apache.jena.tdb2.DatabaseMgr;
 import org.seaborne.delta.*;
 import org.slf4j.Logger;
@@ -294,17 +294,15 @@ public class Zone {
      * This does <em>not</em> write the configuration details into the on-disk zone information.
      */
     public DatasetGraph localStorage(LocalStorageType storage, Path dataPath) {
-        switch(storage) {
-            case EXTERNAL:     return null;
-            case MEM:          return DatasetGraphFactory.createTxnMem();
-            case TDB:
-                return TDBFactory.createDatasetGraph(dataPath.toString());
-            case TDB2:
-                return DatabaseMgr.connectDatasetGraph(dataPath.toString());
-            case NONE:         return null;
-            default :
+        return switch(storage) {
+            case EXTERNAL-> null;
+            case MEM->      DatasetGraphFactory.createTxnMem();
+            case TDB->      TDB1Factory.createDatasetGraph(dataPath.toString());
+            case TDB2->     DatabaseMgr.connectDatasetGraph(dataPath.toString());
+            case NONE->     null;
+            default ->
                 throw new NotImplemented("Zone::localStorage = "+storage);
-        }
+        };
     }
 
     /** Supply a dataset for matching to an attached external data source */
