@@ -73,7 +73,7 @@
     <ver.jena>4.10.0</ver.jena>
     <ver.jetty>10.0.18</ver.jetty>
     <!-- Ensure we get a version compatible with Jena. -->
-    <ver.commons-io>2.14.0</ver.commons-io>
+    <ver.commons-io>2.15.1</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
     <ver.log4j2>2.20.0</ver.log4j2>
 
