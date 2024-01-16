@@ -7,7 +7,7 @@ title:  Fuseki configuration for High Availability
 This is the file Fuseki configuration file used in the tutorial, with additional
 comments.
 
-```
+```turtle
 PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -49,7 +49,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 ```
 
 For a persistent dataset:
-```
+```turtle
 <#dataset> rdf:type delta:DeltaDataset ;
 
     ## The patch log server
@@ -71,7 +71,7 @@ For a persistent dataset:
 
 For a configuration where the Fuseki server fails over to
 another patch log server:
-```
+```turtle
 <#dataset> rdf:type delta:DeltaDataset ;
 
     ## The patch log server

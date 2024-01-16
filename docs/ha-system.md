@@ -120,7 +120,7 @@ datasets being replicated across two Fuseki servers.
 
 To run the patch log server with a non-persistent in-memory patch store,
 start a separate terminal window, go to the installation directory and run:
-```
+```bash
 # In a separate terminal window:
 dcmd server -mem
 ```
@@ -129,7 +129,7 @@ The server logs to stdout. The command does not return until the server
 stops. To stop the server, kill it with a control-C.
 
 The patch log server is a self-contained jar and can be run directly:
-```
+```bash
 java -jar delta-server.jar --mem
 ```
 
@@ -145,7 +145,7 @@ logs.
 ### Run delta commands {#delta-cmds}
 
 There are a number of command line tools for working with server. One is to list the logs:
-```
+```bash
 dcmd ls --server http://localhost:1066/
 ```
 ```
@@ -156,7 +156,7 @@ The server will also log operations.
 We can make a new patch log. A log has a name (required) and URI (optional,
 one is generated if not supplied).  The name "ABC" is used again later
 in the tutorial.
-```
+```bash
 dcmd mk --server http://localhost:1066/ ABC
 ```
 ```
@@ -170,7 +170,7 @@ Every log and every patch has a unique id. `id:504b9e` is a shortened
 form.
 
 There is an example patch in the tutorial directory so let's add it to the log:
-```
+```bash
 dcmd append --server http://localhost:1066/ --log ABC patch.rdfp
 ```
 ```
@@ -191,7 +191,7 @@ server will sync to the log because the Fuseki configuration file names
 the log to use as "ABC", the same as above:
 
 Start a fuseki server with a simple in a separate terminal window:
-```
+```bash
 # In a separate terminal window:
 dcmd fuseki --port 3031 --conf fuseki-config.ttl
 ```
@@ -217,7 +217,7 @@ SPARQL queries, See
 [SOH](http://jena.apache.org/documentation/fuseki2/soh.html) for
 details).
 
-```
+```bash
 s-query --service=http://localhost:3031/ds --output=text 'SELECT * { ?s ?p ?o }'
 ```
 ```
@@ -230,20 +230,20 @@ s-query --service=http://localhost:3031/ds --output=text 'SELECT * { ?s ?p ?o }'
 ```
 
 Any way to send SPARQL queries over HTTP will work, for example:
-```
+```bash
 curl -d query='SELECT * {?s ?p ?o}' -d 'output=text' http://localhost:3031/ds
 ```
 
 ## Failover Fuseki Configuration {#fuseki-failover}
 
 Now we run a second Fuseki server on a different port:
-```
+```bash
 dcmd fuseki --port 4042 --conf fuseki-config.ttl
 ```
 
 We can update one server and query the other to see the changes:
 
-```
+```bash
 s-update --service=http://localhost:4042/ds 'INSERT DATA { <urn:x:s> <urn:x:p> <urn:x:o> }'
 s-query --service=http://localhost:3031/ds --output=text 'SELECT * { ?s ?p ?o }'
 -------------------------------------------------------
@@ -256,7 +256,7 @@ s-query --service=http://localhost:3031/ds --output=text 'SELECT * { ?s ?p ?o }'
 ```
 
 The log now has two patches in it:
-```
+```bash
 dcmd ls --server http://localhost:1066/
 ```
 ```
@@ -272,12 +272,12 @@ Stop any other patch servers and Fuseki servers running from earlier on.
 
 The directory for the patch store must be create first.
 
-```
+```bash
 mkdir PatchStore
 dcmd server --store PatchStore
 ```
 and the simple patch added:
-```
+```bash
 dcmd append --server http://localhost:1066/ --log ABC patch.rdfp
 ```
 ```
@@ -327,7 +327,7 @@ ensemble can be used if desired.
 
 The running Zookeeper servers store their own state to disk.
 First, copy the tutorial configuration into a working area because it will get modified:
-```
+```bash
 cp -r zk-example zk
 ```
 There are 3 sub-directories, `zk/zk1`, `zk/zk2`, `zk/zk3`, one for each server.
@@ -336,15 +336,15 @@ In separate separate terminal windows: there is a instance-specific configuratio
 a different one in each directory.  Each patch log server runs on a different port,
  1071, 1072 and 1073.
 
-```
+```bash
 cd zk1
 dcmd server --port 1071 --zk=localhost:2181,localhost:2182,localhost:2183 --zkCfg=./zoo.cfg
 ```
-```
+```bash
 cd zk2
 dcmd server --port 1072 --zk=localhost:2181,localhost:2182,localhost:2183 --zkCfg=./zoo.cfg
 ```
-```
+```bash
 cd zk3
 dcmd server --port 1073 --zk=localhost:2181,localhost:2182,localhost:2183 --zkCfg=./zoo.cfg
 ```
@@ -361,21 +361,21 @@ To reset the system, delete the `zk` directory and copy `zk-example` again.
 To reset just the zookeeper state, delete the three directories
 `zk{1,2,3}/ZkData/version-2`.
 
-```
+```bash
 dcmd ls --server http://localhost:1071
 ```
 ```
 -- No logs --
 ```
 Create a log on one server (port 1073):
-```
+```bash
 dcmd mk --server http://localhost:1073 ABC
 ```
 ```
 Created [id:de5992, ABC, <http://delta/ABC>]
 ```
 and see it is present on another (port=1071):
-```
+```bash
 dcmd ls --server http://localhost:1071
 ```
 ```
@@ -385,7 +385,7 @@ dcmd ls --server http://localhost:1071
 Now run two Fuseki server on different ports.
 These server have a persistent database, which is described below.
 
-```
+```bash
 cd ../fuseki1
 dcmd fuseki --port 3033 --conf config.ttl
 [2018-07-27 15:40:49.692] INFO  Delta                : Delta Patch Log Servers: [http://localhost:1071/, http://localhost:1072/, http://localhost:1073/]
@@ -399,7 +399,7 @@ dcmd fuseki --port 3033 --conf config.ttl
 [2018-07-27 15:40:50.480] INFO  Server               :   PID:    19872
 [2018-07-27 15:40:50.500] INFO  Server               : Start Fuseki (port=3033)
 ```
-```
+```bash
 cd ../fuseki2
 dcmd fuseki --port 3055 --conf config.ttl
 [2018-07-27 15:43:12.102] INFO  Delta                : Delta Patch Log Servers: [http://localhost:1071/, http://localhost:1072/, http://localhost:1073/]
@@ -420,15 +420,15 @@ You can now update one server and see the changes in the other as before or you 
 a patch to the patch log server ensemble and it will appear in all servers when they
 next sync up.
 
-```
+```bash
 dcmd append --server http://localhost:1072/ --log ABC patch.rdfp
 ```
 or (SPARQL Graph Store Protocol) for some RDF data:
-```
+```bash
 s-put http://localhost:3033/ds default data.ttl
 ```
 or plain HTTP:
-```
+```bash
  curl -T data.ttl --header 'Content-type:text/turtle'  http://localhost:3033/ds
 ```
 
@@ -437,7 +437,7 @@ When the Fuseki server starts up it uses this database, together with a note of
 the version of the database and start from there, rather than rebuilding the database
 from scratch each time it starts up.
 
-```
+```turtle
 ...
 <#dataset> rdf:type delta:DeltaDataset ;
     ## List of Delta Patch Servers
@@ -453,7 +453,7 @@ are given [here](delta-fuseki-config).
 Patches of any size can be stored in S3, or any system that provides the
 AWS S3 API (for example, there is an adapter for Apache Cassandra).
 
-```
+```bash
 dcmd server -zk=... --s3Bucket=BUCKET  --s3Keys=KEYS --s3Region=REGION
 ```
 where `BUCKET` is the S3 bucket name, `KEYS` is a AWS credential

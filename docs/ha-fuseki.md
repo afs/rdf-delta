@@ -39,14 +39,14 @@ server has logging to the console to show what is happening.
 
 Run the patch log server which keeps persistent logs on-disk:
 
-```
- java -jar delta-server.jar --base DeltaSever
+```bash
+java -jar delta-server.jar --base DeltaServer
 ```
 
 Run one Fuseki server:
 
-```
- java -jar delta-fuseki.jar --conf config-1.ttl.
+```bash
+java -jar delta-fuseki.jar --conf config-1.ttl
 ```
 
 `config-1.ttl` is a Fuseki configuration file with an in-memory dataset
@@ -61,51 +61,51 @@ The patch log short name is `ABC`. This can be seen in
 
 First, see that the triple store is empty:
 
-```
-  s-query --service http://localhost:3030/ds1 --output=text 'SELECT * { ?s ?p ?o }'
+```bash
+s-query --service http://localhost:3030/ds1 --output=text 'SELECT * { ?s ?p ?o }'
 ```
 
 If you don't have the 
 [SOH tools](https://jena.apache.org/documentation/serving_data/) then
 you can use `curl`:
 
-```
-  curl --data 'query=SELECT * { ?s ?p ?o }' --data 'output=text' http://localhost:3030/ds1
+```bash
+curl --data 'query=SELECT * { ?s ?p ?o }' --data 'output=text' http://localhost:3030/ds1
 ```
 
 `output=text` requests that the Fuseki return results in a text-readable
 format.
 
 ```
-    -------------
-    | s | p | o |
-    =============
-    -------------
+-------------
+| s | p | o |
+=============
+-------------
 ```
 No triples.
 
 Now send a patch to the patch server directly:
 
-```
-  dcmd add --server http://localhost:1066/ --log ABC patch.rdfp
+```bash
+dcmd add --server http://localhost:1066/ --log ABC patch.rdfp
 ```
 `patch.rdfp` is a small example patch file. 
 
 Query the Fuseki server again:
 ```
-    --------------------------------------------------
-    | s                  | p                  | o    |
-    ==================================================
-    | <http://example/s> | <http://example/p> | 1816 |
-    | <http://example/s> | <http://example/q> | _:b0 |
-    --------------------------------------------------
+--------------------------------------------------
+| s                  | p                  | o    |
+==================================================
+| <http://example/s> | <http://example/p> | 1816 |
+| <http://example/s> | <http://example/q> | _:b0 |
+--------------------------------------------------
 ```
 
 To show replicated Fuseki server, start a second one on a
 different port:
 
-```
-  java -jar delta-fuseki.jar -port 3535 --conf config-2.ttl
+```bash
+java -jar delta-fuseki.jar -port 3535 --conf config-2.ttl
 ```
 
 To help further distiniguish the server for this demo, the dataset is
@@ -116,36 +116,36 @@ The second  SPARQL endpoint is `http://localhost:3535/ds2`.
 
 Query the server and it should already have the same data:
 
+```bash
+s-query --service http://localhost:3535/ds2 --output=text 'SELECT * { ?s ?p ?o }'
 ```
-  s-query --service http://localhost:3535/ds2 --output=text 'SELECT * { ?s ?p ?o }'
 ```
-```
-    --------------------------------------------------
-    | s                  | p                  | o    |
-    ==================================================
-    | <http://example/s> | <http://example/p> | 1816 |
-    | <http://example/s> | <http://example/q> | _:b0 |
-    --------------------------------------------------
+--------------------------------------------------
+| s                  | p                  | o    |
+==================================================
+| <http://example/s> | <http://example/p> | 1816 |
+| <http://example/s> | <http://example/q> | _:b0 |
+--------------------------------------------------
 ```
 
 Now update one server and query the other
 
-```
-  s-update --service http://localhost:3535/ds2 \  
-    'DELETE { ?s ?p 1816 } INSERT { ?s ?p 1850 } WHERE { ?s ?p 1816 }'
+```bash
+s-update --service http://localhost:3535/ds2 \  
+  'DELETE { ?s ?p 1816 } INSERT { ?s ?p 1850 } WHERE { ?s ?p 1816 }'
 ```
 
-```
-  s-query --service http://localhost:3030/ds1 --output=text 'SELECT * { ?s ?p ?o }'
+```bash
+s-query --service http://localhost:3030/ds1 --output=text 'SELECT * { ?s ?p ?o }'
 ```
 to get 
 ```
-    --------------------------------------------------
-    | s                  | p                  | o    |
-    ==================================================
-    | <http://example/s> | <http://example/p> | 1850 |
-    | <http://example/s> | <http://example/q> | _:b0 |
-    --------------------------------------------------
+--------------------------------------------------
+| s                  | p                  | o    |
+==================================================
+| <http://example/s> | <http://example/p> | 1850 |
+| <http://example/s> | <http://example/q> | _:b0 |
+--------------------------------------------------
 ```
 
 # The Fuseki Configuration file {#fuseki-config}
@@ -153,7 +153,7 @@ to get
 This is the file Fuseki configuration file use above, with additonal
 comments.
 
-```
+```turtle
 PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -185,7 +185,7 @@ PREFIX delta:   <http://jena.apache.org/rdf-delta#>
 <#dataset> rdf:type delta:DeltaDataset ;
 
     ## The patch log server
-    delta:changes  "http://localhost:1068/" ;
+    delta:changes  "http://localhost:1066/" ;
     
     ## The log name for this dataset.
     delta:patchlog "ABC";

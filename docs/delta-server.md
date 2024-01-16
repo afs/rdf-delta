@@ -97,9 +97,9 @@ This example is for running a single patch log server on the default port (1066)
 with a RockDB database for patches. Patch logs are stored in the directory
 "Delta" which must exist.
 
-<pre>
-    dcmd server --store Delta
-</pre>
+```
+dcmd server --store Delta
+```
 
 ### Run a high availability patch log server 
 
@@ -113,12 +113,12 @@ The connection string for Zookeeper lists the machiens and the Zookeeper port
 used for coordination. Suppose we have machines "server1", "server2", "server3"
 with zookeeper running on port 1110 on each machine.
 
-<pre>
-    dcmd server --port 1060                                         \
-        --zkPort 1110 --zkData LocalDirectory                       \
-        --zk="server1:1110,server2:1110,server3:1110"               \
-        --s3bucket=<i>some-bucket-name</i> --s3region=<i>region</i>
-</pre>
+```bash
+dcmd server --port 1060                                         \
+    --zkPort 1110 --zkData LocalDirectory                       \
+    --zk="server1:1110,server2:1110,server3:1110"               \
+    --s3bucket=<i>some-bucket-name</i> --s3region=<i>region</i>
+```
 
 This command is run on each of the machines "server1", "server2" and "server3"
 
