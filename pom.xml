@@ -76,7 +76,7 @@
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.15.1</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
-    <ver.log4j2>2.23.0</ver.log4j2>
+    <ver.log4j2>2.23.1</ver.log4j2>
 
     <!-- Artifact for Log4j providing slf4j
          slf4j 1.7: artifact::log4j-slf4j-impl :: property "log4j-slf4j"
