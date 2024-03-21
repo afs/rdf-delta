@@ -100,7 +100,7 @@
 
     <ver.aws-s3>1.12.568</ver.aws-s3>
     <ver.s3mock>0.2.6</ver.s3mock>
-    <ver.awaitility>4.2.0</ver.awaitility>
+    <ver.awaitility>4.2.1</ver.awaitility>
 
     <ver.plugin.cyclonedx>2.7.11</ver.plugin.cyclonedx>
 
