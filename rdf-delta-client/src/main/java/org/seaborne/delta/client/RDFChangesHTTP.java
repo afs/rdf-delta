@@ -202,6 +202,7 @@ public class RDFChangesHTTP extends RDFChangesWriterText {
 
     private static AtomicLong counter = new AtomicLong(0);
 
+    @SuppressWarnings("resource")
     private void send$() {
         long number = counter.incrementAndGet();
 
@@ -219,15 +220,16 @@ public class RDFChangesHTTP extends RDFChangesWriterText {
                 String s = new String(bytes, StandardCharsets.UTF_8);
                 LOG.debug("== Sending ...");
                 // Do NOT close!
-                IndentedWriter w = IndentedWriter.stdout;
-                String x = w.getLinePrefix();
-                w.setLinePrefix(">> ");
-                w.print(s);
-                w.setLinePrefix(x);
-                if ( ! s.endsWith("\n") )
-                    w.println();
-                w.flush();
-                LOG.debug("== ==");
+                try ( IndentedWriter w = IndentedWriter.stdout.clone(); ) {
+                    String x = w.getLinePrefix();
+                    w.setLinePrefix(">> ");
+                    w.print(s);
+                    w.setLinePrefix(x);
+                    if ( ! s.endsWith("\n") )
+                        w.println();
+                    w.flush();
+                    LOG.debug("== ==");
+                }
             }
         }
 

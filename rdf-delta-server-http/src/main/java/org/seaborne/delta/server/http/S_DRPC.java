@@ -60,6 +60,7 @@ public class S_DRPC extends DeltaServlet {
         doCommon(req, resp);
     }
 
+    @SuppressWarnings("resource")
     @Override
     protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JsonObject input ;
@@ -72,10 +73,11 @@ public class S_DRPC extends DeltaServlet {
 
         // Switch to IndentedWriter.clone(IndentedWriter.stdout);
         if ( false ) {
-            IndentedWriter iWrite = IndentedWriter.stdout;
-            iWrite.incIndent(4);
-            try { JSON.write(iWrite, input); iWrite.ensureStartOfLine(); }
-            finally { iWrite.decIndent(4); }
+            try ( IndentedWriter iWrite = IndentedWriter.clone(IndentedWriter.stdout) ) {
+                iWrite.incIndent(4);
+                try { JSON.write(iWrite, input); iWrite.ensureStartOfLine(); }
+                finally { iWrite.decIndent(4); }
+            }
         }
         // Header
 

@@ -95,67 +95,66 @@ public class DeltaLogging {
 
     // Put it here in the code, not a classpath resource, to make it robust against repackaging (shading).
     public static String getDefaultString() {
-        String defaultLog4j2 = String.join
-                ("\n",
-                 "## Command default log4j2 setup : log4j2 properties syntax."
-                 , "status = error"
-                 , "name = DeltaLoggingDft"
+        String defaultLog4j2 = """
+                ## Command default log4j2 setup : log4j2 properties syntax.
+                 status = error
+                 name = DeltaLoggingDft
 
-                 , "filters = threshold"
-                 , "filter.threshold.type = ThresholdFilter"
-                 , "filter.threshold.level = ALL"
+                 filters = threshold
+                 filter.threshold.type = ThresholdFilter
+                 filter.threshold.level = ALL
 
-                 , "appender.console.type = Console"
-                 , "appender.console.name = OUT"
-                 , "appender.console.target = SYSTEM_OUT"
-                 , "appender.console.layout.type = PatternLayout"
-                 , "appender.console.layout.pattern = [%d{yyyy-MM-dd HH:mm:ss}] %-10c{1} %-5p %m%n"
+                 appender.console.type = Console
+                 appender.console.name = OUT
+                 appender.console.target = SYSTEM_OUT
+                 appender.console.layout.type = PatternLayout
+                 appender.console.layout.pattern = [%d{yyyy-MM-dd HH:mm:ss}] %-10c{1} %-5p %m%n
 
-                 , "rootLogger.level                  = INFO"
-                 , "rootLogger.appenderRef.stdout.ref = OUT"
+                 rootLogger.level                  = INFO
+                 rootLogger.appenderRef.stdout.ref = OUT
 
-                 , "// Delta"
-                 , "logger.delta.name = Delta"
-                 , "logger.delta.level = INFO"
+                 ## Delta
+                 logger.delta.name = Delta
+                 logger.delta.level = INFO
 
-                 , "logger.x0.name  = org.seaborne.delta"
-                 , "logger.x0.level = INFO"
+                 logger.x0.name  = org.seaborne.delta
+                 logger.x0.level = INFO
 
-                 , "logger.x1.name  = Delta.HTTP"
-                 , "logger.x1.level = WARN"
+                 logger.x1.name  = Delta.HTTP
+                 logger.x1.level = WARN
 
-                 , "logger.x2.name  = org.apache.jena"
-                 , "logger.x2.level = WARN"
+                 logger.x2.name  = org.apache.jena
+                 logger.x2.level = WARN
 
-                 , "logger.x3.name  = org.apache.jena.arq.info"
-                 , "logger.x3.level = INFO"
+                 logger.x3.name  = org.apache.jena.arq.info
+                 logger.x3.level = INFO
 
-                 , "logger.x4.name  = org.apache.jena.riot"
-                 , "logger.x4.level = INFO"
+                 logger.x4.name  = org.apache.jena.riot
+                 logger.x4.level = INFO
 
-                 , "logger.jetty.name = org.eclipse.jetty"
-                 , "logger.jetty.level = WARN"
+                 logger.jetty.name = org.eclipse.jetty
+                 logger.jetty.level = WARN
 
-                 , "logger.zk.name = org.apache.zookeeper"
-                 , "logger.zk.level = WARN"
+                 logger.zk.name = org.apache.zookeeper
+                 logger.zk.level = WARN
 
-                 , "logger.curator.name = org.apache.curator"
-                 , "logger.curator.level = WARN"
+                 logger.curator.name = org.apache.curator
+                 logger.curator.level = WARN
 
-                 , "## logger.zk1.name = org.apache.zookeeper.server.ServerCnxnFactory"
-                 , "## logger.zk1.level = ERROR"
+                 ## logger.zk1.name = org.apache.zookeeper.server.ServerCnxnFactory
+                 ## logger.zk1.level = ERROR
 
-                 , "# Fuseki NCSA Request log."
-                 , "appender.plain.type = Console"
-                 , "appender.plain.name = PLAIN"
-                 , "appender.plain.layout.type = PatternLayout"
-                 , "appender.plain.layout.pattern = %m%n"
+                 # Fuseki NCSA Request log.
+                 appender.plain.type = Console
+                 appender.plain.name = PLAIN
+                 appender.plain.layout.type = PatternLayout
+                 appender.plain.layout.pattern = %m%n
 
-                 , "logger.fuseki-request.name                   = org.apache.jena.fuseki.Request"
-                 , "logger.fuseki-request.additivity             = false"
-                 , "logger.fuseki-request.level                  = OFF"
-                 , "logger.fuseki-request.appenderRef.plain.ref  = PLAIN"
-                        );
+                 logger.fuseki-request.name                   = org.apache.jena.fuseki.Request
+                 logger.fuseki-request.additivity             = false
+                 logger.fuseki-request.level                  = OFF
+                 logger.fuseki-request.appenderRef.plain.ref  = PLAIN
+                 """ ;
 
         return defaultLog4j2;
 
