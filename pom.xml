@@ -74,7 +74,7 @@
     <ver.jetty>12.0.8</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
-    <ver.commons-io>2.15.1</ver.commons-io>
+    <ver.commons-io>2.16.0</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
     <ver.log4j2>2.23.1</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
