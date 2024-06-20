@@ -23,14 +23,13 @@ import java.util.Properties;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 import org.apache.zookeeper.server.quorum.QuorumPeerMain;
-import org.apache.zookeeper.server.quorum.flexible.QuorumVerifier;
 import org.seaborne.delta.zk.ZkS;
 
 public class ZkM {
-    /** 
+    /**
      * Run an ensemble.
      * Untested.
-     * 
+     *
      * @param basePort
      * @param dataDir
      * @see ZkS#runZookeeperServer(String)
@@ -56,7 +55,7 @@ server.1=localhost:2281:3381
 server.2=localhost:2282:3382
 server.3=localhost:2283:3383
          */
-        /* The complete list of static properties: 
+        /* The complete list of static properties:
         // dataDir
         // dataLogDir
         // clientPort
@@ -81,31 +80,30 @@ server.3=localhost:2283:3383
         // standaloneEnabled
         // reconfigEnabled
          */
-        
-        
+
         int clientPort = 2180 + i;
         int baseSysPort = 2280;
         int baseElectionPort = 2380;
         String dir = "zk/zk"+i;
         if ( rootDir != null )
             dir = rootDir+"/"+dir;
-        
+
         Properties staticProperties = new Properties();
-        Properties dynamicProperties = new Properties();
         staticProperties.setProperty("tickTime", "2000");
         staticProperties.setProperty("dataDir", dir);
         staticProperties.setProperty("initLimit", "5") ;
         staticProperties.setProperty("syncLimit", "2") ;
         staticProperties.setProperty("clientPort", Integer.toString(clientPort));
-        for ( int j = 1 ; i <=3 ; i++ )
-            dynamicProperties.setProperty("server."+j, "localhost:"+(baseSysPort+j)+":"+(baseElectionPort+j) );
+//        Properties dynamicProperties = new Properties();
+//        for ( int j = 1 ; i <=3 ; i++ )
+//            dynamicProperties.setProperty("server."+j, "localhost:"+(baseSysPort+j)+":"+(baseElectionPort+j) );
         try {
             QuorumPeerConfig c = new QuorumPeerConfig();
             c.parseProperties(staticProperties);
-            QuorumVerifier qv = QuorumPeerConfig.parseDynamicConfig(dynamicProperties, 3, true, false);
+//          QuorumVerifier qv = QuorumPeerConfig.parseDynamicConfig(dynamicProperties, 3, true, false);
             QuorumPeerMain quorumPeer = new QuorumPeerMain();
             new Thread(()-> {
-                try { 
+                try {
                     quorumPeer.runFromConfig(c);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -118,6 +116,6 @@ server.3=localhost:2283:3383
         catch (ConfigException e1) {
             e1.printStackTrace();
         }
-        
+
     }
 }
