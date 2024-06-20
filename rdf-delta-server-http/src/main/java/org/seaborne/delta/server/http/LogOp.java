@@ -22,28 +22,21 @@ import java.io.OutputStream ;
 import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.jena.atlas.io.IO ;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonValue ;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.graph.Node;
+import org.apache.jena.rdfpatch.PatchException;
+import org.apache.jena.rdfpatch.RDFPatch ;
+import org.apache.jena.rdfpatch.RDFPatchOps ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
 import org.eclipse.jetty.io.RuntimeIOException;
-import org.seaborne.delta.DataSourceDescription;
-import org.seaborne.delta.Delta;
-import org.seaborne.delta.DeltaBadPatchException;
-import org.seaborne.delta.DeltaConst;
-import org.seaborne.delta.DeltaNotFoundException;
-import org.seaborne.delta.Id;
-import org.seaborne.delta.Version;
-import org.apache.jena.rdfpatch.PatchException;
-import org.apache.jena.rdfpatch.RDFPatch ;
-import org.apache.jena.rdfpatch.RDFPatchOps ;
+import org.seaborne.delta.*;
 import org.slf4j.Logger ;
 
 /** Patch Log operations */
@@ -106,11 +99,11 @@ public class LogOp {
     private static RDFPatch readPatch(DeltaAction action) throws IOException {
         HttpServletRequest request = action.request;
         long byteLength = request.getContentLengthLong();
-        try ( CountingInputStream in = new CountingInputStream(request.getInputStream()); ) {
+        try ( BoundedInputStream in = BoundedInputStream.builder().setInputStream(request.getInputStream()).get(); ) {
             RDFPatch patch = RDFPatchOps.read(in);
             if ( byteLength != -1L ) {
-                if ( in.getByteCount() != byteLength )
-                    FmtLog.warn(LOG, "[%d] Length mismatch: Read: %d : Content-Length: %d", action.id, in.getByteCount(),  byteLength);
+                if ( in.getCount() != byteLength )
+                    FmtLog.warn(LOG, "[%d] Length mismatch: Read: %d : Content-Length: %d", action.id, in.getCount(),  byteLength);
             }
             return patch;
         }

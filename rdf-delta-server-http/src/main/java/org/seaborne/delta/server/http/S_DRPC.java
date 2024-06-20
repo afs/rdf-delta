@@ -60,7 +60,6 @@ public class S_DRPC extends DeltaServlet {
         doCommon(req, resp);
     }
 
-    @SuppressWarnings("resource")
     @Override
     protected DeltaAction parseRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JsonObject input ;
