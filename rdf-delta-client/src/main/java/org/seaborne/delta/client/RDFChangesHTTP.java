@@ -202,7 +202,6 @@ public class RDFChangesHTTP extends RDFChangesWriterText {
 
     private static AtomicLong counter = new AtomicLong(0);
 
-    @SuppressWarnings("resource")
     private void send$() {
         long number = counter.incrementAndGet();
 
