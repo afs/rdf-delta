@@ -117,6 +117,7 @@ public abstract class DeltaServlet extends HttpServlet {
     }
 
     // Override in the actual operation to select which of GET/POST/PATCH is supported */
+    @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         notSupported(req, resp);
     }
