@@ -90,7 +90,7 @@
     <ver.s3mock>0.2.6</ver.s3mock>
     <ver.awaitility>4.2.1</ver.awaitility>
 
-    <ver.plugin.cyclonedx>2.8.0</ver.plugin.cyclonedx>
+    <ver.plugin.cyclonedx>2.8.1</ver.plugin.cyclonedx>
 
     <!-- TEMP -->
     <ver.httpclient>4.5.14</ver.httpclient>
