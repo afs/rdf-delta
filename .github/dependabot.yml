@@ -11,3 +11,7 @@ updates:
       interval: "weekly"
       day: "thursday"
     open-pull-requests-limit: 5
+    groups:
+      maven-patch-group:
+        update-types:
+        - "patch"
