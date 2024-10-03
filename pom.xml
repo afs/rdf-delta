@@ -76,7 +76,7 @@
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.17.0</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
-    <ver.log4j2>2.24.0</ver.log4j2>
+    <ver.log4j2>2.24.1</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
 
     <!-- Determines the Zookeeper version unless we explicit include zookeeper -->
