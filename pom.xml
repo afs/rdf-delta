@@ -82,7 +82,7 @@
     <!-- Determines the Zookeeper version unless we explicit include zookeeper -->
     <!-- Curator 5.7.0 depends on zookeeper 3.9.1 -->
     <ver.curator>5.7.1</ver.curator>
-    <ver.zookeeper>3.9.2</ver.zookeeper>
+    <ver.zookeeper>3.9.3</ver.zookeeper>
 
     <ver.aws-s3>1.12.767</ver.aws-s3>
     <ver.rocksdb>9.6.1</ver.rocksdb>
@@ -489,7 +489,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.8.0</version>
+          <version>3.8.1</version>
           <configuration>
             <overWriteReleases>false</overWriteReleases>
             <overWriteIfNewer>true</overWriteIfNewer>
