@@ -24,9 +24,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.auth.*;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
@@ -90,7 +88,7 @@ public class S3 {
             // Needed for S3mock
             builder.withPathStyleAccessEnabled(true);
             builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, region));
-            builder.withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()));
+            builder.withCredentials(new EnvironmentVariableOrAnonymousCredentialsProvider());
         }
         if ( credentialsFile != null )
             builder.withCredentials(new ProfileCredentialsProvider(credentialsFile, credentialsProfile));
@@ -152,6 +150,25 @@ public class S3 {
 
         public Properties build() {
             return properties;
+        }
+    }
+
+    private static class EnvironmentVariableOrAnonymousCredentialsProvider implements AWSCredentialsProvider {
+
+        private final EnvironmentVariableCredentialsProvider delegate = new EnvironmentVariableCredentialsProvider();
+
+        @Override
+        public AWSCredentials getCredentials() {
+            try {
+                return delegate.getCredentials();
+            } catch (Exception ignored) {
+                return new AnonymousAWSCredentials();
+            }
+        }
+
+        @Override
+        public void refresh() {
+            delegate.refresh();
         }
     }
 }
