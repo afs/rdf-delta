@@ -71,7 +71,7 @@
     <java.version>17</java.version>
 
     <ver.jena>5.2.0</ver.jena>
-    <ver.jetty>12.0.15</ver.jetty>
+    <ver.jetty>12.0.16</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.18.0</ver.commons-io>
@@ -539,7 +539,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.11.1</version>
+          <version>3.11.2</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
