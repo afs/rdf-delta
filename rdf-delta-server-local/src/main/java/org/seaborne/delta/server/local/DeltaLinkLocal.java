@@ -17,7 +17,6 @@
 
 package org.seaborne.delta.server.local;
 
-import static org.apache.jena.atlas.lib.ListUtils.toList;
 import static org.seaborne.delta.Id.str;
 
 import java.util.List;
@@ -28,11 +27,11 @@ import java.util.function.Consumer;
 
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.rdfpatch.RDFPatch;
 import org.seaborne.delta.*;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.link.DeltaLinkListener;
 import org.seaborne.delta.link.DeltaNotConnectedException;
-import org.apache.jena.rdfpatch.RDFPatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,7 +149,7 @@ public class DeltaLinkLocal implements DeltaLink {
     @Override
     public List<DataSourceDescription> listDescriptions() {
         checkLink();
-        return toList(localServer.listDataSources().stream().map(ds -> ds.getDescription()));
+        return localServer.listDataSources().stream().map(ds -> ds.getDescription()).toList();
     }
 
     @Override

@@ -28,7 +28,6 @@ import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.lib.DateTimeUtils;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.zookeeper.Watcher;
@@ -179,7 +178,7 @@ public class PatchLogIndexZk implements PatchLogIndex {
         });
 
         // Find all the ids with no prev.
-        List<Id> firsts = ListUtils.toList(mapIdToPrev.entrySet().stream().filter(e->e.getValue()==null).map(e->e.getKey()));
+        List<Id> firsts = mapIdToPrev.entrySet().stream().filter(e->e.getValue()==null).map(e->e.getKey()).toList();
         if ( firsts.isEmpty() ) {
             FmtLog.error(LOG, "No initial patch found");
             return;

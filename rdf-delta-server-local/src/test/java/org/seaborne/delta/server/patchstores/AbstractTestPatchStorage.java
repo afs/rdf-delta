@@ -21,19 +21,18 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.apache.jena.atlas.lib.ListUtils;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.server.local.patchstores.PatchStorage;
-import org.apache.jena.rdfpatch.RDFPatch;
-import org.apache.jena.rdfpatch.RDFPatchOps;
 
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class AbstractTestPatchStorage {
-    
+
     protected abstract PatchStorage patchStorage();
-    
+
     @Test public void patchStorage_1_empty() {
         PatchStorage patchStorage = patchStorage();
         assertFalse(patchStorage.find().findAny().isPresent());
@@ -42,7 +41,7 @@ public abstract class AbstractTestPatchStorage {
         RDFPatch patch1 = patchStorage.fetch(id);
         assertNull(patch1);
     }
-    
+
     @Test public void patchStorage_2_singlePatch() {
         PatchStorage patchStorage = patchStorage();
         RDFPatch patch = RDFPatchOps.emptyPatch();
@@ -52,11 +51,11 @@ public abstract class AbstractTestPatchStorage {
         RDFPatch patch1 = patchStorage.fetch(id);
         assertNotNull(patch1);
         assertEquals(patch.getId(), patch1.getId());
-        
-        List<Id> x = ListUtils.toList(patchStorage.find());
+
+        List<Id> x = patchStorage.find().toList();
         assertFalse(x.isEmpty());
     }
-    
+
     @Test public void patchStorage_3_twoPatches() {
         PatchStorage patchStorage = patchStorage();
         RDFPatch patch1 = RDFPatchOps.emptyPatch();
@@ -70,16 +69,16 @@ public abstract class AbstractTestPatchStorage {
 
         RDFPatch patch2f = patchStorage.fetch(id2);
         assertNull(patch2f);
-        
+
         RDFPatch patch2 = RDFPatchOps.emptyPatch();
         patchStorage.store(id2, patch2);
-        
+
         patch2f = patchStorage.fetch(id2);
         assertNotNull(patch2f);
         assertEquals(patch2.getId(), patch2f.getId());
         assertNotEquals(patch1.getId(), patch2f.getId());
         assertNotEquals(patch1f.getId(), patch2f.getId());
-        
+
         RDFPatch patch1f_a = patchStorage.fetch(id1);
         assertNotNull(patch1f_a);
         assertEquals(patch1f_a.getId(), patch1f_a.getId());

@@ -35,7 +35,6 @@ import org.apache.curator.utils.ZKPaths;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.SetUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
@@ -315,7 +314,7 @@ public class PatchStoreZk extends PatchStore {
                 })
                 .filter(Objects::nonNull)
                 ;
-        return ListUtils.toList(descriptions);
+        return descriptions.toList();
     }
 
     @Override

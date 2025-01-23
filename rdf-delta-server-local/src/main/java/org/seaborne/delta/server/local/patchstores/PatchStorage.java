@@ -20,10 +20,9 @@ package org.seaborne.delta.server.local.patchstores;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.jena.atlas.lib.ListUtils;
+import org.apache.jena.rdfpatch.RDFPatch;
 import org.seaborne.delta.Id;
 import org.seaborne.delta.Version;
-import org.apache.jena.rdfpatch.RDFPatch;
 
 /**
  * Interface for the bulk storage of patches.
@@ -53,7 +52,7 @@ public interface PatchStorage {
     /** Release all the patches and any other state for this {@code PatchStorage} */
     public default void delete() {
         // Copy to isolate.
-        List<Id> x = ListUtils.toList(find());
+        List<Id> x = find().toList();
         x.forEach(this::delete);
     }
 }

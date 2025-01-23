@@ -191,7 +191,7 @@ public class Driver {
       if ( server != null )
           AssemblerUtils.mergeContext(server, Fuseki.getContext()) ;
       // Process services, whether via server ja:services or, if absent, by finding by type.
-      List<DataAccessPoint> x = FusekiConfig.servicesAndDatasets(assembler);
+      List<DataAccessPoint> x = FusekiConfig.servicesAndDatasets(assembler.getGraph());
       // Unbundle so that they accumulate.
       x.forEach(dap->builder.add(dap.getName(), dap.getDataService()));
       return builder.build();

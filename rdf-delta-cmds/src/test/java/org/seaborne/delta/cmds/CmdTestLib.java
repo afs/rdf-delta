@@ -21,12 +21,12 @@ import java.io.PrintStream;
 import java.net.BindException;
 
 import delta.server.DeltaServerCmd;
-import org.apache.jena.atlas.io.NullOutputStream;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.jena.atlas.web.WebLib;
 
 public class CmdTestLib {
 
-    static PrintStream devnull= new PrintStream(new NullOutputStream());
+    static PrintStream devnull = new PrintStream(NullOutputStream.INSTANCE);
 
     static void cmd(String...args) {
         dcmd.main(args);

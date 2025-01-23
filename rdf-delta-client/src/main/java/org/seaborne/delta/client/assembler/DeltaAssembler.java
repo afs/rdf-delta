@@ -31,16 +31,15 @@ import org.apache.jena.assembler.Assembler;
 import org.apache.jena.assembler.Mode;
 import org.apache.jena.assembler.assemblers.AssemblerBase;
 import org.apache.jena.assembler.exceptions.AssemblerException;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.dboe.base.file.Location;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.util.graph.GraphUtils;
-import org.apache.jena.dboe.base.file.Location;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.client.DeltaConnection;
 import org.seaborne.delta.client.DeltaLinkHTTP;
@@ -151,13 +150,13 @@ public class DeltaAssembler extends AssemblerBase implements Assembler {
 
         RDFList rdfList = obj.asResource().as( RDFList.class );
         List<RDFNode> x = rdfList.asJavaList();
-        List<String> xs = ListUtils.toList(x.stream().map(n->{
+        List<String> xs = x.stream().map(n->{
             if ( n.isLiteral() )
                 return n.asLiteral().getLexicalForm();
             if ( n.isURIResource() )
                 return n.asResource().getURI();
             throw new AssemblerException(r, "Not a string or URI: "+n);
-        }));
+        }).toList();
         return xs;
     }
 

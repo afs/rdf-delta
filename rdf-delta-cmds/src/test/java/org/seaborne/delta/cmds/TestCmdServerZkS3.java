@@ -25,7 +25,7 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 
 import delta.server.DeltaServerCmd;
 import io.findify.s3mock.S3Mock;
-import org.apache.jena.atlas.io.NullOutputStream;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.jena.atlas.web.HttpException;
 import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.http.HttpOp;
@@ -90,9 +90,9 @@ public class TestCmdServerZkS3 {
     }
 
     // Run sending System.out to /dev/null
-    // Note: this is unliely to affect logging - System.out wil have been read and stored internally.
+    // Note: this is unliely to affect logging - System.out will have been read and stored internally.
     private static void runDevNull(Runnable action) {
-        PrintStream nullOutput = new PrintStream(new NullOutputStream());
+        PrintStream nullOutput = new PrintStream(NullOutputStream.INSTANCE);
         PrintStream ps = System.out;
         System.setOut(nullOutput);
         try {

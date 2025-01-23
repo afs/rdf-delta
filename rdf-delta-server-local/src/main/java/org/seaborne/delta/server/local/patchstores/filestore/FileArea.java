@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
@@ -63,8 +62,8 @@ public class FileArea {
         //dataSourcePaths.forEach(p->LOG.info("Data source paths: "+p));
         disabledDataSources.forEach(p->LOG.info("  Data source: "+p+" : Disabled"));
 
-        List<DataSourceDescription> descriptions = ListUtils.toList
-            (dataSourcePaths.stream()
+        List<DataSourceDescription> descriptions =
+            dataSourcePaths.stream()
                 .map(p->{
                     // Extract name from disk name.
                     String dsName = p.getFileName().toString();
@@ -75,8 +74,8 @@ public class FileArea {
                         throw new DeltaConfigException("Names do not match: directory="+dsName+", dsd="+dsd);
                     return dsd;
                 })
-            .filter(Objects::nonNull)
-            );
+                .filter(Objects::nonNull)
+                .toList();
         return descriptions;
     }
 
@@ -86,7 +85,7 @@ public class FileArea {
      */
     private static Pair<List<Path>/*enabled*/, List<Path>/*disabled*/> scanDirectory(Path directory) {
         try (Stream<Path> paths = Files.list(directory)) {
-            List<Path> directoryEntries = ListUtils.toList( paths.filter(p->Files.isDirectory(p)).sorted() );
+            List<Path> directoryEntries = paths.filter(p->Files.isDirectory(p)).sorted().toList();
             List<Path> enabled = directoryEntries.stream()
                 .filter(path -> isEnabled(path))
                 .collect(Collectors.toList());

@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 
 import org.apache.jena.atlas.lib.DateTimeUtils;
 import org.apache.jena.atlas.lib.InternalErrorException;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.seaborne.delta.*;
 import org.seaborne.delta.server.local.patchstores.PatchLogBase;
@@ -167,7 +166,7 @@ public abstract class PatchStore {
     /** All the patch logs currently managed by this {@code PatchStore}. */
     public List<DataSourceDescription> listDataSources() {
         checkInitialized();
-        return ListUtils.toList(dataSourceRegistry.dataSources().map(log->log.getDescription()));
+        return dataSourceRegistry.dataSources().map(log->log.getDescription()).toList();
     }
 
     /**
