@@ -85,7 +85,7 @@
     <ver.zookeeper>3.9.3</ver.zookeeper>
 
     <ver.aws-s3>1.12.767</ver.aws-s3>
-    <ver.rocksdb>9.9.3</ver.rocksdb>
+    <ver.rocksdb>9.10.0</ver.rocksdb>
 
     <ver.s3mock>0.2.6</ver.s3mock>
     <ver.awaitility>4.2.2</ver.awaitility>
