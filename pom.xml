@@ -88,7 +88,7 @@
     <ver.rocksdb>9.10.0</ver.rocksdb>
 
     <ver.s3mock>0.2.6</ver.s3mock>
-    <ver.awaitility>4.2.2</ver.awaitility>
+    <ver.awaitility>4.3.0</ver.awaitility>
 
     <ver.plugin.cyclonedx>2.9.1</ver.plugin.cyclonedx>
 
