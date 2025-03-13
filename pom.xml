@@ -80,7 +80,6 @@
     <ver.slf4j>2.0.7</ver.slf4j>
 
     <!-- Determines the Zookeeper version unless we explicit include zookeeper -->
-    <!-- Curator 5.7.0 depends on zookeeper 3.9.1 -->
     <ver.curator>5.8.0</ver.curator>
     <ver.zookeeper>3.9.3</ver.zookeeper>
 
