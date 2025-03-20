@@ -35,7 +35,7 @@ import org.junit.runners.Suite.SuiteClasses;
 public class TS_DeltaCmds {
     @BeforeClass public static void beforeClass() {
         // Our choice.
-        System.setProperty("log4j.configurationFile", "src/test/resources/log4j2-test.xml");
+        System.setProperty("log4j.configurationFile", "src/test/resources/log4j2-test.properties");
     }
 
     @AfterClass public static void afterClass() {}
