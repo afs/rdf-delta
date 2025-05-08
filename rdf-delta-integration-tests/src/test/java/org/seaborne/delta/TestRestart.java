@@ -135,19 +135,11 @@ public class TestRestart {
         deltaLink = null;
     }
 
-    private Id xcreateExternal(String name, DatasetGraph dsgBase) {
-        Id dsRef = deltaClient.newDataSource(name, "http://example/"+name);
-        deltaClient.attachExternal(dsRef, dsgBase);
-        deltaClient.connect(dsRef, SyncPolicy.NONE);
-        return dsRef;
-    }
-
     @BeforeClass public static void beforeClass() {
         LogX.setJavaLogging("src/test/resources/logging.properties");
     }
 
     @AfterClass public static void afterClass() {
-
     }
 
     @Test public void restart_00() {
@@ -217,8 +209,7 @@ public class TestRestart {
         assertFalse(deltaClient.existsRemote(dsRef));
     }
 
-
-    @Test public void restart_01() {
+    @Test public void restart_01() {     //************************
         setupEmpty();
         String NAME = "restart_01";
         Id dsRef = deltaClient.newDataSource(NAME, "http://example/"+NAME);
