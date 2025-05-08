@@ -71,7 +71,7 @@
     <java.version>21</java.version>
 
     <ver.jena>5.4.0</ver.jena>
-    <ver.jetty>12.0.19</ver.jetty>
+    <ver.jetty>12.0.20</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.19.0</ver.commons-io>
