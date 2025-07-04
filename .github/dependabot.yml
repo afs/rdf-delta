@@ -8,8 +8,9 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "thursday"
+      interval: "monthly"
+      # interval: "weekly"
+      # day: "thursday"
     open-pull-requests-limit: 5
     groups:
       maven-patch-group:
