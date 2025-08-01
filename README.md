@@ -1,5 +1,7 @@
 # RDF Delta
 
+<b>** This project is going to be archived **</b>
+
 RDF Delta provides a system for recording and publishing changes to RDF
 Datasets. It is built around idea of change logs:
 
