@@ -70,7 +70,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
 
-    <ver.jena>5.4.0</ver.jena>
+    <ver.jena>5.5.0</ver.jena>
     <ver.jetty>12.0.23</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
@@ -125,9 +125,6 @@
   <dependencyManagement>
     <dependencies>
 
-      <!-- TEMP -->
-
-      <!-- Control version of Apache HttpClient components -->
        <dependency>
          <groupId>org.apache.httpcomponents</groupId>
          <artifactId>httpclient-cache</artifactId>
@@ -189,32 +186,17 @@
        
        <dependency>
          <groupId>org.apache.jena</groupId>
-         <artifactId>apache-jena-libs</artifactId>
+         <artifactId>jena-bom</artifactId>
          <version>${ver.jena}</version>
-        <type>pom</type>
+         <type>pom</type>
+         <scope>import</scope>
        </dependency>
        
-       <!-- 
-            Ensure we get a recent version.
-            Some dependencies depend on quite old commons-io versions
-      -->
        <dependency>
          <groupId>commons-io</groupId>
          <artifactId>commons-io</artifactId>
          <version>${ver.commons-io}</version>
        </dependency>
-
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-fuseki-main</artifactId>
-        <version>${ver.jena}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-text</artifactId>
-        <version>${ver.jena}</version>
-      </dependency>
 
        <dependency>
          <groupId>org.eclipse.jetty</groupId>
@@ -232,19 +214,6 @@
          <type>pom</type>
        </dependency>
       
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-cmds</artifactId>
-        <version>${ver.jena}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-base</artifactId>
-        <version>${ver.jena}</version>
-        <classifier>tests</classifier>
-      </dependency>
-
       <dependency>
         <groupId>org.rocksdb</groupId>
         <artifactId>rocksdbjni</artifactId>
