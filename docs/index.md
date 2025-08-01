@@ -3,6 +3,8 @@ layout: doc
 title: RDF Delta - Replicating RDF Datasets
 ---
 
+<b>** This project is going to be archived **</b>
+
 RDF Delta is a system for recording and publishing changes to RDF
 Datasets.
 
