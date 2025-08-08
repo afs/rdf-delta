@@ -20,7 +20,7 @@ package org.seaborne.delta.server;
 import org.seaborne.delta.DeltaException;
 
 public enum Provider {
-    UNSET, MEM, FILE, ROCKS, ZKZK, LOCAL;
+    UNSET, MEM, FILE, ROCKS, LOCAL;
 
     public static Provider create(String str) {
         if ( UNSET.name().equalsIgnoreCase(str) )   return UNSET;
@@ -28,7 +28,6 @@ public enum Provider {
         if ( FILE.name().equalsIgnoreCase(str) )    return FILE;
         if ( ROCKS.name().equalsIgnoreCase(str) )   return ROCKS;
         if ( "rdb".equalsIgnoreCase(str) )          return ROCKS;
-        if ( ZKZK.name().equalsIgnoreCase(str) )    return ZKZK;
         if ( LOCAL.name().equalsIgnoreCase(str) )   return LOCAL;
         throw new DeltaException("Provider name '"+str+"'not recognized");
     }

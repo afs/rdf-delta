@@ -37,9 +37,9 @@ distributing changes to RDF datasets.
 * "[RDF Patch](rdf-patch.html)" for the format for recording changes.
 * "[RDF Patch Logs](rdf-patch-logs.html)" for organising and accessing RDF Patches
 
-## System Examples
+## System Example
 
-* [High Available Fuseki](ha-system.html)
+* [Replicated Fuseki](system-setup.html)
 
 ## Code
 

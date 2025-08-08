@@ -79,10 +79,6 @@
     <ver.log4j2>2.25.2</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
 
-    <!-- Determines the Zookeeper version unless we explicit include zookeeper -->
-    <ver.curator>5.9.0</ver.curator>
-    <ver.zookeeper>3.9.4</ver.zookeeper>
-
     <ver.rocksdb>10.4.2</ver.rocksdb>
 
     <ver.awaitility>4.3.0</ver.awaitility>
@@ -250,50 +246,6 @@
         <version>${ver.log4j2}</version>
       </dependency>
       <!-- End logging -->
-
-      <!-- to have a different version of zookeeper to the one curator depends on -->
-      <dependency>
-        <groupId>org.apache.zookeeper</groupId>
-        <artifactId>zookeeper</artifactId>
-        <version>${ver.zookeeper}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.apache.curator</groupId>
-        <artifactId>curator-recipes</artifactId>
-        <version>${ver.curator}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      
-      <dependency>
-        <groupId>org.apache.curator</groupId>
-        <artifactId>curator-test</artifactId>
-        <version>${ver.curator}</version>
-        <exclusions>
-          <exclusion>
-            <!-- JUnit 5.6.2 does not play with JUnit 4.13.2 -->
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency> 
 
       <dependency>
         <groupId>org.awaitility</groupId>

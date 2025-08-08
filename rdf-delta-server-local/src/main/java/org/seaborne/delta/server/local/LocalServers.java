@@ -18,7 +18,6 @@
 package org.seaborne.delta.server.local;
 
 import java.nio.file.Path;
-import java.util.Properties;
 
 import org.seaborne.delta.DeltaConst;
 import org.seaborne.delta.server.Provider;
@@ -87,39 +86,6 @@ public class LocalServers {
             .build();
     }
 
-    /**
-     * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
-     * and zookeeper-based index patch store.
-     */
-    public static LocalServerConfig configZk(String connectionString) {
-        return configZk(connectionString, null, null);
-    }
-
-    /**
-     * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
-     * and zookeeper-based index patch store.
-     */
-    public static LocalServerConfig configZk(String connectionString, Properties props) {
-        return configZk(connectionString, null, props);
-    }
-
-    /**
-     * {@link LocalServerConfig} for a {@link LocalServer} with a zookeeper-based index
-     * and zookeeper-based index patch store.
-     */
-    public static LocalServerConfig configZk(String connectionString, String jettyConf, Properties props) {
-        LocalServerConfig.Builder builder = LocalServerConfig.create()
-            .setLogProvider(Provider.ZKZK)
-            .jettyConfigFile(jettyConf);
-        if ( connectionString != null ) {
-            if ( props != null ) {
-                builder.setProperties(props);
-            }
-            builder.setProperty(DeltaConst.pDeltaZk, connectionString);
-        }
-        return builder.build();
-    }
-
     /** Create a {@link LocalServer} with a mixed local provider {@link PatchStore}. */
     public static LocalServer createLocal(String directory) {
         return create(configLocal(directory));
@@ -154,20 +120,6 @@ public class LocalServers {
     public static LocalServer createMem() {
         return create(configMem());
     }
-
-    /** Create a {@link LocalServer} with a Apache ZooKeeper based {@link PatchStore}. */
-    public static LocalServer createZk(String connectionString, Properties props) {
-        return create(configZk(connectionString, props));
-    }
-
-//    /** Create a {@link LocalServer} using an existing {@link CuratorFramework}.
-//     * Special case; normally, each {@link PatchStoreZk} has it's own {@code CuratorFramework}.
-//     */
-//    public static LocalServer createZk(CuratorFramework client) {
-//        LocalServerConfig config = configZk(null);
-//        PatchStore ps = new PatchStoreProviderZk(client).create(config);
-//        return LocalServer.create(ps, config);
-//    }
 
     public static LocalServer createFromConf(String configFile) {
         LocalServerConfig config = LocalServerConfig.create()

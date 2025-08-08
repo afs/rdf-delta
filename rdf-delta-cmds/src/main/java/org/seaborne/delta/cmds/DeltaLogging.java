@@ -135,15 +135,6 @@ public class DeltaLogging {
                  logger.jetty.name = org.eclipse.jetty
                  logger.jetty.level = WARN
 
-                 logger.zk.name = org.apache.zookeeper
-                 logger.zk.level = WARN
-
-                 logger.curator.name = org.apache.curator
-                 logger.curator.level = WARN
-
-                 ## logger.zk1.name = org.apache.zookeeper.server.ServerCnxnFactory
-                 ## logger.zk1.level = ERROR
-
                  # Fuseki NCSA Request log.
                  appender.plain.type = Console
                  appender.plain.name = PLAIN

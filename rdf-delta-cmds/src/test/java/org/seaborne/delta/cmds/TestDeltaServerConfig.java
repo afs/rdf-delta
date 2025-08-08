@@ -23,7 +23,6 @@ import delta.server.DeltaServerCmd;
 import delta.server.DeltaServerConfig;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.cmd.CmdException;
 import org.junit.Test;
 
 public class TestDeltaServerConfig {
@@ -40,51 +39,6 @@ public class TestDeltaServerConfig {
         test("--jetty=jetty.xml", "--mem");
     }
 
-    @Test public void server_config_zk_1() {
-        test("--zk=mem");
-    }
-
-    @Test public void server_config_zk_2() {
-        test("--zk=host1:1001,host2:1002,host3:1003");
-    }
-
-    @Test public void server_config_zk_3() {
-        test("--zk=localhost:9909", "--zkPort=9909", "--zkData=DIR");
-    }
-
-    @Test public void server_config_zk_4() {
-        test("--zk=localhost:9909", "--zkConf=zoo.cfg");
-    }
-
-    @Test public void server_config_file_1() {
-        test("--base=target");
-    }
-
-    @Test(expected=RuntimeException.class)
-    public void server_config_bad_01() {
-        test("--mem", "--base=DIR");
-    }
-
-    @Test(expected=RuntimeException.class)
-    public void server_config_bad_02() {
-        test("--mem", "--zk=mem");
-    }
-
-    @Test(expected=RuntimeException.class)
-    public void server_config_bad_zk_01() {
-        test("--zkConf=zoo.cfg");
-    }
-
-    @Test(expected=RuntimeException.class)
-    public void server_config_bad_zk_02() {
-        test("--zk=localhost:99" ,"--zkPort=99");
-    }
-
-    @Test(expected=RuntimeException.class)
-    public void server_config_bad_03() {
-        test("--zk=localhost:99" ,"--zkData=DIR");
-    }
-
     private DeltaServerConfig test(String...args) {
         DeltaServerConfig c = DeltaServerCmd.processArgs(args);
         roundTrip(c);
@@ -95,8 +49,6 @@ public class TestDeltaServerConfig {
         JsonObject obj = c.asJSON();
         DeltaServerConfig c2 = DeltaServerConfig.create(obj);
         if ( ! c.equals(c2) ) {
-            System.out.println("c  : "+c.zkMode);
-            System.out.println("c2 : "+c2.zkMode);
             JSON.write(obj);
             JSON.write(c2.asJSON());
         }

@@ -31,23 +31,19 @@ import org.seaborne.delta.server.patchstores.*;
     , TestPatchStorageMem.class
     // , TestPatchStorageFile.class :: TestFileStore covers it.
     , TestPatchStorageRocks.class
-    , TestPatchStorageZk.class
 
     , TestPatchLogIndexMem.class
     // XXX ToDo
     //, TestPatchLogIndexFile.class
     //, TestPatchLogIndexRocks.class
-    //, TestPatchLogIndexZk.class
 
     // TestPatchLog* and TestPatchStore* should be enough.
     , TestPatchLogMem.class
     , TestPatchLogFile.class   // New
-    , TestPatchLogZk.class
 
     , TestPatchStoreMem.class
     , TestPatchStoreFile.class
     , TestPatchStoreRocks.class
-    , TestPatchStoreZk.class
 
     , TestLocalServer.class
     , TestLocalServerCreateDelete.class

@@ -89,11 +89,6 @@
       <artifactId>jena-fuseki-main</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
-    </dependency>
-
   </dependencies>
 
 </project>

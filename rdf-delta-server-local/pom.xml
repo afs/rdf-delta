@@ -53,17 +53,6 @@
       <classifier>linux64</classifier>
     </dependency>
     
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-recipes</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
-      <scope>test</scope>
-    </dependency>  
-
     <!-- Require a logging implementation for tests -->
     <dependency>
       <groupId>org.slf4j</groupId>

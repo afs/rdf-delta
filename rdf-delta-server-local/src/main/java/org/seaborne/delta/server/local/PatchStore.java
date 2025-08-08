@@ -84,7 +84,7 @@ public abstract class PatchStore {
         return provider;
     }
 
-    /** For subclasses of {@link PatchStore} to override - some don't need to do anything, Zookeeper ones do. */
+    /** For subclasses of {@link PatchStore} to override - some don't need to do anything. */
     protected void sync() {}
 
     public DataSourceRegistry getDataSourceRegistry() {
@@ -105,7 +105,6 @@ public abstract class PatchStore {
         // Initialization of LocalServer and PatchStore can't proceed in a simple nested
         // fashion. Significant work is needed for a PatchStore(rebuild from disk) so delaying
         // until the server starts is better.
-        // (and I don't like constructors that do significant work as does Zk based start-up).
         setDataSourceRegistry(dataSourceRegistry);
         this.configuration = config;
         initialize(config);
@@ -301,7 +300,6 @@ public abstract class PatchStore {
      * Create and properly register a new {@link PatchLog}.
      * Call this to add new patch logs including remote changes.
      * This method calls {@link #newPatchLog} provided by the subclass.
-     * This method is called by {@code PatchStoreZk} when a new log appears.
      */
     final
     protected PatchLog createPatchLog(DataSourceDescription dsd) {

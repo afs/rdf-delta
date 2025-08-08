@@ -28,11 +28,9 @@ import org.seaborne.delta.lib.LogX;
     TestLocalLinkMem.class ,
     TestLocalLinkFile.class ,
     TestLocalLinkRocksDB.class ,
-    TestLocalLinkZk.class ,
 
     TestLocalConnectionMem.class ,
     TestLocalConnectionFile.class ,
-    TestLocalConnectionZk.class ,
     TestLocalConnectionRocksDB.class ,
     TestLocalClient.class ,
 
@@ -49,10 +47,9 @@ import org.seaborne.delta.lib.LogX;
 
     TestLogLockMem.class,
     TestLogLockFile.class,
-    TestLogLockZk.class,
+
     TestDeltaLogLockMem.class,
     TestDeltaLogLockFile.class,
-    TestDeltaLogLockZk.class,
 
     // Includes assembler tests.
     TestDeltaFusekiGood.class ,

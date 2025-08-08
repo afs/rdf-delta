@@ -24,7 +24,7 @@ import org.seaborne.delta.*;
 import org.apache.jena.rdfpatch.PatchHeader ;
 import org.apache.jena.rdfpatch.RDFPatch;
 
-/** A {@code PatchLog} is the sequence of {@link RDFPatch}es for one {@link DataSource}.
+/** A {@code PatchLog} is the sequence of {@link RDFPatch RDFPatches} for one {@link DataSource}.
  * <p>
  * All patches have a fixed {@link Id}. In addition, a patch log
  * gives each patch a version number (sequence number).
