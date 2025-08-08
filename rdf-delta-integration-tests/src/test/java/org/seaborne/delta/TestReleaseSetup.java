@@ -18,19 +18,13 @@
 package org.seaborne.delta;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
 import org.seaborne.delta.server.local.LocalServer;
-import org.seaborne.delta.server.local.patchstores.zk.PatchStoreZk;
 
 public class TestReleaseSetup {
     // Check setting for a release.
-
-    @Test
-    public void deltaZk_setup() {
-        assertTrue("PatchStoreZk.actionsInWatcher is false", PatchStoreZk.actionsInWatcher);
-    }
 
     @Test
     public void localServer_setup() {

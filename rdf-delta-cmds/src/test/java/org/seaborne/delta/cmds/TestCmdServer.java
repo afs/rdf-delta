@@ -37,18 +37,15 @@ import org.seaborne.delta.link.DeltaLog;
 
 @FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class TestCmdServer {
-    private static String ZKDIR     = "target/ZKD";
     private static String FILEDIR   = "target/FileStore";
 
     public TestCmdServer() { }
 
     @BeforeClass static public void beforeClass() {
-        FileOps.ensureDir(ZKDIR);
         FileOps.ensureDir(FILEDIR);
     }
 
     @Before public void before() {
-        FileOps.clearDirectory(ZKDIR);
         FileOps.ensureDir(FILEDIR);
     }
 
@@ -56,16 +53,6 @@ public class TestCmdServer {
 
     @Test public void server2_mem() {
         String[] args = {"--mem"};
-        serverAndVerify(args);
-    }
-
-    @Test public void server2_zkMem() {
-        String[] args = {"--zk=mem"};
-        serverAndVerify(args);
-    }
-
-    @Test public void server3_zkLocal() {
-        String[] args = {"--zk=localhost:2189", "--zkData="+ZKDIR, "--zkPort=2189"};
         serverAndVerify(args);
     }
 

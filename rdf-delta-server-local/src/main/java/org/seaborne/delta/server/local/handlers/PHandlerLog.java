@@ -24,23 +24,23 @@ import org.apache.jena.rdfpatch.RDFPatchOps;
 import org.apache.jena.rdfpatch.changes.PatchSummary;
 import org.slf4j.Logger ;
 
-/** Log a infroamtion about a patch */
+/** Log a information about a patch */
 public class PHandlerLog implements PatchHandler {
-    
+
     private final Logger log ;
-    
+
     public PHandlerLog(Logger log) {
         this.log = log ;
     }
-    
+
     /** Safe handler */
     @Override
     public void handle(Patch patch) {
-        
+
         PatchSummary scc = RDFPatchOps.summary(patch) ;
         FmtLog.info(log,
                     "Patch: Quads: add=%d, delete=%d :: Prefixes: add=%d delete=%d",
-                    scc.countAddData, scc.countDeleteData, 
+                    scc.countAddData, scc.countDeleteData,
                     scc.countAddPrefix, scc.countDeletePrefix) ;
     }
 }

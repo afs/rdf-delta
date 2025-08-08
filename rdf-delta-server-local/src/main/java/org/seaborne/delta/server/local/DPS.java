@@ -29,7 +29,6 @@ import org.seaborne.delta.server.local.patchstores.filestore.FileStore;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreRocks;
-import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
 import org.seaborne.delta.server.system.DeltaSystem;
 import org.slf4j.Logger;
 
@@ -46,7 +45,6 @@ public class DPS {
     public static final String pspFile    = "file";
     public static final String pspRocks   = "rdb";
     public static final String pspMem     = "mem";
-    public static final String pspZk      = "zk";
     public static final String pspLocal   = "local";
 
     // ---- Provider name registry.
@@ -128,7 +126,6 @@ public class DPS {
             new PatchStoreProviderFile(),
             new PatchStoreProviderRocks(),
             new PatchStoreProviderMem(),
-            new PatchStoreProviderZk(),
             new PatchStoreProviderAnyLocal()
         );
 
