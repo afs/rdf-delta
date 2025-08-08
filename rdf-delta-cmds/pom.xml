@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.seaborne.rdf-delta</groupId>
     <artifactId>rdf-delta</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>1.1.3-SNAPSHOT</version>
   </parent> 
 
   <properties>
@@ -58,32 +58,32 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-client</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>1.1.3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-local</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>1.1.3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-http</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>1.1.3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-extra</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>1.1.3-SNAPSHOT</version>
     </dependency>
 
      <!-- Only for the patch service -->
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-fuseki</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>1.1.3-SNAPSHOT</version>
     </dependency>
     <!-- With jena-text -->
     <dependency>
@@ -109,7 +109,7 @@
     <dependency>
       <groupId>org.seaborne.rdf-delta</groupId>
       <artifactId>rdf-delta-server-extra</artifactId>
-      <version>2.0.0-SNAPSHOT</version>
+      <version>1.1.3-SNAPSHOT</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
