@@ -56,19 +56,6 @@ public class TestDeltaServerConfig {
         test("--zk=localhost:9909", "--zkConf=zoo.cfg");
     }
 
-    @Test(expected=CmdException.class)
-    public void server_config_zks3_1() {
-        test("--zk=mem", "--s3bucket=patches");
-    }
-
-    @Test public void server_config_zks3_2() {
-        test("--zk=mem", "--s3bucket=patches", "--s3region=eu-bristol");
-    }
-
-    @Test public void server_config_zks3_3() {
-        test("--zk=mem", "--s3bucket=patches", "--s3region=eu-bristol", "--s3keys=credentials");
-    }
-
     @Test public void server_config_file_1() {
         test("--base=target");
     }

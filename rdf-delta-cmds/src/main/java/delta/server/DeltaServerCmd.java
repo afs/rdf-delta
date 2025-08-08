@@ -24,7 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -42,7 +41,6 @@ import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.http.ZkMode;
-import org.seaborne.delta.server.s3.InitZkS3;
 import org.slf4j.Logger;
 
 /** Command line run the server. */
@@ -70,13 +68,6 @@ public class DeltaServerCmd {
     private static ArgDecl argZkPort            = new ArgDecl(true, "zkPort", "zkport");
     private static ArgDecl argZkData            = new ArgDecl(true, "zkData", "zkdata");
     private static ArgDecl argZkConf            = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
-
-    private static ArgDecl argS3Bucket          = new ArgDecl(true, "s3Bucket",   "s3bucket");
-    private static ArgDecl argS3Region          = new ArgDecl(true, "s3Region",   "s3region");
-    private static ArgDecl argS3KeysFile        = new ArgDecl(true, "s3Keys",     "s3keys");
-    private static ArgDecl argS3KeysProfile     = new ArgDecl(true, "s3Profile",  "s3profile");
-    // Allow alternative endpoints (e.g. a mock S3 store)
-    private static ArgDecl argS3Endpoint        = new ArgDecl(true, "s3Endpoint", "s3endpoint");
 
     private static ArgDecl argJetty             = new ArgDecl(true, "jetty");
 
@@ -170,12 +161,6 @@ public class DeltaServerCmd {
         cla.add(argZkPort);
         cla.add(argZkData);
 
-        cla.add(argS3Bucket);
-        cla.add(argS3Region);
-        cla.add(argS3KeysFile);
-        cla.add(argS3KeysProfile);
-        cla.add(argS3Endpoint);
-
         //cla.add(argConf);
         cla.process();
 
@@ -203,12 +188,6 @@ public class DeltaServerCmd {
                 ,"        --zkPort            Port for the embedded Zookeeper."
                 ,"   Test Zookeeper"
                 ,"        --zk=mem            Run a single Zookeeper without persistent storage."
-                ,"   S3 patch storage"
-                ,"        --s3bucket          S3 bucket name"
-                ,"        --s3region          S3 region"
-                ,"        --s3keys            S3 access and secret access keys file (if not set, use default credentials mechanism)"
-                ,"        --s3profile         S3 keys file profile"
-                ,"        --s3endpoint        S3 alternative endpoint e.g. a store that provides the s3 API"
                 );
             System.err.println(msg);
             throw new TerminationException(0);
@@ -236,12 +215,7 @@ public class DeltaServerCmd {
 
         if ( cla.contains(argZk) ) {
             x++;
-            if ( cla.contains(argS3Bucket) ) {
-                InitZkS3.register();
-                provider = ZKS3;
-            }
-            else
-                provider = ZKZK;
+            provider = ZKZK;
         }
         if ( cla.contains(argMem) ) {
             x++;
@@ -335,11 +309,6 @@ public class DeltaServerCmd {
                 zookeeperArgs(cla, serverConfig);
                 break;
             }
-            case ZKS3 : {
-                zookeeperArgs(cla, serverConfig);
-                s3Args(cla, serverConfig);
-                break;
-            }
             default : {
                 throw new NotImplemented("Provider not recognized: "+provider);
             }
@@ -405,29 +374,6 @@ public class DeltaServerCmd {
 
         FmtLog.debug(LOG,"Connection string: %s", connectionString);
         serverConfig.zkConnectionString = connectionString;
-    }
-
-    private static void s3Args(CmdLineArgs cla , DeltaServerConfig serverConfig) {
-        String bucketName = cla.getValue(argS3Bucket);
-        if ( StringUtils.isBlank(bucketName) )
-            cmdLineError("No S3 bucket name provided");
-        serverConfig.s3BucketName = bucketName;
-
-        String credentialsFile = cla.getValue(argS3KeysFile);
-        if ( credentialsFile != null && credentialsFile.isEmpty() )
-            cmdLineError("Empty S3 credentials file");
-        serverConfig.s3CredentialsFile = credentialsFile;
-
-        String credentialsProfile = cla.getValue(argS3KeysProfile);
-        serverConfig.s3CredentialsProfile = credentialsProfile;
-
-        String region = cla.getValue(argS3Region);
-        if ( StringUtils.isBlank(region) )
-            cmdLineError("No S3 region name provided");
-        serverConfig.s3Region = region;
-
-        String endpoint = cla.getValue(argS3Endpoint);
-        serverConfig.s3Endpoint = endpoint;
     }
 
     private static int parseZookeeperPort(String portStr) {

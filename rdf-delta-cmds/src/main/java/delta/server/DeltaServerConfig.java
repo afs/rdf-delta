@@ -58,13 +58,6 @@ public class DeltaServerConfig {
     // Quorum ensemble
     public String zkConf = null;
 
-    // S3 patch storage.
-    public String s3BucketName = null;
-    public String s3Region = null;
-    public String s3CredentialsFile = null;
-    public String s3CredentialsProfile = null;
-    public String s3Endpoint = null;
-
     // ---- JSON field constants
     private static String fProvider           = "store";
 
@@ -81,12 +74,6 @@ public class DeltaServerConfig {
     private static String fFileDirData        = "filestore";
     // The memory provider
     // -- none
-    // The S3 backend to Zookeeper
-    private static String fS3BucketName       = "s3.bucket";
-    private static String fS3Region           = "s3.region";
-    private static String fS3CredsFile        = "s3.keys.file";
-    private static String fS3CredsProfile     = "s3.keys.profile";
-    private static String fS3Endpoint         = "s3.endpoint";
 
     // ---- JSON field constants
 
@@ -151,17 +138,6 @@ public class DeltaServerConfig {
             conf.zkMode = ZkMode.MEM;
         else if ( conf.zkData != null )
             conf.zkMode = ZkMode.LOCAL;
-        // S3
-        if ( obj.hasKey(fS3BucketName) )
-            conf.s3BucketName = JSONX.getStrOrNull(obj, fS3BucketName);
-        if ( obj.hasKey(fS3Region) )
-            conf.s3Region = JSONX.getStrOrNull(obj, fS3Region);
-        if ( obj.hasKey(fS3CredsFile) )
-            conf.s3CredentialsFile = JSONX.getStrOrNull(obj, fS3CredsFile);
-        if ( obj.hasKey(fS3CredsProfile) )
-            conf.s3CredentialsProfile = JSONX.getStrOrNull(obj, fS3CredsProfile);
-        if ( obj.hasKey(fS3Endpoint) )
-            conf.s3Endpoint = JSONX.getStrOrNull(obj, fS3Endpoint);
 
         validate(conf);
         return conf;
@@ -194,21 +170,6 @@ public class DeltaServerConfig {
                 if ( zkConf != null )
                     b.pair(fZkConfig, zkConf);
 
-                if ( s3BucketName != null )
-                    b.pair(fS3BucketName, s3BucketName);
-
-                if ( s3Region != null )
-                    b.pair(fS3Region, s3Region);
-
-                if ( s3CredentialsFile != null )
-                    b.pair(fS3CredsFile, s3CredentialsFile);
-
-                if ( s3CredentialsProfile != null )
-                    b.pair(fS3CredsProfile, s3CredentialsProfile);
-
-                if ( s3Endpoint != null )
-                    b.pair(fS3Endpoint, s3Endpoint);
-
                 if ( fileBase != null )
                     b.pair(fFileDirData, fileBase);
             });
@@ -234,11 +195,6 @@ public class DeltaServerConfig {
         result = prime * result + ((fileBase == null) ? 0 : fileBase.hashCode());
         result = prime * result + ((jettyConf == null) ? 0 : jettyConf.hashCode());
         result = prime * result + ((provider == null) ? 0 : provider.hashCode());
-        result = prime * result + ((s3BucketName == null) ? 0 : s3BucketName.hashCode());
-        result = prime * result + ((s3CredentialsFile == null) ? 0 : s3CredentialsFile.hashCode());
-        result = prime * result + ((s3CredentialsProfile == null) ? 0 : s3CredentialsProfile.hashCode());
-        result = prime * result + ((s3Endpoint == null) ? 0 : s3Endpoint.hashCode());
-        result = prime * result + ((s3Region == null) ? 0 : s3Region.hashCode());
         result = prime * result + ((serverPort == null) ? 0 : serverPort.hashCode());
         result = prime * result + ((zkConf == null) ? 0 : zkConf.hashCode());
         result = prime * result + ((zkConnectionString == null) ? 0 : zkConnectionString.hashCode());
@@ -269,31 +225,6 @@ public class DeltaServerConfig {
         } else if ( !jettyConf.equals(other.jettyConf) )
             return false;
         if ( provider != other.provider )
-            return false;
-        if ( s3BucketName == null ) {
-            if ( other.s3BucketName != null )
-                return false;
-        } else if ( !s3BucketName.equals(other.s3BucketName) )
-            return false;
-        if ( s3CredentialsFile == null ) {
-            if ( other.s3CredentialsFile != null )
-                return false;
-        } else if ( !s3CredentialsFile.equals(other.s3CredentialsFile) )
-            return false;
-        if ( s3CredentialsProfile == null ) {
-            if ( other.s3CredentialsProfile != null )
-                return false;
-        } else if ( !s3CredentialsProfile.equals(other.s3CredentialsProfile) )
-            return false;
-        if ( s3Endpoint == null ) {
-            if ( other.s3Endpoint != null )
-                return false;
-        } else if ( !s3Endpoint.equals(other.s3Endpoint) )
-            return false;
-        if ( s3Region == null ) {
-            if ( other.s3Region != null )
-                return false;
-        } else if ( !s3Region.equals(other.s3Region) )
             return false;
         if ( serverPort == null ) {
             if ( other.serverPort != null )

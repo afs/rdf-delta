@@ -47,7 +47,6 @@ public class DPS {
     public static final String pspRocks   = "rdb";
     public static final String pspMem     = "mem";
     public static final String pspZk      = "zk";
-    public static final String pspZkS3    = "zks3";
     public static final String pspLocal   = "local";
 
     // ---- Provider name registry.
@@ -118,7 +117,6 @@ public class DPS {
         PatchStoreMgr.reset();
 
         initPatchStoreProviders();
-        // Does not cover ZkS3.
 
         initLast();
     }

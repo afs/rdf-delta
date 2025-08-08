@@ -29,7 +29,6 @@ import org.junit.runners.Suite.SuiteClasses;
     , TestDeltaServerConfig.class
     , TestCmds.class
     , TestCmdServer.class
-    , TestCmdServerZkS3.class
 })
 
 public class TS_DeltaCmds {

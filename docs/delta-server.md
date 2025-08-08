@@ -21,8 +21,7 @@ local database) for existing patch logs is preserved. The server setup influence
 the storage for patch logs when they are created.
 
 The fault tolerant form uses [Apache Zookeeper](http://zookeeper.apache.org/) as
-its fault-tolerant storage for indexes and either Zookeeper or AWS S3 (or
-compatible) for storing the content of patches.
+its fault-tolerant storage for indexes and Zookeeper for storing the content of patches.
 
 The recommended deployment choices are using RocksDB storage (`--store`), with
 either a filesystem which should be on reliable storage or a backed up
@@ -76,19 +75,6 @@ When using an external Zookeeper connection, the following arguments are availab
 |-----------|---------|
 | `--zkRootDir` | Root directory to use in<br/>Zookeeper to store patch<br/>info _(defaults to `/delta`<br/>and is ignored if embedded<br/>Zookeeper is used)_
 
-Patches can be stored in the Zookeeper database or externally in AWS S3, or a
-storage that provides the S3 API (other objects store may be supported in the
-future). An external object store is the preferred choice because it limits the
-growth of the Zookeeper database.
-
-The S3 patch storage argument:
-
-| Argument for S3 |   |
-|-----------|---------|
-| `--s3bucket`   | S3 bucket name (required)
-| `--s3region`   | S3 region |
-| `--s3endpoint` | URL for an S3 alternative endpoint | 
-
 ## Examples
 
 ### Run a single server
@@ -104,8 +90,7 @@ with a RockDB database for patches. Patch logs are stored in the directory
 ### Run a high availability patch log server 
 
 This example is for a high availability patch log service, consisting of 3 patch
-log servers, each using using the embedded Apache Zookeeper, and using AWS S3
-for patch storage.
+log servers, each using using the embedded Apache Zookeeper.
 
 The three patch log server should be run on different machines.
 
@@ -116,8 +101,7 @@ with zookeeper running on port 1110 on each machine.
 <pre>
     dcmd server --port 1060                                         \
         --zkPort 1110 --zkData LocalDirectory                       \
-        --zk="server1:1110,server2:1110,server3:1110"               \
-        --s3bucket=<i>some-bucket-name</i> --s3region=<i>region</i>
+        --zk="server1:1110,server2:1110,server3:1110"
 </pre>
 
 This command is run on each of the machines "server1", "server2" and "server3"

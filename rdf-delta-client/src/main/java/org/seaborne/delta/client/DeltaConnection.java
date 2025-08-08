@@ -506,8 +506,8 @@ public class DeltaConnection implements AutoCloseable {
                         patch = dLink.fetch(datasourceId, verObj);
                         if ( patch == null ) {
                             // No patch. Patches have no gaps.
-                            // But a storage like S3 is only eventually consistent so stop
-                            // now and resync next time.
+                            // An eventually consistent patch storage layer may be behind
+                            // so skip for now and resync next time.
                             FmtLog.info(LOG, "Play: %s patch=%s : not found", datasourceId, verObj);
                             break;
                         }

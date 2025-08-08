@@ -34,9 +34,6 @@ import org.seaborne.delta.server.local.patchstores.file.PatchStoreProviderFile;
 import org.seaborne.delta.server.local.patchstores.mem.PatchStoreProviderMem;
 import org.seaborne.delta.server.local.patchstores.rdb.PatchStoreProviderRocks;
 import org.seaborne.delta.server.local.patchstores.zk.PatchStoreProviderZk;
-import org.seaborne.delta.server.s3.PatchStoreProviderZkS3;
-import org.seaborne.delta.server.s3.S3;
-import org.seaborne.delta.server.s3.S3Config;
 import org.seaborne.delta.zk.ZkS;
 import org.seaborne.delta.zk.ZooServer;
 import org.slf4j.Logger;
@@ -98,12 +95,6 @@ public /*package*/ class ServerBuildLib {
                 localServerConfig = serverConfigZookeeper(deltaServerConfig);
                 providerLabel = "zookeeper";
                 break;
-            case ZKS3 :
-                psp = installProvider(new PatchStoreProviderZkS3());
-                localServerConfig = serverConfigZookeeper(deltaServerConfig);
-                localServerConfig = setupS3(deltaServerConfig, localServerConfig);
-                providerLabel = "zookeeper+s3";
-                break;
             default :
                 throw new DeltaConfigException("Unrecognized provider: "+deltaServerConfig.provider);
         }
@@ -145,13 +136,12 @@ public /*package*/ class ServerBuildLib {
             props.setProperty(DeltaConst.pRootDirName, config.zkRootDirName);
         }
 
-        // If zk+S3, there isn't a provider name set yet.
         LocalServerConfig localServerConfig = LocalServers.configZk(config.zkConnectionString, config.jettyConf, props);
         return localServerConfig;
     }
 
     private static boolean isZookeeper(DeltaServerConfig config) {
-        return config.provider == Provider.ZKZK || config.provider == Provider.ZKS3;
+        return config.provider == Provider.ZKZK;
     }
 
     private static boolean localZookeeper(DeltaServerConfig config) {
@@ -195,19 +185,6 @@ public /*package*/ class ServerBuildLib {
             default :
                 break;
         }
-    }
-
-    private static LocalServerConfig setupS3(DeltaServerConfig config, LocalServerConfig localServerConfig) {
-        // Take the provided Zookeeper LocalServerConfig and create a new one that is same
-        // zookeeper index provider with S3 as the storage.
-        S3Config cfg = S3Config.create()
-          .bucketName(config.s3BucketName)
-          .region(config.s3Region)
-          .endpoint(config.s3Endpoint)
-          .credentialsFile(config.s3CredentialsFile)
-          .credentialsProfile(config.s3CredentialsProfile)
-          .build();
-        return S3.configZkS3(localServerConfig, cfg);
     }
 
     // --> DeltaServer.start()

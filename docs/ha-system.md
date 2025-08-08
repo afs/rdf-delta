@@ -44,7 +44,6 @@ hardware.
 * [Failover Fuseki Configuration](#fuseki-failover)
 * [File based persistent patch storage](#file-patch-store)
 * [Adding High Availability Components](#ha-patch-store)
-* [Using S3 for patch storage](#patch-storage-s3)
 
 ## Obtaining the Software {#software}
 
@@ -318,8 +317,7 @@ partition or loss of one server, two of which must be running and able
 to contact each other at all times.
 
 In this tutorial, Zookeeper is used to store the patches themselves and
-Zookeeper only handles small files.  A full production system would use
-a patch storage layer such as AWS S3.
+Zookeeper only handles small files.
 
 The Zookeeper servers are run in the same JVM as the RDF Delta Patch
 Servers as a self-contained Zookeeper ensemble. An external Zookeeper
@@ -447,16 +445,3 @@ from scratch each time it starts up.
 
 Full details of the RDF Delta configuration file for Apache Jena Fuseki
 are given [here](delta-fuseki-config).
-
-## Using S3 for Patch Storage {#patch-storage-s3}
-
-Patches of any size can be stored in S3, or any system that provides the
-AWS S3 API (for example, there is an adapter for Apache Cassandra).
-
-```
-dcmd server -zk=... --s3Bucket=BUCKET  --s3Keys=KEYS --s3Region=REGION
-```
-where `BUCKET` is the S3 bucket name, `KEYS` is a AWS credential
-proerties file, if not supplied the satndard defaul S3 autehntication
-mechanism is used, and the `REGION` is an AWS region name such as
-"us-east-1".
