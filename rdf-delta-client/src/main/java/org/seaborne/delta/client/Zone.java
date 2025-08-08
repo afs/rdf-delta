@@ -293,6 +293,7 @@ public class Zone {
      * Create a dataset appropriate to the storage type.
      * This does <em>not</em> write the configuration details into the on-disk zone information.
      */
+    @SuppressWarnings("removal")
     public DatasetGraph localStorage(LocalStorageType storage, Path dataPath) {
         return switch(storage) {
             case EXTERNAL-> null;
