@@ -29,7 +29,7 @@ import org.seaborne.delta.server.local.LocalServers;
 
 /**
  * Delta server.
- * This is the {@link PatchLogServer} and all additional servers like ZooKeeper.
+ * This is the {@link PatchLogServer} and any setup needed.
  */
 
 public class DeltaServer {

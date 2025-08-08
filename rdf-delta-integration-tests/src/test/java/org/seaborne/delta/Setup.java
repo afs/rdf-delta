@@ -19,13 +19,10 @@ package org.seaborne.delta;
 
 import java.net.BindException;
 
-import org.apache.curator.test.TestingServer;
 import org.apache.jena.atlas.lib.Creator;
 import org.apache.jena.atlas.web.WebLib;
 import org.seaborne.delta.client.DeltaLinkHTTP;
 import org.seaborne.delta.link.DeltaLink;
-import org.seaborne.delta.server.Provider;
-import org.seaborne.delta.server.ZkT;
 import org.seaborne.delta.server.http.DeltaServer;
 import org.seaborne.delta.server.local.*;
 
@@ -69,17 +66,6 @@ public class Setup {
 
         public static LinkSetup createRocksDB() {
             return new LocalSetup(()->DeltaTestLib.createEmptyTestServerRocks(), true);
-        }
-
-        public static LinkSetup createZkMem() {
-            return new LocalSetup(()->{
-                TestingServer server = ZkT.localServer();
-                String connectionString = server.getConnectString();
-                LocalServerConfig config = LocalServers.configZk(connectionString);
-                PatchStore patchStore = PatchStoreMgr.getPatchStoreProvider(Provider.ZKZK).create(config);
-                LocalServer localServer = LocalServer.create(patchStore, config);
-                return localServer;
-            }, false);
         }
 
         @Override

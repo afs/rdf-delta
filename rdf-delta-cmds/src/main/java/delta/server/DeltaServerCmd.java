@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.FmtLog;
-import org.apache.jena.atlas.web.WebLib;
 import org.apache.jena.cmd.ArgDecl;
 import org.apache.jena.cmd.CmdException;
 import org.apache.jena.cmd.CmdLineArgs;
@@ -40,7 +39,6 @@ import org.seaborne.delta.cmds.DeltaLogging;
 import org.seaborne.delta.lib.LibX;
 import org.seaborne.delta.server.Provider;
 import org.seaborne.delta.server.http.DeltaServer;
-import org.seaborne.delta.server.http.ZkMode;
 import org.slf4j.Logger;
 
 /** Command line run the server. */
@@ -63,11 +61,6 @@ public class DeltaServerCmd {
 
     private static ArgDecl argMem               = new ArgDecl(false, "mem");
     private static ArgDecl argStore             = new ArgDecl(true, "store", "rdb");
-    private static ArgDecl argZk                = new ArgDecl(true, "zk");
-    private static ArgDecl argZkRootDir         = new ArgDecl(true, "zkRootDir", "zkrootdir", "zkRoot", "zkroot");
-    private static ArgDecl argZkPort            = new ArgDecl(true, "zkPort", "zkport");
-    private static ArgDecl argZkData            = new ArgDecl(true, "zkData", "zkdata");
-    private static ArgDecl argZkConf            = new ArgDecl(true, "zkCfg", "zkcfg", "zkConf", "zkconf");
 
     private static ArgDecl argJetty             = new ArgDecl(true, "jetty");
 
@@ -155,12 +148,6 @@ public class DeltaServerCmd {
         cla.add(argMem);
         cla.add(argStore);
 
-        cla.add(argZk);
-        cla.add(argZkRootDir);
-        cla.add(argZkConf);
-        cla.add(argZkPort);
-        cla.add(argZkData);
-
         //cla.add(argConf);
         cla.process();
 
@@ -168,7 +155,7 @@ public class DeltaServerCmd {
             cmdLineWarning("Warning: ignoring positional arguments");
 
         if ( cla.contains(argHelp) ) {
-            System.err.println("Usage: server [--port=NNNN | --jetty=FILE] [--base=DIR] [--mem] [--zk=connectionString [--zkPort=NNN] [--zkData=DIR] ]");
+            System.err.println("Usage: server [--port=NNNN | --jetty=FILE] [--base=DIR] [--mem]");
             String msg = StrUtils.strjoinNL
                 ("        --port              Port number for the patch server."
                 ,"        --jetty=FILE        File name of a jetty.xml configuration file."
@@ -179,15 +166,6 @@ public class DeltaServerCmd {
                 ,"        --file              Use file based patch storage. Use with --base"
                 ,"Simple testing"
                 ,"        --mem               Run a single server with in-memory index and patch storage."
-                ,"Zookeeper index server:"
-                ,"        --zk=               Zookeeper connection string (e.g. \"host1:port1,host2:port2,host3:port3\")"
-                ,"        --zkRootDir=        Zookeeper root directory (defaults to \"delta\")"
-                ,"   Embedded Zookeeper server"
-                ,"        --zkConf=FILE       Zookeeper configuration file. Runs a Zookeeper Server as part of a quorum ensemble. Must be in the connection string."
-                ,"        --zkData            Storage for the embedded zookeeper"
-                ,"        --zkPort            Port for the embedded Zookeeper."
-                ,"   Test Zookeeper"
-                ,"        --zk=mem            Run a single Zookeeper without persistent storage."
                 );
             System.err.println(msg);
             throw new TerminationException(0);
@@ -213,10 +191,6 @@ public class DeltaServerCmd {
             provider = LOCAL;
         }
 
-        if ( cla.contains(argZk) ) {
-            x++;
-            provider = ZKZK;
-        }
         if ( cla.contains(argMem) ) {
             x++;
             provider = MEM;
@@ -224,12 +198,12 @@ public class DeltaServerCmd {
 
         if ( x < 1 ) {
             if ( args.length == 0 )
-                cmdLineError("No arguments : one of --mem , --store , --base or --zk is required");
+                cmdLineError("No arguments : one of --mem , --store or --base is required");
             else
-                cmdLineError("No provider : one of --mem , --store , --base or --zk is required");
+                cmdLineError("No provider : one of --mem , --store or --base is required");
         }
         if ( x > 1 )
-            cmdLineError("Exactly one of --mem , --store , --base or --zk is required");
+            cmdLineError("Exactly one of --mem , --store or --base is required");
 
         if ( provider == LOCAL ) {
             // Force choice of local provider.
@@ -304,92 +278,12 @@ public class DeltaServerCmd {
                 // No configuration.
                 break;
             }
-            case ZKZK : {
-                // Complicated - put in a static
-                zookeeperArgs(cla, serverConfig);
-                break;
-            }
             default : {
                 throw new NotImplemented("Provider not recognized: "+provider);
             }
         }
 
         return serverConfig;
-    }
-
-    private static void zookeeperArgs(CmdLineArgs cla , DeltaServerConfig serverConfig) {
-        String connectionString = cla.getValue(argZk);
-        if ( connectionString == null )
-            return;
-        serverConfig.zkMode = ZkMode.EXTERNAL;
-        serverConfig.zkPort = null;
-        serverConfig.zkData = null;
-
-
-        // serverConfig.zkMode = ??
-        if ( connectionString.equalsIgnoreCase("mem") ) {
-            // Memory test mode. No other arguments.
-            serverConfig.zkMode = ZkMode.MEM;
-            if ( cla.contains(argZkPort) || cla.contains(argZkData) || cla.contains(argZkConf) || cla.contains(argZkRootDir) ) {
-                cmdLineWarning("WARNING: Local zookeeper with test memory mode: --zkPort, --zkData, --zkRootDir, and --zkConf ignored");
-            }
-        } else if ( cla.contains(argZkConf) ) {
-
-            if ( cla.contains(argZkPort) )
-                cmdLineWarning("WARNING: Local zookeeper: --zkConf present: ignoring --zkPort");
-            if ( cla.contains(argZkData) )
-                cmdLineWarning("WARNING: Local zookeeper: --zkConf present: ignoring --zkData");
-            if ( cla.contains(argZkRootDir) )
-                cmdLineWarning("WARNING: Local zookeeper: --zkRootDir ignored");
-
-            serverConfig.zkConf = cla.getValue(argZkConf);
-            serverConfig.zkMode = ZkMode.QUORUM;
-
-        } else if ( cla.contains(argZkPort) || cla.contains(argZkData) ) {
-            // Check --zkPort and --zkData present together.
-            // Setting for a single persistent zookeeper in-process with provided port and data areas.
-            if ( ! cla.contains(argZkPort) )
-                cmdLineError("No ZooKeeper port: need --zkPort=NNNN with --zkData");
-            if ( ! cla.contains(argZkData) )
-                cmdLineError("No ZooKeeper data folder: need --zkData=DIR with --zkPort");
-
-            if ( cla.contains(argZkConf) ) {
-                cmdLineWarning("WARNING: Local zookeeper: --zkConf not allowed with --zkPort, --zkData");
-            }
-            if ( cla.contains(argZkRootDir) )
-                cmdLineWarning("WARNING: Local zookeeper: --zkRootDir ignored");
-
-            serverConfig.zkPort = parseZookeeperPort(cla.getValue(argZkPort));
-            serverConfig.zkData = cla.getValue(argZkData);
-            serverConfig.zkMode = ZkMode.LOCAL;
-
-            // Make sure port is in the connection string.
-            if ( ! connectionString.contains(Integer.toString(serverConfig.zkPort)) )
-                cmdLineWarning("WARNING: Local zookeeper not in the connection string. (string=%s, port=%d)", connectionString, serverConfig.zkPort);
-        } else {
-            if ( cla.contains(argZkRootDir) ) {
-                serverConfig.zkRootDirName = cla.getValue(argZkRootDir);
-            }
-        }
-
-        FmtLog.debug(LOG,"Connection string: %s", connectionString);
-        serverConfig.zkConnectionString = connectionString;
-    }
-
-    private static int parseZookeeperPort(String portStr) {
-        if ( portStr == null )
-            cmdLineError("No Zookeeper port number: use --%s", argZkPort.getKeyName());
-        try {
-            int port = Integer.parseInt(portStr);
-            if ( port == 0 )
-                return WebLib.choosePort();
-            if ( port < 0 )
-                throw new NumberFormatException();
-            return port;
-        } catch (NumberFormatException ex) {
-            cmdLineError("Failed to parse the Zookeeper port number: %s", portStr);
-            return -1;
-        }
     }
 
     /** Choose a port number or return null */

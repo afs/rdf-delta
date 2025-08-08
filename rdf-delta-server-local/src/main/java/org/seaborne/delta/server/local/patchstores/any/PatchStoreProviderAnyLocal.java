@@ -29,7 +29,6 @@ import org.seaborne.delta.server.local.PatchStoreProvider;
  * A patch store provider that can rebuild from any local (file-based, or RockDB-based) installation.
  * This allows for a mixed storage implementation.
  */
-
 public class PatchStoreProviderAnyLocal implements PatchStoreProvider {
 
     public PatchStoreProviderAnyLocal() {}

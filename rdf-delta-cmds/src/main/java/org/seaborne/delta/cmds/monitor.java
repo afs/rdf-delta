@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import org.apache.jena.atlas.json.JsonException;
 import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.atlas.lib.Pair;
