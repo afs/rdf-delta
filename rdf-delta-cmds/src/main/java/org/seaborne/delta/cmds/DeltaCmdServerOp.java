@@ -24,8 +24,8 @@ import org.apache.jena.cmd.CmdException ;
 import org.seaborne.delta.DataSourceDescription;
 
 /** Base for operations of the form:
- *   cmd --server= ds1 ds2 ds3
- *   cmd --server= --uri uri1 --uri uri2
+ *   cmd --server=... ds1 ds2
+ *   cmd --server=... --uri uri1 --uri uri2
  */
 public abstract class DeltaCmdServerOp extends DeltaCmd {
 
