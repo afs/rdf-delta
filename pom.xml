@@ -81,7 +81,7 @@
 
     <!-- Determines the Zookeeper version unless we explicit include zookeeper -->
     <ver.curator>5.9.0</ver.curator>
-    <ver.zookeeper>3.9.3</ver.zookeeper>
+    <ver.zookeeper>3.9.4</ver.zookeeper>
 
     <ver.aws-s3>1.12.767</ver.aws-s3>
     <ver.rocksdb>10.2.1</ver.rocksdb>
@@ -507,7 +507,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.11.2</version>
+          <version>3.11.3</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
