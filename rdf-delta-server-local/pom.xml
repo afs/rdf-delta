@@ -47,6 +47,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <version>${ver.rocksdb}</version>
+      <classifier>linux64</classifier>
+    </dependency>
+    
+    <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
     </dependency>
