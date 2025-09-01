@@ -46,6 +46,12 @@
       <artifactId>rocksdbjni</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <classifier>linux64</classifier>
+    </dependency>
+
     <!-- Require a logging implementation for tests -->
     <dependency>
       <groupId>org.slf4j</groupId>

@@ -79,7 +79,7 @@
     <ver.log4j2>2.25.1</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
 
-    <ver.rocksdb>10.2.1</ver.rocksdb>
+    <ver.rocksdb>10.4.2</ver.rocksdb>
 
     <ver.awaitility>4.3.0</ver.awaitility>
 
@@ -204,6 +204,13 @@
         <groupId>org.rocksdb</groupId>
         <artifactId>rocksdbjni</artifactId>
         <version>${ver.rocksdb}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.rocksdb</groupId>
+        <artifactId>rocksdbjni</artifactId>
+        <version>${ver.rocksdb}</version>
+        <classifier>linux64</classifier>
       </dependency>
 
       <dependency>
