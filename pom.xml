@@ -71,12 +71,12 @@
     <java.version>21</java.version>
 
     <ver.jena>5.5.0</ver.jena>
-    <ver.jetty>12.1.0</ver.jetty>
+    <ver.jetty>12.1.1</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.20.0</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
-    <ver.log4j2>2.25.1</ver.log4j2>
+    <ver.log4j2>2.25.2</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
 
     <!-- Determines the Zookeeper version unless we explicit include zookeeper -->
@@ -386,7 +386,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
         </plugin>
 
          <plugin>
@@ -411,7 +411,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
+          <version>3.14.1</version>
           <configuration>
             <release>${java.version}</release>
             <compilerArgument>-proc:none</compilerArgument>
@@ -427,7 +427,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.3</version> 
+          <version>3.5.4</version> 
           <configuration>
             <useSystemClassLoader>false</useSystemClassLoader>
             <includes>
