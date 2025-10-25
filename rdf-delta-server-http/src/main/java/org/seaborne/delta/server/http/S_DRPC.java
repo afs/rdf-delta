@@ -252,14 +252,14 @@ public class S_DRPC extends DeltaServlet {
         } catch (IOException ex) { throw IOX.exception(ex); }
     }
 
-    // Is the theowable
+    // Is the throwable EOF?
     private static boolean looksLikeEOF(Throwable ex) {
         if ( ex instanceof org.eclipse.jetty.io.EofException )
             return true;
         if ( ex.getCause() == null )
             return false;
         // Wrapped?
-        if ( ! ( ex instanceof RuntimeIOException ) && ! ( ex instanceof org.eclipse.jetty.io.RuntimeIOException) )
+        if ( ! ( ex instanceof RuntimeIOException ) )
             return false;
         Throwable ex2 = ex.getCause();
         if ( ex2 instanceof org.eclipse.jetty.io.EofException )

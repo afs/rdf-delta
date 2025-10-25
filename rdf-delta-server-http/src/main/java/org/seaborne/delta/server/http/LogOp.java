@@ -24,6 +24,7 @@ import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.jena.atlas.io.IO ;
+import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.json.JSON ;
 import org.apache.jena.atlas.json.JsonBuilder ;
 import org.apache.jena.atlas.json.JsonValue ;
@@ -35,7 +36,6 @@ import org.apache.jena.rdfpatch.RDFPatchOps ;
 import org.apache.jena.riot.WebContent ;
 import org.apache.jena.riot.web.HttpNames ;
 import org.apache.jena.web.HttpSC ;
-import org.eclipse.jetty.io.RuntimeIOException;
 import org.seaborne.delta.*;
 import org.slf4j.Logger ;
 
@@ -54,7 +54,7 @@ public class LogOp {
             patch = readPatch(action);
         } catch (IOException ex) {
             FmtLog.error(LOG, ex, "[%d] Patch:append ds:%s patch:failed: %s", action.id, dsRef.toString(), ex.getMessage());
-            throw new RuntimeIOException(ex);
+            throw IOX.exception(ex);
         } catch (PatchException ex) {
             FmtLog.warn(LOG, ex, "[%d] Patch:append ds:%s patch:syntax error: %s", action.id, dsRef.toString(), ex.getMessage());
             throw ex;
