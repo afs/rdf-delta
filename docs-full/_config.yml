@@ -1,6 +1,0 @@
-#repository: https://github.com/afs/rdf-delta/docs
-baseurl: /rdf-delta
-port:    4000
-encoding: utf-8
-exclude: [AFS,Gemfile, Gemfile.lock]
-#markdown: kramdown
