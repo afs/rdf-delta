@@ -70,7 +70,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
 
-    <ver.jena>5.6.0</ver.jena>
+    <ver.jena>6.0.0</ver.jena>
     <ver.jetty>12.1.6</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
@@ -193,8 +193,8 @@
        </dependency>
 
        <dependency>
-         <groupId>org.eclipse.jetty.ee10</groupId>
-         <artifactId>jetty-ee10-bom</artifactId>
+         <groupId>org.eclipse.jetty.ee11</groupId>
+         <artifactId>jetty-ee11-bom</artifactId>
          <version>${ver.jetty}</version>
          <scope>import</scope>
          <type>pom</type>
@@ -323,7 +323,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.1</version>
+          <version>3.15.0</version>
           <configuration>
             <release>${java.version}</release>
             <compilerArgument>-proc:none</compilerArgument>
@@ -339,7 +339,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.4</version> 
+          <version>3.5.5</version> 
           <configuration>
             <useSystemClassLoader>false</useSystemClassLoader>
             <includes>
@@ -376,7 +376,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.9.0</version>
+          <version>3.10.0</version>
           <configuration>
             <overWriteReleases>false</overWriteReleases>
             <overWriteIfNewer>true</overWriteIfNewer>

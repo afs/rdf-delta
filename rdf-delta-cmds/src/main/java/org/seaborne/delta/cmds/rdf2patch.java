@@ -21,14 +21,14 @@ import java.io.InputStream ;
 
 import org.apache.jena.atlas.logging.LogCtl ;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral ;
+import org.apache.jena.cmd.CmdMain;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.StreamRDF ;
 import org.apache.jena.sys.JenaSystem;
-import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /** Write an RDF file as a patch file of "adds" (prefixes and triples/quads). */
-public class rdf2patch extends CmdGeneral
+public class rdf2patch extends CmdMain
 {
     static {
         LogCtl.setLogging();

@@ -18,10 +18,12 @@
 package org.seaborne.delta.cmds;
 
 import arq.cmdline.ModDatasetAssembler;
+import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.cmd.ArgDecl;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral;
-import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.cmd.CmdMain;
+import org.apache.jena.rdfpatch.RDFPatch;
+import org.apache.jena.rdfpatch.RDFPatchOps;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -29,11 +31,9 @@ import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.system.Txn;
 import org.seaborne.delta.Id;
-import org.apache.jena.rdfpatch.RDFPatch;
-import org.apache.jena.rdfpatch.RDFPatchOps;
 
 /** Apply patches to a base RDF file (or empty dataset). */
-public class patch2rdf extends CmdGeneral
+public class patch2rdf extends CmdMain
 {
     static {
         LogCtl.setLogging();

@@ -19,21 +19,21 @@ package org.seaborne.delta.cmds;
 
 import java.io.InputStream ;
 
-import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral ;
 import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.LogCtl ;
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sys.JenaSystem;
-import org.seaborne.delta.Id;
+import org.apache.jena.cmd.CmdException;
+import org.apache.jena.cmd.CmdMain;
 import org.apache.jena.rdfpatch.RDFChanges;
 import org.apache.jena.rdfpatch.RDFPatch;
 import org.apache.jena.rdfpatch.RDFPatchOps;
 import org.apache.jena.rdfpatch.changes.RDFChangesWriteUpdate;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sys.JenaSystem;
+import org.seaborne.delta.Id;
 
 /** Generate a SPARQL Update from a patches. */
-public class patch2update extends CmdGeneral
+public class patch2update extends CmdMain
 {
     static {
         LogCtl.setLogging();

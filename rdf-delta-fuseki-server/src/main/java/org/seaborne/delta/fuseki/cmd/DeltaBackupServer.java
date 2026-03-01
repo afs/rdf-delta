@@ -23,20 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServlet;
-
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonArray;
 import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.cmd.ArgDecl;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral;
+import org.apache.jena.cmd.CmdMain;
 import org.apache.jena.fuseki.main.JettyServer;
+import org.apache.jena.rdfpatch.filelog.FilePolicy;
 import org.seaborne.delta.Delta;
 import org.seaborne.delta.fuseki.PatchWriteServlet;
 import org.seaborne.delta.lib.JSONX;
 import org.seaborne.delta.lib.LogX;
-import org.apache.jena.rdfpatch.filelog.FilePolicy;
 import  org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,7 @@ public class DeltaBackupServer {
         List<BackupArea> logs =  new ArrayList<>();
     }
 
-    static class Inner extends CmdGeneral {
+    static class Inner extends CmdMain {
         private final ArgDecl argPort     = new ArgDecl(true, "port");
         private final ArgDecl argConf     = new ArgDecl(true, "config", "cfg");
         private final ArgDecl argDir      = new ArgDecl(true, "dir");

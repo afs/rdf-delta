@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils ;
 import org.apache.jena.atlas.web.HttpException ;
 import org.apache.jena.cmd.ArgDecl;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral;
+import org.apache.jena.cmd.CmdMain;
 import org.seaborne.delta.DataSourceDescription ;
 import org.seaborne.delta.DeltaOps ;
 import org.seaborne.delta.Id ;
@@ -32,7 +32,7 @@ import org.seaborne.delta.PatchLogInfo;
 import org.seaborne.delta.client.DeltaLinkHTTP ;
 import org.seaborne.delta.link.DeltaLink ;
 
-abstract public class DeltaCmd extends CmdGeneral {
+abstract public class DeltaCmd extends CmdMain {
 
     // Environment variable, for commands, for the remote server to work with.
     public static final String ENV_SERVER_URL = "DELTA_SERVER_URL";
