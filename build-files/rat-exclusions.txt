@@ -1,0 +1,34 @@
+#### Apache RAT (release audit tool) exclusions 
+## https://creadur.apache.org/rat/
+
+**/hs_err_pid*.log
+docs/**
+local/**
+.github/**
+
+**/.project
+**/.settings/**
+**/.classpath
+**/*.recommenders/**/*
+
+**/delta.classpath*
+**/README.*
+**/*.cfg
+
+**/src/main/**/*.html
+**/src/**/package-info.java
+            
+**/*.txt
+**/*.md
+           
+**/META-INF/services/*
+            
+**/testing/**/*
+**/log4j*.properties
+**/logging*.properties
+
+**/target/**/*
+**/dependency-reduced-pom.xml
+
+**/Tutorial/**/zoo.dynamic
+**/Tutorial/**/myid

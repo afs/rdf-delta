@@ -71,15 +71,15 @@
     <java.version>21</java.version>
 
     <ver.jena>6.0.0</ver.jena>
-    <ver.jetty>12.1.6</ver.jetty>
+    <ver.jetty>12.1.7</ver.jetty>
 
     <!-- Ensure we get a version compatible with Jena. -->
     <ver.commons-io>2.21.0</ver.commons-io>
     <ver.junit>4.13.2</ver.junit>
-    <ver.log4j2>2.25.3</ver.log4j2>
+    <ver.log4j2>2.25.4</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
 
-    <ver.rocksdb>10.4.2</ver.rocksdb>
+    <ver.rocksdb>10.10.1</ver.rocksdb>
 
     <ver.awaitility>4.3.0</ver.awaitility>
 
@@ -298,7 +298,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.6.1</version>
+          <version>3.6.2</version>
         </plugin>
 
          <plugin>
@@ -367,7 +367,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.4.0</version>
+          <version>3.5.0</version>
           <configuration>
             <encoding>UTF-8</encoding>
           </configuration>
@@ -518,10 +518,16 @@
       </plugin>
 
       <!-- Run the RAT Plugin -->
-      <plugin>
+      <!--
+          To run from the command line:
+          mvn apache-rat:rat \
+          -Drat.excludeSubProjects=false \
+          -Drat.excludesFile=build-files/rat-exclusions.txt
+      -->
+     <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>0.17</version>
+        <version>0.18</version>
         <!-- 
              Run only if maven is running from this POM,
              not when run in a sub-module with this as parent.
@@ -538,58 +544,7 @@
         </executions>
         <configuration>
           <excludeSubProjects>false</excludeSubProjects>
-          <excludes>
-            <exclude>**/hs_err_pid*.log</exclude>
-            <exclude>docs/**</exclude>
-            <exclude>local/**</exclude>
-            <exclude>.github/**</exclude>
-
-            <exclude>**/.project</exclude>
-            <exclude>**/.settings/**</exclude>
-            <exclude>**/.classpath</exclude>
-            <exclude>**/*.recommenders/**/*</exclude>
-
-            <exclude>**/delta.classpath*</exclude>
-            <exclude>**/README.*</exclude>
-            <exclude>**/*.cfg</exclude>
-
-            <!--
-                Javadoc add-ons files are required to be simple and our javadoc configuration
-                will ensure appropriate license and copyright statements are inserted
-                into generated documentation anyway so no need to put license statements in these
-                files
-            -->
-            <exclude>**/src/main/**/*.html</exclude>
-            <exclude>**/src/**/package-info.java</exclude>
-            
-            <!--
-                Text and Markdown files are typically used only for documentation purposes
-                and license declarations are usually spurious in these files since often they
-                will refer to the LICENSE/NOTICE for users to find the actual licenses
-            -->
-            <exclude>**/*.txt</exclude>
-            <exclude>**/*.md</exclude>
-           
-            <!--
-                META-INF services files can include comments but a license header would be
-                unnecessarily clutter so we exclude these
-            -->
-            <exclude>**/META-INF/services/*</exclude>
-            
-            <exclude>**/testing/**/*</exclude>
-            <exclude>**/log4j*.properties</exclude>
-            <exclude>**/logging*.properties</exclude>
-
-            <!-- Exclude anything created during the build (plugin generated files) ->-->
-            <exclude>**/target/**/*</exclude>
-            <!-- MSHADE-124 -->
-            <exclude>**/dependency-reduced-pom.xml</exclude>
-
-            <!-- ZooKeeper files -->
-            <exclude>**/Tutorial/**/zoo.dynamic</exclude>
-            <exclude>**/Tutorial/**/myid</exclude>
-
-          </excludes>
+          <inputExcludeFile>build-files/rat-exclusions.txt</inputExcludeFile>
         </configuration>
       </plugin>
 
