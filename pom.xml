@@ -79,7 +79,7 @@
     <ver.log4j2>2.25.3</ver.log4j2>
     <ver.slf4j>2.0.7</ver.slf4j>
 
-    <ver.rocksdb>10.4.2</ver.rocksdb>
+    <ver.rocksdb>10.10.1</ver.rocksdb>
 
     <ver.awaitility>4.3.0</ver.awaitility>
 
