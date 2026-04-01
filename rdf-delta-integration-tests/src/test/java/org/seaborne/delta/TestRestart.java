@@ -22,15 +22,17 @@ import static org.junit.Assert.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.*;
+
+import org.apache.jena.atlas.io.IOX;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.lib.FileOps;
+import org.apache.jena.atlas.lib.Lib;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
-import org.junit.*;
 import org.seaborne.delta.client.*;
-import org.apache.jena.atlas.io.IOX;
 import org.seaborne.delta.lib.LogX;
 import org.seaborne.delta.link.DeltaLink;
 import org.seaborne.delta.server.local.DeltaLinkLocal;
@@ -74,8 +76,6 @@ public class TestRestart {
         FileOps.ensureDir(dirname);
         FileOps.clearAll(dirname);
     }
-    //DeltaTestLib.
-
 
     private static void test(Id dsRef, DeltaClient dClient, int numQuads) {
         try(DeltaConnection dConn = dClient.get(dsRef)) {
@@ -217,8 +217,12 @@ public class TestRestart {
 
         test(dsRef, deltaClient, 0);
         update(dsRef, deltaClient);
+        test(dsRef, deltaClient, 1);
 
         shutdown();
+		// Blip to let shutdown be scheduled.
+		// Imperfect but avoids recoding shutdown just for this test inside one JVM.
+        Lib.sleep(100);
         setup();
 
         assertTrue(deltaClient.existsLocal(dsRef));
