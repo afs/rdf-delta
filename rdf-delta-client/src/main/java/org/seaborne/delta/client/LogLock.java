@@ -107,6 +107,15 @@ public class LogLock {
         lockSessionId.set(null);
     }
 
+    // convert "local" HttpException to 503.
+    private static HttpException httpException(HttpException ex) {
+        return HttpException.builder()
+                .statusCode(HttpSC.SERVICE_UNAVAILABLE_503)
+                .statusLine(HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503))
+                .responseMessage(ex.getMessage())
+                .build();
+    }
+
     private static Id _acquireLock(DeltaLink dLink, Id datasourceId) {
         try {
             Id id = attemptToAcquireLock(0, dLink, datasourceId);
@@ -116,7 +125,7 @@ public class LogLock {
             failedConnection();
             FmtLog.warn(LOG, "Failed to acquire the patch log lock: %s", datasourceId);
             if ( ex.getStatusCode() == -1 )
-                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+                throw httpException(ex);
             throw ex;
         }
     }
@@ -128,7 +137,7 @@ public class LogLock {
             failedConnection();
             FmtLog.warn(LOG, "Failed to refresh the patch log lock: %s", datasourceId);
             if ( ex.getStatusCode() == -1 )
-                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+                throw httpException(ex);
             throw ex;
         }
     }
@@ -140,7 +149,7 @@ public class LogLock {
             failedConnection();
             FmtLog.warn(LOG, "Failed to read the patch log lock: %s", datasourceId);
             if ( ex.getStatusCode() == -1 )
-                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+                throw httpException(ex);
             throw ex;
         }
     }
@@ -151,7 +160,7 @@ public class LogLock {
         } catch (HttpException ex) {
             FmtLog.warn(LOG, "Failed to grab the patch log lock: %s", datasourceId);
             if ( ex.getStatusCode() == -1 )
-                throw new HttpException(HttpSC.SERVICE_UNAVAILABLE_503, HttpSC.getMessage(HttpSC.SERVICE_UNAVAILABLE_503), ex.getMessage());
+                throw httpException(ex);
             failedConnection();
             throw ex;
         }
